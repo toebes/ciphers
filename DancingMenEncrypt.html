@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <link rel="stylesheet" href="jquery-ui.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="text/javascript" src="jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="jquery-ui.min.js"></script>
+    <title>DancingMen Encrypt</title>
+</head>
+<body>
+    <a href="index.html">Back to Cipher Tools</a>
+    <h1>
+        DancingMen Encrypt</h1>
+    <hr />
+    <label for="toencode">
+        Text to encode</label>
+    <textarea id="toencode" cols="20" rows="2"></textarea>
+    <input id="encrypt" type="button" value="encrypt" />
+    <hr />
+    <div class="ans DancingMen" id="answer">
+    </div>
+    <script type="text/javascript">
+        var charset = "abcdefghijklmnopqrstuvwxyz";
+
+         function encode(str) {
+            str += ' ';
+            var res = "";
+            var i, len;
+ 
+            for (i = 0, len = str.length; i < len; i++) {
+                var t = str.substr(i, 1).toLowerCase();
+                var pos = charset.indexOf(t);
+                if (pos >= 0) {
+                    res += t;
+                } else if (t == ' ') {
+                    if (res.length > 0) {
+                        res = res.substr(0, res.length-1) + res.charAt(res.length - 1).toUpperCase();   
+                    }
+                }
+            }
+            return res;
+        }
+        function calc() {
+            var toencode = $('#toencode').val();
+            console.log('encode=' + toencode);
+            var res = encode(toencode);
+            //var res = affine(a, b, toencode);
+            $("#answer").text(res);
+        }
+
+        $(".inp").change(function () {
+            calc();
+        });
+        $(".inp").blur(function () {
+            calc();
+        });
+        $('#encrypt').button().click(function () {
+            calc();
+        })
+    </script>
+</body>
+</html>

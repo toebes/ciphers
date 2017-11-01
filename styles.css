@@ -1,0 +1,221 @@
+﻿input, textarea, .ibox {
+    display: block;
+    margin-left: 160px;
+    margin-bottom: 10px;
+    width: 600px;
+}
+
+.slookup label {
+    clear: none;
+}
+
+.sfind {
+    clear: none;
+    width: 200px;
+}
+
+.ans {
+    width: 600px;
+    font-size: 16px;
+    font-family: "Courier New", Courier, monospace;
+    margin-bottom: 24px;
+    font-weight: bold;
+    line-height: 200%;
+}
+
+.err {
+    height: 18px;
+}
+
+.cmds {
+    display: block;
+    border-bottom: 1px solid grey;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.sword {
+    float: left;
+    background-color: #eaeaea;
+    margin: 3px 5px;
+    line-height: normal;
+}
+.l50,.l0  { background-color: lawngreen;}
+.l100,.l1 { background-color: greenyellow;}
+.l200,.l2 {background-color:yellow;}
+.l500,.l3 {background-color:lightpink;}
+.g500,.l4 { background-color: lightcoral;}
+.nopat,.l5 { background-color: red;}
+.nomatch { text-decoration: line-through;}
+.sli {
+    margin: 0;
+    width: 15px;
+    text-align: center;
+    border: 1px black dotted;
+    height: 25px;
+}
+
+.slil {
+    display: block;
+    width: 15px;
+    text-align: center;
+}
+
+.ssum {
+    display: block;
+    clear: both;
+    margin: 5px;
+}
+
+.sitem {
+    display: inline;
+}
+
+label {
+    clear: both;
+    color: #B4886B;
+    font-weight: bold;
+    display: block;
+    width: 150px;
+    float: left;
+    text-align: right;
+}
+
+    label.slil:after {
+        content: none;
+    }
+
+.allfocus {
+    background-color: yellow;
+}
+
+.focus {
+    border: 1px solid black !important;
+}
+
+label:after {
+    content: ": ";
+}
+
+table.mword {
+    border: 1px solid black;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+    table.mword td {
+        border-right: 1px dotted grey;
+        border-bottom: 1px solid black;
+        background-color: white;
+    }
+
+    table.mword .error {
+        background-color: red;
+    }
+
+    table.mword .null {
+        background-color: #f6f6f6;
+    }
+
+    table.mword .space {
+        background-color: lightgray;
+    }
+
+    table.mword .cont {
+        background-color: lightgreen;
+    }
+
+    table.mword .num {
+        background-color: lightblue;
+    }
+
+    table.mword .sym {
+        background-color: lightcoral;
+    }
+
+
+.tword {
+    height: 55px;
+    margin: 0;
+    border: 0;
+    border-spacing: 0;
+}
+
+.idiv {
+    float: left;
+}
+
+table.tfreq, table.satable {
+    clear: both;
+    border-collapse: collapse;
+}
+
+table.ckfreq {
+    border-collapse: collapse;
+    margin-left: 20px;
+}
+
+.ckfreq td, .ckfreq th, .tfreq td, table.mfind td {
+    border: 1px solid black;
+}
+
+table.mfind {
+    border-collapse: collapse;
+}
+
+    table.mfind td {
+        font-family: Courier New, Courier, monospace;
+    }
+
+    .ckfreq th,
+    .tfreq thead th,
+    .satable thead th,
+    table.mfind th {
+        background-color: #D3D3D3;
+    }
+
+.ckfreq thead .topleft,
+.tfreq thead .topleft {
+    border-left: none;
+    border-top: none;
+    background-color: white;
+}
+
+.sanalysis {
+    float: left;
+    margin-right: 10px;
+}
+
+.ckfreq td, .tfreq td {
+    width: 20px;
+    text-align: center;
+}
+
+.satable td {
+    width: 120px;
+    vertical-align: top;
+}
+
+@font-face {
+    font-family: 'DancingMen';
+    src: url('Dancingm.ttf?') format('truetype');
+}
+
+.DancingMen {
+    font-family: "DancingMen Font", Verdana, Tahoma;
+    font-size: 24pt;
+    font-weight: bold;
+}
+
+input[type="radio"] {
+    display: inline;
+    width: auto;
+    margin-left: 0px;
+    margin-bottom: 0px;
+}
+
+.rlab {
+    display: inline;
+    width: auto;
+    float:none;
+}

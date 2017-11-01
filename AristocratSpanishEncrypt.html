@@ -1,0 +1,389 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <link rel="stylesheet" href="jquery-ui.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="text/javascript" src="jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="jquery-ui.min.js"></script>
+    <title>Aristrocrat Spanish Encrypt</title>
+</head>
+<body>
+    <a href="index.html">Back to Cipher Tools</a>
+    <h1>
+        Aristrocrat Spanish Encrypt</h1>
+    <hr />
+    <label for="toencode">
+        Text to encode</label>
+    <!-- input id="toencode1" class="inp" title="Text to encode" type="text" /-->
+    <textarea id="toencode" cols="20" rows="2"></textarea>
+    <input id="encrypt" type="button" value="encrypt" />
+    <hr />
+    <div class="ans" id="answer">
+    </div>
+    <div class="freq">
+        <table class="tfreq">
+            <thead>
+                <tr>
+                    <th class="topleft">
+                        &nbsp;
+                    </th>
+                    <th>
+                        A
+                    </th>
+                    <th>
+                        B
+                    </th>
+                    <th>
+                        C
+                    </th>
+                    <th>
+                        D
+                    </th>
+                    <th>
+                        E
+                    </th>
+                    <th>
+                        F
+                    </th>
+                    <th>
+                        G
+                    </th>
+                    <th>
+                        H
+                    </th>
+                    <th>
+                        I
+                    </th>
+                    <th>
+                        J
+                    </th>
+                    <th>
+                        K
+                    </th>
+                    <th>
+                        L
+                    </th>
+                    <th>
+                        M
+                    </th>
+                    <th>
+                        N
+                    </th>
+                    <th>
+                        Ñ
+                    </th>
+                    <th>
+                        O
+                    </th>
+                    <th>
+                        P
+                    </th>
+                    <th>
+                        Q
+                    </th>
+                    <th>
+                        R
+                    </th>
+                    <th>
+                        S
+                    </th>
+                    <th>
+                        T
+                    </th>
+                    <th>
+                        U
+                    </th>
+                    <th>
+                        V
+                    </th>
+                    <th>
+                        W
+                    </th>
+                    <th>
+                        X
+                    </th>
+                    <th>
+                        Y
+                    </th>
+                    <th>
+                        Z
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>
+                        Frequency
+                    </th>
+                    <td id="fA">
+                        &nbsp;
+                    </td>
+                    <td id="fB">
+                        &nbsp;
+                    </td>
+                    <td id="fC">
+                        &nbsp;
+                    </td>
+                    <td id="fD">
+                        &nbsp;
+                    </td>
+                    <td id="fE">
+                        &nbsp;
+                    </td>
+                    <td id="fF">
+                        &nbsp;
+                    </td>
+                    <td id="fG">
+                        &nbsp;
+                    </td>
+                    <td id="fH">
+                    </td>
+                    <td id="fI">
+                    </td>
+                    <td id="fJ">
+                    </td>
+                    <td id="fK">
+                    </td>
+                    <td id="fL">
+                        &nbsp;
+                    </td>
+                    <td id="fM">
+                        &nbsp;
+                    </td>
+                    <td id="fN">
+                        &nbsp;
+                    </td>
+                    <td id="fÑ">
+                        &nbsp;
+                    </td>
+                    <td id="fO">
+                        &nbsp;
+                    </td>
+                    <td id="fP">
+                        &nbsp;
+                    </td>
+                    <td id="fQ">
+                        &nbsp;
+                    </td>
+                    <td id="fR">
+                        &nbsp;
+                    </td>
+                    <td id="fS">
+                        &nbsp;
+                    </td>
+                    <td id="fT">
+                        &nbsp;
+                    </td>
+                    <td id="fU">
+                        &nbsp;
+                    </td>
+                    <td id="fV">
+                        &nbsp;
+                    </td>
+                    <td id="fW">
+                        &nbsp;
+                    </td>
+                    <td id="fX">
+                        &nbsp;
+                    </td>
+                    <td id="fY">
+                        &nbsp;
+                    </td>
+                    <td id="fZ">
+                        &nbsp;
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        Replacement
+                    </th>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        &nbsp;
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script type="text/javascript">
+        var charset = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ";
+        var unasigned = "";
+        var replacement = "";
+        var freq = [];
+        var accents = { "Á": "A", "É": "E", "Í": "I", "Ó": "O", "Ú": "U", "Ý": "Y" };
+
+        function getRepl() {
+            var sel = Math.floor(Math.random() * unasigned.length);
+            var res = unasigned.substr(sel, 1);
+            unasigned = unasigned.substr(0, sel) + unasigned.substr(sel + 1);
+            return res;
+        }
+
+        function genMap() {
+            unasigned = charset;
+            replacement = "";
+            var pos = 0;
+
+            while (unasigned.length > 1) {
+                var orig = charset.substr(pos, 1);
+                var repl = getRepl();
+                // If the replacement character is the same as the original
+                // then we just get another one and put the replacement back at the end
+                // This is guaranteed to be unique
+                if (orig == repl) {
+                    var newrepl = getRepl();
+                    unasigned += repl;
+                    repl = newrepl;
+                }
+                replacement += repl;
+                pos++;
+            }
+
+            // Now we have to handle the special case of the last character
+            if (charset.substr(pos, 1) == unasigned) {
+                // Just pick a randome spot in what we have already done and
+                // swap it.  We are guaranteed that it won't be the last character
+                // since it matches already
+                var sel = Math.floor(Math.random() * replacement.length);
+                replacement = replacement.substr(0, sel) + unasigned + replacement.substr(sel + 1) + replacement.substr(sel, 1);
+            } else {
+                replacement += unasigned;
+            }
+            console.log(charset);
+            console.log(replacement);
+        }
+
+        function encode(str) {
+            var res = "";
+            var i, len;
+            freq = [];
+            for (i = 0, len = charset.length; i < len; i++) {
+                freq[charset.substr(i, 1).toUpperCase()] = 0;
+            }
+            for (i = 0, len = str.length; i < len; i++) {
+                var t = str.substr(i, 1).toUpperCase();
+                if (accents.hasOwnProperty(t)) {
+                    t = accents[t];
+                }
+                var pos = charset.indexOf(t);
+                if (pos >= 0) {
+                    t = replacement.substr(pos, 1);
+                    if (isNaN(freq[t])) {
+                        freq[t] = 0;
+                    }
+                    freq[t]++;
+                }
+                res += t;
+            }
+            console.log(freq);
+            return res;
+        }
+        function calc() {
+            var toencode = $('#toencode').val();
+            console.log('encode=' + toencode);
+            genMap();
+            var res = encode(toencode);
+            //var res = affine(a, b, toencode);
+            $("#answer").text(res);
+
+            for (var c in freq) {
+                if (freq.hasOwnProperty(c)) {
+                    var subval = freq[c];
+                    if (subval == 0) {
+                        $('#f' + c).text('');
+                    } else {
+                        $('#f' + c).text(subval);
+                    }
+                }
+            }
+        }
+
+        $(".inp").change(function () {
+            calc();
+        });
+        $(".inp").blur(function () {
+            calc();
+        });
+        $('#encrypt').button().click(function () {
+            calc();
+        })
+    </script>
+</body>
+</html>

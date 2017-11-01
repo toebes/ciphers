@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <link rel="stylesheet" href="jquery-ui.min.css"/>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="text/javascript" src="jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="jquery-ui.min.js"></script>
+    <title>Affine Encrypt</title>
+</head>
+<body>
+    <h1>Affine Encrypt</h1>
+    <a href="index.html">Back to Cipher Tools</a>
+    <hr />
+    <label for="toencode">
+        Text to encode</label>
+    <input id="toencode" class="inp" title="Text to encode" type="text" />
+    <div>
+    <label for="a">
+        a</label>
+    <input id="a" class="inp spin" title="a" type="text" value="1"/>
+    </div>
+    <div>
+    <label for="b">
+        b</label>
+    <input id="b" class="inp spin" title="b" type="text" value ="1"/>
+    </div>
+    <div class="err" id="err">
+    </div>
+    <input id="encrypt" type="button" value="encrypt" />
+    <hr />
+    <div class="ans" id="answer">
+    </div>
+    <script type="text/javascript">
+        var charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        function gcd(a, b) {
+            if (isNaN(a)) { return a; }
+            if (isNaN(b)) { return b; }
+            if (a < 0) { a = -a; }
+            if (b < 0) { b = -b; }
+
+            if (b > a) { var temp = a; a = b; b = temp; }
+            while (true) {
+                console.log('gcd a=' + a + ' b=' + b);
+                if (b == 0) return a;
+                a %= b;
+                if (a == 0) return b;
+                b %= a;
+            }
+        }
+        function iscoprime(a) {
+            console.log('iscoprime a=' + a + ' len=' + charset.length);
+            var gcdval = gcd(a, charset.length);
+            console.log('gcd(' + a + ',' + charset.length + ')=' + gcdval);
+            if (gcdval != 1) {
+                return false;
+            }
+            return true;
+        }
+
+        function affinechar(a, b, chr) {
+            var x = charset.indexOf(chr.toUpperCase());
+            if (x < 0)
+            { return chr; }
+            var y = ((a * x) + b) % charset.length;
+            var res = charset.substr(y, 1);
+            console.log('char=' + chr + ' x=' + x + ' a=' + a + ' b=' + b + ' y=' + y + ' res=' + res);
+            return res;
+        }
+
+        function affine(a, b, str) {
+            var res = "";
+            if (!iscoprime(a)) {
+                console.log('not coprime');
+                $('#err').text('A value of ' + a + ' is not coprime with ' + charset.length);
+                return '';
+            }
+            $('#err').text('');
+            console.log('is coprime');
+
+            for (var i = 0, len = str.length; i < len; i++) {
+                var t = affinechar(a, b, str.substr(i, 1));
+                res += t;
+            }
+            return res;
+        }
+        function calc() {
+            var atxt = $('#a').spinner("value");
+            var btxt = $('#b').spinner("value");
+            var a = parseInt(atxt);
+            var b = parseInt(btxt);
+            var toencode = $('#toencode').val();
+            console.log('a=' + a + ' b=' + b + ' encode=' + toencode);
+            var res = affine(a, b, toencode);
+            $("#answer").text(res);
+        }
+        $(".spin").spinner({
+
+            spin: function (event, ui) {
+                if (ui.value >= charset.length) {
+                    $(this).spinner("value", 0);
+                    return false;
+                } else if (ui.value < 0) {
+                    $(this).spinner("value", charset.length - 1);
+                    return false;
+                }
+            }
+        });
+        $(".inp").change(function () {
+            calc();
+        });
+        $(".inp").blur(function () {
+            calc();
+        });
+        $('#encrypt').button().click(function () {
+            calc();
+        })
+    </script>
+</body>
+</html>

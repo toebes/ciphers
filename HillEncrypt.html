@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <link rel="stylesheet" href="jquery-ui.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="text/javascript" src="jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="jquery-ui.min.js"></script>
+    <script src="math.min.js" type="text/javascript"></script>
+    <title>Hill Encrypt (2x2 and 3x3)</title>
+</head>
+<body>
+    <h1>
+        Hill Encrypt (2x2 and 3x3)</h1>
+    <a href="index.html">Back to Cipher Tools</a>
+    <hr />
+    <label for="toencode">
+        Text to encode</label>
+    <input id="toencode" class="inp" title="Text to encode" type="text" />
+    <div>
+        <label for="key">
+            key</label>
+        <input id="key" class="inp" title="key" type="text" value="ABCD" />
+    </div>
+    <div class="err" id="err">
+    </div>
+    <input id="encrypt" type="button" value="encrypt" />
+    <hr />
+    <div class="ans" id="answer">
+    </div>
+    <script type="text/javascript">
+        var charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        var padval = "ZZZZZZZ";
+
+        function gcd(a, b) {
+            if (isNaN(a)) { return a; }
+            if (isNaN(b)) { return b; }
+            if (a < 0) { a = -a; }
+            if (b < 0) { b = -b; }
+
+            if (b > a) { var temp = a; a = b; b = temp; }
+            while (true) {
+                console.log('gcd a=' + a + ' b=' + b);
+                if (b == 0) return a;
+                a %= b;
+                if (a == 0) return b;
+                b %= a;
+            }
+        }
+        function iscoprime(a) {
+            console.log('iscoprime a=' + a + ' len=' + charset.length);
+            var gcdval = gcd(a, charset.length);
+            console.log('gcd(' + a + ',' + charset.length + ')=' + gcdval);
+            if (gcdval != 1) {
+                return false;
+            }
+            return true;
+        }
+        /**
+        * Helper function to output a value in the console. Value will be formatted.
+        * @param {*} value
+        */
+        function mprint(note, value) {
+            var precision = 14;
+            console.log(note + math.format(value, precision));
+        }
+
+        // Pad a string with the padding character based on the grouping size
+        function padstr(str, groupsize) {
+            var res = "";
+            var i, len;
+            console.log('padstr(' + str + ',' + groupsize + ')');
+            str = str.toUpperCase();
+            for (i = 0, len = str.length; i < len; i++) {
+                var t = str.substr(i, 1);
+                var x = charset.indexOf(t);
+                if (x >= 0) {
+                    res += t;
+                }
+            }
+            console.log(res);
+            var topad = (groupsize - (res.length % groupsize)) % groupsize;
+            res += padval.substr(0, topad);
+            return res;
+        }
+        
+        function hill(key, str) {
+            var res = "";
+            var vals = [];
+            var i, len, t, groupsize, x;
+            if (key.length != 4 && key.length != 9) {
+                console.log('Invalid key length:' + key.length);
+                $('#err').text('Invalid key.  It must be either 4 or 9 characters long');
+                return '';
+            }
+            // Figure out how big our array for encoding is
+            groupsize = math.sqrt(key.length);
+
+            // pad out the string to contain full groups of the group size
+            str = padstr(str, groupsize);
+            // Parse out the key and create the matrix to multiply by
+            for (i = 0, len = key.length; i < len; i++) {
+                var row;
+                t = key.substr(i, 1).toUpperCase();
+                x = charset.indexOf(t);
+                if (x < 0) {
+                    console.log('Invalid character:' + t);
+                    $('#err').text('Invalid key character:' + t);
+                    return '';
+                }
+                row = Math.floor(i / groupsize);
+                if (typeof vals[row] === 'undefined') {
+                    vals[row] = [];
+                }
+                vals[row][i % groupsize] = x;
+            }
+
+            var determinant = math.det(vals);
+            if (determinant == 0) {
+                $('#err').text('Matrix is not invertable');
+                return '';
+            }
+            if (!iscoprime(determinant, charset.length)) {
+                $('#err').text('Matrix is not invertable.  Determinant ' + determinant + ' is not coprime with ' + charset.length);
+                return '';
+            }
+            //console.log('Determinant =' + math.det(vals));
+            // console.log('Inverse =' + math.inv(vals));
+
+            mprint('Encoding Array:',vals);
+            // Go through the string in the group size and perform the math on it
+            for (i = 0, len = str.length; i < len; i += groupsize) {
+                var cluster = [];
+                for (j = i; j < i + groupsize; j++) {
+                    t = str.substr(j, 1);
+                    x = charset.indexOf(t);
+                    if (x < 0) {
+                        $('#err').text('Internal error:' + t + ' invalid character');
+                        return '';
+                    }
+                    cluster.push(x);    // cluster.push([x]);
+                }
+                var clustervals = math.multiply(vals, cluster);
+                mprint('Cluster:',cluster);
+                mprint('Result', clustervals);
+                for (j = 0; j < groupsize; j++) {
+                    res += charset.substr(clustervals[j] % charset.length, 1);
+                }
+            }
+            $('#err').text('');
+            //            for (i = 0, len = str.length; i < len; i++) {
+            //                t = affinechar(a, b, str.substr(i, 1));
+            //                res += t;
+            //            }
+            return res;
+        }
+        function calc() {
+            var key = $('#key').val();
+            var toencode = $('#toencode').val();
+            console.log('key=' + key + ' encode=' + toencode);
+            var res = hill(key, toencode);
+            $("#answer").text(res);
+        }
+
+        $(".inp").change(function () {
+            calc();
+        });
+        $(".inp").blur(function () {
+            calc();
+        });
+        $('#encrypt').button().click(function () {
+            calc();
+        })
+    </script>
+</body>
+</html>

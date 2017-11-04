@@ -219,3 +219,15 @@ input[type="radio"] {
     width: auto;
     float:none;
 }
+
+.TOSOLVE,.TOANSWER {
+    font-family: Courier New, Courier, monospace;    
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 0pt;
+    line-height: 100%;
+}
+.TOANSWER {
+    background-color: #ffff00;
+    margin-bottom: 16pt;
+}

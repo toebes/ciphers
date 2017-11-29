@@ -13,12 +13,36 @@
     <h1>
         Vigen&egrave;re Encoder
     </h1>
+    <hr />
+    <div class="cipher-type" id="vigenere"></div>
+    <label for="inputdata">
+        Message
+    </label>
+    <textarea id="inputdata" cols="20" rows="2"></textarea>
+
+    <label for="keystring">
+        Key
+    </label>
+    <textarea id="keystring" cols="20" rows="2"></textarea>
+    
+    <div id="blocksize">
+        <label for="blocksize">Block size</label>
+        <input id="blocksize" class="inp spin" type="text" value="0" />
+    </div>
+    
+    <div class="err" id="err"></div>
+    <div class="cmds" data-cipher="Vigenere">
+        <input id="load" type="button" value="Encode" />
+    </div>
+    <div class="ans" id="answer"></div>
+    
+     <!--
     <h2>Temporarily Unavailable</h2>
     <p>
     For Vigen&egrave;re you can use <a href="http://www.dcode.fr/vigenere-cipher">http://www.dcode.fr/vigenere-cipher</a> in the meantime.</p>
     <p>For a running key cipher, you can use
         <a href="http://practicalcryptography.com/ciphers/running-key-cipher/">http://practicalcryptography.com/ciphers/running-key-cipher/</a>.</p>
-        <!--     <hr />
+            <hr />
     <label for="encoded">
         Text to Encode
     </label>

@@ -6,6 +6,7 @@
     <script type="text/javascript" src="jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="jquery-ui.min.js"></script>
     <script src="math.min.js" type="text/javascript"></script>
+    <script type="text/javascript" async src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML'></script>
     <title>Hill Encrypt (2x2 and 3x3)</title>
 </head>
 <body>
@@ -27,6 +28,8 @@
     <hr />
     <div class="ans" id="answer">
     </div>
+    <p class="equations" id="equations">
+    </p>
     <script type="text/javascript">
         var charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         var padval = "ZZZZZZZ";
@@ -127,6 +130,7 @@
             // console.log('Inverse =' + math.inv(vals));
 
             mprint('Encoding Array:',vals);
+            var equation = '';
             // Go through the string in the group size and perform the math on it
             for (i = 0, len = str.length; i < len; i += groupsize) {
                 var cluster = [];
@@ -145,12 +149,19 @@
                 for (j = 0; j < groupsize; j++) {
                     res += charset.substr(clustervals[j] % charset.length, 1);
                 }
+                // Build a big long string from each encoding that represents 
+                // the equations using MathJax.
+                equation += buildEquation(groupsize, vals, cluster, clustervals);
             }
             $('#err').text('');
             //            for (i = 0, len = str.length; i < len; i++) {
             //                t = affinechar(a, b, str.substr(i, 1));
             //                res += t;
             //            }
+            $('#equations').text(equation);
+            // Dont show matrix math equations yet, htey need to be typeset
+            // which is done on button click.
+            $('#equations').hide();
             return res;
         }
         function calc() {
@@ -161,6 +172,106 @@
             $("#answer").text(res);
         }
 
+        /**
+         * This function builds an equation for a single 'row'
+         * 
+         * @param {integer} size of the key matrix dimensions (sq. root of key lenght)
+         * @param {array} array of key letter values (i.e. size x size)
+         * @param {array} array of message letter values (i.e. size x 1)
+         * @param {array} array of encoded letter values (i.e. size x1)
+         * @returns {string} MathJax string of entire matrix math equation
+         */
+        function buildEquation(size, keyArray, msgArray, resultArray) {
+
+            var equation = ''
+            var row, col;
+
+            // Set up MathJax for each matrix (we are using {array} because
+            // elements can be centered.  We put verical bars around it to
+            // make it look like a matrix.)
+            var keyLetters = '$$\\left|\\begin{array}{cc}';
+            var msgLetters = '\\left|\\begin{array}{c}';
+            var keyValues = '\\left|\\begin{array}{cc}';
+            var msgValues = '\\left|\\begin{array}{c}';
+            var multiplying = '\\left|\\begin{array}{c}';
+            var resultValues = '\\left|\\begin{array}{c}';
+            var resultMod26 = '\\left|\\begin{array}{c}';
+            var resultLetters = '\\left|\\begin{array}{c}';
+
+            // This will hold the calculated value of the matrix element
+            // multiplication.
+            var x;
+            // Loop through the rows and colums and build the equations string.
+            for (row = 0; row < size; row++) {
+                x = 0;
+                for (col = 0; col < size; col++) {
+                    // Append element delimiter after first element.
+                    if (col > 0) {
+                        // elements in matrices with more than one column are 
+                        // delimited with '&'.  The '+' is for the element
+                        // multiply equation.
+                        keyLetters += ' & ';
+                        keyValues += ' & ';
+                        multiplying += ' + ';                        
+                    }
+                    // Use typewriter font throughout...
+                    // Fill in the elements for all the multi-column matricies
+                    keyLetters += ('\\mathtt{'+charset.substr(keyArray[row][col], 1)+'}');
+                    keyValues += ('\\mathtt{'+keyArray[row][col]+'}');
+                    multiplying += (('\\mathtt{'+keyArray[row][col] + ' \\cdot ' + msgArray[col]+'}'));
+                    x += keyArray[row][col] * msgArray[col];
+                }                
+                // Fill in the elements for all the single column matricies
+                msgLetters += ('\\mathtt{'+charset.substr(msgArray[row], 1)+'}');
+                msgValues += ('\\mathtt{'+msgArray[row]+'}');
+                resultValues += ('\\mathtt{'+x+'}');
+                resultMod26 += ('\\mathtt{'+(x % charset.length)+'}');
+                resultLetters += ('\\mathtt{'+charset.substr(x % charset.length, 1)+'}');
+                // Add a row separator except after the last row.
+                if (row !== size-1) {
+                    keyLetters += '\\\\';
+                    msgLetters += '\\\\';
+                    keyValues += '\\\\';
+                    msgValues += '\\\\';
+                    multiplying += '\\\\';
+                    resultValues += '\\\\';
+                    resultMod26 += '\\\\';
+                    resultLetters += '\\\\';
+                }
+            }
+            // Close off each matrix (array)
+            keyLetters += '\\end{array}\\right|';
+            msgLetters += '\\end{array}\\right|';
+            keyValues += '\\end{array}\\right|';
+            msgValues += '\\end{array}\\right|';
+            multiplying += '\\end{array}\\right|';
+            resultValues += '\\end{array}\\right|';
+            resultMod26 += '\\end{array}\\right|';
+            // The extra four $'s create some space between equations
+            resultLetters +='\\end{array}\\right|$$$$$$';
+
+            // Build the complete equation string using operators and
+            // whatnot between each matrix.
+            equation += keyLetters;
+            equation += ' \\cdot ';
+            equation += msgLetters;
+            equation += '\\equiv';
+            equation += keyValues;
+            equation += ' \\cdot ';
+            equation += msgValues;
+            equation += '\\equiv';
+            equation += multiplying;
+            equation += '\\equiv';
+            equation += resultValues;
+            equation += '\\equiv';
+            equation += resultMod26;
+            equation += '\\text{(mod 26)}\\equiv';
+            equation += resultLetters;
+
+            // Done!
+            return equation;
+        }
+
         $(".inp").change(function () {
             calc();
         });
@@ -168,7 +279,19 @@
             calc();
         });
         $('#encrypt').button().click(function () {
+            // Only do the hardcore stuff when the button is clicked.
+            // Set it to 'zoom' the equation on hover.
+            MathJax.Hub.Config({
+                menuSettings: {
+                    zoom: "Hover"
+                }
+            });
             calc();
+            // Now that the calculations have been done, 
+            // asynchronously typeset them.
+            MathJax.Hub.Queue(['Typeset',MathJax.Hub,'equations']);
+            // Show equations
+            $('#equations').show();
         })
     </script>
 </body>

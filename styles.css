@@ -1,10 +1,17 @@
-﻿input, textarea, .ibox {
+﻿input, textarea, .ibox, .ui-spinner {
     display: block;
     margin-left: 160px;
     margin-bottom: 10px;
     width: 600px;
 }
 
+.ui-spinner {
+    width: 100px;
+}
+
+.ui-spinner-input {
+    width: 62px;
+}
 .slookup label {
     clear: none;
 }

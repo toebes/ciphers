@@ -238,3 +238,12 @@ input[type="radio"] {
     background-color: #ffff00;
     margin-bottom: 16pt;
 }
+
+.TOSOLVECLICK,.TOANSWERCLICK {
+    font-family: Courier New, Courier, monospace;    
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #74a4eb;
+    margin-bottom: 0pt;
+    line-height: 100%;
+}

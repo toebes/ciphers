@@ -316,6 +316,7 @@ var CipherTool = {
     encodedString: '',
     Frequent: {},
     freq: [],
+    chunkIt: false,
 
     /** @description Sets the character set used by the Decoder.
      * @param {string} charset the set of characters to be used. 
@@ -1517,6 +1518,15 @@ var CipherTool = {
         });
         this.attachHandlers();
     },
+    /**
+     * Set flag to 'chunk' input data string befre encoding.  Used in Patristocrat, 
+     */
+    setCipherType: function (cipherType) {
+        if (cipherType == 'patristocrat') {
+            console.log(cipherType+" -- set chunking.")
+            this.chunkIt = true;
+        }
+    },
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *
      * Gromark Solver
@@ -2581,11 +2591,48 @@ var CipherTool = {
         this.ShowRevReplace = false;
     },
     /**
+     * Convert the text to chunks of (chunkSize) characters separated
+     * by a space.  Just keep characters that are in the character set and 
+     * remove all punctuation, etc.
+     * Note: the string could be toUpperCase()'d here, but it is done later.
+     * @returns chunked input string
+     */
+    chunk: function(inputString, chunkSize) {
+        var chunkIndex = 1;        
+        var charset = this.getCharset();
+        var chunkedString = '';
+        for (var i = 0; i< inputString.length; i++) {
+            
+            // Skip anthing that is not in the character set.
+            if (charset.indexOf(inputString.charAt(i).toUpperCase()) < 0) {
+                continue;
+            }
+
+            // Test for a chunk boundary using modulo of chunk size.
+            if (chunkIndex % (chunkSize+1) == 0) {
+                chunkedString += ' ';
+                chunkIndex = 1;
+            }
+
+            // Store the character in the chunk representation.
+            chunkedString += inputString.charAt(i);
+            chunkIndex++;
+        }
+        return chunkedString;
+    },
+    /**
      * Loads up the values for the encoder
      */
     loadEncoder: function () {
         this.hideRevReplace = true;
         var encoded = this.cleanString($('#toencode').val());
+        /*
+        * If it is characteristic of the cipher type (e.g. patristocrat),
+        * rebuild the string to be encoded in to five character sized chunks.
+        */
+        if (this.chunkIt) {
+            encoded = this.chunk(encoded, 5);
+        }
         $(".err").text('');
         this.genMap();
         var res = this.build(encoded);
@@ -2729,6 +2776,10 @@ $(function () {
     // First figure out what type of solver we are building
     $("[data-cipher]").each(function () {
         CipherTool.select($(this).attr('data-cipher'));
+    });
+    // process the "cipher-type" class
+    $(".cipher-type").each(function () {
+        CipherTool.setCipherType($(this).attr('id'));        
     });
     // Handler for .ready() called.
     $('#load').button().click(function () {

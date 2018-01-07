@@ -287,12 +287,144 @@ var CipherTool = {
         'Y': 'XXO',
         'Z': 'XX-'
     },
+    /**
+     * @type {Object.<string,number>}
+     */
+    EngFreq: {
+        'E': 0.1249,
+        'T': 0.0928,
+        'A': 0.0804,
+        'O': 0.0764,
+        'I': 0.0757,
+        'N': 0.0723,
+        'S': 0.0651,
+        'R': 0.0628,
+        'H': 0.0505,
+        'L': 0.0407,
+        'D': 0.0382,
+        'C': 0.0334,
+        'U': 0.0273,
+        'M': 0.0251,
+        'F': 0.0240,
+        'P': 0.0214,
+        'G': 0.0187,
+        'W': 0.0168,
+        'Y': 0.0166,
+        'B': 0.0148,
+        'V': 0.0105,
+        'K': 0.0054,
+        'X': 0.0023,
+        'J': 0.0016,
+        'Q': 0.0012,
+        'Z': 0.0009
+    },
     /** @type {Array.string} 
     */
     fractionatedMorseReplaces: [
         'OOO', 'OO-', 'OOX', 'O-O', 'O--', 'O-X', 'OXO', 'OX-', 'OXX',
         '-OO', '-O-', '-OX', '--O', '---', '--X', '-XO', '-X-', '-XX',
         'XOO', 'XO-', 'XOX', 'X-O', 'X--', 'X-X', 'XXO', 'XX-'],
+    testStrings:[
+        'In the hearts and minds of the people, the grapes of wrath were growing heavy for the vintage.',
+        'There is a very easy way to return from a casino with a small fortune: go there with a large one.',
+        'There is nothing that will kill a man so soon as having nobody to find fault with but himself.',
+        'If people learn something about the news by watching the show, that is incidental to my goal.',
+        'The best things in life are never rationed. Friendship, loyalty, love do not require coupons.',
+        'Every man has a right to life. That means that he also has a right to make a comfortable living.',
+        'If you knew that hope and despair were paths to the same destination, which would you choose?',
+        'The nice thing about being a celebrity is that, if you bore people, they think it\'s their fault.',
+        'If it\'s a good idea, go ahead and do it. It\'s much easier to apologize than it is to get permission.',
+        'The time to be happy is now. The place to be happy is here. The way to be happy is to make others so.',
+        'After all, life is really simple; we ourselves create the circumstances that complicate it.',
+        'The imaginary friends I had as a kid dropped me because their friends thought I didn\'t exist.',
+        'There\'s no tragedy in life like the death of a child. Things never get back to the way they were.',
+        'The measure of a man\'s real character is what he would do if he knew he would never be found out.',
+        'There are people whose watch stops at a certain hour and who remain permanently at that age.',
+        'I am always sorry when any language is lost, because languages are the pedigrees of nations.',
+        'I think with the Romans, that the general of today should be a soldier tomorrow if necessary.',
+        'A little rebellion now and then... is a medicine necessary for the sound health of government.',
+        'Going to church doesn\'t make you a Christian any more than going to the garage makes you a car.',
+        'The diseases which destroy a man are no less natural than the instincts which preserve him.',
+        'It is the duty of the President to propose and it is the privilege of the Congress to dispose.',
+        'The time is near at hand which must determine whether Americans are to be free men or slaves.',
+        'The corruption in reporting starts very early. It\'s like the police reporting on the police.',
+        'Sometimes people who live in glass houses throw stones because their windows are painted',
+        'Nothing can resist the human will that will stake even its existence on its stated purpose.',
+        'I have just returned from Boston. It is the only sane thing to do if you find yourself up there.',
+        'When an idea reaches critical mass there is no stopping the shift its presence will induce.',
+        'Nothing has any power over me other than that which I give it through my conscious thoughts.',
+        'Disciples be damned. It\'s not interesting. It\'s only the masters that matter. Those who create.',
+        'I believe in the possibility of miracles but more to the point, I believe in our need for them.',
+        'Lord, where we are wrong, make us willing to change; where we are right, make us easy to live with.',
+        'It is the privilege of genius that life never grows commonplace, as it does for the rest of us.',
+        'The real trouble with war (modern war) is that it gives no one a chance to kill the right people.',
+        'People who cannot recognize a palpable absurdity are very much in the way of civilization.',
+        'Everyone has his faults which he continually repeats: neither fear nor shame can cure them.',
+        'An army without culture is a dull-witted army, and a dull-witted army cannot defeat the enemy.',
+        'The best argument against democracy is a five minute conversation with the average voter.',
+        'A family is a place where principles are hammered and honed on the anvil of everyday living.',
+        'Success is a tale of obstacles overcome, and for every obstacle overcome, an excuse not used.',
+        'It is more difficult, and it calls for higher energies of soul, to live a martyr than to die one.',
+        'Every year it takes less time to fly across the Atlantic and more time to drive to the office.',
+        'If you follow reason far enough it always leads to conclusions that are contrary to reason.',
+        'Before you\'ve practiced, the theory is useless. After you\'ve practiced, the theory is obvious.',
+        'You\'re no good unless you are a good assistant; and if you are, you\'re too good to be an assistant.',
+        'Many plays, are like blank checks. The actors and directors put their own signatures on them.',
+        'Appreciation is a wonderful thing. It makes what is excellent in others belong to us as well.',
+        'The heart of a mother is a deep abyss at the bottom of which you will always find forgiveness.',
+        'When you look up at the sky, you have a feeling of unity, which delights you and makes you giddy.',
+        'The Democrats are very bad at selling their own product. The Republicans are geniuses at it.',
+        'Radical historians now tell the story of Thanksgiving from the point of view of the turkey.',
+        'You\'ve got to make a conscious choice every day to shed the old - whatever \'the old\' means for you.',
+        'My tattooing is indestructible. It is an everlasting gem that you will take into your grave.',
+        'I love the valiant; but it is not enough to wield a broadsword, one must also know against whom.',
+        'One good husband is worth two good wives, for the scarcer things are, the more they are valued.',
+        'Reverie is when ideas float in our mind without reflection or regard of the understanding.',
+        'It is the rare fortune of these days that one may think what one likes and say what one thinks.',
+        'Baseball fans love numbers. They love to swirl them around their mouths like Bordeaux wine.',
+        'This I conceive to be the chemical function of humor - to change the character of our thought.',
+        'Is it better to be the lover or the loved one? Neither, if your cholesterol is over six hundred.',
+        'Arguments are like fire-arms which a man may keep at home but should not carry about with him.',
+        'If you really love, if you really know how to laugh, the result is the same - you forget yourself.',
+        'Problems are the price of progress. Don\'t bring me anything but trouble. Good news weakens me.',
+        'We hate to have some people give us advice because we know how badly they need it themselves.',
+        'O what fine thought we had because we thought that the worst rogues and rascals had died out.',
+        'There is no meaning to life except the meaning man gives his life by unfolding of his powers.',
+        'The present is a rope stretched over the past. The secret to walking it is, you never look down.',
+        'Those who occupy their minds with small matters, generally become incapable of greatness.',
+        'If you haven\'t had at least a slight poetic crack in the heart, you have been cheated by nature.',
+        'Humanity is never so beautiful as when praying for forgiveness, or else forgiving another.',
+        'Sin lies only in hurting other people unnecessarily. All other "sins" are invented nonsense.',
+        'If you surrender completely to the moments as they pass, you live more richly those moments.',
+        'No offense Apu, but when they were handing out religions you must have been out taking a whiz.',
+        'Nothing can resist the human will that will stake even its existence on its stated purpose.',
+        'Great things are done when men and mountains meet. This is not done by jostling in the street.',
+        'Results! Why, man, I have gotten a lot of results. I know several thousand things that won\'t work.',
+        'What I call a good patient is one who, having found a good physician, sticks to him till he dies.',
+        'Champions aren\'t made in gyms. Champions are made from something they have deep inside them.',
+        'You should make a point of trying every experience once, excepting incest and folk dancing.',
+        'Books have the same enemies as people - fire, humidity, animals, weather, and their own content.',
+        'Millions of spiritual creatures walk the earth unseen, both when we sleep and when we awake.',
+        'A man\'s respect for law and order exists in precise relationship to the size of his paycheck.',
+        'Man, I was tame compared to what they do now, are you kidding? All that I ever did was just jiggle.',
+        'Our prejudices are like physical infirmities - we cannot do what they prevent us from doing.',
+        'I\'ve been smoking nearly fifty years now. I just don\'t feel safe breathing anything I can\'t see!',
+        'War is the statesman\'s game, the priest\'s delight, The lawyer\'s jest, the hired assassin\'s trade.',
+        'A sub-clerk in the post-office is the equal of a conqueror if consciousness is common to them.',
+        'To myself, personally, it brings nothing but increasing drudgery and daily loss of friends.',
+        'Knowledge must come through action - you can have no test which is not fanciful, save by trial.',
+        'The height of cultivation runs to simplicity. Halfway cultivation runs to ornamentation.',
+        'To love someone deeply gives you strength. Being loved by someone deeply gives you courage.',
+        'My idea of walking into the jaws of death is marrying some woman who has lost three husbands.',
+        'If we had no faults of our own, we should not take so much pleasure in noticing those in others.',
+        'As love without esteem is capricious and volatile; esteem without love is languid and cold.',
+        'If the aborigine drafted an IQ test, all of Western civilization would presumably flunk it.',
+        'No matter how old a mother is, she watches her middle-aged children for signs of improvement.',
+        'Anybody caught selling macrame in public should be dyed a natural color and hung out to dry.',
+        'All governments suffer a recurring problem: Power attracts pathological personalities.',
+        'The signs of the zodiac are karmic patterns; the planets are the looms; the will is the weaver.',
+        'Princes should have more to fear from historians than have ugly women from great painters.'        
+    ],
     morbitReplaces: ['OO', 'O-', 'OX', '-O', '--', '-X', 'XO', 'X-', 'XX'],
     cipherWidth: 1,
     charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -337,6 +469,36 @@ var CipherTool = {
     normalizeHTML: function (str) {
         return str;
     },
+    /**
+     * 
+     * @param {*string} string String to compute value for
+     * @returns {number} Value calculated 
+     */
+    CalculateChiSquare(str) {
+        var charset = this.getCharset();
+        var i, len;
+        len = charset.length;
+        var counts = new Array(len);
+        var total = 0;
+        for(i = 0; i < len; i++) {
+            counts[i] = 0;
+        }
+        for(i = 0; i < str.length; i++) {
+            var c = str.substr(i, 1).toUpperCase();
+            var pos = charset.indexOf(c);
+            if (pos >= 0) {
+                counts[pos]++;
+                total++;
+            }
+        }
+        var chiSquare = 0.0;
+        for(i = 0; i < len; i++) {
+            var c = charset.substr(i,1);
+            var expected = this.EngFreq[c];
+            chiSquare += Math.pow(counts[i] - total*expected,2)/(total*expected);
+        }
+        return chiSquare;
+    },    
     /*
     * Creates an HTML table to display the frequency of characters
     */
@@ -866,7 +1028,7 @@ var CipherTool = {
     minimizeString: function (str) {
         var res = '';
         for (var i = 0, len = str.length; i < len; i++) {
-            var c = str.substr(i, 1);
+            var c = str.substr(i, 1).toUpperCase();
             if (this.isValidChar(c)) {
                 res += c;
             }
@@ -1995,7 +2157,7 @@ var CipherTool = {
      * @param {string} str String to search for.  Note that this runs through all the entries looking for a possible match
      */
     findGromark: function (str) {
-        var tosearch = this.minimizeString(str.toUpperCase());
+        var tosearch = this.minimizeString(str);
         var gromarklen = tosearch.length * this.cipherWidth;
         var limit = (this.encodedString.length / this.cipherWidth) - tosearch.length;
         var charset = this.getSourceCharset();
@@ -2651,6 +2813,11 @@ var CipherTool = {
         var res = this.build(encoded);
         var tool = this;
         $("#answer").html(res);
+
+        testStrings
+
+        var chi = this.CalculateChiSquare(encoded);
+        $("#chi").text('Chi-Square='+chi);
         // Show the update frequency values
         this.displayFreq();
         // We need to attach handlers for any newly created input fields

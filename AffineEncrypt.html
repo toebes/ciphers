@@ -1,35 +1,356 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
-    <link rel="stylesheet" href="jquery-ui.min.css"/>
+    <link rel="stylesheet" href="jquery-ui.min.css" />
     <link rel="stylesheet" href="styles.css" />
     <script type="text/javascript" src="jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="jquery-ui.min.js"></script>
+    <script type="text/javascript" src="ciphers.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+          tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            processEscapes: true
+          }
+        });
+      </script>
+    <script type="text/javascript" async src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML'></script>
     <title>Affine Encrypt</title>
 </head>
+
 <body>
     <h1>Affine Encrypt</h1>
     <a href="index.html">Back to Cipher Tools</a>
     <hr />
+    <div class="cipher-type" id="affine"></div>
     <label for="toencode">
         Text to encode</label>
     <input id="toencode" class="inp" title="Text to encode" type="text" />
     <div>
-    <label for="a">
-        a</label>
-    <input id="a" class="inp spin" title="a" type="text" value="1"/>
+        <label for="a">
+            a</label>
+        <input id="a" class="inp spin" title="a" type="text" value="1" />
     </div>
     <div>
-    <label for="b">
-        b</label>
-    <input id="b" class="inp spin" title="b" type="text" value ="1"/>
+        <label for="b">
+            b</label>
+        <input id="b" class="inp spin" title="b" type="text" value="1" />
     </div>
     <div class="err" id="err">
     </div>
-    <input id="encrypt" type="button" value="encrypt" />
-    <hr />
-    <div class="ans" id="answer">
+    <div class="cmds" data-cipher="Affine">
+        <input id="load" type="button" value="Encrypt" />
     </div>
+    <div class="solveButton" id="solveButton" >
+        <input id="solve" type="button" value="Print Solution" class="ui-button ui-corner-all ui-widget" />
+    </div>
+
+    <hr />
+    <div class="ans" id="answer"></div>
+    
+    <p class="solve_equations" id="solve_equations"></p>
+    <div class="part1" id="part1"></div>
+    <div class="ETAOIN" id="ETAOIN"></div>
+    <div class="part2" id="part2"></div>
+    <div class="SRHLD" id="SRHLD"></div>
+    <div class="part3" id="part3"></div>
+    <div class="CUMFP" id="CUMFP"></div>
+    <div class="part4" id="part4"></div>
+    <div class="GWYBV" id="GWYBV"></div>
+    <div class="part5" id="part5"></div>
+    <div class="KXJQZ" id="KXJQZ"></div>
+    <div class="part6" id="part6"></div>
+    <div class="complete" id="complete"></div>
+
+    <script type="text/javascript">
+        var charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        var encodeTable = {};
+        var completeSolution = false;
+
+        function encodeLetters(a, b, letterString) {
+            var encoding = '\\begin{array}{lccrcl}'
+            for (var i = 0; i < letterString.length; i++) {
+                var m = letterString.substr(i, 1);
+                var mVal = charset.indexOf(m);
+                var cVal = ((a * mVal) + b);
+                c = charset.substr(cVal % 26, 1);
+                encoding += m + '(' + mVal + ') & \\to & ' + mVal + ' * ' + a + ' + ' + b + ' & ' + cVal + ' & \\to & ' + c + '(' + cVal % 26 + ')\\\\';
+
+            }
+            encoding += '\\end{array}';
+            return encoding;
+        }
+            function encodeString(s) {
+                var encoded = '';
+                for (var i = 0; i < s.length; i++) {
+                    encoded += encodeTable[s.substr(i, 1)];
+                }
+                return encoded;
+            }
+
+            function setEncodingTable(a, b) {
+                for (var i = 0; i < charset.length; i++) {
+                    var c = -1;
+                    var letter = charset.substr(i, 1);
+                    c = (a * i) + b
+                    while (c >= 26) {
+                        c -= 26;
+                    }
+                    encodeTable[letter] = charset.substr(c, 1);
+                }
+            }
+
+        function showOutput(msg, letters) {
+            var i;
+            var message = '';
+            var cipher = '';
+            var result = $('<div>');
+            var msgLength = msg.length;
+            var lastSplit = -1;
+            var c = '';
+
+            var table = $('<table/>').addClass("tfreq");
+            var tableBody = $('<tbody/>');
+            var messageRow = $('<tr/>');
+            var cipherRow = $('<tr/>');
+
+            completeSolution = true;
+
+            for (i = 0; i < msgLength; i++) {
+                var messageChar = msg.substr(i, 1).toUpperCase();
+                var cipherChar = '';
+                var m = charset.indexOf(messageChar);
+                if (m >= 0) {
+
+                    message += messageChar;
+                    cipherChar = encodeTable[messageChar];
+                    cipher += cipherChar;
+                }
+                else {
+                    message += messageChar;
+                    cipher += messageChar;
+                    lastSplit = cipher.length;
+                    continue;
+                }
+
+                if (letters.indexOf(messageChar) != -1) {
+                    messageRow.append($('<td/>').addClass("TOANSWER").text(messageChar));
+                } else {
+                    messageRow.append($('<td/>').addClass("TOANSWER").text(' '));
+                    completeSolution = false;
+                }
+                cipherRow.append($('<td/>').addClass("TOSOLVE").text(cipherChar));
+
+                /* -- start here -- * /
+                            if (message.length >= this.maxEncodeWidth) {
+                                if (lastSplit === -1) {
+                                    result.append($('<div>', {class: "TOSOLVE"}).text(message)); 
+                                    result.append($('<div>', {class: "TOANSWER"}).text(cipher));
+                                    message = '';
+                                    cipher = '';
+                                    lastSplit = -1;
+                                }
+                                else {
+                                    var messagePart = message.substr(0, lastSplit);
+                                    var cipherPart = cipher.substr(0, lastSplit);
+                                    message = message.substr(lastSplit);
+                                    cipher = cipher.substr(lastSplit);
+                                    result.append($('<div>', {class: "TOSOLVE"}).text(messagePart));
+                                    result.append($('<div>', {class: "TOANSWER"}).text(cipherPart));
+                
+                                }
+                            }
+                / * -- end here -- */
+            }
+            if (message.length > 0) {
+                tableBody.append(cipherRow);
+                tableBody.append(messageRow);
+                //result.append($('<div>', {class: "TOSOLVE"}).text(message));
+                //result.append($('<div>', {class: "TOANSWER"}).text(cipher));
+            }
+            table.append(tableBody);
+
+            //return result.html();
+            return table;
+        }
+
+
+        function printSolution(theMessage, m1, c1, m2, c2) {
+
+            m1Val = charset.indexOf(m1);
+            c1Val = charset.indexOf(c1);
+            m2Val = charset.indexOf(m2);
+            c2Val = charset.indexOf(c2);
+
+            var solution = '<p>Here is how we get the answer.  Since we are given that:</p>';
+
+            var given = '\\begin{align} ' + m1 + '(' + m1Val + ') & \\to ' + c1 + '(' + c1Val + ') \\\\ ' +
+                m2 + '(' + m2Val + ') & \\to ' + c2 + '(' + c2Val + ') \\end{align}'
+            solution += given;
+            solution += '<p>From this we know:</p>'
+
+            var equation1 = '\\left(a * ' + m1Val + ' + b\\right)\\;\\text{mod 26} & = ' + c1Val + ' \\\\';
+            var equation2 = '\\left(a * ' + m2Val + ' + b\\right)\\;\\text{mod 26} & = ' + c2Val + ' \\\\';
+
+            if (m1Val > m2Val) {
+                solution += ('\\begin{align}' + equation1);
+                solution += (equation2 + '\\end{align}');
+            }
+            else {
+                solution += ('\\begin{align}' + equation2);
+                solution += (equation1 + '\\end{align}')
+            }
+            solution += '<p>Next, subtract the formulas:</p>';
+
+            //            var subtract = '\\begin{align} & '+equation1+' - & '+equation2+' \\end{align}';
+            var subtract1 = '';
+            var subtract2 = '';
+            var mVal = 0;
+            var cVal = 0;
+            var mSubstitute = 0;
+            var cSubstitute = 0;
+
+            // the 2 equations
+            if (m1Val > m2Val) {
+                mVal = m1Val - m2Val;
+                cVal = c1Val - c2Val;
+                subtract1 = '\\begin{align}' + equation1 + ' - ' + equation2 + ' \\hline a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' ';
+                mSubstitute = m2Val;
+                cSubstitute = c2Val;
+            } else {
+                mVal = m2Val - m1Val;
+                cVal = c2Val - c1Val;
+                subtract1 = '\\begin{align}' + equation2 + ' - ' + equation1 + ' \\hline a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' ';
+                mSubstitute = m1Val;
+                cSubstitute = c1Val;
+            }
+
+            solution += subtract1;
+            if (cVal < 0) {
+                cVal += 26;
+                subtract2 = ' \\\\ a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' ';
+                solution += subtract2;
+            }
+            solution += ' \\end{align}'
+
+            // solution for a
+            var message = '';
+            var a = cVal / mVal;
+            var aRemainder = cVal % mVal;
+            if (a != 0) {
+                var cValOriginal = cVal;
+                if (aRemainder !== 0) {
+                    message = 'Since $' + cVal + ' \\div ' + mVal + ' = ' + (cVal / mVal).toPrecision(5) + '$ we have to find another value.'
+                    var count = 0;
+
+                    while (aRemainder != 0) {
+                        count += 1;
+                        cVal += 26;
+                        aRemainder = cVal % mVal;
+                    }
+                    a = cVal / mVal;
+                    message += '  $' + cValOriginal + ' + (26 * ' + count + ') = ' + cVal + '$.  $' + cVal + ' \\div ' + mVal + ' = ' + a + '$';
+                }
+            }
+            solution += (message + '<p>So we now know that $\\bbox[yellow,5px]{a = ' + a + '}$.</p>');
+
+            // solution for b
+            var findingB = 'To find $b$, substitute that back into the equation with the lowest multiplier.  ';
+            findingB += '\\begin{align}(' + a + ' * ' + mSubstitute + ' + b)\\;\\text{mod 26} & = ' + cSubstitute + '\\\\(' + (a * mSubstitute) + ' + b)\\;\\text{mod 26} & = ' + cSubstitute + '\\end{align}';
+            findingB += 'Subtract $' + (a * mSubstitute) + '$ from both sides: \\begin{align}(' + (a * mSubstitute) + ' +b)\\;\\text{mod 26} - ' + (a * mSubstitute) + ' & = (' + cSubstitute + ' - ' + (a * mSubstitute) + ')\\;\\text{mod 26}\\\\';
+            findingB += 'b\\;\\text{mod 26} & = ' + (cSubstitute - (a * mSubstitute)) + '\\;\\text{mod 26}\\\\'
+
+            var b = cSubstitute - (a * mSubstitute);
+            while (b < 0) {
+                b += 26;
+            }
+            findingB += 'b\\;\\text{mod 26} & = ' + b + '\\;\\text{mod 26}\\end{align}'
+            findingB += 'And we see that $\\bbox[yellow,5px]{b = ' + b + '}$.  However, we only know a few of the letters in the cipher.'
+
+            solution += findingB;
+            $("#solve_equations").html(solution);
+
+            var l = charset.substr(CipherTool.affineCheck['p'], 1) + charset.substr(CipherTool.affineCheck['q'],1);
+            $("#part1").html(showOutput(theMessage, l));
+            if (!completeSolution) {
+
+            // encode ETAOIN
+            var found = encodeString('ETAOIN');
+            solution = '<p>The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.</p>  ' + 
+                encodeLetters(a, b, 'ETAOIN') + '<p>Filling in the letter we found ($'+found+'$) we get a bit more of the answer.</p>'
+            $("#ETAOIN").html(solution);
+            l += 'ETAOIN';
+            $("#part2").html(showOutput(theMessage, l));
+            }
+
+            // now the solution
+
+            if (!completeSolution) {
+            // encode SRHLD
+            found = encodeString('SRHLD');
+            solution = '<p>Next, encode the next 5 common letters <b>SRHLD</b>.' + 
+                encodeLetters(a, b, 'SRHLD') + '<p>We know the reverse mapping of 5 more letters ($'+found+'$) which we can fill in.</p>';
+            $("#SRHLD").html(solution);
+            l += 'SRHLD';
+            $("#part3").html(showOutput(theMessage, l));
+            }
+
+            if (!completeSolution) {
+            // encode CUMFP
+            found = encodeString('CUMFP');
+            solution = '<p>We will convert the next 5 most frequent letters <b>CUMFP</b>.'+
+                encodeLetters(a,b, 'CUMFP') + '<p>The next 5 letters we know are ($'+found+'$), so we will fill those in.</p>';
+            $("#CUMFP").html(solution);
+            l += 'CUMFP';
+            $("#part4").html(showOutput(theMessage, l));
+            }
+
+            if (!completeSolution) {
+            // encode GWYBV
+            found = encodeString('GWYBV');
+            solution = '<p>Next, encode the next 5 common letters <b>GWYBV</b>.' + 
+                encodeLetters(a, b, 'GWYBV') + '<p>We know the reverse mapping of 5 more letters ($'+found+'$) which we can fill in.</p>';
+            $("#GWYBV").html(solution);
+            l += 'GWYBV';
+            $("#part5").html(showOutput(theMessage, l));
+            }
+
+            if (!completeSolution) {
+            // encode KXJQZ
+            found = encodeString('KXJQZ');
+            solution = '<p>We will convert the next 5 most frequent letters <b>KXJQZ</b>.'+
+                encodeLetters(a,b, 'KXJQZ') + '<p>The next 5 letters we know are ($'+found+'$), so we will fill those in.</p>';
+            $("#KXJQZ").html(solution);
+            l += 'KXJQZ';
+            $("#part6").html(showOutput(theMessage, l));
+            }
+
+            solution = '<p>The solution is now complete!</p>'
+            $('#complete').html(solution);
+        }
+        
+        $("#solve").click(function() {
+            var msg = $('#toencode').val();
+            setEncodingTable(parseInt($("#a").val()), parseInt($("#b").val()));
+            //$("#solution").innerHTML = printSolution(msg, 'I', 'F', 'F', 'G');
+            printSolution(msg, 
+            charset.substr(CipherTool.affineCheck['p'], 1), 
+            charset.substr(CipherTool.affineCheck['r'], 1), 
+            charset.substr(CipherTool.affineCheck['q'], 1), 
+            charset.substr(CipherTool.affineCheck['s'], 1));
+            //$("#solution").html(printSolution(msg, 'I', 'F', 'F', 'G'));
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,'solve_equations']);
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,'ETAOIN']);
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,'SRHLD']);
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,'CUMFP']);
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,'GWYBV']);
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,'KXJQZ']);            
+        });
+        //document.getElementById("solution").innerHTML = printSolution(msg, 'I', 'F', 'F', 'G')
+    </script>
+
+    <!--
     <script type="text/javascript">
         var charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -84,6 +405,32 @@
             }
             return res;
         }
+        function solveIt(m1, c1, m2, c2) {
+            var answer = 'don\'t know'
+
+            var c = c1 - c2;
+            var m = m1 - m2;
+
+            // The reality is that A can only be one of: 1, 3, 5, 7, 9, 11,
+            // 15, 17, 19, 21, 23, 25.  B will be between 0 and 25.
+
+            while (((c < 0) || (c % m !== 0)) && c < 626) {
+                c += 26;
+            }
+            var A = c/m;
+            console.log('A='+A);
+            // if A not in the list, return answer.
+            if ((A % 2 !== 1) || (A < 1) || (A > 25)) {
+                return answer;
+            }
+            
+            var B = (c1 - (A * m1)) % 26;
+            while ( B < 0) {
+                B += 26;
+            }
+
+            return 'A = '+A+'; B = '+B;
+        }
         function calc() {
             var atxt = $('#a').spinner("value");
             var btxt = $('#b').spinner("value");
@@ -93,6 +440,8 @@
             console.log('a=' + a + ' b=' + b + ' encode=' + toencode);
             var res = affine(a, b, toencode);
             $("#answer").text(res);
+            var sol = solveIt(18, 14, 7, 5);
+            $("#solve").text(sol);
         }
         $(".spin").spinner({
 
@@ -116,5 +465,7 @@
             calc();
         })
     </script>
+-->
 </body>
+
 </html>

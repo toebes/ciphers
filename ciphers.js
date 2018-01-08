@@ -287,7 +287,7 @@ var CipherTool = {
         'Y': 'XXO',
         'Z': 'XX-'
     },
-    /**
+/**
      * @type {Object.<string,number>}
      */
     EngFreq: {
@@ -318,114 +318,114 @@ var CipherTool = {
         'Q': 0.0012,
         'Z': 0.0009
     },
-    /** @type {Array.string} 
+        /** @type {Array.string} 
     */
     fractionatedMorseReplaces: [
         'OOO', 'OO-', 'OOX', 'O-O', 'O--', 'O-X', 'OXO', 'OX-', 'OXX',
         '-OO', '-O-', '-OX', '--O', '---', '--X', '-XO', '-X-', '-XX',
         'XOO', 'XO-', 'XOX', 'X-O', 'X--', 'X-X', 'XXO', 'XX-'],
-    testStrings:[
-        'In the hearts and minds of the people, the grapes of wrath were growing heavy for the vintage.',
-        'There is a very easy way to return from a casino with a small fortune: go there with a large one.',
-        'There is nothing that will kill a man so soon as having nobody to find fault with but himself.',
-        'If people learn something about the news by watching the show, that is incidental to my goal.',
-        'The best things in life are never rationed. Friendship, loyalty, love do not require coupons.',
-        'Every man has a right to life. That means that he also has a right to make a comfortable living.',
-        'If you knew that hope and despair were paths to the same destination, which would you choose?',
-        'The nice thing about being a celebrity is that, if you bore people, they think it\'s their fault.',
-        'If it\'s a good idea, go ahead and do it. It\'s much easier to apologize than it is to get permission.',
-        'The time to be happy is now. The place to be happy is here. The way to be happy is to make others so.',
-        'After all, life is really simple; we ourselves create the circumstances that complicate it.',
-        'The imaginary friends I had as a kid dropped me because their friends thought I didn\'t exist.',
-        'There\'s no tragedy in life like the death of a child. Things never get back to the way they were.',
-        'The measure of a man\'s real character is what he would do if he knew he would never be found out.',
-        'There are people whose watch stops at a certain hour and who remain permanently at that age.',
-        'I am always sorry when any language is lost, because languages are the pedigrees of nations.',
-        'I think with the Romans, that the general of today should be a soldier tomorrow if necessary.',
-        'A little rebellion now and then... is a medicine necessary for the sound health of government.',
-        'Going to church doesn\'t make you a Christian any more than going to the garage makes you a car.',
-        'The diseases which destroy a man are no less natural than the instincts which preserve him.',
-        'It is the duty of the President to propose and it is the privilege of the Congress to dispose.',
-        'The time is near at hand which must determine whether Americans are to be free men or slaves.',
-        'The corruption in reporting starts very early. It\'s like the police reporting on the police.',
-        'Sometimes people who live in glass houses throw stones because their windows are painted',
-        'Nothing can resist the human will that will stake even its existence on its stated purpose.',
-        'I have just returned from Boston. It is the only sane thing to do if you find yourself up there.',
-        'When an idea reaches critical mass there is no stopping the shift its presence will induce.',
-        'Nothing has any power over me other than that which I give it through my conscious thoughts.',
-        'Disciples be damned. It\'s not interesting. It\'s only the masters that matter. Those who create.',
-        'I believe in the possibility of miracles but more to the point, I believe in our need for them.',
-        'Lord, where we are wrong, make us willing to change; where we are right, make us easy to live with.',
-        'It is the privilege of genius that life never grows commonplace, as it does for the rest of us.',
-        'The real trouble with war (modern war) is that it gives no one a chance to kill the right people.',
-        'People who cannot recognize a palpable absurdity are very much in the way of civilization.',
-        'Everyone has his faults which he continually repeats: neither fear nor shame can cure them.',
-        'An army without culture is a dull-witted army, and a dull-witted army cannot defeat the enemy.',
-        'The best argument against democracy is a five minute conversation with the average voter.',
-        'A family is a place where principles are hammered and honed on the anvil of everyday living.',
-        'Success is a tale of obstacles overcome, and for every obstacle overcome, an excuse not used.',
-        'It is more difficult, and it calls for higher energies of soul, to live a martyr than to die one.',
-        'Every year it takes less time to fly across the Atlantic and more time to drive to the office.',
-        'If you follow reason far enough it always leads to conclusions that are contrary to reason.',
-        'Before you\'ve practiced, the theory is useless. After you\'ve practiced, the theory is obvious.',
-        'You\'re no good unless you are a good assistant; and if you are, you\'re too good to be an assistant.',
-        'Many plays, are like blank checks. The actors and directors put their own signatures on them.',
-        'Appreciation is a wonderful thing. It makes what is excellent in others belong to us as well.',
-        'The heart of a mother is a deep abyss at the bottom of which you will always find forgiveness.',
-        'When you look up at the sky, you have a feeling of unity, which delights you and makes you giddy.',
-        'The Democrats are very bad at selling their own product. The Republicans are geniuses at it.',
-        'Radical historians now tell the story of Thanksgiving from the point of view of the turkey.',
-        'You\'ve got to make a conscious choice every day to shed the old - whatever \'the old\' means for you.',
-        'My tattooing is indestructible. It is an everlasting gem that you will take into your grave.',
-        'I love the valiant; but it is not enough to wield a broadsword, one must also know against whom.',
-        'One good husband is worth two good wives, for the scarcer things are, the more they are valued.',
-        'Reverie is when ideas float in our mind without reflection or regard of the understanding.',
-        'It is the rare fortune of these days that one may think what one likes and say what one thinks.',
-        'Baseball fans love numbers. They love to swirl them around their mouths like Bordeaux wine.',
-        'This I conceive to be the chemical function of humor - to change the character of our thought.',
-        'Is it better to be the lover or the loved one? Neither, if your cholesterol is over six hundred.',
-        'Arguments are like fire-arms which a man may keep at home but should not carry about with him.',
-        'If you really love, if you really know how to laugh, the result is the same - you forget yourself.',
-        'Problems are the price of progress. Don\'t bring me anything but trouble. Good news weakens me.',
-        'We hate to have some people give us advice because we know how badly they need it themselves.',
-        'O what fine thought we had because we thought that the worst rogues and rascals had died out.',
-        'There is no meaning to life except the meaning man gives his life by unfolding of his powers.',
-        'The present is a rope stretched over the past. The secret to walking it is, you never look down.',
-        'Those who occupy their minds with small matters, generally become incapable of greatness.',
-        'If you haven\'t had at least a slight poetic crack in the heart, you have been cheated by nature.',
-        'Humanity is never so beautiful as when praying for forgiveness, or else forgiving another.',
-        'Sin lies only in hurting other people unnecessarily. All other "sins" are invented nonsense.',
-        'If you surrender completely to the moments as they pass, you live more richly those moments.',
-        'No offense Apu, but when they were handing out religions you must have been out taking a whiz.',
-        'Nothing can resist the human will that will stake even its existence on its stated purpose.',
-        'Great things are done when men and mountains meet. This is not done by jostling in the street.',
-        'Results! Why, man, I have gotten a lot of results. I know several thousand things that won\'t work.',
-        'What I call a good patient is one who, having found a good physician, sticks to him till he dies.',
-        'Champions aren\'t made in gyms. Champions are made from something they have deep inside them.',
-        'You should make a point of trying every experience once, excepting incest and folk dancing.',
-        'Books have the same enemies as people - fire, humidity, animals, weather, and their own content.',
-        'Millions of spiritual creatures walk the earth unseen, both when we sleep and when we awake.',
-        'A man\'s respect for law and order exists in precise relationship to the size of his paycheck.',
-        'Man, I was tame compared to what they do now, are you kidding? All that I ever did was just jiggle.',
-        'Our prejudices are like physical infirmities - we cannot do what they prevent us from doing.',
-        'I\'ve been smoking nearly fifty years now. I just don\'t feel safe breathing anything I can\'t see!',
-        'War is the statesman\'s game, the priest\'s delight, The lawyer\'s jest, the hired assassin\'s trade.',
-        'A sub-clerk in the post-office is the equal of a conqueror if consciousness is common to them.',
-        'To myself, personally, it brings nothing but increasing drudgery and daily loss of friends.',
-        'Knowledge must come through action - you can have no test which is not fanciful, save by trial.',
-        'The height of cultivation runs to simplicity. Halfway cultivation runs to ornamentation.',
-        'To love someone deeply gives you strength. Being loved by someone deeply gives you courage.',
-        'My idea of walking into the jaws of death is marrying some woman who has lost three husbands.',
-        'If we had no faults of our own, we should not take so much pleasure in noticing those in others.',
-        'As love without esteem is capricious and volatile; esteem without love is languid and cold.',
-        'If the aborigine drafted an IQ test, all of Western civilization would presumably flunk it.',
-        'No matter how old a mother is, she watches her middle-aged children for signs of improvement.',
-        'Anybody caught selling macrame in public should be dyed a natural color and hung out to dry.',
-        'All governments suffer a recurring problem: Power attracts pathological personalities.',
-        'The signs of the zodiac are karmic patterns; the planets are the looms; the will is the weaver.',
-        'Princes should have more to fear from historians than have ugly women from great painters.'        
-    ],
-    morbitReplaces: ['OO', 'O-', 'OX', '-O', '--', '-X', 'XO', 'X-', 'XX'],
+        testStrings:[
+            'In the hearts and minds of the people, the grapes of wrath were growing heavy for the vintage.',
+            'There is a very easy way to return from a casino with a small fortune: go there with a large one.',
+            'There is nothing that will kill a man so soon as having nobody to find fault with but himself.',
+            'If people learn something about the news by watching the show, that is incidental to my goal.',
+            'The best things in life are never rationed. Friendship, loyalty, love do not require coupons.',
+            'Every man has a right to life. That means that he also has a right to make a comfortable living.',
+            'If you knew that hope and despair were paths to the same destination, which would you choose?',
+            'The nice thing about being a celebrity is that, if you bore people, they think it\'s their fault.',
+            'If it\'s a good idea, go ahead and do it. It\'s much easier to apologize than it is to get permission.',
+            'The time to be happy is now. The place to be happy is here. The way to be happy is to make others so.',
+            'After all, life is really simple; we ourselves create the circumstances that complicate it.',
+            'The imaginary friends I had as a kid dropped me because their friends thought I didn\'t exist.',
+            'There\'s no tragedy in life like the death of a child. Things never get back to the way they were.',
+            'The measure of a man\'s real character is what he would do if he knew he would never be found out.',
+            'There are people whose watch stops at a certain hour and who remain permanently at that age.',
+            'I am always sorry when any language is lost, because languages are the pedigrees of nations.',
+            'I think with the Romans, that the general of today should be a soldier tomorrow if necessary.',
+            'A little rebellion now and then... is a medicine necessary for the sound health of government.',
+            'Going to church doesn\'t make you a Christian any more than going to the garage makes you a car.',
+            'The diseases which destroy a man are no less natural than the instincts which preserve him.',
+            'It is the duty of the President to propose and it is the privilege of the Congress to dispose.',
+            'The time is near at hand which must determine whether Americans are to be free men or slaves.',
+            'The corruption in reporting starts very early. It\'s like the police reporting on the police.',
+            'Sometimes people who live in glass houses throw stones because their windows are painted',
+            'Nothing can resist the human will that will stake even its existence on its stated purpose.',
+            'I have just returned from Boston. It is the only sane thing to do if you find yourself up there.',
+            'When an idea reaches critical mass there is no stopping the shift its presence will induce.',
+            'Nothing has any power over me other than that which I give it through my conscious thoughts.',
+            'Disciples be damned. It\'s not interesting. It\'s only the masters that matter. Those who create.',
+            'I believe in the possibility of miracles but more to the point, I believe in our need for them.',
+            'Lord, where we are wrong, make us willing to change; where we are right, make us easy to live with.',
+            'It is the privilege of genius that life never grows commonplace, as it does for the rest of us.',
+            'The real trouble with war (modern war) is that it gives no one a chance to kill the right people.',
+            'People who cannot recognize a palpable absurdity are very much in the way of civilization.',
+            'Everyone has his faults which he continually repeats: neither fear nor shame can cure them.',
+            'An army without culture is a dull-witted army, and a dull-witted army cannot defeat the enemy.',
+            'The best argument against democracy is a five minute conversation with the average voter.',
+            'A family is a place where principles are hammered and honed on the anvil of everyday living.',
+            'Success is a tale of obstacles overcome, and for every obstacle overcome, an excuse not used.',
+            'It is more difficult, and it calls for higher energies of soul, to live a martyr than to die one.',
+            'Every year it takes less time to fly across the Atlantic and more time to drive to the office.',
+            'If you follow reason far enough it always leads to conclusions that are contrary to reason.',
+            'Before you\'ve practiced, the theory is useless. After you\'ve practiced, the theory is obvious.',
+            'You\'re no good unless you are a good assistant; and if you are, you\'re too good to be an assistant.',
+            'Many plays, are like blank checks. The actors and directors put their own signatures on them.',
+            'Appreciation is a wonderful thing. It makes what is excellent in others belong to us as well.',
+            'The heart of a mother is a deep abyss at the bottom of which you will always find forgiveness.',
+            'When you look up at the sky, you have a feeling of unity, which delights you and makes you giddy.',
+            'The Democrats are very bad at selling their own product. The Republicans are geniuses at it.',
+            'Radical historians now tell the story of Thanksgiving from the point of view of the turkey.',
+            'You\'ve got to make a conscious choice every day to shed the old - whatever \'the old\' means for you.',
+            'My tattooing is indestructible. It is an everlasting gem that you will take into your grave.',
+            'I love the valiant; but it is not enough to wield a broadsword, one must also know against whom.',
+            'One good husband is worth two good wives, for the scarcer things are, the more they are valued.',
+            'Reverie is when ideas float in our mind without reflection or regard of the understanding.',
+            'It is the rare fortune of these days that one may think what one likes and say what one thinks.',
+            'Baseball fans love numbers. They love to swirl them around their mouths like Bordeaux wine.',
+            'This I conceive to be the chemical function of humor - to change the character of our thought.',
+            'Is it better to be the lover or the loved one? Neither, if your cholesterol is over six hundred.',
+            'Arguments are like fire-arms which a man may keep at home but should not carry about with him.',
+            'If you really love, if you really know how to laugh, the result is the same - you forget yourself.',
+            'Problems are the price of progress. Don\'t bring me anything but trouble. Good news weakens me.',
+            'We hate to have some people give us advice because we know how badly they need it themselves.',
+            'O what fine thought we had because we thought that the worst rogues and rascals had died out.',
+            'There is no meaning to life except the meaning man gives his life by unfolding of his powers.',
+            'The present is a rope stretched over the past. The secret to walking it is, you never look down.',
+            'Those who occupy their minds with small matters, generally become incapable of greatness.',
+            'If you haven\'t had at least a slight poetic crack in the heart, you have been cheated by nature.',
+            'Humanity is never so beautiful as when praying for forgiveness, or else forgiving another.',
+            'Sin lies only in hurting other people unnecessarily. All other "sins" are invented nonsense.',
+            'If you surrender completely to the moments as they pass, you live more richly those moments.',
+            'No offense Apu, but when they were handing out religions you must have been out taking a whiz.',
+            'Nothing can resist the human will that will stake even its existence on its stated purpose.',
+            'Great things are done when men and mountains meet. This is not done by jostling in the street.',
+            'Results! Why, man, I have gotten a lot of results. I know several thousand things that won\'t work.',
+            'What I call a good patient is one who, having found a good physician, sticks to him till he dies.',
+            'Champions aren\'t made in gyms. Champions are made from something they have deep inside them.',
+            'You should make a point of trying every experience once, excepting incest and folk dancing.',
+            'Books have the same enemies as people - fire, humidity, animals, weather, and their own content.',
+            'Millions of spiritual creatures walk the earth unseen, both when we sleep and when we awake.',
+            'A man\'s respect for law and order exists in precise relationship to the size of his paycheck.',
+            'Man, I was tame compared to what they do now, are you kidding? All that I ever did was just jiggle.',
+            'Our prejudices are like physical infirmities - we cannot do what they prevent us from doing.',
+            'I\'ve been smoking nearly fifty years now. I just don\'t feel safe breathing anything I can\'t see!',
+            'War is the statesman\'s game, the priest\'s delight, The lawyer\'s jest, the hired assassin\'s trade.',
+            'A sub-clerk in the post-office is the equal of a conqueror if consciousness is common to them.',
+            'To myself, personally, it brings nothing but increasing drudgery and daily loss of friends.',
+            'Knowledge must come through action - you can have no test which is not fanciful, save by trial.',
+            'The height of cultivation runs to simplicity. Halfway cultivation runs to ornamentation.',
+            'To love someone deeply gives you strength. Being loved by someone deeply gives you courage.',
+            'My idea of walking into the jaws of death is marrying some woman who has lost three husbands.',
+            'If we had no faults of our own, we should not take so much pleasure in noticing those in others.',
+            'As love without esteem is capricious and volatile; esteem without love is languid and cold.',
+            'If the aborigine drafted an IQ test, all of Western civilization would presumably flunk it.',
+            'No matter how old a mother is, she watches her middle-aged children for signs of improvement.',
+            'Anybody caught selling macrame in public should be dyed a natural color and hung out to dry.',
+            'All governments suffer a recurring problem: Power attracts pathological personalities.',
+            'The signs of the zodiac are karmic patterns; the planets are the looms; the will is the weaver.',
+            'Princes should have more to fear from historians than have ugly women from great painters.'        
+        ],
+        morbitReplaces: ['OO', 'O-', 'OX', '-O', '--', '-X', 'XO', 'X-', 'XX'],
     cipherWidth: 1,
     charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     sourcecharset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -450,6 +450,14 @@ var CipherTool = {
     freq: [],
     chunkIt: false,
     doEncoding: true,
+    affineCheck: {
+        'p': -1,
+        'q': -1,
+        'r': -1,
+        's': -1,
+        'oldId': -1,
+        'olderId': -1
+    },
 
     /** @description Sets the character set used by the Decoder.
      * @param {string} charset the set of characters to be used. 
@@ -703,7 +711,80 @@ var CipherTool = {
             '</tr></tbody></table>';
         return res;
     },
+    gcd: function (a, b) {
+        if (isNaN(a)) { return a; }
+        if (isNaN(b)) { return b; }
+        if (a < 0) { a = -a; }
+        if (b < 0) { b = -b; }
 
+        if (b > a) { var temp = a; a = b; b = temp; }
+        while (true) {
+            console.log('gcd a=' + a + ' b=' + b);
+            if (b == 0) return a;
+            a %= b;
+            if (a == 0) return b;
+            b %= a;
+        }
+    },
+
+    iscoprime: function (a) {
+        var charset = this.getCharset();
+        console.log('iscoprime a=' + a + ' len=' + charset.length);
+        var gcdval = this.gcd(a, charset.length);
+        console.log('gcd(' + a + ',' + charset.length + ')=' + gcdval);
+        if (gcdval != 1) {
+            return false;
+        }
+        return true;
+    },
+    affinechar: function (a, b, chr) {
+        var charset = this.getCharset();
+        var x = charset.indexOf(chr.toUpperCase());
+        if (x < 0)
+        { return chr; }
+        var y = ((a * x) + b) % charset.length;
+        var res = charset.substr(y, 1);
+        console.log('char=' + chr + ' x=' + x + ' a=' + a + ' b=' + b + ' y=' + y + ' res=' + res);
+        return res;
+    },
+    /*
+    * Creates an HTML table to display the frequency of characters
+    */
+    createAffineSolutionTable: function () {
+        var table = $('<table/>').addClass("tfreq");
+        var thead = $('<thead/>');
+        var tbody = $('<tbody/>');
+        var headrow = $('<tr/>');
+        var freqrow = $('<tr/>');
+        var replrow = $('<tr/>');
+        var altreprow = $('<tr/>')
+        var i, len;
+        var charset = this.getCharset();
+
+        headrow.append($('<th/>').addClass("topleft"));
+        freqrow.append($('<th/>').text("Frequency"));
+        replrow.append($('<th/>').text("Replacement"));
+        altreprow.append($('<th/>').text("Rev Replace"));
+        for (i = 0, len = charset.length; i < len; i++) {
+            var c = charset.substr(i, 1).toUpperCase();
+            headrow.append($('<th/>').text(c));
+            freqrow.append($('<td id="f' + c + '"/>'));
+            var td = $('<td/>');
+            td.append(this.makeFreqEditField(c));
+            replrow.append(td);
+            altreprow.append($('<td id="rf' + c + '"/>'));
+        }
+        thead.append(headrow);
+        tbody.append(freqrow);
+        tbody.append(replrow);
+        if (this.ShowRevReplace) {
+            tbody.append(altreprow);
+        }
+        table.append(thead);
+        table.append(tbody);
+
+        return table;
+    },
     /**
      * Builds the GUI for the solver
      * @param {string} str String to decode
@@ -763,6 +844,9 @@ var CipherTool = {
     /**
      * When building a Morbit or Fractionated Morse, we want to create the table with three rows.
      * the top row is the input characters each with a colspan of 2.  This
+     * is because each character in the Morbit expands to two morse code characters
+     * We will ensure that the table is always an even number of columns so that
+     * an input chais the input characters each with a colspan of 2.  This
      * is because each character in the Morbit expands to two morse code characters
      * We will ensure that the table is always an even number of columns so that
      * an input character never spans tables.  "known" entries are created with a
@@ -2840,7 +2924,7 @@ var CipherTool = {
         radioBox.append($('<input>', { id: 'decode', type: 'radio', name: 'operation', value: 'decode' }));
         radioBox.append($('<label>', { for: 'decode', class: 'rlab'}).text('Decode'));
 
-
+        
         operationChoice.append(radioBox);
 
         return operationChoice.html();
@@ -2971,6 +3055,213 @@ var CipherTool = {
         $('#answer').html(res);
         this.attachHandlers();
     },
+    /**
+     * Initializes the encoder. 
+     * We don't want to show the reverse replacement since we are doing an encode
+     */
+    initAffine: function() {
+        this.ShowRevReplace = false;
+        var affineCheck = {};
+        this.affineCheck['p'] = -1;
+        this.affineCheck['q'] = -1;
+        this.affineCheck['r'] = -1;
+        this.affineCheck['s'] = -1;
+        $("[id='solve']").prop('disabled', true);
+        $("[id='solve']").prop('value', 'Select 2 hint letters');
+        console.log('Init...'+this.affineCheck['p']);
+    },
+    
+    buildAffine: function (msg, a, b) {
+        var i;
+        var charset = this.getCharset();
+        var message = '';
+        var cipher = '';
+        var result = $('<div>');
+        var msgLength = msg.length;        
+        var lastSplit = -1;
+        var c = '';
+
+        var table = $('<table/>').addClass("tfreq");
+        var tableBody = $('<tbody/>');
+        var messageRow = $('<tr/>');
+        var cipherRow = $('<tr/>');
+
+        for (i = 0; i < msgLength; i++) {
+            var messageChar = msg.substr(i, 1).toUpperCase();
+            var cipherChar = '';
+            var m = charset.indexOf(messageChar);
+            if (m >= 0) {
+
+                message += messageChar;
+                cipherChar = this.affinechar(a, b, messageChar);
+                cipher += cipherChar;
+            }
+            else {
+                message += messageChar;
+                cipher += messageChar;
+                lastSplit = cipher.length;
+                continue;
+            }
+
+            messageRow.append($('<td id="m'+i+'"/>').addClass("TOANSWER").text(messageChar));
+            cipherRow.append($('<td id="'+i+'"/>').addClass("TOSOLVE").text(cipherChar));
+
+/*
+            if (message.length >= this.maxEncodeWidth) {
+                if (lastSplit === -1) {
+                    result.append($('<div>', {class: "TOSOLVE"}).text(message)); 
+                    result.append($('<div>', {class: "TOANSWER"}).text(cipher));
+                    message = '';
+                    cipher = '';
+                    lastSplit = -1;
+                }
+                else {
+                    var messagePart = message.substr(0, lastSplit);
+                    var cipherPart = cipher.substr(0, lastSplit);
+                    message = message.substr(lastSplit);
+                    cipher = cipher.substr(lastSplit);
+                    result.append($('<div>', {class: "TOSOLVE"}).text(messagePart));
+                    result.append($('<div>', {class: "TOANSWER"}).text(cipherPart));
+                }
+            }
+*/            
+        }
+        if (message.length > 0) {
+            tableBody.append(cipherRow);
+            tableBody.append(messageRow);
+            //result.append($('<div>', {class: "TOSOLVE"}).text(message));
+            //result.append($('<div>', {class: "TOANSWER"}).text(cipher));
+        }
+        table.append(tableBody);
+
+        //return result.html();
+        return table;
+    },
+    solveIt: function(m1, c1, m2, c2) {
+        var answer = 'Can\'t solve.'
+
+        var c = c1 - c2;
+        var m = m1 - m2;
+
+        while (m < 0) {
+            m += 26;
+        }
+
+        // The reality is that A can only be one of: 1, 3, 5, 7, 9, 11,
+        // 15, 17, 19, 21, 23, 25.  B will be between 0 and 25.
+
+        while (((c < 0) || (c % m !== 0)) && c < 626) {
+            c += 26;
+        }
+        var A = c/m;
+        console.log('A='+A);
+        // if A not in the list, return answer.
+        if ((A % 2 !== 1) || (A < 1) || (A > 25)) {
+            return answer;
+        }
+        
+        var B = (c1 - (A * m1)) % 26;
+        while ( B < 0) {
+            B += 26;
+        }
+
+        return 'A = '+A+'; B = '+B;
+    },
+
+    loadAffine: function() {
+        var charset = this.getCharset();
+        var atxt = $('#a').spinner("value");
+        var btxt = $('#b').spinner("value");
+        var a = parseInt(atxt);
+        var b = parseInt(btxt);
+
+        if (!this.iscoprime(a)) {
+            console.log('not coprime');
+            $('#err').text('A value of ' + a + ' is not coprime with ' + charset.length);
+            return '';
+        }
+
+        var toencode = this.cleanString($('#toencode').val());
+        console.log('a=' + a + ' b=' + b + ' encode=' + toencode);
+        var res = this.build(toencode, a, b);
+        $("#answer").html(res);
+        
+        $("td").click(function() {            
+            console.log("clicked "+$(this).get);
+            var id = $(this).attr('id');
+            console.log("id = "+id);
+//            if ($('td#'+id+'.TOSOLVE').getClass() === "TOSOLVE") {
+//                console.log("top clicked");
+//            }
+//            else {
+//                console.log("bottom clicked");
+//            }
+
+            console.log("other = "+$('td#'+id+'.TOSOLVE').text()+" nother = "+$('td#'+id+'.TOANSWER').text())
+            // change the style
+            var clickedId = CipherTool.affineCheck['olderId'];
+            if (clickedId !== -1) {
+                // turn new click blue, reset old click for TOSOLVE
+                $('td#'+clickedId+'.TOSOLVECLICK').removeClass("TOSOLVECLICK").addClass("TOSOLVE");
+            }
+            $('td#'+id+'.TOSOLVE').removeClass("TOSOLVE").addClass("TOSOLVECLICK");
+            // turn 
+            CipherTool.affineCheck['q'] = CipherTool.affineCheck['p'];
+            CipherTool.affineCheck['s'] = CipherTool.affineCheck['r'];
+            CipherTool.affineCheck['p'] = charset.indexOf($('td#m'+id+'.TOANSWER').text());
+            CipherTool.affineCheck['r'] = charset.indexOf($('td#'+id+'.TOSOLVECLICK').text());
+            CipherTool.affineCheck['olderId'] = CipherTool.affineCheck['oldId']
+            CipherTool.affineCheck['oldId'] = parseInt(id);
+            
+            if (CipherTool.affineCheck.p !== -1 && CipherTool.affineCheck.q !== -1) {
+                //solve it
+                console.log('solve: ')
+                var sol = CipherTool.solveIt(CipherTool.affineCheck['p'], CipherTool.affineCheck['r'], 
+                CipherTool.affineCheck['q'], CipherTool.affineCheck['s']);
+                var expected = 'A = '+$("#a").val()+'; B = '+$("#b").val()
+                if (sol === expected ) {
+                    console.log('showing button');
+                    $("[id='solve']").prop('disabled', false);
+                    $("[id='solve']").prop('value', 'Display Solution');
+                }
+                else {
+                    console.log('hiding button');
+                    $("[id='solve']").prop('disabled', true);
+                    $("[id='solve']").prop('value', 'Indeterminate Solution');
+                }
+                //$("#solve").text(sol);
+            }
+        });
+
+        //var sol = solveIt(18, 14, 7, 5);
+        
+/*
+        var res = "";
+        $('#err').text('');
+        console.log('is coprime');
+        for (var i = 0, len = str.length; i < len; i++) {
+            var t = affinechar(a, b, str.substr(i, 1));
+            res += t;
+        }
+        return res;
+        var encoded = this.cleanString($('#inputdata').val());
+*/        
+        /*
+        * If it is characteristic of the cipher type (e.g. patristocrat),
+        * rebuild the string to be encoded in to five character sized chunks.
+        */
+/*        
+        var blockSize = parseInt($('input[id=blocksize').val());
+        if (blockSize > 0 && blockSize < this.maxEncodeWidth) {
+            encoded = this.chunk(encoded, blockSize);
+        }
+        var key = this.cleanString($('#keystring').val());
+        $('#err').text('');
+        var res = this.build(encoded, a, b);
+        $('#answer').html(res);
+        this.attachHandlers();
+*/        
+    },
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     *
     * Command mappings - this basically implements morphing this class so that it can operate on different cihper types
@@ -3096,12 +3387,12 @@ var CipherTool = {
             findPossible: 'findStandard'
         },
         Affine: {
-            init: 'initEncoder',
+            init: 'initAffine',
             normalizeHTML: 'normalizeHTML',
             createFreqEditTable: 'createNormalFreqEditTable',
-            load: 'loadEncoder',
+            load: 'loadAffine',
             reset: 'resetSolver',
-            build: 'buildEncoder',
+            build: 'buildAffine',
             makeFreqEditField: 'makeViewField',
             updateSel: 'updateStandardSel',
             setChar: 'setStandardChar',

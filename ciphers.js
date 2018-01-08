@@ -2814,7 +2814,7 @@ var CipherTool = {
         var tool = this;
         $("#answer").html(res);
 
-        testStrings
+        /* testStrings */
 
         var chi = this.CalculateChiSquare(encoded);
         $("#chi").text('Chi-Square='+chi);
@@ -3088,6 +3088,20 @@ var CipherTool = {
             load: 'loadVigenere',
             reset: 'resetSolver',
             build: 'buildVigenere',
+            makeFreqEditField: 'makeViewField',
+            updateSel: 'updateStandardSel',
+            setChar: 'setStandardChar',
+            setMultiChars: 'setStandardMultiChars',
+            updateMatchDropdowns: 'updateStandardMatchDropdowns',
+            findPossible: 'findStandard'
+        },
+        Affine: {
+            init: 'initEncoder',
+            normalizeHTML: 'normalizeHTML',
+            createFreqEditTable: 'createNormalFreqEditTable',
+            load: 'loadEncoder',
+            reset: 'resetSolver',
+            build: 'buildEncoder',
             makeFreqEditField: 'makeViewField',
             updateSel: 'updateStandardSel',
             setChar: 'setStandardChar',

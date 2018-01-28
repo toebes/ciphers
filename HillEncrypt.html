@@ -20,7 +20,7 @@
     <div>
         <label for="key">
             key</label>
-        <input id="key" class="inp" title="key" type="text" value="ABCD" />
+        <input id="key" class="inp" title="key" type="text" value="ABCD" /> <a href="HillKeys.html" target="new">Known Valid Keys</a>
     </div>
     <div class="err" id="err">
     </div>
@@ -42,7 +42,7 @@
 
             if (b > a) { var temp = a; a = b; b = temp; }
             while (true) {
-                console.log('gcd a=' + a + ' b=' + b);
+              //  console.log('gcd a=' + a + ' b=' + b);
                 if (b == 0) return a;
                 a %= b;
                 if (a == 0) return b;
@@ -50,9 +50,9 @@
             }
         }
         function iscoprime(a) {
-            console.log('iscoprime a=' + a + ' len=' + charset.length);
+          //  console.log('iscoprime a=' + a + ' len=' + charset.length);
             var gcdval = gcd(a, charset.length);
-            console.log('gcd(' + a + ',' + charset.length + ')=' + gcdval);
+          //  console.log('gcd(' + a + ',' + charset.length + ')=' + gcdval);
             if (gcdval != 1) {
                 return false;
             }
@@ -85,21 +85,17 @@
             res += padval.substr(0, topad);
             return res;
         }
-        
-        function hill(key, str) {
-            var res = "";
+
+        function isvalidkey(key) {
             var vals = [];
-            var i, len, t, groupsize, x;
+            var groupsize;
             if (key.length != 4 && key.length != 9) {
-                console.log('Invalid key length:' + key.length);
                 $('#err').text('Invalid key.  It must be either 4 or 9 characters long');
-                return '';
+                return null;
             }
             // Figure out how big our array for encoding is
             groupsize = math.sqrt(key.length);
 
-            // pad out the string to contain full groups of the group size
-            str = padstr(str, groupsize);
             // Parse out the key and create the matrix to multiply by
             for (i = 0, len = key.length; i < len; i++) {
                 var row;
@@ -108,7 +104,7 @@
                 if (x < 0) {
                     console.log('Invalid character:' + t);
                     $('#err').text('Invalid key character:' + t);
-                    return '';
+                    return null;
                 }
                 row = Math.floor(i / groupsize);
                 if (typeof vals[row] === 'undefined') {
@@ -120,12 +116,31 @@
             var determinant = math.det(vals);
             if (determinant == 0) {
                 $('#err').text('Matrix is not invertable');
-                return '';
+                return null;
             }
             if (!iscoprime(determinant, charset.length)) {
                 $('#err').text('Matrix is not invertable.  Determinant ' + determinant + ' is not coprime with ' + charset.length);
+                return null;
+            }
+            return vals;
+        }
+        
+        function hill(key, str) {
+            var res = "";
+            var vals = [];
+            var i, len, t, groupsize, x;
+            vals = isvalidkey(key);
+
+            if (vals === null) {
+                console.log('****RETURNING****');
                 return '';
             }
+            // Figure out how big our array for encoding is
+            groupsize = math.sqrt(key.length);
+
+            // pad out the string to contain full groups of the group size
+            str = padstr(str, groupsize);
+           
             //console.log('Determinant =' + math.det(vals));
             // console.log('Inverse =' + math.inv(vals));
 
@@ -168,6 +183,16 @@
             var key = $('#key').val();
             var toencode = $('#toencode').val();
             console.log('key=' + key + ' encode=' + toencode);
+
+/* This set of words allows quick testing to find the known keys */
+var words=[
+];
+
+for (var i = 0; i < words.length; i++) {
+    if (isvalidkey(words[i]) != null) {
+        console.log("Valid key:"+words[i]);
+    }
+}
             var res = hill(key, toencode);
             $("#answer").text(res);
         }

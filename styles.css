@@ -41,6 +41,12 @@
     margin-bottom: 5px;
 }
 
+#chi {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-style: italic;
+}
 .sword {
     float: left;
     background-color: #eaeaea;

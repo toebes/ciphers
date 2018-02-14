@@ -64,7 +64,7 @@ var CipherTool = {
         'nl': {},
         'de': {},
         'eo': {},
-        'es': { 'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U', 'Ü': 'U', },
+        'es': { 'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U', 'Ü': 'U',  'Ý': 'Y'},
         'fr': {
             'Ç': 'C',
             'Â': 'A', 'À': 'A',
@@ -288,67 +288,36 @@ var CipherTool = {
         'Z': 'XX-'
     },
     /**
+     * @type {Object.Object.<string,number>}
      * @type {Object.<string,number>}
      */
-    EngFreq: {
-        'E': 0.1249,
-        'T': 0.0928,
-        'A': 0.0804,
-        'O': 0.0764,
-        'I': 0.0757,
-        'N': 0.0723,
-        'S': 0.0651,
-        'R': 0.0628,
-        'H': 0.0505,
-        'L': 0.0407,
-        'D': 0.0382,
-        'C': 0.0334,
-        'U': 0.0273,
-        'M': 0.0251,
-        'F': 0.0240,
-        'P': 0.0214,
-        'G': 0.0187,
-        'W': 0.0168,
-        'Y': 0.0166,
-        'B': 0.0148,
-        'V': 0.0105,
-        'K': 0.0054,
-        'X': 0.0023,
-        'J': 0.0016,
-        'Q': 0.0012,
-        'Z': 0.0009
-    },
-    /**
-     * @type {Object.<string,number>}
-     */
-    EspFreq: {
-        'E': 0.1408,
-        'A': 0.1216,
-        'O': 0.092,
-        'S': 0.072,
-        'N': 0.0683,
-        'R': 0.0641,
-        'I': 0.0598,
-        'L': 0.0524,
-        'U': 0.0469,
-        'D': 0.0467,
-        'T': 0.046,
-        'C': 0.0387,
-        'M': 0.0308,
-        'P': 0.0289,
-        'B': 0.0149,
-        'H': 0.0118,
-        'Q': 0.0111,
-        'Y': 0.0109,
-        'V': 0.0105,
-        'G': 0.01,
-        'F': 0.0069,
-        'J': 0.0052,
-        'Z': 0.0047,
-        'Ñ': 0.0017,
-        'X': 0.0014,
-        'K': 0.0011,
-        'W': 0.0004
+    langfreq: {
+        'en': {
+            'E': 0.1249, 'T': 0.0928, 'A': 0.0804, 'O': 0.0764, 'I': 0.0757,
+            'N': 0.0723, 'S': 0.0651, 'R': 0.0628, 'H': 0.0505, 'L': 0.0407,
+            'D': 0.0382, 'C': 0.0334, 'U': 0.0273, 'M': 0.0251, 'F': 0.0240,
+            'P': 0.0214, 'G': 0.0187, 'W': 0.0168, 'Y': 0.0166, 'B': 0.0148,
+            'V': 0.0105, 'K': 0.0054, 'X': 0.0023, 'J': 0.0016, 'Q': 0.0012,
+            'Z': 0.0009
+        },
+        'nl': {},
+        'de': {},
+        'eo': {},
+        'es': {
+            'E': 0.1408, 'A': 0.1216, 'O': 0.092,  'S': 0.072,  'N': 0.0683,
+            'R': 0.0641, 'I': 0.0598, 'L': 0.0524, 'U': 0.0469, 'D': 0.0467,
+            'T': 0.046,  'C': 0.0387, 'M': 0.0308, 'P': 0.0289, 'B': 0.0149,
+            'H': 0.0118, 'Q': 0.0111, 'Y': 0.0109, 'V': 0.0105, 'G': 0.01,
+            'F': 0.0069, 'J': 0.0052, 'Z': 0.0047, 'Ñ': 0.0017, 'X': 0.0014,
+            'K': 0.0011, 'W': 0.0004
+        },
+        'fr': {},
+        'it': {},
+        'no': {},
+        'pt': {},
+        'sv': {},
+        'ia': {},
+        'la': {}
     },
     /** @type {Array.string} 
      */
@@ -357,82 +326,7 @@ var CipherTool = {
         '-OO', '-O-', '-OX', '--O', '---', '--X', '-XO', '-X-', '-XX',
         'XOO', 'XO-', 'XOX', 'X-O', 'X--', 'X-X', 'XXO', 'XX-'],
         testStrings: [
-            "Maybe this world is another planet\'s hell.",
-            "Electricity is really just organized lightning.",
-            "My theory of evolution is that Darwin was adopted.",
-            "Scientists are peeping toms at the keyhole of eternity.",
-            "I\'m not sure if I was the first man in space or the last dog.",
-            "If you’re too open-minded, your brains will fall out.",
-            "If we knew what we were doing, it wouldn’t be called research.",
-            "I have never let my schooling interfere with my education.",
-            "I won\'t be impressed with science until I can download a waffle.",
-            "Basic research is what I am doing when I don\'t know what I am doing.",
-            "I have not failed. I’ve just found 10,000 ways that won’t work.",
-            "Science is interesting, and if you don’t agree, you can fuck off.",
-            "I don\'t believe in astrology; I\'m a Sagittarian and we\'re skeptical.",
-            "We don\'t devote enough scientific research to finding a cure for jerks.",
-            "God not only plays dice, he throws them in the corner where you can\'t see them.",
-            "Intelligence is an accident of evolution, and not necessarily an advantage.",
-            "Biologically speaking, if something bites you, it is more likely to be female.",
-            "If we knew what it was we were doing, it would not be called research, would it?",
-            "I had trouble with physics in college. When I signed up I thought it said psychics.",
-            "The Universe is not only queerer than we suppose, it is queerer than we can suppose.",
-            "The Big Bang Explained: somebody told God a great joke when God had a mouthful of milk.",
-            "Philosophy of science is about as useful to scientists as ornithology is to birds.",
-            "In physics, you don\'t have to go around making trouble for yourself. Nature does it for you.",
-            "Why would you clone people when you can go to bed with them and make a baby? C\'mon, it\'s stupid.",
-            "The public have an insatiable curiosity to know everything, except what is worth knowing.",
-            "Science is organized common sense where many a beautiful theory was killed by an ugly fact.",
-            "I’m sure the universe is full of intelligent life. It’s just been too intelligent to come here.",
-            "There is no great invention, from fire to flying, which has not been hailed as an insult to some god.",
-            "Only two things are infinite, the universe and human stupidity, and I\'m not sure about the universe.",
-            "Creationists make it sound as though a \'theory\' is something you dreamt up after being drunk all night.",
-            "A person who isn’t outraged on first hearing about quantum theory doesn’t understand what has been said.",
-            "If math was taught like science in Kansas, Texas, and Tennessee, then 2+2=5 would be a competing theory.",
-            "If you try and take a cat apart to see how it works, the first thing you have on your hands is a non-working cat.",
-            "I see they found out the universe is 80 million years older than we thought. It\'s also been lying about its weight.",
-            "When you get right down to it, almost every explanation Man came up with for anything until about 1926 was stupid.",
-            "We only have to look at ourselves to see how intelligent life might develop into something we wouldn’t want to meet.",
-            "Science has now determined there is a direct relationship between the way the ball bounces and the cookie crumbles.",
-            "I\'m human; never been to space. Monkeys aren\'t human; have been to space. That\'s the gist of my lawsuit against NASA.",
-            "The God Particle is just a regular particle that some say bears the image of the Virgin Mary. It will be on eBay shortly.",
-            "Nothing travels faster than the speed of light, with the possible exception of bad news, which obeys its own set of laws.",
-            "This just in: UFOs are here to stop Yellowstone from exploding, thus saving mankind, probably for their own amusement.",
-            "If I were ever abducted by aliens, the first thing I’d ask is whether they came from a planet where people also deny science.",
-            "That\'s the whole problem with science. You\'ve got a bunch of empiricists trying to describe things of unimaginable wonder.",
-            "The most exciting phrase to hear in science, the one that heralds the most discoveries, is not ‘Eureka!’ but ‘That’s funny…’",
-            "It is a good morning exercise for a research scientist to discard a pet hypothesis every day before breakfast. It keeps him young.",
-            "Sometimes I think the surest sign that intelligent life exists elsewhere in the universe is that none of it has tried to contact us.",
-            "Occams Razor is the scientific principle that, all things being equal, the simplest explanation is always the dog ate my homework.",
-            "When you are courting a nice girl an hour seems like a second. When you sit on a red-hot cinder a second seems like an hour. That\'s relativity.",
-            "Sure, gravity makes everything sag as you get older, but it also keeps your dinner from flying all over the room so you don’t have to chase it.",
-            "There is no squabbling so violent as that between people who accepted an idea yesterday and those who will accept the same idea tomorrow.",
-            "We all understand the twinge of discomfort at the thought that we share a common ancestor with the apes. No one can embarrass you like a relative.",
-            "Electricity is actually made up of extremely tiny particles called electrons, that you cannot see with the naked eye unless you have been drinking.",
-            "Being a scientist is like doing a jigsaw puzzle in a snowstorm at night, with some pieces missing, and with no idea what the finished picture looks like.",
-            "There’s an old saying among scientific guys: You can’t make an omelet without breaking eggs, ideally by dropping a cement truck on them from a crane.",
-            "The dinosaurs became extinct because they didn\'t have a space program. And if we become extinct because we don\'t have a space program, it\'ll serve us right!",
-            "Apparently there are three levels of brain activity. Level 1 is the lowest level - the amount of concentration required to, say, delete emails or serve in congress.",
-            "NASA scientists announced the discovery of 50 new planets, among them what they’re calling Super Earth. It’s indistinguishable from regular earth until it removes its glasses.",
-            "If we knew what we were doing, it wouldn’t be called research.",
-            "Only two things are infinite, the universe and human stupidity, and I\'m not sure about the universe.",
-            "Science is a wonderful thing if one does not have to earn one\'s living at it.",
-            "Science has now determined there is a direct relationship between the way the ball bounces and the cookie crumbles.",
-            "Being a scientist is like doing a jigsaw puzzle in a snowstorm at night, with some pieces missing, and with no idea what the finished picture looks like.",
-            "The goal of science and engineering is to build better mousetraps. The goal of nature is to build better mice.",
-            "When science finally locates the center of the universe, some people will be surprised to learn they\'re not it.",
-            "I see they found out the universe is 80 million years older than we thought. It\'s also been lying about its weight.",
-            "Sometimes I think the surest sign that intelligent life exists elsewhere in the universe is that none of it has tried to contact us.",
-            "That\'s the whole problem with science. You\'ve got a bunch of empiricists trying to describe things of unimaginable wonder.",
-            "Electricity is actually made up of extremely tiny particles called electrons, that you cannot see with the naked eye unless you have been drinking.",
-            "Nothing travels faster than the speed of light, with the possible exception of bad news, which obeys its own set of laws.",
-            "If your result needs a statistician then you should design a better experiment.",
-            "Science, never solves a problem without creating ten more.",
-            "Electricity is really just organized lightning.",
-            "What is a scientist after all? It is a curious man looking through a keyhole, the keyhole of nature, trying to know what\'s going on.",
-            "An important scientific innovation rarely makes its way by gradually winning over and converting its opponents: What does happen is that the opponents gradually die out.",
-            "Every science begins as philosophy and ends as art."                                        
-         ],
+        ],
         morbitReplaces: ['OO', 'O-', 'OX', '-O', '--', '-X', 'XO', 'X-', 'XX'],
     cipherWidth: 1,
     charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -510,7 +404,8 @@ var CipherTool = {
         var chiSquare = 0.0;
         for(i = 0; i < len; i++) {
             var c = charset.substr(i,1);
-            var expected = this.EngFreq[c];
+            console.log('Lang='+this.lang+' c='+c);
+            var expected = this.langfreq[this.lang][c];
             chiSquare += Math.pow(counts[i] - total*expected,2)/(total*expected);
         }
         return chiSquare;
@@ -2851,9 +2746,12 @@ var CipherTool = {
     /**
      * Initializes the encoder. 
      * We don't want to show the reverse replacement since we are doing an encode
+     * @param {string} lang Language to select (EN is the default)
      */
-    initEncoder: function() {
+    initEncoder: function(lang) {
         this.ShowRevReplace = false;
+        this.curlang = lang;
+        this.setCharset(this.langcharset[lang]);
     },
     /**
      * Convert the text to chunks of (chunkSize) characters separated
@@ -2915,7 +2813,24 @@ var CipherTool = {
         }
 
         var chi = this.CalculateChiSquare(encoded);
-        $("#chi").text('Chi-Square='+chi);
+        
+        var chitext = '';
+        if (!isNaN(chi)) {
+            chitext = "Chi-Square Value="+chi.toFixed();
+            if (chi < 20) {
+                chitext += ' [Easy]';
+            } else if (chi < 30) {
+                chitext += ' [Medium]';
+            } else if (chi < 40) {
+                chitext += ' [Medium Hard]';
+            } else if (chi < 50) {
+                chitext += ' [Difficult]';
+            } else {
+                chitext += ' [Extremely Difficult]';
+            }
+        }
+        
+        $("#chi").text(chitext);
         // Show the update frequency values
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
@@ -3418,25 +3333,33 @@ var CipherTool = {
     /*
      * Choose which Cipher type to be operating on by default.
      */
-    select: function (ciphertype) {
-        console.log('Selecting:' + ciphertype);
+    select: function (ciphertype, lang) {
+        console.log('Selecting:' + ciphertype + " lang="+lang);
         if (typeof this.CipherMappings[ciphertype] === 'undefined') {
             ciphertype = 'Standard';
         }
+        if (typeof lang === 'undefined') {
+            lang = "en";
+        }
+        lang = lang.toLowerCase();
         for (var target in this.CipherMappings[ciphertype]) {
             if (this.CipherMappings[ciphertype].hasOwnProperty(target)) {
                 this[target] = this[this.CipherMappings[ciphertype][target]];
             }
         }
-        this.init();
-    }
+        this.lang = lang;
+        this.init(lang);
+    },
+    /*
+     * Choose the language for the cipher
+     */
 };
 
 $(function () {
     CipherTool.select();
     // First figure out what type of solver we are building
     $("[data-cipher]").each(function () {
-        CipherTool.select($(this).attr('data-cipher'));
+        CipherTool.select($(this).attr('data-cipher'),$(this).attr('data-lang'));
     });
     // process the "cipher-type" class
     $(".cipher-type").each(function () {

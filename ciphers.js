@@ -2828,6 +2828,16 @@ var CipherTool = {
             } else {
                 chitext += ' [Extremely Difficult]';
             }
+            chitext += ' Length='+encoded.length;
+            if (encoded.length < 60) {
+                chitext += ' [Too Short]';
+            } else if (encoded.length < 80) {
+                chitext += ' [Short]';
+            } else if (encoded.length > 120) {
+                chitext += ' [Too Long]';
+            } else if (encoded.length > 100) {
+                chitext += ' [Long]';
+            }
         }
         
         $("#chi").text(chitext);

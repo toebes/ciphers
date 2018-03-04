@@ -404,7 +404,6 @@ var CipherTool = {
         var chiSquare = 0.0;
         for(i = 0; i < len; i++) {
             var c = charset.substr(i,1);
-            console.log('Lang='+this.lang+' c='+c);
             var expected = this.langfreq[this.lang][c];
             chiSquare += Math.pow(counts[i] - total*expected,2)/(total*expected);
         }

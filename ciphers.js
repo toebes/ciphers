@@ -330,7 +330,7 @@ var CipherTool = {
         morbitReplaces: ['OO', 'O-', 'OX', '-O', '--', '-X', 'XO', 'X-', 'XX'],
     cipherWidth: 1,
     charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    sourcecharset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    sourcecharset: "ABCDEFGHIJLMNOPQRSTUVWXYZ",
     unasigned: "",
     rowcharset: "",
     colcharset: "",
@@ -1134,13 +1134,14 @@ var CipherTool = {
                 $('#f' + c).text(subval);
             }
         }
-        //TODO: Is this really needed?
-/*        for (i = 0, len = charset.length; i < len; i++) {
+        // Replicate all of the previously set values.  This is done when
+        // you change the spacing in the encoded text and then do a reload.
+        for (i = 0, len = charset.length; i < len; i++) {
             c = charset.substr(i, 1);
             var repl = $('#m' + c).val();
             this.setChar(c, repl);
         }
-        */
+        
         this.holdupdates = false;
         this.updateMatchDropdowns('');
     },

@@ -945,6 +945,44 @@ var CipherTool = {
         topdiv.append($('<hr/><div>' + finaltext + '</div>'));
         return topdiv;
     },
+        /*
+    * Creates an HTML table to display the frequency of characters
+    */
+   createMorseFreqEditTable: function () {
+    var table = $('<table/>').addClass("tfreq");
+    var thead = $('<thead/>');
+    var tbody = $('<tbody/>');
+    var headrow = $('<tr/>');
+    var freqrow = $('<tr/>');
+    var replrow = $('<tr/>');
+    var lockrow = $('<tr/>')
+    var i, len;
+    var charset = this.getCharset();
+
+    headrow.append($('<th/>').addClass("topleft"));
+    freqrow.append($('<th/>').text("Frequency"));
+    replrow.append($('<th/>').text("Replacement"));
+    lockrow.append($('<th/>').text("Locked"));
+    for (i = 0, len = charset.length; i < len; i++) {
+        var c = charset.substr(i, 1).toUpperCase();
+        headrow.append($('<th/>').text(c));
+        freqrow.append($('<td id="f' + c + '"/>'));
+        var td = $('<td/>');
+        td.append(this.makeFreqEditField(c));
+        replrow.append(td);
+        td = $('<td/>');
+        $('<input />', { type: 'checkbox', class: 'cb', id: 'cb'+c, value: name }).appendTo(td);
+        lockrow.append(td);
+    }
+    thead.append(headrow);
+    tbody.append(freqrow);
+    tbody.append(replrow);
+    tbody.append(lockrow);
+    table.append(thead);
+    table.append(tbody);
+
+    return table;
+},
     /**
      * Retrieve all of the replacement characters that have been selected so far
      */
@@ -1136,10 +1174,14 @@ var CipherTool = {
         }
         // Replicate all of the previously set values.  This is done when
         // you change the spacing in the encoded text and then do a reload.
-        for (i = 0, len = charset.length; i < len; i++) {
-            c = charset.substr(i, 1);
-            var repl = $('#m' + c).val();
-            this.setChar(c, repl);
+        if (this.ShowRevReplace) {
+          for (i = 0, len = charset.length; i < len; i++) {
+              c = charset.substr(i, 1);
+              var repl = $('#m' + c).val();
+              if (repl === '')
+                { repl = $('#m' + c).html(); }
+              this.setChar(c, repl);
+          }
         }
         
         this.holdupdates = false;
@@ -1566,12 +1608,13 @@ var CipherTool = {
     makeMorbitEditField: function (c) {
         var mselect = $('<select class="msli" data-char="' + c + '" id="m' + c + '"/>');
         var mreplaces = this.morbitReplaces.length;
+        var charset = this.getCharset();
         var selected = [];
+        selected[this.morbitMap[c]] = " selected";
         for (var i = 0; i < mreplaces; i++) {
             var text = this.morbitReplaces[i];
-            var select = selected[text];
-            text = this.normalizeHTML(text);
-            $("<option />", { value: i, selected: select }).html(text).appendTo(mselect);
+            $("<option />", { value: i, selected: selected[text] })
+                            .html(this.normalizeHTML(text)).appendTo(mselect);
         }
         return mselect;
     },
@@ -1628,7 +1671,8 @@ var CipherTool = {
         selected[this.fractionatedMorseMap[c]] = " selected";
         for (var i = 0; i < mreplaces; i++) {
             var text = this.fractionatedMorseReplaces[i];
-            $("<option />", { value: text, selected: selected[text] }).html(this.normalizeHTML(text)).appendTo(mselect);
+            $("<option />", { value: text, selected: selected[text] })
+                            .html(this.normalizeHTML(text)).appendTo(mselect);
         }
         return mselect;
     },
@@ -3212,7 +3256,7 @@ var CipherTool = {
         Morbit: {
             init: 'initMorbitSolver',
             normalizeHTML: 'normalizeMorseHTML',
-            createFreqEditTable: 'createNormalFreqEditTable',
+            createFreqEditTable: 'createMorseFreqEditTable',
             load: 'loadMorseSolver',
             reset: 'resetSolver',
             build: 'buildMorseSolver',
@@ -3228,7 +3272,7 @@ var CipherTool = {
         FractionatedMorse: {
             init: 'initFractionatedMorseSolver',
             normalizeHTML: 'normalizeMorseHTML',
-            createFreqEditTable: 'createNormalFreqEditTable',
+            createFreqEditTable: 'createMorseFreqEditTable',
             load: 'loadMorseSolver',
             reset: 'resetSolver',
             build: 'buildMorseSolver',

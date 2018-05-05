@@ -5,6 +5,11 @@
     width: 600px;
 }
 
+input.cb {
+    margin:auto;
+    width: auto;
+}
+
 .ui-spinner {
     width: 100px;
 }

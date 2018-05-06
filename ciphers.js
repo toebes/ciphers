@@ -244,6 +244,10 @@ var CipherTool = {
         '-OOOO-': '-',
         '-O--O-': '()'
     },
+    /** @type {Object.<string, bool>}
+     * 
+     */
+    morseLocked: {'R': true, 'D': true,},
     /** @type {Object.<string, string>} 
    */
     morbitMap: {
@@ -743,6 +747,14 @@ var CipherTool = {
         res += '<div class="ssum">' + combinedtext + '</div>';
         return res;
     },
+    updateCheck: function(c,lock) 
+    {
+        if (this.morseLocked[c] != lock) {
+            this.morseLocked[c] = lock;
+            this.UpdateFreqEditTable();
+            this.load();
+        }
+    },
     /**
      * When building a Morbit or Fractionated Morse, we want to create the table with three rows.
      * the top row is the input characters each with a colspan of 2.  This
@@ -832,14 +844,18 @@ var CipherTool = {
         //
         morsetext += 'XXX';
         remaining = width;
-        console.log('**MORSETEXT=' + morsetext);
         //
         // Now that we have the strings, go through and output the rows
         //
         for (i = 0, len = intext.length; i < len; i++) {
             c = intext.substr(i, 1);
-            var mpos;
-            inrow.append($('<td colspan="' + cipherwidth + '"/>').text(c));
+            var mpos,td;
+            td = $('<td>', {colspan: cipherwidth});
+            if (this.morseLocked[c]) {
+                td.addClass("locked");
+            }
+            td.text(c);
+            inrow.append(td);
             for (mpos = 0; mpos < cipherwidth; mpos++) {
                 var morse = morsetext.substr(i * cipherwidth + mpos, 1);
                 morseclass = this.morsedigitClass[morse];
@@ -971,7 +987,13 @@ var CipherTool = {
         td.append(this.makeFreqEditField(c));
         replrow.append(td);
         td = $('<td/>');
-        $('<input />', { type: 'checkbox', class: 'cb', id: 'cb'+c, value: name }).appendTo(td);
+        var ischecked = this.morseLocked[c];
+        $('<input />', { type: 'checkbox', 
+                         class: 'cb',
+                         'data-char': c,
+                         id: 'cb'+c,
+                         value: name, checked: ischecked, }).appendTo(td);
+        
         lockrow.append(td);
     }
     thead.append(headrow);
@@ -1126,6 +1148,10 @@ var CipherTool = {
                 $("[data-schar='" + althighlight + "']").addClass("allfocus");
             }
             $(this).addClass("focus");
+        });
+        $(".cb").on('change',function() {
+            var toupdate = $(this).attr('data-char');
+            tool.updateCheck(toupdate, $(this).prop("checked"));
         });
         $(".msli").on('change', function () {
             var toupdate = $(this).attr('data-char');
@@ -1480,6 +1506,7 @@ var CipherTool = {
     },
 
     resetSolver: function () {
+        this.morseLocked = {};
         for (var c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
                 $('#m' + c).val('');
@@ -1665,14 +1692,29 @@ var CipherTool = {
      * Create an edit field for a dropdown
     */
     makeFractionatedMorseEditField: function (c) {
+        if (this.morseLocked[c]) {
+            return this.normalizeHTML(this.fractionatedMorseMap[c]);
+        }
         var mselect = $('<select class="msli" data-char="' + c + '" id="m' + c + '"/>');
+        var locklist = {};
+        /* Build a list of the locked strings we should skip */
+        for (var key in this.morseLocked) {
+            if (this.morseLocked.hasOwnProperty(key) && this.morseLocked[key]) {
+                locklist[this.fractionatedMorseMap[key]] = true;
+                console.log('Recording locklist['+key+']='+locklist[key]);
+            }
+        }
         var mreplaces = this.fractionatedMorseReplaces.length;
         var selected = [];
         selected[this.fractionatedMorseMap[c]] = " selected";
         for (var i = 0; i < mreplaces; i++) {
             var text = this.fractionatedMorseReplaces[i];
-            $("<option />", { value: text, selected: selected[text] })
-                            .html(this.normalizeHTML(text)).appendTo(mselect);
+            console.log('Checkign for '+text);
+            if (!locklist[text]) {
+                $("<option />", { value: text, selected: selected[text] })
+                                 .html(this.normalizeHTML(text))
+                                 .appendTo(mselect);
+            }
         }
         return mselect;
     },

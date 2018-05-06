@@ -150,7 +150,9 @@ table.mword {
     table.mword .sym {
         background-color: lightcoral;
     }
-
+    table.mword .locked {
+        background-color: cyan;
+    }
 
 .tword {
     height: 55px;
@@ -205,7 +207,7 @@ table.mfind {
 }
 
 .ckfreq td, .tfreq td {
-    width: 20px;
+    width: 40px;
     text-align: center;
 }
 

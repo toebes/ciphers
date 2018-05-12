@@ -1,0 +1,18 @@
+{
+  "name": "ciphers",
+  "description": "Cipher Tools",
+  "version": "1.0.0",
+  "homepage": "http://toebes.com/Ciphers/index.html",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toebes/ciphers"
+  },
+  "devDependencies": {
+    "babel-core": "^6.21.0",
+    "babel-loader": "^6.2.10",
+    "babel-preset-es2015": "^6.18.0",
+    "webpack": "^2.2.1",
+    "webpack-cli": "^2.1.3"
+  }
+}

@@ -34,3 +34,4 @@ out/fonts/OpenSans-LightItalic-webfont.svg
 out/fonts/OpenSans-Regular-webfont.eot
 AffineEncrypt - Copy.html
 SamplePhrases.xlsx
+node_modules/*

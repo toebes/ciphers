@@ -5,7 +5,10 @@
     <link rel="stylesheet" href="styles.css" />
     <script type="text/javascript" src="jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="jquery-ui.min.js"></script>
-    <script type="text/javascript" src="ciphers.js"></script>
+    <script type="text/javascript" src="summernote-lite.js"></script>
+    <script type="text/javascript" src="ciphers.min.js"></script>
+    <link rel="stylesheet" href="summernote-lite.css">
+
     <title>Aristrocrat Encrypt</title>
 </head>
 <body>
@@ -14,6 +17,10 @@
         Aristrocrat Encrypt
     </h1>
     <hr />
+    <label for="points">Points</label>
+    <input id="points" value="100"/>
+    <label for="qtext">Question Text</label>
+    <div id="qtext" class="richtext"></div>
     <label for="toencode">
         Text to encode
     </label>

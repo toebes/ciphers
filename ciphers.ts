@@ -1,4 +1,5 @@
 "use strict";
+
 /**
 * ciphers.js is a library for JavaScript which provides functions for
 * generating web pages to solve Ciphers of many forms.
@@ -21,11 +22,12 @@
 * License for the specific language governing permissions and limitations under
 * the License.
 */
+
 /**
  * Main CipherTool class object
- * @type {Object.<string, function>}
+ * @type {Object.<string, function>} 
  */
-var CipherTool = {
+var CipherTool:any = {
     /**
      * @name CipherTool#langmap
      * @type {Object.<string, string>}
@@ -63,7 +65,7 @@ var CipherTool = {
         'nl': {},
         'de': {},
         'eo': {},
-        'es': { 'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U', 'Ü': 'U', 'Ý': 'Y' },
+        'es': { 'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U', 'Ü': 'U',  'Ý': 'Y'},
         'fr': {
             'Ç': 'C',
             'Â': 'A', 'À': 'A',
@@ -114,6 +116,7 @@ var CipherTool = {
         'X': '-OO-',
         'Y': '-O--',
         'Z': '--OO',
+
         '1': 'O----',
         '2': 'OO---',
         '3': 'OOO--',
@@ -124,6 +127,7 @@ var CipherTool = {
         '8': '---OO',
         '9': '----O',
         '0': '-----',
+
         ',': '--OO--',
         '.': 'O-O-O-',
         '?': 'OO--OO',
@@ -133,7 +137,7 @@ var CipherTool = {
     },
     /**
     * Table of classes to be associated with morse code dots/dashes/spaces
-    * @type {Object.<string, string>}
+    * @type {Object.<string, string>} 
     */
     morsedigitClass: {
         'O': 'dot',
@@ -143,7 +147,7 @@ var CipherTool = {
     },
     /**
     * Table of classes to be associated with any particular morse code decoded character
-    * @type {Object.<string, string>}
+    * @type {Object.<string, string>} 
     */
     morseClass: {
         'A': '',
@@ -172,6 +176,7 @@ var CipherTool = {
         'X': '',
         'Y': '',
         'Z': '',
+
         '1': 'num',
         '2': 'num',
         '3': 'num',
@@ -182,6 +187,7 @@ var CipherTool = {
         '8': 'num',
         '9': 'num',
         '0': 'num',
+
         ',': 'sym',
         '.': 'sym',
         '?': 'sym',
@@ -191,7 +197,7 @@ var CipherTool = {
     },
     /**
      * Table to map from a morse code string to the corresponding character
-     * @type {Object.<string, string>}
+     * @type {Object.<string, string>} 
      */
     frommorse: {
         'O-': 'A',
@@ -220,6 +226,7 @@ var CipherTool = {
         '-OO-': 'X',
         '-O--': 'Y',
         '--OO': 'Z',
+
         'O----': '1',
         'OO---': '2',
         'OOO--': '3',
@@ -230,6 +237,7 @@ var CipherTool = {
         '---OO': '8',
         '----O': '9',
         '-----': '0',
+
         '--OO--': ',',
         'O-O-O-': '.',
         'OO--OO': '?',
@@ -238,10 +246,10 @@ var CipherTool = {
         '-O--O-': '()'
     },
     /** @type {Object.<string, bool>}
-     *
+     * 
      */
     morseLocked: {},
-    /** @type {Object.<string, string>}
+    /** @type {Object.<string, string>} 
    */
     morbitMap: {
         '1': 'OO',
@@ -254,7 +262,7 @@ var CipherTool = {
         '8': 'X-',
         '9': 'XX'
     },
-    /** @type {Object.<string, string>}
+    /** @type {Object.<string, string>} 
     */
     fractionatedMorseMap: {
         'A': 'OOO',
@@ -288,117 +296,117 @@ var CipherTool = {
      * @type {Object.Object.<string,number>}
      * @type {Object.<string,number>}
      */
-    langfreq: {
-        'en': {
-            'E': 0.1249, 'T': 0.0928, 'A': 0.0804, 'O': 0.0764, 'I': 0.0757,
-            'N': 0.0723, 'S': 0.0651, 'R': 0.0628, 'H': 0.0505, 'L': 0.0407,
-            'D': 0.0382, 'C': 0.0334, 'U': 0.0273, 'M': 0.0251, 'F': 0.0240,
-            'P': 0.0214, 'G': 0.0187, 'W': 0.0168, 'Y': 0.0166, 'B': 0.0148,
-            'V': 0.0105, 'K': 0.0054, 'X': 0.0023, 'J': 0.0016, 'Q': 0.0012,
-            'Z': 0.0009
-        },
-        'nl': { 'E': 0.2040110, 'N': 0.1124940, 'T': 0.0668511, 'A': 0.0562471,
-            'O': 0.0534809, 'I': 0.0525588, 'R': 0.0509451, 'D': 0.0447211,
-            'S': 0.0421853, 'L': 0.0295067, 'G': 0.0274320, 'H': 0.0246657,
-            'M': 0.0239742, 'V': 0.0214385, 'B': 0.0189027, 'W': 0.0189027,
-            'K': 0.0186722, 'U': 0.0165975, 'P': 0.0156754, 'C': 0.0147533,
-            'IJ': 0.0124481, 'Z': 0.0119871, 'J': 0.0080682, 'F': 0.0053020,
-            'É': 0.0011526, 'X': 0.0002305, 'Q': 0
-        },
-        'de': { 'E': 0.1499580, 'N': 0.1026200, 'I': 0.0826712, 'S': 0.0814877,
-            'R': 0.0704987, 'A': 0.0644125, 'T': 0.0486898, 'H': 0.0468301,
-            'D': 0.0466610, 'U': 0.0365173, 'G': 0.0360101, 'L': 0.0339814,
-            'B': 0.0255283, 'O': 0.0255283, 'F': 0.0191040, 'V': 0.0163990,
-            'K': 0.0162299, 'M': 0.0162299, 'W': 0.0155537, 'Z': 0.0081150,
-            'Ü': 0.0079459, 'P': 0.0064243, 'Ä': 0.0050719, 'Ö': 0.0030431,
-            'J': 0.0027050, 'ß': 0.0006762, 'Q': 0.0001691, 'C': 0.0000000,
-            'X': 0.0000000, 'Y': 0.0000000
-        },
-        'eo': { 'A': 0.1228940, 'E': 0.0982128, 'O': 0.0917447, 'N': 0.0837447,
-            'I': 0.0791489, 'S': 0.0568511, 'R': 0.0558298, 'T': 0.0556596,
-            'L': 0.0549787, 'K': 0.0408511, 'M': 0.0309787, 'P': 0.0308085,
-            'D': 0.0294468, 'U': 0.0292766, 'J': 0.0248511, 'V': 0.0228085,
-            'G': 0.0153191, 'B': 0.0093617, 'C': 0.0088511, 'F': 0.0069787,
-            'Ü': 0.0062979, 'Z': 0.0061277, 'H': 0.0059575, 'Ĝ': 0.0054468,
-            'Ĉ': 0.0040851, 'Ŝ': 0.0011915, 'Ĵ': 0.0010213, 'Ĥ': 0.0000000
-        },
-        'es': {
-            'E': 0.1408, 'A': 0.1216, 'O': 0.092, 'S': 0.072, 'N': 0.0683,
-            'R': 0.0641, 'I': 0.0598, 'L': 0.0524, 'U': 0.0469, 'D': 0.0467,
-            'T': 0.046, 'C': 0.0387, 'M': 0.0308, 'P': 0.0289, 'B': 0.0149,
-            'H': 0.0118, 'Q': 0.0111, 'Y': 0.0109, 'V': 0.0105, 'G': 0.01,
-            'F': 0.0069, 'J': 0.0052, 'Z': 0.0047, 'Ñ': 0.0017, 'X': 0.0014,
-            'K': 0.0011, 'W': 0.0004
-        },
-        'fr': { 'E': 0.1406753, 'T': 0.0895584, 'I': 0.0820779, 'N': 0.0792727,
-            'S': 0.0753247, 'A': 0.0730390, 'R': 0.0650390, 'O': 0.0643117,
-            'L': 0.0571429, 'U': 0.0520519, 'D': 0.0457143, 'C': 0.0353247,
-            'É': 0.0268052, 'P': 0.0253506, 'M': 0.0225455, 'V': 0.0093506,
-            'G': 0.0085195, 'Q': 0.0083117, 'F': 0.0082078, 'B': 0.0078961,
-            'À': 0.0065455, 'H': 0.0047792, 'X': 0.0045714, 'Ê': 0.0023896,
-            'Y': 0.0020779, 'J': 0.0011429, 'È': 0.0010390, 'Ù': 0.0004156,
-            'Â': 0.0002078, 'Ô': 0.0002078, 'Û': 0.0001039
-        },
-        'it': { 'I': 0.1376090, 'E': 0.1043230, 'A': 0.0923483, 'O': 0.0921453,
-            'T': 0.0574386, 'N': 0.0572356, 'L': 0.0566268, 'R': 0.0539882,
-            'S': 0.0527704, 'C': 0.0481023, 'G': 0.0385630, 'U': 0.0355186,
-            'D': 0.0330830, 'P': 0.0300386, 'M': 0.0271971, 'B': 0.0142074,
-            'H': 0.0125837, 'Z': 0.0125837, 'È': 0.0103511, 'V': 0.0101482,
-            'F': 0.0085245, 'Q': 0.0054800, 'J': 0.0000000, 'K': 0.0000000,
-            'W': 0.0000000, 'X': 0.0000000, 'Y': 0.0000000
-        },
-        'no': { 'E': 0.1646300, 'N': 0.0888383, 'A': 0.0679230, 'I': 0.0668876,
-            'R': 0.0646096, 'D': 0.0635742, 'T': 0.0635742, 'S': 0.0509422,
-            'L': 0.0499068, 'O': 0.0399669, 'G': 0.0397598, 'V': 0.0395527,
-            'K': 0.0339615, 'M': 0.0304411, 'H': 0.0298198, 'F': 0.0217436,
-            'U': 0.0155312, 'P': 0.0130462, 'B': 0.0113895, 'J': 0.0097329,
-            'Ø': 0.0082833, 'Å': 0.0070408, 'Y': 0.0057983, 'Æ': 0.0000000
-        },
-        'pt': { 'E': 0.1484380, 'A': 0.1210940, 'O': 0.1027110, 'I': 0.0714614,
-            'R': 0.0597426, 'S': 0.0574449, 'D': 0.0530790, 'M': 0.0500919,
-            'T': 0.0500919, 'N': 0.0471048, 'U': 0.0381434, 'C': 0.0358456,
-            'L': 0.0310202, 'V': 0.0186121, 'P': 0.0183824, 'G': 0.0126379,
-            'B': 0.0091912, 'Ã': 0.0087316, 'Q': 0.0082721, 'F': 0.0080423,
-            'H': 0.0080423, 'Ç': 0.0055147, 'Z': 0.0032169, 'Á': 0.0029871,
-            'Ê': 0.0029871, 'NH': 0.0025276, 'É': 0.0022978, 'J': 0.0018382,
-            'Ó': 0.0016085, 'X': 0.0013787, 'LH': 0.0009191, 'Â': 0.0004596,
-            'Õ': 0.0002298, 'W': 0.0000000, 'Y': 0.0000000
-        },
-        'sv': {
-            'N': 0.102144, 'A': 0.0962783, 'E': 0.0958738, 'R': 0.0671521,
-            'T': 0.0647249, 'I': 0.0552184, 'S': 0.0533981, 'D': 0.0523867,
-            'L': 0.0517799, 'O': 0.0410599, 'V': 0.0400485, 'H': 0.0386327,
-            'M': 0.0351942, 'G': 0.0287217, 'K': 0.0287217, 'F': 0.0218447,
-            'Ä': 0.0212379, 'Ö': 0.0147654, 'P': 0.0141586, 'C': 0.0141586,
-            'Å': 0.013754, 'U': 0.0133495, 'B': 0.0121359, 'J': 0.00768608,
-            'Y': 0.0052589, 'X': 0.000202265
-        },
-        'ia': { 'E': 0.1729506, 'T': 0.0905528, 'A': 0.0898115, 'I': 0.0847278,
-            'O': 0.0773141, 'N': 0.0724423, 'R': 0.0647109, 'L': 0.0644990,
-            'S': 0.0635459, 'C': 0.0420462, 'D': 0.0416225, 'U': 0.0352680,
-            'P': 0.0267952, 'M': 0.0210760, 'B': 0.0102732, 'H': 0.0083669,
-            'V': 0.0083669, 'F': 0.0082610, 'G': 0.0075196, 'Q': 0.0073078,
-            'J': 0.0009532, 'X': 0.0009532, 'Y': 0.0006355, 'K': 0.0000000,
-            'W': 0.0000000, 'Z': 0.0000000
-        },
-        'la': { 'I': 0.1333172, 'E': 0.1234150, 'T': 0.0906895, 'A': 0.0809081,
-            'S': 0.0775269, 'U': 0.0759570, 'N': 0.0640019, 'O': 0.0584470,
-            'R': 0.0528922, 'M': 0.0495109, 'C': 0.0362275, 'P': 0.0299481,
-            'D': 0.0266876, 'L': 0.0251177, 'Q': 0.0163024, 'B': 0.0161816,
-            'G': 0.0108683, 'V': 0.0102645, 'H': 0.0091776, 'F': 0.0089361,
-            'X': 0.0036228, 'J': 0.0000000, 'K': 0.0000000, 'W': 0.0000000,
-            'Y': 0.0000000, 'Z': 0.0000000
-        }
+        langfreq: {
+            'en': {
+                'E': 0.1249, 'T': 0.0928, 'A': 0.0804, 'O': 0.0764, 'I': 0.0757,
+                'N': 0.0723, 'S': 0.0651, 'R': 0.0628, 'H': 0.0505, 'L': 0.0407,
+                'D': 0.0382, 'C': 0.0334, 'U': 0.0273, 'M': 0.0251, 'F': 0.0240,
+                'P': 0.0214, 'G': 0.0187, 'W': 0.0168, 'Y': 0.0166, 'B': 0.0148,
+                'V': 0.0105, 'K': 0.0054, 'X': 0.0023, 'J': 0.0016, 'Q': 0.0012,
+                'Z': 0.0009
+            },
+            'nl': {'E': 0.2040110, 'N': 0.1124940, 'T': 0.0668511, 'A': 0.0562471,
+                   'O': 0.0534809, 'I': 0.0525588, 'R': 0.0509451, 'D': 0.0447211,
+                   'S': 0.0421853, 'L': 0.0295067, 'G': 0.0274320, 'H': 0.0246657,
+                   'M': 0.0239742, 'V': 0.0214385, 'B': 0.0189027, 'W': 0.0189027,
+                   'K': 0.0186722, 'U': 0.0165975, 'P': 0.0156754, 'C': 0.0147533,
+                   'IJ': 0.0124481, 'Z': 0.0119871, 'J': 0.0080682, 'F': 0.0053020,
+                   'É': 0.0011526, 'X': 0.0002305, 'Q': 0
+            },
+            'de': {'E': 0.1499580, 'N': 0.1026200, 'I': 0.0826712, 'S': 0.0814877,
+                   'R': 0.0704987, 'A': 0.0644125, 'T': 0.0486898, 'H': 0.0468301,
+                   'D': 0.0466610, 'U': 0.0365173, 'G': 0.0360101, 'L': 0.0339814,
+                   'B': 0.0255283, 'O': 0.0255283, 'F': 0.0191040, 'V': 0.0163990,
+                   'K': 0.0162299, 'M': 0.0162299, 'W': 0.0155537, 'Z': 0.0081150,
+                   'Ü': 0.0079459, 'P': 0.0064243, 'Ä': 0.0050719, 'Ö': 0.0030431,
+                   'J': 0.0027050, 'ß': 0.0006762, 'Q': 0.0001691, 'C': 0.0000000,
+                   'X': 0.0000000, 'Y': 0.0000000
+            },
+            'eo': {'A': 0.1228940, 'E': 0.0982128, 'O': 0.0917447, 'N': 0.0837447,
+                   'I': 0.0791489, 'S': 0.0568511, 'R': 0.0558298, 'T': 0.0556596,
+                   'L': 0.0549787, 'K': 0.0408511, 'M': 0.0309787, 'P': 0.0308085,
+                   'D': 0.0294468, 'U': 0.0292766, 'J': 0.0248511, 'V': 0.0228085,
+                   'G': 0.0153191, 'B': 0.0093617, 'C': 0.0088511, 'F': 0.0069787,
+                   'Ü': 0.0062979, 'Z': 0.0061277, 'H': 0.0059575, 'Ĝ': 0.0054468,
+                   'Ĉ': 0.0040851, 'Ŝ': 0.0011915, 'Ĵ': 0.0010213, 'Ĥ': 0.0000000
+            },
+            'es': {
+                'E': 0.1408, 'A': 0.1216, 'O': 0.092, 'S': 0.072, 'N': 0.0683,
+                'R': 0.0641, 'I': 0.0598, 'L': 0.0524, 'U': 0.0469, 'D': 0.0467,
+                'T': 0.046, 'C': 0.0387, 'M': 0.0308, 'P': 0.0289, 'B': 0.0149,
+                'H': 0.0118, 'Q': 0.0111, 'Y': 0.0109, 'V': 0.0105, 'G': 0.01,
+                'F': 0.0069, 'J': 0.0052, 'Z': 0.0047, 'Ñ': 0.0017, 'X': 0.0014,
+                'K': 0.0011, 'W': 0.0004
+            },
+            'fr': {'E': 0.1406753, 'T': 0.0895584, 'I': 0.0820779, 'N': 0.0792727,
+                   'S': 0.0753247, 'A': 0.0730390, 'R': 0.0650390, 'O': 0.0643117,
+                   'L': 0.0571429, 'U': 0.0520519, 'D': 0.0457143, 'C': 0.0353247,
+                   'É': 0.0268052, 'P': 0.0253506, 'M': 0.0225455, 'V': 0.0093506,
+                   'G': 0.0085195, 'Q': 0.0083117, 'F': 0.0082078, 'B': 0.0078961,
+                   'À': 0.0065455, 'H': 0.0047792, 'X': 0.0045714, 'Ê': 0.0023896,
+                   'Y': 0.0020779, 'J': 0.0011429, 'È': 0.0010390, 'Ù': 0.0004156,
+                   'Â': 0.0002078, 'Ô': 0.0002078, 'Û': 0.0001039
+            },
+            'it': {'I': 0.1376090, 'E': 0.1043230, 'A': 0.0923483, 'O': 0.0921453,
+                   'T': 0.0574386, 'N': 0.0572356, 'L': 0.0566268, 'R': 0.0539882,
+                   'S': 0.0527704, 'C': 0.0481023, 'G': 0.0385630, 'U': 0.0355186,
+                   'D': 0.0330830, 'P': 0.0300386, 'M': 0.0271971, 'B': 0.0142074,
+                   'H': 0.0125837, 'Z': 0.0125837, 'È': 0.0103511, 'V': 0.0101482,
+                   'F': 0.0085245, 'Q': 0.0054800, 'J': 0.0000000, 'K': 0.0000000,
+                   'W': 0.0000000, 'X': 0.0000000, 'Y': 0.0000000
+            },
+            'no': {'E': 0.1646300, 'N': 0.0888383, 'A': 0.0679230, 'I': 0.0668876,
+                   'R': 0.0646096, 'D': 0.0635742, 'T': 0.0635742, 'S': 0.0509422,
+                   'L': 0.0499068, 'O': 0.0399669, 'G': 0.0397598, 'V': 0.0395527,
+                   'K': 0.0339615, 'M': 0.0304411, 'H': 0.0298198, 'F': 0.0217436,
+                   'U': 0.0155312, 'P': 0.0130462, 'B': 0.0113895, 'J': 0.0097329,
+                   'Ø': 0.0082833, 'Å': 0.0070408, 'Y': 0.0057983, 'Æ': 0.0000000
+            },
+            'pt': {'E': 0.1484380, 'A': 0.1210940, 'O': 0.1027110, 'I': 0.0714614,
+                   'R': 0.0597426, 'S': 0.0574449, 'D': 0.0530790, 'M': 0.0500919,
+                   'T': 0.0500919, 'N': 0.0471048, 'U': 0.0381434, 'C': 0.0358456,
+                   'L': 0.0310202, 'V': 0.0186121, 'P': 0.0183824, 'G': 0.0126379,
+                   'B': 0.0091912, 'Ã': 0.0087316, 'Q': 0.0082721, 'F': 0.0080423,
+                   'H': 0.0080423, 'Ç': 0.0055147, 'Z': 0.0032169, 'Á': 0.0029871,
+                   'Ê': 0.0029871, 'NH': 0.0025276, 'É': 0.0022978, 'J': 0.0018382,
+                   'Ó': 0.0016085, 'X': 0.0013787, 'LH': 0.0009191, 'Â': 0.0004596,
+                   'Õ': 0.0002298, 'W': 0.0000000, 'Y': 0.0000000
+            },
+            'sv': {
+                'N': 0.102144, 'A': 0.0962783, 'E': 0.0958738, 'R': 0.0671521, 
+                'T': 0.0647249, 'I': 0.0552184, 'S': 0.0533981, 'D': 0.0523867, 
+                'L': 0.0517799, 'O': 0.0410599, 'V': 0.0400485, 'H': 0.0386327, 
+                'M': 0.0351942, 'G': 0.0287217, 'K': 0.0287217, 'F': 0.0218447, 
+                'Ä': 0.0212379, 'Ö': 0.0147654, 'P': 0.0141586, 'C': 0.0141586, 
+                'Å': 0.013754,  'U': 0.0133495, 'B': 0.0121359, 'J': 0.00768608, 
+                'Y': 0.0052589, 'X': 0.000202265
+             },
+            'ia': {'E': 0.1729506, 'T': 0.0905528, 'A': 0.0898115, 'I': 0.0847278,
+                   'O': 0.0773141, 'N': 0.0724423, 'R': 0.0647109, 'L': 0.0644990,
+                   'S': 0.0635459, 'C': 0.0420462, 'D': 0.0416225, 'U': 0.0352680,
+                   'P': 0.0267952, 'M': 0.0210760, 'B': 0.0102732, 'H': 0.0083669,
+                   'V': 0.0083669, 'F': 0.0082610, 'G': 0.0075196, 'Q': 0.0073078,
+                   'J': 0.0009532, 'X': 0.0009532, 'Y': 0.0006355, 'K': 0.0000000,
+                   'W': 0.0000000, 'Z': 0.0000000
+            },
+            'la': {'I': 0.1333172, 'E': 0.1234150, 'T': 0.0906895, 'A': 0.0809081,
+                   'S': 0.0775269, 'U': 0.0759570, 'N': 0.0640019, 'O': 0.0584470,
+                   'R': 0.0528922, 'M': 0.0495109, 'C': 0.0362275, 'P': 0.0299481,
+                   'D': 0.0266876, 'L': 0.0251177, 'Q': 0.0163024, 'B': 0.0161816,
+                   'G': 0.0108683, 'V': 0.0102645, 'H': 0.0091776, 'F': 0.0089361,
+                   'X': 0.0036228, 'J': 0.0000000, 'K': 0.0000000, 'W': 0.0000000,
+                   'Y': 0.0000000, 'Z': 0.0000000
+            }    
     },
-    /** @type {Array.string}
+    /** @type {Array.string} 
      */
     fractionatedMorseReplaces: [
         'OOO', 'OO-', 'OOX', 'O-O', 'O--', 'O-X', 'OXO', 'OX-', 'OXX',
         '-OO', '-O-', '-OX', '--O', '---', '--X', '-XO', '-X-', '-XX',
-        'XOO', 'XO-', 'XOX', 'X-O', 'X--', 'X-X', 'XXO', 'XX-'
-    ],
-    testStrings: [],
-    morbitReplaces: ['OO', 'O-', 'OX', '-O', '--', '-X', 'XO', 'X-', 'XX'],
+        'XOO', 'XO-', 'XOX', 'X-O', 'X--', 'X-X', 'XXO', 'XX-'],
+        testStrings: [
+        ],
+        morbitReplaces: ['OO', 'O-', 'OX', '-O', '--', '-X', 'XO', 'X-', 'XX'],
     cipherWidth: 1,
     charset: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     sourcecharset: "ABCDEFGHIJLMNOPQRSTUVWXYZ",
@@ -431,11 +439,12 @@ var CipherTool = {
         'oldId': -1,
         'olderId': -1
     },
-    load: function () { },
-    reset: function () { },
-    findPossible: function (str) { },
+
+    load: function() {},
+    reset: function() {},
+    findPossible: function(str: string) {},
     /** @description Sets the character set used by the Decoder.
-     * @param {string} charset the set of characters to be used.
+     * @param {string} charset the set of characters to be used. 
     */
     setCharset: function (charset) {
         this.charset = charset;
@@ -453,20 +462,20 @@ var CipherTool = {
         return str;
     },
     /**
-     *
+     * 
      * @param {*string} string String to compute value for
-     * @returns {number} Value calculated
+     * @returns {number} Value calculated 
      */
-    CalculateChiSquare: function (str) {
+    CalculateChiSquare(str) {
         var charset = this.getCharset();
         var i, len;
         len = charset.length;
         var counts = new Array(len);
         var total = 0;
-        for (i = 0; i < len; i++) {
+        for(i = 0; i < len; i++) {
             counts[i] = 0;
         }
-        for (i = 0; i < str.length; i++) {
+        for(i = 0; i < str.length; i++) {
             var c = str.substr(i, 1).toUpperCase();
             var pos = charset.indexOf(c);
             if (pos >= 0) {
@@ -475,13 +484,13 @@ var CipherTool = {
             }
         }
         var chiSquare = 0.0;
-        for (i = 0; i < len; i++) {
-            var c = charset.substr(i, 1);
+        for(i = 0; i < len; i++) {
+            var c = charset.substr(i,1);
             var expected = this.langfreq[this.lang][c];
-            chiSquare += Math.pow(counts[i] - total * expected, 2) / (total * expected);
+            chiSquare += Math.pow(counts[i] - total*expected,2)/(total*expected);
         }
         return chiSquare;
-    },
+    },    
     /*
     * Creates an HTML table to display the frequency of characters
     */
@@ -492,9 +501,10 @@ var CipherTool = {
         var headrow = $('<tr/>');
         var freqrow = $('<tr/>');
         var replrow = $('<tr/>');
-        var altreprow = $('<tr/>');
+        var altreprow = $('<tr/>')
         var i, len;
         var charset = this.getCharset();
+
         headrow.append($('<th/>').addClass("topleft"));
         freqrow.append($('<th/>').text("Frequency"));
         replrow.append($('<th/>').text("Replacement"));
@@ -516,12 +526,14 @@ var CipherTool = {
         }
         table.append(thead);
         table.append(tbody);
+
         return table;
     },
     createAlphabetType: function () {
         var res = $('<div>');
         var label = $('<label>', { for: "radios" }).text("Alphabet Type");
         res.append(label);
+
         var rbox = $('<div>', { id: "radios", class: "ibox" });
         rbox.append($('<input>', { id: "encrand", type: "radio", name: "enctype", value: "random", checked: "checked" }));
         rbox.append($('<label>', { for: "encrand", class: "rlab" }).text("Random"));
@@ -534,6 +546,7 @@ var CipherTool = {
         rbox.append($('<input>', { id: "enck3", type: "radio", name: "enctype", value: "k4" }));
         rbox.append($('<label>', { for: "enck3", class: "rlab" }).text("K4"));
         res.append(rbox);
+
         var kval = $('<div>', { class: "kval" });
         kval.append($('<label>', { for: "keyword" }).text("Keyword"));
         kval.append($('<input>', { type: "text", id: "keyword" }));
@@ -542,6 +555,7 @@ var CipherTool = {
         odiv.append($('<input>', { id: "offset", class: "inp spin", title: "offset", type: "text", value: "1" }));
         kval.append(odiv);
         res.append(kval);
+
         var k4val = $('<div>', { class: "k4val" });
         k4val.append($('<label>', { for: "keyword2" }).text("Keyword 2"));
         k4val.append($('<input>', { type: "text", id: "keyword2" }));
@@ -550,6 +564,7 @@ var CipherTool = {
         odiv2.append($('<input>', { id: "offset2", class: "inp spin", title: "offset", type: "text", value: "1" }));
         k4val.append(odiv2);
         res.append(k4val);
+
         var k3val = $('<div>', { class: "k3val" });
         k3val.append($('<label>', { for: "shift" }).text("Shift"));
         k3val.append($('<input>', { id: "shift", class: "inp spin", title: "Shift", type: "text", value: "1" }));
@@ -563,23 +578,21 @@ var CipherTool = {
         var val = $('input[name=enctype]:checked').val();
         if (val === 'random') {
             $(".kval").hide();
-        }
-        else {
+        } else {
             $(".kval").show();
         }
         if (val === 'k3') {
             $(".k3val").show();
-        }
-        else {
+        } else {
             $(".k3val").hide();
         }
         if (val === 'k4') {
             $(".k4val").show();
-        }
-        else {
+        } else {
             $(".k4val").hide();
         }
     },
+
     /*
      * Sorter to compare two frequency objects
      * Objects must have a freq and a val portion
@@ -588,20 +601,17 @@ var CipherTool = {
     isort: function (a, b) {
         if (a.freq > b.freq) {
             return -1;
-        }
-        else if (a.freq < b.freq) {
+        } else if (a.freq < b.freq) {
             return 1;
-        }
-        else if (a.val < b.val) {
+        } else if (a.val < b.val) {
             return -1;
-        }
-        else if (a.val > b.val) {
+        } else if (a.val > b.val) {
             return 1;
         }
         return 0;
     },
-    /**
-     * Finds the top n strings of a given width and formats an HTML
+    /** 
+     * Finds the top n strings of a given width and formats an HTML 
      * unordered list of them.  Only strings which repeat 2 or more times are included
      * @param {string} string
      * @param {number} width
@@ -660,6 +670,7 @@ var CipherTool = {
                     }
                     valtext = final;
                 }
+
                 res += '<li>' + valtext + ' - ' + tobjs[i].freq + '</li>';
             }
             res += '</ul></div>';
@@ -685,33 +696,21 @@ var CipherTool = {
         return res;
     },
     gcd: function (a, b) {
-        if (isNaN(a)) {
-            return a;
-        }
-        if (isNaN(b)) {
-            return b;
-        }
-        if (a < 0) {
-            a = -a;
-        }
-        if (b < 0) {
-            b = -b;
-        }
-        if (b > a) {
-            var temp = a;
-            a = b;
-            b = temp;
-        }
+        if (isNaN(a)) { return a; }
+        if (isNaN(b)) { return b; }
+        if (a < 0) { a = -a; }
+        if (b < 0) { b = -b; }
+
+        if (b > a) { var temp = a; a = b; b = temp; }
         while (true) {
             console.log('gcd a=' + a + ' b=' + b);
-            if (b == 0)
-                return a;
+            if (b == 0) return a;
             a %= b;
-            if (a == 0)
-                return b;
+            if (a == 0) return b;
             b %= a;
         }
     },
+
     iscoprime: function (a) {
         var charset = this.getCharset();
         console.log('iscoprime a=' + a + ' len=' + charset.length);
@@ -725,9 +724,8 @@ var CipherTool = {
     affinechar: function (a, b, chr) {
         var charset = this.getCharset();
         var x = charset.indexOf(chr.toUpperCase());
-        if (x < 0) {
-            return chr;
-        }
+        if (x < 0)
+        { return chr; }
         var y = ((a * x) + b) % charset.length;
         var res = charset.substr(y, 1);
         console.log('char=' + chr + ' x=' + x + ' a=' + a + ' b=' + b + ' y=' + y + ' res=' + res);
@@ -743,9 +741,10 @@ var CipherTool = {
         var headrow = $('<tr/>');
         var freqrow = $('<tr/>');
         var replrow = $('<tr/>');
-        var altreprow = $('<tr/>');
+        var altreprow = $('<tr/>')
         var i, len;
         var charset = this.getCharset();
+
         headrow.append($('<th/>').addClass("topleft"));
         freqrow.append($('<th/>').text("Frequency"));
         replrow.append($('<th/>').text("Replacement"));
@@ -767,6 +766,7 @@ var CipherTool = {
         }
         table.append(thead);
         table.append(tbody);
+
         return table;
     },
     /**
@@ -788,6 +788,7 @@ var CipherTool = {
         for (i = 0, len = charset.length; i < len; i++) {
             this.freq[charset.substr(i, 1).toUpperCase()] = 0;
         }
+
         for (i = 0, len = str.length; i < len; i++) {
             var t = str.substr(i, 1).toUpperCase();
             if (this.isValidChar(t)) {
@@ -795,24 +796,23 @@ var CipherTool = {
                     this.freq[t] = 0;
                 }
                 this.freq[t]++;
+
                 datachars += t;
                 combinedtext += '<span data-char="' + t + '">?</span>';
                 t = pre + '<td><div class="slil">' + t + '</div>' +
                     '<input type="text" id="ti' + i + '" class="sli" data-char="' + t + '" /></td>';
+
                 pre = '';
-            }
-            else if (t === ' ' || t === '\n' || t === '\r') {
+            } else if (t === ' ' || t === '\n' || t === '\r') {
                 if (pre === '') {
                     t = posthead1 + datachars + posthead2;
-                }
-                else {
+                } else {
                     t = '';
                 }
                 pre = prehead;
                 datachars = '';
                 combinedtext += ' ';
-            }
-            else {
+            } else {
                 combinedtext += t;
                 t = pre + '<td><div class="slil">' + t + '</div></td>';
                 pre = '';
@@ -825,7 +825,8 @@ var CipherTool = {
         res += '<div class="ssum">' + combinedtext + '</div>';
         return res;
     },
-    updateCheck: function (c, lock) {
+    updateCheck: function(c,lock) 
+    {
         if (this.morseLocked[c] != lock) {
             this.morseLocked[c] = lock;
             this.UpdateFreqEditTable();
@@ -865,7 +866,7 @@ var CipherTool = {
      * 2- If it is a space after a null (i.e. an x immediately after a single preceeding x) then
      *    we output an empty cell with a class of "space"
      * 3- if it is an error null (i.e. an x at the start of the string or an x preceeded by 2 or more x)
-     *    or a bad morse code
+     *    or a bad morse code 
      *    then we output a cell with a class of "error"
      * 4- Otherwise it is a valid morse code string and we output the cell with the class from the morseClass
      * @param {string} str String to decode
@@ -880,7 +881,7 @@ var CipherTool = {
         var outrow = $('<tr/>');
         var c, i, len, morseclass;
         var remaining;
-        var lastsep = 'XX'; // Start out with a few Xs so that an initial X generates an error
+        var lastsep = 'XX';  // Start out with a few Xs so that an initial X generates an error
         var extraout = '';
         var extralen = 0;
         var extraclass = '';
@@ -891,6 +892,7 @@ var CipherTool = {
         var docwidth = $(document).width();
         //docwidth = 9 * 24 * cipherwidth;
         var width = cipherwidth * Math.floor(docwidth / (24 * cipherwidth));
+
         //
         // Build up the input string and the corresponding morse code
         // string.  We will guarantee that the morse code string is
@@ -907,8 +909,7 @@ var CipherTool = {
                 var morsepiece;
                 if (cipherwidth === 2) {
                     morsepiece = this.morbitMap[c] + '????';
-                }
-                else {
+                } else {
                     morsepiece = this.fractionatedMorseMap[c] + '????';
                 }
                 morsetext += morsepiece.substr(0, cipherwidth);
@@ -926,8 +927,8 @@ var CipherTool = {
         //
         for (i = 0, len = intext.length; i < len; i++) {
             c = intext.substr(i, 1);
-            var mpos, td;
-            td = $('<td>', { colspan: cipherwidth });
+            var mpos,td;
+            td = $('<td>', {colspan: cipherwidth});
             if (this.morseLocked[c]) {
                 td.addClass("locked");
             }
@@ -947,8 +948,7 @@ var CipherTool = {
                 //
                 if (extralen) {
                     extralen--;
-                }
-                else {
+                } else {
                     var startpos = i * cipherwidth + mpos;
                     // We are guaranteed to find the X in the string because it was added to the
                     // end as an extra.
@@ -962,18 +962,15 @@ var CipherTool = {
                         if (lastsep === '') {
                             outrow.append($('<td/>').addClass("null"));
                             lastsep = 'X';
-                        }
-                        else if (lastsep === 'X') {
+                        } else if (lastsep === 'X') {
                             outrow.append($('<td/>').addClass("space"));
                             lastsep = 'XX';
                             finaltext += ' ';
-                        }
-                        else {
+                        } else {
                             outrow.append($('<td/>').addClass("error"));
                             finaltext += '<span class="error">?</span>';
                         }
-                    }
-                    else {
+                    } else {
                         var morselet = morsetext.substr(startpos, mlen);
                         console.log('Moreselet:' + morselet + 'len=' + mlen + ' remaining=' + remaining + ' mpos=' + mpos + ' Cipherwidth=' + cipherwidth);
                         lastsep = '';
@@ -984,8 +981,7 @@ var CipherTool = {
                             morseclass = 'error';
                             outchar = '??';
                             finaltext += '<span class="error">?</span>';
-                        }
-                        else {
+                        } else {
                             outchar = this.frommorse[morselet];
                             morseclass = this.morseClass[outchar];
                             finaltext += outchar;
@@ -998,16 +994,14 @@ var CipherTool = {
                         extralen = mlen - 1;
                         if (mlen <= remaining) {
                             outrow.append($('<td colspan="' + mlen + '"/>').addClass(morseclass).text(outchar));
-                        }
-                        else {
+                        } else {
                             // We won't fit. Figure out which side gets the character
                             // console.log('***NO FIT: remaining =' + remaining + ' mlen=' + mlen + ' outchar=' + outchar + ' morseclass=' + morseclass+' extralen='+extralen);
                             if (remaining * 2 >= mlen) {
                                 outrow.append($('<td colspan="' + remaining + '"/>').addClass(morseclass).text(outchar));
                                 extraout = '';
                                 extraclass = 'cont';
-                            }
-                            else {
+                            } else {
                                 outrow.append($('<td colspan="' + remaining + '"/>').addClass('cont'));
                                 extraout = outchar;
                                 extraclass = morseclass;
@@ -1024,6 +1018,7 @@ var CipherTool = {
                 tbody.append(outrow);
                 table.append(tbody);
                 topdiv.append(table);
+
                 table = $('<table/>').addClass("mword");
                 tbody = $('<tbody/>');
                 inrow = $('<tr/>');
@@ -1044,47 +1039,50 @@ var CipherTool = {
         topdiv.append($('<hr/><div>' + finaltext + '</div>'));
         return topdiv;
     },
-    /*
-* Creates an HTML table to display the frequency of characters
-*/
-    createMorseFreqEditTable: function () {
-        var table = $('<table/>').addClass("tfreq");
-        var thead = $('<thead/>');
-        var tbody = $('<tbody/>');
-        var headrow = $('<tr/>');
-        var freqrow = $('<tr/>');
-        var replrow = $('<tr/>');
-        var lockrow = $('<tr/>');
-        var i, len;
-        var charset = this.getCharset();
-        headrow.append($('<th/>').addClass("topleft"));
-        freqrow.append($('<th/>').text("Frequency"));
-        replrow.append($('<th/>').text("Replacement"));
-        lockrow.append($('<th/>').text("Locked"));
-        for (i = 0, len = charset.length; i < len; i++) {
-            var c = charset.substr(i, 1).toUpperCase();
-            headrow.append($('<th/>').text(c));
-            freqrow.append($('<td id="f' + c + '"/>'));
-            var td = $('<td/>');
-            td.append(this.makeFreqEditField(c));
-            replrow.append(td);
-            td = $('<td/>');
-            var ischecked = this.morseLocked[c];
-            $('<input />', { type: 'checkbox',
-                class: 'cb',
-                'data-char': c,
-                id: 'cb' + c,
-                value: name, checked: ischecked, }).appendTo(td);
-            lockrow.append(td);
-        }
-        thead.append(headrow);
-        tbody.append(freqrow);
-        tbody.append(replrow);
-        tbody.append(lockrow);
-        table.append(thead);
-        table.append(tbody);
-        return table;
-    },
+        /*
+    * Creates an HTML table to display the frequency of characters
+    */
+   createMorseFreqEditTable: function () {
+    var table = $('<table/>').addClass("tfreq");
+    var thead = $('<thead/>');
+    var tbody = $('<tbody/>');
+    var headrow = $('<tr/>');
+    var freqrow = $('<tr/>');
+    var replrow = $('<tr/>');
+    var lockrow = $('<tr/>')
+    var i, len;
+    var charset = this.getCharset();
+
+    headrow.append($('<th/>').addClass("topleft"));
+    freqrow.append($('<th/>').text("Frequency"));
+    replrow.append($('<th/>').text("Replacement"));
+    lockrow.append($('<th/>').text("Locked"));
+    for (i = 0, len = charset.length; i < len; i++) {
+        var c = charset.substr(i, 1).toUpperCase();
+        headrow.append($('<th/>').text(c));
+        freqrow.append($('<td id="f' + c + '"/>'));
+        var td = $('<td/>');
+        td.append(this.makeFreqEditField(c));
+        replrow.append(td);
+        td = $('<td/>');
+        var ischecked = this.morseLocked[c];
+        $('<input />', { type: 'checkbox', 
+                         class: 'cb',
+                         'data-char': c,
+                         id: 'cb'+c,
+                         value: name, checked: ischecked, }).appendTo(td);
+        
+        lockrow.append(td);
+    }
+    thead.append(headrow);
+    tbody.append(freqrow);
+    tbody.append(replrow);
+    tbody.append(lockrow);
+    table.append(thead);
+    table.append(tbody);
+
+    return table;
+},
     /**
      * Retrieve all of the replacement characters that have been selected so far
      */
@@ -1171,22 +1169,20 @@ var CipherTool = {
             var repchar = $(event.target).attr('data-char');
             var current, next;
             var focusables = $(".sli");
+
             if (event.keyCode === 37) { // left
                 current = focusables.index(event.target);
                 if (current === 0) {
                     next = focusables.last();
-                }
-                else {
+                } else {
                     next = focusables.eq(current - 1);
                 }
                 next.focus();
-            }
-            else if (event.keyCode === 39) { // right
+            } else if (event.keyCode === 39) { // right
                 current = focusables.index(event.target);
                 next = focusables.eq(current + 1).length ? focusables.eq(current + 1) : focusables.eq(0);
                 next.focus();
-            }
-            else if (event.keyCode === 46 || event.keyCode === 8) {
+            } else if (event.keyCode === 46 || event.keyCode === 8) {
                 tool.setChar(repchar, '');
             }
             event.preventDefault();
@@ -1197,10 +1193,10 @@ var CipherTool = {
             var focusables = $(".sli");
             if (typeof event.key === 'undefined') {
                 newchar = String.fromCharCode(event.keyCode).toUpperCase();
-            }
-            else {
+            } else {
                 newchar = event.key.toUpperCase();
             }
+
             if (tool.isValidChar(newchar) || newchar === ' ') {
                 if (newchar === ' ') {
                     newchar = '';
@@ -1210,8 +1206,7 @@ var CipherTool = {
                 current = focusables.index(event.target);
                 next = focusables.eq(current + 1).length ? focusables.eq(current + 1) : focusables.eq(0);
                 next.focus();
-            }
-            else {
+            } else {
                 console.log('Not valid:' + newchar);
             }
             event.preventDefault();
@@ -1232,48 +1227,47 @@ var CipherTool = {
             }
             $(this).addClass("focus");
         });
-        $(".cb").on('change', function () {
+        $(".cb").on('change',function() {
             var toupdate = $(this).attr('data-char');
             tool.updateCheck(toupdate, $(this).prop("checked"));
         });
         $(".msli").on('change', function () {
             var toupdate = $(this).attr('data-char');
-            tool.updateSel(toupdate, this.value);
+            tool.updateSel(toupdate, (<HTMLInputElement>this).value);
         });
         $("#rowcharset").on('change', function () {
-            tool.setrowcolset(this.value, tool.colcharset, true);
+            tool.setrowcolset((<HTMLInputElement>this).value, tool.colcharset, true);
         });
         $("#colcharset").on('change', function () {
-            tool.setrowcolset(tool.rowcharset, this.value, true);
+            tool.setrowcolset(tool.rowcharset, (<HTMLInputElement>this).value, true);
         });
         $(".spin").spinner({
             spin: function (event, ui) {
                 if (ui.value >= tool.getCharset().length) {
                     $(this).spinner("value", 0);
                     return false;
-                }
-                else if (ui.value < 0) {
+                } else if (ui.value < 0) {
                     $(this).spinner("value", tool.getCharset().length - 1);
                     return false;
                 }
             }
         });
-        $('.richtext').summernote({
-            fontNames: ['Arial', 'Courier New'],
-            toolbar: [
-                ['style', ['bold', 'italic', 'underline', 'clear']],
-                ['font', ['fontname', 'superscript', 'subscript']],
-                ['fontsize', ['fontsize']],
-            ]
-        });
-        //Argument of type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to parameter of type '"editor.unlink" | "unlink"'.
-        // Type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to type '"unlink"'.
+        $('.richtext').summernote( {
+          fontNames: ['Arial', 'Courier New'],
+          toolbar: [
+           ['style', ['bold', 'italic', 'underline', 'clear']],
+           ['font', ['fontname', 'superscript', 'subscript']],
+           ['fontsize', ['fontsize']],
+          ]});
+
+//Argument of type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to parameter of type '"editor.unlink" | "unlink"'.
+// Type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to type '"unlink"'.
         $('input[type=radio][name=enctype]').change(function () {
             tool.setkvalinputs();
         });
         $('input[type=radio][name=operation]').change(function () {
             tool.setVigenereInputs();
-        });
+        })
         tool.setkvalinputs();
     },
     /**
@@ -1295,15 +1289,15 @@ var CipherTool = {
         // Replicate all of the previously set values.  This is done when
         // you change the spacing in the encoded text and then do a reload.
         if (this.ShowRevReplace) {
-            for (i = 0, len = charset.length; i < len; i++) {
-                c = charset.substr(i, 1);
-                var repl = $('#m' + c).val();
-                if (repl === '') {
-                    repl = $('#m' + c).html();
-                }
-                this.setChar(c, repl);
-            }
+          for (i = 0, len = charset.length; i < len; i++) {
+              c = charset.substr(i, 1);
+              var repl = $('#m' + c).val();
+              if (repl === '')
+                { repl = $('#m' + c).html(); }
+              this.setChar(c, repl);
+          }
         }
+        
         this.holdupdates = false;
         this.updateMatchDropdowns('');
     },
@@ -1327,6 +1321,7 @@ var CipherTool = {
         len = str.length;
         // In case they give us an odd length string, just padd it with enough Xs
         str += 'XXXX';
+
         for (i = 0; i < len; i += width) {
             c = str.substr(i, width);
             if (typeof cmap[c] === 'undefined') {
@@ -1354,6 +1349,7 @@ var CipherTool = {
         var i, len;
         var searchlen = searchstr.length;
         var encrlen = encoded.length;
+
         var used = [];
         var charset = this.getCharset().toUpperCase();
         for (i = 0, len = charset.length; i < len; i++) {
@@ -1362,6 +1358,7 @@ var CipherTool = {
         for (i = 0, len = charset.length; i < len; i++) {
             used[this.replacement[charset.substr(i, 1)]] = true;
         }
+
         for (i = 0; i + searchlen * encodewidth <= encrlen; i += encodewidth) {
             var checkstr = encoded.substr(i, searchlen * encodewidth);
             var check = this.makeUniquePattern(checkstr, encodewidth);
@@ -1406,8 +1403,7 @@ var CipherTool = {
                             matched = false;
                         }
                     }
-                }
-                else {
+                } else {
                     var repl = this.genReplPattern(checkstr);
                     if (!this.isValidReplacement(tofind, repl, used)) {
                         // console.log('*** Disallowing ' + checkstr + ' because not valid replacement for ' + tofind);
@@ -1503,8 +1499,7 @@ var CipherTool = {
                     //             console.log('No match c=' + c + ' repl[' + i + ']=' + repl[i]);
                     return false;
                 }
-            }
-            else if (used[c]) {
+            } else if (used[c]) {
                 //          console.log('No match c=' + c + ' used[c]=' + used[c]);
                 return false;
             }
@@ -1520,6 +1515,7 @@ var CipherTool = {
         if (this.curlang === '') {
             return '';
         }
+
         var pat = this.makeUniquePattern(str, 1);
         var repl = this.genReplPattern(str);
         var mselect = $('<select/>').addClass('match');
@@ -1537,6 +1533,7 @@ var CipherTool = {
             for (i = 0, len = charset.length; i < len; i++) {
                 used[this.replacement[charset.substr(i, 1)]] = true;
             }
+
             //     console.log(repl);
             //     console.log(used);
             for (i = 0, len = matches.length; i < len; i++) {
@@ -1548,13 +1545,13 @@ var CipherTool = {
                     matched = true;
                     added++;
                     $('<option/>').addClass('l' + entry[3]).text(entry[0]).appendTo(mselect);
-                    /*    } else if (entry[1] < 100 && added < 9) {
-                            if (selectclass === '') {
-                                selectclass = entry.c;
-                            }
-                            added++;
-                            $('<option/>').addClass('l'+entry[3] + ' nomatch').text(entry.t).appendTo(mselect);
-        */ }
+            /*    } else if (entry[1] < 100 && added < 9) {
+                    if (selectclass === '') {
+                        selectclass = entry.c;
+                    }
+                    added++;
+                    $('<option/>').addClass('l'+entry[3] + ' nomatch').text(entry.t).appendTo(mselect);
+*/                }
                 if (matched && added > 9) {
                     break;
                 }
@@ -1563,8 +1560,7 @@ var CipherTool = {
                 selectclass = 'nopat';
             }
             mselect.addClass(selectclass);
-        }
-        else {
+        } else {
             mselect.addClass('nopat');
         }
         return mselect;
@@ -1590,11 +1586,13 @@ var CipherTool = {
         $("#analysis").each(function (i) {
             $(this).html(tool.analyze(encoded));
         });
+
         // Show the update frequency values
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
     },
+
     resetSolver: function () {
         this.morseLocked = {};
         for (var c in this.freq) {
@@ -1616,8 +1614,7 @@ var CipherTool = {
         res = this.searchPattern(encoded, 1, str, 1);
         if (res === '') {
             res = '<br/><b>Not Found</b>';
-        }
-        else {
+        } else {
             var charset = this.getCharset();
             var tres = '<table class="mfind"><thead><tr><th>Pos</th><th>Match</th>';
             for (i = 0; i < charset.length; i++) {
@@ -1627,6 +1624,7 @@ var CipherTool = {
             //   res +=             < ul > ' + res + '</ul > ';
             res = tres + '</tr></thead><tbody>' + res + '</tbody></table>';
         }
+
         $(".findres").html('Searching for ' + str + ' as ' + this.normalizeHTML(str) + res);
     },
     /*
@@ -1675,8 +1673,7 @@ var CipherTool = {
         }
         if (res === '') {
             res = '<br/><b>Not Found</b>';
-        }
-        else {
+        } else {
             var charset = this.getCharset();
             var tres = '<table class="mfind"><thead><tr><th>Pos</th><th>Match</th>';
             for (i = 0; i < charset.length; i++) {
@@ -1686,6 +1683,7 @@ var CipherTool = {
             //   res +=             < ul > ' + res + '</ul > ';
             res = tres + '</tr></thead><tbody>' + res + '</tbody></table>';
         }
+
         $(".findres").html('Searching for ' + str + ' as ' + this.normalizeHTML(morse) + res);
     },
     normalizeMorseHTML: function (str) {
@@ -1731,7 +1729,7 @@ var CipherTool = {
         for (var i = 0; i < mreplaces; i++) {
             var text = this.morbitReplaces[i];
             $("<option />", { value: i, selected: selected[text] })
-                .html(this.normalizeHTML(text)).appendTo(mselect);
+                            .html(this.normalizeHTML(text)).appendTo(mselect);
         }
         return mselect;
     },
@@ -1746,6 +1744,7 @@ var CipherTool = {
         console.log('updateMorbitSet item=' + item + ' val=' + val);
         var toswapwith = item;
         var newvalue = this.morbitReplaces[val];
+
         for (var key in this.morbitMap) {
             if (this.morbitMap.hasOwnProperty(key))
                 if (this.morbitMap[key] === newvalue) {
@@ -1761,6 +1760,7 @@ var CipherTool = {
             this.load();
         }
     },
+
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *
      * Fractionated Morse Solver
@@ -1789,7 +1789,7 @@ var CipherTool = {
         for (var key in this.morseLocked) {
             if (this.morseLocked.hasOwnProperty(key) && this.morseLocked[key]) {
                 locklist[this.fractionatedMorseMap[key]] = true;
-                console.log('Recording locklist[' + key + ']=' + locklist[key]);
+                console.log('Recording locklist['+key+']='+locklist[key]);
             }
         }
         var mreplaces = this.fractionatedMorseReplaces.length;
@@ -1797,11 +1797,11 @@ var CipherTool = {
         selected[this.fractionatedMorseMap[c]] = " selected";
         for (var i = 0; i < mreplaces; i++) {
             var text = this.fractionatedMorseReplaces[i];
-            console.log('Checkign for ' + text);
+            console.log('Checkign for '+text);
             if (!locklist[text]) {
                 $("<option />", { value: text, selected: selected[text] })
-                    .html(this.normalizeHTML(text))
-                    .appendTo(mselect);
+                                 .html(this.normalizeHTML(text))
+                                 .appendTo(mselect);
             }
         }
         return mselect;
@@ -1816,6 +1816,7 @@ var CipherTool = {
     updateFractionatedMorseSel: function (item, val) {
         console.log('updateFractionatedMorseSel item=' + item + ' val=' + val);
         var toswapwith = item;
+
         for (var key in this.fractionatedMorseMap) {
             if (this.fractionatedMorseMap.hasOwnProperty(key))
                 if (this.fractionatedMorseMap[key] === val) {
@@ -1845,19 +1846,19 @@ var CipherTool = {
         this.attachHandlers();
     },
     /**
-     * Set flag to 'chunk' input data string befre encoding.  Used in Patristocrat,
+     * Set flag to 'chunk' input data string befre encoding.  Used in Patristocrat, 
      */
     setCipherType: function (cipherType) {
         if (cipherType == 'patristocrat') {
-            console.log(cipherType + ' -- set chunking.');
+            console.log(cipherType+' -- set chunking.');
             this.chunkIt = true;
         }
         else if (cipherType === 'vigenere') {
             console.log('Make a nice vigenere...');
             $('.cipher-type').each(function () {
-                $(this).html(CipherTool.layoutVigenere());
-            });
-            this.attachHandlers();
+            $(this).html(CipherTool.layoutVigenere());
+        });
+        this.attachHandlers();
         }
     },
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -1866,13 +1867,13 @@ var CipherTool = {
      *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     /**
-     *
+     * 
      */
     initGromarkSolver: function () {
         this.cipherWidth = 2;
     },
     /**
-     *
+     * 
      * @param {string} str Input string to parse and generate the solver
      */
     buildGromarkSolver: function (str) {
@@ -1893,6 +1894,7 @@ var CipherTool = {
         var charset = this.getCharset().toUpperCase();
         this.freq = [];
         this.encodedString = '';
+
         // Make sure all white space is just a space
         str = str.replace(/\s+/g, ' ');
         // Get the leading digits 
@@ -1901,8 +1903,7 @@ var CipherTool = {
             if (c !== ' ') {
                 if (!isNaN(c)) {
                     offsets[offpos++] = parseInt(c, 10);
-                }
-                else {
+                } else {
                     return '<div class="error">Gromark must start with 5 numeric digits - found ' + c + '</div>';
                 }
             }
@@ -1928,6 +1929,7 @@ var CipherTool = {
         offpos = -1;
         datachars = '';
         this.encodedString = '';
+
         // Now go through and get all the characters
         for (i = 0, len = str.length; i < len; i++) {
             c = str.substr(i, 1).toUpperCase();
@@ -1952,14 +1954,13 @@ var CipherTool = {
                 combinedtext += '<span data-char="' + piece + '">?</span>';
                 c = pre + '<td><div class="slil">' + c + '<br/>' + offsets[offpos] + '</div>' +
                     '<input type="text" id="ti' + piece + '" class="sli" data-schar="' + c + '" data-char="' + piece + '" /></td>';
+
                 pre = '';
-            }
-            else if (c !== ' ') {
+            } else if (c !== ' ') {
                 combinedtext += c;
                 c = pre + '<td><div class="slil">' + c + '</div></td>';
                 pre = '';
-            }
-            else {
+            } else {
                 combinedtext += ' ';
                 res += posthead1 + datachars + posthead2;
                 datachars = '';
@@ -1986,6 +1987,7 @@ var CipherTool = {
         var replrow = $('<tr/>');
         var i, len, n, c;
         var charset = this.getCharset();
+
         headrow.append($('<th/>').addClass("topleft"));
         for (n = 0; n <= 9; n++) {
             freqrow = $('<tr/>');
@@ -2002,6 +2004,7 @@ var CipherTool = {
             }
             thead.append(freqrow);
         }
+
         headrow = $('<tr/>');
         headrow.append($('<th/>').addClass("topleft"));
         freqrow = $('<tr/>');
@@ -2021,6 +2024,7 @@ var CipherTool = {
         table.append(thead);
         table.append(tbody);
         topdiv.append(table);
+
         return topdiv;
     },
     /**
@@ -2033,15 +2037,16 @@ var CipherTool = {
             return;
         }
         var charset = this.getSourceCharset();
+
         // If we came in with something like J5 instead of J, it means that they have typed
         // into the replacement section 
         // For example if we type the letter 'U' into V3 slot, should actually act as if they had typed a 'V' into the 'X' slot.
         //  Hence repchar="V3", newchar="U" needs to switch to be repchar="X" newchar="V"
         // We compute this by Taking the offset for the U and adding 3 getting to the X and we use the V for the replacement.
         if (repchar.length > 1) {
-            var targetc = newchar; // U in example
-            newchar = repchar.substr(0, 1); // V in example
-            var roff = parseInt(repchar.substr(1, 1), 10); // 3 in example
+            var targetc = newchar // U in example
+            newchar = repchar.substr(0, 1);  // V in example
+            var roff = parseInt(repchar.substr(1, 1), 10);  // 3 in example
             repchar = (charset + charset).substr(charset.indexOf(targetc) + roff, 1);
             // Type A U into V3 should fill a V into the X slot.
         }
@@ -2049,6 +2054,7 @@ var CipherTool = {
         var dispchar = newchar;
         var fillchar = newchar;
         var pos = charset.indexOf(repchar);
+
         if (dispchar === '') {
             dispchar = '?';
             fillchar = this.replacement[repchar]; // the last character that was in this spot
@@ -2059,9 +2065,11 @@ var CipherTool = {
             // Handle wrapping around by simply doubling the character set
             pos += charset.length;
             charset += charset;
+
             // First update the single letter instance
             $("input[data-char='" + repchar + "']").val(newchar);
             $('#f' + repchar).text(dispchar);
+
             // And we need to update all the offset ones to match
             for (var i = 0; i <= 9; i++) {
                 var repl = '';
@@ -2094,14 +2102,14 @@ var CipherTool = {
         this.holdupdates = false;
         this.updateMatchDropdowns('');
     },
+
     /*
      * Sorter to compare two string pattern entries
      */
     gmsort: function (a, b) {
         if (a.o < b.o) {
             return -1;
-        }
-        else if (a.o > b.o) {
+        } else if (a.o > b.o) {
             return 1;
         }
         return 0;
@@ -2122,13 +2130,13 @@ var CipherTool = {
         var used = [];
         var slen = str.length / this.cipherWidth;
         // First we need to find a pattern for the replacement that we can work with
+
         for (i = 0; i < slen; i++) {
             var piece = str.substr(i * this.cipherWidth, this.cipherWidth);
             var substitute = '';
             if (typeof this.gromarkRepl[piece] == 'undefined') {
                 keepadding = false;
-            }
-            else {
+            } else {
                 substitute = this.gromarkRepl[piece];
             }
             if (keepadding) {
@@ -2140,6 +2148,7 @@ var CipherTool = {
         var patlen = pat.length;
         //  console.log('Searching for ' + pat + ' len=' + patlen + ' based on ' + matchstr + ' slen=' + slen);
         //  console.log(repl);
+
         for (var tpat in this.Frequent[this.curlang]) {
             if (this.Frequent[this.curlang].hasOwnProperty(tpat) && tpat.length === slen && tpat.substr(0, patlen) === pat) {
                 var tmatches = this.Frequent[this.curlang][tpat];
@@ -2157,12 +2166,14 @@ var CipherTool = {
             }
         }
         // We have stacked all of the found matches.  Now we need to sort them
-        matches.sort(this.gmsort);
+        matches.sort(this.gmsort)
+
         var mselect = $('<select/>').addClass('match');
         if (matches.length > 0) {
             var selectclass = '';
             var matched = false;
             var added = 0;
+
             for (i = 0, len = matches.length; i < len; i++) {
                 var entry = matches[i];
                 if (this.isValidReplacement(entry.t, repl, used)) {
@@ -2181,8 +2192,7 @@ var CipherTool = {
                 selectclass = 'nopat';
             }
             mselect.addClass(selectclass);
-        }
-        else {
+        } else {
             mselect.addClass('nopat');
         }
         return mselect;
@@ -2201,6 +2211,7 @@ var CipherTool = {
             $(this).html(tool.generateGromarkDropdown($(this).attr('data-chars')));
         });
     },
+
     /**
      * Build a set of replacements so that we can quickly check against them
      */
@@ -2226,12 +2237,13 @@ var CipherTool = {
             }
         }
     },
+
     /**
      * @param {string} str String to match against
      * @param {string} gromark Gromark (of cipherWidth characters) to compute.
      * @return {Array.string} Array of mapping strings for each character
      */
-    makeGromarkMap: function (str, gromark) {
+    makeGromarkMap(str, gromark) {
         var i, len;
         var charset = this.getSourceCharset();
         var res = {};
@@ -2313,6 +2325,7 @@ var CipherTool = {
         var len = charset.length;
         var i, j;
         var res = '';
+
         this.saveGromarkReplacements();
         //console.log('Searching for :' + tosearch + ' in ' + this.encodedString + ' limit=' + limit);
         for (i = 0; i < limit; i++) {
@@ -2336,8 +2349,7 @@ var CipherTool = {
         }
         if (res === '') {
             res = '<br/><b>Not Found</b>';
-        }
-        else {
+        } else {
             var tres = '<table class="mfind"><thead><tr><th>Pos</th><th>Type</th><th>Gromark</th>';
             for (i = 0; i < len; i++) {
                 tres += '<th>' + charset.substr(i, 1) + '</th>';
@@ -2362,16 +2374,18 @@ var CipherTool = {
     setrowcolset: function (rowcharset, colcharset, forceorder) {
         var changed = false;
         var i, len, c;
+
         rowcharset = rowcharset.toUpperCase();
         colcharset = colcharset.toUpperCase();
+
         this.rowcharset = this.rowcharset.trim();
         this.colcharset = this.colcharset.trim();
+
         if (rowcharset !== this.rowcharset) {
             if (forceorder) {
                 changed = true;
                 this.rowcharset = rowcharset;
-            }
-            else {
+            } else {
                 for (i = 0, len = rowcharset.length; i < len; i++) {
                     c = rowcharset.substr(i, 1);
                     if (this.rowcharset.indexOf(c) < 0) {
@@ -2381,12 +2395,12 @@ var CipherTool = {
                 }
             }
         }
+
         if (colcharset !== this.colcharset) {
             if (forceorder) {
                 changed = true;
                 this.colcharset = colcharset;
-            }
-            else {
+            } else {
                 for (i = 0, len = colcharset.length; i < len; i++) {
                     c = colcharset.substr(i, 1);
                     if (this.colcharset.indexOf(c) < 0) {
@@ -2396,12 +2410,14 @@ var CipherTool = {
                 }
             }
         }
+
         if (this.rowcharset.length < 5) {
             this.rowcharset += "     ".substr(0, 5 - this.rowcharset.length);
         }
         if (this.colcharset.length < 5) {
             this.colcharset += "     ".substr(0, 5 - this.colcharset.length);
         }
+
         if (changed) {
             this.UpdateFreqEditTable();
             this.load();
@@ -2424,6 +2440,7 @@ var CipherTool = {
         var remaining = width;
         var charset = this.getCharset().toUpperCase();
         this.freq = [];
+
         for (i = 0, len = str.length; i < len; i++) {
             var t = str.substr(i, 1).toUpperCase();
             if (this.isValidChar(t)) {
@@ -2433,8 +2450,7 @@ var CipherTool = {
                         firstset += t;
                     }
                     t = '';
-                }
-                else {
+                } else {
                     var piece = firstchar + t;
                     if (secondset.indexOf(t) < 0) {
                         secondset += t;
@@ -2443,15 +2459,16 @@ var CipherTool = {
                         this.freq[piece] = 0;
                     }
                     this.freq[piece]++;
+
                     combinedtext += '<span data-char="' + piece + '">?</span>';
                     t = pre + '<td><div class="slil">' + firstchar + '<br/>' + t + '</div>' +
                         '<input type="text" id="ti' + piece + '" class="sli" data-char="' + piece + '" /></td>';
+
                     pre = '';
                     remaining--;
                     firstchar = '';
                 }
-            }
-            else if (t !== ' ' && t !== '\n' && t !== '\r') {
+            } else if (t !== ' ' && t !== '\n' && t !== '\r') {
                 combinedtext += t;
                 t = pre + '<td><div class="slil">' + t + '</div></td>';
                 pre = '';
@@ -2490,11 +2507,13 @@ var CipherTool = {
             headrow.append($('<th/>').text(this.colcharset.substr(col, 1).toUpperCase()));
         }
         thead.append(headrow);
+
         inputdiv.append($('<label/>', { for: "rowcharset", text: "Row Characters" }));
         inputdiv.append($('<input/>', { type: "text", class: "csc", id: "rowcharset", value: this.rowcharset }));
         inputdiv.append($('<label/>', { for: "colcharset", text: "Column Characters" }));
         inputdiv.append($('<input/>', { type: "text", class: "csc", id: "colcharset", value: this.colcharset }));
         topdiv.append(inputdiv);
+
         for (row = 0; row < rowlen; row++) {
             var replrow = $('<tr/>');
             var rowc = this.rowcharset.substr(row, 1).toUpperCase();
@@ -2517,6 +2536,7 @@ var CipherTool = {
         table.append(thead);
         table.append(tbody);
         topdiv.append(table);
+
         return topdiv;
     },
     loadCheckerboardSolver: function () {
@@ -2527,6 +2547,7 @@ var CipherTool = {
         $("#analysis").each(function (i) {
             $(this).html(tool.analyze(encoded));
         });
+
         // Show the update frequency values
         this.UpdateFreqEditTable();
         this.displayFreq();
@@ -2544,8 +2565,7 @@ var CipherTool = {
         res = this.searchPattern(encoded, this.cipherWidth, str, 1);
         if (res === '') {
             res = '<br/><b>Not Found</b>';
-        }
-        else {
+        } else {
             var charset = this.getCharset();
             var tres = '<table class="mfind"><thead><tr><th>Pos</th><th>Match</th>';
             for (i = 0; i < charset.length; i++) {
@@ -2555,12 +2575,14 @@ var CipherTool = {
             //   res +=             < ul > ' + res + '</ul > ';
             res = tres + '</tr></thead><tbody>' + res + '</tbody></table>';
         }
+
         $(".findres").html('Searching for ' + str + ' as ' + this.normalizeHTML(str) + res);
     },
     /**
      * @param {string} str String to be enqoted
      * @return {string} Quoted string
      */
+
     quote: function (str) {
         if (typeof str === 'undefined') {
             return '\'\'';
@@ -2568,7 +2590,7 @@ var CipherTool = {
         return '\'' + str.replace(/(['"])/g, "\\$1") + '\'';
     },
     /**
-     * @param {string} lang 2 character Language to dump language template for
+     * @param {string} lang 2 character Language to dump language template for 
      */
     dumpLang: function (lang) {
         var res = '';
@@ -2608,7 +2630,7 @@ var CipherTool = {
         var tool = this;
         console.log(lselect);
         lselect.change(function () {
-            console.log('Loading ' + $(this).val());
+            console.log('Loading '+$(this).val());
             tool.loadLanguage($(this).val());
             console.log('Done');
         });
@@ -2641,7 +2663,7 @@ var CipherTool = {
             var lines = data.split("\n");
             var i, len;
             len = lines.length;
-            charset = charset.toUpperCase();
+            charset = charset.toUpperCase()
             for (i = 0; i < len; i++) {
                 var pieces = lines[i].replace(/\r/g, ' ').toUpperCase().split(/ /);
                 // Make sure that all the characters in the pieces are valid
@@ -2667,17 +2689,13 @@ var CipherTool = {
                     ];
                     if (i < 500) {
                         elem[3] = 0;
-                    }
-                    else if (i < 1000) {
+                    } else if (i < 1000) {
                         elem[3] = 1;
-                    }
-                    else if (i < 2000) {
+                    } else if (i < 2000) {
                         elem[3] = 3;
-                    }
-                    else if (i < 5000) {
+                    } else if (i < 5000) {
                         elem[3] = 4;
-                    }
-                    else {
+                    } else {
                         elem[3] = 5;
                     }
                     if (typeof tool.Frequent[lang][pat] === 'undefined') {
@@ -2710,20 +2728,17 @@ var CipherTool = {
         var shift = $('#shift').spinner("value");
         if (val === 'k1') {
             this.genAlphabetK1(keyword, offset);
-        }
-        else if (val === 'k2') {
+        } else if (val === 'k2') {
             this.genAlphabetK2(keyword, offset);
-        }
-        else if (val === 'k3') {
+        } else if (val === 'k3') {
             this.genAlphabetK3(keyword, offset, shift);
-        }
-        else if (val === 'k4') {
+        } else if (val === 'k4') {
             this.genAlphabetK4(keyword, offset, keyword2, offset2);
-        }
-        else {
+        } else {
             this.genAlphabetRandom();
         }
     },
+
     /**
      * Compute the replacement set for the the characters on an encryption
      * Note that we actually have to reverse them because the ciphers class
@@ -2776,6 +2791,7 @@ var CipherTool = {
         var unasigned = this.getCharset();
         var repl = "";
         var i, len;
+
         // Go through each character in the source string one at a time
         // and see if it is a legal character.  if we have not already seen
         // it, then remove it from the list of legal characters and add it
@@ -2808,6 +2824,7 @@ var CipherTool = {
         this.unasigned = charset;
         var replacement = "";
         var pos = 0;
+
         while (this.unasigned.length > 1) {
             var orig = charset.substr(pos, 1);
             var repl = this.getRepl();
@@ -2822,6 +2839,7 @@ var CipherTool = {
             replacement += repl;
             pos++;
         }
+
         // Now we have to handle the special case of the last character
         if (charset.substr(pos, 1) == this.unasigned) {
             // Just pick a random spot in what we have already done and
@@ -2829,12 +2847,12 @@ var CipherTool = {
             // since it matches already
             var sel = Math.floor(Math.random() * replacement.length);
             replacement = replacement.substr(0, sel) + this.unasigned + replacement.substr(sel + 1) + replacement.substr(sel, 1);
-        }
-        else {
+        } else {
             replacement += this.unasigned;
         }
         this.setReplacement(this.getCharset(), replacement);
     },
+
     /**
      * Using the currently selected replacement set, encodes a string
      * This breaks it up into lines of maxEncodeWidth characters or less so that
@@ -2842,7 +2860,7 @@ var CipherTool = {
      * @param {string} str String to be encoded
      * @returns {string} HTML of encoded string to display
      */
-    buildEncoder: function (str) {
+    buildEncoder: function(str) {
         var res = $('<div>');
         var charset = this.getCharset();
         var i, len;
@@ -2854,7 +2872,7 @@ var CipherTool = {
         // Build a reverse replacement map so that we can encode the string
         for (var repc in this.replacement) {
             if (this.replacement.hasOwnProperty(repc)) {
-                revRepl[this.replacement[repc]] = repc;
+                revRepl[this.replacement[repc]] = repc; 
             }
         }
         // Zero out the frequency table 
@@ -2872,11 +2890,10 @@ var CipherTool = {
             if (pos >= 0) {
                 t = revRepl[t];
                 if (isNaN(this.freq[t])) {
-                    this.freq[t] = 0;
-                }
-                this.freq[t]++;
-            }
-            else {
+                   this.freq[t] = 0;
+              }
+              this.freq[t]++;
+            } else {
                 // This is a potential split position, so remember it
                 lastsplit = decodeline.length;
             }
@@ -2884,62 +2901,64 @@ var CipherTool = {
             // See if we have to split the line now
             if (encodeline.length >= this.maxEncodeWidth) {
                 if (lastsplit === -1) {
-                    res.append($('<div>', { class: "TOSOLVE" }).text(encodeline));
-                    res.append($('<div>', { class: "TOANSWER" }).text(decodeline));
+                    res.append($('<div>', {class: "TOSOLVE"}).text(encodeline));
+                    res.append($('<div>', {class: "TOANSWER"}).text(decodeline));
                     encodeline = "";
                     decodeline = "";
                     lastsplit = -1;
-                }
-                else {
-                    var encodepart = encodeline.substr(0, lastsplit);
-                    var decodepart = decodeline.substr(0, lastsplit);
+                } else {
+                    var encodepart = encodeline.substr(0,lastsplit);
+                    var decodepart = decodeline.substr(0,lastsplit);
                     encodeline = encodeline.substr(lastsplit);
                     decodeline = decodeline.substr(lastsplit);
-                    res.append($('<div>', { class: "TOSOLVE" }).text(encodepart));
-                    res.append($('<div>', { class: "TOANSWER" }).text(decodepart));
+                    res.append($('<div>', {class: "TOSOLVE"}).text(encodepart));
+                    res.append($('<div>', {class: "TOANSWER"}).text(decodepart));
                 }
             }
         }
         // And put together any residual parts
         if (encodeline.length > 0) {
-            res.append($('<div>', { class: "TOSOLVE" }).text(encodeline));
-            res.append($('<div>', { class: "TOANSWER" }).text(decodeline));
+            res.append($('<div>', {class: "TOSOLVE"}).text(encodeline));
+            res.append($('<div>', {class: "TOANSWER"}).text(decodeline));
         }
         return res.html();
     },
     /**
-     * Initializes the encoder.
+     * Initializes the encoder. 
      * We don't want to show the reverse replacement since we are doing an encode
      * @param {string} lang Language to select (EN is the default)
      */
-    initEncoder: function (lang) {
+    initEncoder: function(lang) {
         this.ShowRevReplace = false;
         this.curlang = lang;
         this.setCharset(this.langcharset[lang]);
     },
     /**
      * Convert the text to chunks of (chunkSize) characters separated
-     * by a space.  Just keep characters that are in the character set and
+     * by a space.  Just keep characters that are in the character set and 
      * remove all punctuation, etc.
      * Note: the string could be toUpperCase()'d here, but it is done later.
      * @returns chunked input string
      */
-    chunk: function (inputString, chunkSize) {
-        var chunkIndex = 1;
+    chunk: function(inputString, chunkSize) {
+        var chunkIndex = 1;        
         var charset = this.getCharset();
         var chunkedString = '';
         var inputStringLen = inputString.length;
         for (var i = 0; i < inputStringLen; i++) {
+            
             // Skip anthing that is not in the character set (i.e spaces,
             // punctuation, etc.)
             if (charset.indexOf(inputString.charAt(i).toUpperCase()) < 0) {
                 continue;
             }
+
             // Test for a chunk boundary using modulo of chunk size.
             if (chunkIndex % (chunkSize + 1) === 0) {
                 chunkedString += ' ';
                 chunkIndex = 1;
             }
+
             // Store the character in the chunk representation.
             chunkedString += inputString.charAt(i);
             chunkIndex++;
@@ -2964,94 +2983,97 @@ var CipherTool = {
         var res = this.build(encoded);
         var tool = this;
         $("#answer").html(res);
+
         /* testStrings */
         for (var i = 0; i < this.testStrings.length; i++) {
             var chi = this.CalculateChiSquare(this.testStrings[i]);
             var teststr = this.cleanString(this.testStrings[i]);
             var l = teststr.length;
-            console.log(l + '`' + chi + '`' + teststr);
+            console.log(l+'`'+chi+'`'+teststr);
         }
+
         var chi = this.CalculateChiSquare(encoded);
+        
         var chitext = '';
         if (!isNaN(chi)) {
-            chitext = "Chi-Square Value=" + chi.toFixed();
+            chitext = "Chi-Square Value="+chi.toFixed();
             if (chi < 20) {
                 chitext += ' [Easy]';
-            }
-            else if (chi < 30) {
+            } else if (chi < 30) {
                 chitext += ' [Medium]';
-            }
-            else if (chi < 40) {
+            } else if (chi < 40) {
                 chitext += ' [Medium Hard]';
-            }
-            else if (chi < 50) {
+            } else if (chi < 50) {
                 chitext += ' [Difficult]';
-            }
-            else {
+            } else {
                 chitext += ' [Extremely Difficult]';
             }
-            chitext += ' Length=' + encoded.length;
+            chitext += ' Length='+encoded.length;
             if (encoded.length < 60) {
                 chitext += ' [Too Short]';
-            }
-            else if (encoded.length < 80) {
+            } else if (encoded.length < 80) {
                 chitext += ' [Short]';
-            }
-            else if (encoded.length > 120) {
+            } else if (encoded.length > 120) {
                 chitext += ' [Too Long]';
-            }
-            else if (encoded.length > 100) {
+            } else if (encoded.length > 100) {
                 chitext += ' [Long]';
             }
         }
+        
         $("#chi").text(chitext);
         // Show the update frequency values
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
     },
+
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *
      * Vigenere Encoder
      *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    layoutVigenere: function () {
+    layoutVigenere: function() {
         var operationChoice = $('<div>');
         var label = $('<label>', { for: 'ops' }).text('Operation');
         operationChoice.append(label);
-        var radioBox = $('<div>', { id: 'ops', class: 'ibox' });
+
+        var radioBox = $('<div>', { id: 'ops', class: 'ibox'});
         radioBox.append($('<input>', { id: 'encode', type: 'radio', name: 'operation', value: 'encode', checked: 'checked' }));
-        radioBox.append($('<label>', { for: 'encode', class: 'rlab' }).text('Encode'));
+        radioBox.append($('<label>', { for: 'encode', class: 'rlab'}).text('Encode'));
         radioBox.append($('<input>', { id: 'decode', type: 'radio', name: 'operation', value: 'decode' }));
-        radioBox.append($('<label>', { for: 'decode', class: 'rlab' }).text('Decode'));
+        radioBox.append($('<label>', { for: 'decode', class: 'rlab'}).text('Decode'));
+
+        
         operationChoice.append(radioBox);
+
         return operationChoice.html();
     },
     /**
      * Set vigenere encode or decode mode
      */
-    setVigenereInputs: function () {
+    setVigenereInputs: function() {
         var operation = $('input[name=operation]:checked').val();
         if (operation === 'encode') {
             // zero the blocksize spinner and show it
             $(':input[id=blocksize]').spinner('value', 0);
             $('div[id=blocksize]').val('');
-            $('div[id=blocksize]').show();
+            $('div[id=blocksize]').show();            
             // Change the button label to 'Encode'
-            $(':button').button('option', 'label', 'Encode');
+            $(':button').button('option', 'label', 'Encode')
             this.doEncoding = true;
-        }
-        else {
+
+        } else {
             // During decode, message format will not be changed.
             $('div[id=blocksize]').hide();
             // Change button label to 'Decode'
-            $(':button').button('option', 'label', 'Decode');
+            $(':button').button('option', 'label', 'Decode')
             this.doEncoding = false;
         }
         // Clear message and answer, leave key alone--for re-use.
         $('textarea[id=inputdata]').val('');
         $(".ans").text('');
     },
+
     buildVigenere: function (msg, key) {
         var i;
         var charset = this.getCharset();
@@ -3064,17 +3086,19 @@ var CipherTool = {
         var keyLength = key.length;
         var lastSplit = -1;
         var c = 0;
-        //        if (msgLength > keyLength) {
-        var factor = (msgLength / keyLength).toFixed(0);
-        for (i = 0; i < factor; i++) {
-            keyString = keyString.concat(key);
-        }
-        keyString += key.substr(0, msgLength % keyLength);
-        //        }
+
+//        if (msgLength > keyLength) {
+            var factor = (msgLength / keyLength).toFixed(0);
+            for (i = 0; i < factor; i++) {
+                keyString = keyString.concat(key);
+            }
+            keyString += key.substr(0, msgLength % keyLength);
+//        }
         for (i = 0; i < msgLength; i++) {
             var messageChar = msg.substr(i, 1).toUpperCase();
             var m = charset.indexOf(messageChar);
             if (m >= 0) {
+
                 var keyChar = keyString.substr(keyIndex, 1).toUpperCase();
                 var k = charset.indexOf(keyChar);
                 while (k < 0) {
@@ -3082,13 +3106,13 @@ var CipherTool = {
                     keyChar = keyString.substr(keyIndex, 1).toUpperCase();
                     k = charset.indexOf(keyChar);
                 }
+
                 message += messageChar;
                 // For vigenere...this is the meat.
                 if (this.doEncoding) {
                     // use this to encode.
                     c = (m + k) % 26;
-                }
-                else {
+                } else {
                     // use this to decode.
                     c = (m - k);
                 }
@@ -3105,8 +3129,8 @@ var CipherTool = {
             }
             if (message.length >= this.maxEncodeWidth) {
                 if (lastSplit === -1) {
-                    result.append($('<div>', { class: "TOSOLVE" }).text(message));
-                    result.append($('<div>', { class: "TOANSWER" }).text(cipher));
+                    result.append($('<div>', {class: "TOSOLVE"}).text(message)); 
+                    result.append($('<div>', {class: "TOANSWER"}).text(cipher));
                     message = '';
                     cipher = '';
                     lastSplit = -1;
@@ -3116,19 +3140,22 @@ var CipherTool = {
                     var cipherPart = cipher.substr(0, lastSplit);
                     message = message.substr(lastSplit);
                     cipher = cipher.substr(lastSplit);
-                    result.append($('<div>', { class: "TOSOLVE" }).text(messagePart));
-                    result.append($('<div>', { class: "TOANSWER" }).text(cipherPart));
+                    result.append($('<div>', {class: "TOSOLVE"}).text(messagePart));
+                    result.append($('<div>', {class: "TOANSWER"}).text(cipherPart));
+
                 }
             }
         }
         if (message.length > 0) {
-            result.append($('<div>', { class: "TOSOLVE" }).text(message));
-            result.append($('<div>', { class: "TOANSWER" }).text(cipher));
+            result.append($('<div>', {class: "TOSOLVE"}).text(message));
+            result.append($('<div>', {class: "TOANSWER"}).text(cipher));
         }
+
+
         return result.html();
     },
     /**
-     * Loads up the values for vigenere
+     * Loads up the values for vigenere 
      */
     loadVigenere: function () {
         var encoded = this.cleanString($('#inputdata').val());
@@ -3136,10 +3163,11 @@ var CipherTool = {
         * If it is characteristic of the cipher type (e.g. patristocrat),
         * rebuild the string to be encoded in to five character sized chunks.
         */
-        var blockSize = parseInt($('input[id=blocksize').val());
+        var blockSize = parseInt((<string>$('input[id=blocksize').val()));
         if (blockSize > 0 && blockSize < this.maxEncodeWidth) {
             encoded = this.chunk(encoded, blockSize);
         }
+
         var key = this.cleanString($('#keystring').val());
         $('#err').text('');
         var res = this.build(encoded, key);
@@ -3147,10 +3175,10 @@ var CipherTool = {
         this.attachHandlers();
     },
     /**
-     * Initializes the encoder.
+     * Initializes the encoder. 
      * We don't want to show the reverse replacement since we are doing an encode
      */
-    initAffine: function () {
+    initAffine: function() {
         this.ShowRevReplace = false;
         var affineCheck = {};
         this.affineCheck['p'] = -1;
@@ -3159,26 +3187,30 @@ var CipherTool = {
         this.affineCheck['s'] = -1;
         $("[id='solve']").prop('disabled', true);
         $("[id='solve']").prop('value', 'Select 2 hint letters');
-        console.log('Init...' + this.affineCheck['p']);
+        console.log('Init...'+this.affineCheck['p']);
     },
+    
     buildAffine: function (msg, a, b) {
         var i;
         var charset = this.getCharset();
         var message = '';
         var cipher = '';
         var result = $('<div>');
-        var msgLength = msg.length;
+        var msgLength = msg.length;        
         var lastSplit = -1;
         var c = '';
+
         var table = $('<table/>').addClass("tfreq");
         var tableBody = $('<tbody/>');
         var messageRow = $('<tr/>');
         var cipherRow = $('<tr/>');
+
         for (i = 0; i < msgLength; i++) {
             var messageChar = msg.substr(i, 1).toUpperCase();
             var cipherChar = '';
             var m = charset.indexOf(messageChar);
             if (m >= 0) {
+
                 message += messageChar;
                 cipherChar = this.affinechar(a, b, messageChar);
                 cipher += cipherChar;
@@ -3189,27 +3221,29 @@ var CipherTool = {
                 lastSplit = cipher.length;
                 continue;
             }
-            messageRow.append($('<td id="m' + i + '"/>').addClass("TOANSWER").text(messageChar));
-            cipherRow.append($('<td id="' + i + '"/>').addClass("TOSOLVE").text(cipherChar));
-            /*
-                        if (message.length >= this.maxEncodeWidth) {
-                            if (lastSplit === -1) {
-                                result.append($('<div>', {class: "TOSOLVE"}).text(message));
-                                result.append($('<div>', {class: "TOANSWER"}).text(cipher));
-                                message = '';
-                                cipher = '';
-                                lastSplit = -1;
-                            }
-                            else {
-                                var messagePart = message.substr(0, lastSplit);
-                                var cipherPart = cipher.substr(0, lastSplit);
-                                message = message.substr(lastSplit);
-                                cipher = cipher.substr(lastSplit);
-                                result.append($('<div>', {class: "TOSOLVE"}).text(messagePart));
-                                result.append($('<div>', {class: "TOANSWER"}).text(cipherPart));
-                            }
-                        }
-            */
+
+            messageRow.append($('<td id="m'+i+'"/>').addClass("TOANSWER").text(messageChar));
+            cipherRow.append($('<td id="'+i+'"/>').addClass("TOSOLVE").text(cipherChar));
+
+/*
+            if (message.length >= this.maxEncodeWidth) {
+                if (lastSplit === -1) {
+                    result.append($('<div>', {class: "TOSOLVE"}).text(message)); 
+                    result.append($('<div>', {class: "TOANSWER"}).text(cipher));
+                    message = '';
+                    cipher = '';
+                    lastSplit = -1;
+                }
+                else {
+                    var messagePart = message.substr(0, lastSplit);
+                    var cipherPart = cipher.substr(0, lastSplit);
+                    message = message.substr(lastSplit);
+                    cipher = cipher.substr(lastSplit);
+                    result.append($('<div>', {class: "TOSOLVE"}).text(messagePart));
+                    result.append($('<div>', {class: "TOANSWER"}).text(cipherPart));
+                }
+            }
+*/            
         }
         if (message.length > 0) {
             tableBody.append(cipherRow);
@@ -3218,79 +3252,93 @@ var CipherTool = {
             //result.append($('<div>', {class: "TOANSWER"}).text(cipher));
         }
         table.append(tableBody);
+
         //return result.html();
         return table;
     },
-    solveIt: function (m1, c1, m2, c2) {
-        var answer = 'Can\'t solve.';
+    solveIt: function(m1, c1, m2, c2) {
+        var answer = 'Can\'t solve.'
+
         var c = c1 - c2;
         var m = m1 - m2;
+
         while (m < 0) {
             m += 26;
         }
+
         // The reality is that A can only be one of: 1, 3, 5, 7, 9, 11,
         // 15, 17, 19, 21, 23, 25.  B will be between 0 and 25.
+
         while (((c < 0) || (c % m !== 0)) && c < 626) {
             c += 26;
         }
-        var A = c / m;
-        console.log('A=' + A);
+        var A = c/m;
+        console.log('A='+A);
         // if A not in the list, return answer.
         if ((A % 2 !== 1) || (A < 1) || (A > 25)) {
             return answer;
         }
+        
         var B = (c1 - (A * m1)) % 26;
-        while (B < 0) {
+        while ( B < 0) {
             B += 26;
         }
-        return 'A = ' + A + '; B = ' + B;
+
+        return 'A = '+A+'; B = '+B;
     },
-    loadAffine: function () {
+
+    loadAffine: function() {
         var charset = this.getCharset();
         var a = $('#a').spinner("value");
         var b = $('#b').spinner("value");
-        //  var a = parseInt(atxt);
-        //  var b = parseInt(btxt);
+      //  var a = parseInt(atxt);
+      //  var b = parseInt(btxt);
+
         if (!this.iscoprime(a)) {
             console.log('not coprime');
             $('#err').text('A value of ' + a + ' is not coprime with ' + charset.length);
             return '';
         }
+
         var toencode = this.cleanString($('#toencode').val());
         console.log('a=' + a + ' b=' + b + ' encode=' + toencode);
         var res = this.build(toencode, a, b);
         $("#answer").html(res);
-        $("td").click(function () {
-            console.log("clicked " + $(this).get);
+        
+        $("td").click(function() {            
+            console.log("clicked "+$(this).get);
             var id = $(this).attr('id');
-            console.log("id = " + id);
-            //            if ($('td#'+id+'.TOSOLVE').getClass() === "TOSOLVE") {
-            //                console.log("top clicked");
-            //            }
-            //            else {
-            //                console.log("bottom clicked");
-            //            }
-            console.log("other = " + $('td#' + id + '.TOSOLVE').text() + " nother = " + $('td#' + id + '.TOANSWER').text());
+            console.log("id = "+id);
+//            if ($('td#'+id+'.TOSOLVE').getClass() === "TOSOLVE") {
+//                console.log("top clicked");
+//            }
+//            else {
+//                console.log("bottom clicked");
+//            }
+
+            console.log("other = "+$('td#'+id+'.TOSOLVE').text()+" nother = "+$('td#'+id+'.TOANSWER').text())
             // change the style
             var clickedId = CipherTool.affineCheck['olderId'];
             if (clickedId !== -1) {
                 // turn new click blue, reset old click for TOSOLVE
-                $('td#' + clickedId + '.TOSOLVECLICK').removeClass("TOSOLVECLICK").addClass("TOSOLVE");
+                $('td#'+clickedId+'.TOSOLVECLICK').removeClass("TOSOLVECLICK").addClass("TOSOLVE");
             }
-            $('td#' + id + '.TOSOLVE').removeClass("TOSOLVE").addClass("TOSOLVECLICK");
+            $('td#'+id+'.TOSOLVE').removeClass("TOSOLVE").addClass("TOSOLVECLICK");
             // turn 
             CipherTool.affineCheck['q'] = CipherTool.affineCheck['p'];
             CipherTool.affineCheck['s'] = CipherTool.affineCheck['r'];
-            CipherTool.affineCheck['p'] = charset.indexOf($('td#m' + id + '.TOANSWER').text());
-            CipherTool.affineCheck['r'] = charset.indexOf($('td#' + id + '.TOSOLVECLICK').text());
-            CipherTool.affineCheck['olderId'] = CipherTool.affineCheck['oldId'];
+            CipherTool.affineCheck['p'] = charset.indexOf($('td#m'+id+'.TOANSWER').text());
+            CipherTool.affineCheck['r'] = charset.indexOf($('td#'+id+'.TOSOLVECLICK').text());
+            CipherTool.affineCheck['olderId'] = CipherTool.affineCheck['oldId']
             CipherTool.affineCheck['oldId'] = parseInt(id);
+            
             if (CipherTool.affineCheck.p !== -1 && CipherTool.affineCheck.q !== -1) {
                 //solve it
-                console.log('solve: ');
-                var sol = CipherTool.solveIt(CipherTool.affineCheck['p'], CipherTool.affineCheck['r'], CipherTool.affineCheck['q'], CipherTool.affineCheck['s']);
-                var expected = 'A = ' + $("#a").val() + '; B = ' + $("#b").val();
-                if (sol === expected) {
+                console.log('solve: ')
+                var sol = CipherTool.solveIt(CipherTool.affineCheck['p'], CipherTool.affineCheck['r'], 
+                CipherTool.affineCheck['q'], CipherTool.affineCheck['s']);
+                var expected = 'A = '+$("#a").val()+'; B = '+$("#b").val()
+                if (sol === expected ) {
                     console.log('showing button');
                     $("[id='solve']").prop('disabled', false);
                     $("[id='solve']").prop('value', 'Display Solution');
@@ -3303,33 +3351,35 @@ var CipherTool = {
                 //$("#solve").text(sol);
             }
         });
+
         //var sol = solveIt(18, 14, 7, 5);
-        /*
-                var res = "";
-                $('#err').text('');
-                console.log('is coprime');
-                for (var i = 0, len = str.length; i < len; i++) {
-                    var t = affinechar(a, b, str.substr(i, 1));
-                    res += t;
-                }
-                return res;
-                var encoded = this.cleanString($('#inputdata').val());
-        */
+        
+/*
+        var res = "";
+        $('#err').text('');
+        console.log('is coprime');
+        for (var i = 0, len = str.length; i < len; i++) {
+            var t = affinechar(a, b, str.substr(i, 1));
+            res += t;
+        }
+        return res;
+        var encoded = this.cleanString($('#inputdata').val());
+*/        
         /*
         * If it is characteristic of the cipher type (e.g. patristocrat),
         * rebuild the string to be encoded in to five character sized chunks.
         */
-        /*
-                var blockSize = parseInt($('input[id=blocksize').val());
-                if (blockSize > 0 && blockSize < this.maxEncodeWidth) {
-                    encoded = this.chunk(encoded, blockSize);
-                }
-                var key = this.cleanString($('#keystring').val());
-                $('#err').text('');
-                var res = this.build(encoded, a, b);
-                $('#answer').html(res);
-                this.attachHandlers();
-        */
+/*        
+        var blockSize = parseInt($('input[id=blocksize').val());
+        if (blockSize > 0 && blockSize < this.maxEncodeWidth) {
+            encoded = this.chunk(encoded, blockSize);
+        }
+        var key = this.cleanString($('#keystring').val());
+        $('#err').text('');
+        var res = this.build(encoded, a, b);
+        $('#answer').html(res);
+        this.attachHandlers();
+*/        
     },
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     *
@@ -3474,7 +3524,7 @@ var CipherTool = {
      * Choose which Cipher type to be operating on by default.
      */
     select: function (ciphertype, lang) {
-        console.log('Selecting:' + ciphertype + " lang=" + lang);
+        console.log('Selecting:' + ciphertype + " lang="+lang);
         if (typeof this.CipherMappings[ciphertype] === 'undefined') {
             ciphertype = 'Standard';
         }
@@ -3490,16 +3540,20 @@ var CipherTool = {
         this.lang = lang;
         this.init(lang);
     },
+    /*
+     * Choose the language for the cipher
+     */
 };
+
 $(function () {
-    CipherTool.select(undefined, undefined);
+    CipherTool.select(undefined,undefined);
     // First figure out what type of solver we are building
     $("[data-cipher]").each(function () {
-        CipherTool.select($(this).attr('data-cipher'), $(this).attr('data-lang'));
+        CipherTool.select($(this).attr('data-cipher'),$(this).attr('data-lang'));
     });
     // process the "cipher-type" class
     $(".cipher-type").each(function () {
-        CipherTool.setCipherType($(this).attr('id'));
+        CipherTool.setCipherType($(this).attr('id'));        
     });
     // Handler for .ready() called.
     $('#load').button().click(function () {
@@ -3508,14 +3562,15 @@ $(function () {
     $('#reset').button().click(function () {
         CipherTool.reset();
     });
-    //    $('#encrypt').button().click(function () {
-    //        CipherTool.encrypt();
-    //    });
+//    $('#encrypt').button().click(function () {
+//        CipherTool.encrypt();
+//    });
+
     // Morbit Solving Helper
     $(".sfind").change(function () {
-        CipherTool.findPossible($(this).val());
+        CipherTool.findPossible((<string>$(this).val()));
     }).blur(function () {
-        CipherTool.findPossible($(this).val());
+        CipherTool.findPossible((<string>$(this).val()));
     });
     $(".lang").each(function () {
         CipherTool.setLangDropdown($(this));
@@ -3523,4 +3578,3 @@ $(function () {
     CipherTool.UpdateFreqEditTable();
     CipherTool.attachHandlers();
 });
-//# sourceMappingURL=ciphers.js.map

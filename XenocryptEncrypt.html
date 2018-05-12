@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <link rel="stylesheet" href="jquery-ui.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="text/javascript" src="jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="jquery-ui.min.js"></script>
+    <script type="text/javascript" src="summernote-lite.js"></script>
+    <script type="text/javascript" src="ciphers.js"></script>
+    <link rel="stylesheet" href="summernote-lite.css">
+
+    <title>Xenocrypt Encrypt</title>
+</head>
+<body>
+    <a href="index.html">Back to Cipher Tools</a>
+    <h1>
+        Xenocrypt Encrypt
+    </h1>
+    <hr />
+    <label for="points">Points</label>
+    <input id="points" value="100"/>
+    <label for="qtext">Question Text</label>
+    <div id="qtext" class="richtext"></div>
+    <label for="language">Language</label>
+    <select class="lang ui-sel"></select>
+    <label for="toencode">Text to encode</label>
+    <textarea id="toencode" cols="20" rows="2"></textarea>
+    <div class="alphabet"></div>
+    <div class="err" id="err"></div>
+    <div class="cmds" data-cipher="Encoder">
+        <input id="load" type="button" value="Encrypt" />
+    </div>
+    <div id="chi"></div>
+    <div class="ans" id="answer"></div>
+    <div class="freq"></div>
+</body>
+</html>

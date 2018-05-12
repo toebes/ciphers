@@ -1,4 +1,4 @@
-﻿input, textarea, .ibox, .ui-spinner {
+﻿input, textarea, .ibox, .ui-spinner, .note-editor, .ui-sel {
     display: block;
     margin-left: 160px;
     margin-bottom: 10px;
@@ -228,14 +228,14 @@ table.mfind {
 }
 
 input[type="radio"] {
-    display: inline;
+    display:initial;
     width: auto;
     margin-left: 0px;
     margin-bottom: 0px;
 }
 
 .rlab {
-    display: inline;
+    display: initial;
     width: auto;
     float:none;
 }

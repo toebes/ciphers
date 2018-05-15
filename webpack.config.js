@@ -1,13 +1,14 @@
 const path = require('path');
 module.exports = {
-  entry: path.join(__dirname, 'index'),
+  mode: "development", // "production" | "development" | "none"
+  entry: path.join(__dirname, 'app', 'ciphers.js'),
   output: {
-    filename: 'bundle.js',
-    path: path.resolve(__dirname, 'out')
+    filename: 'ciphers.js',
+    path: path.resolve(__dirname, 'dist')
   },
   module: {
     rules: [{
-      test: /.jsx?$/,
+      test: /.ts$/,
       include: [
         path.resolve(__dirname, 'app')
       ],
@@ -15,16 +16,18 @@ module.exports = {
         path.resolve(__dirname, 'node_modules'),
         path.resolve(__dirname, 'bower_components')
       ],
-      loader: 'babel-loader',
+      loader: 'ts-loader',
       query: {
         presets: ['es2015']
       }
     }]
   },
   resolve: {
-    extensions: ['.json', '.js', '.jsx', '.css']
+    extensions: ['.ts']
   },
+
   devtool: 'source-map',
+
   devServer: {
     publicPath: path.join('/out/')
   }

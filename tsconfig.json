@@ -1,7 +1,20 @@
 {
     "compilerOptions": {
         "target": "es5",
-        "module": "commonjs",
-        "sourceMap": true
-    }
+        "module": "commonjs"
+    },
+    "files": [
+        "app/ciphers.ts",
+        "app/cipherhandler.ts",
+        "app/ciphersolver.ts",
+        "app/ciphermorsesolver.ts",
+        "app/ciphermorbitsolver.ts",
+        "app/cipherfractionatedmorsesolver.ts",
+        "app/ciphercheckerboardsolver.ts",
+        "app/ciphergromarksolver.ts",
+        "app/cipherxenocryptsolver.ts",
+        "app/cipherencoder.ts",
+        "app/cipheraffineencoder.ts",
+        "app/ciphervigenereencoder.ts"
+    ]
 }

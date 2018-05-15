@@ -1,5 +1,5 @@
 interface StringMap {
-    [ key:string ] : string
+    [key: string]: string
 }
 
 interface BoolMap {
@@ -11,7 +11,7 @@ class CipherHandler {
     /**
      * User visible mapping of names of the various languages supported 
      */
-    readonly langmap: StringMap  = {
+    readonly langmap: StringMap = {
         'en': 'English',
         'nl': 'Dutch',
         'de': 'German',
@@ -236,11 +236,44 @@ class CipherHandler {
     normalizeHTML(str: string): string {
         return str;
     }
-    /**
-     * Creates the frequency table
+    /** 
+     * Creates an HTML table to display the frequency of characters
+     * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
     createFreqEditTable(): JQuery<HTMLElement> {
-        return null;
+        let table = $('<table/>').addClass("tfreq")
+        let thead = $('<thead/>')
+        let tbody = $('<tbody/>')
+        let headrow = $('<tr/>')
+        let freqrow = $('<tr/>')
+        let replrow = $('<tr/>')
+        let altreprow = $('<tr/>')
+        let i, len
+        let charset = this.getCharset()
+
+        headrow.append($('<th/>').addClass("topleft"))
+        freqrow.append($('<th/>').text("Frequency"))
+        replrow.append($('<th/>').text("Replacement"))
+        altreprow.append($('<th/>').text("Rev Replace"))
+        for (i = 0, len = charset.length; i < len; i++) {
+            let c = charset.substr(i, 1).toUpperCase()
+            headrow.append($('<th/>').text(c))
+            freqrow.append($('<td id="f' + c + '"/>'))
+            let td = $('<td/>')
+            td.append(this.makeFreqEditField(c))
+            replrow.append(td)
+            altreprow.append($('<td id="rf' + c + '"/>'))
+        }
+        thead.append(headrow)
+        tbody.append(freqrow)
+        tbody.append(replrow)
+        if (this.ShowRevReplace) {
+            tbody.append(altreprow)
+        }
+        table.append(thead)
+        table.append(tbody)
+
+        return table
     }
     /**
      * Loads new data into a solver, preserving all solving matches made
@@ -298,8 +331,20 @@ class CipherHandler {
      * @param {string} newchar New char to assign as decoding for the character
      */
 
-    setChar(repchar: string, newchar: string): void {
-
+    /**
+     * Change the encrypted character
+     * @param {string} repchar Encrypted character to map against
+     * @param {string} newchar New char to assign as decoding for the character
+     */
+    setChar(repchar:string, newchar:string):void {
+        this.replacement[repchar] = newchar;
+        $("input[data-char='" + repchar + "']").val(newchar);
+        if (newchar === '') {
+            newchar = '?';
+        }
+        $("span[data-char='" + repchar + "']").text(newchar);
+        this.cacheReplacements();
+        this.updateMatchDropdowns(repchar);
     }
     /**
      * Change multiple characters at once.
@@ -329,20 +374,20 @@ class CipherHandler {
      * @returns {string} String with no spaces in it
      */
     cleanString(str: string): string {
-        let pattern:string = "[\r\n ]+";
+        let pattern: string = "[\r\n ]+";
         let re = new RegExp(pattern, "g");
         str.replace(re, " ");
         return str;
     }
-        /**
-     * Eliminate all characters which are not in the charset
-     * @param {string} str String to clean up
-     * @returns {string} Result string with only characters in the legal characterset
-     */
+    /**
+ * Eliminate all characters which are not in the charset
+ * @param {string} str String to clean up
+ * @returns {string} Result string with only characters in the legal characterset
+ */
     minimizeString(str: string): string {
-        let res:string = '';
+        let res: string = '';
         for (var i = 0, len = str.length; i < len; i++) {
-            var c = str.substr(i, 1).toUpperCase();
+            let c = str.substr(i, 1).toUpperCase();
             if (this.isValidChar(c)) {
                 res += c;
             }
@@ -356,13 +401,13 @@ class CipherHandler {
      * Note: the string could be toUpperCase()'d here, but it is done later.
      * @returns chunked input string
      */
-    chunk(inputString:string, chunkSize:number):string {
-        let chunkIndex = 1;        
+    chunk(inputString: string, chunkSize: number): string {
+        let chunkIndex = 1;
         let charset = this.getCharset();
         let chunkedString = '';
         let inputStringLen = inputString.length;
         for (var i = 0; i < inputStringLen; i++) {
-            
+
             // Skip anthing that is not in the character set (i.e spaces,
             // punctuation, etc.)
             if (charset.indexOf(inputString.charAt(i).toUpperCase()) < 0) {
@@ -398,16 +443,15 @@ class CipherHandler {
     getSourceCharset(): string {
         return this.sourcecharset;
     }
-    updateCheck(c:string,lock:boolean):void 
-    {
+    updateCheck(c: string, lock: boolean): void {
         this.UpdateFreqEditTable();
         this.load();
     }
-    UpdateFreqEditTable ():void {
-        var tool = this;
+    UpdateFreqEditTable(): void {
+        let tool = this;
         $(".freq").each(function (i) {
-            $(this).replaceWith(tool.createFreqEditTable());
-        });
+            $(this).empty().append(tool.createFreqEditTable())
+        })
         $(".alphabet").each(function (i) {
             $(this).html(tool.createAlphabetType());
         });
@@ -420,76 +464,39 @@ class CipherHandler {
      * @returns {number} Value calculated 
      */
     CalculateChiSquare(str: string): number {
-        var charset = this.getCharset();
-        var i, len;
+        let charset = this.getCharset();
+        let i, len;
         len = charset.length;
-        var counts = new Array(len);
-        var total = 0;
+        let counts = new Array(len);
+        let total = 0;
         for (i = 0; i < len; i++) {
             counts[i] = 0;
         }
         for (i = 0; i < str.length; i++) {
-            var c = str.substr(i, 1).toUpperCase();
-            var pos = charset.indexOf(c);
+            let c = str.substr(i, 1).toUpperCase();
+            let pos = charset.indexOf(c);
             if (pos >= 0) {
                 counts[pos]++;
                 total++;
             }
         }
-        var chiSquare = 0.0;
+        let chiSquare = 0.0;
         for (i = 0; i < len; i++) {
-            var c = charset.substr(i, 1);
-            var expected = this.langfreq[this.curlang][c];
+            let c = charset.substr(i, 1);
+            let expected = this.langfreq[this.curlang][c];
             chiSquare += Math.pow(counts[i] - total * expected, 2) / (total * expected);
         }
         return chiSquare;
     }
 
 
-    /*
-    * Creates an HTML table to display the frequency of characters
-    */
-    createNormalFreqEditTable(): JQuery<HTMLElement> {
-        var table = $('<table/>').addClass("tfreq");
-        var thead = $('<thead/>');
-        var tbody = $('<tbody/>');
-        var headrow = $('<tr/>');
-        var freqrow = $('<tr/>');
-        var replrow = $('<tr/>');
-        var altreprow = $('<tr/>')
-        var i, len;
-        var charset = this.getCharset();
 
-        headrow.append($('<th/>').addClass("topleft"));
-        freqrow.append($('<th/>').text("Frequency"));
-        replrow.append($('<th/>').text("Replacement"));
-        altreprow.append($('<th/>').text("Rev Replace"));
-        for (i = 0, len = charset.length; i < len; i++) {
-            var c = charset.substr(i, 1).toUpperCase();
-            headrow.append($('<th/>').text(c));
-            freqrow.append($('<td id="f' + c + '"/>'));
-            var td = $('<td/>');
-            td.append(this.makeFreqEditField(c));
-            replrow.append(td);
-            altreprow.append($('<td id="rf' + c + '"/>'));
-        }
-        thead.append(headrow);
-        tbody.append(freqrow);
-        tbody.append(replrow);
-        if (this.ShowRevReplace) {
-            tbody.append(altreprow);
-        }
-        table.append(thead);
-        table.append(tbody);
-
-        return table;
-    }
     createAlphabetType(): string {
-        var res = $('<div>');
-        var label = $('<label>', { for: "radios" }).text("Alphabet Type");
+        let res = $('<div>');
+        let label = $('<label>', { for: "radios" }).text("Alphabet Type");
         res.append(label);
 
-        var rbox = $('<div>', { id: "radios", class: "ibox" });
+        let rbox = $('<div>', { id: "radios", class: "ibox" });
         rbox.append($('<input>', { id: "encrand", type: "radio", name: "enctype", value: "random", checked: "checked" }));
         rbox.append($('<label>', { for: "encrand", class: "rlab" }).text("Random"));
         rbox.append($('<input>', { id: "enck1", type: "radio", name: "enctype", value: "k1" }));
@@ -502,25 +509,25 @@ class CipherHandler {
         rbox.append($('<label>', { for: "enck3", class: "rlab" }).text("K4"));
         res.append(rbox);
 
-        var kval = $('<div>', { class: "kval" });
+        let kval = $('<div>', { class: "kval" });
         kval.append($('<label>', { for: "keyword" }).text("Keyword"));
         kval.append($('<input>', { type: "text", id: "keyword" }));
-        var odiv = $('<div>');
+        let odiv = $('<div>');
         odiv.append($('<label>', { for: "offset" }).text("Offset"));
         odiv.append($('<input>', { id: "offset", class: "inp spin", title: "offset", type: "text", value: "1" }));
         kval.append(odiv);
         res.append(kval);
 
-        var k4val = $('<div>', { class: "k4val" });
+        let k4val = $('<div>', { class: "k4val" });
         k4val.append($('<label>', { for: "keyword2" }).text("Keyword 2"));
         k4val.append($('<input>', { type: "text", id: "keyword2" }));
-        var odiv2 = $('<div>');
+        let odiv2 = $('<div>');
         odiv2.append($('<label>', { for: "offset2" }).text("Offset 2"));
         odiv2.append($('<input>', { id: "offset2", class: "inp spin", title: "offset", type: "text", value: "1" }));
         k4val.append(odiv2);
         res.append(k4val);
 
-        var k3val = $('<div>', { class: "k3val" });
+        let k3val = $('<div>', { class: "k3val" });
         k3val.append($('<label>', { for: "shift" }).text("Shift"));
         k3val.append($('<input>', { id: "shift", class: "inp spin", title: "Shift", type: "text", value: "1" }));
         res.append(k3val);
@@ -551,13 +558,13 @@ class CipherHandler {
      * @param {number} num
      */
     makeTopList(str: string, width: number, num: number): string {
-        var tfreq = {};
-        var tobjs = [];
-        var work = '';
-        var i, len;
-        var res = '';
+        let tfreq = {};
+        let tobjs = [];
+        let work = '';
+        let i, len;
+        let res = '';
         for (i = 0, len = str.length; i < len; i++) {
-            var t = str.substr(i, 1).toUpperCase();
+            let t = str.substr(i, 1).toUpperCase();
             if (this.isValidChar(t)) {
                 work += t;
             }
@@ -565,7 +572,7 @@ class CipherHandler {
         // Now we have the work string with only the legal characters in it
         // Next we want to go through and find all the combination strings of a given length
         for (i = 0, len = work.length; i <= len - width * this.cipherWidth; i++) {
-            var piece = work.substr(i, width * this.cipherWidth);
+            let piece = work.substr(i, width * this.cipherWidth);
             if (isNaN(tfreq[piece])) {
                 tfreq[piece] = 0;
             }
@@ -575,9 +582,9 @@ class CipherHandler {
         // need to go through and pick out the big ones and display them in sorted order.  To sort
         // it we need to build an array of objects holding the frequency and values.
         Object.keys(tfreq).forEach(function (value) {
-            var frequency = tfreq[value];
+            let frequency = tfreq[value];
             if (frequency > 1) {
-                var item = { freq: frequency, val: value };
+                let item = { freq: frequency, val: value };
                 tobjs.push(item);
             }
         });
@@ -591,12 +598,12 @@ class CipherHandler {
         if (num > 0) {
             res = '<ul>';
             for (i = 0; i < num; i++) {
-                var valtext = tobjs[i].val;
+                let valtext = tobjs[i].val;
                 if (this.cipherWidth > 1) {
                     // We need to insert spaces every x characters
-                    var vpos, vlen;
-                    var extra = '';
-                    var final = '';
+                    let vpos, vlen;
+                    let extra = '';
+                    let final = '';
                     for (vpos = 0, vlen = valtext.length / 2; vpos < vlen; vpos++) {
                         final += extra + valtext.substr(vpos * 2, 2);
                         extra = ' ';
@@ -618,7 +625,7 @@ class CipherHandler {
      */
     analyze(encoded: string): string {
         console.log('Analyze encoded=' + encoded);
-        var res = '<table class="satable">' +
+        let res = '<table class="satable">' +
             '<thead><tr><th>2 Characters</th><th>3 Characters</th><th>4 Characters</th><th>5 Characters</th></tr></thead>' +
             '<tbody><tr>' +
             '<td>' + this.makeTopList(encoded, 2, 12) + '</td>' +
@@ -634,7 +641,7 @@ class CipherHandler {
         if (a < 0) { a = -a; }
         if (b < 0) { b = -b; }
 
-        if (b > a) { var temp = a; a = b; b = temp; }
+        if (b > a) { let temp = a; a = b; b = temp; }
         while (true) {
             console.log('gcd a=' + a + ' b=' + b);
             if (b == 0) return a;
@@ -645,9 +652,9 @@ class CipherHandler {
     }
 
     iscoprime(a: number): boolean {
-        var charset = this.getCharset();
+        let charset = this.getCharset();
         console.log('iscoprime a=' + a + ' len=' + charset.length);
-        var gcdval = this.gcd(a, charset.length);
+        let gcdval = this.gcd(a, charset.length);
         console.log('gcd(' + a + ',' + charset.length + ')=' + gcdval);
         if (gcdval != 1) {
             return false;
@@ -658,12 +665,12 @@ class CipherHandler {
     * Fills in the frequency portion of the frequency table
     */
     displayFreq(): void {
-        var charset = this.getCharset();
-        var c, i, len;
+        let charset = this.getCharset();
+        let c, i, len;
         this.holdupdates = true;
         for (c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
-                var subval = this.freq[c];
+                let subval = this.freq[c];
                 if (subval === 0) {
                     subval = '';
                 }
@@ -675,7 +682,7 @@ class CipherHandler {
         if (this.ShowRevReplace) {
             for (i = 0, len = charset.length; i < len; i++) {
                 c = charset.substr(i, 1);
-                var repl: string = <string>$('#m' + c).val();
+                let repl: string = <string>$('#m' + c).val();
                 if (repl === '') { repl = $('#m' + c).html(); }
                 this.setChar(c, repl);
             }
@@ -690,10 +697,10 @@ class CipherHandler {
     attachHandlers(): void {
         let tool = this;
         $(".sli").keyup(function (event) {
-            var newchar;
-            var repchar = $(event.target).attr('data-char');
-            var current, next;
-            var focusables = $(".sli");
+            let newchar;
+            let repchar = $(event.target).attr('data-char');
+            let current, next;
+            let focusables = $(".sli");
 
             if (event.keyCode === 37) { // left
                 current = focusables.index(event.target);
@@ -712,10 +719,10 @@ class CipherHandler {
             }
             event.preventDefault();
         }).keypress(function (event) {
-            var newchar;
-            var repchar = $(event.target).attr('data-char');
-            var current, next;
-            var focusables = $(".sli");
+            let newchar;
+            let repchar = $(event.target).attr('data-char');
+            let current, next;
+            let focusables = $(".sli");
             if (typeof event.key === 'undefined') {
                 newchar = String.fromCharCode(event.keyCode).toUpperCase();
             } else {
@@ -736,28 +743,28 @@ class CipherHandler {
             }
             event.preventDefault();
         }).blur(function () {
-            var tohighlight = $(this).attr('data-char');
+            let tohighlight = $(this).attr('data-char');
             $("[data-char='" + tohighlight + "']").removeClass("allfocus");
-            var althighlight = $(this).attr('data-schar');
+            let althighlight = $(this).attr('data-schar');
             if (althighlight !== '') {
                 $("[data-schar='" + althighlight + "']").removeClass("allfocus");
             }
             $(this).removeClass("focus");
         }).focus(function () {
-            var tohighlight = $(this).attr('data-char');
+            let tohighlight = $(this).attr('data-char');
             $("[data-char='" + tohighlight + "']").addClass("allfocus");
-            var althighlight = $(this).attr('data-schar');
+            let althighlight = $(this).attr('data-schar');
             if (althighlight !== '') {
                 $("[data-schar='" + althighlight + "']").addClass("allfocus");
             }
             $(this).addClass("focus");
         });
         $(".cb").on('change', function () {
-            var toupdate = $(this).attr('data-char');
+            let toupdate = $(this).attr('data-char');
             tool.updateCheck(toupdate, $(this).prop("checked"));
         });
         $(".msli").on('change', function () {
-            var toupdate = $(this).attr('data-char');
+            let toupdate = $(this).attr('data-char');
             tool.updateSel(toupdate, (<HTMLInputElement>this).value);
         });
         $(".spin").spinner({
@@ -781,23 +788,23 @@ class CipherHandler {
         });
 
     }
-        /**
-     * Generate a replacement pattern string.  Any unknown characters are represented as a space
-     * otherwise they are given as the character it replaces as.
-     *
-     * For example if we know
-     *    A B C D E F G J I J K L M N O P Q R S T U V W X Y Z
-     *        E             H
-     *
-     * And were given the input string of "RJCXC" then the result would be " HE E"
-     * @param {any} str String of encoded characters
-     * @returns {string} Replacement pattern string
-     */
-    genReplPattern(str:string):Array<string> {
-        var i, len;
+    /**
+    * Generate a replacement pattern string.  Any unknown characters are represented as a space
+    * otherwise they are given as the character it replaces as.
+    *
+    * For example if we know
+    *    A B C D E F G J I J K L M N O P Q R S T U V W X Y Z
+    *        E             H
+    *
+    * And were given the input string of "RJCXC" then the result would be " HE E"
+    * @param {any} str String of encoded characters
+    * @returns {string} Replacement pattern string
+    */
+    genReplPattern(str: string): Array<string> {
+        let i, len;
         let res = [];
         for (i = 0, len = str.length; i < len; i++) {
-            var c = str.substr(i, 1);
+            let c = str.substr(i, 1);
             res.push(this.replacement[c]);
         }
         return res;
@@ -808,11 +815,11 @@ class CipherHandler {
      * @param {Array.<number>} used Array of flags whether a character is already known to be used
      * @returns {bool} True/false if the string is a valid replacement
      */
-    isValidReplacement (str:string, repl:Array<string>, used:BoolMap):boolean {
-        var i, len;
+    isValidReplacement(str: string, repl: Array<string>, used: BoolMap): boolean {
+        let i, len;
         //   console.log(str);
         for (i = 0, len = str.length; i < len; i++) {
-            var c = str.substr(i, 1);
+            let c = str.substr(i, 1);
             if (repl[i] !== '') {
                 if (c !== repl[i]) {
                     //             console.log('No match c=' + c + ' repl[' + i + ']=' + repl[i]);
@@ -828,9 +835,9 @@ class CipherHandler {
     /**
      * Set flag to 'chunk' input data string befre encoding.  Used in Patristocrat, 
      */
-    setCipherType (cipherType:string):void {
+    setCipherType(cipherType: string): void {
         this.attachHandlers();
-        }
+    }
 
     /*
      * Choose which Cipher type to be operating on by default.
@@ -891,7 +898,7 @@ class CipherHandler {
      * @return {string} Quoted string
      */
 
-    quote(str:string):string {
+    quote(str: string): string {
         if (typeof str === 'undefined') {
             return '\'\'';
         }
@@ -910,10 +917,10 @@ class CipherHandler {
      * @returns {string} Numeric pattern string
      */
     makeUniquePattern(str: string, width: number): string {
-        var cmap = {};
+        let cmap = {};
         let res: string = '';
         let mapval: number = 0;
-        var i, len, c;
+        let i, len, c;
         len = str.length;
         // In case they give us an odd length string, just padd it with enough Xs
         str += 'XXXX';
@@ -933,16 +940,16 @@ class CipherHandler {
     /**
      * @param {string} lang 2 character Language to dump language template for 
      */
-    dumpLang(lang:string):string {
-        var res = '';
-        var extra = '';
+    dumpLang(lang: string): string {
+        let res = '';
+        let extra = '';
         res = 'CipherTool.Frequent[' + this.quote(lang) + ']={';
         for (var pat in this.Frequent[lang]) {
             if (this.Frequent[lang].hasOwnProperty(pat) && pat !== '') {
                 res += extra + '\'' + pat + '\':[';
-                var i, len;
-                var extra1 = '';
-                var matches = this.Frequent[lang][pat];
+                let i, len;
+                let extra1 = '';
+                let matches = this.Frequent[lang][pat];
                 for (i = 0, len = matches.length; i < len; i++) {
                     //console.log(matches[i]);
                     res += extra1 +
@@ -960,26 +967,26 @@ class CipherHandler {
         return res;
     }
 
-    setLangDropdown(lselect:JQuery<HTMLElement>):void {
+    setLangDropdown(lselect: JQuery<HTMLElement>): void {
         console.log('Setting LangDropdown');
         console.log(lselect);
-        lselect.replaceWith($("<option />", { value: '' }).text('--Select a language--'));
+        lselect.empty().append($("<option />", { value: '' }).text('--Select a language--'));
         for (var lang in this.langmap) {
             if (this.langmap.hasOwnProperty(lang)) {
                 $("<option />", { value: lang }).text(this.langmap[lang]).appendTo(lselect);
             }
         }
-        var tool = this;
+        let tool = this;
         console.log(lselect);
         lselect.change(function () {
-            console.log('Loading '+$(this).val());
+            console.log('Loading ' + $(this).val());
             tool.loadLanguage(<string>$(this).val());
             console.log('Done');
         });
     }
-    loadLanguage(lang:string):void {
+    loadLanguage(lang: string): void {
         console.log('In LoadLanguage');
-        var tool = this;
+        let tool = this;
         $(".langstatus").text("Attempting to load " + tool.langmap[lang] + '...');
         $.getScript("Languages/" + lang + ".js", function (data, textStatus, jqxhr) {
             $(".langstatus").text('');
@@ -991,26 +998,26 @@ class CipherHandler {
             tool.loadRawLanguage(lang);
         });
     }
-    loadRawLanguage(lang:string):void {
-        var tool = this;
-        var jqxhr = $.get("Languages/" + lang + ".txt", function () {
+    loadRawLanguage(lang: string): void {
+        let tool = this;
+        let jqxhr = $.get("Languages/" + lang + ".txt", function () {
         }).done(function (data) {
             // Empty out all the frequent words
             $(".langstatus").text("Processing " + tool.langmap[lang] + '...');
             tool.Frequent[lang] = {};
             tool.curlang = lang;
-            var charset = tool.langcharset[lang];
-            var langreplace = tool.langreplace[lang];
+            let charset = tool.langcharset[lang];
+            let langreplace = tool.langreplace[lang];
             tool.setCharset(charset);
-            var lines = data.split("\n");
-            var i, len;
+            let lines = data.split("\n");
+            let i, len;
             len = lines.length;
             charset = charset.toUpperCase()
             for (i = 0; i < len; i++) {
-                var pieces = lines[i].replace(/\r/g, ' ').toUpperCase().split(/ /);
+                let pieces = lines[i].replace(/\r/g, ' ').toUpperCase().split(/ /);
                 // Make sure that all the characters in the pieces are valid
                 // for this character set.  Otherwise we can throw it away
-                var legal = true;
+                let legal = true;
                 for (var j = 0; j < pieces[0].length; j++) {
                     if (charset.indexOf(pieces[0][j]) < 0) {
                         if (typeof langreplace[pieces[0][j]] === 'undefined') {
@@ -1022,8 +1029,8 @@ class CipherHandler {
                     }
                 }
                 if (legal) {
-                    var pat = tool.makeUniquePattern(pieces[0], 1);
-                    var elem = [
+                    let pat = tool.makeUniquePattern(pieces[0], 1);
+                    let elem = [
                         pieces[0].toUpperCase(),
                         i,
                         pieces[1],
@@ -1060,11 +1067,11 @@ class CipherHandler {
     /**
      * Retrieve all of the replacement characters that have been selected so far
      */
-    cacheReplacements():void {
-        var charset = this.getCharset().toUpperCase();
+    cacheReplacements(): void {
+        let charset = this.getCharset().toUpperCase();
         for (var i = 0, len = charset.length; i < len; i++) {
-            var c = charset.substr(i, 1);
-            var repl = $('#m' + c).val();
+            let c = charset.substr(i, 1);
+            let repl = $('#m' + c).val();
             // When we are doing an encode, there are no input fields, everything
             // is in a text field so we need to check for that case and retrieve
             // the text value instead
@@ -1083,12 +1090,12 @@ class CipherHandler {
      * @param {string} repl Replacement characters.  Any non blank character replaces the corresponding character in the input string
      * @returns {string} Comparable replacement string
      */
-    applyReplPattern(str:string, repl:string):string {
-        var i, len;
-        var res = '';
+    applyReplPattern(str: string, repl: string): string {
+        let i, len;
+        let res = '';
         len = str.length;
         for (i = 0; i < len; i++) {
-            var c = repl.substr(i, 1);
+            let c = repl.substr(i, 1);
             if (c === ' ') {
                 c = str.substr(i, 1);
             }

@@ -27,7 +27,7 @@ class CipherSolver extends CipherHandler {
         console.log('LoadSolver');
         let res = this.build(encoded);
         var tool = this
-        $("#answer").replaceWith(res);
+        $("#answer").empty().append(res);
         $("#analysis").each(function (i) {
             $(this).html(tool.analyze(encoded));
         });
@@ -266,21 +266,6 @@ class CipherSolver extends CipherHandler {
         return $(res);
     }
     /**
-     * Change the encrypted character
-     * @param {string} repchar Encrypted character to map against
-     * @param {string} newchar New char to assign as decoding for the character
-     */
-    setChar(repchar:string, newchar:string):void {
-        this.replacement[repchar] = newchar;
-        $("input[data-char='" + repchar + "']").val(newchar);
-        if (newchar === '') {
-            newchar = '?';
-        }
-        $("span[data-char='" + repchar + "']").text(newchar);
-        this.cacheReplacements();
-        this.updateMatchDropdowns(repchar);
-    }
-    /**
      * Change multiple characters at once.
      * @param {string} reqstr String of items to apply
      */
@@ -365,7 +350,7 @@ class CipherSolver extends CipherHandler {
         var tool = this;
         this.cacheReplacements();
         $("[data-chars]").each(function () {
-            $(this).replaceWith(tool.generateMatchDropdown($(this).attr('data-chars')));
+            $(this).empty().append(tool.generateMatchDropdown($(this).attr('data-chars')));
         });
     }
 

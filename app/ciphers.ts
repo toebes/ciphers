@@ -31,35 +31,35 @@
  let cipherTool:CipherHandler = new CipherHandler();
 
  $(function () {
-    cipherTool = cipherTool.select(undefined,undefined);
+    cipherTool = cipherTool.select(undefined,undefined)
     // First figure out what type of solver we are building
     $("[data-cipher]").each(function () {
-        cipherTool = cipherTool.select($(this).attr('data-cipher'),$(this).attr('data-lang'));
+        cipherTool = cipherTool.select($(this).attr('data-cipher'),$(this).attr('data-lang'))
     });
     // process the "cipher-type" class
     $(".cipher-type").each(function () {
-        cipherTool.setCipherType($(this).attr('id'));        
+        cipherTool.setCipherType($(this).attr('id'))
     });
     // Handler for .ready() called.
     $('#load').button().click(function () {
-        cipherTool.load();
+        cipherTool.load()
     });
     $('#reset').button().click(function () {
-        cipherTool.reset();
+        cipherTool.reset()
     });
 //    $('#encrypt').button().click(function () {
-//        CipherTool.encrypt();
+//        CipherTool.encrypt()
 //    });
 
     // Morbit Solving Helper
     $(".sfind").change(function () {
-        cipherTool.findPossible((<string>$(this).val()));
+        cipherTool.findPossible((<string>$(this).val()))
     }).blur(function () {
-        cipherTool.findPossible((<string>$(this).val()));
+        cipherTool.findPossible((<string>$(this).val()))
     });
     $(".lang").each(function () {
         cipherTool.setLangDropdown($(this));
     });
-    cipherTool.UpdateFreqEditTable();
-    cipherTool.attachHandlers();
+    cipherTool.UpdateFreqEditTable()
+    cipherTool.attachHandlers()
 });

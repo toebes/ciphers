@@ -178,7 +178,7 @@ var CipherAffineEncoder = /** @class */ (function (_super) {
         var toencode = this.cleanString($('#toencode').val());
         console.log('a=' + a + ' b=' + b + ' encode=' + toencode);
         var res = this.buildAffine(toencode, a, b);
-        $("#answer").replaceWith(res);
+        $("#answer").empty().append(res);
         $("td").click(function () {
             console.log("clicked " + $(this).get);
             var id = $(this).attr('id');
@@ -266,4 +266,3 @@ var CipherAffineEncoder = /** @class */ (function (_super) {
 //     updateMatchDropdowns: 'updateStandardMatchDropdowns',
 //     findPossible: 'findStandard'
 // }
-//# sourceMappingURL=cipheraffineencoder.js.map

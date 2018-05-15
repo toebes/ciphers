@@ -29,4 +29,3 @@ var CipherXenocryptSolver = /** @class */ (function (_super) {
 //     updateMatchDropdowns: 'updateStandardMatchDropdowns',
 //     findPossible: 'findStandard'
 // },
-//# sourceMappingURL=cipherxenocryptsolver.js.map

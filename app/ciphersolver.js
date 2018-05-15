@@ -41,7 +41,7 @@ var CipherSolver = /** @class */ (function (_super) {
         console.log('LoadSolver');
         var res = this.build(encoded);
         var tool = this;
-        $("#answer").replaceWith(res);
+        $("#answer").empty().append(res);
         $("#analysis").each(function (i) {
             $(this).html(tool.analyze(encoded));
         });
@@ -273,21 +273,6 @@ var CipherSolver = /** @class */ (function (_super) {
         return $(res);
     };
     /**
-     * Change the encrypted character
-     * @param {string} repchar Encrypted character to map against
-     * @param {string} newchar New char to assign as decoding for the character
-     */
-    CipherSolver.prototype.setChar = function (repchar, newchar) {
-        this.replacement[repchar] = newchar;
-        $("input[data-char='" + repchar + "']").val(newchar);
-        if (newchar === '') {
-            newchar = '?';
-        }
-        $("span[data-char='" + repchar + "']").text(newchar);
-        this.cacheReplacements();
-        this.updateMatchDropdowns(repchar);
-    };
-    /**
      * Change multiple characters at once.
      * @param {string} reqstr String of items to apply
      */
@@ -370,7 +355,7 @@ var CipherSolver = /** @class */ (function (_super) {
         var tool = this;
         this.cacheReplacements();
         $("[data-chars]").each(function () {
-            $(this).replaceWith(tool.generateMatchDropdown($(this).attr('data-chars')));
+            $(this).empty().append(tool.generateMatchDropdown($(this).attr('data-chars')));
         });
     };
     return CipherSolver;
@@ -389,4 +374,3 @@ var CipherSolver = /** @class */ (function (_super) {
 //     updateMatchDropdowns: 'updateStandardMatchDropdowns',
 //     findPossible: 'findStandard'
 // },
-//# sourceMappingURL=ciphersolver.js.map

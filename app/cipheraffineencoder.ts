@@ -185,7 +185,7 @@ class CipherAffineEncoder extends CipherEncoder {
         let toencode = this.cleanString(<string>$('#toencode').val());
         console.log('a=' + a + ' b=' + b + ' encode=' + toencode);
         let res = this.buildAffine(toencode, a, b);
-        $("#answer").replaceWith(res);
+        $("#answer").empty().append(res);
 
         $("td").click(function () {
             console.log("clicked " + $(this).get);

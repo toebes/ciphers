@@ -187,7 +187,7 @@ var CipherCheckerboardSolver = /** @class */ (function (_super) {
         var encoded = this.cleanString($('#encoded').val());
         var res = this.build(encoded);
         var tool = this;
-        $("#answer").replaceWith(res);
+        $("#answer").empty().append(res);
         $("#analysis").each(function (i) {
             $(this).html(tool.analyze(encoded));
         });
@@ -246,4 +246,3 @@ var CipherCheckerboardSolver = /** @class */ (function (_super) {
 // setMultiChars: 'setStandardMultiChars',
 // updateMatchDropdowns: 'updateStandardMatchDropdowns',
 // findPossible: 'findCheckerboard'
-//# sourceMappingURL=ciphercheckerboardsolver.js.map

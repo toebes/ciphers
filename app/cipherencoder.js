@@ -295,13 +295,13 @@ var CipherEncoder = /** @class */ (function (_super) {
         this.genMap();
         var res = this.build(encoded);
         var tool = this;
-        $("#answer").replaceWith(res);
+        $("#answer").empty().append(res);
         /* testStrings */
         for (var i = 0; i < this.testStrings.length; i++) {
-            var chi = this.CalculateChiSquare(this.testStrings[i]);
+            var chi_1 = this.CalculateChiSquare(this.testStrings[i]);
             var teststr = this.cleanString(this.testStrings[i]);
             var l = teststr.length;
-            console.log(l + '`' + chi + '`' + teststr);
+            console.log(l + '`' + chi_1 + '`' + teststr);
         }
         var chi = this.CalculateChiSquare(encoded);
         var chitext = '';
@@ -362,4 +362,3 @@ var CipherEncoder = /** @class */ (function (_super) {
 //     updateMatchDropdowns: 'updateStandardMatchDropdowns',
 //     findPossible: 'findStandard'
 // },
-//# sourceMappingURL=cipherencoder.js.map

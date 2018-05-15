@@ -495,7 +495,7 @@ var CipherMorseSolver = /** @class */ (function (_super) {
         this.encodedString = this.cleanString($('#encoded').val());
         var res = this.build(this.encodedString);
         var tool = this;
-        $("#answer").replaceWith(res);
+        $("#answer").empty().append(res);
         $("#analysis").each(function (i) {
             $(this).html(tool.analyze(tool.encodedString));
         });
@@ -506,4 +506,3 @@ var CipherMorseSolver = /** @class */ (function (_super) {
     };
     return CipherMorseSolver;
 }(CipherSolver));
-//# sourceMappingURL=ciphermorsesolver.js.map

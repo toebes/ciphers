@@ -143,7 +143,7 @@ class CipherVigenereEncoder extends CipherEncoder {
         var key = this.cleanString(<string>$('#keystring').val());
         $('#err').text('');
         let res = this.buildVigenere(encoded, key);
-        $('#answer').replaceWith(res);
+        $('#answer').empty().append(res);
         this.attachHandlers();
     }
     attachHandlers(): void {
@@ -167,7 +167,7 @@ class CipherVigenereEncoder extends CipherEncoder {
         if (cipherType === 'vigenere') {
             console.log('Make a nice vigenere...');
             $('.cipher-type').each(function () {
-                $(this).replaceWith(tool.layoutVigenere());
+                $(this).empty().append(tool.layoutVigenere());
             });
             this.attachHandlers();
         }

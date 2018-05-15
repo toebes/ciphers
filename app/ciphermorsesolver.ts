@@ -489,7 +489,7 @@ class CipherMorseSolver extends CipherSolver {
         this.encodedString = this.cleanString(<string>$('#encoded').val());
         var res = this.build(this.encodedString);
         var tool = this;
-        $("#answer").replaceWith(res);
+        $("#answer").empty().append(res);
         $("#analysis").each(function (i) {
             $(this).html(tool.analyze(tool.encodedString));
         });

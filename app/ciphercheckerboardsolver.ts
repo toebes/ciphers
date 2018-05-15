@@ -182,7 +182,7 @@ class CipherCheckerboardSolver extends CipherSolver {
         let encoded = this.cleanString(<string>$('#encoded').val());
         let res = this.build(encoded);
         let tool = this;
-        $("#answer").replaceWith(res);
+        $("#answer").empty().append(res);
         $("#analysis").each(function (i) {
             $(this).html(tool.analyze(encoded));
         });

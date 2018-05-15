@@ -347,7 +347,7 @@ class CipherGromarkSolver extends CipherSolver {
         this.cacheReplacements();
         this.saveGromarkReplacements();
         $("[data-chars]").each(function () {
-            $(this).replaceWith(tool.generateGromarkDropdown($(this).attr('data-chars')));
+            $(this).empty().append(tool.generateGromarkDropdown($(this).attr('data-chars')));
         });
     }
 

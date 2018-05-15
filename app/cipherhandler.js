@@ -228,10 +228,41 @@ var CipherHandler = /** @class */ (function () {
         return str;
     };
     /**
-     * Creates the frequency table
+     * Creates an HTML table to display the frequency of characters
+     * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
     CipherHandler.prototype.createFreqEditTable = function () {
-        return null;
+        var table = $('<table/>').addClass("tfreq");
+        var thead = $('<thead/>');
+        var tbody = $('<tbody/>');
+        var headrow = $('<tr/>');
+        var freqrow = $('<tr/>');
+        var replrow = $('<tr/>');
+        var altreprow = $('<tr/>');
+        var i, len;
+        var charset = this.getCharset();
+        headrow.append($('<th/>').addClass("topleft"));
+        freqrow.append($('<th/>').text("Frequency"));
+        replrow.append($('<th/>').text("Replacement"));
+        altreprow.append($('<th/>').text("Rev Replace"));
+        for (i = 0, len = charset.length; i < len; i++) {
+            var c = charset.substr(i, 1).toUpperCase();
+            headrow.append($('<th/>').text(c));
+            freqrow.append($('<td id="f' + c + '"/>'));
+            var td = $('<td/>');
+            td.append(this.makeFreqEditField(c));
+            replrow.append(td);
+            altreprow.append($('<td id="rf' + c + '"/>'));
+        }
+        thead.append(headrow);
+        tbody.append(freqrow);
+        tbody.append(replrow);
+        if (this.ShowRevReplace) {
+            tbody.append(altreprow);
+        }
+        table.append(thead);
+        table.append(tbody);
+        return table;
     };
     /**
      * Loads new data into a solver, preserving all solving matches made
@@ -286,7 +317,20 @@ var CipherHandler = /** @class */ (function () {
      * @param {string} repchar Encrypted character to map against
      * @param {string} newchar New char to assign as decoding for the character
      */
+    /**
+     * Change the encrypted character
+     * @param {string} repchar Encrypted character to map against
+     * @param {string} newchar New char to assign as decoding for the character
+     */
     CipherHandler.prototype.setChar = function (repchar, newchar) {
+        this.replacement[repchar] = newchar;
+        $("input[data-char='" + repchar + "']").val(newchar);
+        if (newchar === '') {
+            newchar = '?';
+        }
+        $("span[data-char='" + repchar + "']").text(newchar);
+        this.cacheReplacements();
+        this.updateMatchDropdowns(repchar);
     };
     /**
      * Change multiple characters at once.
@@ -383,7 +427,7 @@ var CipherHandler = /** @class */ (function () {
     CipherHandler.prototype.UpdateFreqEditTable = function () {
         var tool = this;
         $(".freq").each(function (i) {
-            $(this).replaceWith(tool.createFreqEditTable());
+            $(this).empty().append(tool.createFreqEditTable());
         });
         $(".alphabet").each(function (i) {
             $(this).html(tool.createAlphabetType());
@@ -419,42 +463,6 @@ var CipherHandler = /** @class */ (function () {
             chiSquare += Math.pow(counts[i] - total * expected, 2) / (total * expected);
         }
         return chiSquare;
-    };
-    /*
-    * Creates an HTML table to display the frequency of characters
-    */
-    CipherHandler.prototype.createNormalFreqEditTable = function () {
-        var table = $('<table/>').addClass("tfreq");
-        var thead = $('<thead/>');
-        var tbody = $('<tbody/>');
-        var headrow = $('<tr/>');
-        var freqrow = $('<tr/>');
-        var replrow = $('<tr/>');
-        var altreprow = $('<tr/>');
-        var i, len;
-        var charset = this.getCharset();
-        headrow.append($('<th/>').addClass("topleft"));
-        freqrow.append($('<th/>').text("Frequency"));
-        replrow.append($('<th/>').text("Replacement"));
-        altreprow.append($('<th/>').text("Rev Replace"));
-        for (i = 0, len = charset.length; i < len; i++) {
-            var c = charset.substr(i, 1).toUpperCase();
-            headrow.append($('<th/>').text(c));
-            freqrow.append($('<td id="f' + c + '"/>'));
-            var td = $('<td/>');
-            td.append(this.makeFreqEditField(c));
-            replrow.append(td);
-            altreprow.append($('<td id="rf' + c + '"/>'));
-        }
-        thead.append(headrow);
-        tbody.append(freqrow);
-        tbody.append(replrow);
-        if (this.ShowRevReplace) {
-            tbody.append(altreprow);
-        }
-        table.append(thead);
-        table.append(tbody);
-        return table;
     };
     CipherHandler.prototype.createAlphabetType = function () {
         var res = $('<div>');
@@ -565,7 +573,7 @@ var CipherHandler = /** @class */ (function () {
                 var valtext = tobjs[i].val;
                 if (this.cipherWidth > 1) {
                     // We need to insert spaces every x characters
-                    var vpos, vlen;
+                    var vpos = void 0, vlen = void 0;
                     var extra = '';
                     var final = '';
                     for (vpos = 0, vlen = valtext.length / 2; vpos < vlen; vpos++) {
@@ -768,17 +776,17 @@ var CipherHandler = /** @class */ (function () {
         });
     };
     /**
- * Generate a replacement pattern string.  Any unknown characters are represented as a space
- * otherwise they are given as the character it replaces as.
- *
- * For example if we know
- *    A B C D E F G J I J K L M N O P Q R S T U V W X Y Z
- *        E             H
- *
- * And were given the input string of "RJCXC" then the result would be " HE E"
- * @param {any} str String of encoded characters
- * @returns {string} Replacement pattern string
- */
+    * Generate a replacement pattern string.  Any unknown characters are represented as a space
+    * otherwise they are given as the character it replaces as.
+    *
+    * For example if we know
+    *    A B C D E F G J I J K L M N O P Q R S T U V W X Y Z
+    *        E             H
+    *
+    * And were given the input string of "RJCXC" then the result would be " HE E"
+    * @param {any} str String of encoded characters
+    * @returns {string} Replacement pattern string
+    */
     CipherHandler.prototype.genReplPattern = function (str) {
         var i, len;
         var res = [];
@@ -911,7 +919,7 @@ var CipherHandler = /** @class */ (function () {
         for (var pat in this.Frequent[lang]) {
             if (this.Frequent[lang].hasOwnProperty(pat) && pat !== '') {
                 res += extra + '\'' + pat + '\':[';
-                var i, len;
+                var i = void 0, len = void 0;
                 var extra1 = '';
                 var matches = this.Frequent[lang][pat];
                 for (i = 0, len = matches.length; i < len; i++) {
@@ -933,7 +941,7 @@ var CipherHandler = /** @class */ (function () {
     CipherHandler.prototype.setLangDropdown = function (lselect) {
         console.log('Setting LangDropdown');
         console.log(lselect);
-        lselect.replaceWith($("<option />", { value: '' }).text('--Select a language--'));
+        lselect.empty().append($("<option />", { value: '' }).text('--Select a language--'));
         for (var lang in this.langmap) {
             if (this.langmap.hasOwnProperty(lang)) {
                 $("<option />", { value: lang }).text(this.langmap[lang]).appendTo(lselect);
@@ -1071,4 +1079,3 @@ var CipherHandler = /** @class */ (function () {
     };
     return CipherHandler;
 }());
-//# sourceMappingURL=cipherhandler.js.map

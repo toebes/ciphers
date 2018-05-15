@@ -7,7 +7,7 @@
 * @date    2017-02-24
 *
 * @license
-* Copyright (C) 2017 John A Toebes <john@toebes.com>
+* Copyright (C) 2017-2018 John A Toebes <john@toebes.com>
 *
 * Licensed under the Apache License, Version 2.0 (the "License"); you may not
 * use this file except in compliance with the License. You may obtain a copy
@@ -44,7 +44,7 @@ $(function () {
         cipherTool.reset();
     });
     //    $('#encrypt').button().click(function () {
-    //        CipherTool.encrypt();
+    //        CipherTool.encrypt()
     //    });
     // Morbit Solving Helper
     $(".sfind").change(function () {
@@ -58,4 +58,3 @@ $(function () {
     cipherTool.UpdateFreqEditTable();
     cipherTool.attachHandlers();
 });
-//# sourceMappingURL=ciphers.js.map

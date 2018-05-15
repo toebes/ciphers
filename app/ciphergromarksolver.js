@@ -351,7 +351,7 @@ var CipherGromarkSolver = /** @class */ (function (_super) {
         this.cacheReplacements();
         this.saveGromarkReplacements();
         $("[data-chars]").each(function () {
-            $(this).replaceWith(tool.generateGromarkDropdown($(this).attr('data-chars')));
+            $(this).empty().append(tool.generateGromarkDropdown($(this).attr('data-chars')));
         });
     };
     /**
@@ -512,4 +512,3 @@ var CipherGromarkSolver = /** @class */ (function (_super) {
 //     updateSel: 'updateCheckerboardSel',
 //     findPossible: 'findGromark'
 // },
-//# sourceMappingURL=ciphergromarksolver.js.map

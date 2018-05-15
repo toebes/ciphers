@@ -146,7 +146,7 @@ var CipherVigenereEncoder = /** @class */ (function (_super) {
         var key = this.cleanString($('#keystring').val());
         $('#err').text('');
         var res = this.buildVigenere(encoded, key);
-        $('#answer').replaceWith(res);
+        $('#answer').empty().append(res);
         this.attachHandlers();
     };
     CipherVigenereEncoder.prototype.attachHandlers = function () {
@@ -170,7 +170,7 @@ var CipherVigenereEncoder = /** @class */ (function (_super) {
         if (cipherType === 'vigenere') {
             console.log('Make a nice vigenere...');
             $('.cipher-type').each(function () {
-                $(this).replaceWith(tool.layoutVigenere());
+                $(this).empty().append(tool.layoutVigenere());
             });
             this.attachHandlers();
         }
@@ -191,4 +191,3 @@ var CipherVigenereEncoder = /** @class */ (function (_super) {
 //     updateMatchDropdowns: 'updateStandardMatchDropdowns',
 //     findPossible: 'findStandard'
 // },
-//# sourceMappingURL=ciphervigenereencoder.js.map

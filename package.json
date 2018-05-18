@@ -20,8 +20,11 @@
     "@types/jquery": "^3.3.1",
     "@types/jqueryui": "^1.12.2",
     "awesome-typescript-loader": "^5.0.0",
+    "codemirror": "^5.37.0",
     "deep-extend": "^0.5.1",
+    "jquery": "^3.3.1",
     "summernote-typescript": "^0.8.9",
+    "ts-loader": "^4.3.0",
     "uglify-es": "^3.3.9",
     "uglify-js": "^3.3.25",
     "webpack": "^4.8.3"

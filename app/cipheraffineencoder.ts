@@ -268,7 +268,6 @@ class CipherAffineEncoder extends CipherEncoder {
         // Affine: {
         //     init: 'initAffine',
         //     normalizeHTML: 'normalizeHTML',
-        //     createFreqEditTable: 'createNormalFreqEditTable',
         //     load: 'loadAffine',
         //     reset: 'resetSolver',
         //     build: 'buildAffine',

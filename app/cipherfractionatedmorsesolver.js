@@ -1,3 +1,4 @@
+/// <reference types="ciphertypes" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -124,9 +125,7 @@ var CipherFractionatedMorseSolver = /** @class */ (function (_super) {
     return CipherFractionatedMorseSolver;
 }(CipherMorseSolver));
 // FractionatedMorse: {
-//     init: 'initFractionatedMorseSolver',
 //     normalizeHTML: 'normalizeMorseHTML',
-//     createFreqEditTable: 'createMorseFreqEditTable',
 //     load: 'loadMorseSolver',
 //     reset: 'resetSolver',
 //     build: 'buildMorseSolver',

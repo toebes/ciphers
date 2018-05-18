@@ -27,6 +27,7 @@
  * Main CipherTool class object
  * @type {Object.<string, function>} 
  */
+// import * as $ from "jquery"
 
  let cipherTool:CipherHandler = new CipherHandler();
 
@@ -48,7 +49,7 @@
         cipherTool.reset()
     });
 //    $('#encrypt').button().click(function () {
-//        CipherTool.encrypt()
+//        cipherTool.encrypt()
 //    });
 
     // Morbit Solving Helper

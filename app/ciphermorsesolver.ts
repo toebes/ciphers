@@ -169,6 +169,17 @@ class CipherMorseSolver extends CipherSolver {
         }
     }
 
+    /**
+     * Set up all the HTML DOM elements so that they invoke the right functions
+     */
+    attachHandlers(): void {
+        let tool = this
+        $(".cb").on('change', function () {
+            let toupdate = $(this).attr('data-char');
+            tool.updateCheck(toupdate, $(this).prop("checked"));
+        });
+        super.attachHandlers()
+    }
     reset(): void {
         super.reset();
         this.morseLocked = {};

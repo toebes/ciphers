@@ -176,6 +176,17 @@ var CipherMorseSolver = /** @class */ (function (_super) {
             this.load();
         }
     };
+    /**
+     * Set up all the HTML DOM elements so that they invoke the right functions
+     */
+    CipherMorseSolver.prototype.attachHandlers = function () {
+        var tool = this;
+        $(".cb").on('change', function () {
+            var toupdate = $(this).attr('data-char');
+            tool.updateCheck(toupdate, $(this).prop("checked"));
+        });
+        _super.prototype.attachHandlers.call(this);
+    };
     CipherMorseSolver.prototype.reset = function () {
         _super.prototype.reset.call(this);
         this.morseLocked = {};

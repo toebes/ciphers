@@ -1,3 +1,4 @@
+/// <reference types="ciphertypes" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -89,7 +90,6 @@ var CipherMorbitSolver = /** @class */ (function (_super) {
 }(CipherMorseSolver));
 // Morbit: {
 //     normalizeHTML: 'normalizeMorseHTML',
-//     createFreqEditTable: 'createMorseFreqEditTable',
 //     load: 'loadMorseSolver',
 //     reset: 'resetSolver',
 //     build: 'buildMorseSolver',

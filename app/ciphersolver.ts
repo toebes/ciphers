@@ -1,3 +1,5 @@
+/// <reference types="ciphertypes" />
+
 class CipherSolver extends CipherHandler {
     /**
      * Initializes the encoder/decoder. 
@@ -12,12 +14,6 @@ class CipherSolver extends CipherHandler {
      */
     normalizeHTML(str: string): string {
         return str;
-    }
-    /**
-     * Creates the frequency table
-     */
-    createFreqEditTable(): JQuery<HTMLElement> {
-        return null;
     }
     /**
      * Loads new data into a solver, preserving all solving matches made
@@ -201,7 +197,7 @@ class CipherSolver extends CipherHandler {
                             mapfix += key + keymap[key];
                         }
                     }
-                    res += '<tr><td>' + i + '</td><td><a class="dapply" href="#" onclick="CipherTool.setMultiChars(\'' + mapfix + '\');">' + checkstr + '</a></td>' + maptable + '</tr>';
+                    res += '<tr><td>' + i + '</td><td><a class="dapply" href="#" onclick="cipherTool.setMultiChars(\'' + mapfix + '\');">' + checkstr + '</a></td>' + maptable + '</tr>';
                 }
             }
         }
@@ -302,7 +298,7 @@ class CipherSolver extends CipherHandler {
             var matched = false;
             var added = 0;
             var i, len;
-            let used:BoolMap = {};
+            let used:BoolMap = {} as BoolMap;
             var charset = this.getCharset().toUpperCase();
             for (i = 0, len = charset.length; i < len; i++) {
                 used[charset.substr(i, 1)] = false;
@@ -360,7 +356,6 @@ class CipherSolver extends CipherHandler {
 // Standard: {
 //     init: 'init',
 //     normalizeHTML: 'normalizeHTML',
-//     createFreqEditTable: 'createNormalFreqEditTable',
 //     load: 'loadSolver',
 //     reset: 'resetSolver',
 //     build: 'buildSolver',

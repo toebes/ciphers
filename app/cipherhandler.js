@@ -1,7 +1,9 @@
+/// <reference types="ciphertypes" />
 var CipherHandler = /** @class */ (function () {
     function CipherHandler() {
         /**
          * User visible mapping of names of the various languages supported
+         * @type {StringMap} Mapping of language to visible name
          */
         this.langmap = {
             'en': 'English',
@@ -18,8 +20,9 @@ var CipherHandler = /** @class */ (function () {
             'la': 'Latin',
         };
         /**
-         * @name CipherTool#langmap
-         * @type {Object.<string, string>}
+         * This maps which characters are legal in a cipher for a given language
+         * @name langcharset
+         * @type {StringMap} Mapping of legal characters
         */
         this.langcharset = {
             'en': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -35,6 +38,10 @@ var CipherHandler = /** @class */ (function () {
             'ia': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
             'la': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         };
+        /**
+         * Character replacement for purposes of encoding
+         * @type {}
+         */
         this.langreplace = {
             'en': {},
             'nl': {},
@@ -64,6 +71,74 @@ var CipherHandler = /** @class */ (function () {
             'la': {}
         };
         /**
+         * This maps which characters are to be used when encoding an ACA cipher
+         * @name langcharset
+         * @type {StringMap} Mapping of legal characters
+        */
+        this.acalangcharset = {
+            'en': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'nl': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'de': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'es': 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ',
+            'fr': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'it': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'no': 'ABCDEFGHIJKLMNOPRSTUVYZÆØÅ',
+            'pt': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'sv': 'AÅÄBCDEFGHIJKLMNOÖPRSTUVYZ',
+            'ia': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'la': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        };
+        /**
+         * This maps which characters are to be encoded to for an ACA cipher
+         * @type {StringMap} Mapping of legal characters
+        */
+        this.encodingcharset = {
+            'en': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'nl': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'de': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'es': 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ',
+            'fr': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'it': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'no': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'pt': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'sv': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'ia': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            'la': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        };
+        /**
+             * Character replacement for purposes of encoding
+             * @type {}
+             */
+        this.acalangreplace = {
+            'en': {},
+            'nl': {},
+            'de': { 'Ä': 'A', 'Ö': 'O', 'ß': 'SS', 'Ü': 'U' },
+            'eo': { 'Ĉ': 'C', 'Ĝ': 'G', 'Ĥ': 'H', 'Ĵ': 'J', 'Ŝ': 'S', 'Ŭ': 'U' },
+            'es': { 'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U', 'Ü': 'U', 'Ý': 'Y' },
+            'fr': {
+                'Ç': 'C',
+                'Â': 'A', 'À': 'A',
+                'É': 'E', 'Ê': 'E', 'È': 'E', 'Ë': 'E',
+                'Î': 'I', 'Ï': 'I',
+                'Ô': 'O',
+                'Û': 'U', 'Ù': 'U', 'Ü': 'U',
+            },
+            'it': { 'É': 'E', 'È': 'E', 'Ì': 'I', 'Ò': 'O', 'Ù': 'U', },
+            'no': {},
+            'pt': {
+                'Á': 'A', 'Â': 'A', 'Ã': 'A', 'À': 'A',
+                'Ç': 'C',
+                'È': 'E', 'Ê': 'E',
+                'Í': 'I',
+                'Ó': 'O', 'Ô': 'O', 'Õ': 'O',
+                'Ú': 'U',
+            },
+            'sv': {},
+            'ia': {},
+            'la': {}
+        };
+        /**
+         * Language character frequency
          * @type {Object.Object.<string,number>}
          * @type {Object.<string,number>}
          */
@@ -83,7 +158,7 @@ var CipherHandler = /** @class */ (function () {
                 'M': 0.0239742, 'V': 0.0214385, 'B': 0.0189027, 'W': 0.0189027,
                 'K': 0.0186722, 'U': 0.0165975, 'P': 0.0156754, 'C': 0.0147533,
                 'IJ': 0.0124481, 'Z': 0.0119871, 'J': 0.0080682, 'F': 0.0053020,
-                'É': 0.0011526, 'X': 0.0002305, 'Q': 0
+                'É': 0.0011526, 'X': 0.0002305
             },
             'de': {
                 'E': 0.1499580, 'N': 0.1026200, 'I': 0.0826712, 'S': 0.0814877,
@@ -92,8 +167,7 @@ var CipherHandler = /** @class */ (function () {
                 'B': 0.0255283, 'O': 0.0255283, 'F': 0.0191040, 'V': 0.0163990,
                 'K': 0.0162299, 'M': 0.0162299, 'W': 0.0155537, 'Z': 0.0081150,
                 'Ü': 0.0079459, 'P': 0.0064243, 'Ä': 0.0050719, 'Ö': 0.0030431,
-                'J': 0.0027050, 'ß': 0.0006762, 'Q': 0.0001691, 'C': 0.0000000,
-                'X': 0.0000000, 'Y': 0.0000000
+                'J': 0.0027050, 'ß': 0.0006762, 'Q': 0.0001691
             },
             'eo': {
                 'A': 0.1228940, 'E': 0.0982128, 'O': 0.0917447, 'N': 0.0837447,
@@ -102,7 +176,7 @@ var CipherHandler = /** @class */ (function () {
                 'D': 0.0294468, 'U': 0.0292766, 'J': 0.0248511, 'V': 0.0228085,
                 'G': 0.0153191, 'B': 0.0093617, 'C': 0.0088511, 'F': 0.0069787,
                 'Ü': 0.0062979, 'Z': 0.0061277, 'H': 0.0059575, 'Ĝ': 0.0054468,
-                'Ĉ': 0.0040851, 'Ŝ': 0.0011915, 'Ĵ': 0.0010213, 'Ĥ': 0.0000000
+                'Ĉ': 0.0040851, 'Ŝ': 0.0011915, 'Ĵ': 0.0010213
             },
             'es': {
                 'E': 0.1408, 'A': 0.1216, 'O': 0.092, 'S': 0.072, 'N': 0.0683,
@@ -128,8 +202,7 @@ var CipherHandler = /** @class */ (function () {
                 'S': 0.0527704, 'C': 0.0481023, 'G': 0.0385630, 'U': 0.0355186,
                 'D': 0.0330830, 'P': 0.0300386, 'M': 0.0271971, 'B': 0.0142074,
                 'H': 0.0125837, 'Z': 0.0125837, 'È': 0.0103511, 'V': 0.0101482,
-                'F': 0.0085245, 'Q': 0.0054800, 'J': 0.0000000, 'K': 0.0000000,
-                'W': 0.0000000, 'X': 0.0000000, 'Y': 0.0000000
+                'F': 0.0085245, 'Q': 0.0054800
             },
             'no': {
                 'E': 0.1646300, 'N': 0.0888383, 'A': 0.0679230, 'I': 0.0668876,
@@ -137,7 +210,8 @@ var CipherHandler = /** @class */ (function () {
                 'L': 0.0499068, 'O': 0.0399669, 'G': 0.0397598, 'V': 0.0395527,
                 'K': 0.0339615, 'M': 0.0304411, 'H': 0.0298198, 'F': 0.0217436,
                 'U': 0.0155312, 'P': 0.0130462, 'B': 0.0113895, 'J': 0.0097329,
-                'Ø': 0.0082833, 'Å': 0.0070408, 'Y': 0.0057983, 'Æ': 0.0000000
+                'Ø': 0.0082833, 'Å': 0.0070408, 'Y': 0.0057983, 'Æ': 0.0000000,
+                'C': 0.0000000, 'Z': 0.0000000
             },
             'pt': {
                 'E': 0.1484380, 'A': 0.1210940, 'O': 0.1027110, 'I': 0.0714614,
@@ -201,7 +275,7 @@ var CipherHandler = /** @class */ (function () {
         this.encodedString = "";
         this.Frequent = {};
         this.freq = [];
-        this.chunkIt = false;
+        this.groupingSize = 0;
         this.doEncoding = true;
         this.affineCheck = {
             'p': -1,
@@ -240,7 +314,7 @@ var CipherHandler = /** @class */ (function () {
         var replrow = $('<tr/>');
         var altreprow = $('<tr/>');
         var i, len;
-        var charset = this.getCharset();
+        var charset = this.getSourceCharset();
         headrow.append($('<th/>').addClass("topleft"));
         freqrow.append($('<th/>').text("Frequency"));
         replrow.append($('<th/>').text("Replacement"));
@@ -362,10 +436,10 @@ var CipherHandler = /** @class */ (function () {
         return str;
     };
     /**
- * Eliminate all characters which are not in the charset
- * @param {string} str String to clean up
- * @returns {string} Result string with only characters in the legal characterset
- */
+     * Eliminate all characters which are not in the charset
+     * @param {string} str String to clean up
+     * @returns {string} Result string with only characters in the legal characterset
+     */
     CipherHandler.prototype.minimizeString = function (str) {
         var res = '';
         for (var i = 0, len = str.length; i < len; i++) {
@@ -407,7 +481,7 @@ var CipherHandler = /** @class */ (function () {
     };
     /** @description Sets the character set used by the Decoder.
      * @param {string} charset the set of characters to be used.
-    */
+     */
     CipherHandler.prototype.setCharset = function (charset) {
         this.charset = charset;
     };
@@ -417,20 +491,28 @@ var CipherHandler = /** @class */ (function () {
     CipherHandler.prototype.getCharset = function () {
         return this.charset;
     };
+    /**
+     * Gets the character set to be use for encoding.
+     * @param {string} charset the set of characters to be used.
+     */
     CipherHandler.prototype.getSourceCharset = function () {
         return this.sourcecharset;
     };
-    CipherHandler.prototype.updateCheck = function (c, lock) {
-        this.UpdateFreqEditTable();
-        this.load();
+    /**
+     * Sets the character set to be use for encoding.
+     * @param {string} charset the set of characters to be used.
+     */
+    CipherHandler.prototype.setSourceCharset = function (charset) {
+        this.sourcecharset = charset;
     };
+    /**
+     * Update the frequency table on the page.  This is done after loaading
+     * a new cipher to encode or decode
+     */
     CipherHandler.prototype.UpdateFreqEditTable = function () {
         var tool = this;
         $(".freq").each(function (i) {
             $(this).empty().append(tool.createFreqEditTable());
-        });
-        $(".alphabet").each(function (i) {
-            $(this).html(tool.createAlphabetType());
         });
         this.attachHandlers();
     };
@@ -460,47 +542,11 @@ var CipherHandler = /** @class */ (function () {
         for (i = 0; i < len; i++) {
             var c = charset.substr(i, 1);
             var expected = this.langfreq[this.curlang][c];
-            chiSquare += Math.pow(counts[i] - total * expected, 2) / (total * expected);
+            if (expected !== undefined && expected !== 0) {
+                chiSquare += Math.pow(counts[i] - total * expected, 2) / (total * expected);
+            }
         }
         return chiSquare;
-    };
-    CipherHandler.prototype.createAlphabetType = function () {
-        var res = $('<div>');
-        var label = $('<label>', { for: "radios" }).text("Alphabet Type");
-        res.append(label);
-        var rbox = $('<div>', { id: "radios", class: "ibox" });
-        rbox.append($('<input>', { id: "encrand", type: "radio", name: "enctype", value: "random", checked: "checked" }));
-        rbox.append($('<label>', { for: "encrand", class: "rlab" }).text("Random"));
-        rbox.append($('<input>', { id: "enck1", type: "radio", name: "enctype", value: "k1" }));
-        rbox.append($('<label>', { for: "enck1", class: "rlab" }).text("K1"));
-        rbox.append($('<input>', { id: "enck2", type: "radio", name: "enctype", value: "k2" }));
-        rbox.append($('<label>', { for: "enck2", class: "rlab" }).text("K2"));
-        rbox.append($('<input>', { id: "enck3", type: "radio", name: "enctype", value: "k3" }));
-        rbox.append($('<label>', { for: "enck3", class: "rlab" }).text("K3"));
-        rbox.append($('<input>', { id: "enck3", type: "radio", name: "enctype", value: "k4" }));
-        rbox.append($('<label>', { for: "enck3", class: "rlab" }).text("K4"));
-        res.append(rbox);
-        var kval = $('<div>', { class: "kval" });
-        kval.append($('<label>', { for: "keyword" }).text("Keyword"));
-        kval.append($('<input>', { type: "text", id: "keyword" }));
-        var odiv = $('<div>');
-        odiv.append($('<label>', { for: "offset" }).text("Offset"));
-        odiv.append($('<input>', { id: "offset", class: "inp spin", title: "offset", type: "text", value: "1" }));
-        kval.append(odiv);
-        res.append(kval);
-        var k4val = $('<div>', { class: "k4val" });
-        k4val.append($('<label>', { for: "keyword2" }).text("Keyword 2"));
-        k4val.append($('<input>', { type: "text", id: "keyword2" }));
-        var odiv2 = $('<div>');
-        odiv2.append($('<label>', { for: "offset2" }).text("Offset 2"));
-        odiv2.append($('<input>', { id: "offset2", class: "inp spin", title: "offset", type: "text", value: "1" }));
-        k4val.append(odiv2);
-        res.append(k4val);
-        var k3val = $('<div>', { class: "k3val" });
-        k3val.append($('<label>', { for: "shift" }).text("Shift"));
-        k3val.append($('<input>', { id: "shift", class: "inp spin", title: "Shift", type: "text", value: "1" }));
-        res.append(k3val);
-        return res.html();
     };
     /*
      * Sorter to compare two frequency objects
@@ -676,7 +722,7 @@ var CipherHandler = /** @class */ (function () {
         this.updateMatchDropdowns('');
     };
     /**
-     *
+     * Set up all the HTML DOM elements so that they invoke the right functions
      */
     CipherHandler.prototype.attachHandlers = function () {
         var tool = this;
@@ -746,10 +792,6 @@ var CipherHandler = /** @class */ (function () {
             }
             $(this).addClass("focus");
         });
-        $(".cb").on('change', function () {
-            var toupdate = $(this).attr('data-char');
-            tool.updateCheck(toupdate, $(this).prop("checked"));
-        });
         $(".msli").on('change', function () {
             var toupdate = $(this).attr('data-char');
             tool.updateSel(toupdate, this.value);
@@ -799,7 +841,7 @@ var CipherHandler = /** @class */ (function () {
     /**
      * @param {string} str String to check
      * @param {Array.<string>} repl Replacement characters which are pre-known
-     * @param {Array.<number>} used Array of flags whether a character is already known to be used
+     * @param {BoolMap} used Array of flags whether a character is already known to be used
      * @returns {bool} True/false if the string is a valid replacement
      */
     CipherHandler.prototype.isValidReplacement = function (str, repl, used) {
@@ -915,7 +957,7 @@ var CipherHandler = /** @class */ (function () {
     CipherHandler.prototype.dumpLang = function (lang) {
         var res = '';
         var extra = '';
-        res = 'CipherTool.Frequent[' + this.quote(lang) + ']={';
+        res = 'cipherTool.Frequent[' + this.quote(lang) + ']={';
         for (var pat in this.Frequent[lang]) {
             if (this.Frequent[lang].hasOwnProperty(pat) && pat !== '') {
                 res += extra + '\'' + pat + '\':[';
@@ -938,9 +980,11 @@ var CipherHandler = /** @class */ (function () {
         res += '};';
         return res;
     };
+    /**
+     * Fills in the language choices on an HTML Select
+     * @param lselect HTML Element to populate
+     */
     CipherHandler.prototype.setLangDropdown = function (lselect) {
-        console.log('Setting LangDropdown');
-        console.log(lselect);
         lselect.empty().append($("<option />", { value: '' }).text('--Select a language--'));
         for (var lang in this.langmap) {
             if (this.langmap.hasOwnProperty(lang)) {
@@ -948,27 +992,31 @@ var CipherHandler = /** @class */ (function () {
             }
         }
         var tool = this;
-        console.log(lselect);
         lselect.change(function () {
-            console.log('Loading ' + $(this).val());
             tool.loadLanguage($(this).val());
-            console.log('Done');
         });
     };
+    /**
+     * Loads a language in response to a dropdown event
+     * @param lang Language to load
+     */
     CipherHandler.prototype.loadLanguage = function (lang) {
-        console.log('In LoadLanguage');
         var tool = this;
+        tool.curlang = lang;
+        tool.setCharset(tool.langcharset[lang]);
         $(".langstatus").text("Attempting to load " + tool.langmap[lang] + '...');
         $.getScript("Languages/" + lang + ".js", function (data, textStatus, jqxhr) {
             $(".langstatus").text('');
-            tool.curlang = lang;
-            tool.setCharset(tool.langcharset[lang]);
             tool.updateMatchDropdowns('');
         }).fail(function (jqxhr, settings, exception) {
             console.log("Complied language file not found for " + lang + ".js");
             tool.loadRawLanguage(lang);
         });
     };
+    /**
+     * Loads a raw language from the server
+     * @param lang Language to load (2 character abbreviation)
+     */
     CipherHandler.prototype.loadRawLanguage = function (lang) {
         var tool = this;
         var jqxhr = $.get("Languages/" + lang + ".txt", function () {
@@ -1042,7 +1090,7 @@ var CipherHandler = /** @class */ (function () {
      * Retrieve all of the replacement characters that have been selected so far
      */
     CipherHandler.prototype.cacheReplacements = function () {
-        var charset = this.getCharset().toUpperCase();
+        var charset = this.getSourceCharset().toUpperCase();
         for (var i = 0, len = charset.length; i < len; i++) {
             var c = charset.substr(i, 1);
             var repl = $('#m' + c).val();

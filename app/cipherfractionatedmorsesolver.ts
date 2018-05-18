@@ -1,3 +1,5 @@
+/// <reference types="ciphertypes" />
+
 class CipherFractionatedMorseSolver extends CipherMorseSolver {
     
     /** @type {Object.<string, string>} 
@@ -112,9 +114,7 @@ readonly fractionatedMorseReplaces: Array<string> = [
 }
 
 // FractionatedMorse: {
-//     init: 'initFractionatedMorseSolver',
 //     normalizeHTML: 'normalizeMorseHTML',
-//     createFreqEditTable: 'createMorseFreqEditTable',
 //     load: 'loadMorseSolver',
 //     reset: 'resetSolver',
 //     build: 'buildMorseSolver',

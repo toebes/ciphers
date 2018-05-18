@@ -4,7 +4,6 @@ class CipherXenocryptSolver extends CipherSolver {
 // Xenocrypt: {
 //     init: 'init',
 //     normalizeHTML: 'normalizeHTML',
-//     createFreqEditTable: 'createNormalFreqEditTable',
 //     load: 'loadSolver',
 //     reset: 'resetSolver',
 //     build: 'buildSolver',

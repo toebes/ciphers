@@ -25,6 +25,7 @@
  * Main CipherTool class object
  * @type {Object.<string, function>}
  */
+// import * as $ from "jquery"
 var cipherTool = new CipherHandler();
 $(function () {
     cipherTool = cipherTool.select(undefined, undefined);
@@ -44,7 +45,7 @@ $(function () {
         cipherTool.reset();
     });
     //    $('#encrypt').button().click(function () {
-    //        CipherTool.encrypt()
+    //        cipherTool.encrypt()
     //    });
     // Morbit Solving Helper
     $(".sfind").change(function () {

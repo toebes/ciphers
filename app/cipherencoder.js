@@ -8,6 +8,10 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+/**
+ * CipherEncoder - This class handles all of the actions associated with encoding
+ * a cipher.
+ */
 var CipherEncoder = /** @class */ (function (_super) {
     __extends(CipherEncoder, _super);
     function CipherEncoder() {
@@ -19,9 +23,10 @@ var CipherEncoder = /** @class */ (function (_super) {
      * @param {string} lang Language to select (EN is the default)
      */
     CipherEncoder.prototype.init = function (lang) {
-        this.ShowRevReplace = false;
+        //this.ShowRevReplace = false;
         this.curlang = lang;
-        this.setCharset(this.langcharset[lang]);
+        this.setCharset(this.acalangcharset[lang]);
+        this.setSourceCharset(this.encodingcharset[lang]);
     };
     /**
      * Enable / Disable the HTML elements based on the alphabet selection
@@ -47,10 +52,24 @@ var CipherEncoder = /** @class */ (function (_super) {
             $(".k4val").hide();
         }
     };
+    /**
+     * Loads a language in response to a dropdown event
+     * @param lang Language to load
+     */
+    CipherEncoder.prototype.loadLanguage = function (lang) {
+        this.curlang = lang;
+        this.setCharset(this.acalangcharset[lang]);
+        this.setSourceCharset(this.encodingcharset[lang]);
+        // Call the super if we plan to match the text against a dictionary.
+        // That is generally used for a solver, but we might want to do it in the
+        // case that we want to analyze the complexity of the phrase
+        // super.loadLanguage(lang) 
+    };
+    /**
+     * Set up all the HTML DOM elements so that they invoke the right functions
+     */
     CipherEncoder.prototype.attachHandlers = function () {
         var tool = this;
-        //Argument of type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to parameter of type '"editor.unlink" | "unlink"'.
-        // Type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to type '"unlink"'.
         $('input[type=radio][name=enctype]').change(function () {
             tool.setkvalinputs();
         });
@@ -58,20 +77,18 @@ var CipherEncoder = /** @class */ (function (_super) {
         _super.prototype.attachHandlers.call(this);
     };
     /**
-     * Set flag to 'chunk' input data string befre encoding.  Used in Patristocrat,
+     * Set chunking size for input data string befre encoding.
+     * Primarily Used in Patristocrat, but could be used for other types to indicate the period
      */
     CipherEncoder.prototype.setCipherType = function (cipherType) {
         if (cipherType == 'patristocrat') {
-            console.log(cipherType + ' -- set chunking.');
-            this.chunkIt = true;
+            this.groupingSize = 5;
         }
         this.attachHandlers();
     };
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     *
-     * Aristocrat/Patristocrat Encoder
-     *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    /**
+     * Generate the maping from the source to the destination alphabet
+     */
     CipherEncoder.prototype.genMap = function () {
         var val = $('input[name=enctype]:checked').val();
         var keyword = $('#keyword').val();
@@ -105,7 +122,7 @@ var CipherEncoder = /** @class */ (function (_super) {
     CipherEncoder.prototype.setReplacement = function (cset, repl) {
         var i, len, errors;
         errors = '';
-        var charset = this.getCharset();
+        console.log('Set Replacement cset=' + cset + ' repl=' + repl);
         // Figure out what letters map to the destination letters.  Note that
         // the input chracterset alphabet may not be in the same order as the
         // actual alphabet.
@@ -125,26 +142,70 @@ var CipherEncoder = /** @class */ (function (_super) {
             $(".err").text('Bad keyword/offset combo for letters: ' + errors);
         }
     };
+    /**
+     * Generate a K1 alphabet where the keyword is in the source alphabet
+     * @param keyword Keyword/keyphrase to map
+     * @param offset Offset from the start of the alphabet to place the keyword
+     */
     CipherEncoder.prototype.genAlphabetK1 = function (keyword, offset) {
-        var repl = this.genKstring(keyword, offset);
-        this.setReplacement(this.getCharset(), repl);
+        var repl = this.genKstring(keyword, offset, this.getCharset());
+        this.setReplacement(this.getSourceCharset(), repl);
     };
+    /**
+     * Generate a K2 alphabet where the keyword is in the destination alphabet
+     * @param keyword Keyword/Keyphrase to map
+     * @param offset Offset from the start of the alphabet to place the keyword
+     */
     CipherEncoder.prototype.genAlphabetK2 = function (keyword, offset) {
-        var repl = this.genKstring(keyword, offset);
+        var repl = this.genKstring(keyword, offset, this.getSourceCharset());
         this.setReplacement(repl, this.getCharset());
     };
+    /**
+     * Generate a K3 alphabet where both alphabets are the same using a Keyword
+     * like a K1 or K2 alphabet, but both are the same alphabet order.
+     * It is important to note that for a K3 alphabet you must have the same
+     * alphabet for source and destination.  This means languages like Swedish
+     * and Norwegian can not use a K3
+     * @param keyword Keyword/Keyphrase to map
+     * @param offset Offset from the start of the alphabet to place the keyword
+     * @param shift Shift of the destination alphabet from the source alphabet
+     */
     CipherEncoder.prototype.genAlphabetK3 = function (keyword, offset, shift) {
-        var repl = this.genKstring(keyword, offset);
+        if (this.getCharset() != this.getSourceCharset()) {
+            var error = 'Source and encoding character sets must be the same';
+            console.log(error);
+            $(".err").text(error);
+            return;
+        }
+        var repl = this.genKstring(keyword, offset, this.getCharset());
         var cset = repl.substr(shift) + repl.substr(0, shift);
         this.setReplacement(cset, repl);
     };
+    /**
+     * Generate a K4 alphabet where the keywords are different in each alphabet
+     * @param keyword Keyword for the source alphabet
+     * @param offset Offset for keyword in the source alphabet
+     * @param keyword2 Keyword for the destination alphabet
+     * @param offset2 Offset for the keyword in the destination alphabet
+     */
     CipherEncoder.prototype.genAlphabetK4 = function (keyword, offset, keyword2, offset2) {
-        var cset = this.genKstring(keyword, offset);
-        var repl = this.genKstring(keyword2, offset2);
+        if (this.getCharset().length != this.getSourceCharset().length) {
+            var error = 'Source and encoding character sets must be the same length';
+            console.log(error);
+            $(".err").text(error);
+            return;
+        }
+        var cset = this.genKstring(keyword, offset, this.getCharset());
+        var repl = this.genKstring(keyword2, offset2, this.getSourceCharset());
         this.setReplacement(cset, repl);
     };
-    CipherEncoder.prototype.genKstring = function (keyword, offset) {
-        var unasigned = this.getCharset();
+    /**
+     * Map a keyword into an alphabet
+     * @param keyword Keyword to map into the alphabet
+     * @param offset Offset from the start of the alphabet to place the keyword
+     */
+    CipherEncoder.prototype.genKstring = function (keyword, offset, alphabet) {
+        var unasigned = alphabet;
         var repl = "";
         var i, len;
         // Go through each character in the source string one at a time
@@ -165,15 +226,21 @@ var CipherEncoder = /** @class */ (function (_super) {
         repl = unasigned.substr(unasigned.length - offset) + repl + unasigned.substr(0, unasigned.length - offset);
         return repl;
     };
-    // Gets a random replacement character from the remaining set of unassigned
-    // characters
+    /**
+     * Gets a random replacement character from the remaining set of unassigned
+     * characters
+     * @returns {string} Single character replacement
+     */
     CipherEncoder.prototype.getRepl = function () {
         var sel = Math.floor(Math.random() * this.unasigned.length);
         var res = this.unasigned.substr(sel, 1);
         this.unasigned = this.unasigned.substr(0, sel) + this.unasigned.substr(sel + 1);
         return res;
     };
-    // Generates a random replacement set of characters
+    /**
+     *  Generates a random replacement set of characters
+     * @returns {string} Replacement set of characters
+     */
     CipherEncoder.prototype.genAlphabetRandom = function () {
         var charset = this.getCharset();
         this.unasigned = charset;
@@ -204,7 +271,7 @@ var CipherEncoder = /** @class */ (function (_super) {
         else {
             replacement += this.unasigned;
         }
-        this.setReplacement(this.getCharset(), replacement);
+        this.setReplacement(this.getSourceCharset(), replacement);
     };
     /**
      * Using the currently selected replacement set, encodes a string
@@ -216,6 +283,7 @@ var CipherEncoder = /** @class */ (function (_super) {
     CipherEncoder.prototype.build = function (str) {
         var res = $('<div>');
         var charset = this.getCharset();
+        var sourcecharset = this.getSourceCharset();
         var i, len;
         var revRepl = [];
         var encodeline = "";
@@ -230,8 +298,8 @@ var CipherEncoder = /** @class */ (function (_super) {
         }
         // Zero out the frequency table 
         this.freq = [];
-        for (i = 0, len = charset.length; i < len; i++) {
-            this.freq[charset.substr(i, 1).toUpperCase()] = 0;
+        for (i = 0, len = sourcecharset.length; i < len; i++) {
+            this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0;
         }
         // Now go through the string to encode and compute the character
         // to map to as well as update the frequency of the match
@@ -279,6 +347,60 @@ var CipherEncoder = /** @class */ (function (_super) {
         return res;
     };
     /**
+     * Generates the HTML code for allowing an encoder to select the alphabet type
+     * along with specifying the parameters for that alphabet
+     * @returns HTML Elements for selecting the alphabet
+     */
+    CipherEncoder.prototype.createAlphabetType = function () {
+        var res = $('<div>');
+        var label = $('<label>', { for: "radios" }).text("Alphabet Type");
+        res.append(label);
+        var rbox = $('<div>', { id: "radios", class: "ibox" });
+        rbox.append($('<input>', { id: "encrand", type: "radio", name: "enctype", value: "random", checked: "checked" }));
+        rbox.append($('<label>', { for: "encrand", class: "rlab" }).text("Random"));
+        rbox.append($('<input>', { id: "enck1", type: "radio", name: "enctype", value: "k1" }));
+        rbox.append($('<label>', { for: "enck1", class: "rlab" }).text("K1"));
+        rbox.append($('<input>', { id: "enck2", type: "radio", name: "enctype", value: "k2" }));
+        rbox.append($('<label>', { for: "enck2", class: "rlab" }).text("K2"));
+        rbox.append($('<input>', { id: "enck3", type: "radio", name: "enctype", value: "k3" }));
+        rbox.append($('<label>', { for: "enck3", class: "rlab" }).text("K3"));
+        rbox.append($('<input>', { id: "enck3", type: "radio", name: "enctype", value: "k4" }));
+        rbox.append($('<label>', { for: "enck3", class: "rlab" }).text("K4"));
+        res.append(rbox);
+        var kval = $('<div>', { class: "kval" });
+        kval.append($('<label>', { for: "keyword" }).text("Keyword"));
+        kval.append($('<input>', { type: "text", id: "keyword" }));
+        var odiv = $('<div>');
+        odiv.append($('<label>', { for: "offset" }).text("Offset"));
+        odiv.append($('<input>', { id: "offset", class: "inp spin", title: "offset", type: "text", value: "1" }));
+        kval.append(odiv);
+        res.append(kval);
+        var k4val = $('<div>', { class: "k4val" });
+        k4val.append($('<label>', { for: "keyword2" }).text("Keyword 2"));
+        k4val.append($('<input>', { type: "text", id: "keyword2" }));
+        var odiv2 = $('<div>');
+        odiv2.append($('<label>', { for: "offset2" }).text("Offset 2"));
+        odiv2.append($('<input>', { id: "offset2", class: "inp spin", title: "offset", type: "text", value: "1" }));
+        k4val.append(odiv2);
+        res.append(k4val);
+        var k3val = $('<div>', { class: "k3val" });
+        k3val.append($('<label>', { for: "shift" }).text("Shift"));
+        k3val.append($('<input>', { id: "shift", class: "inp spin", title: "Shift", type: "text", value: "1" }));
+        res.append(k3val);
+        return res;
+    };
+    /**
+     * Update the frequency table on the page.  This is done after loaading
+     * a new cipher to encode or decode
+     */
+    CipherEncoder.prototype.UpdateFreqEditTable = function () {
+        var tool = this;
+        $(".alphabet").each(function (i) {
+            $(this).empty().append(tool.createAlphabetType());
+        });
+        _super.prototype.UpdateFreqEditTable.call(this);
+    };
+    /**
      * Loads up the values for the encoder
      */
     CipherEncoder.prototype.load = function () {
@@ -288,8 +410,8 @@ var CipherEncoder = /** @class */ (function (_super) {
         * If it is characteristic of the cipher type (e.g. patristocrat),
         * rebuild the string to be encoded in to five character sized chunks.
         */
-        if (this.chunkIt) {
-            encoded = this.chunk(encoded, 5);
+        if (this.groupingSize) {
+            encoded = this.chunk(encoded, this.groupingSize);
         }
         $(".err").text('');
         this.genMap();
@@ -351,7 +473,6 @@ var CipherEncoder = /** @class */ (function (_super) {
 // Encoder: {
 //     init: 'initEncoder',
 //     normalizeHTML: 'normalizeHTML',
-//     createFreqEditTable: 'createNormalFreqEditTable',
 //     load: 'loadEncoder',
 //     reset: 'resetSolver',
 //     build: 'buildEncoder',

@@ -1,7 +1,9 @@
+/// <reference types="ciphertypes" />
+
 class CipherMorbitSolver extends CipherMorseSolver {
     /** @type {Object.<string, string>} 
 */
-    morbitMap: { [key: string]: string } = {
+    morbitMap: StringMap = {
         '1': 'OO',
         '2': 'O-',
         '3': 'OX',
@@ -77,7 +79,6 @@ class CipherMorbitSolver extends CipherMorseSolver {
 
 // Morbit: {
 //     normalizeHTML: 'normalizeMorseHTML',
-//     createFreqEditTable: 'createMorseFreqEditTable',
 //     load: 'loadMorseSolver',
 //     reset: 'resetSolver',
 //     build: 'buildMorseSolver',

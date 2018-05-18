@@ -178,7 +178,6 @@ class CipherVigenereEncoder extends CipherEncoder {
         // Vigenere: {
         //     init: 'initEncoder',
         //     normalizeHTML: 'normalizeHTML',
-        //     createFreqEditTable: 'createNormalFreqEditTable',
         //     load: 'loadVigenere',
         //     reset: 'resetSolver',
         //     build: 'buildVigenere',

@@ -1,3 +1,4 @@
+/// <reference types="ciphertypes" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -26,12 +27,6 @@ var CipherSolver = /** @class */ (function (_super) {
      */
     CipherSolver.prototype.normalizeHTML = function (str) {
         return str;
-    };
-    /**
-     * Creates the frequency table
-     */
-    CipherSolver.prototype.createFreqEditTable = function () {
-        return null;
     };
     /**
      * Loads new data into a solver, preserving all solving matches made
@@ -209,7 +204,7 @@ var CipherSolver = /** @class */ (function (_super) {
                             mapfix += key + keymap[key];
                         }
                     }
-                    res += '<tr><td>' + i + '</td><td><a class="dapply" href="#" onclick="CipherTool.setMultiChars(\'' + mapfix + '\');">' + checkstr + '</a></td>' + maptable + '</tr>';
+                    res += '<tr><td>' + i + '</td><td><a class="dapply" href="#" onclick="cipherTool.setMultiChars(\'' + mapfix + '\');">' + checkstr + '</a></td>' + maptable + '</tr>';
                 }
             }
         }
@@ -363,7 +358,6 @@ var CipherSolver = /** @class */ (function (_super) {
 // Standard: {
 //     init: 'init',
 //     normalizeHTML: 'normalizeHTML',
-//     createFreqEditTable: 'createNormalFreqEditTable',
 //     load: 'loadSolver',
 //     reset: 'resetSolver',
 //     build: 'buildSolver',

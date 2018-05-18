@@ -255,7 +255,6 @@ var CipherAffineEncoder = /** @class */ (function (_super) {
 // Affine: {
 //     init: 'initAffine',
 //     normalizeHTML: 'normalizeHTML',
-//     createFreqEditTable: 'createNormalFreqEditTable',
 //     load: 'loadAffine',
 //     reset: 'resetSolver',
 //     build: 'buildAffine',

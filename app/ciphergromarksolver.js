@@ -1,3 +1,4 @@
+/// <reference types="ciphertypes" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -484,7 +485,7 @@ var CipherGromarkSolver = /** @class */ (function (_super) {
                         mapfix += c + mapc;
                     }
                 }
-                res += '<tr><td>' + i + '</td><td>' + matchlevel + '</td><td class="dapply" onclick="CipherTool.setMultiChars(\'' + mapfix + '\');">' + gromark + '</td>' + maptable + '</tr>';
+                res += '<tr><td>' + i + '</td><td>' + matchlevel + '</td><td class="dapply" onclick="cipherTool.setMultiChars(\'' + mapfix + '\');">' + gromark + '</td>' + maptable + '</tr>';
             }
         }
         if (res === '') {

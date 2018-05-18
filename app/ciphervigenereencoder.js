@@ -180,7 +180,6 @@ var CipherVigenereEncoder = /** @class */ (function (_super) {
 // Vigenere: {
 //     init: 'initEncoder',
 //     normalizeHTML: 'normalizeHTML',
-//     createFreqEditTable: 'createNormalFreqEditTable',
 //     load: 'loadVigenere',
 //     reset: 'resetSolver',
 //     build: 'buildVigenere',

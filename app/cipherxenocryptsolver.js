@@ -18,7 +18,6 @@ var CipherXenocryptSolver = /** @class */ (function (_super) {
 // Xenocrypt: {
 //     init: 'init',
 //     normalizeHTML: 'normalizeHTML',
-//     createFreqEditTable: 'createNormalFreqEditTable',
 //     load: 'loadSolver',
 //     reset: 'resetSolver',
 //     build: 'buildSolver',

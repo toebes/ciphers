@@ -1,3 +1,5 @@
+/// <reference types="ciphertypes" />
+
 class CipherGromarkSolver extends CipherSolver {
     gromarkRepl: StringMap
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -266,7 +268,7 @@ class CipherGromarkSolver extends CipherSolver {
         var keepadding = true;
         var repl = [];
         var matches = [];
-        var used:BoolMap = {};
+        let used:BoolMap = {} as BoolMap;
         var slen = str.length / this.cipherWidth;
         // First we need to find a pattern for the replacement that we can work with
 
@@ -355,7 +357,7 @@ class CipherGromarkSolver extends CipherSolver {
      * Build a set of replacements so that we can quickly check against them
      */
     saveGromarkReplacements(): void {
-        this.gromarkRepl = {};
+        this.gromarkRepl = {} as StringMap;
         let i, n, len, charset;
         // Get the replacement character set and double it so that we can index past the beginning and wrap around to get the set again
         charset = this.getSourceCharset();
@@ -385,7 +387,7 @@ class CipherGromarkSolver extends CipherSolver {
     makeGromarkMap(str: string, gromark: string): StringMap {
         let i, len;
         let charset = this.getSourceCharset();
-        let res:StringMap = {};
+        let res:StringMap = {} as StringMap;
         // Empty out the result so it can be readily used
         for (i = 0, len = charset.length; i < len; i++) {
             res[charset.substr(i, 1)] = '';
@@ -483,7 +485,7 @@ class CipherGromarkSolver extends CipherSolver {
                         mapfix += c + mapc;
                     }
                 }
-                res += '<tr><td>' + i + '</td><td>' + matchlevel + '</td><td class="dapply" onclick="CipherTool.setMultiChars(\'' + mapfix + '\');">' + gromark + '</td>' + maptable + '</tr>';
+                res += '<tr><td>' + i + '</td><td>' + matchlevel + '</td><td class="dapply" onclick="cipherTool.setMultiChars(\'' + mapfix + '\');">' + gromark + '</td>' + maptable + '</tr>';
             }
         }
         if (res === '') {

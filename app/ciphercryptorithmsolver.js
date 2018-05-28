@@ -238,7 +238,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
             buildState["WantDiv"] = "Want / value";
             buildState["WantPlus"] = "Want + value";
             buildState["WantQuotient"] = "Want Quotient";
-            buildState["Root"] = "Root";
+            buildState["WantMultAdds"] = "Want * Additions";
             buildState["Idle"] = "Idle";
         })(buildState || (buildState = {}));
         this.cryptorithmType = CryptorithmType.Automatic;
@@ -265,9 +265,11 @@ var CryptorithmSolver = /** @class */ (function (_super) {
         var lastbase = "";
         var root = "";
         var rootbase = "";
+        var multiplicand = "";
+        var multiplier = "";
+        var multval = "";
         for (var _i = 0, tokens_1 = tokens; _i < tokens_1.length; _i++) {
             var token = tokens_1[_i];
-            console.log('Working on ' + token);
             switch (token) {
                 case '':
                 case ' ':
@@ -341,6 +343,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     }
                     prefix = token;
                     state = buildState.WantMult;
+                    multiplicand = lastval;
                     if (this.cryptorithmType === CryptorithmType.Automatic) {
                         this.cryptorithmType = CryptorithmType.Multiplication;
                     }
@@ -359,7 +362,16 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                         lastbase = lastval + "+";
                     }
                     else if (this.cryptorithmType === CryptorithmType.Multiplication) {
+                        if (lastbase === '') {
+                            multval = "10";
+                            lastbase = lastval;
+                        }
+                        else {
+                            lastbase = lastbase + "+(" + multval + "*" + lastval + ")";
+                            multval = multval + "0";
+                        }
                         indent++;
+                        formula = multiplicand + "*" + multiplier.substr(multiplier.length - indent - 1, 1);
                     }
                     break;
                 case '/':
@@ -401,6 +413,13 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                             }
                             break;
                         case CryptorithmType.Multiplication:
+                            if (indent === 0) {
+                                formula = multiplicand + "*" + multiplier.substr(multiplier.length - 1, 1);
+                                lastbase = '';
+                            }
+                            else {
+                                formula = lastbase + "+(" + multval + "*" + lastval + ")";
+                            }
                             indent = 0;
                             break;
                         case CryptorithmType.Addition:
@@ -474,7 +493,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     }
                     item.indent = indent * numwidth;
                     switch (this.cryptorithmType) {
-                        case CryptorithmType.SquareRoot: {
+                        case CryptorithmType.SquareRoot:
                             if (item.prefix === '^') {
                                 // We need to split the characters into each character
                                 // and put two spaces between
@@ -504,8 +523,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                             }
                             state = buildState.Idle;
                             break;
-                        }
-                        case CryptorithmType.CubeRoot: {
+                        case CryptorithmType.CubeRoot:
                             if (item.prefix === '^') {
                                 // Put three spaces between every character
                                 item.prefix = '';
@@ -533,8 +551,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                             }
                             state = buildState.Idle;
                             break;
-                        }
-                        case CryptorithmType.Division: {
+                        case CryptorithmType.Division:
                             // When dealing with the divisor, we put it to the left of the dividend
                             if (item.prefix === '/') {
                                 item = lineitems.pop();
@@ -558,14 +575,19 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                                 state = buildState.Idle;
                             }
                             break;
-                        }
-                        default: {
+                        case CryptorithmType.Multiplication:
+                            if (state === buildState.WantMult) {
+                                multiplier = content;
+                            }
+                            item.content = content + padding;
+                            state = buildState.WantMultAdds;
+                            break;
+                        default:
                             // No need to do anything, we are happy with the
                             // content and the padding
                             state = buildState.Idle;
                             item.content = content + padding;
                             break;
-                        }
                     }
                     if (item.prefix === '=') {
                         item.prefix = '';

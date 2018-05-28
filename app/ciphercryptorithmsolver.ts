@@ -228,7 +228,7 @@ class CryptorithmSolver extends CipherSolver {
             WantDiv = "Want / value",
             WantPlus = "Want + value",
             WantQuotient = "Want Quotient",
-            Root = "Root",
+            WantMultAdds = "Want * Additions",
             Idle = "Idle"
         }
         interface lineitem {
@@ -263,9 +263,11 @@ class CryptorithmSolver extends CipherSolver {
         let lastbase: string = ""
         let root: string = ""
         let rootbase: string = ""
+        let multiplicand:string = ""
+        let multiplier:string = ""
+        let multval:string = ""
 
         for (let token of tokens) {
-            console.log('Working on ' + token)
             switch (token) {
                 case '':
                 case ' ':
@@ -344,6 +346,7 @@ class CryptorithmSolver extends CipherSolver {
                     }
                     prefix = token
                     state = buildState.WantMult
+                    multiplicand = lastval
                     if (this.cryptorithmType === CryptorithmType.Automatic) {
                         this.cryptorithmType = CryptorithmType.Multiplication
                     }
@@ -362,7 +365,15 @@ class CryptorithmSolver extends CipherSolver {
                         this.cryptorithmType === CryptorithmType.Subtraction) {
                         lastbase = lastval+"+"
                     } else if (this.cryptorithmType === CryptorithmType.Multiplication) {
+                        if (lastbase === '') {
+                            multval = "10"
+                            lastbase =lastval
+                        } else {
+                            lastbase = lastbase + "+("+multval+"*"+lastval+")"
+                            multval = multval + "0"
+                        }
                         indent++
+                        formula = multiplicand + "*" + multiplier.substr(multiplier.length-indent-1,1)
                     }
                     break
 
@@ -406,6 +417,12 @@ class CryptorithmSolver extends CipherSolver {
                             }
                             break
                         case CryptorithmType.Multiplication:
+                            if (indent === 0) {
+                                formula = multiplicand + "*" + multiplier.substr(multiplier.length-1,1)
+                                lastbase = ''
+                            } else {
+                                formula = lastbase + "+("+multval+"*"+lastval+")"
+                            }
                             indent = 0
                             break
                         case CryptorithmType.Addition:
@@ -477,7 +494,7 @@ class CryptorithmSolver extends CipherSolver {
                     }
                     item.indent = indent * numwidth
                     switch (this.cryptorithmType) {
-                        case CryptorithmType.SquareRoot: {
+                        case CryptorithmType.SquareRoot:
                             if (item.prefix === '^') {
                                 // We need to split the characters into each character
                                 // and put two spaces between
@@ -505,8 +522,8 @@ class CryptorithmSolver extends CipherSolver {
                             }
                             state = buildState.Idle
                             break
-                        }
-                        case CryptorithmType.CubeRoot: {
+                        
+                        case CryptorithmType.CubeRoot: 
                             if (item.prefix === '^') {
                                 // Put three spaces between every character
                                 item.prefix = ''
@@ -532,8 +549,8 @@ class CryptorithmSolver extends CipherSolver {
                             }
                             state = buildState.Idle
                             break
-                        }
-                        case CryptorithmType.Division: {
+                        
+                        case CryptorithmType.Division: 
                             // When dealing with the divisor, we put it to the left of the dividend
                             if (item.prefix === '/') {
                                 item = lineitems.pop()
@@ -556,14 +573,21 @@ class CryptorithmSolver extends CipherSolver {
                                 state = buildState.Idle
                             }
                             break
-                        }
-                        default: {
+                        
+                        case CryptorithmType.Multiplication:
+                            if (state === buildState.WantMult) {
+                                multiplier = content
+                            }
+                            item.content = content+padding
+                            state = buildState.WantMultAdds
+                            break
+
+                        default: 
                             // No need to do anything, we are happy with the
                             // content and the padding
                             state = buildState.Idle
                             item.content = content + padding
                             break
-                        }
                     }
                     if (item.prefix === '=') {
                         item.prefix = ''

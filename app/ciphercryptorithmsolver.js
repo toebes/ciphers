@@ -306,23 +306,31 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     if (state !== buildState.Idle) {
                         console.log('Found token:' + token + ' when already processing ' + prefix);
                     }
-                    if (this.cryptorithmType === CryptorithmType.Division) {
-                        var mult = quotient.substr(quotient.length - (indent + 1), 1);
-                        formula = mult + "*" + divisor;
-                        expected = token;
-                        lastbase = lastval;
-                    }
-                    else if (this.cryptorithmType === CryptorithmType.SquareRoot) {
-                        var part = root.substr(0, root.length - indent);
-                        var double = part.substr(0, part.length - 1);
-                        var squared = part.substr(part.length - 1, 1);
-                        if (double !== '') {
-                            formula = "((" + double + "*20)+" + squared + ")*" + squared;
-                        }
-                        else {
-                            formula = squared + "*" + squared;
-                        }
-                        lastbase = lastval;
+                    switch (this.cryptorithmType) {
+                        case CryptorithmType.Automatic:
+                            this.cryptorithmType = CryptorithmType.Subtraction;
+                        case CryptorithmType.Subtraction:
+                        case CryptorithmType.Addition:
+                            lastbase = lastval + "-";
+                            break;
+                        case CryptorithmType.Division:
+                            var mult = quotient.substr(quotient.length - (indent + 1), 1);
+                            formula = mult + "*" + divisor;
+                            expected = token;
+                            lastbase = lastval;
+                            break;
+                        case CryptorithmType.SquareRoot:
+                            var part = root.substr(0, root.length - indent);
+                            var double = part.substr(0, part.length - 1);
+                            var squared = part.substr(part.length - 1, 1);
+                            if (double !== '') {
+                                formula = "((" + double + "*20)+" + squared + ")*" + squared;
+                            }
+                            else {
+                                formula = squared + "*" + squared;
+                            }
+                            lastbase = lastval;
+                            break;
                     }
                     prefix = token;
                     state = buildState.WantMinus;
@@ -346,10 +354,9 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     if (this.cryptorithmType === CryptorithmType.Automatic) {
                         this.cryptorithmType = CryptorithmType.Addition;
                     }
-                    if (this.cryptorithmType === CryptorithmType.Addition) {
-                        if (indent > 0) {
-                            indent--;
-                        }
+                    if (this.cryptorithmType === CryptorithmType.Addition ||
+                        this.cryptorithmType === CryptorithmType.Subtraction) {
+                        lastbase = lastval + "+";
                     }
                     else if (this.cryptorithmType === CryptorithmType.Multiplication) {
                         indent++;
@@ -372,27 +379,34 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     if (state !== buildState.WantQuotient) {
                         state = buildState.WantEqual;
                     }
-                    if (this.cryptorithmType === CryptorithmType.Division && state !== buildState.WantQuotient) {
-                        formula = lastbase + "-" + lastval;
-                        if (indent > 0) {
-                            formula = "10*(" + formula + ")+" + dividend.substr(dividend.length - indent, 1);
-                        }
-                    }
-                    else if (this.cryptorithmType === CryptorithmType.SquareRoot) {
-                        formula = lastbase + '-' + lastval;
-                        if (indent > 0) {
-                            formula = "(" + formula + ")*100+" + rootbase.substr(rootbase.length - (indent * 2), 2);
-                        }
-                    }
-                    if (this.cryptorithmType === CryptorithmType.CubeRoot ||
-                        this.cryptorithmType === CryptorithmType.SquareRoot ||
-                        this.cryptorithmType === CryptorithmType.Division) {
-                        if (indent > 0) {
-                            indent--;
-                        }
-                    }
-                    else if (this.cryptorithmType === CryptorithmType.Multiplication) {
-                        indent = 0;
+                    switch (this.cryptorithmType) {
+                        case CryptorithmType.Division:
+                            if (state !== buildState.WantQuotient) {
+                                formula = lastbase + "-" + lastval;
+                                if (indent > 0) {
+                                    formula = "10*(" + formula + ")+" + dividend.substr(dividend.length - indent, 1);
+                                }
+                            }
+                        case CryptorithmType.SquareRoot:
+                        case CryptorithmType.CubeRoot:
+                            formula = lastbase + '-' + lastval;
+                            if (indent > 0) {
+                                formula = "(" + formula + ")*100+" + rootbase.substr(rootbase.length - (indent * 2), 2);
+                                indent--;
+                            }
+                            break;
+                        case CryptorithmType.Division:
+                            if (indent > 0) {
+                                indent--;
+                            }
+                            break;
+                        case CryptorithmType.Multiplication:
+                            indent = 0;
+                            break;
+                        case CryptorithmType.Addition:
+                        case CryptorithmType.Subtraction:
+                            formula = lastbase + lastval;
+                            break;
                     }
                     break;
                 default:
@@ -581,7 +595,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
             var tr = $("<tr>");
             // Pad on the left with as many columns as we need
             if (item.content.length < maxwidth) {
-                $("<td>", { colspan: maxwidth - item.content.length }).appendTo(tr);
+                $("<td>", { colspan: maxwidth - item.content.length }).html("&nbsp;").appendTo(tr);
             }
             var td = null;
             var addclass = item.class;
@@ -611,10 +625,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
             }
             td.appendTo(tr);
             addclass = item.class;
-            if (item.content === '') {
-                $("<td>").html("&nbsp;").appendTo(tr);
-            }
-            else {
+            if (item.content !== '') {
                 for (var _c = 0, _d = item.content; _c < _d.length; _c++) {
                     var c = _d[_c];
                     td = $("<td>");

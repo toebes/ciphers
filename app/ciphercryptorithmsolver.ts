@@ -307,21 +307,32 @@ class CryptorithmSolver extends CipherSolver {
                     if (state !== buildState.Idle) {
                         console.log('Found token:' + token + ' when already processing ' + prefix)
                     }
-                    if (this.cryptorithmType === CryptorithmType.Division) {
-                        let mult = quotient.substr(quotient.length - (indent + 1), 1)
-                        formula = mult + "*" + divisor
-                        expected = token
-                        lastbase = lastval
-                    } else if (this.cryptorithmType === CryptorithmType.SquareRoot) {
-                        let part = root.substr(0, root.length - indent)
-                        let double = part.substr(0, part.length - 1)
-                        let squared = part.substr(part.length - 1, 1)
-                        if (double !== '') {
-                            formula = "((" + double + "*20)+" + squared + ")*" + squared
-                        } else {
-                            formula = squared + "*" + squared
-                        }
-                        lastbase = lastval
+                    switch (this.cryptorithmType) {
+                        case CryptorithmType.Automatic:
+                            this.cryptorithmType = CryptorithmType.Subtraction
+                        case CryptorithmType.Subtraction:
+                        case CryptorithmType.Addition:
+                            lastbase = lastval+"-"
+                            break
+
+                        case CryptorithmType.Division:
+                            let mult = quotient.substr(quotient.length - (indent + 1), 1)
+                            formula = mult + "*" + divisor
+                            expected = token
+                            lastbase = lastval
+                            break
+
+                        case CryptorithmType.SquareRoot:
+                            let part = root.substr(0, root.length - indent)
+                            let double = part.substr(0, part.length - 1)
+                            let squared = part.substr(part.length - 1, 1)
+                            if (double !== '') {
+                                formula = "((" + double + "*20)+" + squared + ")*" + squared
+                            } else {
+                                formula = squared + "*" + squared
+                            }
+                            lastbase = lastval
+                            break
                     }
                     prefix = token
                     state = buildState.WantMinus
@@ -347,10 +358,9 @@ class CryptorithmSolver extends CipherSolver {
                     if (this.cryptorithmType === CryptorithmType.Automatic) {
                         this.cryptorithmType = CryptorithmType.Addition
                     }
-                    if (this.cryptorithmType === CryptorithmType.Addition) {
-                        if (indent > 0) {
-                            indent--
-                        }
+                    if (this.cryptorithmType === CryptorithmType.Addition ||
+                        this.cryptorithmType === CryptorithmType.Subtraction) {
+                        lastbase = lastval+"+"
                     } else if (this.cryptorithmType === CryptorithmType.Multiplication) {
                         indent++
                     }
@@ -374,25 +384,34 @@ class CryptorithmSolver extends CipherSolver {
                     if (state !== buildState.WantQuotient) {
                         state = buildState.WantEqual
                     }
-                    if (this.cryptorithmType === CryptorithmType.Division && state !== buildState.WantQuotient) {
-                        formula = lastbase + "-" + lastval
-                        if (indent > 0) {
-                            formula = "10*(" + formula + ")+" + dividend.substr(dividend.length - indent, 1)
-                        }
-                    } else if (this.cryptorithmType === CryptorithmType.SquareRoot) {
-                        formula = lastbase + '-' + lastval
-                        if (indent > 0) {
-                            formula = "(" + formula + ")*100+" + rootbase.substr(rootbase.length - (indent * 2), 2)
-                        }
-                    }
-                    if (this.cryptorithmType === CryptorithmType.CubeRoot ||
-                        this.cryptorithmType === CryptorithmType.SquareRoot ||
-                        this.cryptorithmType === CryptorithmType.Division) {
-                        if (indent > 0) {
-                            indent--
-                        }
-                    } else if (this.cryptorithmType === CryptorithmType.Multiplication) {
-                        indent = 0
+                    switch (this.cryptorithmType) {
+                        case CryptorithmType.Division:
+                            if (state !== buildState.WantQuotient) {
+                                formula = lastbase + "-" + lastval
+                                if (indent > 0) {
+                                    formula = "10*(" + formula + ")+" + dividend.substr(dividend.length - indent, 1)
+                                }
+                            }
+                        case CryptorithmType.SquareRoot:
+                        case CryptorithmType.CubeRoot:
+                            formula = lastbase + '-' + lastval
+                            if (indent > 0) {
+                                formula = "(" + formula + ")*100+" + rootbase.substr(rootbase.length - (indent * 2), 2)
+                                indent--
+                            }
+                            break
+                        case CryptorithmType.Division:
+                            if (indent > 0) {
+                                indent--
+                            }
+                            break
+                        case CryptorithmType.Multiplication:
+                            indent = 0
+                            break
+                        case CryptorithmType.Addition:
+                        case CryptorithmType.Subtraction:
+                            formula = lastbase + lastval
+                            break
                     }
                     break
 
@@ -576,7 +595,7 @@ class CryptorithmSolver extends CipherSolver {
             let tr = $("<tr>")
             // Pad on the left with as many columns as we need
             if (item.content.length < maxwidth) {
-                $("<td>", { colspan: maxwidth - item.content.length }).appendTo(tr)
+                $("<td>", { colspan: maxwidth - item.content.length }).html("&nbsp;").appendTo(tr)
             }
             let td: JQuery<HTMLElement> = null
             let addclass = item.class
@@ -606,9 +625,7 @@ class CryptorithmSolver extends CipherSolver {
             }
             td.appendTo(tr)
             addclass = item.class
-            if (item.content === '') {
-                $("<td>").html("&nbsp;").appendTo(tr)
-            } else {
+            if (item.content !== '') {
                 for (let c of item.content) {
                     td = $("<td>")
                     $("<div>", { class: "slil" }).text(c).appendTo(td)
@@ -651,26 +668,26 @@ class CryptorithmSolver extends CipherSolver {
 
         let tr = $("<tr>")
 
-        let a0x = $("<div>", {class: "sol"})
-        $("<span>", {class:"h"}).text("0-"+(this.base-1).toString(36)+":").appendTo(a0x)
-        let a10 = $("<div>", {class: "sol"})
-        $("<span>", {class:"h"}).text("1-0:").appendTo(a10)
-        let ax0 = $("<div>", {class: "sol"})
-        $("<span>", {class:"h"}).text((this.base-1).toString(36)+"-0:").appendTo(ax0)
-        let a01 = $("<div>", {class: "sol"})
-        $("<span>", {class:"h"}).text("0-1:").appendTo(a01)
+        let a0x = $("<div>", { class: "sol" })
+        $("<span>", { class: "h" }).text("0-" + (this.base - 1).toString(36) + ":").appendTo(a0x)
+        let a10 = $("<div>", { class: "sol" })
+        $("<span>", { class: "h" }).text("1-0:").appendTo(a10)
+        let ax0 = $("<div>", { class: "sol" })
+        $("<span>", { class: "h" }).text((this.base - 1).toString(36) + "-0:").appendTo(ax0)
+        let a01 = $("<div>", { class: "sol" })
+        $("<span>", { class: "h" }).text("0-1:").appendTo(a01)
 
         $("<td>", { colspan: 2 }).text("Base " + String(this.base)).appendTo(tr)
         for (let index = 0; index < this.base; index++) {
             $("<th>").text(index.toString(36)).appendTo(tr)
 
-            $("<span>",{'data-val':index.toString(36)}).text("?").appendTo(a0x)
-            let val = (index+1)%this.base 
-            $("<span>",{'data-val':val.toString(36)}).text("?").appendTo(a10)
-            val = (this.base-index-1)%this.base
-            $("<span>",{'data-val':val.toString(36)}).text("?").appendTo(ax0)
-            val = (val+1)%this.base
-            $("<span>",{'data-val':val.toString(36)}).text("?").appendTo(a01)
+            $("<span>", { 'data-val': index.toString(36) }).text("?").appendTo(a0x)
+            let val = (index + 1) % this.base
+            $("<span>", { 'data-val': val.toString(36) }).text("?").appendTo(a10)
+            val = (this.base - index - 1) % this.base
+            $("<span>", { 'data-val': val.toString(36) }).text("?").appendTo(ax0)
+            val = (val + 1) % this.base
+            $("<span>", { 'data-val': val.toString(36) }).text("?").appendTo(a01)
         }
         tr.appendTo(thead)
         thead.appendTo(table)
@@ -692,7 +709,7 @@ class CryptorithmSolver extends CipherSolver {
         }
         tbody.appendTo(table)
         let topdiv = $("<div>")
-        let solsdiv = $("<div>", {class:"sols"})
+        let solsdiv = $("<div>", { class: "sols" })
         a0x.appendTo(solsdiv)
         a10.appendTo(solsdiv)
         ax0.appendTo(solsdiv)

@@ -655,11 +655,11 @@ var CryptorithmSolver = /** @class */ (function (_super) {
         var thead = $("<thead>");
         var tr = $("<tr>");
         var a0x = $("<div>", { class: "sol" });
-        $("<span>", { class: "h" }).text("0-" + this.base.toString(36) + ":").appendTo(a0x);
+        $("<span>", { class: "h" }).text("0-" + (this.base - 1).toString(36) + ":").appendTo(a0x);
         var a10 = $("<div>", { class: "sol" });
         $("<span>", { class: "h" }).text("1-0:").appendTo(a10);
         var ax0 = $("<div>", { class: "sol" });
-        $("<span>", { class: "h" }).text(this.base.toString(36) + "-0:").appendTo(ax0);
+        $("<span>", { class: "h" }).text((this.base - 1).toString(36) + "-0:").appendTo(ax0);
         var a01 = $("<div>", { class: "sol" });
         $("<span>", { class: "h" }).text("0-1:").appendTo(a01);
         $("<td>", { colspan: 2 }).text("Base " + String(this.base)).appendTo(tr);

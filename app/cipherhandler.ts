@@ -1,6 +1,7 @@
 /// <reference types="ciphertypes" />
-
-
+/**
+ * Base class for all the Cipher Encoders/Decoders
+ */
 class CipherHandler {
     /**
      * User visible mapping of names of the various languages supported 
@@ -22,7 +23,6 @@ class CipherHandler {
     }
     /**
      * This maps which characters are legal in a cipher for a given language
-     * @name langcharset
      * @type {StringMap} Mapping of legal characters
     */
     readonly langcharset: StringMap = {
@@ -41,7 +41,6 @@ class CipherHandler {
     }
     /**
      * Character replacement for purposes of encoding
-     * @type {}
      */
     readonly langreplace: { [key: string]: { [key1: string]: string } } = {
         'en': {},
@@ -57,7 +56,7 @@ class CipherHandler {
             'Ô': 'O',
             'Û': 'U', 'Ù': 'U', 'Ü': 'U',
         },
-        'it': { 'É': 'E', 'È': 'E', 'Ì': 'I', 'Ò': 'O', 'Ù': 'U', },
+        'it': { 'À': 'A', 'É': 'E', 'È': 'E', 'Ì': 'I', 'Ò': 'O', 'Ù': 'U', },
         'no': {},
         'pt': {
             'Á': 'A', 'Â': 'A', 'Ã': 'A', 'À': 'A',
@@ -73,9 +72,7 @@ class CipherHandler {
     }
     /**
      * This maps which characters are to be used when encoding an ACA cipher
-     * @name langcharset
-     * @type {StringMap} Mapping of legal characters
-    */
+     */
     readonly acalangcharset: StringMap = {
         'en': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         'nl': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -91,24 +88,22 @@ class CipherHandler {
     }
     /**
      * This maps which characters are to be encoded to for an ACA cipher
-     * @type {StringMap} Mapping of legal characters
-    */
-   readonly encodingcharset: StringMap = {
-    'en': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    'nl': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    'de': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    'es': 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ',
-    'fr': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    'it': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    'no': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    'pt': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    'sv': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    'ia': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    'la': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-}
-/**
+     */
+    readonly encodingcharset: StringMap = {
+        'en': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'nl': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'de': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'es': 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ',
+        'fr': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'it': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'no': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'pt': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'sv': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'ia': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'la': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    }
+    /**
      * Character replacement for purposes of encoding
-     * @type {}
      */
     readonly acalangreplace: { [key: string]: { [key1: string]: string } } = {
         'en': {},
@@ -140,8 +135,6 @@ class CipherHandler {
     }
     /**
      * Language character frequency
-     * @type {Object.Object.<string,number>}
-     * @type {Object.<string,number>}
      */
     readonly langfreq: { [key: string]: { [key1: string]: number } } = {
         'en': {
@@ -260,34 +253,24 @@ class CipherHandler {
     charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     sourcecharset: string = "ABCDEFGHIJLMNOPQRSTUVWXYZ"
     unasigned: string = ""
-    rowcharset: string = ""
-    colcharset: string = ""
     replacement: Array<string> = []
     curlang: string = ""
     holdupdates: boolean = false
-    /** @type{number} maxEncodeWidth - The maximum number of characters to
+    /**
+     * The maximum number of characters to
      * be shown on an encoded line so that it can be readily pasted into a test
      */
     maxEncodeWidth: number = 53
-    /** @type {boolean} ShowRevReplace - Output the reverse replacement
-     * row in the frequency table
+    /** 
+     * Output the reverse replacement row in the frequency table
      */
     ShowRevReplace: boolean = true
-    /** @type {string} encodedString - Input string cleaned up
+    /** 
+     * Input string cleaned up
      */
     encodedString: string = ""
     Frequent: any = {}
-    freq: any = []
-    groupingSize: number = 0
-    doEncoding: boolean = true
-    affineCheck: { [key: string]: number } = {
-        'p': -1,
-        'q': -1,
-        'r': -1,
-        's': -1,
-        'oldId': -1,
-        'olderId': -1
-    }
+    freq: { [key: string]: number } = {}
     /**
      * Initializes the encoder/decoder.
      * We don't want to show the reverse replacement since we are doing an encode
@@ -404,6 +387,7 @@ class CipherHandler {
      * @param {string} newchar New char to assign as decoding for the character
      */
     setChar(repchar: string, newchar: string): void {
+        console.log("setChar data-char=" + repchar + ' newchar=' + newchar)
         this.replacement[repchar] = newchar
         $("input[data-char='" + repchar + "']").val(newchar)
         if (newchar === '') {
@@ -590,47 +574,46 @@ class CipherHandler {
      * @param {number} width
      * @param {number} num
      */
-    makeTopList(str: string, width: number, num: number): string {
-        let tfreq = {};
-        let tobjs = [];
-        let work = '';
-        let i, len;
-        let res = '';
-        for (i = 0, len = str.length; i < len; i++) {
-            let t = str.substr(i, 1).toUpperCase();
+    makeTopList(str: string, width: number, num: number): JQuery<HTMLElement> {
+        let tfreq = {}
+        let tobjs = []
+        let work = ''
+        let len
+        let res = $("<span>").text('None found')
+        for (let t of str.toUpperCase()) {
             if (this.isValidChar(t)) {
                 work += t;
             }
         }
         // Now we have the work string with only the legal characters in it
         // Next we want to go through and find all the combination strings of a given length
-        for (i = 0, len = work.length; i <= len - width * this.cipherWidth; i++) {
+        for (let i = 0, len = work.length; i <= len - width * this.cipherWidth; i++) {
             let piece = work.substr(i, width * this.cipherWidth);
             if (isNaN(tfreq[piece])) {
-                tfreq[piece] = 0;
+                tfreq[piece] = 0
             }
-            tfreq[piece]++;
+            tfreq[piece]++
         }
         // tfreq holds the frequency of each string which is of the width requested.  Now we just
         // need to go through and pick out the big ones and display them in sorted order.  To sort
         // it we need to build an array of objects holding the frequency and values.
         Object.keys(tfreq).forEach(function (value) {
-            let frequency = tfreq[value];
+            let frequency = tfreq[value]
             if (frequency > 1) {
-                let item = { freq: frequency, val: value };
-                tobjs.push(item);
+                let item = { freq: frequency, val: value }
+                tobjs.push(item)
             }
-        });
+        })
         // Now we sort them and pull out the top requested items.  It is possible that 
         // the array is empty because there are not any duplicates
-        tobjs.sort(this.isort);
+        tobjs.sort(this.isort)
         if (num > tobjs.length) {
-            num = tobjs.length;
+            num = tobjs.length
         }
-        res = 'None found';
+
         if (num > 0) {
-            res = '<ul>';
-            for (i = 0; i < num; i++) {
+            res = $('<ul>')
+            for (let i = 0; i < num; i++) {
                 let valtext = tobjs[i].val;
                 if (this.cipherWidth > 1) {
                     // We need to insert spaces every x characters
@@ -644,9 +627,8 @@ class CipherHandler {
                     valtext = final;
                 }
 
-                res += '<li>' + valtext + ' - ' + tobjs[i].freq + '</li>';
+                $('<li>').text(valtext + ' - ' + tobjs[i].freq).appendTo(res)
             }
-            res += '</ul></div>';
         }
         return res;
     }
@@ -656,18 +638,28 @@ class CipherHandler {
      * @param {number} width
      * @param {number} num
      */
-    analyze(encoded: string): string {
+    analyze(encoded: string): JQuery<HTMLElement> {
         console.log('Analyze encoded=' + encoded);
-        let res = '<table class="satable">' +
-            '<thead><tr><th>2 Characters</th><th>3 Characters</th><th>4 Characters</th><th>5 Characters</th></tr></thead>' +
-            '<tbody><tr>' +
-            '<td>' + this.makeTopList(encoded, 2, 12) + '</td>' +
-            '<td>' + this.makeTopList(encoded, 3, 12) + '</td>' +
-            '<td>' + this.makeTopList(encoded, 4, 12) + '</td>' +
-            '<td>' + this.makeTopList(encoded, 5, 12) + '</td>' +
-            '</tr></tbody></table>';
+        let res = $("'<table>", { class: "satable" })
+        let thead = $("<thead>")
+        let trhead = $("<tr>")
+        let tbody = $("<tbody>")
+        let trbody = $("<tr>")
+
+        for (let num in [2, 3, 4, 5]) {
+            $("<th>").text(num + " Characters").appendTo(trhead)
+            $('<td>').append(this.makeTopList(encoded, Number(num), 12)).appendTo(trbody)
+        }
+        thead.appendTo(res)
+        tbody.appendTo(res)
         return res;
     }
+
+    /**
+     * Compute the greatest common denominator between two numbers
+     * @param a First number
+     * @param b Second Number
+     */
     gcd(a: number, b: number): number {
         if (isNaN(a)) { return a; }
         if (isNaN(b)) { return b; }
@@ -703,8 +695,8 @@ class CipherHandler {
         this.holdupdates = true;
         for (c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
-                let subval = this.freq[c];
-                if (subval === 0) {
+                let subval: string = String(this.freq[c]);
+                if (subval === '0') {
                     subval = '';
                 }
                 $('#f' + c).text(subval);
@@ -911,6 +903,10 @@ class CipherHandler {
             case 'Affine':
                 cipherTool = new CipherAffineEncoder()
                 break
+
+            case 'Cryptorithm':
+                cipherTool = new CryptorithmSolver()
+                break;
 
             case 'Standard':
             default:

@@ -11,7 +11,9 @@ var __extends = (this && this.__extends) || (function () {
 var CipherVigenereEncoder = /** @class */ (function (_super) {
     __extends(CipherVigenereEncoder, _super);
     function CipherVigenereEncoder() {
-        return _super !== null && _super.apply(this, arguments) || this;
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.doEncoding = true;
+        return _this;
     }
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *

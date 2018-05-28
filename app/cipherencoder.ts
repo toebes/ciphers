@@ -4,6 +4,12 @@
  */
 class CipherEncoder extends CipherHandler {
     /**
+     * Size of chunks of text to format to.  0 Indicates that the original spacing
+     * is to be preserved.  Any other value indicates that spaces are to be removed
+     * and the cipher is grouped in clusters of this size
+     */
+    groupingSize: number = 0
+    /**
      * Initializes the encoder. 
      * We don't want to show the reverse replacement since we are doing an encode
      * @param {string} lang Language to select (EN is the default)
@@ -275,6 +281,7 @@ class CipherEncoder extends CipherHandler {
         let decodeline = ""
         let lastsplit = -1
         let splitc = ''
+        let langreplace = this.langreplace[this.curlang]
         // Build a reverse replacement map so that we can encode the string
         for (var repc in this.replacement) {
             if (this.replacement.hasOwnProperty(repc)) {
@@ -282,7 +289,7 @@ class CipherEncoder extends CipherHandler {
             }
         }
        // Zero out the frequency table 
-        this.freq = [];
+        this.freq = {};
         for (i = 0, len = sourcecharset.length; i < len; i++) {
             this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0;
         }
@@ -290,6 +297,10 @@ class CipherEncoder extends CipherHandler {
         // to map to as well as update the frequency of the match
         for (i = 0, len = str.length; i < len; i++) {
             let t = str.substr(i, 1).toUpperCase();
+            // See if the character needs to be mapped.
+            if (typeof langreplace[t] !== 'undefined') {
+                t = langreplace[t]
+            }
             decodeline += t;
             // Make sure that this is a valid character to map from
             let pos = charset.indexOf(t);

@@ -11,7 +11,10 @@ var __extends = (this && this.__extends) || (function () {
 var CipherCheckerboardSolver = /** @class */ (function (_super) {
     __extends(CipherCheckerboardSolver, _super);
     function CipherCheckerboardSolver() {
-        return _super !== null && _super.apply(this, arguments) || this;
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.rowcharset = "";
+        _this.colcharset = "";
+        return _this;
     }
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *
@@ -87,7 +90,7 @@ var CipherCheckerboardSolver = /** @class */ (function (_super) {
         var width = Math.floor(docwidth / 24);
         var remaining = width;
         var charset = this.getCharset().toUpperCase();
-        this.freq = [];
+        this.freq = {};
         for (i = 0, len = str.length; i < len; i++) {
             var t = str.substr(i, 1).toUpperCase();
             if (this.isValidChar(t)) {
@@ -166,7 +169,7 @@ var CipherCheckerboardSolver = /** @class */ (function (_super) {
             for (col = 0; col < collen; col++) {
                 var colc = this.colcharset.substr(col, 1).toUpperCase();
                 var piece = rowc + colc;
-                var freq = this.freq[piece];
+                var freq = String(this.freq[piece]);
                 var td, input;
                 if (typeof freq === 'undefined') {
                     freq = '';

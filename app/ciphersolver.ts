@@ -25,7 +25,7 @@ class CipherSolver extends CipherHandler {
         var tool = this
         $("#answer").empty().append(res);
         $("#analysis").each(function (i) {
-            $(this).html(tool.analyze(encoded));
+            $(this).empty().append(tool.analyze(encoded));
         });
 
         // Show the update frequency values
@@ -52,7 +52,14 @@ class CipherSolver extends CipherHandler {
      * @returns {string} HTML of dropdown
      */
     makeFreqEditField(c: string): JQuery<HTMLElement> {
-        var einput = $('<input/>', { type: "text", class: "sli", 'data-char': c, id: 'm' + c });
+        // let val = ''
+        // for (let repl in this.replacement) {
+        //     if (this.replacement[repl] === c) {
+        //         val = repl
+        //         break
+        //     }
+        // }
+        var einput = $('<input/>', { type: "text", class: "sli", 'data-char': c, id: 'm' + c, value:this.replacement[c] });
         return einput;
     }
 
@@ -220,7 +227,7 @@ class CipherSolver extends CipherHandler {
         var i, len;
         var datachars = '';
         var charset = this.getCharset().toUpperCase();
-        this.freq = [];
+        this.freq = {};
         for (i = 0, len = charset.length; i < len; i++) {
             this.freq[charset.substr(i, 1).toUpperCase()] = 0;
         }

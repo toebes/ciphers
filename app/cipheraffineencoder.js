@@ -11,7 +11,16 @@ var __extends = (this && this.__extends) || (function () {
 var CipherAffineEncoder = /** @class */ (function (_super) {
     __extends(CipherAffineEncoder, _super);
     function CipherAffineEncoder() {
-        return _super !== null && _super.apply(this, arguments) || this;
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.affineCheck = {
+            'p': -1,
+            'q': -1,
+            'r': -1,
+            's': -1,
+            'oldId': -1,
+            'olderId': -1
+        };
+        return _this;
     }
     CipherAffineEncoder.prototype.affinechar = function (a, b, chr) {
         var charset = this.getCharset();

@@ -1,4 +1,7 @@
 /// <reference types="ciphertypes" />
+/**
+ * Base class for all the Cipher Encoders/Decoders
+ */
 var CipherHandler = /** @class */ (function () {
     function CipherHandler() {
         /**
@@ -21,7 +24,6 @@ var CipherHandler = /** @class */ (function () {
         };
         /**
          * This maps which characters are legal in a cipher for a given language
-         * @name langcharset
          * @type {StringMap} Mapping of legal characters
         */
         this.langcharset = {
@@ -40,7 +42,6 @@ var CipherHandler = /** @class */ (function () {
         };
         /**
          * Character replacement for purposes of encoding
-         * @type {}
          */
         this.langreplace = {
             'en': {},
@@ -56,7 +57,7 @@ var CipherHandler = /** @class */ (function () {
                 'Ô': 'O',
                 'Û': 'U', 'Ù': 'U', 'Ü': 'U',
             },
-            'it': { 'É': 'E', 'È': 'E', 'Ì': 'I', 'Ò': 'O', 'Ù': 'U', },
+            'it': { 'À': 'A', 'É': 'E', 'È': 'E', 'Ì': 'I', 'Ò': 'O', 'Ù': 'U', },
             'no': {},
             'pt': {
                 'Á': 'A', 'Â': 'A', 'Ã': 'A', 'À': 'A',
@@ -72,9 +73,7 @@ var CipherHandler = /** @class */ (function () {
         };
         /**
          * This maps which characters are to be used when encoding an ACA cipher
-         * @name langcharset
-         * @type {StringMap} Mapping of legal characters
-        */
+         */
         this.acalangcharset = {
             'en': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
             'nl': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -90,8 +89,7 @@ var CipherHandler = /** @class */ (function () {
         };
         /**
          * This maps which characters are to be encoded to for an ACA cipher
-         * @type {StringMap} Mapping of legal characters
-        */
+         */
         this.encodingcharset = {
             'en': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
             'nl': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -106,9 +104,8 @@ var CipherHandler = /** @class */ (function () {
             'la': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         };
         /**
-             * Character replacement for purposes of encoding
-             * @type {}
-             */
+         * Character replacement for purposes of encoding
+         */
         this.acalangreplace = {
             'en': {},
             'nl': {},
@@ -139,8 +136,6 @@ var CipherHandler = /** @class */ (function () {
         };
         /**
          * Language character frequency
-         * @type {Object.Object.<string,number>}
-         * @type {Object.<string,number>}
          */
         this.langfreq = {
             'en': {
@@ -257,34 +252,24 @@ var CipherHandler = /** @class */ (function () {
         this.charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         this.sourcecharset = "ABCDEFGHIJLMNOPQRSTUVWXYZ";
         this.unasigned = "";
-        this.rowcharset = "";
-        this.colcharset = "";
         this.replacement = [];
         this.curlang = "";
         this.holdupdates = false;
-        /** @type{number} maxEncodeWidth - The maximum number of characters to
+        /**
+         * The maximum number of characters to
          * be shown on an encoded line so that it can be readily pasted into a test
          */
         this.maxEncodeWidth = 53;
-        /** @type {boolean} ShowRevReplace - Output the reverse replacement
-         * row in the frequency table
+        /**
+         * Output the reverse replacement row in the frequency table
          */
         this.ShowRevReplace = true;
-        /** @type {string} encodedString - Input string cleaned up
+        /**
+         * Input string cleaned up
          */
         this.encodedString = "";
         this.Frequent = {};
-        this.freq = [];
-        this.groupingSize = 0;
-        this.doEncoding = true;
-        this.affineCheck = {
-            'p': -1,
-            'q': -1,
-            'r': -1,
-            's': -1,
-            'oldId': -1,
-            'olderId': -1
-        };
+        this.freq = {};
     }
     /**
      * Initializes the encoder/decoder.
@@ -397,6 +382,7 @@ var CipherHandler = /** @class */ (function () {
      * @param {string} newchar New char to assign as decoding for the character
      */
     CipherHandler.prototype.setChar = function (repchar, newchar) {
+        console.log("setChar data-char=" + repchar + ' newchar=' + newchar);
         this.replacement[repchar] = newchar;
         $("input[data-char='" + repchar + "']").val(newchar);
         if (newchar === '') {
@@ -579,17 +565,17 @@ var CipherHandler = /** @class */ (function () {
         var tfreq = {};
         var tobjs = [];
         var work = '';
-        var i, len;
-        var res = '';
-        for (i = 0, len = str.length; i < len; i++) {
-            var t = str.substr(i, 1).toUpperCase();
+        var len;
+        var res = $("<span>").text('None found');
+        for (var _i = 0, _a = str.toUpperCase(); _i < _a.length; _i++) {
+            var t = _a[_i];
             if (this.isValidChar(t)) {
                 work += t;
             }
         }
         // Now we have the work string with only the legal characters in it
         // Next we want to go through and find all the combination strings of a given length
-        for (i = 0, len = work.length; i <= len - width * this.cipherWidth; i++) {
+        for (var i = 0, len_1 = work.length; i <= len_1 - width * this.cipherWidth; i++) {
             var piece = work.substr(i, width * this.cipherWidth);
             if (isNaN(tfreq[piece])) {
                 tfreq[piece] = 0;
@@ -612,10 +598,9 @@ var CipherHandler = /** @class */ (function () {
         if (num > tobjs.length) {
             num = tobjs.length;
         }
-        res = 'None found';
         if (num > 0) {
-            res = '<ul>';
-            for (i = 0; i < num; i++) {
+            res = $('<ul>');
+            for (var i = 0; i < num; i++) {
                 var valtext = tobjs[i].val;
                 if (this.cipherWidth > 1) {
                     // We need to insert spaces every x characters
@@ -628,9 +613,8 @@ var CipherHandler = /** @class */ (function () {
                     }
                     valtext = final;
                 }
-                res += '<li>' + valtext + ' - ' + tobjs[i].freq + '</li>';
+                $('<li>').text(valtext + ' - ' + tobjs[i].freq).appendTo(res);
             }
-            res += '</ul></div>';
         }
         return res;
     };
@@ -642,16 +626,24 @@ var CipherHandler = /** @class */ (function () {
      */
     CipherHandler.prototype.analyze = function (encoded) {
         console.log('Analyze encoded=' + encoded);
-        var res = '<table class="satable">' +
-            '<thead><tr><th>2 Characters</th><th>3 Characters</th><th>4 Characters</th><th>5 Characters</th></tr></thead>' +
-            '<tbody><tr>' +
-            '<td>' + this.makeTopList(encoded, 2, 12) + '</td>' +
-            '<td>' + this.makeTopList(encoded, 3, 12) + '</td>' +
-            '<td>' + this.makeTopList(encoded, 4, 12) + '</td>' +
-            '<td>' + this.makeTopList(encoded, 5, 12) + '</td>' +
-            '</tr></tbody></table>';
+        var res = $("'<table>", { class: "satable" });
+        var thead = $("<thead>");
+        var trhead = $("<tr>");
+        var tbody = $("<tbody>");
+        var trbody = $("<tr>");
+        for (var num in [2, 3, 4, 5]) {
+            $("<th>").text(num + " Characters").appendTo(trhead);
+            $('<td>').append(this.makeTopList(encoded, Number(num), 12)).appendTo(trbody);
+        }
+        thead.appendTo(res);
+        tbody.appendTo(res);
         return res;
     };
+    /**
+     * Compute the greatest common denominator between two numbers
+     * @param a First number
+     * @param b Second Number
+     */
     CipherHandler.prototype.gcd = function (a, b) {
         if (isNaN(a)) {
             return a;
@@ -699,8 +691,8 @@ var CipherHandler = /** @class */ (function () {
         this.holdupdates = true;
         for (c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
-                var subval = this.freq[c];
-                if (subval === 0) {
+                var subval = String(this.freq[c]);
+                if (subval === '0') {
                     subval = '';
                 }
                 $('#f' + c).text(subval);
@@ -902,6 +894,9 @@ var CipherHandler = /** @class */ (function () {
                 break;
             case 'Affine':
                 cipherTool = new CipherAffineEncoder();
+                break;
+            case 'Cryptorithm':
+                cipherTool = new CryptorithmSolver();
                 break;
             case 'Standard':
             default:

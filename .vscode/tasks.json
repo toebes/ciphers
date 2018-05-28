@@ -4,6 +4,22 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Build",
+            "type": "shell",
+            "command": "./scripts/build.sh",
+            "windows": {
+                "command": ".\\scripts\\build.cmd"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "TypeScript Build",
             "type": "typescript",
             "tsconfig": "tsconfig.json",
             "problemMatcher": [

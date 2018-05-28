@@ -45,7 +45,7 @@ var CipherGromarkSolver = /** @class */ (function (_super) {
         var remaining = width;
         var finalcheck = 99;
         var charset = this.getCharset().toUpperCase();
-        this.freq = [];
+        this.freq = {};
         this.encodedString = '';
         // Make sure all white space is just a space
         str = str.replace(/\s+/g, ' ');

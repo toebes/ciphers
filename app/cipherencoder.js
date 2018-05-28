@@ -15,7 +15,14 @@ var __extends = (this && this.__extends) || (function () {
 var CipherEncoder = /** @class */ (function (_super) {
     __extends(CipherEncoder, _super);
     function CipherEncoder() {
-        return _super !== null && _super.apply(this, arguments) || this;
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        /**
+         * Size of chunks of text to format to.  0 Indicates that the original spacing
+         * is to be preserved.  Any other value indicates that spaces are to be removed
+         * and the cipher is grouped in clusters of this size
+         */
+        _this.groupingSize = 0;
+        return _this;
     }
     /**
      * Initializes the encoder.
@@ -290,6 +297,7 @@ var CipherEncoder = /** @class */ (function (_super) {
         var decodeline = "";
         var lastsplit = -1;
         var splitc = '';
+        var langreplace = this.langreplace[this.curlang];
         // Build a reverse replacement map so that we can encode the string
         for (var repc in this.replacement) {
             if (this.replacement.hasOwnProperty(repc)) {
@@ -297,7 +305,7 @@ var CipherEncoder = /** @class */ (function (_super) {
             }
         }
         // Zero out the frequency table 
-        this.freq = [];
+        this.freq = {};
         for (i = 0, len = sourcecharset.length; i < len; i++) {
             this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0;
         }
@@ -305,6 +313,10 @@ var CipherEncoder = /** @class */ (function (_super) {
         // to map to as well as update the frequency of the match
         for (i = 0, len = str.length; i < len; i++) {
             var t = str.substr(i, 1).toUpperCase();
+            // See if the character needs to be mapped.
+            if (typeof langreplace[t] !== 'undefined') {
+                t = langreplace[t];
+            }
             decodeline += t;
             // Make sure that this is a valid character to map from
             var pos = charset.indexOf(t);

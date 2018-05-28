@@ -1,4 +1,6 @@
 class CipherVigenereEncoder extends CipherEncoder {
+    doEncoding: boolean = true
+    
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *
      * Vigenere Encoder

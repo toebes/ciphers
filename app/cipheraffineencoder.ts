@@ -1,6 +1,14 @@
 
 class CipherAffineEncoder extends CipherEncoder {
 
+    affineCheck: { [key: string]: number } = {
+        'p': -1,
+        'q': -1,
+        'r': -1,
+        's': -1,
+        'oldId': -1,
+        'olderId': -1
+    }
 
     affinechar(a: number, b: number, chr: string): string {
         var charset = this.getCharset();

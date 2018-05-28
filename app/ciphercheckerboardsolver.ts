@@ -1,4 +1,8 @@
 class CipherCheckerboardSolver extends CipherSolver {
+    
+    rowcharset: string = ""
+    colcharset: string = ""
+    
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *
      * Checkerboard Solver
@@ -78,7 +82,7 @@ class CipherCheckerboardSolver extends CipherSolver {
         var width = Math.floor(docwidth / 24);
         var remaining = width;
         var charset = this.getCharset().toUpperCase();
-        this.freq = [];
+        this.freq = {};
 
         for (i = 0, len = str.length; i < len; i++) {
             var t = str.substr(i, 1).toUpperCase();
@@ -160,7 +164,7 @@ class CipherCheckerboardSolver extends CipherSolver {
             for (col = 0; col < collen; col++) {
                 var colc = this.colcharset.substr(col, 1).toUpperCase();
                 var piece = rowc + colc;
-                var freq = this.freq[piece];
+                var freq:string = String(this.freq[piece]);
                 var td, input;
                 if (typeof freq === 'undefined') {
                     freq = '';

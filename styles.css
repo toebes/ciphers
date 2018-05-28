@@ -40,6 +40,7 @@ input.cb {
 }
 
 .cmds {
+    clear:both;
     display: block;
     border-bottom: 1px solid grey;
     margin-top: 10px;
@@ -115,6 +116,38 @@ label:after {
     content: ": ";
 }
 
+table.cmath td.solv {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: white;
+    margin-left: 10px;
+    border-left: 1px dashed grey;
+}
+table.cmath td.math {
+    font-size: 40px;
+}
+table.cmath td {
+    background-color: #eaeaea;
+}
+table.cmath td.ovl {
+    border-top: 2px solid black
+}
+
+table.rithm, table.cmath {
+    border-collapse: collapse;
+}
+table.rithm td.l, table.rithm td.m {
+    padding-right:20px;
+}
+table.rithm td.m, table.rithm td.r {
+    padding-left:20px;
+}
+
+table.rithm td.l {
+    border-right:1px dashed black;
+}
+table.rithm td.m {
+    border-right:2px solid black;
+}
 table.mword {
     border: 1px solid black;
     border-collapse: collapse;

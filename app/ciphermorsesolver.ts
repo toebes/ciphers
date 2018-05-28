@@ -502,7 +502,7 @@ class CipherMorseSolver extends CipherSolver {
         var tool = this;
         $("#answer").empty().append(res);
         $("#analysis").each(function (i) {
-            $(this).html(tool.analyze(tool.encodedString));
+            $(this).empty().append(tool.analyze(tool.encodedString))
         });
         // Show the update frequency values
         this.displayFreq();

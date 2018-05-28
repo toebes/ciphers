@@ -192,7 +192,7 @@ var CipherCheckerboardSolver = /** @class */ (function (_super) {
         var tool = this;
         $("#answer").empty().append(res);
         $("#analysis").each(function (i) {
-            $(this).html(tool.analyze(encoded));
+            $(this).empty().append(tool.analyze(encoded));
         });
         // Show the update frequency values
         this.UpdateFreqEditTable();

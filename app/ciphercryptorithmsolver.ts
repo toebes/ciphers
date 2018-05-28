@@ -64,7 +64,108 @@ class CryptorithmSolver extends CipherSolver {
     analyze(encoded: string): JQuery<HTMLElement> {
         return null
     }
+    /**
+     * Substitutes all the current mappings in a string to evaluate
+     * @param str String to replace with math values
+     */
+    subFormula(str: string): string {
+        let result = ''
+        for (let c of str) {
+            if (typeof this.replacement[c] === 'undefined' ||
+                this.replacement[c] === '' ||
+                this.replacement[c] === ' ') {
+                result += c
+            } else {
+                result += this.replacement[c]
+            }
+        }
+        // Now we need to convert everything to base 10 so we can
+        // properly evaluate it
+        //if (this.base != 10)
+        {
+            let gathered = ''
+            let intermediate = result
+            result = ''
+            for (let c of intermediate) {
+                if (!isNaN(parseInt(c, this.base))) {
+                    // Throw away leading zeros so that it will parse
+                    if (gathered === '0') {
+                        gathered = c
+                    } else {
+                        gathered += c
+                    }
+                } else if (gathered != '') {
+                    result += parseInt(gathered, this.base) + c
+                    gathered = ''
+                } else {
+                    result += c
+                }
+            }
+            if (gathered != '') {
+                result += parseInt(gathered, this.base)
+            }
+        }
+        return result
+    }
+    /**
+     * Safe version of eval to compute a generated formula
+     * @param str Math formula to evaluate
+     */
+    compute(str: string): string {
+        try {
+            return Function('"use strict";return (' + str + ')')()
+        } catch (e) {
+            return str
+        }
+    }
+    /**
+     * Check a formula to make sure it is correct
+     * @param formula Formula to calculate
+     * @param expected Expected result from the formula
+     */
+    checkFormula(formula: string, expected: string): JQuery<HTMLElement> {
+        let eformula = this.subFormula(formula)
+        let eexpected = this.subFormula(expected)
+        let cformula = String(this.compute(eformula))
+        let cexpected = String(this.compute(eexpected))
 
+        if (cformula === cexpected) {
+            return $("<span>", { class: "match" }).text("Matches")
+        }
+        // They don't match so let's go through the digits and figure out which ones do and don't match.
+        // Note that one might be longer than the other but we have to compare from the right hand side
+        let width = Math.max(cformula.length, cexpected.length)
+        let result = $("<span>", { class: "mismatch" })
+        for (let pos = width - 1; pos >= 0; pos--) {
+            let cf = '?'
+            let ce = '?'
+            if (pos < cformula.length) {
+                cf = cformula.substr(cformula.length - pos - 1, 1)
+            }
+            if (pos < cexpected.length) {
+                ce = cexpected.substr(cexpected.length - pos - 1, 1)
+            }
+            if (ce === cf) {
+                $("<span>", { class: "g" }).text(cf).appendTo(result)
+            } else {
+                $("<span>", { class: "b" }).text(cf).appendTo(result)
+            }
+        }
+        $("<span>", { class: "formula" }).text("[" + formula + "]").appendTo(result)
+        // return $("<span>").text("Comparing " + formula + "=" + expected + " to " + eformula + "=" + eexpected + " as " + cformula + "=" + cexpected)
+        return result
+    }
+    /**
+     * 
+     * @param {string} reqstr String of items to apply
+     */
+    updateMatchDropdowns(reqstr: string): void {
+        var tool = this;
+        this.cacheReplacements();
+        $("[data-formula]").each(function () {
+            $(this).empty().append(tool.checkFormula($(this).attr('data-formula'), $(this).attr('data-expect')))
+        })
+    }
     /**
      * Fills in the frequency portion of the frequency table
      */
@@ -80,9 +181,37 @@ class CryptorithmSolver extends CipherSolver {
             this.setChar(c, repl);
         }
 
-
         this.holdupdates = false;
         this.updateMatchDropdowns('');
+    }
+
+    /**
+     * Change the encrypted character.  Note that when we change one, we have
+     * to swap it with the one which we are replacing
+     * @param {string} repchar Encrypted character to map against
+     * @param {string} newchar New char to assign as decoding for the character
+     */
+    setChar(repchar: string, newchar: string): void {
+        console.log("setChar data-char=" + repchar + ' newchar=' + newchar)
+        // See if we actually have to do anything at all
+        if (this.replacement[repchar] != newchar) {
+            // Ok we need to figure out what slot we are swapping with
+            let oldchar = this.replacement[repchar]
+            if (oldchar !== '' && oldchar !== ' ') {
+                let oldrep = ''
+                for (let i in this.replacement) {
+                    if (this.replacement[i] === newchar) {
+                        oldrep = i
+                        break
+                    }
+                }
+                super.setChar(oldrep, oldchar)
+
+                $("span[data-val='" + oldchar + "']").text(oldrep)
+            }
+            super.setChar(repchar, newchar)
+            $("span[data-val='" + newchar + "']").text(repchar)
+        }
     }
     /**
      * Builds the GUI for the solver
@@ -107,8 +236,8 @@ class CryptorithmSolver extends CipherSolver {
             indent: number
             content: string
             class: string
-            formula:string
-            expected:string
+            formula: string
+            expected: string
         }
         this.cryptorithmType = CryptorithmType.Automatic
         this.usedletters = {}
@@ -130,11 +259,11 @@ class CryptorithmSolver extends CipherSolver {
         let quotient: string = ""
         let formula: string = ""
         let expected: string = ""
-        let lastval:string = ""
-        let lastbase:string = ""
-        let root:string = ""
-        let rootbase:string = ""
-    
+        let lastval: string = ""
+        let lastbase: string = ""
+        let root: string = ""
+        let rootbase: string = ""
+
         for (let token of tokens) {
             console.log('Working on ' + token)
             switch (token) {
@@ -160,7 +289,7 @@ class CryptorithmSolver extends CipherSolver {
                         console.log('Found token:' + token + ' when already processing ' + prefix)
                     }
                     // Put in a blank line
-                    lineitems.push({ prefix: '', indent: 0, content: "", class: "", formula: "", expected:"" })
+                    lineitems.push({ prefix: '', indent: 0, content: "", class: "", formula: "", expected: "" })
                     prefix = ''
                     state = buildState.Initial
                     break
@@ -178,17 +307,17 @@ class CryptorithmSolver extends CipherSolver {
                     if (state !== buildState.Idle) {
                         console.log('Found token:' + token + ' when already processing ' + prefix)
                     }
-                    if (this.cryptorithmType === CryptorithmType.Division){
-                        let mult = quotient.substr(quotient.length-(indent+1),1)
-                        formula = mult+"*"+divisor
+                    if (this.cryptorithmType === CryptorithmType.Division) {
+                        let mult = quotient.substr(quotient.length - (indent + 1), 1)
+                        formula = mult + "*" + divisor
                         expected = token
                         lastbase = lastval
                     } else if (this.cryptorithmType === CryptorithmType.SquareRoot) {
-                        let part = root.substr(0,root.length-indent)
-                        let double = part.substr(0,part.length-1)
-                        let squared = part.substr(part.length-1,1)
+                        let part = root.substr(0, root.length - indent)
+                        let double = part.substr(0, part.length - 1)
+                        let squared = part.substr(part.length - 1, 1)
                         if (double !== '') {
-                            formula = "(("+double+"*20)+"+squared+")*"+squared 
+                            formula = "((" + double + "*20)+" + squared + ")*" + squared
                         } else {
                             formula = squared + "*" + squared
                         }
@@ -248,12 +377,12 @@ class CryptorithmSolver extends CipherSolver {
                     if (this.cryptorithmType === CryptorithmType.Division && state !== buildState.WantQuotient) {
                         formula = lastbase + "-" + lastval
                         if (indent > 0) {
-                            formula = "10*("+formula+")+"+dividend.substr(dividend.length-indent,1)
+                            formula = "10*(" + formula + ")+" + dividend.substr(dividend.length - indent, 1)
                         }
-                    } else if (this.cryptorithmType === CryptorithmType.SquareRoot){
-                        formula = lastbase + '-' + lastval 
+                    } else if (this.cryptorithmType === CryptorithmType.SquareRoot) {
+                        formula = lastbase + '-' + lastval
                         if (indent > 0) {
-                           formula = "("+formula + ")*100+" + rootbase.substr(rootbase.length-(indent*2),2)
+                            formula = "(" + formula + ")*100+" + rootbase.substr(rootbase.length - (indent * 2), 2)
                         }
                     }
                     if (this.cryptorithmType === CryptorithmType.CubeRoot ||
@@ -271,7 +400,7 @@ class CryptorithmSolver extends CipherSolver {
                     if (state === buildState.Idle) {
                         console.log('Missing prefix string to process token:' + token)
                     }
-                    let item: lineitem = { prefix: prefix, indent: indent, content: "", class: "", formula:formula, expected: token }
+                    let item: lineitem = { prefix: prefix, indent: indent, content: "", class: "", formula: formula, expected: token }
                     lastval = token
                     formula = ''
                     let isRoot: boolean = false
@@ -339,8 +468,8 @@ class CryptorithmSolver extends CipherSolver {
                                 let tempitem = lineitems.pop()
                                 lineitems.push(item)
                                 item = tempitem
-                                rootbase = item.content.replace(new RegExp(" ", "g"),"")
-                                lastval = rootbase.substr(0,2)
+                                rootbase = item.content.replace(new RegExp(" ", "g"), "")
+                                lastval = rootbase.substr(0, 2)
                             } else {
                                 // We want to start at the end and put an extra
                                 // space between every second character
@@ -390,7 +519,7 @@ class CryptorithmSolver extends CipherSolver {
                             if (item.prefix === '/') {
                                 item = lineitems.pop()
                                 divwidth = item.content.length
-                                dividend = item.content 
+                                dividend = item.content
                                 divisor = content
                                 item.content = content + ')' + item.content
                                 state = buildState.WantQuotient
@@ -403,7 +532,7 @@ class CryptorithmSolver extends CipherSolver {
                                     lineitems.push(item)
                                     item = tempitem
                                     indent = content.length - 1
-                                    lastval = dividend.substr(0,dividend.length-indent)
+                                    lastval = dividend.substr(0, dividend.length - indent)
                                 }
                                 state = buildState.Idle
                             }
@@ -495,11 +624,12 @@ class CryptorithmSolver extends CipherSolver {
                     td.appendTo(tr)
                 }
             }
-            let formula = ''
+            let content = $('')
             if (item.formula !== '') {
-                formula += "["+item.formula+"="+item.expected+"]"
+                content = $("<span>", { class: "formula", 'data-formula': item.formula, 'data-expect': item.expected })
             }
-            $("<td>", { class: "solv" }).text(formula).appendTo(tr)
+
+            $("<td>", { class: "solv" }).append(content).appendTo(tr)
             tr.appendTo(tbody);
         }
 
@@ -508,25 +638,42 @@ class CryptorithmSolver extends CipherSolver {
         return table
     }
     /** 
-     * Creates an HTML table to display the frequency of charactersF
+     * Creates an HTML table to display the mapping table
      * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
     createFreqEditTable(): JQuery<HTMLElement> {
-
         if (this.base === undefined || this.base < 1) {
             return null
         }
-        let table3 = $("<table>", { class: "tfreq" })
-        let tbody3 = $("<tbody>")
+        let table = $("<table>", { class: "tfreq" })
+        let tbody = $("<tbody>")
         let thead = $("<thead>")
 
         let tr = $("<tr>")
+
+        let a0x = $("<div>", {class: "sol"})
+        $("<span>", {class:"h"}).text("0-"+(this.base-1).toString(36)+":").appendTo(a0x)
+        let a10 = $("<div>", {class: "sol"})
+        $("<span>", {class:"h"}).text("1-0:").appendTo(a10)
+        let ax0 = $("<div>", {class: "sol"})
+        $("<span>", {class:"h"}).text((this.base-1).toString(36)+"-0:").appendTo(ax0)
+        let a01 = $("<div>", {class: "sol"})
+        $("<span>", {class:"h"}).text("0-1:").appendTo(a01)
+
         $("<td>", { colspan: 2 }).text("Base " + String(this.base)).appendTo(tr)
         for (let index = 0; index < this.base; index++) {
             $("<th>").text(index.toString(36)).appendTo(tr)
+
+            $("<span>",{'data-val':index.toString(36)}).text("?").appendTo(a0x)
+            let val = (index+1)%this.base 
+            $("<span>",{'data-val':val.toString(36)}).text("?").appendTo(a10)
+            val = (this.base-index)%this.base
+            $("<span>",{'data-val':val.toString(36)}).text("?").appendTo(ax0)
+            val = (val+1)%this.base
+            $("<span>",{'data-val':val.toString(36)}).text("?").appendTo(a01)
         }
         tr.appendTo(thead)
-        thead.appendTo(table3)
+        thead.appendTo(table)
         let pos = 0
 
         // Now we want to build the solving table
@@ -539,11 +686,36 @@ class CryptorithmSolver extends CipherSolver {
             this.makeFreqEditField(c).appendTo(td)
             td.appendTo(tr)
             for (let index = 0; index < this.base; index++) {
-                $("<td>").text("x").addClass("rtoggle").appendTo(tr)
+                $("<td>", { id: c + String(index), 'data-val': 0 }).addClass("rtoggle rtoggle-0").appendTo(tr)
             }
-            tr.appendTo(tbody3)
+            tr.appendTo(tbody)
         }
-        tbody3.appendTo(table3)
-        return table3
+        tbody.appendTo(table)
+        let topdiv = $("<div>")
+        let solsdiv = $("<div>", {class:"sols"})
+        a0x.appendTo(solsdiv)
+        a10.appendTo(solsdiv)
+        ax0.appendTo(solsdiv)
+        a01.appendTo(solsdiv)
+        solsdiv.appendTo(topdiv)
+        table.appendTo(topdiv)
+        return topdiv
+    }
+    /**
+     * 
+     */
+    attachHandlers(): void {
+        super.attachHandlers()
+        let tool = this
+        $(".rtoggle").click(
+            function () {
+                let id = $(this).attr("id")
+                let sel = $(this).attr("data-val")
+                $(this).removeClass("rtoggle-" + sel)
+                sel = String((Number(sel) + 1) % 3)
+                $(this).addClass("rtoggle-" + sel).attr("data-val", sel)
+                console.log('Changing ' + id + " to " + sel)
+            }
+        )
     }
 }

@@ -293,3 +293,45 @@ input[type="radio"] {
     margin-bottom: 0pt;
     line-height: 100%;
 }
+
+.mismatch {
+    font-weight: normal
+}
+.mismatch .b {
+    font-weight: bold;
+    color: darkred;
+}
+.mismatch .g {
+    color: green;
+}
+.mismatch .formula {
+    margin-left: 10px;
+    font-style:italic;
+    color: darkslategray;
+    background-color: lightyellow;
+}
+.match {
+    font-weight: bold;
+    color: green;
+}
+
+.rtoggle-0 {
+    background-color: transparent;
+}
+.rtoggle-1 {
+    background-color: grey;
+}
+.rtoggle-2 {
+    background-color: black;
+}
+
+div.sols {
+    margin-bottom: 10px;
+}
+div.sols .h {
+    font-weight: bold;
+    margin-right:10px;
+}
+div.sols .sol {
+    font-family: 'Courier New', Courier, monospace;
+}

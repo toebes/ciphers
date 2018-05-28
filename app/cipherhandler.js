@@ -382,7 +382,7 @@ var CipherHandler = /** @class */ (function () {
      * @param {string} newchar New char to assign as decoding for the character
      */
     CipherHandler.prototype.setChar = function (repchar, newchar) {
-        console.log("setChar data-char=" + repchar + ' newchar=' + newchar);
+        console.log("handler setChar data-char=" + repchar + ' newchar=' + newchar);
         this.replacement[repchar] = newchar;
         $("input[data-char='" + repchar + "']").val(newchar);
         if (newchar === '') {

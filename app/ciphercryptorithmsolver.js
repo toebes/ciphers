@@ -68,6 +68,115 @@ var CryptorithmSolver = /** @class */ (function (_super) {
         return null;
     };
     /**
+     * Substitutes all the current mappings in a string to evaluate
+     * @param str String to replace with math values
+     */
+    CryptorithmSolver.prototype.subFormula = function (str) {
+        var result = '';
+        for (var _i = 0, str_1 = str; _i < str_1.length; _i++) {
+            var c = str_1[_i];
+            if (typeof this.replacement[c] === 'undefined' ||
+                this.replacement[c] === '' ||
+                this.replacement[c] === ' ') {
+                result += c;
+            }
+            else {
+                result += this.replacement[c];
+            }
+        }
+        // Now we need to convert everything to base 10 so we can
+        // properly evaluate it
+        //if (this.base != 10)
+        {
+            var gathered = '';
+            var intermediate = result;
+            result = '';
+            for (var _a = 0, intermediate_1 = intermediate; _a < intermediate_1.length; _a++) {
+                var c = intermediate_1[_a];
+                if (!isNaN(parseInt(c, this.base))) {
+                    // Throw away leading zeros so that it will parse
+                    if (gathered === '0') {
+                        gathered = c;
+                    }
+                    else {
+                        gathered += c;
+                    }
+                }
+                else if (gathered != '') {
+                    result += parseInt(gathered, this.base) + c;
+                    gathered = '';
+                }
+                else {
+                    result += c;
+                }
+            }
+            if (gathered != '') {
+                result += parseInt(gathered, this.base);
+            }
+        }
+        return result;
+    };
+    /**
+     * Safe version of eval to compute a generated formula
+     * @param str Math formula to evaluate
+     */
+    CryptorithmSolver.prototype.compute = function (str) {
+        try {
+            return Function('"use strict";return (' + str + ')')();
+        }
+        catch (e) {
+            return str;
+        }
+    };
+    /**
+     * Check a formula to make sure it is correct
+     * @param formula Formula to calculate
+     * @param expected Expected result from the formula
+     */
+    CryptorithmSolver.prototype.checkFormula = function (formula, expected) {
+        var eformula = this.subFormula(formula);
+        var eexpected = this.subFormula(expected);
+        var cformula = String(this.compute(eformula));
+        var cexpected = String(this.compute(eexpected));
+        if (cformula === cexpected) {
+            return $("<span>", { class: "match" }).text("Matches");
+        }
+        // They don't match so let's go through the digits and figure out which ones do and don't match.
+        // Note that one might be longer than the other but we have to compare from the right hand side
+        var width = Math.max(cformula.length, cexpected.length);
+        var result = $("<span>", { class: "mismatch" });
+        for (var pos = width - 1; pos >= 0; pos--) {
+            var cf = '?';
+            var ce = '?';
+            if (pos < cformula.length) {
+                cf = cformula.substr(cformula.length - pos - 1, 1);
+            }
+            if (pos < cexpected.length) {
+                ce = cexpected.substr(cexpected.length - pos - 1, 1);
+            }
+            if (ce === cf) {
+                $("<span>", { class: "g" }).text(cf).appendTo(result);
+            }
+            else {
+                $("<span>", { class: "b" }).text(cf).appendTo(result);
+            }
+        }
+        $("<span>", { class: "formula" }).text("[" + formula + "]").appendTo(result);
+        // return $("<span>").text("Comparing " + formula + "=" + expected + " to " + eformula + "=" + eexpected + " as " + cformula + "=" + cexpected)
+        return result;
+    };
+    /**
+     *
+     * @param {string} reqstr String of items to apply
+     */
+    CryptorithmSolver.prototype.updateMatchDropdowns = function (reqstr) {
+        var tool = this;
+        this.cacheReplacements();
+        $("[data-formula]").each(function () {
+            $(this).empty().append(tool.checkFormula($(this).attr('data-formula'), $(this).attr('data-expect')));
+        });
+    };
+    /**
      * Fills in the frequency portion of the frequency table
      */
     CryptorithmSolver.prototype.displayFreq = function () {
@@ -85,6 +194,33 @@ var CryptorithmSolver = /** @class */ (function (_super) {
         }
         this.holdupdates = false;
         this.updateMatchDropdowns('');
+    };
+    /**
+     * Change the encrypted character.  Note that when we change one, we have
+     * to swap it with the one which we are replacing
+     * @param {string} repchar Encrypted character to map against
+     * @param {string} newchar New char to assign as decoding for the character
+     */
+    CryptorithmSolver.prototype.setChar = function (repchar, newchar) {
+        console.log("setChar data-char=" + repchar + ' newchar=' + newchar);
+        // See if we actually have to do anything at all
+        if (this.replacement[repchar] != newchar) {
+            // Ok we need to figure out what slot we are swapping with
+            var oldchar = this.replacement[repchar];
+            if (oldchar !== '' && oldchar !== ' ') {
+                var oldrep = '';
+                for (var i in this.replacement) {
+                    if (this.replacement[i] === newchar) {
+                        oldrep = i;
+                        break;
+                    }
+                }
+                _super.prototype.setChar.call(this, oldrep, oldchar);
+                $("span[data-val='" + oldchar + "']").text(oldrep);
+            }
+            _super.prototype.setChar.call(this, repchar, newchar);
+            $("span[data-val='" + newchar + "']").text(repchar);
+        }
     };
     /**
      * Builds the GUI for the solver
@@ -496,34 +632,49 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     td.appendTo(tr);
                 }
             }
-            var formula_1 = '';
+            var content = $('');
             if (item.formula !== '') {
-                formula_1 += "[" + item.formula + "=" + item.expected + "]";
+                content = $("<span>", { class: "formula", 'data-formula': item.formula, 'data-expect': item.expected });
             }
-            $("<td>", { class: "solv" }).text(formula_1).appendTo(tr);
+            $("<td>", { class: "solv" }).append(content).appendTo(tr);
             tr.appendTo(tbody);
         }
         tbody.appendTo(table);
         return table;
     };
     /**
-     * Creates an HTML table to display the frequency of charactersF
+     * Creates an HTML table to display the mapping table
      * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
     CryptorithmSolver.prototype.createFreqEditTable = function () {
         if (this.base === undefined || this.base < 1) {
             return null;
         }
-        var table3 = $("<table>", { class: "tfreq" });
-        var tbody3 = $("<tbody>");
+        var table = $("<table>", { class: "tfreq" });
+        var tbody = $("<tbody>");
         var thead = $("<thead>");
         var tr = $("<tr>");
+        var a0x = $("<div>", { class: "sol" });
+        $("<span>", { class: "h" }).text("0-" + this.base.toString(36) + ":").appendTo(a0x);
+        var a10 = $("<div>", { class: "sol" });
+        $("<span>", { class: "h" }).text("1-0:").appendTo(a10);
+        var ax0 = $("<div>", { class: "sol" });
+        $("<span>", { class: "h" }).text(this.base.toString(36) + "-0:").appendTo(ax0);
+        var a01 = $("<div>", { class: "sol" });
+        $("<span>", { class: "h" }).text("0-1:").appendTo(a01);
         $("<td>", { colspan: 2 }).text("Base " + String(this.base)).appendTo(tr);
         for (var index = 0; index < this.base; index++) {
             $("<th>").text(index.toString(36)).appendTo(tr);
+            $("<span>", { 'data-val': index.toString(36) }).text("?").appendTo(a0x);
+            var val = (index + 1) % this.base;
+            $("<span>", { 'data-val': val.toString(36) }).text("?").appendTo(a10);
+            val = (this.base - index) % this.base;
+            $("<span>", { 'data-val': val.toString(36) }).text("?").appendTo(ax0);
+            val = (val + 1) % this.base;
+            $("<span>", { 'data-val': val.toString(36) }).text("?").appendTo(a01);
         }
         tr.appendTo(thead);
-        thead.appendTo(table3);
+        thead.appendTo(table);
         var pos = 0;
         // Now we want to build the solving table
         for (var c in this.usedletters) {
@@ -535,12 +686,35 @@ var CryptorithmSolver = /** @class */ (function (_super) {
             this.makeFreqEditField(c).appendTo(td);
             td.appendTo(tr_1);
             for (var index = 0; index < this.base; index++) {
-                $("<td>").text("x").addClass("rtoggle").appendTo(tr_1);
+                $("<td>", { id: c + String(index), 'data-val': 0 }).addClass("rtoggle rtoggle-0").appendTo(tr_1);
             }
-            tr_1.appendTo(tbody3);
+            tr_1.appendTo(tbody);
         }
-        tbody3.appendTo(table3);
-        return table3;
+        tbody.appendTo(table);
+        var topdiv = $("<div>");
+        var solsdiv = $("<div>", { class: "sols" });
+        a0x.appendTo(solsdiv);
+        a10.appendTo(solsdiv);
+        ax0.appendTo(solsdiv);
+        a01.appendTo(solsdiv);
+        solsdiv.appendTo(topdiv);
+        table.appendTo(topdiv);
+        return topdiv;
+    };
+    /**
+     *
+     */
+    CryptorithmSolver.prototype.attachHandlers = function () {
+        _super.prototype.attachHandlers.call(this);
+        var tool = this;
+        $(".rtoggle").click(function () {
+            var id = $(this).attr("id");
+            var sel = $(this).attr("data-val");
+            $(this).removeClass("rtoggle-" + sel);
+            sel = String((Number(sel) + 1) % 3);
+            $(this).addClass("rtoggle-" + sel).attr("data-val", sel);
+            console.log('Changing ' + id + " to " + sel);
+        });
     };
     return CryptorithmSolver;
 }(CipherSolver));

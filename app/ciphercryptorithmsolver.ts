@@ -667,7 +667,7 @@ class CryptorithmSolver extends CipherSolver {
             $("<span>",{'data-val':index.toString(36)}).text("?").appendTo(a0x)
             let val = (index+1)%this.base 
             $("<span>",{'data-val':val.toString(36)}).text("?").appendTo(a10)
-            val = (this.base-index)%this.base
+            val = (this.base-index-1)%this.base
             $("<span>",{'data-val':val.toString(36)}).text("?").appendTo(ax0)
             val = (val+1)%this.base
             $("<span>",{'data-val':val.toString(36)}).text("?").appendTo(a01)

@@ -1,12 +1,24 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-
 <head>
     <link rel="stylesheet" href="jquery-ui.min.css" />
     <link rel="stylesheet" href="styles.css" />
     <script type="text/javascript" src="jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="jquery-ui.min.js"></script>
-    <script type="text/javascript" src="ciphers.js"></script>
+    <script type="text/javascript" src="summernote-lite.js"></script>
+    <script type="text/javascript" src="app/cipherhandler.js"></script>
+    <script type="text/javascript" src="app/cipherencoder.js"></script>
+    <script type="text/javascript" src="app/cipheraffineencoder.js"></script>
+    <script type="text/javascript" src="app/ciphervigenereencoder.js"></script>
+    <script type="text/javascript" src="app/ciphersolver.js"></script>
+    <script type="text/javascript" src="app/ciphercheckerboardsolver.js"></script>
+    <script type="text/javascript" src="app/ciphergromarksolver.js"></script>
+    <script type="text/javascript" src="app/ciphermorsesolver.js"></script>
+    <script type="text/javascript" src="app/cipherfractionatedmorsesolver.js"></script>
+    <script type="text/javascript" src="app/ciphermorbitsolver.js"></script>
+    <script type="text/javascript" src="app/cipherxenocryptsolver.js"></script>
+    <script type="text/javascript" src="app/ciphers.js"></script>
+    <link rel="stylesheet" href="summernote-lite.css">
     <script type="text/x-mathjax-config">
         MathJax.Hub.Config({
           tex2jax: {
@@ -271,7 +283,7 @@
             solution += findingB;
             $("#solve_equations").html(solution);
 
-            var l = charset.substr(CipherTool.affineCheck['p'], 1) + charset.substr(CipherTool.affineCheck['q'],1);
+            var l = charset.substr(cipherTool.affineCheck['p'], 1) + charset.substr(cipherTool.affineCheck['q'],1);
             $("#part1").html(showOutput(theMessage, l));
             if (!completeSolution) {
 
@@ -335,10 +347,10 @@
             setEncodingTable(parseInt($("#a").val()), parseInt($("#b").val()));
             //$("#solution").innerHTML = printSolution(msg, 'I', 'F', 'F', 'G');
             printSolution(msg, 
-            charset.substr(CipherTool.affineCheck['p'], 1), 
-            charset.substr(CipherTool.affineCheck['r'], 1), 
-            charset.substr(CipherTool.affineCheck['q'], 1), 
-            charset.substr(CipherTool.affineCheck['s'], 1));
+            charset.substr(cipherTool.affineCheck['p'], 1), 
+            charset.substr(cipherTool.affineCheck['r'], 1), 
+            charset.substr(cipherTool.affineCheck['q'], 1), 
+            charset.substr(cipherTool.affineCheck['s'], 1));
             //$("#solution").html(printSolution(msg, 'I', 'F', 'F', 'G'));
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,'solve_equations']);
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,'ETAOIN']);

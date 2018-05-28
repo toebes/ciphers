@@ -38,13 +38,13 @@ $(function () {
         cipherTool.setCipherType($(this).attr('id'));
     });
     // Handler for .ready() called.
-    $('#load').button().click(function () {
+    $('#load').button().unbind('click').click(function () {
         cipherTool.load();
     });
-    $('#reset').button().click(function () {
+    $('#reset').button().unbind('click').click(function () {
         cipherTool.reset();
     });
-    //    $('#encrypt').button().click(function () {
+    //    $('#encrypt').button().unbind('click').click(function () {
     //        cipherTool.encrypt()
     //    });
     // Morbit Solving Helper

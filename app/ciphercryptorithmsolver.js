@@ -122,7 +122,8 @@ var CryptorithmSolver = /** @class */ (function (_super) {
      */
     CryptorithmSolver.prototype.compute = function (str) {
         try {
-            return Function('"use strict";return (' + str + ')')();
+            var val = Function('"use strict";return (' + str + ')')();
+            return val.toString(this.base);
         }
         catch (e) {
             return str;
@@ -136,8 +137,8 @@ var CryptorithmSolver = /** @class */ (function (_super) {
     CryptorithmSolver.prototype.checkFormula = function (formula, expected) {
         var eformula = this.subFormula(formula);
         var eexpected = this.subFormula(expected);
-        var cformula = String(this.compute(eformula));
-        var cexpected = String(this.compute(eexpected));
+        var cformula = this.compute(eformula);
+        var cexpected = this.compute(eexpected);
         if (cformula === cexpected) {
             return $("<span>", { class: "match" }).text("Matches");
         }
@@ -243,6 +244,8 @@ var CryptorithmSolver = /** @class */ (function (_super) {
         })(buildState || (buildState = {}));
         this.cryptorithmType = CryptorithmType.Automatic;
         this.usedletters = {};
+        this.replacement = [];
+        this.base = 0;
         var lineitems = [];
         str = str.replace(new RegExp("[\r\n ]+", "g"), " ");
         // Apparently there are two forms of dashes...
@@ -318,7 +321,6 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                         case CryptorithmType.Division:
                             var mult = quotient.substr(quotient.length - (indent + 1), 1);
                             formula = mult + "*" + divisor;
-                            expected = token;
                             lastbase = lastval;
                             break;
                         case CryptorithmType.SquareRoot:
@@ -397,18 +399,17 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                                 formula = lastbase + "-" + lastval;
                                 if (indent > 0) {
                                     formula = "10*(" + formula + ")+" + dividend.substr(dividend.length - indent, 1);
+                                    indent--;
                                 }
                             }
+                            break;
                         case CryptorithmType.SquareRoot:
                         case CryptorithmType.CubeRoot:
                             formula = lastbase + '-' + lastval;
                             if (indent > 0) {
-                                formula = "(" + formula + ")*100+" + rootbase.substr(rootbase.length - (indent * 2), 2);
-                                indent--;
-                            }
-                            break;
-                        case CryptorithmType.Division:
-                            if (indent > 0) {
+                                // We need to make sure that the last two digits 
+                                expected = rootbase.substr(rootbase.length - (indent * 2), 2);
+                                formula = "(" + formula + ")*100+" + expected;
                                 indent--;
                             }
                             break;
@@ -507,6 +508,14 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                                 lastval = rootbase.substr(0, 2);
                             }
                             else {
+                                if (indent > 0 && expected != '') {
+                                    if (content.substr(content.length - 2, 2) != expected) {
+                                        // Special case where we had a zero and have to skip one more
+                                        padding = padding.substr(0, padding.length - numwidth);
+                                        item.formula = "(" + item.formula + ")*100+" + rootbase.substr(rootbase.length - (indent * 2), 2);
+                                        indent--;
+                                    }
+                                }
                                 // We want to start at the end and put an extra
                                 // space between every second character
                                 var temp = ' ' + content + padding;
@@ -598,13 +607,14 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                         maxwidth = item.content.length;
                     }
                     prefix = '';
+                    expected = '';
                     break;
             }
         }
         this.base = Object.keys(this.usedletters).length;
         var charset = "";
         for (var index = 0; index < this.base; index++) {
-            var c = index.toString(36);
+            var c = index.toString(36).toUpperCase();
             charset += c;
         }
         this.setCharset(charset);
@@ -688,23 +698,23 @@ var CryptorithmSolver = /** @class */ (function (_super) {
         var thead = $("<thead>");
         var tr = $("<tr>");
         var a0x = $("<div>", { class: "sol" });
-        $("<span>", { class: "h" }).text("0-" + (this.base - 1).toString(36) + ":").appendTo(a0x);
+        $("<span>", { class: "h" }).text("0-" + (this.base - 1).toString(36).toUpperCase() + ":").appendTo(a0x);
         var a10 = $("<div>", { class: "sol" });
         $("<span>", { class: "h" }).text("1-0:").appendTo(a10);
         var ax0 = $("<div>", { class: "sol" });
-        $("<span>", { class: "h" }).text((this.base - 1).toString(36) + "-0:").appendTo(ax0);
+        $("<span>", { class: "h" }).text((this.base - 1).toString(36).toUpperCase() + "-0:").appendTo(ax0);
         var a01 = $("<div>", { class: "sol" });
         $("<span>", { class: "h" }).text("0-1:").appendTo(a01);
         $("<td>", { colspan: 2 }).text("Base " + String(this.base)).appendTo(tr);
         for (var index = 0; index < this.base; index++) {
-            $("<th>").text(index.toString(36)).appendTo(tr);
-            $("<span>", { 'data-val': index.toString(36) }).text("?").appendTo(a0x);
+            $("<th>").text(index.toString(36).toUpperCase()).appendTo(tr);
+            $("<span>", { 'data-val': index.toString(36).toUpperCase() }).text("?").appendTo(a0x);
             var val = (index + 1) % this.base;
-            $("<span>", { 'data-val': val.toString(36) }).text("?").appendTo(a10);
+            $("<span>", { 'data-val': val.toString(36).toUpperCase() }).text("?").appendTo(a10);
             val = (this.base - index - 1) % this.base;
-            $("<span>", { 'data-val': val.toString(36) }).text("?").appendTo(ax0);
+            $("<span>", { 'data-val': val.toString(36).toUpperCase() }).text("?").appendTo(ax0);
             val = (val + 1) % this.base;
-            $("<span>", { 'data-val': val.toString(36) }).text("?").appendTo(a01);
+            $("<span>", { 'data-val': val.toString(36).toUpperCase() }).text("?").appendTo(a01);
         }
         tr.appendTo(thead);
         thead.appendTo(table);
@@ -740,11 +750,11 @@ var CryptorithmSolver = /** @class */ (function (_super) {
     CryptorithmSolver.prototype.attachHandlers = function () {
         _super.prototype.attachHandlers.call(this);
         var tool = this;
-        $(".rtoggle").click(function () {
+        $(".rtoggle").unbind('click').click(function () {
             var id = $(this).attr("id");
             var sel = $(this).attr("data-val");
             $(this).removeClass("rtoggle-" + sel);
-            sel = String((Number(sel) + 1) % 3);
+            sel = String((Number(sel) + 1) % 4);
             $(this).addClass("rtoggle-" + sel).attr("data-val", sel);
             console.log('Changing ' + id + " to " + sel);
         });

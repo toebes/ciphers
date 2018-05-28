@@ -16,15 +16,6 @@ class CryptorithmSolver extends CipherSolver {
     base: number
     cryptorithmType: CryptorithmType = CryptorithmType.Automatic
     /**
-     * The base value of the operation (addition, subtraction, multiplication)
-     * or the root value
-     */
-    baseValue: string
-    /**
-     * The representative string of the root yy (i.e. xxx gives root yy)
-     */
-    rootValue: string
-    /**
      * Loads new data into a solver, preserving all solving matches made
      */
     load(): void {
@@ -113,7 +104,8 @@ class CryptorithmSolver extends CipherSolver {
      */
     compute(str: string): string {
         try {
-            return Function('"use strict";return (' + str + ')')()
+            let val = Function('"use strict";return (' + str + ')')()
+            return val.toString(this.base)
         } catch (e) {
             return str
         }
@@ -126,8 +118,8 @@ class CryptorithmSolver extends CipherSolver {
     checkFormula(formula: string, expected: string): JQuery<HTMLElement> {
         let eformula = this.subFormula(formula)
         let eexpected = this.subFormula(expected)
-        let cformula = String(this.compute(eformula))
-        let cexpected = String(this.compute(eexpected))
+        let cformula = this.compute(eformula)
+        let cexpected = this.compute(eexpected)
 
         if (cformula === cexpected) {
             return $("<span>", { class: "match" }).text("Matches")
@@ -241,6 +233,8 @@ class CryptorithmSolver extends CipherSolver {
         }
         this.cryptorithmType = CryptorithmType.Automatic
         this.usedletters = {}
+        this.replacement = []
+        this.base = 0
         let lineitems: Array<lineitem> = []
         str = str.replace(new RegExp("[\r\n ]+", "g"), " ")
         // Apparently there are two forms of dashes...
@@ -263,9 +257,9 @@ class CryptorithmSolver extends CipherSolver {
         let lastbase: string = ""
         let root: string = ""
         let rootbase: string = ""
-        let multiplicand:string = ""
-        let multiplier:string = ""
-        let multval:string = ""
+        let multiplicand: string = ""
+        let multiplier: string = ""
+        let multval: string = ""
 
         for (let token of tokens) {
             switch (token) {
@@ -314,13 +308,12 @@ class CryptorithmSolver extends CipherSolver {
                             this.cryptorithmType = CryptorithmType.Subtraction
                         case CryptorithmType.Subtraction:
                         case CryptorithmType.Addition:
-                            lastbase = lastval+"-"
+                            lastbase = lastval + "-"
                             break
 
                         case CryptorithmType.Division:
                             let mult = quotient.substr(quotient.length - (indent + 1), 1)
                             formula = mult + "*" + divisor
-                            expected = token
                             lastbase = lastval
                             break
 
@@ -363,17 +356,17 @@ class CryptorithmSolver extends CipherSolver {
                     }
                     if (this.cryptorithmType === CryptorithmType.Addition ||
                         this.cryptorithmType === CryptorithmType.Subtraction) {
-                        lastbase = lastval+"+"
+                        lastbase = lastval + "+"
                     } else if (this.cryptorithmType === CryptorithmType.Multiplication) {
                         if (lastbase === '') {
                             multval = "10"
-                            lastbase =lastval
+                            lastbase = lastval
                         } else {
-                            lastbase = lastbase + "+("+multval+"*"+lastval+")"
+                            lastbase = lastbase + "+(" + multval + "*" + lastval + ")"
                             multval = multval + "0"
                         }
                         indent++
-                        formula = multiplicand + "*" + multiplier.substr(multiplier.length-indent-1,1)
+                        formula = multiplicand + "*" + multiplier.substr(multiplier.length - indent - 1, 1)
                     }
                     break
 
@@ -401,27 +394,26 @@ class CryptorithmSolver extends CipherSolver {
                                 formula = lastbase + "-" + lastval
                                 if (indent > 0) {
                                     formula = "10*(" + formula + ")+" + dividend.substr(dividend.length - indent, 1)
+                                    indent--
                                 }
                             }
+                            break
                         case CryptorithmType.SquareRoot:
                         case CryptorithmType.CubeRoot:
                             formula = lastbase + '-' + lastval
                             if (indent > 0) {
-                                formula = "(" + formula + ")*100+" + rootbase.substr(rootbase.length - (indent * 2), 2)
-                                indent--
-                            }
-                            break
-                        case CryptorithmType.Division:
-                            if (indent > 0) {
+                                // We need to make sure that the last two digits 
+                                expected = rootbase.substr(rootbase.length - (indent * 2), 2)
+                                formula = "(" + formula + ")*100+" + expected
                                 indent--
                             }
                             break
                         case CryptorithmType.Multiplication:
                             if (indent === 0) {
-                                formula = multiplicand + "*" + multiplier.substr(multiplier.length-1,1)
+                                formula = multiplicand + "*" + multiplier.substr(multiplier.length - 1, 1)
                                 lastbase = ''
                             } else {
-                                formula = lastbase + "+("+multval+"*"+lastval+")"
+                                formula = lastbase + "+(" + multval + "*" + lastval + ")"
                             }
                             indent = 0
                             break
@@ -507,6 +499,14 @@ class CryptorithmSolver extends CipherSolver {
                                 rootbase = item.content.replace(new RegExp(" ", "g"), "")
                                 lastval = rootbase.substr(0, 2)
                             } else {
+                                if (indent > 0 && expected != '') {
+                                    if (content.substr(content.length - 2, 2) != expected) {
+                                        // Special case where we had a zero and have to skip one more
+                                        padding = padding.substr(0, padding.length - numwidth)
+                                        item.formula = "(" + item.formula + ")*100+" + rootbase.substr(rootbase.length -(indent * 2), 2)
+                                        indent--
+                                    }
+                                }
                                 // We want to start at the end and put an extra
                                 // space between every second character
                                 let temp = ' ' + content + padding
@@ -522,8 +522,8 @@ class CryptorithmSolver extends CipherSolver {
                             }
                             state = buildState.Idle
                             break
-                        
-                        case CryptorithmType.CubeRoot: 
+
+                        case CryptorithmType.CubeRoot:
                             if (item.prefix === '^') {
                                 // Put three spaces between every character
                                 item.prefix = ''
@@ -549,8 +549,8 @@ class CryptorithmSolver extends CipherSolver {
                             }
                             state = buildState.Idle
                             break
-                        
-                        case CryptorithmType.Division: 
+
+                        case CryptorithmType.Division:
                             // When dealing with the divisor, we put it to the left of the dividend
                             if (item.prefix === '/') {
                                 item = lineitems.pop()
@@ -573,16 +573,16 @@ class CryptorithmSolver extends CipherSolver {
                                 state = buildState.Idle
                             }
                             break
-                        
+
                         case CryptorithmType.Multiplication:
                             if (state === buildState.WantMult) {
                                 multiplier = content
                             }
-                            item.content = content+padding
+                            item.content = content + padding
                             state = buildState.WantMultAdds
                             break
 
-                        default: 
+                        default:
                             // No need to do anything, we are happy with the
                             // content and the padding
                             state = buildState.Idle
@@ -599,6 +599,7 @@ class CryptorithmSolver extends CipherSolver {
                         maxwidth = item.content.length
                     }
                     prefix = ''
+                    expected = ''
                     break
             }
 
@@ -606,7 +607,7 @@ class CryptorithmSolver extends CipherSolver {
         this.base = Object.keys(this.usedletters).length
         let charset = ""
         for (let index = 0; index < this.base; index++) {
-            let c = index.toString(36)
+            let c = index.toString(36).toUpperCase()
             charset += c
         }
         this.setCharset(charset)
@@ -693,25 +694,25 @@ class CryptorithmSolver extends CipherSolver {
         let tr = $("<tr>")
 
         let a0x = $("<div>", { class: "sol" })
-        $("<span>", { class: "h" }).text("0-" + (this.base - 1).toString(36) + ":").appendTo(a0x)
+        $("<span>", { class: "h" }).text("0-" + (this.base - 1).toString(36).toUpperCase() + ":").appendTo(a0x)
         let a10 = $("<div>", { class: "sol" })
         $("<span>", { class: "h" }).text("1-0:").appendTo(a10)
         let ax0 = $("<div>", { class: "sol" })
-        $("<span>", { class: "h" }).text((this.base - 1).toString(36) + "-0:").appendTo(ax0)
+        $("<span>", { class: "h" }).text((this.base - 1).toString(36).toUpperCase() + "-0:").appendTo(ax0)
         let a01 = $("<div>", { class: "sol" })
         $("<span>", { class: "h" }).text("0-1:").appendTo(a01)
 
         $("<td>", { colspan: 2 }).text("Base " + String(this.base)).appendTo(tr)
         for (let index = 0; index < this.base; index++) {
-            $("<th>").text(index.toString(36)).appendTo(tr)
+            $("<th>").text(index.toString(36).toUpperCase()).appendTo(tr)
 
-            $("<span>", { 'data-val': index.toString(36) }).text("?").appendTo(a0x)
+            $("<span>", { 'data-val': index.toString(36).toUpperCase() }).text("?").appendTo(a0x)
             let val = (index + 1) % this.base
-            $("<span>", { 'data-val': val.toString(36) }).text("?").appendTo(a10)
+            $("<span>", { 'data-val': val.toString(36).toUpperCase() }).text("?").appendTo(a10)
             val = (this.base - index - 1) % this.base
-            $("<span>", { 'data-val': val.toString(36) }).text("?").appendTo(ax0)
+            $("<span>", { 'data-val': val.toString(36).toUpperCase() }).text("?").appendTo(ax0)
             val = (val + 1) % this.base
-            $("<span>", { 'data-val': val.toString(36) }).text("?").appendTo(a01)
+            $("<span>", { 'data-val': val.toString(36).toUpperCase() }).text("?").appendTo(a01)
         }
         tr.appendTo(thead)
         thead.appendTo(table)
@@ -748,12 +749,12 @@ class CryptorithmSolver extends CipherSolver {
     attachHandlers(): void {
         super.attachHandlers()
         let tool = this
-        $(".rtoggle").click(
+        $(".rtoggle").unbind('click').click(
             function () {
                 let id = $(this).attr("id")
                 let sel = $(this).attr("data-val")
                 $(this).removeClass("rtoggle-" + sel)
-                sel = String((Number(sel) + 1) % 3)
+                sel = String((Number(sel) + 1) % 4)
                 $(this).addClass("rtoggle-" + sel).attr("data-val", sel)
                 console.log('Changing ' + id + " to " + sel)
             }

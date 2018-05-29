@@ -163,15 +163,16 @@ var CipherMorseSolver = /** @class */ (function (_super) {
             '-OOOO-': '-',
             '-O--O-': '()'
         };
-        /** @type {Object.<string, bool>}
-         *
-         */
-        _this.morseLocked = {};
         return _this;
     }
+    /**
+     * Marks a symbol as locked and prevents it from being changed in the interactive solver
+     * @param c Symbol to be marked as locked/unlocked
+     * @param lock new state for the symbol
+     */
     CipherMorseSolver.prototype.updateCheck = function (c, lock) {
-        if (this.morseLocked[c] != lock) {
-            this.morseLocked[c] = lock;
+        if (this.locked[c] != lock) {
+            this.locked[c] = lock;
             this.UpdateFreqEditTable();
             this.load();
         }
@@ -189,7 +190,7 @@ var CipherMorseSolver = /** @class */ (function (_super) {
     };
     CipherMorseSolver.prototype.reset = function () {
         _super.prototype.reset.call(this);
-        this.morseLocked = {};
+        this.locked = {};
     };
     /**
      * When building a Morbit or Fractionated Morse, we want to create the table with three rows.
@@ -281,7 +282,7 @@ var CipherMorseSolver = /** @class */ (function (_super) {
             c = intext.substr(i, 1);
             var mpos, td;
             td = $('<td>', { colspan: cipherwidth });
-            if (this.morseLocked[c]) {
+            if (this.locked[c]) {
                 td.addClass("locked");
             }
             td.text(c);
@@ -422,7 +423,7 @@ var CipherMorseSolver = /** @class */ (function (_super) {
             td.append(this.makeFreqEditField(c));
             replrow.append(td);
             td = $('<td/>');
-            var ischecked = this.morseLocked[c];
+            var ischecked = this.locked[c];
             $('<input />', {
                 type: 'checkbox',
                 class: 'cb',

@@ -2,6 +2,12 @@
 
 class CipherSolver extends CipherHandler {
     /**
+     * Indicates that a 
+     * @type {Object.<string, bool>}
+     * 
+     */
+    locked: { [key: string]: boolean } = {}
+    /**
      * Initializes the encoder/decoder. 
      * We don't want to show the reverse replacement since we are doing an encode
      * @param {string} lang Language to select (EN is the default)
@@ -37,6 +43,7 @@ class CipherSolver extends CipherHandler {
      * Loads new data into a solver, resetting any solving matches made
      */
     reset(): void {
+        this.locked = {}
         for (var c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
                 $('#m' + c).val('');

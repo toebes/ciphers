@@ -12,7 +12,14 @@ var __extends = (this && this.__extends) || (function () {
 var CipherSolver = /** @class */ (function (_super) {
     __extends(CipherSolver, _super);
     function CipherSolver() {
-        return _super !== null && _super.apply(this, arguments) || this;
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        /**
+         * Indicates that a
+         * @type {Object.<string, bool>}
+         *
+         */
+        _this.locked = {};
+        return _this;
     }
     /**
      * Initializes the encoder/decoder.
@@ -49,6 +56,7 @@ var CipherSolver = /** @class */ (function (_super) {
      * Loads new data into a solver, resetting any solving matches made
      */
     CipherSolver.prototype.reset = function () {
+        this.locked = {};
         for (var c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
                 $('#m' + c).val('');

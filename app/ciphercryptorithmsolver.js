@@ -25,6 +25,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
     function CryptorithmSolver() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.usedletters = {};
+        _this.boxState = {};
         _this.cryptorithmType = CryptorithmType.Automatic;
         return _this;
     }
@@ -117,13 +118,20 @@ var CryptorithmSolver = /** @class */ (function (_super) {
         return result;
     };
     /**
+     * Formats a number in the current base and returns a normalized version of it
+     * @param val Number in current base
+     */
+    CryptorithmSolver.prototype.basedStr = function (val) {
+        return val.toString(this.base).toUpperCase();
+    };
+    /**
      * Safe version of eval to compute a generated formula
      * @param str Math formula to evaluate
      */
     CryptorithmSolver.prototype.compute = function (str) {
         try {
             var val = Function('"use strict";return (' + str + ')')();
-            return val.toString(this.base);
+            return this.basedStr(val);
         }
         catch (e) {
             return str;
@@ -216,6 +224,9 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                         break;
                     }
                 }
+                if (this.locked[oldrep]) {
+                    return;
+                }
                 _super.prototype.setChar.call(this, oldrep, oldchar);
                 $("span[data-val='" + oldchar + "']").text(oldrep);
             }
@@ -244,6 +255,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
         })(buildState || (buildState = {}));
         this.cryptorithmType = CryptorithmType.Automatic;
         this.usedletters = {};
+        this.boxState = {};
         this.replacement = [];
         this.base = 0;
         var lineitems = [];
@@ -324,14 +336,28 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                             lastbase = lastval;
                             break;
                         case CryptorithmType.SquareRoot:
-                            var part = root.substr(0, root.length - indent);
-                            var double = part.substr(0, part.length - 1);
-                            var squared = part.substr(part.length - 1, 1);
+                            var squarepart = root.substr(0, root.length - indent);
+                            var double = squarepart.substr(0, squarepart.length - 1);
+                            var squared = squarepart.substr(squarepart.length - 1, 1);
                             if (double !== '') {
                                 formula = "((" + double + "*20)+" + squared + ")*" + squared;
                             }
                             else {
                                 formula = squared + "*" + squared;
+                            }
+                            lastbase = lastval;
+                            break;
+                        case CryptorithmType.CubeRoot:
+                            var cubepart = root.substr(0, root.length - indent);
+                            var found = cubepart.substr(0, cubepart.length - 1);
+                            var newpart = cubepart.substr(cubepart.length - 1, 1);
+                            if (found !== '') {
+                                formula = "((300*" + found + "*" + found + ")+" +
+                                    "(30*" + found + "*" + newpart + ")+" +
+                                    "(" + newpart + "*" + newpart + "))*" + newpart;
+                            }
+                            else {
+                                formula = newpart + "*" + newpart + "*" + newpart;
                             }
                             lastbase = lastval;
                             break;
@@ -404,12 +430,20 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                             }
                             break;
                         case CryptorithmType.SquareRoot:
+                            formula = lastbase + '-' + lastval;
+                            if (indent > 0) {
+                                // We need to make sure that the last two digits 
+                                expected = rootbase.substr(rootbase.length - (indent * numwidth), numwidth);
+                                formula = "(" + formula + ")*100+" + expected;
+                                indent--;
+                            }
+                            break;
                         case CryptorithmType.CubeRoot:
                             formula = lastbase + '-' + lastval;
                             if (indent > 0) {
                                 // We need to make sure that the last two digits 
-                                expected = rootbase.substr(rootbase.length - (indent * 2), 2);
-                                formula = "(" + formula + ")*100+" + expected;
+                                expected = rootbase.substr(rootbase.length - (indent * numwidth), numwidth);
+                                formula = "(" + formula + ")*1000+" + expected;
                                 indent--;
                             }
                             break;
@@ -541,7 +575,8 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                                 var tempitem = lineitems.pop();
                                 lineitems.push(item);
                                 item = tempitem;
-                                rootbase = item.content;
+                                rootbase = item.content.replace(new RegExp(" ", "g"), "");
+                                lastval = rootbase.substr(0, 2);
                             }
                             else {
                                 // We want to start at the end and put an extra
@@ -614,7 +649,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
         this.base = Object.keys(this.usedletters).length;
         var charset = "";
         for (var index = 0; index < this.base; index++) {
-            var c = index.toString(36).toUpperCase();
+            var c = this.basedStr(index);
             charset += c;
         }
         this.setCharset(charset);
@@ -698,23 +733,23 @@ var CryptorithmSolver = /** @class */ (function (_super) {
         var thead = $("<thead>");
         var tr = $("<tr>");
         var a0x = $("<div>", { class: "sol" });
-        $("<span>", { class: "h" }).text("0-" + (this.base - 1).toString(36).toUpperCase() + ":").appendTo(a0x);
+        $("<span>", { class: "h" }).text("0-" + this.basedStr(this.base - 1) + ":").appendTo(a0x);
         var a10 = $("<div>", { class: "sol" });
         $("<span>", { class: "h" }).text("1-0:").appendTo(a10);
         var ax0 = $("<div>", { class: "sol" });
-        $("<span>", { class: "h" }).text((this.base - 1).toString(36).toUpperCase() + "-0:").appendTo(ax0);
+        $("<span>", { class: "h" }).text(this.basedStr(this.base - 1) + "-0:").appendTo(ax0);
         var a01 = $("<div>", { class: "sol" });
         $("<span>", { class: "h" }).text("0-1:").appendTo(a01);
-        $("<td>", { colspan: 2 }).text("Base " + String(this.base)).appendTo(tr);
+        $("<td>", { colspan: 3 }).text("Base " + String(this.base)).appendTo(tr);
         for (var index = 0; index < this.base; index++) {
-            $("<th>").text(index.toString(36).toUpperCase()).appendTo(tr);
-            $("<span>", { 'data-val': index.toString(36).toUpperCase() }).text("?").appendTo(a0x);
+            $("<th>").text(this.basedStr(index)).appendTo(tr);
+            $("<span>", { 'data-val': this.basedStr(index) }).text("?").appendTo(a0x);
             var val = (index + 1) % this.base;
-            $("<span>", { 'data-val': val.toString(36).toUpperCase() }).text("?").appendTo(a10);
+            $("<span>", { 'data-val': this.basedStr(val) }).text("?").appendTo(a10);
             val = (this.base - index - 1) % this.base;
-            $("<span>", { 'data-val': val.toString(36).toUpperCase() }).text("?").appendTo(ax0);
+            $("<span>", { 'data-val': this.basedStr(val) }).text("?").appendTo(ax0);
             val = (val + 1) % this.base;
-            $("<span>", { 'data-val': val.toString(36).toUpperCase() }).text("?").appendTo(a01);
+            $("<span>", { 'data-val': this.basedStr(val) }).text("?").appendTo(a01);
         }
         tr.appendTo(thead);
         thead.appendTo(table);
@@ -728,8 +763,20 @@ var CryptorithmSolver = /** @class */ (function (_super) {
             var td = $("<td>");
             this.makeFreqEditField(c).appendTo(td);
             td.appendTo(tr_1);
+            td = $("<td>");
+            var ischecked = this.locked[c];
+            $('<input />', {
+                type: 'checkbox',
+                class: 'cb',
+                'data-char': c,
+                id: 'cb' + c,
+                value: name, checked: ischecked,
+            }).appendTo(td);
+            td.appendTo(tr_1);
             for (var index = 0; index < this.base; index++) {
-                $("<td>", { id: c + String(index), 'data-val': 0 }).addClass("rtoggle rtoggle-0").appendTo(tr_1);
+                var id = c + this.basedStr(index);
+                this.boxState[id] = "0";
+                $("<td>", { id: id, 'data-val': this.boxState[id] }).addClass("rtoggle rtoggle-" + this.boxState[id]).appendTo(tr_1);
             }
             tr_1.appendTo(tbody);
         }
@@ -745,7 +792,57 @@ var CryptorithmSolver = /** @class */ (function (_super) {
         return topdiv;
     };
     /**
-     *
+     * Marks a symbol as locked and prevents it from being changed in the interactive solver
+     * @param c Symbol to be marked as locked/unlocked
+     * @param lock new state for the symbol
+     */
+    CryptorithmSolver.prototype.updateCheck = function (c, lock) {
+        if (this.locked[c] != lock) {
+            this.locked[c] = lock;
+            var repl = this.replacement[c];
+            $("input:text[data-char='" + c + "']").prop('disabled', lock);
+            var charset = this.getCharset();
+            // First mark everything in the same row
+            for (var index = 0; index < this.base; index++) {
+                var r = this.basedStr(index);
+                var elem = $("#" + c + r);
+                var state = this.boxState[c + r];
+                if (state === '') {
+                    state = "0";
+                }
+                if (lock) {
+                    if (r === repl) {
+                        state = "3";
+                    }
+                    else {
+                        state = "2";
+                    }
+                }
+                elem.removeClass("rtoggle-0 rtoggle-1 rtoggle-2 rtoggle-3")
+                    .addClass("rtoggle-" + state);
+            }
+            // As well as everything in the same column
+            for (var col in this.usedletters) {
+                var elem = $("#" + col + repl);
+                var state = this.boxState[col + repl];
+                if (state === '') {
+                    state = "0";
+                }
+                if (lock) {
+                    if (col === c) {
+                        state = "3";
+                    }
+                    else {
+                        state = "2";
+                    }
+                }
+                elem.removeClass("rtoggle-0 rtoggle-1 rtoggle-2 rtoggle-3")
+                    .addClass("rtoggle-" + state);
+            }
+        }
+    };
+    /**
+     * Sets up the HTML DOM so that all actions go to the right handler
      */
     CryptorithmSolver.prototype.attachHandlers = function () {
         _super.prototype.attachHandlers.call(this);
@@ -757,6 +854,11 @@ var CryptorithmSolver = /** @class */ (function (_super) {
             sel = String((Number(sel) + 1) % 4);
             $(this).addClass("rtoggle-" + sel).attr("data-val", sel);
             console.log('Changing ' + id + " to " + sel);
+            tool.boxState[id] = sel;
+        });
+        $(".cb").unbind('change').on('change', function () {
+            var toupdate = $(this).attr('data-char');
+            tool.updateCheck(toupdate, $(this).prop("checked"));
         });
     };
     return CryptorithmSolver;

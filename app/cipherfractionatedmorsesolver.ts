@@ -59,14 +59,14 @@ readonly fractionatedMorseReplaces: Array<string> = [
      * Create an edit field for a dropdown
     */
    makeFreqEditField(c:string):JQuery<HTMLElement> {
-        if (this.morseLocked[c]) {
+        if (this.locked[c]) {
             return $(this.normalizeHTML(this.fractionatedMorseMap[c]));
         }
         var mselect = $('<select class="msli" data-char="' + c + '" id="m' + c + '"/>');
         var locklist = {};
         /* Build a list of the locked strings we should skip */
-        for (var key in this.morseLocked) {
-            if (this.morseLocked.hasOwnProperty(key) && this.morseLocked[key]) {
+        for (var key in this.locked) {
+            if (this.locked.hasOwnProperty(key) && this.locked[key]) {
                 locklist[this.fractionatedMorseMap[key]] = true;
                 console.log('Recording locklist['+key+']='+locklist[key]);
             }

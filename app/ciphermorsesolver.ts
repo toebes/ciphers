@@ -156,14 +156,14 @@ class CipherMorseSolver extends CipherSolver {
         '-OOOO-': '-',
         '-O--O-': '()'
     }
-    /** @type {Object.<string, bool>}
-     * 
+    /**
+     * Marks a symbol as locked and prevents it from being changed in the interactive solver
+     * @param c Symbol to be marked as locked/unlocked
+     * @param lock new state for the symbol
      */
-    morseLocked: { [key: string]: boolean } = {}
-
     updateCheck(c: string, lock: boolean): void {
-        if (this.morseLocked[c] != lock) {
-            this.morseLocked[c] = lock;
+        if (this.locked[c] != lock) {
+            this.locked[c] = lock;
             this.UpdateFreqEditTable();
             this.load();
         }
@@ -182,7 +182,7 @@ class CipherMorseSolver extends CipherSolver {
     }
     reset(): void {
         super.reset();
-        this.morseLocked = {};
+        this.locked = {};
     }
 
     /**
@@ -276,7 +276,7 @@ class CipherMorseSolver extends CipherSolver {
             c = intext.substr(i, 1);
             var mpos, td;
             td = $('<td>', { colspan: cipherwidth });
-            if (this.morseLocked[c]) {
+            if (this.locked[c]) {
                 td.addClass("locked");
             }
             td.text(c);
@@ -412,7 +412,7 @@ class CipherMorseSolver extends CipherSolver {
             td.append(this.makeFreqEditField(c));
             replrow.append(td);
             td = $('<td/>');
-            var ischecked = this.morseLocked[c];
+            var ischecked = this.locked[c];
             $('<input />', {
                 type: 'checkbox',
                 class: 'cb',

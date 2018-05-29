@@ -13,6 +13,7 @@ enum CryptorithmType {
 
 class CryptorithmSolver extends CipherSolver {
     usedletters: BoolMap = {}
+    boxState: StringMap = {}
     base: number
     cryptorithmType: CryptorithmType = CryptorithmType.Automatic
     /**
@@ -99,13 +100,20 @@ class CryptorithmSolver extends CipherSolver {
         return result
     }
     /**
+     * Formats a number in the current base and returns a normalized version of it
+     * @param val Number in current base
+     */
+    basedStr(val: number): string {
+        return val.toString(this.base).toUpperCase()
+    }
+    /**
      * Safe version of eval to compute a generated formula
      * @param str Math formula to evaluate
      */
     compute(str: string): string {
         try {
             let val = Function('"use strict";return (' + str + ')')()
-            return val.toString(this.base)
+            return this.basedStr(val)
         } catch (e) {
             return str
         }
@@ -197,6 +205,9 @@ class CryptorithmSolver extends CipherSolver {
                         break
                     }
                 }
+                if (this.locked[oldrep]) {
+                    return
+                }
                 super.setChar(oldrep, oldchar)
 
                 $("span[data-val='" + oldchar + "']").text(oldrep)
@@ -233,6 +244,7 @@ class CryptorithmSolver extends CipherSolver {
         }
         this.cryptorithmType = CryptorithmType.Automatic
         this.usedletters = {}
+        this.boxState = {}
         this.replacement = []
         this.base = 0
         let lineitems: Array<lineitem> = []
@@ -318,13 +330,27 @@ class CryptorithmSolver extends CipherSolver {
                             break
 
                         case CryptorithmType.SquareRoot:
-                            let part = root.substr(0, root.length - indent)
-                            let double = part.substr(0, part.length - 1)
-                            let squared = part.substr(part.length - 1, 1)
+                            let squarepart = root.substr(0, root.length - indent)
+                            let double = squarepart.substr(0, squarepart.length - 1)
+                            let squared = squarepart.substr(squarepart.length - 1, 1)
                             if (double !== '') {
                                 formula = "((" + double + "*20)+" + squared + ")*" + squared
                             } else {
                                 formula = squared + "*" + squared
+                            }
+                            lastbase = lastval
+                            break
+
+                        case CryptorithmType.CubeRoot:
+                            let cubepart = root.substr(0, root.length - indent)
+                            let found = cubepart.substr(0, cubepart.length - 1)
+                            let newpart = cubepart.substr(cubepart.length - 1, 1)
+                            if (found !== '') {
+                                formula = "((300*" + found + "*" + found + ")+" +
+                                    "(30*" + found + "*" + newpart + ")+" +
+                                    "(" + newpart + "*" + newpart + "))*" + newpart
+                            } else {
+                                formula = newpart + "*" + newpart + "*" + newpart
                             }
                             lastbase = lastval
                             break
@@ -399,12 +425,20 @@ class CryptorithmSolver extends CipherSolver {
                             }
                             break
                         case CryptorithmType.SquareRoot:
+                            formula = lastbase + '-' + lastval
+                            if (indent > 0) {
+                                // We need to make sure that the last two digits 
+                                expected = rootbase.substr(rootbase.length - (indent * numwidth), numwidth)
+                                formula = "(" + formula + ")*100+" + expected
+                                indent--
+                            }
+                            break
                         case CryptorithmType.CubeRoot:
                             formula = lastbase + '-' + lastval
                             if (indent > 0) {
                                 // We need to make sure that the last two digits 
-                                expected = rootbase.substr(rootbase.length - (indent * 2), 2)
-                                formula = "(" + formula + ")*100+" + expected
+                                expected = rootbase.substr(rootbase.length - (indent * numwidth), numwidth)
+                                formula = "(" + formula + ")*1000+" + expected
                                 indent--
                             }
                             break
@@ -503,7 +537,7 @@ class CryptorithmSolver extends CipherSolver {
                                     if (content.substr(content.length - 2, 2) != expected) {
                                         // Special case where we had a zero and have to skip one more
                                         padding = padding.substr(0, padding.length - numwidth)
-                                        item.formula = "(" + item.formula + ")*100+" + rootbase.substr(rootbase.length -(indent * 2), 2)
+                                        item.formula = "(" + item.formula + ")*100+" + rootbase.substr(rootbase.length - (indent * 2), 2)
                                         indent--
                                     }
                                 }
@@ -532,7 +566,8 @@ class CryptorithmSolver extends CipherSolver {
                                 let tempitem = lineitems.pop()
                                 lineitems.push(item)
                                 item = tempitem
-                                rootbase = item.content
+                                rootbase = item.content.replace(new RegExp(" ", "g"), "")
+                                lastval = rootbase.substr(0, 2)
                             } else {
                                 // We want to start at the end and put an extra
                                 // space between every third character
@@ -607,7 +642,7 @@ class CryptorithmSolver extends CipherSolver {
         this.base = Object.keys(this.usedletters).length
         let charset = ""
         for (let index = 0; index < this.base; index++) {
-            let c = index.toString(36).toUpperCase()
+            let c = this.basedStr(index)
             charset += c
         }
         this.setCharset(charset)
@@ -694,25 +729,25 @@ class CryptorithmSolver extends CipherSolver {
         let tr = $("<tr>")
 
         let a0x = $("<div>", { class: "sol" })
-        $("<span>", { class: "h" }).text("0-" + (this.base - 1).toString(36).toUpperCase() + ":").appendTo(a0x)
+        $("<span>", { class: "h" }).text("0-" + this.basedStr(this.base - 1) + ":").appendTo(a0x)
         let a10 = $("<div>", { class: "sol" })
         $("<span>", { class: "h" }).text("1-0:").appendTo(a10)
         let ax0 = $("<div>", { class: "sol" })
-        $("<span>", { class: "h" }).text((this.base - 1).toString(36).toUpperCase() + "-0:").appendTo(ax0)
+        $("<span>", { class: "h" }).text(this.basedStr(this.base - 1) + "-0:").appendTo(ax0)
         let a01 = $("<div>", { class: "sol" })
         $("<span>", { class: "h" }).text("0-1:").appendTo(a01)
 
-        $("<td>", { colspan: 2 }).text("Base " + String(this.base)).appendTo(tr)
+        $("<td>", { colspan: 3 }).text("Base " + String(this.base)).appendTo(tr)
         for (let index = 0; index < this.base; index++) {
-            $("<th>").text(index.toString(36).toUpperCase()).appendTo(tr)
+            $("<th>").text(this.basedStr(index)).appendTo(tr)
 
-            $("<span>", { 'data-val': index.toString(36).toUpperCase() }).text("?").appendTo(a0x)
+            $("<span>", { 'data-val': this.basedStr(index) }).text("?").appendTo(a0x)
             let val = (index + 1) % this.base
-            $("<span>", { 'data-val': val.toString(36).toUpperCase() }).text("?").appendTo(a10)
+            $("<span>", { 'data-val': this.basedStr(val) }).text("?").appendTo(a10)
             val = (this.base - index - 1) % this.base
-            $("<span>", { 'data-val': val.toString(36).toUpperCase() }).text("?").appendTo(ax0)
+            $("<span>", { 'data-val': this.basedStr(val) }).text("?").appendTo(ax0)
             val = (val + 1) % this.base
-            $("<span>", { 'data-val': val.toString(36).toUpperCase() }).text("?").appendTo(a01)
+            $("<span>", { 'data-val': this.basedStr(val) }).text("?").appendTo(a01)
         }
         tr.appendTo(thead)
         thead.appendTo(table)
@@ -727,8 +762,21 @@ class CryptorithmSolver extends CipherSolver {
             let td = $("<td>")
             this.makeFreqEditField(c).appendTo(td)
             td.appendTo(tr)
+            td = $("<td>")
+            let ischecked = this.locked[c]
+            $('<input />', {
+                type: 'checkbox',
+                class: 'cb',
+                'data-char': c,
+                id: 'cb' + c,
+                value: name, checked: ischecked,
+            }).appendTo(td)
+            td.appendTo(tr)
+
             for (let index = 0; index < this.base; index++) {
-                $("<td>", { id: c + String(index), 'data-val': 0 }).addClass("rtoggle rtoggle-0").appendTo(tr)
+                let id = c + this.basedStr(index)
+                this.boxState[id] = "0"
+                $("<td>", { id: id, 'data-val': this.boxState[id] }).addClass("rtoggle rtoggle-" + this.boxState[id]).appendTo(tr)
             }
             tr.appendTo(tbody)
         }
@@ -744,7 +792,56 @@ class CryptorithmSolver extends CipherSolver {
         return topdiv
     }
     /**
-     * 
+     * Marks a symbol as locked and prevents it from being changed in the interactive solver
+     * @param c Symbol to be marked as locked/unlocked
+     * @param lock new state for the symbol
+     */
+    updateCheck(c: string, lock: boolean): void {
+        if (this.locked[c] != lock) {
+            this.locked[c] = lock;
+            let repl = this.replacement[c]
+            $("input:text[data-char='" + c + "']").prop('disabled', lock)
+            let charset = this.getCharset()
+            // First mark everything in the same row
+            for (let index = 0; index < this.base; index++) {
+                let r = this.basedStr(index)
+                let elem = $("#" + c + r)
+                let state = this.boxState[c + r]
+                if (state === '') {
+                    state = "0"
+                }
+                if (lock) {
+                    if (r === repl) {
+                        state = "3"
+                    } else {
+                        state = "2"
+                    }
+                }
+                elem.removeClass("rtoggle-0 rtoggle-1 rtoggle-2 rtoggle-3")
+                    .addClass("rtoggle-" + state)
+            }
+            // As well as everything in the same column
+            for (let col in this.usedletters) {
+                let elem = $("#" + col + repl)
+                let state = this.boxState[col + repl]
+                if (state === '') {
+                    state = "0"
+                }
+                if (lock) {
+                    if (col === c) {
+                        state = "3"
+                    } else {
+                        state = "2"
+                    }
+                }
+                elem.removeClass("rtoggle-0 rtoggle-1 rtoggle-2 rtoggle-3")
+                    .addClass("rtoggle-" + state)
+            }
+        }
+    }
+
+    /**
+     * Sets up the HTML DOM so that all actions go to the right handler
      */
     attachHandlers(): void {
         super.attachHandlers()
@@ -757,7 +854,12 @@ class CryptorithmSolver extends CipherSolver {
                 sel = String((Number(sel) + 1) % 4)
                 $(this).addClass("rtoggle-" + sel).attr("data-val", sel)
                 console.log('Changing ' + id + " to " + sel)
+                tool.boxState[id] = sel
             }
         )
+        $(".cb").unbind('change').on('change', function () {
+            let toupdate = $(this).attr('data-char');
+            tool.updateCheck(toupdate, $(this).prop("checked"));
+        });
     }
 }

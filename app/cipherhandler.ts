@@ -904,8 +904,8 @@ class CipherHandler {
                 cipherTool = new CipherAffineEncoder()
                 break
 
-            case 'Cryptorithm':
-                cipherTool = new CryptorithmSolver()
+            case 'Cryptarithm':
+                cipherTool = new CryptarithmSolver()
                 break;
 
             case 'Standard':

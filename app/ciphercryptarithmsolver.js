@@ -9,30 +9,30 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var CryptorithmType;
-(function (CryptorithmType) {
-    CryptorithmType[CryptorithmType["Automatic"] = 0] = "Automatic";
-    CryptorithmType[CryptorithmType["SquareRoot"] = 1] = "SquareRoot";
-    CryptorithmType[CryptorithmType["CubeRoot"] = 2] = "CubeRoot";
-    CryptorithmType[CryptorithmType["Multiplication"] = 3] = "Multiplication";
-    CryptorithmType[CryptorithmType["Division"] = 4] = "Division";
-    CryptorithmType[CryptorithmType["Addition"] = 5] = "Addition";
-    CryptorithmType[CryptorithmType["Subtraction"] = 6] = "Subtraction";
-    CryptorithmType[CryptorithmType["Equations"] = 7] = "Equations";
-})(CryptorithmType || (CryptorithmType = {}));
-var CryptorithmSolver = /** @class */ (function (_super) {
-    __extends(CryptorithmSolver, _super);
-    function CryptorithmSolver() {
+var CryptarithmType;
+(function (CryptarithmType) {
+    CryptarithmType[CryptarithmType["Automatic"] = 0] = "Automatic";
+    CryptarithmType[CryptarithmType["SquareRoot"] = 1] = "SquareRoot";
+    CryptarithmType[CryptarithmType["CubeRoot"] = 2] = "CubeRoot";
+    CryptarithmType[CryptarithmType["Multiplication"] = 3] = "Multiplication";
+    CryptarithmType[CryptarithmType["Division"] = 4] = "Division";
+    CryptarithmType[CryptarithmType["Addition"] = 5] = "Addition";
+    CryptarithmType[CryptarithmType["Subtraction"] = 6] = "Subtraction";
+    CryptarithmType[CryptarithmType["Equations"] = 7] = "Equations";
+})(CryptarithmType || (CryptarithmType = {}));
+var CryptarithmSolver = /** @class */ (function (_super) {
+    __extends(CryptarithmSolver, _super);
+    function CryptarithmSolver() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.usedletters = {};
         _this.boxState = {};
-        _this.cryptorithmType = CryptorithmType.Automatic;
+        _this.cryptarithmType = CryptarithmType.Automatic;
         return _this;
     }
     /**
      * Loads new data into a solver, preserving all solving matches made
      */
-    CryptorithmSolver.prototype.load = function () {
+    CryptarithmSolver.prototype.load = function () {
         var encoded = this.cleanString($('#encoded').val());
         var res = this.build(encoded);
         var tool = this;
@@ -56,7 +56,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
     /**
      * Loads new data into a solver, resetting any solving matches made
      */
-    CryptorithmSolver.prototype.reset = function () {
+    CryptarithmSolver.prototype.reset = function () {
         this.load();
     };
     /**
@@ -65,14 +65,14 @@ var CryptorithmSolver = /** @class */ (function (_super) {
      * @param {number} width
      * @param {number} num
      */
-    CryptorithmSolver.prototype.analyze = function (encoded) {
+    CryptarithmSolver.prototype.analyze = function (encoded) {
         return null;
     };
     /**
      * Substitutes all the current mappings in a string to evaluate
      * @param str String to replace with math values
      */
-    CryptorithmSolver.prototype.subFormula = function (str) {
+    CryptarithmSolver.prototype.subFormula = function (str) {
         var result = '';
         for (var _i = 0, str_1 = str; _i < str_1.length; _i++) {
             var c = str_1[_i];
@@ -121,14 +121,14 @@ var CryptorithmSolver = /** @class */ (function (_super) {
      * Formats a number in the current base and returns a normalized version of it
      * @param val Number in current base
      */
-    CryptorithmSolver.prototype.basedStr = function (val) {
+    CryptarithmSolver.prototype.basedStr = function (val) {
         return val.toString(this.base).toUpperCase();
     };
     /**
      * Safe version of eval to compute a generated formula
      * @param str Math formula to evaluate
      */
-    CryptorithmSolver.prototype.compute = function (str) {
+    CryptarithmSolver.prototype.compute = function (str) {
         try {
             var val = Function('"use strict";return (' + str + ')')();
             return this.basedStr(val);
@@ -142,7 +142,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
      * @param formula Formula to calculate
      * @param expected Expected result from the formula
      */
-    CryptorithmSolver.prototype.checkFormula = function (formula, expected) {
+    CryptarithmSolver.prototype.checkFormula = function (formula, expected) {
         var eformula = this.subFormula(formula);
         var eexpected = this.subFormula(expected);
         var cformula = this.compute(eformula);
@@ -178,7 +178,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
      *
      * @param {string} reqstr String of items to apply
      */
-    CryptorithmSolver.prototype.updateMatchDropdowns = function (reqstr) {
+    CryptarithmSolver.prototype.updateMatchDropdowns = function (reqstr) {
         var tool = this;
         this.cacheReplacements();
         $("[data-formula]").each(function () {
@@ -188,7 +188,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
     /**
      * Fills in the frequency portion of the frequency table
      */
-    CryptorithmSolver.prototype.displayFreq = function () {
+    CryptarithmSolver.prototype.displayFreq = function () {
         var charset = this.getCharset();
         var c, i, len;
         this.holdupdates = true;
@@ -210,7 +210,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
      * @param {string} repchar Encrypted character to map against
      * @param {string} newchar New char to assign as decoding for the character
      */
-    CryptorithmSolver.prototype.setChar = function (repchar, newchar) {
+    CryptarithmSolver.prototype.setChar = function (repchar, newchar) {
         console.log("setChar data-char=" + repchar + ' newchar=' + newchar);
         // See if we actually have to do anything at all
         if (this.replacement[repchar] != newchar) {
@@ -239,7 +239,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
      * @param {string} str String to decode
      * @returns {string} HTML of solver structure
      */
-    CryptorithmSolver.prototype.build = function (str) {
+    CryptarithmSolver.prototype.build = function (str) {
         var buildState;
         (function (buildState) {
             buildState["Initial"] = "Initial";
@@ -253,7 +253,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
             buildState["WantMultAdds"] = "Want * Additions";
             buildState["Idle"] = "Idle";
         })(buildState || (buildState = {}));
-        this.cryptorithmType = CryptorithmType.Automatic;
+        this.cryptarithmType = CryptarithmType.Automatic;
         this.usedletters = {};
         this.boxState = {};
         this.replacement = [];
@@ -294,8 +294,8 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     if (state !== buildState.Idle) {
                         console.log('Found token:' + token + ' when already processing ' + prefix);
                     }
-                    if (this.cryptorithmType === CryptorithmType.Automatic) {
-                        this.cryptorithmType = CryptorithmType.SquareRoot;
+                    if (this.cryptarithmType === CryptarithmType.Automatic) {
+                        this.cryptarithmType = CryptarithmType.SquareRoot;
                     }
                     prefix = token;
                     state = buildState.WantRoot;
@@ -323,19 +323,19 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     if (state !== buildState.Idle) {
                         console.log('Found token:' + token + ' when already processing ' + prefix);
                     }
-                    switch (this.cryptorithmType) {
-                        case CryptorithmType.Automatic:
-                            this.cryptorithmType = CryptorithmType.Subtraction;
-                        case CryptorithmType.Subtraction:
-                        case CryptorithmType.Addition:
+                    switch (this.cryptarithmType) {
+                        case CryptarithmType.Automatic:
+                            this.cryptarithmType = CryptarithmType.Subtraction;
+                        case CryptarithmType.Subtraction:
+                        case CryptarithmType.Addition:
                             lastbase = lastval + "-";
                             break;
-                        case CryptorithmType.Division:
+                        case CryptarithmType.Division:
                             var mult = quotient.substr(quotient.length - (indent + 1), 1);
                             formula = mult + "*" + divisor;
                             lastbase = lastval;
                             break;
-                        case CryptorithmType.SquareRoot:
+                        case CryptarithmType.SquareRoot:
                             var squarepart = root.substr(0, root.length - indent);
                             var double = squarepart.substr(0, squarepart.length - 1);
                             var squared = squarepart.substr(squarepart.length - 1, 1);
@@ -347,7 +347,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                             }
                             lastbase = lastval;
                             break;
-                        case CryptorithmType.CubeRoot:
+                        case CryptarithmType.CubeRoot:
                             var cubepart = root.substr(0, root.length - indent);
                             var found = cubepart.substr(0, cubepart.length - 1);
                             var newpart = cubepart.substr(cubepart.length - 1, 1);
@@ -372,8 +372,8 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     prefix = token;
                     state = buildState.WantMult;
                     multiplicand = lastval;
-                    if (this.cryptorithmType === CryptorithmType.Automatic) {
-                        this.cryptorithmType = CryptorithmType.Multiplication;
+                    if (this.cryptarithmType === CryptarithmType.Automatic) {
+                        this.cryptarithmType = CryptarithmType.Multiplication;
                     }
                     break;
                 case '+':
@@ -382,14 +382,14 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     }
                     prefix = token;
                     state = buildState.WantPlus;
-                    if (this.cryptorithmType === CryptorithmType.Automatic) {
-                        this.cryptorithmType = CryptorithmType.Addition;
+                    if (this.cryptarithmType === CryptarithmType.Automatic) {
+                        this.cryptarithmType = CryptarithmType.Addition;
                     }
-                    if (this.cryptorithmType === CryptorithmType.Addition ||
-                        this.cryptorithmType === CryptorithmType.Subtraction) {
+                    if (this.cryptarithmType === CryptarithmType.Addition ||
+                        this.cryptarithmType === CryptarithmType.Subtraction) {
                         lastbase = lastval + "+";
                     }
-                    else if (this.cryptorithmType === CryptorithmType.Multiplication) {
+                    else if (this.cryptarithmType === CryptarithmType.Multiplication) {
                         if (lastbase === '') {
                             multval = "10";
                             lastbase = lastval;
@@ -406,7 +406,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     if (state !== buildState.Idle) {
                         console.log('Found token:' + token + ' when already processing ' + prefix);
                     }
-                    this.cryptorithmType = CryptorithmType.Division;
+                    this.cryptarithmType = CryptarithmType.Division;
                     prefix = token;
                     state = buildState.WantDiv;
                     break;
@@ -419,8 +419,8 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     if (state !== buildState.WantQuotient) {
                         state = buildState.WantEqual;
                     }
-                    switch (this.cryptorithmType) {
-                        case CryptorithmType.Division:
+                    switch (this.cryptarithmType) {
+                        case CryptarithmType.Division:
                             if (state !== buildState.WantQuotient) {
                                 formula = lastbase + "-" + lastval;
                                 if (indent > 0) {
@@ -429,7 +429,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                                 }
                             }
                             break;
-                        case CryptorithmType.SquareRoot:
+                        case CryptarithmType.SquareRoot:
                             formula = lastbase + '-' + lastval;
                             if (indent > 0) {
                                 // We need to make sure that the last two digits 
@@ -438,7 +438,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                                 indent--;
                             }
                             break;
-                        case CryptorithmType.CubeRoot:
+                        case CryptarithmType.CubeRoot:
                             formula = lastbase + '-' + lastval;
                             if (indent > 0) {
                                 // We need to make sure that the last two digits 
@@ -447,7 +447,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                                 indent--;
                             }
                             break;
-                        case CryptorithmType.Multiplication:
+                        case CryptarithmType.Multiplication:
                             if (indent === 0) {
                                 formula = multiplicand + "*" + multiplier.substr(multiplier.length - 1, 1);
                                 lastbase = '';
@@ -457,8 +457,8 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                             }
                             indent = 0;
                             break;
-                        case CryptorithmType.Addition:
-                        case CryptorithmType.Subtraction:
+                        case CryptarithmType.Addition:
+                        case CryptarithmType.Subtraction:
                             formula = lastbase + lastval;
                             break;
                     }
@@ -484,23 +484,23 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                             }
                             isRoot = true;
                             indent++;
-                            if (this.cryptorithmType === CryptorithmType.Automatic) {
+                            if (this.cryptarithmType === CryptarithmType.Automatic) {
                                 if (rootLen === 2) {
-                                    this.cryptorithmType = CryptorithmType.SquareRoot;
+                                    this.cryptarithmType = CryptarithmType.SquareRoot;
                                 }
                                 else if (rootLen === 3) {
-                                    this.cryptorithmType = CryptorithmType.CubeRoot;
+                                    this.cryptarithmType = CryptarithmType.CubeRoot;
                                 }
                                 else {
                                     console.log("Bad quote location at " + rootLen);
                                 }
                             }
-                            if (this.cryptorithmType === CryptorithmType.SquareRoot) {
+                            if (this.cryptarithmType === CryptarithmType.SquareRoot) {
                                 item.prefix = "2";
                                 numwidth = 2;
                                 item.class = "ovl";
                             }
-                            else if (this.cryptorithmType === CryptorithmType.CubeRoot) {
+                            else if (this.cryptarithmType === CryptarithmType.CubeRoot) {
                                 item.prefix = "3";
                                 numwidth = 3;
                                 item.class = "ovl";
@@ -517,7 +517,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                     }
                     // See if we ended up with a Cuberoot
                     if (isRoot && rootLen === 3) {
-                        this.cryptorithmType = CryptorithmType.CubeRoot;
+                        this.cryptarithmType = CryptarithmType.CubeRoot;
                         item.prefix = "3";
                         numwidth = 3;
                     }
@@ -527,8 +527,8 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                         padding += ' ';
                     }
                     item.indent = indent * numwidth;
-                    switch (this.cryptorithmType) {
-                        case CryptorithmType.SquareRoot:
+                    switch (this.cryptarithmType) {
+                        case CryptarithmType.SquareRoot:
                             if (item.prefix === '^') {
                                 // We need to split the characters into each character
                                 // and put two spaces between
@@ -566,7 +566,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                             }
                             state = buildState.Idle;
                             break;
-                        case CryptorithmType.CubeRoot:
+                        case CryptarithmType.CubeRoot:
                             if (item.prefix === '^') {
                                 // Put three spaces between every character
                                 item.prefix = '';
@@ -595,7 +595,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                             }
                             state = buildState.Idle;
                             break;
-                        case CryptorithmType.Division:
+                        case CryptarithmType.Division:
                             // When dealing with the divisor, we put it to the left of the dividend
                             if (item.prefix === '/') {
                                 item = lineitems.pop();
@@ -619,7 +619,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
                                 state = buildState.Idle;
                             }
                             break;
-                        case CryptorithmType.Multiplication:
+                        case CryptarithmType.Multiplication:
                             if (state === buildState.WantMult) {
                                 multiplier = content;
                             }
@@ -724,7 +724,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
      * Creates an HTML table to display the mapping table
      * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
-    CryptorithmSolver.prototype.createFreqEditTable = function () {
+    CryptarithmSolver.prototype.createFreqEditTable = function () {
         if (this.base === undefined || this.base < 1) {
             return null;
         }
@@ -796,7 +796,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
      * @param c Symbol to be marked as locked/unlocked
      * @param lock new state for the symbol
      */
-    CryptorithmSolver.prototype.updateCheck = function (c, lock) {
+    CryptarithmSolver.prototype.updateCheck = function (c, lock) {
         if (this.locked[c] != lock) {
             this.locked[c] = lock;
             var repl = this.replacement[c];
@@ -844,7 +844,7 @@ var CryptorithmSolver = /** @class */ (function (_super) {
     /**
      * Sets up the HTML DOM so that all actions go to the right handler
      */
-    CryptorithmSolver.prototype.attachHandlers = function () {
+    CryptarithmSolver.prototype.attachHandlers = function () {
         _super.prototype.attachHandlers.call(this);
         var tool = this;
         $(".rtoggle").unbind('click').click(function () {
@@ -861,5 +861,5 @@ var CryptorithmSolver = /** @class */ (function (_super) {
             tool.updateCheck(toupdate, $(this).prop("checked"));
         });
     };
-    return CryptorithmSolver;
+    return CryptarithmSolver;
 }(CipherSolver));

@@ -9,7 +9,7 @@
         "app/ciphersolver.ts",
         "app/ciphermorsesolver.ts",
         "app/ciphermorbitsolver.ts",
-        "app/ciphercryptorithmsolver.ts",
+        "app/ciphercryptarithmsolver.ts",
         "app/cipherfractionatedmorsesolver.ts",
         "app/ciphercheckerboardsolver.ts",
         "app/ciphergromarksolver.ts",

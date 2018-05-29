@@ -1,6 +1,6 @@
 /// <reference types="ciphertypes" />
 
-enum CryptorithmType {
+enum CryptarithmType {
     Automatic,
     SquareRoot,
     CubeRoot,
@@ -11,11 +11,11 @@ enum CryptorithmType {
     Equations,
 }
 
-class CryptorithmSolver extends CipherSolver {
+class CryptarithmSolver extends CipherSolver {
     usedletters: BoolMap = {}
     boxState: StringMap = {}
     base: number
-    cryptorithmType: CryptorithmType = CryptorithmType.Automatic
+    cryptarithmType: CryptarithmType = CryptarithmType.Automatic
     /**
      * Loads new data into a solver, preserving all solving matches made
      */
@@ -242,7 +242,7 @@ class CryptorithmSolver extends CipherSolver {
             formula: string
             expected: string
         }
-        this.cryptorithmType = CryptorithmType.Automatic
+        this.cryptarithmType = CryptarithmType.Automatic
         this.usedletters = {}
         this.boxState = {}
         this.replacement = []
@@ -284,8 +284,8 @@ class CryptorithmSolver extends CipherSolver {
                     if (state !== buildState.Idle) {
                         console.log('Found token:' + token + ' when already processing ' + prefix)
                     }
-                    if (this.cryptorithmType === CryptorithmType.Automatic) {
-                        this.cryptorithmType = CryptorithmType.SquareRoot
+                    if (this.cryptarithmType === CryptarithmType.Automatic) {
+                        this.cryptarithmType = CryptarithmType.SquareRoot
                     }
                     prefix = token
                     state = buildState.WantRoot
@@ -315,21 +315,21 @@ class CryptorithmSolver extends CipherSolver {
                     if (state !== buildState.Idle) {
                         console.log('Found token:' + token + ' when already processing ' + prefix)
                     }
-                    switch (this.cryptorithmType) {
-                        case CryptorithmType.Automatic:
-                            this.cryptorithmType = CryptorithmType.Subtraction
-                        case CryptorithmType.Subtraction:
-                        case CryptorithmType.Addition:
+                    switch (this.cryptarithmType) {
+                        case CryptarithmType.Automatic:
+                            this.cryptarithmType = CryptarithmType.Subtraction
+                        case CryptarithmType.Subtraction:
+                        case CryptarithmType.Addition:
                             lastbase = lastval + "-"
                             break
 
-                        case CryptorithmType.Division:
+                        case CryptarithmType.Division:
                             let mult = quotient.substr(quotient.length - (indent + 1), 1)
                             formula = mult + "*" + divisor
                             lastbase = lastval
                             break
 
-                        case CryptorithmType.SquareRoot:
+                        case CryptarithmType.SquareRoot:
                             let squarepart = root.substr(0, root.length - indent)
                             let double = squarepart.substr(0, squarepart.length - 1)
                             let squared = squarepart.substr(squarepart.length - 1, 1)
@@ -341,7 +341,7 @@ class CryptorithmSolver extends CipherSolver {
                             lastbase = lastval
                             break
 
-                        case CryptorithmType.CubeRoot:
+                        case CryptarithmType.CubeRoot:
                             let cubepart = root.substr(0, root.length - indent)
                             let found = cubepart.substr(0, cubepart.length - 1)
                             let newpart = cubepart.substr(cubepart.length - 1, 1)
@@ -366,8 +366,8 @@ class CryptorithmSolver extends CipherSolver {
                     prefix = token
                     state = buildState.WantMult
                     multiplicand = lastval
-                    if (this.cryptorithmType === CryptorithmType.Automatic) {
-                        this.cryptorithmType = CryptorithmType.Multiplication
+                    if (this.cryptarithmType === CryptarithmType.Automatic) {
+                        this.cryptarithmType = CryptarithmType.Multiplication
                     }
                     break
 
@@ -377,13 +377,13 @@ class CryptorithmSolver extends CipherSolver {
                     }
                     prefix = token
                     state = buildState.WantPlus
-                    if (this.cryptorithmType === CryptorithmType.Automatic) {
-                        this.cryptorithmType = CryptorithmType.Addition
+                    if (this.cryptarithmType === CryptarithmType.Automatic) {
+                        this.cryptarithmType = CryptarithmType.Addition
                     }
-                    if (this.cryptorithmType === CryptorithmType.Addition ||
-                        this.cryptorithmType === CryptorithmType.Subtraction) {
+                    if (this.cryptarithmType === CryptarithmType.Addition ||
+                        this.cryptarithmType === CryptarithmType.Subtraction) {
                         lastbase = lastval + "+"
-                    } else if (this.cryptorithmType === CryptorithmType.Multiplication) {
+                    } else if (this.cryptarithmType === CryptarithmType.Multiplication) {
                         if (lastbase === '') {
                             multval = "10"
                             lastbase = lastval
@@ -400,7 +400,7 @@ class CryptorithmSolver extends CipherSolver {
                     if (state !== buildState.Idle) {
                         console.log('Found token:' + token + ' when already processing ' + prefix)
                     }
-                    this.cryptorithmType = CryptorithmType.Division
+                    this.cryptarithmType = CryptarithmType.Division
                     prefix = token
                     state = buildState.WantDiv
                     break
@@ -414,8 +414,8 @@ class CryptorithmSolver extends CipherSolver {
                     if (state !== buildState.WantQuotient) {
                         state = buildState.WantEqual
                     }
-                    switch (this.cryptorithmType) {
-                        case CryptorithmType.Division:
+                    switch (this.cryptarithmType) {
+                        case CryptarithmType.Division:
                             if (state !== buildState.WantQuotient) {
                                 formula = lastbase + "-" + lastval
                                 if (indent > 0) {
@@ -424,7 +424,7 @@ class CryptorithmSolver extends CipherSolver {
                                 }
                             }
                             break
-                        case CryptorithmType.SquareRoot:
+                        case CryptarithmType.SquareRoot:
                             formula = lastbase + '-' + lastval
                             if (indent > 0) {
                                 // We need to make sure that the last two digits 
@@ -433,7 +433,7 @@ class CryptorithmSolver extends CipherSolver {
                                 indent--
                             }
                             break
-                        case CryptorithmType.CubeRoot:
+                        case CryptarithmType.CubeRoot:
                             formula = lastbase + '-' + lastval
                             if (indent > 0) {
                                 // We need to make sure that the last two digits 
@@ -442,7 +442,7 @@ class CryptorithmSolver extends CipherSolver {
                                 indent--
                             }
                             break
-                        case CryptorithmType.Multiplication:
+                        case CryptarithmType.Multiplication:
                             if (indent === 0) {
                                 formula = multiplicand + "*" + multiplier.substr(multiplier.length - 1, 1)
                                 lastbase = ''
@@ -451,8 +451,8 @@ class CryptorithmSolver extends CipherSolver {
                             }
                             indent = 0
                             break
-                        case CryptorithmType.Addition:
-                        case CryptorithmType.Subtraction:
+                        case CryptarithmType.Addition:
+                        case CryptarithmType.Subtraction:
                             formula = lastbase + lastval
                             break
                     }
@@ -478,20 +478,20 @@ class CryptorithmSolver extends CipherSolver {
                             }
                             isRoot = true
                             indent++
-                            if (this.cryptorithmType === CryptorithmType.Automatic) {
+                            if (this.cryptarithmType === CryptarithmType.Automatic) {
                                 if (rootLen === 2) {
-                                    this.cryptorithmType = CryptorithmType.SquareRoot
+                                    this.cryptarithmType = CryptarithmType.SquareRoot
                                 } else if (rootLen === 3) {
-                                    this.cryptorithmType = CryptorithmType.CubeRoot
+                                    this.cryptarithmType = CryptarithmType.CubeRoot
                                 } else {
                                     console.log("Bad quote location at " + rootLen)
                                 }
                             }
-                            if (this.cryptorithmType === CryptorithmType.SquareRoot) {
+                            if (this.cryptarithmType === CryptarithmType.SquareRoot) {
                                 item.prefix = "2"
                                 numwidth = 2
                                 item.class = "ovl"
-                            } else if (this.cryptorithmType === CryptorithmType.CubeRoot) {
+                            } else if (this.cryptarithmType === CryptarithmType.CubeRoot) {
                                 item.prefix = "3"
                                 numwidth = 3
                                 item.class = "ovl"
@@ -509,7 +509,7 @@ class CryptorithmSolver extends CipherSolver {
 
                     // See if we ended up with a Cuberoot
                     if (isRoot && rootLen === 3) {
-                        this.cryptorithmType = CryptorithmType.CubeRoot
+                        this.cryptarithmType = CryptarithmType.CubeRoot
                         item.prefix = "3"
                         numwidth = 3
                     }
@@ -519,8 +519,8 @@ class CryptorithmSolver extends CipherSolver {
                         padding += ' ';
                     }
                     item.indent = indent * numwidth
-                    switch (this.cryptorithmType) {
-                        case CryptorithmType.SquareRoot:
+                    switch (this.cryptarithmType) {
+                        case CryptarithmType.SquareRoot:
                             if (item.prefix === '^') {
                                 // We need to split the characters into each character
                                 // and put two spaces between
@@ -557,7 +557,7 @@ class CryptorithmSolver extends CipherSolver {
                             state = buildState.Idle
                             break
 
-                        case CryptorithmType.CubeRoot:
+                        case CryptarithmType.CubeRoot:
                             if (item.prefix === '^') {
                                 // Put three spaces between every character
                                 item.prefix = ''
@@ -585,7 +585,7 @@ class CryptorithmSolver extends CipherSolver {
                             state = buildState.Idle
                             break
 
-                        case CryptorithmType.Division:
+                        case CryptarithmType.Division:
                             // When dealing with the divisor, we put it to the left of the dividend
                             if (item.prefix === '/') {
                                 item = lineitems.pop()
@@ -609,7 +609,7 @@ class CryptorithmSolver extends CipherSolver {
                             }
                             break
 
-                        case CryptorithmType.Multiplication:
+                        case CryptarithmType.Multiplication:
                             if (state === buildState.WantMult) {
                                 multiplier = content
                             }

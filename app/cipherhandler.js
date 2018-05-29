@@ -895,8 +895,8 @@ var CipherHandler = /** @class */ (function () {
             case 'Affine':
                 cipherTool = new CipherAffineEncoder();
                 break;
-            case 'Cryptorithm':
-                cipherTool = new CryptorithmSolver();
+            case 'Cryptarithm':
+                cipherTool = new CryptarithmSolver();
                 break;
             case 'Standard':
             default:

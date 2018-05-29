@@ -251,7 +251,7 @@ class CipherHandler {
     ]
     cipherWidth: number = 1
     charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    sourcecharset: string = "ABCDEFGHIJLMNOPQRSTUVWXYZ"
+    sourcecharset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     unasigned: string = ""
     replacement: Array<string> = []
     curlang: string = ""

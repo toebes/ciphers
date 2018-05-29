@@ -245,6 +245,7 @@ class CryptarithmSolver extends CipherSolver {
         this.cryptarithmType = CryptarithmType.Automatic
         this.usedletters = {}
         this.boxState = {}
+        this.locked = {}
         this.replacement = []
         this.base = 0
         let lineitems: Array<lineitem> = []

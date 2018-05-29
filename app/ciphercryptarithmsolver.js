@@ -256,6 +256,7 @@ var CryptarithmSolver = /** @class */ (function (_super) {
         this.cryptarithmType = CryptarithmType.Automatic;
         this.usedletters = {};
         this.boxState = {};
+        this.locked = {};
         this.replacement = [];
         this.base = 0;
         var lineitems = [];

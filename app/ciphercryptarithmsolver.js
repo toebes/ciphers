@@ -268,7 +268,7 @@ var CryptarithmSolver = /** @class */ (function (_super) {
         str = str.replace(new RegExp("\u2019", "g"), "'"); //’
         // Lastly get rid of all white space
         str = str.replace(new RegExp("[\r\n ]+", "g"), "");
-        //        str = str.replace(new RegExp(" ", "g"), "")
+        // Now tokenize the string so we can parse it
         var tokens = str.split(/([;=+ \^\/\*\.\-])/g);
         var maindiv = $("<div>");
         var state = buildState.Initial;
@@ -429,7 +429,8 @@ var CryptarithmSolver = /** @class */ (function (_super) {
                             if (state !== buildState.WantQuotient) {
                                 formula = lastbase + "-" + lastval;
                                 if (indent > 0) {
-                                    formula = "10*(" + formula + ")+" + dividend.substr(dividend.length - indent, 1);
+                                    expected = dividend.substr(dividend.length - indent, 1);
+                                    formula = "10*(" + formula + ")+" + expected;
                                     indent--;
                                 }
                             }
@@ -544,11 +545,11 @@ var CryptarithmSolver = /** @class */ (function (_super) {
                                 lineitems.push(item);
                                 item = tempitem;
                                 rootbase = item.content.replace(new RegExp(" ", "g"), "");
-                                lastval = rootbase.substr(0, 2);
+                                lastval = rootbase.substr(0, numwidth);
                             }
                             else {
                                 if (indent > 0 && expected != '') {
-                                    if (content.substr(content.length - 2, 2) != expected) {
+                                    if (content.substr(content.length - numwidth, numwidth) != expected) {
                                         // Special case where we had a zero and have to skip one more
                                         padding = padding.substr(0, padding.length - numwidth);
                                         item.formula = "(" + item.formula + ")*100+" + rootbase.substr(rootbase.length - (indent * 2), 2);
@@ -581,9 +582,17 @@ var CryptarithmSolver = /** @class */ (function (_super) {
                                 lineitems.push(item);
                                 item = tempitem;
                                 rootbase = item.content.replace(new RegExp(" ", "g"), "");
-                                lastval = rootbase.substr(0, 2);
+                                lastval = rootbase.substr(0, numwidth);
                             }
                             else {
+                                if (indent > 0 && expected != '') {
+                                    if (content.substr(content.length - numwidth, numwidth) != expected) {
+                                        // Special case where we had a zero and have to skip one more
+                                        padding = padding.substr(0, padding.length - numwidth);
+                                        item.formula = "(" + item.formula + ")*1000+" + rootbase.substr(rootbase.length - (indent * 2), 2);
+                                        indent--;
+                                    }
+                                }
                                 // We want to start at the end and put an extra
                                 // space between every third character
                                 var temp = '  ' + content + padding;
@@ -611,6 +620,14 @@ var CryptarithmSolver = /** @class */ (function (_super) {
                                 state = buildState.WantQuotient;
                             }
                             else {
+                                if (indent > 0 && expected != '') {
+                                    if (content.substr(content.length - numwidth, numwidth) != expected) {
+                                        // Special case where we had a zero and have to skip one more
+                                        padding = padding.substr(0, padding.length - numwidth);
+                                        item.formula = "(" + item.formula + ")*10+" + dividend.substr(dividend.length - indent, 1);
+                                        indent--;
+                                    }
+                                }
                                 item.content = content + padding;
                                 if (state === buildState.WantQuotient) {
                                     quotient = content;

@@ -248,11 +248,17 @@ class CryptarithmSolver extends CipherSolver {
         this.replacement = []
         this.base = 0
         let lineitems: Array<lineitem> = []
-        str = str.replace(new RegExp("[\r\n ]+", "g"), " ")
-        // Apparently there are two forms of dashes...
-        //        str = str.replace(new RegExp("–", "g"), "-")
         str = str.replace(new RegExp("gives root", "g"), "^")
-        let tokens = str.split(/ *([;-=+ \/\*\.\-\–]) */g)
+        // Sometimes they use a different division sign
+        str = str.replace(new RegExp("\xf7", "g"), "/")  //÷
+        // Apparently there are two forms of dashes...
+        str = str.replace(new RegExp("\u2013", "g"), "-")  //–
+        // Oh yeah we have two forms of quotes too
+        str = str.replace(new RegExp("\u2019", "g"), "'")  //’
+        // Lastly get rid of all white space
+        str = str.replace(new RegExp("[\r\n ]+", "g"), "")
+//        str = str.replace(new RegExp(" ", "g"), "")
+        let tokens = str.split(/([;=+ \^\/\*\.\-])/g)
         let maindiv = $("<div>")
         let state: buildState = buildState.Initial
         let indent: number = 0
@@ -311,7 +317,7 @@ class CryptarithmSolver extends CipherSolver {
                     state = buildState.Idle
                     break
 
-                case '-': case '–':
+                case '-':
                     if (state !== buildState.Idle) {
                         console.log('Found token:' + token + ' when already processing ' + prefix)
                     }

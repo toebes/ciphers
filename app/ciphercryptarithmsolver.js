@@ -259,11 +259,17 @@ var CryptarithmSolver = /** @class */ (function (_super) {
         this.replacement = [];
         this.base = 0;
         var lineitems = [];
-        str = str.replace(new RegExp("[\r\n ]+", "g"), " ");
-        // Apparently there are two forms of dashes...
-        //        str = str.replace(new RegExp("–", "g"), "-")
         str = str.replace(new RegExp("gives root", "g"), "^");
-        var tokens = str.split(/ *([;-=+ \/\*\.\-\–]) */g);
+        // Sometimes they use a different division sign
+        str = str.replace(new RegExp("\xf7", "g"), "/"); //÷
+        // Apparently there are two forms of dashes...
+        str = str.replace(new RegExp("\u2013", "g"), "-"); //–
+        // Oh yeah we have two forms of quotes too
+        str = str.replace(new RegExp("\u2019", "g"), "'"); //’
+        // Lastly get rid of all white space
+        str = str.replace(new RegExp("[\r\n ]+", "g"), "");
+        //        str = str.replace(new RegExp(" ", "g"), "")
+        var tokens = str.split(/([;=+ \^\/\*\.\-])/g);
         var maindiv = $("<div>");
         var state = buildState.Initial;
         var indent = 0;
@@ -319,7 +325,6 @@ var CryptarithmSolver = /** @class */ (function (_super) {
                     state = buildState.Idle;
                     break;
                 case '-':
-                case '–':
                     if (state !== buildState.Idle) {
                         console.log('Found token:' + token + ' when already processing ' + prefix);
                     }

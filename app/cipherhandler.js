@@ -291,7 +291,7 @@ var CipherHandler = /** @class */ (function () {
      * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
     CipherHandler.prototype.createFreqEditTable = function () {
-        var table = $('<table/>').addClass("tfreq");
+        var table = $('<table/>').addClass("tfreq dragcol");
         var thead = $('<thead/>');
         var tbody = $('<tbody/>');
         var headrow = $('<tr/>');
@@ -626,16 +626,19 @@ var CipherHandler = /** @class */ (function () {
      */
     CipherHandler.prototype.analyze = function (encoded) {
         console.log('Analyze encoded=' + encoded);
-        var res = $("'<table>", { class: "satable" });
+        var res = $("<table>", { class: "satable" });
         var thead = $("<thead>");
         var trhead = $("<tr>");
         var tbody = $("<tbody>");
         var trbody = $("<tr>");
-        for (var num in [2, 3, 4, 5]) {
+        for (var _i = 0, _a = [2, 3, 4, 5]; _i < _a.length; _i++) {
+            var num = _a[_i];
             $("<th>").text(num + " Characters").appendTo(trhead);
             $('<td>').append(this.makeTopList(encoded, Number(num), 12)).appendTo(trbody);
         }
+        trhead.appendTo(thead);
         thead.appendTo(res);
+        trbody.appendTo(tbody);
         tbody.appendTo(res);
         return res;
     };
@@ -783,6 +786,11 @@ var CipherHandler = /** @class */ (function () {
                 $("[data-schar='" + althighlight + "']").addClass("allfocus");
             }
             $(this).addClass("focus");
+        });
+        $(".dragcol").each(function (i) {
+            if (!$.fn.dataTable.isDataTable(".dragcol")) {
+                $(this).DataTable({ colReorder: true, ordering: false, dom: 't' });
+            }
         });
         $(".msli").on('change', function () {
             var toupdate = $(this).attr('data-char');

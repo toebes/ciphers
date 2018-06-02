@@ -1,4 +1,7 @@
 /// <reference types="ciphertypes" />
+
+declare function tableDragger(elem:HTMLElement,any): any;
+
 /**
  * Base class for all the Cipher Encoders/Decoders
  */
@@ -291,7 +294,7 @@ class CipherHandler {
      * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
     createFreqEditTable(): JQuery<HTMLElement> {
-        let table = $('<table/>').addClass("tfreq")
+        let table = $('<table/>').addClass("tfreq dragcol")
         let thead = $('<thead/>')
         let tbody = $('<tbody/>')
         let headrow = $('<tr/>')
@@ -640,17 +643,19 @@ class CipherHandler {
      */
     analyze(encoded: string): JQuery<HTMLElement> {
         console.log('Analyze encoded=' + encoded);
-        let res = $("'<table>", { class: "satable" })
+        let res = $("<table>", { class: "satable" })
         let thead = $("<thead>")
         let trhead = $("<tr>")
         let tbody = $("<tbody>")
         let trbody = $("<tr>")
 
-        for (let num in [2, 3, 4, 5]) {
+        for (let num of [2, 3, 4, 5]) {
             $("<th>").text(num + " Characters").appendTo(trhead)
             $('<td>').append(this.makeTopList(encoded, Number(num), 12)).appendTo(trbody)
         }
+        trhead.appendTo(thead)
         thead.appendTo(res)
+        trbody.appendTo(tbody)
         tbody.appendTo(res)
         return res;
     }
@@ -783,6 +788,10 @@ class CipherHandler {
                 $("[data-schar='" + althighlight + "']").addClass("allfocus");
             }
             $(this).addClass("focus");
+        });
+        $(".dragcol").each(function (i) {
+            if (!$.fn.dataTable.isDataTable(".dragcol"))
+             { $(this).DataTable({colReorder: true,  ordering: false, dom: 't'}) }
         });
         $(".msli").on('change', function () {
             let toupdate = $(this).attr('data-char');

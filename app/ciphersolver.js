@@ -81,6 +81,240 @@ var CipherSolver = /** @class */ (function (_super) {
         var einput = $('<input/>', { type: "text", class: "sli", 'data-char': c, id: 'm' + c, value: this.replacement[c] });
         return einput;
     };
+    /*
+     * Sorter to compare two frequency objects
+     * Objects must have a freq and a val portion
+     * higher frequency sorts first with a standard alphabetical sort after
+     */
+    CipherSolver.prototype.isort = function (a, b) {
+        if (a.freq > b.freq) {
+            return -1;
+        }
+        else if (a.freq < b.freq) {
+            return 1;
+        }
+        else if (a.val < b.val) {
+            return -1;
+        }
+        else if (a.val > b.val) {
+            return 1;
+        }
+        return 0;
+    };
+    /**
+     * Finds the top n strings of a given width and formats an HTML
+     * unordered list of them.  Only strings which repeat 2 or more times are included
+     * @param {string} string
+     * @param {number} width
+     * @param {number} num
+     */
+    CipherSolver.prototype.makeTopList = function (str, width, num) {
+        var tfreq = {};
+        var tobjs = [];
+        var work = '';
+        var len;
+        var res = $("<span>").text('None found');
+        for (var _i = 0, _a = str.toUpperCase(); _i < _a.length; _i++) {
+            var t = _a[_i];
+            if (this.isValidChar(t)) {
+                work += t;
+            }
+        }
+        // Now we have the work string with only the legal characters in it
+        // Next we want to go through and find all the combination strings of a given length
+        for (var i = 0, len_1 = work.length; i <= len_1 - width * this.cipherWidth; i++) {
+            var piece = work.substr(i, width * this.cipherWidth);
+            if (isNaN(tfreq[piece])) {
+                tfreq[piece] = 0;
+            }
+            tfreq[piece]++;
+        }
+        // tfreq holds the frequency of each string which is of the width requested.  Now we just
+        // need to go through and pick out the big ones and display them in sorted order.  To sort
+        // it we need to build an array of objects holding the frequency and values.
+        Object.keys(tfreq).forEach(function (value) {
+            var frequency = tfreq[value];
+            if (frequency > 1) {
+                var item = { freq: frequency, val: value };
+                tobjs.push(item);
+            }
+        });
+        // Now we sort them and pull out the top requested items.  It is possible that 
+        // the array is empty because there are not any duplicates
+        tobjs.sort(this.isort);
+        if (num > tobjs.length) {
+            num = tobjs.length;
+        }
+        if (num > 0) {
+            res = $('<ul>');
+            for (var i = 0; i < num; i++) {
+                var valtext = tobjs[i].val;
+                if (this.cipherWidth > 1) {
+                    // We need to insert spaces every x characters
+                    var vpos = void 0, vlen = void 0;
+                    var extra = '';
+                    var final = '';
+                    for (vpos = 0, vlen = valtext.length / 2; vpos < vlen; vpos++) {
+                        final += extra + valtext.substr(vpos * 2, 2);
+                        extra = ' ';
+                    }
+                    valtext = final;
+                }
+                $('<li>').text(valtext + ' - ' + tobjs[i].freq).appendTo(res);
+            }
+        }
+        return res;
+    };
+    /**
+     * Builds an HTML Representation of the contact table
+     * @param encoded String to make a contact table from
+     */
+    CipherSolver.prototype.makeContactTable = function (encoded) {
+        var prevs = {};
+        var posts = {};
+        for (var _i = 0, _a = this.getCharset(); _i < _a.length; _i++) {
+            var c = _a[_i];
+            prevs[c] = '';
+            posts[c] = '';
+        }
+        var prevlet = ' ';
+        // Go though the encoded string looking for all the letters which
+        // preceed and follow a letter
+        for (var _b = 0, encoded_1 = encoded; _b < encoded_1.length; _b++) {
+            var c = encoded_1[_b];
+            if (prevlet === ' ') {
+                prevs[c] = "-" + prevs[c];
+            }
+            else {
+                prevs[c] = prevlet + prevs[c];
+                if (c === ' ') {
+                    posts[prevlet] = posts[prevlet] + '-';
+                }
+                else {
+                    posts[prevlet] = posts[prevlet] + c;
+                }
+            }
+            prevlet = c;
+        }
+        // Don't forget that we have to handle the last letter
+        if (prevlet !== ' ') {
+            posts[prevlet] = posts[prevlet] + '-';
+        }
+        var tobjs = [];
+        // Now sort all of the letters
+        for (var _c = 0, _d = this.getCharset(); _c < _d.length; _c++) {
+            var c = _d[_c];
+            if (prevs[c] !== '' && posts[c] != '') {
+                var frequency = prevs[c].length + posts[c].length;
+                var item = { freq: frequency, let: c, prevs: prevs[c], posts: posts[c] };
+                tobjs.push(item);
+            }
+        }
+        tobjs.sort(this.isort);
+        var consonantline = '';
+        var freq = {};
+        var table = $("<table>", { class: "contact" });
+        var thead = $("<thead>");
+        var tr = $("<tr>");
+        $("<th>", { colspan: 3 }).text("Contact Table").appendTo(tr);
+        tr.appendTo(thead);
+        thead.appendTo(table);
+        var tbody = $("<tbody>");
+        for (var _e = 0, tobjs_1 = tobjs; _e < tobjs_1.length; _e++) {
+            var item = tobjs_1[_e];
+            tr = $("<tr>");
+            $("<td>", { class: "prev" }).text(item.prevs).appendTo(tr);
+            $("<td>", { class: "let" }).text(item.let).appendTo(tr);
+            $("<td>", { class: "post" }).text(item.posts).appendTo(tr);
+            tr.appendTo(tbody);
+            freq[item.let] = item.freq;
+            consonantline = item.let + consonantline;
+        }
+        var res = $("<div>");
+        tbody.appendTo(table);
+        res.append(table);
+        // Now go through and generate the Consonant line
+        var minfreq = freq[consonantline.substr(12, 1)];
+        for (var _f = 0, _g = this.getCharset(); _f < _g.length; _f++) {
+            var c = _g[_f];
+            prevs[c] = '';
+            posts[c] = '';
+        }
+        prevlet = ' ';
+        // Go though the encoded string looking for all the letters which
+        // preceed and follow a letter
+        for (var _h = 0, encoded_2 = encoded; _h < encoded_2.length; _h++) {
+            var c = encoded_2[_h];
+            if (prevlet !== ' ') {
+                if (freq[c] <= minfreq) {
+                    prevs[prevlet] = prevlet + prevs[prevlet];
+                }
+                if (c !== ' ' && freq[prevlet] <= minfreq) {
+                    posts[c] = posts[c] + c;
+                }
+            }
+            prevlet = c;
+        }
+        // Now we need to build the table
+        table = $("<table>", { class: "consonantline" });
+        thead = $("<thead>");
+        tbody = $("<tbody>");
+        var consonants = '';
+        var lastfreq = 0;
+        for (var _j = 0, tobjs_2 = tobjs; _j < tobjs_2.length; _j++) {
+            var item = tobjs_2[_j];
+            if (freq[item.let] <= minfreq) {
+                if (consonants != '' && item.freq !== lastfreq) {
+                    consonants = ' ' + consonants;
+                }
+                lastfreq = item.freq;
+                consonants = item.let + consonants;
+            }
+            if (prevs[item.let] !== '' || posts[item.let] !== '') {
+                tr = $("<tr>");
+                $("<td>", { class: "prev" }).text(prevs[item.let]).appendTo(tr);
+                $("<td>", { class: "post" }).text(posts[item.let]).appendTo(tr);
+                tr.appendTo(tbody);
+            }
+        }
+        tr = $("<tr>");
+        $("<th>", { colspan: 2 }).text("Consonant Line").appendTo(tr);
+        tr.appendTo(thead);
+        tr = $("<tr>");
+        $("<th>", { colspan: 2 }).text(consonants).appendTo(tr);
+        tr.appendTo(thead);
+        thead.appendTo(table);
+        tbody.appendTo(table);
+        res.append(table);
+        return res;
+    };
+    /**
+     * Analyze the encoded text
+     * @param {string} encoded
+     * @param {number} width
+     * @param {number} num
+     */
+    CipherSolver.prototype.analyze = function (encoded) {
+        console.log('Analyze encoded=' + encoded);
+        var topdiv = $("<div>");
+        var table = $("<table>", { class: "satable" });
+        var thead = $("<thead>");
+        var trhead = $("<tr>");
+        var tbody = $("<tbody>");
+        var trbody = $("<tr>");
+        for (var _i = 0, _a = [2, 3, 4, 5]; _i < _a.length; _i++) {
+            var num = _a[_i];
+            $("<th>").text(num + " Characters").appendTo(trhead);
+            $('<td>').append(this.makeTopList(encoded, Number(num), 12)).appendTo(trbody);
+        }
+        trhead.appendTo(thead);
+        thead.appendTo(table);
+        trbody.appendTo(tbody);
+        tbody.appendTo(table);
+        table.appendTo(topdiv);
+        topdiv.append(this.makeContactTable(encoded));
+        return topdiv;
+    };
     /**
      * Handle a dropdown event.  They are changing the mapping for a character.
      * Process the change, but first we need to swap around any other character which
@@ -113,7 +347,7 @@ var CipherSolver = /** @class */ (function (_super) {
         var extra = '';
         var res = '';
         var i;
-        str = str.toUpperCase();
+        str = this.minimizeString(str.toUpperCase());
         //
         // Look for all possible matches for the pattern.
         res = this.searchPattern(encoded, 1, str, 1);
@@ -149,6 +383,7 @@ var CipherSolver = /** @class */ (function (_super) {
         var i, len;
         var searchlen = searchstr.length;
         var encrlen = encoded.length;
+        var prevchar = '';
         var used = {};
         var charset = this.getCharset().toUpperCase();
         for (i = 0, len = charset.length; i < len; i++) {
@@ -163,12 +398,12 @@ var CipherSolver = /** @class */ (function (_super) {
             // console.log(i + ':"' + check + '/' + encoded.substr(i, searchlen) + '" for "' + searchstr + '/'+tofind+ '"');
             if (check === searchstr) {
                 var keymap = {};
-                var j;
-                var matched;
+                var j = void 0;
+                var matched = void 0;
                 //
                 // Build the character mapping table to show what they would use
                 matched = true;
-                //var charset = this.getCharset();
+                //let charset = this.getCharset();
                 for (j = 0; j < charset.length; j++) {
                     keymap[charset.substr(j, 1)] = notmapped;
                 }
@@ -186,7 +421,7 @@ var CipherSolver = /** @class */ (function (_super) {
                     // character can not be known to be a dot or a dash when dealing with morse code
                     if (i > 0 && tofind.substr(0, 1) !== 'X') {
                         var preceeding = encoded.substr(i - 1, 1);
-                        var prevchar = keymap[preceeding].substr(findwidth - 1, 1);
+                        prevchar = keymap[preceeding].substr(findwidth - 1, 1);
                         if (prevchar !== 'X' && prevchar !== '?') {
                             console.log('*** Disallowing ' + checkstr + ' because prevchar =' + prevchar + ' for ' + preceeding);
                             matched = false;
@@ -316,7 +551,7 @@ var CipherSolver = /** @class */ (function (_super) {
             var selectclass = '';
             var matched = false;
             var added = 0;
-            var i, len;
+            var i = void 0, len = void 0;
             var used = {};
             var charset = this.getCharset().toUpperCase();
             for (i = 0, len = charset.length; i < len; i++) {
@@ -370,16 +605,3 @@ var CipherSolver = /** @class */ (function (_super) {
     };
     return CipherSolver;
 }(CipherHandler));
-// Standard: {
-//     init: 'init',
-//     normalizeHTML: 'normalizeHTML',
-//     load: 'loadSolver',
-//     reset: 'resetSolver',
-//     build: 'buildSolver',
-//     makeFreqEditField: 'makeEditField',
-//     updateSel: 'updateStandardSel',
-//     setChar: 'setStandardChar',
-//     setMultiChars: 'setStandardMultiChars',
-//     updateMatchDropdowns: 'updateStandardMatchDropdowns',
-//     findPossible: 'findStandard'
-// },

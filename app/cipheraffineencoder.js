@@ -172,6 +172,49 @@ var CipherAffineEncoder = /** @class */ (function (_super) {
         }
         return 'A = ' + A + '; B = ' + B;
     };
+    /**
+     * Compute the greatest common denominator between two numbers
+     * @param a First number
+     * @param b Second Number
+     */
+    CipherAffineEncoder.prototype.gcd = function (a, b) {
+        if (isNaN(a)) {
+            return a;
+        }
+        if (isNaN(b)) {
+            return b;
+        }
+        if (a < 0) {
+            a = -a;
+        }
+        if (b < 0) {
+            b = -b;
+        }
+        if (b > a) {
+            var temp = a;
+            a = b;
+            b = temp;
+        }
+        while (true) {
+            console.log('gcd a=' + a + ' b=' + b);
+            if (b == 0)
+                return a;
+            a %= b;
+            if (a == 0)
+                return b;
+            b %= a;
+        }
+    };
+    CipherAffineEncoder.prototype.iscoprime = function (a) {
+        var charset = this.getCharset();
+        console.log('iscoprime a=' + a + ' len=' + charset.length);
+        var gcdval = this.gcd(a, charset.length);
+        console.log('gcd(' + a + ',' + charset.length + ')=' + gcdval);
+        if (gcdval != 1) {
+            return false;
+        }
+        return true;
+    };
     CipherAffineEncoder.prototype.load = function () {
         var tool = this;
         var charset = this.getCharset();

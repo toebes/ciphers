@@ -1,6 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-
 <head>
     <link rel="stylesheet" href="jquery-ui.min.css" />
     <link rel="stylesheet" href="styles.css" />
@@ -13,7 +12,6 @@
     <script type="text/javascript" src="app/ciphervigenereencoder.js"></script>
     <script type="text/javascript" src="app/ciphersolver.js"></script>
     <script type="text/javascript" src="app/ciphercheckerboardsolver.js"></script>
-    <script type="text/javascript" src="app/ciphercryptarithmsolver.js"></script>
     <script type="text/javascript" src="app/ciphergromarksolver.js"></script>
     <script type="text/javascript" src="app/ciphermorsesolver.js"></script>
     <script type="text/javascript" src="app/cipherfractionatedmorsesolver.js"></script>
@@ -23,36 +21,21 @@
     <script src="node_modules/datatables.net/js/jquery.dataTables.js"></script>
     <script src="node_modules/datatables.net-colreorder/js/dataTables.colReorder.min.js"></script>
     <link rel="stylesheet" href="summernote-lite.css">
-
-    <title>Cryptarithm Solver</title>
+    <title>Caesar Encoder/Decoder</title>
 </head>
-
 <body>
     <a href="index.html">Back to Cipher Tools</a>
     <h1>
-        Cryptarithm Solver Helper
+        Caesar Encoder/Decoder
     </h1>
     <hr />
     <label for="encoded">
-        Cryptarithm
+        Encoded Text
     </label>
     <textarea id="encoded" cols="20" rows="5"></textarea>
-    <div class="cmds" data-cipher="Cryptarithm">
+    <div class="cmds" id="caesar">
         <input id="load" type="button" value="Load" />
     </div>
-    <table>
-        <tbody>
-            <tr>
-                <td>
-                    <div class="ans" id="answer"></div>
-                </td>
-                <td>
-                    <div class="freq"></div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <div class="sanalysis" id="analysis"></div>
+    <div class="ans" id="answer"></div>
 </body>
-
 </html>

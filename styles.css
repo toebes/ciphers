@@ -338,3 +338,39 @@ div.sols .h {
 div.sols .sol {
     font-family: 'Courier New', Courier, monospace;
 }
+
+table.contact,
+table.consonantline {
+    margin-left:auto;
+    margin-right:auto;
+    border-collapse: collapse;
+}
+table.contact th {
+    border-bottom: 1px solid black;
+    text-align:center;
+}
+table.consonantline th {
+    text-align:center;
+}
+table.consonantline th.c {
+    border-bottom: 1px solid black;
+    font-family: 'Courier New', Courier, monospace;
+    text-align:center;
+}
+
+table.contact td,
+table.consonantline td {
+    font-family: 'Courier New', Courier, monospace;
+}
+table.contact td.prev {
+    text-align: right;
+}
+
+table.consonantline td.prev {
+    text-align: right;
+    border-right: 1px solid black;
+}
+table.contact td.let {
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+}

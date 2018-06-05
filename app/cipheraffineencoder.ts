@@ -175,7 +175,37 @@ class CipherAffineEncoder extends CipherEncoder {
 
         return 'A = ' + A + '; B = ' + B;
     }
+    /**
+     * Compute the greatest common denominator between two numbers
+     * @param a First number
+     * @param b Second Number
+     */
+    gcd(a: number, b: number): number {
+        if (isNaN(a)) { return a; }
+        if (isNaN(b)) { return b; }
+        if (a < 0) { a = -a; }
+        if (b < 0) { b = -b; }
 
+        if (b > a) { let temp = a; a = b; b = temp; }
+        while (true) {
+            console.log('gcd a=' + a + ' b=' + b);
+            if (b == 0) return a;
+            a %= b;
+            if (a == 0) return b;
+            b %= a;
+        }
+    }
+
+    iscoprime(a: number): boolean {
+        let charset = this.getCharset();
+        console.log('iscoprime a=' + a + ' len=' + charset.length);
+        let gcdval = this.gcd(a, charset.length);
+        console.log('gcd(' + a + ',' + charset.length + ')=' + gcdval);
+        if (gcdval != 1) {
+            return false;
+        }
+        return true;
+    }
     load(): void {
         let tool = this;
         let charset = this.getCharset();
@@ -226,7 +256,7 @@ class CipherAffineEncoder extends CipherEncoder {
                 //solve it
                 console.log('solve: ')
                 var sol = tool.solveIt(tool.affineCheck['p'], tool.affineCheck['r'],
-                tool.affineCheck['q'], tool.affineCheck['s']);
+                    tool.affineCheck['q'], tool.affineCheck['s']);
                 var expected = 'A = ' + $("#a").val() + '; B = ' + $("#b").val()
                 if (sol === expected) {
                     console.log('showing button');

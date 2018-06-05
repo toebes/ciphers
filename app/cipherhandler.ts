@@ -519,7 +519,6 @@ class CipherHandler {
         })
         this.attachHandlers();
     }
-
     /**
      * 
      * @param {*string} string String to compute value for
@@ -552,89 +551,6 @@ class CipherHandler {
         }
         return chiSquare;
     }
-
-    /*
-     * Sorter to compare two frequency objects
-     * Objects must have a freq and a val portion
-     * higher frequencey sorts first with a standard alphabetical sort after
-     */
-    isort(a: any, b: any): number {
-        if (a.freq > b.freq) {
-            return -1;
-        } else if (a.freq < b.freq) {
-            return 1;
-        } else if (a.val < b.val) {
-            return -1;
-        } else if (a.val > b.val) {
-            return 1;
-        }
-        return 0;
-    }
-    /** 
-     * Finds the top n strings of a given width and formats an HTML 
-     * unordered list of them.  Only strings which repeat 2 or more times are included
-     * @param {string} string
-     * @param {number} width
-     * @param {number} num
-     */
-    makeTopList(str: string, width: number, num: number): JQuery<HTMLElement> {
-        let tfreq = {}
-        let tobjs = []
-        let work = ''
-        let len
-        let res = $("<span>").text('None found')
-        for (let t of str.toUpperCase()) {
-            if (this.isValidChar(t)) {
-                work += t;
-            }
-        }
-        // Now we have the work string with only the legal characters in it
-        // Next we want to go through and find all the combination strings of a given length
-        for (let i = 0, len = work.length; i <= len - width * this.cipherWidth; i++) {
-            let piece = work.substr(i, width * this.cipherWidth);
-            if (isNaN(tfreq[piece])) {
-                tfreq[piece] = 0
-            }
-            tfreq[piece]++
-        }
-        // tfreq holds the frequency of each string which is of the width requested.  Now we just
-        // need to go through and pick out the big ones and display them in sorted order.  To sort
-        // it we need to build an array of objects holding the frequency and values.
-        Object.keys(tfreq).forEach(function (value) {
-            let frequency = tfreq[value]
-            if (frequency > 1) {
-                let item = { freq: frequency, val: value }
-                tobjs.push(item)
-            }
-        })
-        // Now we sort them and pull out the top requested items.  It is possible that 
-        // the array is empty because there are not any duplicates
-        tobjs.sort(this.isort)
-        if (num > tobjs.length) {
-            num = tobjs.length
-        }
-
-        if (num > 0) {
-            res = $('<ul>')
-            for (let i = 0; i < num; i++) {
-                let valtext = tobjs[i].val;
-                if (this.cipherWidth > 1) {
-                    // We need to insert spaces every x characters
-                    let vpos, vlen;
-                    let extra = '';
-                    let final = '';
-                    for (vpos = 0, vlen = valtext.length / 2; vpos < vlen; vpos++) {
-                        final += extra + valtext.substr(vpos * 2, 2);
-                        extra = ' ';
-                    }
-                    valtext = final;
-                }
-
-                $('<li>').text(valtext + ' - ' + tobjs[i].freq).appendTo(res)
-            }
-        }
-        return res;
-    }
     /**
      * Analyze the encoded text
      * @param {string} encoded
@@ -642,55 +558,9 @@ class CipherHandler {
      * @param {number} num
      */
     analyze(encoded: string): JQuery<HTMLElement> {
-        console.log('Analyze encoded=' + encoded);
-        let res = $("<table>", { class: "satable" })
-        let thead = $("<thead>")
-        let trhead = $("<tr>")
-        let tbody = $("<tbody>")
-        let trbody = $("<tr>")
-
-        for (let num of [2, 3, 4, 5]) {
-            $("<th>").text(num + " Characters").appendTo(trhead)
-            $('<td>').append(this.makeTopList(encoded, Number(num), 12)).appendTo(trbody)
-        }
-        trhead.appendTo(thead)
-        thead.appendTo(res)
-        trbody.appendTo(tbody)
-        tbody.appendTo(res)
-        return res;
+        return null
     }
 
-    /**
-     * Compute the greatest common denominator between two numbers
-     * @param a First number
-     * @param b Second Number
-     */
-    gcd(a: number, b: number): number {
-        if (isNaN(a)) { return a; }
-        if (isNaN(b)) { return b; }
-        if (a < 0) { a = -a; }
-        if (b < 0) { b = -b; }
-
-        if (b > a) { let temp = a; a = b; b = temp; }
-        while (true) {
-            console.log('gcd a=' + a + ' b=' + b);
-            if (b == 0) return a;
-            a %= b;
-            if (a == 0) return b;
-            b %= a;
-        }
-    }
-
-    iscoprime(a: number): boolean {
-        let charset = this.getCharset();
-        console.log('iscoprime a=' + a + ' len=' + charset.length);
-        let gcdval = this.gcd(a, charset.length);
-        console.log('gcd(' + a + ',' + charset.length + ')=' + gcdval);
-        if (gcdval != 1) {
-            return false;
-        }
-        return true;
-    }
     /**
     * Fills in the frequency portion of the frequency table
     */

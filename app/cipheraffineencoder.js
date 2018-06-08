@@ -1,3 +1,5 @@
+"use strict";
+/// <reference types="ciphertypes" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -8,6 +10,8 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+Object.defineProperty(exports, "__esModule", { value: true });
+var cipherencoder_1 = require("./cipherencoder");
 var CipherAffineEncoder = /** @class */ (function (_super) {
     __extends(CipherAffineEncoder, _super);
     function CipherAffineEncoder() {
@@ -303,7 +307,8 @@ var CipherAffineEncoder = /** @class */ (function (_super) {
         */
     };
     return CipherAffineEncoder;
-}(CipherEncoder));
+}(cipherencoder_1.default));
+exports.default = CipherAffineEncoder;
 // Affine: {
 //     init: 'initAffine',
 //     normalizeHTML: 'normalizeHTML',

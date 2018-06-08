@@ -27,15 +27,25 @@
  * Main CipherTool class object
  * @type {Object.<string, function>} 
  */
-// import * as $ from "jquery"
+import * as $ from "jquery"
+import 'jquery-ui'
+import 'summernote'
+import 'dataTables'
+import 'dataTables-colReorder'
+import '../jquery-ui.min.css'
+import '../styles.css'
+import '../summernote-lite.css'
+
+import CipherHandler from "./cipherhandler"
+import CipherFactory from "./cipherfactory"
 
  let cipherTool:CipherHandler = new CipherHandler();
 
  $(function () {
-    cipherTool = cipherTool.select(undefined,undefined)
+    cipherTool = CipherFactory(undefined,undefined)
     // First figure out what type of solver we are building
     $("[data-cipher]").each(function () {
-        cipherTool = cipherTool.select($(this).attr('data-cipher'),$(this).attr('data-lang'))
+        cipherTool = CipherFactory($(this).attr('data-cipher'),$(this).attr('data-lang'))
     });
     // process the "cipher-type" class
     $(".cipher-type").each(function () {

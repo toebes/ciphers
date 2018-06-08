@@ -1,5 +1,8 @@
 /// <reference types="ciphertypes" />
 
+import CipherMorseSolver from "./ciphermorsesolver"
+
+export default 
 class CipherMorbitSolver extends CipherMorseSolver {
     /** @type {Object.<string, string>} 
 */

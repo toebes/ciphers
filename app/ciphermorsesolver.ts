@@ -1,3 +1,7 @@
+/// <reference types="ciphertypes" />
+
+import CipherSolver from "./ciphersolver"
+export default 
 class CipherMorseSolver extends CipherSolver {
     readonly tomorse: { [key: string]: string } = {
         ' ': '',
@@ -307,7 +311,7 @@ class CipherMorseSolver extends CipherSolver {
                     if (mlen === 0) {
                         console.log("Empty Morse laststep=" + lastsep);
                         if (lastsep === '') {
-                            outrow.append($('<td/>').addClass("null"));
+                            outrow.append($('<td/>').addClass("cnull"));
                             lastsep = 'X';
                         } else if (lastsep === 'X') {
                             outrow.append($('<td/>').addClass("space"));

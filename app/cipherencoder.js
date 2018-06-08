@@ -1,3 +1,5 @@
+"use strict";
+/// <reference types="ciphertypes" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -8,6 +10,8 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+Object.defineProperty(exports, "__esModule", { value: true });
+var cipherhandler_1 = require("./cipherhandler");
 /**
  * CipherEncoder - This class handles all of the actions associated with encoding
  * a cipher.
@@ -481,17 +485,5 @@ var CipherEncoder = /** @class */ (function (_super) {
         return einput;
     };
     return CipherEncoder;
-}(CipherHandler));
-// Encoder: {
-//     init: 'initEncoder',
-//     normalizeHTML: 'normalizeHTML',
-//     load: 'loadEncoder',
-//     reset: 'resetSolver',
-//     build: 'buildEncoder',
-//     makeFreqEditField: 'makeViewField',
-//     updateSel: 'updateStandardSel',
-//     setChar: 'setStandardChar',
-//     setMultiChars: 'setStandardMultiChars',
-//     updateMatchDropdowns: 'updateStandardMatchDropdowns',
-//     findPossible: 'findStandard'
-// },
+}(cipherhandler_1.default));
+exports.default = CipherEncoder;

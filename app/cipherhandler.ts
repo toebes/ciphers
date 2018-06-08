@@ -5,6 +5,7 @@ declare function tableDragger(elem:HTMLElement,any): any;
 /**
  * Base class for all the Cipher Encoders/Decoders
  */
+export default
 class CipherHandler {
     /**
      * User visible mapping of names of the various languages supported 
@@ -737,64 +738,6 @@ class CipherHandler {
      */
     setCipherType(cipherType: string): void {
         this.attachHandlers();
-    }
-
-    /*
-     * Choose which Cipher type to be operating on by default.
-     */
-    select(ciphertype: string, lang: string): CipherHandler {
-        console.log('Selecting:' + ciphertype + " lang=" + lang);
-        if (typeof lang === 'undefined') {
-            lang = "en";
-        }
-        lang = lang.toLowerCase();
-
-        let cipherTool: CipherHandler = null
-        switch (ciphertype) {
-            case 'Morbit':
-                cipherTool = new CipherMorbitSolver()
-                break
-
-            case 'FractionatedMorse':
-                cipherTool = new CipherFractionatedMorseSolver()
-                break
-
-            case 'Checkerboard':
-                cipherTool = new CipherCheckerboardSolver()
-                break
-
-            case 'Gromark':
-                cipherTool = new CipherGromarkSolver()
-                break
-
-            case 'Xenocrypt':
-                cipherTool = new CipherXenocryptSolver()
-                break
-
-            case 'Encoder':
-                cipherTool = new CipherEncoder()
-                break
-
-            case 'Vigenere':
-                cipherTool = new CipherVigenereEncoder()
-                break
-
-            case 'Affine':
-                cipherTool = new CipherAffineEncoder()
-                break
-
-            case 'Cryptarithm':
-                cipherTool = new CryptarithmSolver()
-                break;
-
-            case 'Standard':
-            default:
-                cipherTool = new CipherSolver()
-                break
-        }
-
-        cipherTool.init(lang);
-        return cipherTool
     }
 
     /**

@@ -1,4 +1,6 @@
+"use strict";
 /// <reference types="ciphertypes" />
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
  * Base class for all the Cipher Encoders/Decoders
  */
@@ -726,52 +728,6 @@ var CipherHandler = /** @class */ (function () {
     CipherHandler.prototype.setCipherType = function (cipherType) {
         this.attachHandlers();
     };
-    /*
-     * Choose which Cipher type to be operating on by default.
-     */
-    CipherHandler.prototype.select = function (ciphertype, lang) {
-        console.log('Selecting:' + ciphertype + " lang=" + lang);
-        if (typeof lang === 'undefined') {
-            lang = "en";
-        }
-        lang = lang.toLowerCase();
-        var cipherTool = null;
-        switch (ciphertype) {
-            case 'Morbit':
-                cipherTool = new CipherMorbitSolver();
-                break;
-            case 'FractionatedMorse':
-                cipherTool = new CipherFractionatedMorseSolver();
-                break;
-            case 'Checkerboard':
-                cipherTool = new CipherCheckerboardSolver();
-                break;
-            case 'Gromark':
-                cipherTool = new CipherGromarkSolver();
-                break;
-            case 'Xenocrypt':
-                cipherTool = new CipherXenocryptSolver();
-                break;
-            case 'Encoder':
-                cipherTool = new CipherEncoder();
-                break;
-            case 'Vigenere':
-                cipherTool = new CipherVigenereEncoder();
-                break;
-            case 'Affine':
-                cipherTool = new CipherAffineEncoder();
-                break;
-            case 'Cryptarithm':
-                cipherTool = new CryptarithmSolver();
-                break;
-            case 'Standard':
-            default:
-                cipherTool = new CipherSolver();
-                break;
-        }
-        cipherTool.init(lang);
-        return cipherTool;
-    };
     /**
      * @param {string} str String to be enqoted
      * @return {string} Quoted string
@@ -988,3 +944,4 @@ var CipherHandler = /** @class */ (function () {
     };
     return CipherHandler;
 }());
+exports.default = CipherHandler;

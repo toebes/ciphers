@@ -1,3 +1,4 @@
+"use strict";
 /// <reference types="ciphertypes" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -9,6 +10,8 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+Object.defineProperty(exports, "__esModule", { value: true });
+var ciphermorsesolver_1 = require("./ciphermorsesolver");
 var CipherFractionatedMorseSolver = /** @class */ (function (_super) {
     __extends(CipherFractionatedMorseSolver, _super);
     function CipherFractionatedMorseSolver() {
@@ -123,7 +126,8 @@ var CipherFractionatedMorseSolver = /** @class */ (function (_super) {
         }
     };
     return CipherFractionatedMorseSolver;
-}(CipherMorseSolver));
+}(ciphermorsesolver_1.default));
+exports.default = CipherFractionatedMorseSolver;
 // FractionatedMorse: {
 //     normalizeHTML: 'normalizeMorseHTML',
 //     load: 'loadMorseSolver',

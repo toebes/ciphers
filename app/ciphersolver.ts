@@ -1,5 +1,8 @@
 /// <reference types="ciphertypes" />
 
+import CipherHandler from "./cipherhandler"
+
+export default 
 class CipherSolver extends CipherHandler {
     /**
      * Indicates that a 
@@ -204,7 +207,7 @@ class CipherSolver extends CipherHandler {
         for (let item of tobjs) {
             tr = $("<tr>")
             $("<td>", { class: "prev" }).text(item.prevs).appendTo(tr)
-            $("<td>", { class: "let" }).text(item.let).appendTo(tr)
+            $("<td>", { class: "tlet" }).text(item.let).appendTo(tr)
             $("<td>", { class: "post" }).text(item.posts).appendTo(tr)
             tr.appendTo(tbody)
             freq[item.let] = item.freq

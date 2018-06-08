@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 /**
 * ciphers.js is a library for JavaScript which provides functions for
 * generating web pages to solve Ciphers of many forms.
@@ -25,13 +26,22 @@
  * Main CipherTool class object
  * @type {Object.<string, function>}
  */
-// import * as $ from "jquery"
-var cipherTool = new CipherHandler();
+var $ = require("jquery");
+require("jquery-ui");
+require("summernote");
+require("dataTables");
+require("dataTables-colReorder");
+require("../jquery-ui.min.css");
+require("../styles.css");
+require("../summernote-lite.css");
+var cipherhandler_1 = require("./cipherhandler");
+var cipherfactory_1 = require("./cipherfactory");
+var cipherTool = new cipherhandler_1.default();
 $(function () {
-    cipherTool = cipherTool.select(undefined, undefined);
+    cipherTool = cipherfactory_1.default(undefined, undefined);
     // First figure out what type of solver we are building
     $("[data-cipher]").each(function () {
-        cipherTool = cipherTool.select($(this).attr('data-cipher'), $(this).attr('data-lang'));
+        cipherTool = cipherfactory_1.default($(this).attr('data-cipher'), $(this).attr('data-lang'));
     });
     // process the "cipher-type" class
     $(".cipher-type").each(function () {

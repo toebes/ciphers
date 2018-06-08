@@ -1,7 +1,12 @@
+/// <reference types="ciphertypes" />
+
+import CipherHandler from "./cipherhandler"
+
 /**
  * CipherEncoder - This class handles all of the actions associated with encoding
  * a cipher.
  */
+export default
 class CipherEncoder extends CipherHandler {
     /**
      * Size of chunks of text to format to.  0 Indicates that the original spacing
@@ -470,18 +475,3 @@ class CipherEncoder extends CipherHandler {
 
         
 }
-
-// Encoder: {
-//     init: 'initEncoder',
-//     normalizeHTML: 'normalizeHTML',
-
-//     load: 'loadEncoder',
-//     reset: 'resetSolver',
-//     build: 'buildEncoder',
-//     makeFreqEditField: 'makeViewField',
-//     updateSel: 'updateStandardSel',
-//     setChar: 'setStandardChar',
-//     setMultiChars: 'setStandardMultiChars',
-//     updateMatchDropdowns: 'updateStandardMatchDropdowns',
-//     findPossible: 'findStandard'
-// },

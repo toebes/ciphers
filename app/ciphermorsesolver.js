@@ -1,3 +1,5 @@
+"use strict";
+/// <reference types="ciphertypes" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -8,6 +10,8 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+Object.defineProperty(exports, "__esModule", { value: true });
+var ciphersolver_1 = require("./ciphersolver");
 var CipherMorseSolver = /** @class */ (function (_super) {
     __extends(CipherMorseSolver, _super);
     function CipherMorseSolver() {
@@ -314,7 +318,7 @@ var CipherMorseSolver = /** @class */ (function (_super) {
                     if (mlen === 0) {
                         console.log("Empty Morse laststep=" + lastsep);
                         if (lastsep === '') {
-                            outrow.append($('<td/>').addClass("null"));
+                            outrow.append($('<td/>').addClass("cnull"));
                             lastsep = 'X';
                         }
                         else if (lastsep === 'X') {
@@ -517,4 +521,5 @@ var CipherMorseSolver = /** @class */ (function (_super) {
         this.attachHandlers();
     };
     return CipherMorseSolver;
-}(CipherSolver));
+}(ciphersolver_1.default));
+exports.default = CipherMorseSolver;

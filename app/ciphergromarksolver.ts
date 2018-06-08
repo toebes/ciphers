@@ -1,5 +1,7 @@
 /// <reference types="ciphertypes" />
 
+import CipherSolver from "./ciphersolver"
+export default 
 class CipherGromarkSolver extends CipherSolver {
     gromarkRepl: StringMap
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

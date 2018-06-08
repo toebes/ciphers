@@ -164,7 +164,7 @@ table.mword {
         background-color: red;
     }
 
-    table.mword .null {
+    table.mword .cnull {
         background-color: #f6f6f6;
     }
 
@@ -251,7 +251,7 @@ table.mfind {
 
 @font-face {
     font-family: 'DancingMen';
-    src: url('Dancingm.ttf?') format('truetype');
+    src: url('./Dancingm.ttf') format('truetype');
 }
 
 .DancingMen {
@@ -370,7 +370,7 @@ table.consonantline td.prev {
     text-align: right;
     border-right: 1px solid black;
 }
-table.contact td.let {
+table.contact td.tlet {
     border-left: 1px solid black;
     border-right: 1px solid black;
 }

@@ -1,3 +1,4 @@
+"use strict";
 /// <reference types="ciphertypes" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -9,6 +10,8 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+Object.defineProperty(exports, "__esModule", { value: true });
+var cipherhandler_1 = require("./cipherhandler");
 var CipherSolver = /** @class */ (function (_super) {
     __extends(CipherSolver, _super);
     function CipherSolver() {
@@ -224,7 +227,7 @@ var CipherSolver = /** @class */ (function (_super) {
             var item = tobjs_1[_e];
             tr = $("<tr>");
             $("<td>", { class: "prev" }).text(item.prevs).appendTo(tr);
-            $("<td>", { class: "let" }).text(item.let).appendTo(tr);
+            $("<td>", { class: "tlet" }).text(item.let).appendTo(tr);
             $("<td>", { class: "post" }).text(item.posts).appendTo(tr);
             tr.appendTo(tbody);
             freq[item.let] = item.freq;
@@ -604,4 +607,5 @@ var CipherSolver = /** @class */ (function (_super) {
         });
     };
     return CipherSolver;
-}(CipherHandler));
+}(cipherhandler_1.default));
+exports.default = CipherSolver;

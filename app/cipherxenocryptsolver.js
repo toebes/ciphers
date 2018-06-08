@@ -1,3 +1,5 @@
+"use strict";
+/// <reference types="ciphertypes" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -8,13 +10,16 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+Object.defineProperty(exports, "__esModule", { value: true });
+var ciphersolver_1 = require("./ciphersolver");
 var CipherXenocryptSolver = /** @class */ (function (_super) {
     __extends(CipherXenocryptSolver, _super);
     function CipherXenocryptSolver() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     return CipherXenocryptSolver;
-}(CipherSolver));
+}(ciphersolver_1.default));
+exports.default = CipherXenocryptSolver;
 // Xenocrypt: {
 //     init: 'init',
 //     normalizeHTML: 'normalizeHTML',

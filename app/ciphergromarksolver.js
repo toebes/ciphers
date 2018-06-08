@@ -1,3 +1,4 @@
+"use strict";
 /// <reference types="ciphertypes" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -9,6 +10,8 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+Object.defineProperty(exports, "__esModule", { value: true });
+var ciphersolver_1 = require("./ciphersolver");
 var CipherGromarkSolver = /** @class */ (function (_super) {
     __extends(CipherGromarkSolver, _super);
     function CipherGromarkSolver() {
@@ -504,7 +507,8 @@ var CipherGromarkSolver = /** @class */ (function (_super) {
         this.attachHandlers();
     };
     return CipherGromarkSolver;
-}(CipherSolver));
+}(ciphersolver_1.default));
+exports.default = CipherGromarkSolver;
 // Gromark: {
 //     normalizeHTML: 'normalizeHTML',
 //     load: 'loadSolver',

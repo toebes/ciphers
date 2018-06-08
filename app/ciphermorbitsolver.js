@@ -1,3 +1,4 @@
+"use strict";
 /// <reference types="ciphertypes" />
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
@@ -9,6 +10,8 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+Object.defineProperty(exports, "__esModule", { value: true });
+var ciphermorsesolver_1 = require("./ciphermorsesolver");
 var CipherMorbitSolver = /** @class */ (function (_super) {
     __extends(CipherMorbitSolver, _super);
     function CipherMorbitSolver() {
@@ -87,7 +90,8 @@ var CipherMorbitSolver = /** @class */ (function (_super) {
         }
     };
     return CipherMorbitSolver;
-}(CipherMorseSolver));
+}(ciphermorsesolver_1.default));
+exports.default = CipherMorbitSolver;
 // Morbit: {
 //     normalizeHTML: 'normalizeMorseHTML',
 //     load: 'loadMorseSolver',

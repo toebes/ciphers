@@ -1,3 +1,8 @@
+/// <reference types="ciphertypes" />
+
+import CipherEncoder from "./cipherencoder"
+
+export default 
 class CipherVigenereEncoder extends CipherEncoder {
     doEncoding: boolean = true
     

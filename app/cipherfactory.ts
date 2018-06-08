@@ -1,58 +1,69 @@
-// /// <reference types="ciphertypes" />
+/// <reference types="ciphertypes" />
 
-// import CipherHandler from "./cipherhandler"
-// import CipherEncoder from "./cipherencoder"
-// import CipherAffineEncoder from "./cipheraffineencoder"
+import CipherHandler from "./cipherhandler"
+import CipherEncoder from "./cipherencoder"
+import CipherAffineEncoder from "./cipheraffineencoder"
 
-// import CipherSolver from "./ciphersolver"
-// import CipherCheckerboardSolver from "./ciphercheckerboardsolver"
-// import CipherGromarkSolver from "./ciphergromarksolver"
-// import CipherMorseSolver from "./ciphermorsesolver"
-// import CipherMorbitSolver from "./ciphermorbitsolver"
-// import CipherFractionatedMorseSolver from "./cipherfractionatedmorsesolver"
-// import CipherVigenereEncoder from "./ciphervigenereencoder"
-// import CipherXenocryptSolver from "./cipherxenocryptsolver"
+import CipherSolver from "./ciphersolver"
+import CipherCheckerboardSolver from "./ciphercheckerboardsolver"
+import CipherGromarkSolver from "./ciphergromarksolver"
+import CipherMorseSolver from "./ciphermorsesolver"
+import CipherMorbitSolver from "./ciphermorbitsolver"
+import CipherFractionatedMorseSolver from "./cipherfractionatedmorsesolver"
+import CipherVigenereEncoder from "./ciphervigenereencoder"
+import CipherXenocryptSolver from "./cipherxenocryptsolver"
+import CryptarithmSolver from "./ciphercryptarithmsolver"
 
-// export default 
-// function CreateCipherTool(ciphertype: string): CipherHandler {
-//     let cipherTool: CipherHandler = null
-//     switch (ciphertype) {
-//         case 'Morbit':
-//             cipherTool = new CipherMorbitSolver()
-//             break
+export default 
+function CipherFactory(ciphertype: string, lang: string): CipherHandler {
+    console.log('Selecting:' + ciphertype + " lang=" + lang);
+    if (typeof lang === 'undefined') {
+        lang = "en";
+    }
+    lang = lang.toLowerCase();
 
-//         case 'FractionatedMorse':
-//             cipherTool = new CipherFractionatedMorseSolver()
-//             break
+    let cipherTool: CipherHandler = null
+    switch (ciphertype) {
+        case 'Morbit':
+            cipherTool = new CipherMorbitSolver()
+            break
 
-//         case 'Checkerboard':
-//             cipherTool = new CipherCheckerboardSolver()
-//             break
+        case 'FractionatedMorse':
+            cipherTool = new CipherFractionatedMorseSolver()
+            break
 
-//         case 'Gromark':
-//             cipherTool = new CipherGromarkSolver()
-//             break
+        case 'Checkerboard':
+            cipherTool = new CipherCheckerboardSolver()
+            break
 
-//         case 'Xenocrypt':
-//             cipherTool = new CipherXenocryptSolver()
-//             break
+        case 'Gromark':
+            cipherTool = new CipherGromarkSolver()
+            break
 
-//         case 'Encoder':
-//             cipherTool = new CipherEncoder()
-//             break
+        case 'Xenocrypt':
+            cipherTool = new CipherXenocryptSolver()
+            break
 
-//         case 'Vigenere':
-//             cipherTool = new CipherVigenereEncoder()
-//             break
+        case 'Encoder':
+            cipherTool = new CipherEncoder()
+            break
 
-//         case 'Affine':
-//             cipherTool = new CipherAffineEncoder()
-//             break
+        case 'Vigenere':
+            cipherTool = new CipherVigenereEncoder()
+            break
 
-//         case 'Standard':
-//         default:
-//             cipherTool = new CipherSolver()
-//             break
-//     }
-//     return cipherTool
-// }
+        case 'Affine':
+            cipherTool = new CipherAffineEncoder()
+            break
+
+        case 'Cryptarithm':
+            cipherTool = new CryptarithmSolver()
+
+        case 'Standard':
+        default:
+            cipherTool = new CipherSolver()
+            break
+    }
+    cipherTool.init(lang);
+    return cipherTool
+}

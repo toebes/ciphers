@@ -1,4 +1,8 @@
+/// <reference types="ciphertypes" />
 
+import CipherEncoder from "./cipherencoder"
+
+export default 
 class CipherAffineEncoder extends CipherEncoder {
 
     affineCheck: { [key: string]: number } = {

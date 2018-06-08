@@ -1,5 +1,7 @@
 /// <reference types="ciphertypes" />
 
+import CipherSolver from "./ciphersolver"
+
 enum CryptarithmType {
     Automatic,
     SquareRoot,
@@ -11,6 +13,7 @@ enum CryptarithmType {
     Equations,
 }
 
+export default
 class CryptarithmSolver extends CipherSolver {
     usedletters: BoolMap = {}
     boxState: StringMap = {}

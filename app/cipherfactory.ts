@@ -13,9 +13,10 @@ import CipherFractionatedMorseSolver from "./cipherfractionatedmorsesolver"
 import CipherVigenereEncoder from "./ciphervigenereencoder"
 import CipherXenocryptSolver from "./cipherxenocryptsolver"
 import CryptarithmSolver from "./ciphercryptarithmsolver"
+import CipherVigenereSolver from "./ciphervigeneresolver"
 
-export default 
-function CipherFactory(ciphertype: string, lang: string): CipherHandler {
+export default
+    function CipherFactory(ciphertype: string, lang: string): CipherHandler {
     console.log('Selecting:' + ciphertype + " lang=" + lang);
     if (typeof lang === 'undefined') {
         lang = "en";
@@ -50,6 +51,10 @@ function CipherFactory(ciphertype: string, lang: string): CipherHandler {
 
         case 'Vigenere':
             cipherTool = new CipherVigenereEncoder()
+            break
+
+        case 'VigenereSolver':
+            cipherTool = new CipherVigenereSolver()
             break
 
         case 'Affine':

@@ -137,61 +137,44 @@ class CipherVigenereEncoder extends CipherEncoder {
      * Loads up the values for vigenere 
      */
     load(): void {
-        var encoded = this.cleanString(<string>$('#inputdata').val());
+        var encoded = this.cleanString(<string>$('#inputdata').val())
         /*
         * If it is characteristic of the cipher type (e.g. patristocrat),
         * rebuild the string to be encoded in to five character sized chunks.
         */
-        var blockSize = parseInt((<string>$('input[id=blocksize').val()));
+        var blockSize = parseInt((<string>$('input[id=blocksize').val()))
         if (blockSize > 0 && blockSize < this.maxEncodeWidth) {
-            encoded = this.chunk(encoded, blockSize);
+            encoded = this.chunk(encoded, blockSize)
         }
 
-        var key = this.cleanString(<string>$('#keystring').val());
-        $('#err').text('');
-        let res = this.buildVigenere(encoded, key);
-        $('#answer').empty().append(res);
+        var key = this.cleanString(<string>$('#keystring').val())
+        $('#err').text('')
+        let res = this.buildVigenere(encoded, key)
+        let tool = this
+        $('#answer').empty().append(res)
         this.attachHandlers();
     }
+
+    layout(): void {
+        let tool = this
+        $('.precmds').each(function () {
+            $(this).empty().append(tool.layoutVigenere())
+        });
+    }
+    /**
+     * Set up all the HTML DOM elements so that they invoke the right functions
+     */
     attachHandlers(): void {
         let tool = this;
         //Argument of type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to parameter of type '"editor.unlink" | "unlink"'.
         // Type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to type '"unlink"'.
-        $('input[type=radio][name=enctype]').change(function () {
+        $('input[type=radio][name=enctype]').unbind('change').change(function () {
             tool.setkvalinputs();
         });
-        $('input[type=radio][name=operation]').change(function () {
+        $('input[type=radio][name=operation]').unbind('change').change(function () {
             tool.setVigenereInputs();
         })
         tool.setkvalinputs();
         super.attachHandlers();
     }
-    /**
-     * Set flag to 'chunk' input data string befre encoding.  Used in Patristocrat, 
-     */
-    setCipherType(cipherType: string): void {
-        let tool = this;
-        if (cipherType === 'vigenere') {
-            console.log('Make a nice vigenere...');
-            $('.cipher-type').each(function () {
-                $(this).empty().append(tool.layoutVigenere());
-            });
-            this.attachHandlers();
-        }
-
-    }
 }
-
-        // Vigenere: {
-        //     init: 'initEncoder',
-        //     normalizeHTML: 'normalizeHTML',
-        //     load: 'loadVigenere',
-        //     reset: 'resetSolver',
-        //     build: 'buildVigenere',
-        //     makeFreqEditField: 'makeViewField',
-        //     updateSel: 'updateStandardSel',
-        //     setChar: 'setStandardChar',
-        //     setMultiChars: 'setStandardMultiChars',
-        //     updateMatchDropdowns: 'updateStandardMatchDropdowns',
-        //     findPossible: 'findStandard'
-        // },

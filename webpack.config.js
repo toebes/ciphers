@@ -35,7 +35,7 @@ module.exports = {
             "summernote-css": path.join(__dirname, "summernote-lite.css"),
         },
         modules: [__dirname, path.join(__dirname, 'node_modules'),],
-        extensions: ['.js','.ts', '.css', '.ttf', '.eot','.woff','.woff2','.png']
+        extensions: ['.ts', '.js', '.css', '.ttf', '.eot','.woff','.woff2','.png']
     },
     module: {
         rules: [

@@ -178,7 +178,7 @@ class CipherMorseSolver extends CipherSolver {
      */
     attachHandlers(): void {
         let tool = this
-        $(".cb").on('change', function () {
+        $(".cb").unbind('change').on('change', function () {
             let toupdate = $(this).attr('data-char');
             tool.updateCheck(toupdate, $(this).prop("checked"));
         });

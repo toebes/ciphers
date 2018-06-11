@@ -15,6 +15,12 @@
         "app/cipherxenocryptsolver.ts",
         "app/cipherencoder.ts",
         "app/cipheraffineencoder.ts",
-        "app/ciphervigenereencoder.ts"
+        "app/ciphervigenereencoder.ts",
+        "app/ciphervigeneresolver.ts",
+        "app/mapBeaufort.ts",
+        "app/mapper.ts",
+        "app/mapperfactory.ts",
+        "app/mapVariant.ts",
+        "app/mapVigenere.ts",
     ]
 }

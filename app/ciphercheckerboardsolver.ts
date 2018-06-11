@@ -228,10 +228,10 @@ class CipherCheckerboardSolver extends CipherSolver {
 
     attachHandlers(): void {
         let tool = this;
-        $("#rowcharset").on('change', function () {
+        $("#rowcharset").unbind('change').on('change', function () {
             tool.setrowcolset((<HTMLInputElement>this).value, tool.colcharset, true);
         });
-        $("#colcharset").on('change', function () {
+        $("#colcharset").unbind('change').on('change', function () {
             tool.setrowcolset(tool.rowcharset, (<HTMLInputElement>this).value, true);
         });
         super.attachHandlers();

@@ -58,9 +58,6 @@ import CipherFactory from "./cipherfactory"
     $('#reset').button().unbind('click').click(function () {
         cipherTool.reset()
     });
-//    $('#encrypt').button().unbind('click').click(function () {
-//        cipherTool.encrypt()
-//    });
 
     // Morbit Solving Helper
     $(".sfind").change(function () {
@@ -71,6 +68,7 @@ import CipherFactory from "./cipherfactory"
     $(".lang").each(function () {
         cipherTool.setLangDropdown($(this));
     });
+    cipherTool.layout()
     cipherTool.UpdateFreqEditTable()
     cipherTool.attachHandlers()
 });

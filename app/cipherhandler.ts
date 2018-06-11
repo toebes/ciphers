@@ -341,6 +341,12 @@ class CipherHandler {
     reset(): void {
     }
     /**
+     * Initializes any layout of the handler
+     */
+    layout(): void {
+
+    }
+    /**
      * Builds ??
      * @param {string} str String to decode
      * @returns {string} HTML of solver structure
@@ -597,7 +603,7 @@ class CipherHandler {
      */
     attachHandlers(): void {
         let tool = this;
-        $(".sli").keyup(function (event) {
+        $(".sli").unbind('keyup').keyup(function (event) {
             let newchar;
             let repchar = $(event.target).attr('data-char');
             let current, next;
@@ -619,7 +625,7 @@ class CipherHandler {
                 tool.setChar(repchar, '');
             }
             event.preventDefault();
-        }).keypress(function (event) {
+        }).unbind('keypress').keypress(function (event) {
             let newchar;
             let repchar = $(event.target).attr('data-char');
             let current, next;
@@ -643,7 +649,7 @@ class CipherHandler {
                 console.log('Not valid:' + newchar);
             }
             event.preventDefault();
-        }).blur(function () {
+        }).unbind('blur').blur(function () {
             let tohighlight = $(this).attr('data-char');
             $("[data-char='" + tohighlight + "']").removeClass("allfocus");
             let althighlight = $(this).attr('data-schar');
@@ -651,7 +657,7 @@ class CipherHandler {
                 $("[data-schar='" + althighlight + "']").removeClass("allfocus");
             }
             $(this).removeClass("focus");
-        }).focus(function () {
+        }).unbind('focus').focus(function () {
             let tohighlight = $(this).attr('data-char');
             $("[data-char='" + tohighlight + "']").addClass("allfocus");
             let althighlight = $(this).attr('data-schar');
@@ -664,7 +670,7 @@ class CipherHandler {
             if (!$.fn.dataTable.isDataTable(".dragcol"))
              { $(this).DataTable({colReorder: true,  ordering: false, dom: 't'}) }
         });
-        $(".msli").on('change', function () {
+        $(".msli").unbind('change').on('change', function () {
             let toupdate = $(this).attr('data-char');
             tool.updateSel(toupdate, (<HTMLInputElement>this).value);
         });

@@ -66,7 +66,7 @@ class CipherEncoder extends CipherHandler {
      */
     attachHandlers(): void {
         let tool = this
-        $('input[type=radio][name=enctype]').change(function () {
+        $('input[type=radio][name=enctype]').unbind('change').change(function () {
             tool.setkvalinputs()
         })
         tool.setkvalinputs()

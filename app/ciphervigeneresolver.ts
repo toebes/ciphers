@@ -6,6 +6,9 @@ import CipherSolver from "./ciphersolver"
 import Mapper from "./mapper"
 import mapperFactory from "./mapperfactory"
 
+
+
+
 export default class CipherVigenereSolver extends CipherSolver {
     /** The current cipher we are working on */
     cipherString: string = ''
@@ -51,26 +54,97 @@ export default class CipherVigenereSolver extends CipherSolver {
      * @param str New keyword mapping string
      */
     setKeyword(str: string): void {
-        console.log('Keyword is' + str)
-        this.keyword = str
-        str = str.replace(" ", "")
-        let period = str.length
-        // Fix up all the vslot values so that they can be mapped
-        for (let i in this.cipherOffsets) {
-            let vslot = Number(i) % period
-            let ckey = str.charAt(vslot)
-            $("[data-char='" + this.cipherOffsets[i] + "']").attr('data-vslot', vslot)
-            let pt = this.ciphermap.decode(this.cipherString.charAt(this.cipherOffsets[i]), ckey)
-            $("span[data-char='" + this.cipherOffsets[i] + "']").text(pt)
-            $("div[data-char='" + this.cipherOffsets[i] + "']").html(pt)
+        if (str.length > 0) {
+            console.log('Keyword is' + str)
+            this.keyword = str
+            str = str.replace(" ", "")
+            let period = str.length
+            $("#period").text("Period = " + period)
+
+            // Fix up all the vslot values so that they can be mapped
+            for (let i in this.cipherOffsets) {
+                let vslot = Number(i) % period
+                let ckey = str.charAt(vslot)
+                $("[data-char='" + this.cipherOffsets[i] + "']").attr('data-vslot', vslot)
+                let pt = this.ciphermap.decode(this.cipherString.charAt(this.cipherOffsets[i]), ckey)
+                console.log('Set:' + i + ' for CT=' + this.cipherOffsets[i] + ' Key=' + ckey + ' to pt=' + pt)
+                $("span[data-char='" + this.cipherOffsets[i] + "']").text(pt)
+                $("div[data-char='" + this.cipherOffsets[i] + "']").html(pt)
+            }
         }
     }
+    /**
+     * Locate a string.
+     * Note that we assume that the period has been set
+     * @param {string} str string to look for
+     */
+    findPossible(str: string): void {
+         let encoded = this.cipherString
+        let blankkey = ''
+        for (let c of this.keyword) {
+            blankkey += '-'
+        }
+        let res = null
+        let maxcols = 5
+        let tdcount = 0
+        let table = $("<table>",{class:'found'})
+        let thead = $("<thead>")
+        let tr = $("<tr>")
+        for (let i = 0; i < maxcols; i++) {
+            $("<th>").text("Pos").appendTo(tr)
+            $("<th>").text("Key").appendTo(tr)
+        }
+        tr.appendTo(thead)
+        thead.appendTo(table)
+        let tbody = $("<tbody>")
+        tr = $("<tr>")
+        str = this.minimizeString(str.toUpperCase())
+        for (let i = 0; i < this.cipherOffsets.length - str.length; i++) {
+            let thiskey = blankkey
+            let valid = true
+            for (let pos = 0; pos < str.length; pos++) {
+                let ct = this.cipherString.charAt(this.cipherOffsets[i + pos])
+                let pt = str.charAt(pos)
+                let key = this.ciphermap.decodeKey(ct, pt)
+                let keypos = (i + pos) % this.keyword.length
+                let prevkey = thiskey.charAt(keypos)
+                if (prevkey != '-' && prevkey != key) {
+                    valid = false
+                    break
+                }
+                thiskey = thiskey.substr(0,keypos) + key + thiskey.substr(keypos+1)
+            }
+            if (valid) {
+                if ((tdcount > 0) && ((tdcount  % maxcols) === 0)) {
+                    tr.appendTo(tbody)
+                    tr = $("<tr>")
+                }
+                tdcount = tdcount + 1
+                let link = $("<a>", {class: 'vkey', href: '#'}).text(thiskey)
+                $("<td>").text(i).appendTo(tr)
+                $("<td>").append(link).appendTo(tr)
+            }
+        }
+        if (tdcount === 0) {
+            res = $("<span>").text('Unable to find ' + str + ' as ' + this.normalizeHTML(str))
+        } else {
+            res = $("<span>").text('Searching for ' + str + ' as ' + this.normalizeHTML(str))
+            if (tdcount % maxcols !== 0) {
+                tr.appendTo(tbody)
+            }
+            tbody.appendTo(table)
+            table.appendTo(res)
+        }
+        $(".findres").empty().append(res)
+        this.attachHandlers()
+    }
+
     /**
     * Fills in the frequency portion of the frequency table.  For the Vigenere
     * we don't have the frequency table, so this doesn't need to do anything
     */
-   displayFreq(): void {
-   }
+    displayFreq(): void {
+    }
     /**
      * Analyze the encoded text
      * @param {string} encoded
@@ -78,7 +152,109 @@ export default class CipherVigenereSolver extends CipherSolver {
      * @param {number} num
      */
     analyze(encoded: string): JQuery<HTMLElement> {
-        return null
+        let prevSpot: NumberMap = {}
+        let factorSet: NumberMap = {}
+        let prevc = ''
+        let prevc2 = ''
+        let pos = 0
+        let table1 = $("<table>", { class: 'vdist' })
+        let thead = $("<thead>")
+        let tr = $("<tr>")
+        $("<th>").text("Seq").appendTo(tr)
+        $("<th>").text("Dist").appendTo(tr)
+        tr.appendTo(thead)
+        thead.appendTo(table1)
+        let tbody = $("<tbody>")
+        for (let c of encoded) {
+            if (this.isValidChar(c)) {
+                let two = prevc + c
+                let three = prevc2 + prevc + c
+                if (two.length === 2) {
+                    if (typeof prevSpot[two] !== 'undefined') {
+                        let dist = pos - prevSpot[two];
+                        let tr = $('<tr>')
+                        $("<td>").text(two).appendTo(tr)
+                        $("<td>").text(dist).appendTo(tr)
+                        tr.appendTo(tbody)
+                        // Find all the factors of the distance and record them
+                        if (typeof factorSet[dist] === 'undefined') {
+                            factorSet[dist] = 0
+                        }
+                        factorSet[dist]++
+                        for (let factor = 2; factor <= dist / 2; factor++) {
+                            if (dist % factor === 0) {
+                                if (typeof factorSet[factor] === 'undefined') {
+                                    factorSet[factor] = 0
+                                }
+                                factorSet[factor]++
+                            }
+                        }
+                    }
+                    prevSpot[two] = pos;
+                }
+                if (three.length === 3) {
+                    if (typeof prevSpot[three] !== 'undefined') {
+                        let dist = pos - prevSpot[three];
+                        let tr = $('<tr>')
+                        $("<td>").text(three).appendTo(tr)
+                        $("<td>").text(dist).appendTo(tr)
+                        tr.appendTo(tbody)
+                        // Find all the factors of the distance and record them
+                        if (typeof factorSet[dist] === 'undefined') {
+                            factorSet[dist] = 0
+                        }
+                        factorSet[dist]++
+                        for (let factor = 2; factor <= dist / 2; factor++) {
+                            if (dist % factor === 0) {
+                                if (typeof factorSet[factor] === 'undefined') {
+                                    factorSet[factor] = 0
+                                }
+                                factorSet[factor]++
+                            }
+                        }
+                    }
+                    prevSpot[three] = pos;
+                }
+                pos++
+                prevc2 = prevc
+                prevc = c
+            }
+        }
+        tbody.appendTo(table1)
+
+        // Now dump out all the factors and the frequency of them
+        let table2 = $("<table>", { class: 'vfact' })
+        thead = $("<thead>")
+        $("<th>").text('Factor').appendTo(thead)
+        $("<th>").text('Freq').appendTo(thead)
+        thead.appendTo(table2)
+        tbody = $("<tbody>")
+        for (let factor in factorSet) {
+            if (factorSet[factor] > 1) {
+                let tr = $('<tr>')
+                let link = $("<a>", {class: 'vkey', href: '#', 'data-key': this.repeatStr("-",Number(factor))}).text(factor)
+                $("<td>").append(link).appendTo(tr)
+                $("<td>").text(factorSet[factor]).appendTo(tr)
+                tr.appendTo(tbody)
+            }
+        }
+        tbody.appendTo(table2)
+        return this.sideBySide(table1, table2)
+    }
+    /**
+     * Encapsulate two elements side by side in a table so that they stay lined up
+     * @param elem1 Left side element
+     * @param elem2 Right side element
+     */
+    sideBySide(elem1: JQuery<HTMLElement>, elem2: JQuery<HTMLElement>): JQuery<HTMLElement> {
+        let table = $("<table>", { class: 'combine' })
+        let tbody = $("<tbody>")
+        let tr = $("<tr>")
+        $("<td>").append(elem1).appendTo(tr)
+        $("<td>").append(elem2).appendTo(tr)
+        tr.appendTo(tbody)
+        tbody.appendTo(table)
+        return table
     }
     /**
      * Change the encrypted character.  This primarily shows us what the key might be if we use it
@@ -87,15 +263,12 @@ export default class CipherVigenereSolver extends CipherSolver {
      */
     setChar(repchar: string, newchar: string): void {
         console.log("vigenere setChar data-char=" + repchar + ' newchar=' + newchar)
-        
-        // this.replacement[repchar] = newchar
-        // $("input[data-char='" + repchar + "']").val(newchar)
-        // if (newchar === '') {
-        //     newchar = '?'
-        // }
-        // $("span[data-char='" + repchar + "']").text(newchar)
-        // this.cacheReplacements()
-        // this.updateMatchDropdowns(repchar)
+
+        let index = Number(repchar)
+        let ct = this.cipherString.charAt(index)
+        $("input[data-char='" + repchar + "']").val(newchar);
+        let key = this.ciphermap.decodeKey(ct, newchar)
+        $("div[data-schar='" + repchar + "']").html(key)
     }
 
     /**
@@ -105,6 +278,7 @@ export default class CipherVigenereSolver extends CipherSolver {
      */
     build(str: string): JQuery<HTMLElement> {
         this.cipherString = str
+        this.cipherOffsets = []
         // Test cases to confirm that the Vigenere/Variant/Beufort encoders/decoders work
         // let testmap:StringMap = {
         //     'encVigenere-aa=A': this.encVigenere("a","a"), // OK
@@ -172,9 +346,9 @@ export default class CipherVigenereSolver extends CipherSolver {
                 datachars += t
                 combinedtext += '<span data-char="' + i + '">?</span>'
                 t = pre + '<td><div class="slil">' + t + '</div>' +
-                    '<div data-char="' + i + '">?</div>' +
+                    '<div data-char="' + i + '" class="vans">?</div>' +
                     '<input type="text" id="ti' + i + '" class="sli slvi" data-char="' + i + '" />' +
-                    '<div data-schar="' + i + '"></div></td>'
+                    '<div data-schar="' + i + '">&nbsp;</div></td>'
                 pre = ''
             } else if (t === ' ' || t === '\n' || t === '\r') {
                 if (pre === '') {
@@ -211,10 +385,10 @@ export default class CipherVigenereSolver extends CipherSolver {
      */
     createFreqEditTable(): JQuery<HTMLElement> {
         let topdiv = $("<div>")
-        let inp = $("<input/>", { class: "xxx", id: "keyword" })
-        let label = $("<label>", { for: "keyword" }).text("Keyword")
-        label.appendTo(topdiv)
-        inp.appendTo(topdiv)
+        $("<div>", { id: 'period', class: 'note' }).text("Enter a sample keyword to set the period").appendTo(topdiv)
+        $("<label>", { for: "keyword" }).text("Keyword").appendTo(topdiv)
+        $("<input/>", { class: "xxx", id: "keyword" }).appendTo(topdiv)
+
         return topdiv
     }
     /**
@@ -222,14 +396,23 @@ export default class CipherVigenereSolver extends CipherSolver {
      */
     attachHandlers(): void {
         let tool = this;
+        super.attachHandlers()
+        tool.setCodeVariant(<string>$("input[name='codevariant']:checked").val())
+
         $('input[type=radio][name=codevariant]').unbind('change').change(function () {
             tool.setCodeVariant(<string>$("input[name='codevariant']:checked").val())
         })
-        $('#keyword').unbind('change').change(function () {
+        $('#keyword').unbind('input').on('input', function () {
             tool.setKeyword(<string>$(this).val())
         })
-
-
+        $("a.vkey").unbind('click').click(function() {
+            let newkey =$(this).attr('data-key')
+            if (newkey === undefined) {
+                newkey = $(this).html()
+            }
+            tool.setKeyword(newkey)
+            $('#keyword').val(newkey)
+        })
         $(".slvi").unbind('blur').blur(function () {
             let tohighlight = $(this).attr('data-vslot');
             $("[data-vslot='" + tohighlight + "']").removeClass("allfocus");
@@ -239,8 +422,6 @@ export default class CipherVigenereSolver extends CipherSolver {
             $("[data-vslot='" + tohighlight + "']").addClass("allfocus");
             $(this).addClass("focus");
         });
-        tool.setCodeVariant("vigenere")
-        super.attachHandlers()
     }
 
 

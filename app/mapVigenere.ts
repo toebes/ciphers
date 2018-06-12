@@ -44,6 +44,6 @@ export default class mapVigenere extends Mapper {
      * @param cpt Unencoded character
      */
     decodeKey(ct: string, cpt: string): string {
-        return this.decodeKey(ct, cpt);
+        return this.decode(ct, cpt);
     }
 }

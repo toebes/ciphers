@@ -59,12 +59,6 @@ import CipherFactory from "./cipherfactory"
         cipherTool.reset()
     });
 
-    // Morbit Solving Helper
-    $(".sfind").change(function () {
-        cipherTool.findPossible((<string>$(this).val()))
-    }).blur(function () {
-        cipherTool.findPossible((<string>$(this).val()))
-    });
     $(".lang").each(function () {
         cipherTool.setLangDropdown($(this));
     });

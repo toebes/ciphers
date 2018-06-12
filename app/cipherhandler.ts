@@ -527,6 +527,18 @@ class CipherHandler {
         this.attachHandlers();
     }
     /**
+     * Make multiple copies of a string concatenated
+     * @param c Character (or string) to repeat
+     * @param count number of times to repeat the string
+     */
+    repeatStr(c:string, count:number): string {
+        let res = ''
+        for(let i = 0; i < count; i++) {
+            res += c
+        }
+        return res
+    } 
+    /**
      * 
      * @param {*string} string String to compute value for
      * @returns {number} Value calculated 
@@ -694,6 +706,9 @@ class CipherHandler {
             ]
         });
 
+        $('.sfind').unbind('input').on('input', function () {
+            tool.findPossible((<string>$(this).val()))
+        });
     }
     /**
     * Generate a replacement pattern string.  Any unknown characters are represented as a space

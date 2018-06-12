@@ -1,4 +1,4 @@
-﻿input, textarea, .ibox, .ui-spinner, .note-editor, .ui-sel {
+﻿input, textarea, .ibox, .ui-spinner, .note-editor, .ui-sel, .note {
     display: block;
     margin-left: 160px;
     margin-bottom: 10px;
@@ -193,7 +193,9 @@ table.mword {
     border: 0;
     border-spacing: 0;
 }
-
+.tword .vans {
+    color: green;
+}
 .idiv {
     float: left;
 }
@@ -373,4 +375,65 @@ table.consonantline td.prev {
 table.contact td.tlet {
     border-left: 1px solid black;
     border-right: 1px solid black;
+}
+
+.references a,
+.references a:visited {
+    text-decoration: none;
+}
+
+.references a {
+    color: #b54b23;
+}
+
+.references h2 {
+    clear:both;
+    color: #b54b23;
+    font: 700 35px/1em "Roboto", sans-serif;
+    padding-bottom: 10px;
+    text-transform: uppercase;
+}
+
+table.vfact,
+table.found,
+table.vdist {
+    font-family: 'Courier New', Courier, monospace;   
+    border-collapse: collapse;
+    margin-right:10px;
+    border:1px solid black;  
+}
+
+table.combine td{
+    vertical-align: top;
+}
+
+table.vdist th,
+table.vfact th,
+table.found th {
+    text-align: center;
+    background-color: #eaeaea;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+table.vdist td,
+table.vfact td {
+    border:1px solid grey;
+    text-align: right;
+}
+
+table.found tr td:nth-child(even),
+table.found tr th:nth-child(even) {
+    border-right: 1px solid grey;
+    text-align: left;
+    border-bottom: 1px solid grey;
+    padding-right:10px;
+}
+
+table.found tr td:nth-child(odd),
+table.found tr th:nth-child(odd) {
+    border-left: 1px solid grey;
+    border-right: 1px dotted grey;
+    text-align: right;
+    border-bottom: 1px solid grey;
 }

@@ -4,6 +4,7 @@ import Mapper from "./mapper";
 import mapBeaufort from "./mapBeaufort"
 import mapVigenere from "./mapVigenere"
 import mapVariant from "./mapVariant"
+import mapGronsfeld from "./mapGronsfeld"
 
 export default
     function mapperFactory(codevariant: string): Mapper {
@@ -15,6 +16,9 @@ export default
         case 'variant':
             return new mapVariant
             
+        case 'gronsfeld':
+            return new mapGronsfeld
+
         default:
             return new mapVigenere
     }

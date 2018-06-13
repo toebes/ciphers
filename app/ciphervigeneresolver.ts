@@ -6,9 +6,6 @@ import CipherSolver from "./ciphersolver"
 import Mapper from "./mapper"
 import mapperFactory from "./mapperfactory"
 
-
-
-
 export default class CipherVigenereSolver extends CipherSolver {
     /** The current cipher we are working on */
     cipherString: string = ''
@@ -33,6 +30,8 @@ export default class CipherVigenereSolver extends CipherSolver {
         radioBox.append($('<label>', { for: 'variant', class: 'rlab' }).text('Variant'));
         radioBox.append($('<input>', { id: 'beaufort', type: 'radio', name: 'codevariant', value: 'beaufort' }));
         radioBox.append($('<label>', { for: 'beaufort', class: 'rlab' }).text('Beaufort'));
+        radioBox.append($('<input>', { id: 'gronsfeld', type: 'radio', name: 'codevariant', value: 'gronsfeld' }));
+        radioBox.append($('<label>', { for: 'gronsfeld', class: 'rlab' }).text('Gronsfeld'));
 
         operationChoice.append(radioBox);
 
@@ -99,7 +98,7 @@ export default class CipherVigenereSolver extends CipherSolver {
         let tbody = $("<tbody>")
         tr = $("<tr>")
         str = this.minimizeString(str.toUpperCase())
-        for (let i = 0; i < this.cipherOffsets.length - str.length; i++) {
+        for (let i = 0; i <= this.cipherOffsets.length - str.length; i++) {
             let thiskey = blankkey
             let valid = true
             for (let pos = 0; pos < str.length; pos++) {
@@ -129,7 +128,7 @@ export default class CipherVigenereSolver extends CipherSolver {
             res = $("<span>").text('Unable to find ' + str + ' as ' + this.normalizeHTML(str))
         } else {
             res = $("<span>").text('Searching for ' + str + ' as ' + this.normalizeHTML(str))
-            if (tdcount % maxcols !== 0) {
+            if (tdcount % maxcols !== 1) {
                 tr.appendTo(tbody)
             }
             tbody.appendTo(table)

@@ -32,6 +32,8 @@ export default class CipherVigenereSolver extends CipherSolver {
         radioBox.append($('<label>', { for: 'beaufort', class: 'rlab' }).text('Beaufort'));
         radioBox.append($('<input>', { id: 'gronsfeld', type: 'radio', name: 'codevariant', value: 'gronsfeld' }));
         radioBox.append($('<label>', { for: 'gronsfeld', class: 'rlab' }).text('Gronsfeld'));
+        radioBox.append($('<input>', { id: 'porta', type: 'radio', name: 'codevariant', value: 'porta' }));
+        radioBox.append($('<label>', { for: 'porta', class: 'rlab' }).text('Porta'));
 
         operationChoice.append(radioBox);
 
@@ -107,7 +109,7 @@ export default class CipherVigenereSolver extends CipherSolver {
                 let key = this.ciphermap.decodeKey(ct, pt)
                 let keypos = (i + pos) % this.keyword.length
                 let prevkey = thiskey.charAt(keypos)
-                if (prevkey != '-' && prevkey != key) {
+                if (prevkey != '-' && prevkey != key || key === '?') {
                     valid = false
                     break
                 }

@@ -18,7 +18,7 @@ export default class mapGronsfeld extends Mapper {
         if ((cpt.toLowerCase() === cpt) || isNaN(parseInt(ckey, 10))) {
             return '?';
         }
-        let ctval = (cpt.charCodeAt(0) - Aval) + (ckey.charCodeAt(z0) - zeroval)
+        let ctval = (cpt.charCodeAt(0) - Aval) + (ckey.charCodeAt(0) - zeroval)
         return this.getCharCode(ctval)
     }
     /**

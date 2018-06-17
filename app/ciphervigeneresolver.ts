@@ -5,7 +5,7 @@ const Aval = "A".charCodeAt(0)
 import CipherSolver from "./ciphersolver"
 import Mapper from "./mapper"
 import mapperFactory from "./mapperfactory"
-
+import TSTable from "./TSTable"
 export default class CipherVigenereSolver extends CipherSolver {
     /** The current cipher we are working on */
     cipherString: string = ''
@@ -80,7 +80,6 @@ export default class CipherVigenereSolver extends CipherSolver {
      * @param {string} str string to look for
      */
     findPossible(str: string): void {
-         let encoded = this.cipherString
         let blankkey = ''
         for (let c of this.keyword) {
             blankkey += '-'
@@ -88,17 +87,12 @@ export default class CipherVigenereSolver extends CipherSolver {
         let res = null
         let maxcols = 5
         let tdcount = 0
-        let table = $("<table>",{class:'found'})
-        let thead = $("<thead>")
-        let tr = $("<tr>")
+        let table = new TSTable({class: 'found'})
+        let row = table.addHeaderRow()
         for (let i = 0; i < maxcols; i++) {
-            $("<th>").text("Pos").appendTo(tr)
-            $("<th>").text("Key").appendTo(tr)
+            row.add("Pos").add("Key")
         }
-        tr.appendTo(thead)
-        thead.appendTo(table)
-        let tbody = $("<tbody>")
-        tr = $("<tr>")
+        row = table.addBodyRow() 
         str = this.minimizeString(str.toUpperCase())
         for (let i = 0; i <= this.cipherOffsets.length - str.length; i++) {
             let thiskey = blankkey
@@ -117,24 +111,18 @@ export default class CipherVigenereSolver extends CipherSolver {
             }
             if (valid) {
                 if ((tdcount > 0) && ((tdcount  % maxcols) === 0)) {
-                    tr.appendTo(tbody)
-                    tr = $("<tr>")
+                    row = table.addBodyRow()
                 }
                 tdcount = tdcount + 1
-                let link = $("<a>", {class: 'vkey', href: '#'}).text(thiskey)
-                $("<td>").text(i).appendTo(tr)
-                $("<td>").append(link).appendTo(tr)
+                row.add(String(i))
+                   .add($("<a>", {class: 'vkey', href: '#'}).text(thiskey))
             }
         }
         if (tdcount === 0) {
             res = $("<span>").text('Unable to find ' + str + ' as ' + this.normalizeHTML(str))
         } else {
             res = $("<span>").text('Searching for ' + str + ' as ' + this.normalizeHTML(str))
-            if (tdcount % maxcols !== 1) {
-                tr.appendTo(tbody)
-            }
-            tbody.appendTo(table)
-            table.appendTo(res)
+            res.append(table.generate())
         }
         $(".findres").empty().append(res)
         this.attachHandlers()
@@ -158,14 +146,8 @@ export default class CipherVigenereSolver extends CipherSolver {
         let prevc = ''
         let prevc2 = ''
         let pos = 0
-        let table1 = $("<table>", { class: 'vdist' })
-        let thead = $("<thead>")
-        let tr = $("<tr>")
-        $("<th>").text("Seq").appendTo(tr)
-        $("<th>").text("Dist").appendTo(tr)
-        tr.appendTo(thead)
-        thead.appendTo(table1)
-        let tbody = $("<tbody>")
+        let table1 = new TSTable({class: 'vdist',
+                                  head: [["Seq","Dist"]]})
         for (let c of encoded) {
             if (this.isValidChar(c)) {
                 let two = prevc + c
@@ -173,10 +155,7 @@ export default class CipherVigenereSolver extends CipherSolver {
                 if (two.length === 2) {
                     if (typeof prevSpot[two] !== 'undefined') {
                         let dist = pos - prevSpot[two];
-                        let tr = $('<tr>')
-                        $("<td>").text(two).appendTo(tr)
-                        $("<td>").text(dist).appendTo(tr)
-                        tr.appendTo(tbody)
+                        table1.addBodyRow([two,String(dist)])
                         // Find all the factors of the distance and record them
                         if (typeof factorSet[dist] === 'undefined') {
                             factorSet[dist] = 0
@@ -196,10 +175,7 @@ export default class CipherVigenereSolver extends CipherSolver {
                 if (three.length === 3) {
                     if (typeof prevSpot[three] !== 'undefined') {
                         let dist = pos - prevSpot[three];
-                        let tr = $('<tr>')
-                        $("<td>").text(three).appendTo(tr)
-                        $("<td>").text(dist).appendTo(tr)
-                        tr.appendTo(tbody)
+                        table1.addBodyRow([three,String(dist)])
                         // Find all the factors of the distance and record them
                         if (typeof factorSet[dist] === 'undefined') {
                             factorSet[dist] = 0
@@ -221,26 +197,17 @@ export default class CipherVigenereSolver extends CipherSolver {
                 prevc = c
             }
         }
-        tbody.appendTo(table1)
 
         // Now dump out all the factors and the frequency of them
-        let table2 = $("<table>", { class: 'vfact' })
-        thead = $("<thead>")
-        $("<th>").text('Factor').appendTo(thead)
-        $("<th>").text('Freq').appendTo(thead)
-        thead.appendTo(table2)
-        tbody = $("<tbody>")
+        let table2 = new TSTable({class: "vfact",
+                                  head: [["Factor", "Freq"]]})
         for (let factor in factorSet) {
             if (factorSet[factor] > 1) {
-                let tr = $('<tr>')
                 let link = $("<a>", {class: 'vkey', href: '#', 'data-key': this.repeatStr("-",Number(factor))}).text(factor)
-                $("<td>").append(link).appendTo(tr)
-                $("<td>").text(factorSet[factor]).appendTo(tr)
-                tr.appendTo(tbody)
+                table2.addBodyRow([link,String(factorSet[factor])])
             }
         }
-        tbody.appendTo(table2)
-        return this.sideBySide(table1, table2)
+        return this.sideBySide(table1.generate(), table2.generate())
     }
     /**
      * Encapsulate two elements side by side in a table so that they stay lined up
@@ -248,14 +215,7 @@ export default class CipherVigenereSolver extends CipherSolver {
      * @param elem2 Right side element
      */
     sideBySide(elem1: JQuery<HTMLElement>, elem2: JQuery<HTMLElement>): JQuery<HTMLElement> {
-        let table = $("<table>", { class: 'combine' })
-        let tbody = $("<tbody>")
-        let tr = $("<tr>")
-        $("<td>").append(elem1).appendTo(tr)
-        $("<td>").append(elem2).appendTo(tr)
-        tr.appendTo(tbody)
-        tbody.appendTo(table)
-        return table
+        return new TSTable({body:[[elem1,elem2]]}).generate()
     }
     /**
      * Change the encrypted character.  This primarily shows us what the key might be if we use it
@@ -424,6 +384,4 @@ export default class CipherVigenereSolver extends CipherSolver {
             $(this).addClass("focus");
         });
     }
-
-
 }

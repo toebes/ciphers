@@ -394,6 +394,74 @@ table.contact td.tlet {
     text-transform: uppercase;
 }
 
+
+        /* Style Definitions */
+
+        .references * {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .references a,
+        .references a:visited {
+            text-decoration: none;
+        }
+
+        .references a[href] {
+            color: #b54b23;
+        }
+
+
+        .references h3 {
+            color: #b54b23;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: "Roboto", sans-serif;
+            padding-bottom: 5px;
+            padding-top: 10px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .references .a {
+            font-family: Arial, Helvetica, sans-serif;
+            margin-left: 30px;
+        }
+        .references .c {
+            font-family: Arial, Helvetica, sans-serif;
+            margin-left: 60px;
+        }
+        .references .i {
+            color: #b54b23;
+            font-size: 25px;
+            font-weight: 700;
+            font-family: "Roboto", sans-serif;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            margin: 10px;
+        }
+        .references .n {
+            color: black;
+            font-style: italic;
+            margin-left: 5px;
+        }
+        .references .r {
+            margin-left:5px;
+        }
+        .references .h {
+            font-style:italic;
+            color: #b54b23;
+            font-size: 15px;
+            padding-left: 10px;
+        }
+        .references .w {
+            font-weight: bold;
+            padding-left: 10px;
+        }
+        .references .u {
+            text-decoration: overline;
+       }
+
+
 table.vfact,
 table.found,
 table.vdist {

@@ -320,10 +320,10 @@ export default class CipherRagbabySolver extends CipherSolver {
             this.setAlphabetSize(Number($("input[name='alphasize']:checked").val()))
         })
         $("button.ls").unbind('click').click((e) => {
-            this.leftShift(Number($(e.currentTarget).attr('data-vrow')))
+            this.leftShift(Number($(e.target).attr('data-vrow')))
         })
         $("button.rs").unbind('click').click((e) => {
-            this.rightShift(Number($(e.currentTarget).attr('data-vrow')))
+            this.rightShift(Number($(e.target).attr('data-vrow')))
         })
         $(".slvi").unbind('blur').blur((e) => {
             let tohighlight = $(e.target).attr('data-vslot')

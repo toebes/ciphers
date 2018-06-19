@@ -869,18 +869,18 @@ export default
         super.attachHandlers()
         $(".rtoggle").unbind('click').click(
             (e) => {
-                let id = $(e.currentTarget).attr("id")
-                let sel = $(e.currentTarget).attr("data-val")
-                $(e.currentTarget).removeClass("rtoggle-" + sel)
+                let id = $(e.target).attr("id")
+                let sel = $(e.target).attr("data-val")
+                $(e.target).removeClass("rtoggle-" + sel)
                 sel = String((Number(sel) + 1) % 4)
-                $(e.currentTarget).addClass("rtoggle-" + sel).attr("data-val", sel)
+                $(e.target).addClass("rtoggle-" + sel).attr("data-val", sel)
                 console.log('Changing ' + id + " to " + sel)
                 this.boxState[id] = sel
             }
         )
         $(".cb").unbind('change').on('change', (e) => {
-            let toupdate = $(e.currentTarget).attr('data-char')
-            this.updateCheck(toupdate, $(e.currentTarget).prop("checked"))
+            let toupdate = $(e.target).attr('data-char')
+            this.updateCheck(toupdate, $(e.target).prop("checked"))
         })
     }
 }

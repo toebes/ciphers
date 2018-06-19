@@ -1,7 +1,6 @@
 /// <reference types="ciphertypes" />
 
 import CipherEncoder from "./cipherencoder"
-
 export default
     class CipherAffineEncoder extends CipherEncoder {
 
@@ -13,6 +12,10 @@ export default
         'oldId': -1,
         'olderId': -1
     }
+
+    charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    encodeTable: StringMap = {}
+    completeSolution: boolean = false
 
     affinechar(a: number, b: number, chr: string): string {
         let charset = this.getCharset()
@@ -85,15 +88,15 @@ export default
         let charset = this.getCharset()
         let message = ''
         let cipher = ''
-        let result = $('<div>');
-        let msgLength = msg.length;
-        let lastSplit = -1;
-        let c = '';
+        let result = $('<div>')
+        let msgLength = msg.length
+        let lastSplit = -1
+        let c = ''
 
-        let table = $('<table/>').addClass("tfreq");
-        let tableBody = $('<tbody/>');
-        let messageRow = $('<tr/>');
-        let cipherRow = $('<tr/>');
+        let table = $('<table/>').addClass("tfreq")
+        let tableBody = $('<tbody/>')
+        let messageRow = $('<tr/>')
+        let cipherRow = $('<tr/>')
 
         for (i = 0; i < msgLength; i++) {
             let messageChar = msg.substr(i, 1).toUpperCase()
@@ -122,7 +125,7 @@ export default
         }
         table.append(tableBody)
 
-        return table;
+        return table
     }
 
     solveIt(m1: number, c1: number, m2: number, c2: number): string {
@@ -186,6 +189,302 @@ export default
         }
         return true
     }
+
+    /**
+     * 
+     * @param a 
+     * @param b 
+     * @param letterString 
+     */
+    encodeLetters(a: number, b: number, letterString: string): string {
+        let encoding = '\\begin{array}{lccrcl}'
+        let charset = this.getCharset()
+        for (let m of letterString) {
+            let mVal = charset.indexOf(m)
+            let cVal = ((a * mVal) + b)
+            let c = charset.substr(cVal % 26, 1)
+            encoding += m + '(' + mVal + ') & \\to & ' + mVal + ' * ' + a + ' + ' + b + ' & ' + cVal + ' & \\to & ' + c + '(' + cVal % 26 + ')\\\\'
+
+        }
+        encoding += '\\end{array}'
+        return encoding
+    }
+    /**
+     * 
+     * @param s 
+     */
+    encodeString(s: string): string {
+        let encoded = ''
+        for (var i = 0; i < s.length; i++) {
+            encoded += this.encodeTable[s.substr(i, 1)]
+        }
+        return encoded
+    }
+
+    setEncodingTable(a: number, b: number): void {
+        let charset = this.getCharset()
+        for (let i = 0; i < charset.length; i++) {
+            let c = -1
+            let letter = charset.substr(i, 1)
+            c = (a * i) + b
+            while (c >= 26) {
+                c -= 26
+            }
+            this.encodeTable[letter] = charset.substr(c, 1)
+        }
+    }
+
+    showOutput(msg: string, letters: string): JQuery<HTMLElement> {
+        let i
+        let message = ''
+        let cipher = ''
+        let result = $('<div>')
+        let msgLength = msg.length
+        let lastSplit = -1
+        let c = ''
+        let charset = this.getCharset()
+
+        let table = $('<table/>').addClass("tfreq")
+        let tableBody = $('<tbody/>')
+        let messageRow = $('<tr/>')
+        let cipherRow = $('<tr/>')
+
+        this.completeSolution = true
+
+        for (i = 0; i < msgLength; i++) {
+            let messageChar = msg.substr(i, 1).toUpperCase()
+            let cipherChar = ''
+            let m = charset.indexOf(messageChar)
+            if (m >= 0) {
+
+                message += messageChar
+                cipherChar = this.encodeTable[messageChar]
+                cipher += cipherChar
+            }
+            else {
+                message += messageChar
+                cipher += messageChar
+                lastSplit = cipher.length
+                continue
+            }
+
+            if (letters.indexOf(messageChar) != -1) {
+                messageRow.append($('<td/>').addClass("TOANSWER").text(messageChar))
+            } else {
+                messageRow.append($('<td/>').addClass("TOANSWER").text(' '))
+                this.completeSolution = false
+            }
+            cipherRow.append($('<td/>').addClass("TOSOLVE").text(cipherChar))
+
+            /* -- start here -- * /
+                        if (message.length >= this.maxEncodeWidth) {
+                            if (lastSplit === -1) {
+                                result.append($('<div>', {class: "TOSOLVE"}).text(message)); 
+                                result.append($('<div>', {class: "TOANSWER"}).text(cipher))
+                                message = ''
+                                cipher = ''
+                                lastSplit = -1
+                            }
+                            else {
+                                let messagePart = message.substr(0, lastSplit)
+                                let cipherPart = cipher.substr(0, lastSplit)
+                                message = message.substr(lastSplit)
+                                cipher = cipher.substr(lastSplit)
+                                result.append($('<div>', {class: "TOSOLVE"}).text(messagePart))
+                                result.append($('<div>', {class: "TOANSWER"}).text(cipherPart))
+            
+                            }
+                        }
+            / * -- end here -- */
+        }
+        if (message.length > 0) {
+            tableBody.append(cipherRow)
+            tableBody.append(messageRow)
+            //result.append($('<div>', {class: "TOSOLVE"}).text(message))
+            //result.append($('<div>', {class: "TOANSWER"}).text(cipher))
+        }
+        table.append(tableBody)
+
+        //return result.html()
+        return table
+    }
+
+
+    printSolution(theMessage: string, m1: string, c1: string, m2: string, c2: string): void {
+        let charset = this.getCharset()
+        let m1Val = charset.indexOf(m1)
+        let c1Val = charset.indexOf(c1)
+        let m2Val = charset.indexOf(m2)
+        let c2Val = charset.indexOf(c2)
+
+        let solution = '<p>Here is how we get the answer.  Since we are given that:</p>'
+
+        let given = '\\begin{align} ' + m1 + '(' + m1Val + ') & \\to ' + c1 + '(' + c1Val + ') \\\\ ' +
+            m2 + '(' + m2Val + ') & \\to ' + c2 + '(' + c2Val + ') \\end{align}'
+        solution += given
+        solution += '<p>From this we know:</p>'
+
+        let equation1 = '\\left(a * ' + m1Val + ' + b\\right)\\;\\text{mod 26} & = ' + c1Val + ' \\\\'
+        let equation2 = '\\left(a * ' + m2Val + ' + b\\right)\\;\\text{mod 26} & = ' + c2Val + ' \\\\'
+
+        if (m1Val > m2Val) {
+            solution += ('\\begin{align}' + equation1)
+            solution += (equation2 + '\\end{align}')
+        }
+        else {
+            solution += ('\\begin{align}' + equation2)
+            solution += (equation1 + '\\end{align}')
+        }
+        solution += '<p>Next, subtract the formulas:</p>'
+
+        //            let subtract = '\\begin{align} & '+equation1+' - & '+equation2+' \\end{align}'
+        let subtract1 = ''
+        let subtract2 = ''
+        let mVal = 0
+        let cVal = 0
+        let mSubstitute = 0
+        let cSubstitute = 0
+
+        // the 2 equations
+        if (m1Val > m2Val) {
+            mVal = m1Val - m2Val
+            cVal = c1Val - c2Val
+            subtract1 = '\\begin{align}' + equation1 + ' - ' + equation2 + ' \\hline a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' '
+            mSubstitute = m2Val
+            cSubstitute = c2Val
+        } else {
+            mVal = m2Val - m1Val
+            cVal = c2Val - c1Val
+            subtract1 = '\\begin{align}' + equation2 + ' - ' + equation1 + ' \\hline a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' '
+            mSubstitute = m1Val
+            cSubstitute = c1Val
+        }
+
+        solution += subtract1
+        if (cVal < 0) {
+            cVal += 26
+            subtract2 = ' \\\\ a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' '
+            solution += subtract2
+        }
+        solution += ' \\end{align}'
+
+        // solution for a
+        let message = ''
+        let a = cVal / mVal
+        let aRemainder = cVal % mVal
+        if (a != 0) {
+            let cValOriginal = cVal
+            if (aRemainder !== 0) {
+                message = 'Since $' + cVal + ' \\div ' + mVal + ' = ' + (cVal / mVal).toPrecision(5) + '$ we have to find another value.'
+                let count = 0
+
+                while (aRemainder != 0) {
+                    count += 1
+                    cVal += 26
+                    aRemainder = cVal % mVal
+                }
+                a = cVal / mVal
+                message += '  $' + cValOriginal + ' + (26 * ' + count + ') = ' + cVal + '$.  $' + cVal + ' \\div ' + mVal + ' = ' + a + '$'
+            }
+        }
+        solution += (message + '<p>So we now know that $\\bbox[yellow,5px]{a = ' + a + '}$.</p>')
+
+        // solution for b
+        let findingB = 'To find $b$, substitute that back into the equation with the lowest multiplier.  '
+        findingB += '\\begin{align}(' + a + ' * ' + mSubstitute + ' + b)\\;\\text{mod 26} & = ' + cSubstitute + '\\\\(' + (a * mSubstitute) + ' + b)\\;\\text{mod 26} & = ' + cSubstitute + '\\end{align}'
+        findingB += 'Subtract $' + (a * mSubstitute) + '$ from both sides: \\begin{align}(' + (a * mSubstitute) + ' +b)\\;\\text{mod 26} - ' + (a * mSubstitute) + ' & = (' + cSubstitute + ' - ' + (a * mSubstitute) + ')\\;\\text{mod 26}\\\\'
+        findingB += 'b\\;\\text{mod 26} & = ' + (cSubstitute - (a * mSubstitute)) + '\\;\\text{mod 26}\\\\'
+
+        let b = cSubstitute - (a * mSubstitute)
+        while (b < 0) {
+            b += 26
+        }
+        findingB += 'b\\;\\text{mod 26} & = ' + b + '\\;\\text{mod 26}\\end{align}'
+        findingB += 'And we see that $\\bbox[yellow,5px]{b = ' + b + '}$.  However, we only know a few of the letters in the cipher.'
+
+        solution += findingB
+        $("#solve_equations").html(solution)
+
+        let l = charset.substr(this.affineCheck['p'], 1) + charset.substr(this.affineCheck['q'], 1)
+        $("#part1").empty().append(this.showOutput(theMessage, l))
+        if (!this.completeSolution) {
+
+            // encode ETAOIN
+            let found = this.encodeString('ETAOIN')
+            solution = '<p>The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.</p>  ' +
+                this.encodeLetters(a, b, 'ETAOIN') + '<p>Filling in the letter we found ($' + found + '$) we get a bit more of the answer.</p>'
+            $("#ETAOIN").html(solution)
+            l += 'ETAOIN'
+            $("#part2").empty().append(this.showOutput(theMessage, l))
+        }
+
+        // now the solution
+
+        if (!this.completeSolution) {
+            // encode SRHLD
+            let found = this.encodeString('SRHLD')
+            solution = '<p>Next, encode the next 5 common letters <b>SRHLD</b>.' +
+                this.encodeLetters(a, b, 'SRHLD') + '<p>We know the reverse mapping of 5 more letters ($' + found + '$) which we can fill in.</p>'
+            $("#SRHLD").html(solution)
+            l += 'SRHLD'
+            $("#part3").empty().append(this.showOutput(theMessage, l))
+        }
+
+        if (!this.completeSolution) {
+            // encode CUMFP
+            let found = this.encodeString('CUMFP')
+            solution = '<p>We will convert the next 5 most frequent letters <b>CUMFP</b>.' +
+                this.encodeLetters(a, b, 'CUMFP') + '<p>The next 5 letters we know are ($' + found + '$), so we will fill those in.</p>'
+            $("#CUMFP").html(solution)
+            l += 'CUMFP'
+            $("#part4").empty().append(this.showOutput(theMessage, l))
+        }
+
+        if (!this.completeSolution) {
+            // encode GWYBV
+            let found = this.encodeString('GWYBV')
+            solution = '<p>Next, encode the next 5 common letters <b>GWYBV</b>.' +
+                this.encodeLetters(a, b, 'GWYBV') + '<p>We know the reverse mapping of 5 more letters ($' + found + '$) which we can fill in.</p>'
+            $("#GWYBV").html(solution)
+            l += 'GWYBV'
+            $("#part5").empty().append(this.showOutput(theMessage, l))
+        }
+
+        if (!this.completeSolution) {
+            // encode KXJQZ
+            let found = this.encodeString('KXJQZ')
+            solution = '<p>We will convert the next 5 most frequent letters <b>KXJQZ</b>.' +
+                this.encodeLetters(a, b, 'KXJQZ') + '<p>The next 5 letters we know are ($' + found + '$), so we will fill those in.</p>'
+            $("#KXJQZ").html(solution)
+            l += 'KXJQZ'
+            $("#part6").empty().append(this.showOutput(theMessage, l))
+        }
+
+        solution = '<p>The solution is now complete!</p>'
+        $('#complete').html(solution)
+                    //$("#solution").html(printSolution(msg, 'I', 'F', 'F', 'G'))
+                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'solve_equations'])
+                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'ETAOIN'])
+                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'SRHLD'])
+                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'CUMFP'])
+                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'GWYBV'])
+                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'KXJQZ']);
+        
+    }
+    attachHandlers() {
+        super.attachHandlers()
+        $("#solve").unbind('click').click(() => {
+            let msg = <string>$('#toencode').val()
+            this.setEncodingTable(Number($("#a").val()), Number($("#b").val()))
+            //$("#solution").innerHTML = printSolution(msg, 'I', 'F', 'F', 'G')
+            this.printSolution(msg,
+                this.charset.substr(this.affineCheck['p'], 1),
+                this.charset.substr(this.affineCheck['r'], 1),
+                this.charset.substr(this.affineCheck['q'], 1),
+                this.charset.substr(this.affineCheck['s'], 1))
+        })
+    }
+    //document.getElementById("solution").innerHTML = printSolution(msg, 'I', 'F', 'F', 'G')
     load(): void {
         let charset = this.getCharset()
         let a = $('#a').spinner("value")
@@ -205,10 +504,7 @@ export default
         $("#answer").empty().append(res)
 
         $("td").unbind('click').click((e) => {
-            console.log("clicked " + $(e.currentTarget).get)
-            let id = $(e.currentTarget).attr('id')
-            console.log("id = " + id)
-            console.log("other = " + $('td#' + id + '.TOSOLVE').text() + " nother = " + $('td#' + id + '.TOANSWER').text())
+            let id = $(e.target).attr('id')
             // change the style
             let clickedId = this.affineCheck['olderId']
             if (clickedId !== -1) {
@@ -240,7 +536,7 @@ export default
                     $("[id='solve']").prop('disabled', true)
                     $("[id='solve']").prop('value', 'Indeterminate Solution')
                 }
-                //$("#solve").text(sol);
+                //$("#solve").text(sol)
             }
         })
     }

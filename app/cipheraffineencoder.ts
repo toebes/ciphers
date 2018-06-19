@@ -275,33 +275,10 @@ export default
                 this.completeSolution = false
             }
             cipherRow.append($('<td/>').addClass("TOSOLVE").text(cipherChar))
-
-            /* -- start here -- * /
-                        if (message.length >= this.maxEncodeWidth) {
-                            if (lastSplit === -1) {
-                                result.append($('<div>', {class: "TOSOLVE"}).text(message)); 
-                                result.append($('<div>', {class: "TOANSWER"}).text(cipher))
-                                message = ''
-                                cipher = ''
-                                lastSplit = -1
-                            }
-                            else {
-                                let messagePart = message.substr(0, lastSplit)
-                                let cipherPart = cipher.substr(0, lastSplit)
-                                message = message.substr(lastSplit)
-                                cipher = cipher.substr(lastSplit)
-                                result.append($('<div>', {class: "TOSOLVE"}).text(messagePart))
-                                result.append($('<div>', {class: "TOANSWER"}).text(cipherPart))
-            
-                            }
-                        }
-            / * -- end here -- */
         }
         if (message.length > 0) {
             tableBody.append(cipherRow)
             tableBody.append(messageRow)
-            //result.append($('<div>', {class: "TOSOLVE"}).text(message))
-            //result.append($('<div>', {class: "TOANSWER"}).text(cipher))
         }
         table.append(tableBody)
 
@@ -403,31 +380,32 @@ export default
         findingB += 'And we see that $\\bbox[yellow,5px]{b = ' + b + '}$.  However, we only know a few of the letters in the cipher.'
 
         solution += findingB
-        $("#solve_equations").html(solution)
-
+        let outdiv = $("#sol")
+        outdiv.empty().append($("<p>", {id: "solution"}).html(solution))
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'solution'])
+    
         let l = charset.substr(this.affineCheck['p'], 1) + charset.substr(this.affineCheck['q'], 1)
-        $("#part1").empty().append(this.showOutput(theMessage, l))
+        outdiv.append(this.showOutput(theMessage, l))
         if (!this.completeSolution) {
-
             // encode ETAOIN
             let found = this.encodeString('ETAOIN')
             solution = '<p>The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.</p>  ' +
                 this.encodeLetters(a, b, 'ETAOIN') + '<p>Filling in the letter we found ($' + found + '$) we get a bit more of the answer.</p>'
-            $("#ETAOIN").html(solution)
+            outdiv.append($("<div>", {id: "ETAOIN"}).html(solution))
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'ETAOIN'])
             l += 'ETAOIN'
-            $("#part2").empty().append(this.showOutput(theMessage, l))
+            outdiv.append(this.showOutput(theMessage, l))
         }
-
-        // now the solution
 
         if (!this.completeSolution) {
             // encode SRHLD
             let found = this.encodeString('SRHLD')
             solution = '<p>Next, encode the next 5 common letters <b>SRHLD</b>.' +
                 this.encodeLetters(a, b, 'SRHLD') + '<p>We know the reverse mapping of 5 more letters ($' + found + '$) which we can fill in.</p>'
-            $("#SRHLD").html(solution)
+            outdiv.append($("<div>", {id: "SRHLD"}).html(solution))
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'SRHLD'])
             l += 'SRHLD'
-            $("#part3").empty().append(this.showOutput(theMessage, l))
+            outdiv.append(this.showOutput(theMessage, l))
         }
 
         if (!this.completeSolution) {
@@ -435,9 +413,10 @@ export default
             let found = this.encodeString('CUMFP')
             solution = '<p>We will convert the next 5 most frequent letters <b>CUMFP</b>.' +
                 this.encodeLetters(a, b, 'CUMFP') + '<p>The next 5 letters we know are ($' + found + '$), so we will fill those in.</p>'
-            $("#CUMFP").html(solution)
+            outdiv.append($("<div>", {id: "CUMFP"}).html(solution))
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'CUMFP'])
             l += 'CUMFP'
-            $("#part4").empty().append(this.showOutput(theMessage, l))
+            outdiv.append(this.showOutput(theMessage, l))
         }
 
         if (!this.completeSolution) {
@@ -445,9 +424,10 @@ export default
             let found = this.encodeString('GWYBV')
             solution = '<p>Next, encode the next 5 common letters <b>GWYBV</b>.' +
                 this.encodeLetters(a, b, 'GWYBV') + '<p>We know the reverse mapping of 5 more letters ($' + found + '$) which we can fill in.</p>'
-            $("#GWYBV").html(solution)
-            l += 'GWYBV'
-            $("#part5").empty().append(this.showOutput(theMessage, l))
+                outdiv.append($("<div>", {id: "GWYBV"}).html(solution))
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'GWYBV'])
+                l += 'GWYBV'
+            outdiv.append(this.showOutput(theMessage, l))
         }
 
         if (!this.completeSolution) {
@@ -455,21 +435,12 @@ export default
             let found = this.encodeString('KXJQZ')
             solution = '<p>We will convert the next 5 most frequent letters <b>KXJQZ</b>.' +
                 this.encodeLetters(a, b, 'KXJQZ') + '<p>The next 5 letters we know are ($' + found + '$), so we will fill those in.</p>'
-            $("#KXJQZ").html(solution)
+                outdiv.append($("<div>", {id: "KXJQZ"}).html(solution))
             l += 'KXJQZ'
-            $("#part6").empty().append(this.showOutput(theMessage, l))
+            outdiv.append(this.showOutput(theMessage, l))
         }
 
-        solution = '<p>The solution is now complete!</p>'
-        $('#complete').html(solution)
-                    //$("#solution").html(printSolution(msg, 'I', 'F', 'F', 'G'))
-                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'solve_equations'])
-                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'ETAOIN'])
-                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'SRHLD'])
-                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'CUMFP'])
-                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'GWYBV'])
-                    MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'KXJQZ']);
-        
+        outdiv.append($("<p>").text("The solution is now complete!"))       
     }
     attachHandlers() {
         super.attachHandlers()

@@ -220,7 +220,11 @@ export default
         }
         return encoded
     }
-
+    /**
+     * 
+     * @param a 
+     * @param b 
+     */
     setEncodingTable(a: number, b: number): void {
         let charset = this.getCharset()
         for (let i = 0; i < charset.length; i++) {
@@ -233,7 +237,11 @@ export default
             this.encodeTable[letter] = charset.substr(c, 1)
         }
     }
-
+    /**
+     * 
+     * @param msg 
+     * @param letters 
+     */
     showOutput(msg: string, letters: string): JQuery<HTMLElement> {
         let i
         let message = ''
@@ -249,6 +257,7 @@ export default
         let messageRow = $('<tr/>')
         let cipherRow = $('<tr/>')
 
+        // Assume that these letters complete the solution
         this.completeSolution = true
 
         for (i = 0; i < msgLength; i++) {
@@ -271,6 +280,7 @@ export default
             if (letters.indexOf(messageChar) != -1) {
                 messageRow.append($('<td/>').addClass("TOANSWER").text(messageChar))
             } else {
+                // Alas one of the letters is unresolved, to the solution is not complete
                 messageRow.append($('<td/>').addClass("TOANSWER").text(' '))
                 this.completeSolution = false
             }
@@ -381,9 +391,9 @@ export default
 
         solution += findingB
         let outdiv = $("#sol")
-        outdiv.empty().append($("<p>", {id: "solution"}).html(solution))
+        outdiv.empty().append($("<p>", { id: "solution" }).html(solution))
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'solution'])
-    
+
         let l = charset.substr(this.affineCheck['p'], 1) + charset.substr(this.affineCheck['q'], 1)
         outdiv.append(this.showOutput(theMessage, l))
         if (!this.completeSolution) {
@@ -391,7 +401,7 @@ export default
             let found = this.encodeString('ETAOIN')
             solution = '<p>The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.</p>  ' +
                 this.encodeLetters(a, b, 'ETAOIN') + '<p>Filling in the letter we found ($' + found + '$) we get a bit more of the answer.</p>'
-            outdiv.append($("<div>", {id: "ETAOIN"}).html(solution))
+            outdiv.append($("<div>", { id: "ETAOIN" }).html(solution))
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'ETAOIN'])
             l += 'ETAOIN'
             outdiv.append(this.showOutput(theMessage, l))
@@ -402,7 +412,7 @@ export default
             let found = this.encodeString('SRHLD')
             solution = '<p>Next, encode the next 5 common letters <b>SRHLD</b>.' +
                 this.encodeLetters(a, b, 'SRHLD') + '<p>We know the reverse mapping of 5 more letters ($' + found + '$) which we can fill in.</p>'
-            outdiv.append($("<div>", {id: "SRHLD"}).html(solution))
+            outdiv.append($("<div>", { id: "SRHLD" }).html(solution))
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'SRHLD'])
             l += 'SRHLD'
             outdiv.append(this.showOutput(theMessage, l))
@@ -413,8 +423,8 @@ export default
             let found = this.encodeString('CUMFP')
             solution = '<p>We will convert the next 5 most frequent letters <b>CUMFP</b>.' +
                 this.encodeLetters(a, b, 'CUMFP') + '<p>The next 5 letters we know are ($' + found + '$), so we will fill those in.</p>'
-            outdiv.append($("<div>", {id: "CUMFP"}).html(solution))
-                MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'CUMFP'])
+            outdiv.append($("<div>", { id: "CUMFP" }).html(solution))
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'CUMFP'])
             l += 'CUMFP'
             outdiv.append(this.showOutput(theMessage, l))
         }
@@ -424,30 +434,32 @@ export default
             let found = this.encodeString('GWYBV')
             solution = '<p>Next, encode the next 5 common letters <b>GWYBV</b>.' +
                 this.encodeLetters(a, b, 'GWYBV') + '<p>We know the reverse mapping of 5 more letters ($' + found + '$) which we can fill in.</p>'
-                outdiv.append($("<div>", {id: "GWYBV"}).html(solution))
-                MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'GWYBV'])
-                l += 'GWYBV'
+            outdiv.append($("<div>", { id: "GWYBV" }).html(solution))
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'GWYBV'])
+            l += 'GWYBV'
             outdiv.append(this.showOutput(theMessage, l))
         }
 
         if (!this.completeSolution) {
             // encode KXJQZ
             let found = this.encodeString('KXJQZ')
-            solution = '<p>We will convert the next 5 most frequent letters <b>KXJQZ</b>.' +
+            solution = '<p>We will convert the remaining 5 letters <b>KXJQZ</b>.' +
                 this.encodeLetters(a, b, 'KXJQZ') + '<p>The next 5 letters we know are ($' + found + '$), so we will fill those in.</p>'
-                outdiv.append($("<div>", {id: "KXJQZ"}).html(solution))
+            outdiv.append($("<div>", { id: "KXJQZ" }).html(solution))
             l += 'KXJQZ'
             outdiv.append(this.showOutput(theMessage, l))
         }
 
-        outdiv.append($("<p>").text("The solution is now complete!"))       
+        outdiv.append($("<p>").text("The solution is now complete!"))
     }
+    /**
+     * 
+     */
     attachHandlers() {
         super.attachHandlers()
         $("#solve").unbind('click').click(() => {
             let msg = <string>$('#toencode').val()
             this.setEncodingTable(Number($("#a").val()), Number($("#b").val()))
-            //$("#solution").innerHTML = printSolution(msg, 'I', 'F', 'F', 'G')
             this.printSolution(msg,
                 this.charset.substr(this.affineCheck['p'], 1),
                 this.charset.substr(this.affineCheck['r'], 1),
@@ -455,13 +467,13 @@ export default
                 this.charset.substr(this.affineCheck['s'], 1))
         })
     }
-    //document.getElementById("solution").innerHTML = printSolution(msg, 'I', 'F', 'F', 'G')
+    /**
+     * 
+     */
     load(): void {
         let charset = this.getCharset()
         let a = $('#a').spinner("value")
         let b = $('#b').spinner("value")
-        //  let a = parseInt(atxt)
-        //  let b = parseInt(btxt)
 
         if (!this.iscoprime(a)) {
             console.log('not coprime')
@@ -507,7 +519,6 @@ export default
                     $("[id='solve']").prop('disabled', true)
                     $("[id='solve']").prop('value', 'Indeterminate Solution')
                 }
-                //$("#solve").text(sol)
             }
         })
     }

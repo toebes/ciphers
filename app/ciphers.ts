@@ -1,4 +1,4 @@
-"use strict";
+"use strict"
 
 /**
 * ciphers.js is a library for JavaScript which provides functions for
@@ -39,30 +39,22 @@ import '../summernote-lite.css'
 import CipherHandler from "./cipherhandler"
 import CipherFactory from "./cipherfactory"
 
-let cipherTool: CipherHandler = new CipherHandler();
+let cipherTool: CipherHandler = new CipherHandler()
 
 $(function () {
     cipherTool = CipherFactory(undefined, undefined)
     // First figure out what type of solver we are building
     $("[data-cipher]").each((i, elem) => {
         cipherTool = CipherFactory($(elem).attr('data-cipher'), $(elem).attr('data-lang'))
-    });
+    })
     // process the "cipher-type" class
-    $(".cipher-type").each((i, elem) => {
-        cipherTool.setCipherType($(elem).attr('id'))
-    });
+    $(".cipher-type").each((i, elem) => { cipherTool.setCipherType($(elem).attr('id')) })
     // Handler for .ready() called.
-    $('#load').button().unbind('click').click(() => {
-        cipherTool.load()
-    });
-    $('#reset').button().unbind('click').click(() => {
-        cipherTool.reset()
-    });
+    $('#load').button().unbind('click').click(() => { cipherTool.load() })
+    $('#reset').button().unbind('click').click(() => { cipherTool.reset() })
 
-    $(".lang").each((i, elem) => {
-        cipherTool.setLangDropdown($(elem));
-    });
+    $(".lang").each((i, elem) => { cipherTool.setLangDropdown($(elem)) })
     cipherTool.layout()
     cipherTool.UpdateFreqEditTable()
     cipherTool.attachHandlers()
-});
+})

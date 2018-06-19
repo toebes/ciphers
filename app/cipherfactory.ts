@@ -18,11 +18,11 @@ import CipherRagbabySolver from "./cipherragbabysolver"
 
 export default
     function CipherFactory(ciphertype: string, lang: string): CipherHandler {
-    console.log('Selecting:' + ciphertype + " lang=" + lang);
+    console.log('Selecting:' + ciphertype + " lang=" + lang)
     if (typeof lang === 'undefined') {
-        lang = "en";
+        lang = "en"
     }
-    lang = lang.toLowerCase();
+    lang = lang.toLowerCase()
 
     let cipherTool: CipherHandler = null
     switch (ciphertype) {
@@ -75,6 +75,6 @@ export default
             cipherTool = new CipherSolver()
             break
     }
-    cipherTool.init(lang);
+    cipherTool.init(lang)
     return cipherTool
 }

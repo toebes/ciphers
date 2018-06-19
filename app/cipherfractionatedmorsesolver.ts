@@ -49,44 +49,44 @@ readonly fractionatedMorseReplaces: Array<string> = [
      *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     init():void {
-        this.cipherWidth = 3;
-        this.setCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+        this.cipherWidth = 3
+        this.setCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
     }
     getMorseMap(): StringMap {
-        return this.fractionatedMorseMap;
+        return this.fractionatedMorseMap
     }
     setMorseMapEntry(entry:string, val:string):void {
-        this.fractionatedMorseMap[entry] = val;
+        this.fractionatedMorseMap[entry] = val
     }
     /*
      * Create an edit field for a dropdown
     */
    makeFreqEditField(c:string):JQuery<HTMLElement> {
         if (this.locked[c]) {
-            return $(this.normalizeHTML(this.fractionatedMorseMap[c]));
+            return $(this.normalizeHTML(this.fractionatedMorseMap[c]))
         }
-        var mselect = $('<select class="msli" data-char="' + c + '" id="m' + c + '"/>');
-        var locklist = {};
+        let mselect = $('<select class="msli" data-char="' + c + '" id="m' + c + '"/>')
+        let locklist = {}
         /* Build a list of the locked strings we should skip */
-        for (var key in this.locked) {
+        for (let key in this.locked) {
             if (this.locked.hasOwnProperty(key) && this.locked[key]) {
-                locklist[this.fractionatedMorseMap[key]] = true;
-                console.log('Recording locklist['+key+']='+locklist[key]);
+                locklist[this.fractionatedMorseMap[key]] = true
+                console.log('Recording locklist['+key+']='+locklist[key])
             }
         }
-        var mreplaces = this.fractionatedMorseReplaces.length;
-        var selected = [];
-        selected[this.fractionatedMorseMap[c]] = " selected";
-        for (var i = 0; i < mreplaces; i++) {
-            var text = this.fractionatedMorseReplaces[i];
-            console.log('Checkign for '+text);
+        let mreplaces = this.fractionatedMorseReplaces.length
+        let selected = []
+        selected[this.fractionatedMorseMap[c]] = " selected"
+        for (let i = 0; i < mreplaces; i++) {
+            let text = this.fractionatedMorseReplaces[i]
+            console.log('Checkign for '+text)
             if (!locklist[text]) {
                 $("<option />", { value: text, selected: selected[text] })
                                  .html(this.normalizeHTML(text))
-                                 .appendTo(mselect);
+                                 .appendTo(mselect)
             }
         }
-        return mselect;
+        return mselect
     }
     /**
      * Handle a dropdown event.  They are changing the mapping for a character.
@@ -96,22 +96,22 @@ readonly fractionatedMorseReplaces: Array<string> = [
      * @param {number} val This is which element we are changing it to.  This is an index into the fractionatedMorseReplaces table
      */
     updateSel(item:string, val:string):void {
-        console.log('updateFractionatedMorseSel item=' + item + ' val=' + val);
-        var toswapwith = item;
+        console.log('updateFractionatedMorseSel item=' + item + ' val=' + val)
+        let toswapwith = item
 
-        for (var key in this.fractionatedMorseMap) {
+        for (let key in this.fractionatedMorseMap) {
             if (this.fractionatedMorseMap.hasOwnProperty(key))
                 if (this.fractionatedMorseMap[key] === val) {
-                    toswapwith = key;
-                    break;
+                    toswapwith = key
+                    break
                 }
         }
         if (toswapwith !== item) {
-            var swapval = this.fractionatedMorseMap[item];
-            this.fractionatedMorseMap[item] = this.fractionatedMorseMap[toswapwith];
-            this.fractionatedMorseMap[toswapwith] = swapval;
-            this.UpdateFreqEditTable();
-            this.load();
+            let swapval = this.fractionatedMorseMap[item]
+            this.fractionatedMorseMap[item] = this.fractionatedMorseMap[toswapwith]
+            this.fractionatedMorseMap[toswapwith] = swapval
+            this.UpdateFreqEditTable()
+            this.load()
         }
     }
 }

@@ -23,7 +23,7 @@ export default
      * Loads new data into a solver, preserving all solving matches made
      */
     load(): void {
-        var encoded: string = this.cleanString(<string>$('#encoded').val())
+        let encoded: string = this.cleanString(<string>$('#encoded').val())
         let res = this.build(encoded)
         this.UpdateFreqEditTable()
 

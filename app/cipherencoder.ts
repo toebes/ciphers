@@ -20,9 +20,9 @@ export default
      * @param {string} lang Language to select (EN is the default)
      */
     init(lang: string): void {
-        //this.ShowRevReplace = false;
-        this.curlang = lang;
-        this.setCharset(this.acalangcharset[lang]);
+        //this.ShowRevReplace = false
+        this.curlang = lang
+        this.setCharset(this.acalangcharset[lang])
         this.setSourceCharset(this.encodingcharset[lang])
     }
 
@@ -30,21 +30,21 @@ export default
      * Enable / Disable the HTML elements based on the alphabet selection
      */
     setkvalinputs(): void {
-        let val = $('input[name=enctype]:checked').val();
+        let val = $('input[name=enctype]:checked').val()
         if (val === 'random') {
-            $(".kval").hide();
+            $(".kval").hide()
         } else {
-            $(".kval").show();
+            $(".kval").show()
         }
         if (val === 'k3') {
-            $(".k3val").show();
+            $(".k3val").show()
         } else {
-            $(".k3val").hide();
+            $(".k3val").hide()
         }
         if (val === 'k4') {
-            $(".k4val").show();
+            $(".k4val").show()
         } else {
-            $(".k4val").hide();
+            $(".k4val").hide()
         }
     }
     /**
@@ -52,7 +52,7 @@ export default
      * @param lang Language to load
      */
     loadLanguage(lang: string): void {
-        this.curlang = lang;
+        this.curlang = lang
         this.setCharset(this.acalangcharset[lang])
         this.setSourceCharset(this.encodingcharset[lang])
         // Call the super if we plan to match the text against a dictionary.
@@ -79,28 +79,28 @@ export default
         if (cipherType == 'patristocrat') {
             this.groupingSize = 5
         }
-        this.attachHandlers();
+        this.attachHandlers()
     }
     /**
      * Generate the maping from the source to the destination alphabet
      */
     genMap(): void {
-        let val = $('input[name=enctype]:checked').val();
-        let keyword = <string>$('#keyword').val();
-        let offset = $('#offset').spinner("value");
-        let keyword2 = <string>$('#keyword2').val();
-        let offset2 = $('#offset2').spinner("value");
-        let shift = $('#shift').spinner("value");
+        let val = $('input[name=enctype]:checked').val()
+        let keyword = <string>$('#keyword').val()
+        let offset = $('#offset').spinner("value")
+        let keyword2 = <string>$('#keyword2').val()
+        let offset2 = $('#offset2').spinner("value")
+        let shift = $('#shift').spinner("value")
         if (val === 'k1') {
-            this.genAlphabetK1(keyword, offset);
+            this.genAlphabetK1(keyword, offset)
         } else if (val === 'k2') {
-            this.genAlphabetK2(keyword, offset);
+            this.genAlphabetK2(keyword, offset)
         } else if (val === 'k3') {
-            this.genAlphabetK3(keyword, offset, shift);
+            this.genAlphabetK3(keyword, offset, shift)
         } else if (val === 'k4') {
-            this.genAlphabetK4(keyword, offset, keyword2, offset2);
+            this.genAlphabetK4(keyword, offset, keyword2, offset2)
         } else {
-            this.genAlphabetRandom();
+            this.genAlphabetRandom()
         }
     }
 
@@ -112,26 +112,26 @@ export default
      * @param {string} cset Source character set
      */
     setReplacement(cset: string, repl: string): void {
-        let i, len, errors;
-        errors = '';
+        let i, len, errors
+        errors = ''
         console.log('Set Replacement cset=' + cset + ' repl=' + repl)
         // Figure out what letters map to the destination letters.  Note that
         // the input chracterset alphabet may not be in the same order as the
         // actual alphabet.
         for (i = 0, len = repl.length; i < len; i++) {
-            let repc = repl.substr(i, 1);
-            let orig = cset.substr(i, 1);
+            let repc = repl.substr(i, 1)
+            let orig = cset.substr(i, 1)
             // Remember that we are backwards because this an encoder
-            this.setChar(orig, repc);
+            this.setChar(orig, repc)
             // Just make sure that we don't happen to have the same character
             // at this position
             if (repc === orig) {
-                errors += repc;
+                errors += repc
             }
         }
         if (errors !== '') {
-            console.log(errors);
-            $(".err").text('Bad keyword/offset combo for letters: ' + errors);
+            console.log(errors)
+            $(".err").text('Bad keyword/offset combo for letters: ' + errors)
         }
     }
     /**
@@ -140,8 +140,8 @@ export default
      * @param offset Offset from the start of the alphabet to place the keyword
      */
     genAlphabetK1(keyword: string, offset: number): void {
-        let repl = this.genKstring(keyword, offset, this.getCharset());
-        this.setReplacement(this.getSourceCharset(), repl);
+        let repl = this.genKstring(keyword, offset, this.getCharset())
+        this.setReplacement(this.getSourceCharset(), repl)
     }
     /**
      * Generate a K2 alphabet where the keyword is in the destination alphabet
@@ -149,8 +149,8 @@ export default
      * @param offset Offset from the start of the alphabet to place the keyword
      */
     genAlphabetK2(keyword: string, offset: number): void {
-        let repl = this.genKstring(keyword, offset, this.getSourceCharset());
-        this.setReplacement(repl, this.getCharset());
+        let repl = this.genKstring(keyword, offset, this.getSourceCharset())
+        this.setReplacement(repl, this.getCharset())
     }
     /**
      * Generate a K3 alphabet where both alphabets are the same using a Keyword
@@ -169,9 +169,9 @@ export default
             $(".err").text(error)
             return
         }
-        let repl = this.genKstring(keyword, offset, this.getCharset());
-        let cset = repl.substr(shift) + repl.substr(0, shift);
-        this.setReplacement(cset, repl);
+        let repl = this.genKstring(keyword, offset, this.getCharset())
+        let cset = repl.substr(shift) + repl.substr(0, shift)
+        this.setReplacement(cset, repl)
     }
     /**
      * Generate a K4 alphabet where the keywords are different in each alphabet
@@ -187,9 +187,9 @@ export default
             $(".err").text(error)
             return
         }
-        let cset = this.genKstring(keyword, offset, this.getCharset());
-        let repl = this.genKstring(keyword2, offset2, this.getSourceCharset());
-        this.setReplacement(cset, repl);
+        let cset = this.genKstring(keyword, offset, this.getCharset())
+        let repl = this.genKstring(keyword2, offset2, this.getSourceCharset())
+        this.setReplacement(cset, repl)
     }
     /**
      * Map a keyword into an alphabet
@@ -217,7 +217,7 @@ export default
             }
         }
         repl = unasigned.substr(unasigned.length - offset) + repl + unasigned.substr(0, unasigned.length - offset)
-        return repl;
+        return repl
     }
     /**
      * Gets a random replacement character from the remaining set of unassigned
@@ -225,10 +225,10 @@ export default
      * @returns {string} Single character replacement
      */
     getRepl(): string {
-        let sel = Math.floor(Math.random() * this.unasigned.length);
-        let res = this.unasigned.substr(sel, 1);
-        this.unasigned = this.unasigned.substr(0, sel) + this.unasigned.substr(sel + 1);
-        return res;
+        let sel = Math.floor(Math.random() * this.unasigned.length)
+        let res = this.unasigned.substr(sel, 1)
+        this.unasigned = this.unasigned.substr(0, sel) + this.unasigned.substr(sel + 1)
+        return res
     }
     /**
      *  Generates a random replacement set of characters
@@ -260,10 +260,10 @@ export default
             // Just pick a random spot in what we have already done and
             // swap it.  We are guaranteed that it won't be the last character
             // since it matches already
-            let sel = Math.floor(Math.random() * replacement.length);
-            replacement = replacement.substr(0, sel) + this.unasigned + replacement.substr(sel + 1) + replacement.substr(sel, 1);
+            let sel = Math.floor(Math.random() * replacement.length)
+            replacement = replacement.substr(0, sel) + this.unasigned + replacement.substr(sel + 1) + replacement.substr(sel, 1)
         } else {
-            replacement += this.unasigned;
+            replacement += this.unasigned
         }
         this.setReplacement(this.getSourceCharset(), replacement)
     }
@@ -287,60 +287,60 @@ export default
         let splitc = ''
         let langreplace = this.langreplace[this.curlang]
         // Build a reverse replacement map so that we can encode the string
-        for (var repc in this.replacement) {
+        for (let repc in this.replacement) {
             if (this.replacement.hasOwnProperty(repc)) {
-                revRepl[this.replacement[repc]] = repc;
+                revRepl[this.replacement[repc]] = repc
             }
         }
         // Zero out the frequency table 
-        this.freq = {};
+        this.freq = {}
         for (i = 0, len = sourcecharset.length; i < len; i++) {
-            this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0;
+            this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0
         }
         // Now go through the string to encode and compute the character
         // to map to as well as update the frequency of the match
         for (i = 0, len = str.length; i < len; i++) {
-            let t = str.substr(i, 1).toUpperCase();
+            let t = str.substr(i, 1).toUpperCase()
             // See if the character needs to be mapped.
             if (typeof langreplace[t] !== 'undefined') {
                 t = langreplace[t]
             }
-            decodeline += t;
+            decodeline += t
             // Make sure that this is a valid character to map from
-            let pos = charset.indexOf(t);
+            let pos = charset.indexOf(t)
             if (pos >= 0) {
-                t = revRepl[t];
+                t = revRepl[t]
                 if (isNaN(this.freq[t])) {
-                    this.freq[t] = 0;
+                    this.freq[t] = 0
                 }
-                this.freq[t]++;
+                this.freq[t]++
             } else {
                 // This is a potential split position, so remember it
-                lastsplit = decodeline.length;
+                lastsplit = decodeline.length
             }
-            encodeline += t;
+            encodeline += t
             // See if we have to split the line now
             if (encodeline.length >= this.maxEncodeWidth) {
                 if (lastsplit === -1) {
-                    res.append($('<div>', { class: "TOSOLVE" }).text(encodeline));
-                    res.append($('<div>', { class: "TOANSWER" }).text(decodeline));
-                    encodeline = "";
-                    decodeline = "";
-                    lastsplit = -1;
+                    res.append($('<div>', { class: "TOSOLVE" }).text(encodeline))
+                    res.append($('<div>', { class: "TOANSWER" }).text(decodeline))
+                    encodeline = ""
+                    decodeline = ""
+                    lastsplit = -1
                 } else {
-                    let encodepart = encodeline.substr(0, lastsplit);
-                    let decodepart = decodeline.substr(0, lastsplit);
-                    encodeline = encodeline.substr(lastsplit);
-                    decodeline = decodeline.substr(lastsplit);
-                    res.append($('<div>', { class: "TOSOLVE" }).text(encodepart));
-                    res.append($('<div>', { class: "TOANSWER" }).text(decodepart));
+                    let encodepart = encodeline.substr(0, lastsplit)
+                    let decodepart = decodeline.substr(0, lastsplit)
+                    encodeline = encodeline.substr(lastsplit)
+                    decodeline = decodeline.substr(lastsplit)
+                    res.append($('<div>', { class: "TOSOLVE" }).text(encodepart))
+                    res.append($('<div>', { class: "TOANSWER" }).text(decodepart))
                 }
             }
         }
         // And put together any residual parts
         if (encodeline.length > 0) {
-            res.append($('<div>', { class: "TOSOLVE" }).text(encodeline));
-            res.append($('<div>', { class: "TOANSWER" }).text(decodeline));
+            res.append($('<div>', { class: "TOSOLVE" }).text(encodeline))
+            res.append($('<div>', { class: "TOANSWER" }).text(decodeline))
         }
         return res
     }
@@ -350,46 +350,46 @@ export default
      * @returns HTML Elements for selecting the alphabet 
      */
     createAlphabetType(): JQuery<HTMLElement> {
-        let res = $('<div>');
-        let label = $('<label>', { for: "radios" }).text("Alphabet Type");
-        res.append(label);
+        let res = $('<div>')
+        let label = $('<label>', { for: "radios" }).text("Alphabet Type")
+        res.append(label)
 
-        let rbox = $('<div>', { id: "radios", class: "ibox" });
-        rbox.append($('<input>', { id: "encrand", type: "radio", name: "enctype", value: "random", checked: "checked" }));
-        rbox.append($('<label>', { for: "encrand", class: "rlab" }).text("Random"));
-        rbox.append($('<input>', { id: "enck1", type: "radio", name: "enctype", value: "k1" }));
-        rbox.append($('<label>', { for: "enck1", class: "rlab" }).text("K1"));
-        rbox.append($('<input>', { id: "enck2", type: "radio", name: "enctype", value: "k2" }));
-        rbox.append($('<label>', { for: "enck2", class: "rlab" }).text("K2"));
-        rbox.append($('<input>', { id: "enck3", type: "radio", name: "enctype", value: "k3" }));
-        rbox.append($('<label>', { for: "enck3", class: "rlab" }).text("K3"));
-        rbox.append($('<input>', { id: "enck3", type: "radio", name: "enctype", value: "k4" }));
-        rbox.append($('<label>', { for: "enck3", class: "rlab" }).text("K4"));
-        res.append(rbox);
+        let rbox = $('<div>', { id: "radios", class: "ibox" })
+        rbox.append($('<input>', { id: "encrand", type: "radio", name: "enctype", value: "random", checked: "checked" }))
+        rbox.append($('<label>', { for: "encrand", class: "rlab" }).text("Random"))
+        rbox.append($('<input>', { id: "enck1", type: "radio", name: "enctype", value: "k1" }))
+        rbox.append($('<label>', { for: "enck1", class: "rlab" }).text("K1"))
+        rbox.append($('<input>', { id: "enck2", type: "radio", name: "enctype", value: "k2" }))
+        rbox.append($('<label>', { for: "enck2", class: "rlab" }).text("K2"))
+        rbox.append($('<input>', { id: "enck3", type: "radio", name: "enctype", value: "k3" }))
+        rbox.append($('<label>', { for: "enck3", class: "rlab" }).text("K3"))
+        rbox.append($('<input>', { id: "enck3", type: "radio", name: "enctype", value: "k4" }))
+        rbox.append($('<label>', { for: "enck3", class: "rlab" }).text("K4"))
+        res.append(rbox)
 
-        let kval = $('<div>', { class: "kval" });
-        kval.append($('<label>', { for: "keyword" }).text("Keyword"));
-        kval.append($('<input>', { type: "text", id: "keyword" }));
-        let odiv = $('<div>');
-        odiv.append($('<label>', { for: "offset" }).text("Offset"));
-        odiv.append($('<input>', { id: "offset", class: "inp spin", title: "offset", type: "text", value: "1" }));
-        kval.append(odiv);
-        res.append(kval);
+        let kval = $('<div>', { class: "kval" })
+        kval.append($('<label>', { for: "keyword" }).text("Keyword"))
+        kval.append($('<input>', { type: "text", id: "keyword" }))
+        let odiv = $('<div>')
+        odiv.append($('<label>', { for: "offset" }).text("Offset"))
+        odiv.append($('<input>', { id: "offset", class: "inp spin", title: "offset", type: "text", value: "1" }))
+        kval.append(odiv)
+        res.append(kval)
 
-        let k4val = $('<div>', { class: "k4val" });
-        k4val.append($('<label>', { for: "keyword2" }).text("Keyword 2"));
-        k4val.append($('<input>', { type: "text", id: "keyword2" }));
-        let odiv2 = $('<div>');
-        odiv2.append($('<label>', { for: "offset2" }).text("Offset 2"));
-        odiv2.append($('<input>', { id: "offset2", class: "inp spin", title: "offset", type: "text", value: "1" }));
-        k4val.append(odiv2);
-        res.append(k4val);
+        let k4val = $('<div>', { class: "k4val" })
+        k4val.append($('<label>', { for: "keyword2" }).text("Keyword 2"))
+        k4val.append($('<input>', { type: "text", id: "keyword2" }))
+        let odiv2 = $('<div>')
+        odiv2.append($('<label>', { for: "offset2" }).text("Offset 2"))
+        odiv2.append($('<input>', { id: "offset2", class: "inp spin", title: "offset", type: "text", value: "1" }))
+        k4val.append(odiv2)
+        res.append(k4val)
 
-        let k3val = $('<div>', { class: "k3val" });
-        k3val.append($('<label>', { for: "shift" }).text("Shift"));
-        k3val.append($('<input>', { id: "shift", class: "inp spin", title: "Shift", type: "text", value: "1" }));
-        res.append(k3val);
-        return res;
+        let k3val = $('<div>', { class: "k3val" })
+        k3val.append($('<label>', { for: "shift" }).text("Shift"))
+        k3val.append($('<input>', { id: "shift", class: "inp spin", title: "Shift", type: "text", value: "1" }))
+        res.append(k3val)
+        return res
     }
 
     /**
@@ -398,8 +398,8 @@ export default
      */
     UpdateFreqEditTable(): void {
         $(".alphabet").each((i, elem) => {
-            $(elem).empty().append(this.createAlphabetType());
-        });
+            $(elem).empty().append(this.createAlphabetType())
+        })
         super.UpdateFreqEditTable()
     }
 
@@ -408,8 +408,8 @@ export default
      * Loads up the values for the encoder
      */
     load(): void {
-        // this.hideRevReplace = true;
-        let encoded = this.cleanString(<string>$('#toencode').val());
+        // this.hideRevReplace = true
+        let encoded = this.cleanString(<string>$('#toencode').val())
         /*
         * If it is characteristic of the cipher type (e.g. patristocrat),
         * rebuild the string to be encoded in to five character sized chunks.
@@ -423,52 +423,51 @@ export default
         $("#answer").empty().append(res)
 
         /* testStrings */
-        for (var i = 0; i < this.testStrings.length; i++) {
-            let chi = this.CalculateChiSquare(this.testStrings[i]);
-            let teststr = this.cleanString(this.testStrings[i]);
-            let l = teststr.length;
-            console.log(l + '`' + chi + '`' + teststr);
+        for (let i = 0; i < this.testStrings.length; i++) {
+            let chi = this.CalculateChiSquare(this.testStrings[i])
+            let teststr = this.cleanString(this.testStrings[i])
+            let l = teststr.length
+            console.log(l + '`' + chi + '`' + teststr)
         }
 
-        let chi = this.CalculateChiSquare(encoded);
+        let chi = this.CalculateChiSquare(encoded)
 
-        let chitext = '';
+        let chitext = ''
         if (!isNaN(chi)) {
-            chitext = "Chi-Square Value=" + chi.toFixed();
+            chitext = "Chi-Square Value=" + chi.toFixed()
             if (chi < 20) {
-                chitext += ' [Easy]';
+                chitext += ' [Easy]'
             } else if (chi < 30) {
-                chitext += ' [Medium]';
+                chitext += ' [Medium]'
             } else if (chi < 40) {
-                chitext += ' [Medium Hard]';
+                chitext += ' [Medium Hard]'
             } else if (chi < 50) {
-                chitext += ' [Difficult]';
+                chitext += ' [Difficult]'
             } else {
-                chitext += ' [Extremely Difficult]';
+                chitext += ' [Extremely Difficult]'
             }
-            chitext += ' Length=' + encoded.length;
+            chitext += ' Length=' + encoded.length
             if (encoded.length < 60) {
-                chitext += ' [Too Short]';
+                chitext += ' [Too Short]'
             } else if (encoded.length < 80) {
-                chitext += ' [Short]';
+                chitext += ' [Short]'
             } else if (encoded.length > 120) {
-                chitext += ' [Too Long]';
+                chitext += ' [Too Long]'
             } else if (encoded.length > 100) {
-                chitext += ' [Long]';
+                chitext += ' [Long]'
             }
         }
 
-        $("#chi").text(chitext);
+        $("#chi").text(chitext)
         // Show the update frequency values
-        this.displayFreq();
+        this.displayFreq()
         // We need to attach handlers for any newly created input fields
-        this.attachHandlers();
+        this.attachHandlers()
     }
 
     makeFreqEditField(c: string): JQuery<HTMLElement> {
-        let einput = $('<span/>', { type: "text", 'data-char': c, id: 'm' + c });
-        return einput;
+        let einput = $('<span/>', { type: "text", 'data-char': c, id: 'm' + c })
+        return einput
     }
-
 
 }

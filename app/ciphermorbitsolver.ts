@@ -24,31 +24,30 @@ class CipherMorbitSolver extends CipherMorseSolver {
      *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     init():void {
-        this.cipherWidth = 2;
-        this.setCharset('123456789');
+        this.cipherWidth = 2
+        this.setCharset('123456789')
     }
     getMorseMap():StringMap {
-        return this.morbitMap;
+        return this.morbitMap
     }
 
     setMorseMapEntry(entry:string, val:string):void {
-        this.morbitMap[entry] = val;
+        this.morbitMap[entry] = val
     }
     /*
      * Create an edit field for a dropdown
     */
     makeFreqEditField(c:string):JQuery<HTMLElement> {
-        var mselect = $('<select class="msli" data-char="' + c + '" id="m' + c + '"/>');
-        var mreplaces = this.morbitReplaces.length;
-        var charset = this.getCharset();
-        var selected = [];
-        selected[this.morbitMap[c]] = " selected";
-        for (var i = 0; i < mreplaces; i++) {
-            var text = this.morbitReplaces[i];
+        let mselect = $('<select class="msli" data-char="' + c + '" id="m' + c + '"/>')
+        let mreplaces = this.morbitReplaces.length
+        let selected = []
+        selected[this.morbitMap[c]] = " selected"
+        for (let i = 0; i < mreplaces; i++) {
+            let text = this.morbitReplaces[i]
             $("<option />", { value: i, selected: selected[text] })
-                            .html(this.normalizeHTML(text)).appendTo(mselect);
+                            .html(this.normalizeHTML(text)).appendTo(mselect)
         }
-        return mselect;
+        return mselect
     }
     /**
      * Handle a dropdown event.  They are changing the mapping for a character.
@@ -58,23 +57,23 @@ class CipherMorbitSolver extends CipherMorseSolver {
      * @param {string} val This is which element we are changing it to.  This is an index into the morbitReplaces table
      */
     updateSel(item:string, val:string):void {
-        console.log('updateMorbitSet item=' + item + ' val=' + val);
-        var toswapwith = item;
-        var newvalue = this.morbitReplaces[val];
+        console.log('updateMorbitSet item=' + item + ' val=' + val)
+        let toswapwith = item
+        let newvalue = this.morbitReplaces[val]
 
-        for (var key in this.morbitMap) {
+        for (let key in this.morbitMap) {
             if (this.morbitMap.hasOwnProperty(key))
                 if (this.morbitMap[key] === newvalue) {
-                    toswapwith = key;
-                    break;
+                    toswapwith = key
+                    break
                 }
         }
         if (toswapwith !== item) {
-            var swapval = this.morbitMap[item];
-            this.morbitMap[item] = this.morbitMap[toswapwith];
-            this.morbitMap[toswapwith] = swapval;
-            this.UpdateFreqEditTable();
-            this.load();
+            let swapval = this.morbitMap[item]
+            this.morbitMap[item] = this.morbitMap[toswapwith]
+            this.morbitMap[toswapwith] = swapval
+            this.UpdateFreqEditTable()
+            this.load()
         }
     }
     

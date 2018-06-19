@@ -1,6 +1,6 @@
 /// <reference types="ciphertypes" />
 
-declare function tableDragger(elem: HTMLElement, any): any;
+declare function tableDragger(elem: HTMLElement, any): any
 
 /**
  * Base class for all the Cipher Encoders/Decoders
@@ -288,7 +288,7 @@ export default
      * @param {string} str String to process
      */
     normalizeHTML(str: string): string {
-        return str;
+        return str
     }
     /** 
      * Creates an HTML table to display the frequency of characters
@@ -352,7 +352,7 @@ export default
      * @returns {string} HTML of solver structure
      */
     build(str: string): JQuery<HTMLElement> {
-        return null;
+        return null
     }
 
     /**
@@ -361,7 +361,7 @@ export default
      * @returns {string} HTML of dropdown
      */
     makeFreqEditField(c: string): JQuery<HTMLElement> {
-        return null;
+        return null
     }
     /**
      * Handle a dropdown event.  They are changing the mapping for a character.
@@ -376,7 +376,7 @@ export default
      * @returns {Object.<string, string>}
      */
     getMorseMap(): any {
-        return null;
+        return null
     }
     /**
      * Assign a new value for an entry
@@ -435,10 +435,10 @@ export default
      * @returns {string} String with no spaces in it
      */
     cleanString(str: string): string {
-        let pattern: string = "[\r\n ]+";
-        let re = new RegExp(pattern, "g");
-        str.replace(re, " ");
-        return str;
+        let pattern: string = "[\r\n ]+"
+        let re = new RegExp(pattern, "g")
+        str.replace(re, " ")
+        return str
     }
     /**
      * Eliminate all characters which are not in the charset
@@ -446,14 +446,13 @@ export default
      * @returns {string} Result string with only characters in the legal characterset
      */
     minimizeString(str: string): string {
-        let res: string = '';
-        for (var i = 0, len = str.length; i < len; i++) {
-            let c = str.substr(i, 1).toUpperCase();
+        let res: string = ''
+        for(let c of str.toUpperCase()){
             if (this.isValidChar(c)) {
-                res += c;
+                res += c
             }
         }
-        return res;
+        return res
     }
     /**
      * Convert the text to chunks of (chunkSize) characters separated
@@ -463,57 +462,57 @@ export default
      * @returns chunked input string
      */
     chunk(inputString: string, chunkSize: number): string {
-        let chunkIndex = 1;
-        let charset = this.getCharset();
-        let chunkedString = '';
-        let inputStringLen = inputString.length;
-        for (var i = 0; i < inputStringLen; i++) {
+        let chunkIndex = 1
+        let charset = this.getCharset()
+        let chunkedString = ''
+        let inputStringLen = inputString.length
+        for (let c of inputString) {
 
             // Skip anthing that is not in the character set (i.e spaces,
             // punctuation, etc.)
-            if (charset.indexOf(inputString.charAt(i).toUpperCase()) < 0) {
-                continue;
+            if (charset.indexOf(c.toUpperCase()) < 0) {
+                continue
             }
 
             // Test for a chunk boundary using modulo of chunk size.
             if (chunkIndex % (chunkSize + 1) === 0) {
-                chunkedString += ' ';
-                chunkIndex = 1;
+                chunkedString += ' '
+                chunkIndex = 1
             }
 
             // Store the character in the chunk representation.
-            chunkedString += inputString.charAt(i);
-            chunkIndex++;
+            chunkedString += c
+            chunkIndex++
         }
-        return chunkedString;
+        return chunkedString
     }
 
     /** @description Sets the character set used by the Decoder.
      * @param {string} charset the set of characters to be used. 
      */
     setCharset(charset: string): void {
-        this.charset = charset;
+        this.charset = charset
     }
 
     isValidChar(char: string): boolean {
-        return this.charset.indexOf(char) >= 0;
+        return this.charset.indexOf(char) >= 0
     }
     getCharset(): string {
-        return this.charset;
+        return this.charset
     }
     /**
      * Gets the character set to be use for encoding.
      * @param {string} charset the set of characters to be used. 
      */
     getSourceCharset(): string {
-        return this.sourcecharset;
+        return this.sourcecharset
     }
     /**
      * Sets the character set to be use for encoding.
      * @param {string} charset the set of characters to be used. 
      */
     setSourceCharset(charset: string): void {
-        this.sourcecharset = charset;
+        this.sourcecharset = charset
     }
     /**
      * Update the frequency table on the page.  This is done after loaading
@@ -543,31 +542,31 @@ export default
      * @returns {number} Value calculated 
      */
     CalculateChiSquare(str: string): number {
-        let charset = this.getCharset();
-        let i, len;
-        len = charset.length;
-        let counts = new Array(len);
-        let total = 0;
+        let charset = this.getCharset()
+        let i, len
+        len = charset.length
+        let counts = new Array(len)
+        let total = 0
         for (i = 0; i < len; i++) {
-            counts[i] = 0;
+            counts[i] = 0
         }
         for (i = 0; i < str.length; i++) {
-            let c = str.substr(i, 1).toUpperCase();
-            let pos = charset.indexOf(c);
+            let c = str.substr(i, 1).toUpperCase()
+            let pos = charset.indexOf(c)
             if (pos >= 0) {
-                counts[pos]++;
-                total++;
+                counts[pos]++
+                total++
             }
         }
-        let chiSquare = 0.0;
+        let chiSquare = 0.0
         for (i = 0; i < len; i++) {
-            let c = charset.substr(i, 1);
-            let expected = this.langfreq[this.curlang][c];
+            let c = charset.substr(i, 1)
+            let expected = this.langfreq[this.curlang][c]
             if (expected !== undefined && expected !== 0) {
-                chiSquare += Math.pow(counts[i] - total * expected, 2) / (total * expected);
+                chiSquare += Math.pow(counts[i] - total * expected, 2) / (total * expected)
             }
         }
-        return chiSquare;
+        return chiSquare
     }
     /**
      * Analyze the encoded text
@@ -583,117 +582,117 @@ export default
     * Fills in the frequency portion of the frequency table
     */
     displayFreq(): void {
-        let charset = this.getCharset();
-        let c, i, len;
-        this.holdupdates = true;
+        let charset = this.getCharset()
+        let c, i, len
+        this.holdupdates = true
         for (c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
-                let subval: string = String(this.freq[c]);
+                let subval: string = String(this.freq[c])
                 if (subval === '0') {
-                    subval = '';
+                    subval = ''
                 }
-                $('#f' + c).text(subval);
+                $('#f' + c).text(subval)
             }
         }
         // Replicate all of the previously set values.  This is done when
         // you change the spacing in the encoded text and then do a reload.
         if (this.ShowRevReplace) {
             for (i = 0, len = charset.length; i < len; i++) {
-                c = charset.substr(i, 1);
-                let repl: string = <string>$('#m' + c).val();
+                c = charset.substr(i, 1)
+                let repl: string = <string>$('#m' + c).val()
                 if (repl === '') { repl = $('#m' + c).html(); }
-                this.setChar(c, repl);
+                this.setChar(c, repl)
             }
         }
 
-        this.holdupdates = false;
-        this.updateMatchDropdowns('');
+        this.holdupdates = false
+        this.updateMatchDropdowns('')
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
         $(".sli").unbind('keyup').keyup((event) => {
-            let newchar;
-            let repchar = $(event.target).attr('data-char');
-            let current, next;
-            let focusables = $(".sli");
+            let newchar
+            let repchar = $(event.target).attr('data-char')
+            let current, next
+            let focusables = $(".sli")
 
             if (event.keyCode === 37) { // left
-                current = focusables.index(event.target);
+                current = focusables.index(event.target)
                 if (current === 0) {
-                    next = focusables.last();
+                    next = focusables.last()
                 } else {
-                    next = focusables.eq(current - 1);
+                    next = focusables.eq(current - 1)
                 }
-                next.focus();
+                next.focus()
             } else if (event.keyCode === 39) { // right
-                current = focusables.index(event.target);
-                next = focusables.eq(current + 1).length ? focusables.eq(current + 1) : focusables.eq(0);
-                next.focus();
+                current = focusables.index(event.target)
+                next = focusables.eq(current + 1).length ? focusables.eq(current + 1) : focusables.eq(0)
+                next.focus()
             } else if (event.keyCode === 46 || event.keyCode === 8) {
-                this.setChar(repchar, '');
+                this.setChar(repchar, '')
             }
-            event.preventDefault();
+            event.preventDefault()
         }).unbind('keypress').keypress((event) => {
-            let newchar;
-            let repchar = $(event.target).attr('data-char');
-            let current, next;
-            let focusables = $(".sli");
+            let newchar
+            let repchar = $(event.target).attr('data-char')
+            let current, next
+            let focusables = $(".sli")
             if (typeof event.key === 'undefined') {
-                newchar = String.fromCharCode(event.keyCode).toUpperCase();
+                newchar = String.fromCharCode(event.keyCode).toUpperCase()
             } else {
-                newchar = event.key.toUpperCase();
+                newchar = event.key.toUpperCase()
             }
 
             if (this.isValidChar(newchar) || newchar === ' ') {
                 if (newchar === ' ') {
-                    newchar = '';
+                    newchar = ''
                 }
-                console.log('Setting ' + repchar + ' to ' + newchar);
-                this.setChar(repchar, newchar);
-                current = focusables.index(event.target);
-                next = focusables.eq(current + 1).length ? focusables.eq(current + 1) : focusables.eq(0);
-                next.focus();
+                console.log('Setting ' + repchar + ' to ' + newchar)
+                this.setChar(repchar, newchar)
+                current = focusables.index(event.target)
+                next = focusables.eq(current + 1).length ? focusables.eq(current + 1) : focusables.eq(0)
+                next.focus()
             } else {
-                console.log('Not valid:' + newchar);
+                console.log('Not valid:' + newchar)
             }
-            event.preventDefault();
+            event.preventDefault()
         }).unbind('blur').blur((e) => {
-            let tohighlight = $(e.target).attr('data-char');
-            $("[data-char='" + tohighlight + "']").removeClass("allfocus");
-            let althighlight = $(e.target).attr('data-schar');
+            let tohighlight = $(e.target).attr('data-char')
+            $("[data-char='" + tohighlight + "']").removeClass("allfocus")
+            let althighlight = $(e.target).attr('data-schar')
             if (althighlight !== '') {
-                $("[data-schar='" + althighlight + "']").removeClass("allfocus");
+                $("[data-schar='" + althighlight + "']").removeClass("allfocus")
             }
-            $(e.target).removeClass("focus");
+            $(e.target).removeClass("focus")
         }).unbind('focus').focus((e) => {
-            let tohighlight = $(e.target).attr('data-char');
-            $("[data-char='" + tohighlight + "']").addClass("allfocus");
-            let althighlight = $(e.target).attr('data-schar');
+            let tohighlight = $(e.target).attr('data-char')
+            $("[data-char='" + tohighlight + "']").addClass("allfocus")
+            let althighlight = $(e.target).attr('data-schar')
             if (althighlight !== '') {
-                $("[data-schar='" + althighlight + "']").addClass("allfocus");
+                $("[data-schar='" + althighlight + "']").addClass("allfocus")
             }
-            $(e.target).addClass("focus");
-        });
+            $(e.target).addClass("focus")
+        })
         $(".dragcol").each((i, elem) => {
             if (!$.fn.dataTable.isDataTable(".dragcol")) { $(elem).DataTable({ colReorder: true, ordering: false, dom: 't' }) }
-        });
+        })
         $(".msli").unbind('change').on('change', (e) => {
-            let toupdate = $(e.target).attr('data-char');
-            this.updateSel(toupdate, (<HTMLInputElement>e.target).value);
-        });
+            let toupdate = $(e.target).attr('data-char')
+            this.updateSel(toupdate, (<HTMLInputElement>e.target).value)
+        })
         $(".spin").spinner({
             spin: (event, ui) => {
                 if (ui.value >= this.getCharset().length) {
-                    $(event.target).spinner("value", 0);
-                    return false;
+                    $(event.target).spinner("value", 0)
+                    return false
                 } else if (ui.value < 0) {
-                    $(event.target).spinner("value", this.getCharset().length - 1);
-                    return false;
+                    $(event.target).spinner("value", this.getCharset().length - 1)
+                    return false
                 }
             }
-        });
+        })
         $('.richtext').summernote({
             fontNames: ['Arial', 'Courier New'],
             toolbar: [
@@ -701,11 +700,11 @@ export default
                 ['font', ['fontname', 'superscript', 'subscript']],
                 ['fontsize', ['fontsize']],
             ]
-        });
+        })
 
         $('.sfind').unbind('input').on('input', (e) => {
             this.findPossible((<string>$(e.target).val()))
-        });
+        })
     }
     /**
     * Generate a replacement pattern string.  Any unknown characters are represented as a space
@@ -720,13 +719,13 @@ export default
     * @returns {string} Replacement pattern string
     */
     genReplPattern(str: string): Array<string> {
-        let i, len;
-        let res = [];
+        let i, len
+        let res = []
         for (i = 0, len = str.length; i < len; i++) {
-            let c = str.substr(i, 1);
-            res.push(this.replacement[c]);
+            let c = str.substr(i, 1)
+            res.push(this.replacement[c])
         }
-        return res;
+        return res
     }
     /**
      * @param {string} str String to check
@@ -735,27 +734,27 @@ export default
      * @returns {bool} True/false if the string is a valid replacement
      */
     isValidReplacement(str: string, repl: Array<string>, used: BoolMap): boolean {
-        let i, len;
-        //   console.log(str);
+        let i, len
+        //   console.log(str)
         for (i = 0, len = str.length; i < len; i++) {
-            let c = str.substr(i, 1);
+            let c = str.substr(i, 1)
             if (repl[i] !== '') {
                 if (c !== repl[i]) {
-                    //             console.log('No match c=' + c + ' repl[' + i + ']=' + repl[i]);
-                    return false;
+                    //             console.log('No match c=' + c + ' repl[' + i + ']=' + repl[i])
+                    return false
                 }
             } else if (used[c]) {
-                //          console.log('No match c=' + c + ' used[c]=' + used[c]);
-                return false;
+                //          console.log('No match c=' + c + ' used[c]=' + used[c])
+                return false
             }
         }
-        return true;
+        return true
     }
     /**
      * Set flag to 'chunk' input data string befre encoding.  Used in Patristocrat, 
      */
     setCipherType(cipherType: string): void {
-        this.attachHandlers();
+        this.attachHandlers()
     }
 
     /**
@@ -765,9 +764,9 @@ export default
 
     quote(str: string): string {
         if (typeof str === 'undefined') {
-            return '\'\'';
+            return '\'\''
         }
-        return '\'' + str.replace(/(['"])/g, "\\$1") + '\'';
+        return '\'' + str.replace(/(['"])/g, "\\$1") + '\''
     }
     /**
      * Given a string with groupings of a size, this computes a pattern which matches the
@@ -782,23 +781,23 @@ export default
      * @returns {string} Numeric pattern string
      */
     makeUniquePattern(str: string, width: number): string {
-        let cmap = {};
-        let res: string = '';
-        let mapval: number = 0;
-        let i, len, c;
-        len = str.length;
+        let cmap = {}
+        let res: string = ''
+        let mapval: number = 0
+        let i, len, c
+        len = str.length
         // In case they give us an odd length string, just padd it with enough Xs
-        str += 'XXXX';
+        str += 'XXXX'
 
         for (i = 0; i < len; i += width) {
-            c = str.substr(i, width);
+            c = str.substr(i, width)
             if (typeof cmap[c] === 'undefined') {
-                cmap[c] = '' + mapval;
-                mapval++;
+                cmap[c] = '' + mapval
+                mapval++
             }
-            res += cmap[c];
+            res += cmap[c]
         }
-        return res;
+        return res
     }
 
 
@@ -806,52 +805,52 @@ export default
      * @param {string} lang 2 character Language to dump language template for 
      */
     dumpLang(lang: string): string {
-        let res = '';
-        let extra = '';
-        res = 'cipherTool.Frequent[' + this.quote(lang) + ']={';
-        for (var pat in this.Frequent[lang]) {
+        let res = ''
+        let extra = ''
+        res = 'cipherTool.Frequent[' + this.quote(lang) + ']={'
+        for (let pat in this.Frequent[lang]) {
             if (this.Frequent[lang].hasOwnProperty(pat) && pat !== '') {
-                res += extra + '\'' + pat + '\':[';
-                let i, len;
-                let extra1 = '';
-                let matches = this.Frequent[lang][pat];
+                res += extra + '\'' + pat + '\':['
+                let i, len
+                let extra1 = ''
+                let matches = this.Frequent[lang][pat]
                 for (i = 0, len = matches.length; i < len; i++) {
-                    //console.log(matches[i]);
+                    //console.log(matches[i])
                     res += extra1 +
                         '[' + this.quote(matches[i][0]) + ',' +
                         matches[i][1] + ',' +
                         matches[i][2] + ',' +
-                        matches[i][3] + ']';
-                    extra1 = ',';
+                        matches[i][3] + ']'
+                    extra1 = ','
                 }
-                res += ']';
-                extra = ',';
+                res += ']'
+                extra = ','
             }
         }
-        res += '};';
-        return res;
+        res += '};'
+        return res
     }
     /**
      * Fills in the language choices on an HTML Select
      * @param lselect HTML Element to populate
      */
     setLangDropdown(lselect: JQuery<HTMLElement>): void {
-        lselect.empty().append($("<option />", { value: '' }).text('--Select a language--'));
-        for (var lang in this.langmap) {
+        lselect.empty().append($("<option />", { value: '' }).text('--Select a language--'))
+        for (let lang in this.langmap) {
             if (this.langmap.hasOwnProperty(lang)) {
-                $("<option />", { value: lang }).text(this.langmap[lang]).appendTo(lselect);
+                $("<option />", { value: lang }).text(this.langmap[lang]).appendTo(lselect)
             }
         }
         lselect.change((e) => {
-            this.loadLanguage(<string>$(e.target).val());
-        });
+            this.loadLanguage(<string>$(e.target).val())
+        })
     }
     /**
      * Loads a language in response to a dropdown event
      * @param lang Language to load
      */
     loadLanguage(lang: string): void {
-        this.curlang = lang;
+        this.curlang = lang
         this.setCharset(this.langcharset[lang])
         $(".langstatus").text("Attempting to load " + this.langmap[lang] + '...')
         $.getScript("Languages/" + lang + ".js", (data, textStatus, jqxhr) => {
@@ -860,7 +859,7 @@ export default
         }).fail((jqxhr, settings, exception) => {
             console.log("Complied language file not found for " + lang + ".js")
             this.loadRawLanguage(lang)
-        });
+        })
     }
     /**
      * Loads a raw language from the server
@@ -870,83 +869,82 @@ export default
         let jqxhr = $.get("Languages/" + lang + ".txt", function () {
         }).done((data) => {
             // Empty out all the frequent words
-            $(".langstatus").text("Processing " + this.langmap[lang] + '...');
-            this.Frequent[lang] = {};
-            this.curlang = lang;
-            let charset = this.langcharset[lang];
-            let langreplace = this.langreplace[lang];
-            this.setCharset(charset);
-            let lines = data.split("\n");
-            let i, len;
-            len = lines.length;
+            $(".langstatus").text("Processing " + this.langmap[lang] + '...')
+            this.Frequent[lang] = {}
+            this.curlang = lang
+            let charset = this.langcharset[lang]
+            let langreplace = this.langreplace[lang]
+            this.setCharset(charset)
+            let lines = data.split("\n")
+            let i, len
+            len = lines.length
             charset = charset.toUpperCase()
             for (i = 0; i < len; i++) {
-                let pieces = lines[i].replace(/\r/g, ' ').toUpperCase().split(/ /);
+                let pieces = lines[i].replace(/\r/g, ' ').toUpperCase().split(/ /)
                 // Make sure that all the characters in the pieces are valid
                 // for this character set.  Otherwise we can throw it away
-                let legal = true;
-                for (var j = 0; j < pieces[0].length; j++) {
+                let legal = true
+                for (let j = 0; j < pieces[0].length; j++) {
                     if (charset.indexOf(pieces[0][j]) < 0) {
                         if (typeof langreplace[pieces[0][j]] === 'undefined') {
-                            console.log("skipping out on " + pieces[0] + " for " + pieces[0][j] + " against " + charset);
-                            legal = false;
-                            break;
+                            console.log("skipping out on " + pieces[0] + " for " + pieces[0][j] + " against " + charset)
+                            legal = false
+                            break
                         }
-                        pieces[0] = pieces[0].replace(pieces[0][j], langreplace[pieces[0][j]]);
+                        pieces[0] = pieces[0].replace(pieces[0][j], langreplace[pieces[0][j]])
                     }
                 }
                 if (legal) {
-                    let pat = this.makeUniquePattern(pieces[0], 1);
+                    let pat = this.makeUniquePattern(pieces[0], 1)
                     let elem = [
                         pieces[0].toUpperCase(),
                         i,
                         pieces[1],
                         '',
-                    ];
+                    ]
                     if (i < 500) {
-                        elem[3] = 0;
+                        elem[3] = 0
                     } else if (i < 1000) {
-                        elem[3] = 1;
+                        elem[3] = 1
                     } else if (i < 2000) {
-                        elem[3] = 3;
+                        elem[3] = 3
                     } else if (i < 5000) {
-                        elem[3] = 4;
+                        elem[3] = 4
                     } else {
-                        elem[3] = 5;
+                        elem[3] = 5
                     }
                     if (typeof this.Frequent[lang][pat] === 'undefined') {
-                        this.Frequent[lang][pat] = [];
+                        this.Frequent[lang][pat] = []
                     }
-                    this.Frequent[lang][pat].push(elem);
+                    this.Frequent[lang][pat].push(elem)
                 }
             }
-            // console.log(this.Frequent);
+            // console.log(this.Frequent)
             $(".langout").each((i, elem) => {
-                $(".langstatus").text('Dumping ' + this.langmap[lang] + '...');
-                $(elem).text(this.dumpLang(lang));
-            });
-            $(".langstatus").text('');
-            this.updateMatchDropdowns('');
-        });
-        $(".langstatus").text("Loading " + this.langmap[lang] + '...');
+                $(".langstatus").text('Dumping ' + this.langmap[lang] + '...')
+                $(elem).text(this.dumpLang(lang))
+            })
+            $(".langstatus").text('')
+            this.updateMatchDropdowns('')
+        })
+        $(".langstatus").text("Loading " + this.langmap[lang] + '...')
     }
 
     /**
      * Retrieve all of the replacement characters that have been selected so far
      */
     cacheReplacements(): void {
-        let charset = this.getSourceCharset().toUpperCase();
-        for (var i = 0, len = charset.length; i < len; i++) {
-            let c = charset.substr(i, 1);
-            let repl = $('#m' + c).val();
+        let charset = this.getSourceCharset().toUpperCase()
+        for (let c of charset) {
+            let repl = $('#m' + c).val()
             // When we are doing an encode, there are no input fields, everything
             // is in a text field so we need to check for that case and retrieve
             // the text value instead
             if (repl === '') {
-                repl = $('#m' + c).text();
+                repl = $('#m' + c).text()
             }
-            this.replacement[c] = repl;
-            $('#rf' + repl).text(c);
+            this.replacement[c] = repl
+            $('#rf' + repl).text(c)
         }
     }
     /**
@@ -958,16 +956,16 @@ export default
      * @returns {string} Comparable replacement string
      */
     applyReplPattern(str: string, repl: string): string {
-        let i, len;
-        let res = '';
-        len = str.length;
+        let i, len
+        let res = ''
+        len = str.length
         for (i = 0; i < len; i++) {
-            let c = repl.substr(i, 1);
+            let c = repl.substr(i, 1)
             if (c === ' ') {
-                c = str.substr(i, 1);
+                c = str.substr(i, 1)
             }
-            res += c;
+            res += c
         }
-        return res;
+        return res
     }
 }

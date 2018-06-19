@@ -20,25 +20,25 @@ export default class CipherVigenereSolver extends CipherSolver {
      * Sets up the radio button to choose the variant
      */
     makeVigenereChoices(): JQuery<HTMLElement> {
-        var operationChoice = $('<div>');
-        var label = $('<label>', { for: 'codetab' }).text('Variant');
-        operationChoice.append(label);
+        let operationChoice = $('<div>')
+        let label = $('<label>', { for: 'codetab' }).text('Variant')
+        operationChoice.append(label)
 
-        var radioBox = $('<div>', { id: 'codetab', class: 'ibox' });
-        radioBox.append($('<input>', { id: 'vigenere', type: 'radio', name: 'codevariant', value: 'vigenere', checked: 'checked' }));
-        radioBox.append($('<label>', { for: 'vigenere', class: 'rlab' }).html('Vigen&egrave;re'));
-        radioBox.append($('<input>', { id: 'variant', type: 'radio', name: 'codevariant', value: 'variant' }));
-        radioBox.append($('<label>', { for: 'variant', class: 'rlab' }).text('Variant'));
-        radioBox.append($('<input>', { id: 'beaufort', type: 'radio', name: 'codevariant', value: 'beaufort' }));
-        radioBox.append($('<label>', { for: 'beaufort', class: 'rlab' }).text('Beaufort'));
-        radioBox.append($('<input>', { id: 'gronsfeld', type: 'radio', name: 'codevariant', value: 'gronsfeld' }));
-        radioBox.append($('<label>', { for: 'gronsfeld', class: 'rlab' }).text('Gronsfeld'));
-        radioBox.append($('<input>', { id: 'porta', type: 'radio', name: 'codevariant', value: 'porta' }));
-        radioBox.append($('<label>', { for: 'porta', class: 'rlab' }).text('Porta'));
+        let radioBox = $('<div>', { id: 'codetab', class: 'ibox' })
+        radioBox.append($('<input>', { id: 'vigenere', type: 'radio', name: 'codevariant', value: 'vigenere', checked: 'checked' }))
+        radioBox.append($('<label>', { for: 'vigenere', class: 'rlab' }).html('Vigen&egrave;re'))
+        radioBox.append($('<input>', { id: 'variant', type: 'radio', name: 'codevariant', value: 'variant' }))
+        radioBox.append($('<label>', { for: 'variant', class: 'rlab' }).text('Variant'))
+        radioBox.append($('<input>', { id: 'beaufort', type: 'radio', name: 'codevariant', value: 'beaufort' }))
+        radioBox.append($('<label>', { for: 'beaufort', class: 'rlab' }).text('Beaufort'))
+        radioBox.append($('<input>', { id: 'gronsfeld', type: 'radio', name: 'codevariant', value: 'gronsfeld' }))
+        radioBox.append($('<label>', { for: 'gronsfeld', class: 'rlab' }).text('Gronsfeld'))
+        radioBox.append($('<input>', { id: 'porta', type: 'radio', name: 'codevariant', value: 'porta' }))
+        radioBox.append($('<label>', { for: 'porta', class: 'rlab' }).text('Porta'))
 
-        operationChoice.append(radioBox);
+        operationChoice.append(radioBox)
 
-        return operationChoice;
+        return operationChoice
     }
     /**
      * Selects which variant table is to be used for mapping
@@ -157,7 +157,7 @@ export default class CipherVigenereSolver extends CipherSolver {
                 let three = prevc2 + prevc + c
                 if (two.length === 2) {
                     if (typeof prevSpot[two] !== 'undefined') {
-                        let dist = pos - prevSpot[two];
+                        let dist = pos - prevSpot[two]
                         table1.addBodyRow([two, String(dist)])
                         // Find all the factors of the distance and record them
                         if (typeof factorSet[dist] === 'undefined') {
@@ -173,11 +173,11 @@ export default class CipherVigenereSolver extends CipherSolver {
                             }
                         }
                     }
-                    prevSpot[two] = pos;
+                    prevSpot[two] = pos
                 }
                 if (three.length === 3) {
                     if (typeof prevSpot[three] !== 'undefined') {
-                        let dist = pos - prevSpot[three];
+                        let dist = pos - prevSpot[three]
                         table1.addBodyRow([three, String(dist)])
                         // Find all the factors of the distance and record them
                         if (typeof factorSet[dist] === 'undefined') {
@@ -193,7 +193,7 @@ export default class CipherVigenereSolver extends CipherSolver {
                             }
                         }
                     }
-                    prevSpot[three] = pos;
+                    prevSpot[three] = pos
                 }
                 pos++
                 prevc2 = prevc
@@ -232,7 +232,7 @@ export default class CipherVigenereSolver extends CipherSolver {
 
         let index = Number(repchar)
         let ct = this.cipherString.charAt(index)
-        $("input[data-char='" + repchar + "']").val(newchar);
+        $("input[data-char='" + repchar + "']").val(newchar)
         let key = this.ciphermap.decodeKey(ct, newchar)
         $("div[data-schar='" + repchar + "']").html(key)
     }
@@ -291,22 +291,22 @@ export default class CipherVigenereSolver extends CipherSolver {
         //     'decKeyBeaufort-Yb=Z': this.decKeyBeaufort("Y","b"), // OK
         // }
         let res = ""
-        let combinedtext = "";
-        let prehead = '<div class="sword"><table class="tword"><tbody><tr>';
-        let posthead1 = '</tr></tbody></table><div class="repl" data-chars="';
-        let posthead2 = '"></div></div>';
-        let pre = prehead;
-        let post = '';
-        let i, len;
-        let datachars = '';
-        let charset = this.getCharset().toUpperCase();
-        this.freq = {};
+        let combinedtext = ""
+        let prehead = '<div class="sword"><table class="tword"><tbody><tr>'
+        let posthead1 = '</tr></tbody></table><div class="repl" data-chars="'
+        let posthead2 = '"></div></div>'
+        let pre = prehead
+        let post = ''
+        let i, len
+        let datachars = ''
+        let charset = this.getCharset().toUpperCase()
+        this.freq = {}
         for (i = 0, len = charset.length; i < len; i++) {
-            this.freq[charset.substr(i, 1).toUpperCase()] = 0;
+            this.freq[charset.substr(i, 1).toUpperCase()] = 0
         }
 
         for (i = 0, len = str.length; i < len; i++) {
-            let t = str.substr(i, 1).toUpperCase();
+            let t = str.substr(i, 1).toUpperCase()
             if (this.isValidChar(t)) {
                 this.cipherOffsets.push(i)
                 datachars += t
@@ -318,11 +318,11 @@ export default class CipherVigenereSolver extends CipherSolver {
                 pre = ''
             } else if (t === ' ' || t === '\n' || t === '\r') {
                 if (pre === '') {
-                    t = posthead1 + datachars + posthead2;
+                    t = posthead1 + datachars + posthead2
                 } else {
                     t = ''
                 }
-                pre = prehead;
+                pre = prehead
                 datachars = ''
                 combinedtext += ' '
             } else {
@@ -342,7 +342,7 @@ export default class CipherVigenereSolver extends CipherSolver {
     layout(): void {
         $('.precmds').each((i, elem) => {
             $(elem).empty().append(this.makeVigenereChoices())
-        });
+        })
     }
     /** 
      * Creates an HTML table to display the frequency of characters
@@ -378,13 +378,13 @@ export default class CipherVigenereSolver extends CipherSolver {
             $('#keyword').val(newkey)
         })
         $(".slvi").unbind('blur').blur((e) => {
-            let tohighlight = $(e.target).attr('data-vslot');
-            $("[data-vslot='" + tohighlight + "']").removeClass("allfocus");
-            $(e.target).removeClass("focus");
+            let tohighlight = $(e.target).attr('data-vslot')
+            $("[data-vslot='" + tohighlight + "']").removeClass("allfocus")
+            $(e.target).removeClass("focus")
         }).unbind('focus').focus((e) => {
-            let tohighlight = $(e.target).attr('data-vslot');
-            $("[data-vslot='" + tohighlight + "']").addClass("allfocus");
-            $(e.target).addClass("focus");
-        });
+            let tohighlight = $(e.target).attr('data-vslot')
+            $("[data-vslot='" + tohighlight + "']").addClass("allfocus")
+            $(e.target).addClass("focus")
+        })
     }
 }

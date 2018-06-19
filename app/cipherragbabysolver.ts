@@ -24,11 +24,11 @@ export default class CipherRagbabySolver extends CipherSolver {
      * Sets up the radio button to choose the variant
      */
     makeVigenereChoices(): JQuery<HTMLElement> {
-        var operationChoice = $('<div>')
-        var label = $('<label>', { for: 'codetab' }).text('Variant')
+        let operationChoice = $('<div>')
+        let label = $('<label>', { for: 'codetab' }).text('Variant')
         operationChoice.append(label)
 
-        var radioBox = $('<div>', { id: 'alphasizer', class: 'ibox' })
+        let radioBox = $('<div>', { id: 'alphasizer', class: 'ibox' })
         radioBox.append($('<input>', { id: 'a24', type: 'radio', name: 'alphasize', value: '24', checked: 'checked' }))
         radioBox.append($('<label>', { for: 'a24', class: 'rlab' }).html('24 [No I/X]'))
         radioBox.append($('<input>', { id: 'a26', type: 'radio', name: 'alphasize', value: '26' }))

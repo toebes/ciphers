@@ -167,9 +167,9 @@ export default
      */
     updateCheck(c: string, lock: boolean): void {
         if (this.locked[c] != lock) {
-            this.locked[c] = lock;
-            this.UpdateFreqEditTable();
-            this.load();
+            this.locked[c] = lock
+            this.UpdateFreqEditTable()
+            this.load()
         }
     }
 
@@ -178,14 +178,14 @@ export default
      */
     attachHandlers(): void {
         $(".cb").unbind('change').on('change', (e) => {
-            let toupdate = $(e.target).attr('data-char');
-            this.updateCheck(toupdate, $(e.target).prop("checked"));
-        });
+            let toupdate = $(e.target).attr('data-char')
+            this.updateCheck(toupdate, $(e.target).prop("checked"))
+        })
         super.attachHandlers()
     }
     reset(): void {
-        super.reset();
-        this.locked = {};
+        super.reset()
+        this.locked = {}
     }
 
     /**
@@ -228,25 +228,25 @@ export default
      * @returns {string} HTML of solver structure
      */
     build(str: string): JQuery<HTMLElement> {
-        var topdiv = $('<div/>').addClass("sword");
-        var table = $('<table/>').addClass("mword");
-        var tbody = $('<tbody/>');
-        var inrow = $('<tr/>');
-        var morserow = $('<tr/>');
-        var outrow = $('<tr/>');
-        var c, i, len, morseclass;
-        var remaining;
-        var lastsep = 'XX';  // Start out with a few Xs so that an initial X generates an error
-        var extraout = '';
-        var extralen = 0;
-        var extraclass = '';
-        var intext = '';
-        var morsetext = '';
-        var cipherwidth = this.cipherWidth;
-        var finaltext = '';
-        var docwidth = $(document).width();
-        //docwidth = 9 * 24 * cipherwidth;
-        var width = cipherwidth * Math.floor(docwidth / (24 * cipherwidth));
+        let topdiv = $('<div/>').addClass("sword")
+        let table = $('<table/>').addClass("mword")
+        let tbody = $('<tbody/>')
+        let inrow = $('<tr/>')
+        let morserow = $('<tr/>')
+        let outrow = $('<tr/>')
+        let c, i, len, morseclass
+        let remaining
+        let lastsep = 'XX';  // Start out with a few Xs so that an initial X generates an error
+        let extraout = ''
+        let extralen = 0
+        let extraclass = ''
+        let intext = ''
+        let morsetext = ''
+        let cipherwidth = this.cipherWidth
+        let finaltext = ''
+        let docwidth = $(document).width()
+        //docwidth = 9 * 24 * cipherwidth
+        let width = cipherwidth * Math.floor(docwidth / (24 * cipherwidth))
 
         //
         // Build up the input string and the corresponding morse code
@@ -254,15 +254,15 @@ export default
         // exactly cipherwidth times the length of the input string
         //
         for (i = 0, len = str.length; i < len; i++) {
-            c = str.substr(i, 1).toUpperCase();
+            c = str.substr(i, 1).toUpperCase()
             if (this.isValidChar(c)) {
-                intext += c;
+                intext += c
                 // Figure out what this character corresponds to.  If it
                 // has no mapping, we will use two filler ?? values just to
                 // keep things running smoothly.  It will ensure that we
                 // don't get a valid morse code string
-                let morsepiece = this.getMorseMap()[c] + '????';
-                morsetext += morsepiece.substr(0, cipherwidth);
+                let morsepiece = this.getMorseMap()[c] + '????'
+                morsetext += morsepiece.substr(0, cipherwidth)
             }
         }
         //
@@ -270,186 +270,186 @@ export default
         // being there, but we will never output it because it is one past
         // the corresponding spot for all input characters
         //
-        morsetext += 'XXX';
-        remaining = width;
+        morsetext += 'XXX'
+        remaining = width
         //
         // Now that we have the strings, go through and output the rows
         //
         for (i = 0, len = intext.length; i < len; i++) {
-            c = intext.substr(i, 1);
-            var mpos, td;
-            td = $('<td>', { colspan: cipherwidth });
+            c = intext.substr(i, 1)
+            let mpos, td
+            td = $('<td>', { colspan: cipherwidth })
             if (this.locked[c]) {
-                td.addClass("locked");
+                td.addClass("locked")
             }
-            td.text(c);
-            inrow.append(td);
+            td.text(c)
+            inrow.append(td)
             for (mpos = 0; mpos < cipherwidth; mpos++) {
-                var morse = morsetext.substr(i * cipherwidth + mpos, 1);
-                morseclass = this.morsedigitClass[morse];
+                let morse = morsetext.substr(i * cipherwidth + mpos, 1)
+                morseclass = this.morsedigitClass[morse]
                 if (morseclass === '') {
-                    morseclass = 'error';
+                    morseclass = 'error'
                 }
-                morse = this.normalizeHTML(morse);
-                morserow.append($('<td/>').addClass(morseclass).html(morse));
+                morse = this.normalizeHTML(morse)
+                morserow.append($('<td/>').addClass(morseclass).html(morse))
                 //
                 // If we already have a prevailing span to cover our morse characters then
                 // we don't need to do anything.
                 //
                 if (extralen) {
-                    extralen--;
+                    extralen--
                 } else {
-                    var startpos = i * cipherwidth + mpos;
+                    let startpos = i * cipherwidth + mpos
                     // We are guaranteed to find the X in the string because it was added to the
                     // end as an extra.
-                    var mlen = morsetext.indexOf("X", startpos) - startpos;
+                    let mlen = morsetext.indexOf("X", startpos) - startpos
                     // See if we just got an X (empty string)
                     // It either indicates the end of a character (single X)
                     // or the end of a word (double X)
                     // or an error (three or more X in a row)
                     if (mlen === 0) {
-                        console.log("Empty Morse laststep=" + lastsep);
+                        console.log("Empty Morse laststep=" + lastsep)
                         if (lastsep === '') {
-                            outrow.append($('<td/>').addClass("cnull"));
-                            lastsep = 'X';
+                            outrow.append($('<td/>').addClass("cnull"))
+                            lastsep = 'X'
                         } else if (lastsep === 'X') {
-                            outrow.append($('<td/>').addClass("space"));
-                            lastsep = 'XX';
-                            finaltext += ' ';
+                            outrow.append($('<td/>').addClass("space"))
+                            lastsep = 'XX'
+                            finaltext += ' '
                         } else {
-                            outrow.append($('<td/>').addClass("error"));
-                            finaltext += '<span class="error">?</span>';
+                            outrow.append($('<td/>').addClass("error"))
+                            finaltext += '<span class="error">?</span>'
                         }
                     } else {
-                        var morselet = morsetext.substr(startpos, mlen);
-                        console.log('Moreselet:' + morselet + 'len=' + mlen + ' remaining=' + remaining + ' mpos=' + mpos + ' Cipherwidth=' + cipherwidth);
-                        lastsep = '';
-                        var outchar = '';
+                        let morselet = morsetext.substr(startpos, mlen)
+                        console.log('Moreselet:' + morselet + 'len=' + mlen + ' remaining=' + remaining + ' mpos=' + mpos + ' Cipherwidth=' + cipherwidth)
+                        lastsep = ''
+                        let outchar = ''
                         // See if we have an invalid morse sequence.  If so
                         // our output class will be an error and replace the string with ??
                         if (typeof this.frommorse[morselet] === 'undefined') {
-                            morseclass = 'error';
-                            outchar = '??';
-                            finaltext += '<span class="error">?</span>';
+                            morseclass = 'error'
+                            outchar = '??'
+                            finaltext += '<span class="error">?</span>'
                         } else {
-                            outchar = this.frommorse[morselet];
-                            morseclass = this.morseClass[outchar];
-                            finaltext += outchar;
+                            outchar = this.frommorse[morselet]
+                            morseclass = this.morseClass[outchar]
+                            finaltext += outchar
                         }
                         // Now figure out how much of this string we are going to output
                         // When we are done, remaining has to be decremented by the number of cells
                         // that we used in this morselet
                         // extralen is set to how many extra characters will need to come out of
                         // subsequent columns
-                        extralen = mlen - 1;
+                        extralen = mlen - 1
                         if (mlen <= remaining) {
-                            outrow.append($('<td colspan="' + mlen + '"/>').addClass(morseclass).text(outchar));
+                            outrow.append($('<td colspan="' + mlen + '"/>').addClass(morseclass).text(outchar))
                         } else {
                             // We won't fit. Figure out which side gets the character
-                            // console.log('***NO FIT: remaining =' + remaining + ' mlen=' + mlen + ' outchar=' + outchar + ' morseclass=' + morseclass+' extralen='+extralen);
+                            // console.log('***NO FIT: remaining =' + remaining + ' mlen=' + mlen + ' outchar=' + outchar + ' morseclass=' + morseclass+' extralen='+extralen)
                             if (remaining * 2 >= mlen) {
-                                outrow.append($('<td colspan="' + remaining + '"/>').addClass(morseclass).text(outchar));
-                                extraout = '';
-                                extraclass = 'cont';
+                                outrow.append($('<td colspan="' + remaining + '"/>').addClass(morseclass).text(outchar))
+                                extraout = ''
+                                extraclass = 'cont'
                             } else {
-                                outrow.append($('<td colspan="' + remaining + '"/>').addClass('cont'));
-                                extraout = outchar;
-                                extraclass = morseclass;
+                                outrow.append($('<td colspan="' + remaining + '"/>').addClass('cont'))
+                                extraout = outchar
+                                extraclass = morseclass
                             }
                         }
                     }
                 }
-                remaining--;
+                remaining--
             }
             if (remaining <= 0) {
                 // Time to close off one table and start another
-                tbody.append(inrow);
-                tbody.append(morserow);
-                tbody.append(outrow);
-                table.append(tbody);
-                topdiv.append(table);
+                tbody.append(inrow)
+                tbody.append(morserow)
+                tbody.append(outrow)
+                table.append(tbody)
+                topdiv.append(table)
 
-                table = $('<table/>').addClass("mword");
-                tbody = $('<tbody/>');
-                inrow = $('<tr/>');
-                morserow = $('<tr/>');
-                outrow = $('<tr/>');
+                table = $('<table/>').addClass("mword")
+                tbody = $('<tbody/>')
+                inrow = $('<tr/>')
+                morserow = $('<tr/>')
+                outrow = $('<tr/>')
                 if (extralen > 0) {
-                    outrow.append($('<td colspan="' + extralen + '"/>').addClass(extraclass).text(extraout));
+                    outrow.append($('<td colspan="' + extralen + '"/>').addClass(extraclass).text(extraout))
                 }
-                remaining = width;
+                remaining = width
             }
         }
         // Finish off the table
-        tbody.append(inrow);
-        tbody.append(morserow);
-        tbody.append(outrow);
-        table.append(tbody);
-        topdiv.append(table);
-        topdiv.append($('<hr/><div>' + finaltext + '</div>'));
-        return topdiv;
+        tbody.append(inrow)
+        tbody.append(morserow)
+        tbody.append(outrow)
+        table.append(tbody)
+        topdiv.append(table)
+        topdiv.append($('<hr/><div>' + finaltext + '</div>'))
+        return topdiv
     }
     /*
      * Creates an HTML table to display the frequency of characters
      */
     createFreqEditTable(): JQuery<HTMLElement> {
-        var table = $('<table/>').addClass("tfreq");
-        var thead = $('<thead/>');
-        var tbody = $('<tbody/>');
-        var headrow = $('<tr/>');
-        var freqrow = $('<tr/>');
-        var replrow = $('<tr/>');
-        var lockrow = $('<tr/>')
-        var i, len;
-        var charset = this.getCharset();
+        let table = $('<table/>').addClass("tfreq")
+        let thead = $('<thead/>')
+        let tbody = $('<tbody/>')
+        let headrow = $('<tr/>')
+        let freqrow = $('<tr/>')
+        let replrow = $('<tr/>')
+        let lockrow = $('<tr/>')
+        let i, len
+        let charset = this.getCharset()
 
-        headrow.append($('<th/>').addClass("topleft"));
-        freqrow.append($('<th/>').text("Frequency"));
-        replrow.append($('<th/>').text("Replacement"));
-        lockrow.append($('<th/>').text("Locked"));
+        headrow.append($('<th/>').addClass("topleft"))
+        freqrow.append($('<th/>').text("Frequency"))
+        replrow.append($('<th/>').text("Replacement"))
+        lockrow.append($('<th/>').text("Locked"))
         for (i = 0, len = charset.length; i < len; i++) {
-            var c = charset.substr(i, 1).toUpperCase();
-            headrow.append($('<th/>').text(c));
-            freqrow.append($('<td id="f' + c + '"/>'));
-            var td = $('<td/>');
-            td.append(this.makeFreqEditField(c));
-            replrow.append(td);
-            td = $('<td/>');
-            var ischecked = this.locked[c];
+            let c = charset.substr(i, 1).toUpperCase()
+            headrow.append($('<th/>').text(c))
+            freqrow.append($('<td id="f' + c + '"/>'))
+            let td = $('<td/>')
+            td.append(this.makeFreqEditField(c))
+            replrow.append(td)
+            td = $('<td/>')
+            let ischecked = this.locked[c]
             $('<input />', {
                 type: 'checkbox',
                 class: 'cb',
                 'data-char': c,
                 id: 'cb' + c,
                 value: name, checked: ischecked,
-            }).appendTo(td);
+            }).appendTo(td)
 
-            lockrow.append(td);
+            lockrow.append(td)
         }
-        thead.append(headrow);
-        tbody.append(freqrow);
-        tbody.append(replrow);
-        tbody.append(lockrow);
-        table.append(thead);
-        table.append(tbody);
+        thead.append(headrow)
+        tbody.append(freqrow)
+        tbody.append(replrow)
+        tbody.append(lockrow)
+        table.append(thead)
+        table.append(tbody)
 
-        return table;
+        return table
     }
     /**
      * @param {string} reqstr Template string to set mappings
      */
     setMultiChars(reqstr: string): void {
-        console.log('setMorseMultiChars ' + reqstr);
-        var i, len;
-        this.holdupdates = true;
+        console.log('setMorseMultiChars ' + reqstr)
+        let i, len
+        this.holdupdates = true
         for (i = 0, len = reqstr.length / (this.cipherWidth + 1); i < len; i++) {
-            var repchar = reqstr.substr(i * (this.cipherWidth + 1), 1);
-            var newchar = reqstr.substr(i * (this.cipherWidth + 1) + 1, this.cipherWidth);
-            console.log('Set ' + repchar + ' to ' + newchar);
-            this.updateSel(repchar, newchar);
+            let repchar = reqstr.substr(i * (this.cipherWidth + 1), 1)
+            let newchar = reqstr.substr(i * (this.cipherWidth + 1) + 1, this.cipherWidth)
+            console.log('Set ' + repchar + ' to ' + newchar)
+            this.updateSel(repchar, newchar)
         }
-        this.holdupdates = false;
-        this.updateMatchDropdowns('');
+        this.holdupdates = false
+        this.updateMatchDropdowns('')
     }
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *
@@ -460,56 +460,59 @@ export default
      *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     findPossible(str: string): void {
-        var encoded = this.minimizeString(<string>$('#encoded').val());
-        var morse = '';
-        var extra = '';
-        var res = '';
+        let encoded = this.minimizeString(<string>$('#encoded').val())
+        let morse = ''
+        let extra = ''
+        let res = ''
         // Convert the string to Morse.
-        for (var i = 0, len = str.length; i < len; i++) {
-            var c = str.substr(i, 1).toUpperCase();
+        for (let c of str.toUpperCase()) {
             if (typeof this.tomorse[c] !== 'undefined') {
-                morse += extra + this.tomorse[c];
-                extra = 'X';
+                morse += extra + this.tomorse[c]
+                extra = 'X'
             }
         }
         //
         // Look for all possible matches for the pattern.  We need to shift it by as many Xs as
         // can occur for the width of a morse character.  For a Morbit this would only be a single
         // one, but with a Fractionated Morse it could be two leadings ones.
-        for (i = 0; i < this.cipherWidth; i++) {
-            res += this.searchPattern(encoded, 1, "XXXXX".substr(0, i) + morse, this.cipherWidth);
+        for (let i = 0; i < this.cipherWidth; i++) {
+            res += this.searchPattern(encoded, 1, "XXXXX".substr(0, i) + morse, this.cipherWidth)
         }
         if (res === '') {
-            res = '<br/><b>Not Found</b>';
+            res = '<br/><b>Not Found</b>'
         } else {
-            var charset = this.getCharset();
-            var tres = '<table class="mfind"><thead><tr><th>Pos</th><th>Match</th>';
-            for (i = 0; i < charset.length; i++) {
-                var key = charset.substr(i, 1);
-                tres += '<th>' + key + '</th>';
+            let charset = this.getCharset()
+            let tres = '<table class="mfind"><thead><tr><th>Pos</th><th>Match</th>'
+            for (let key of charset) {
+                tres += '<th>' + key + '</th>'
             }
-            //   res +=             < ul > ' + res + '</ul > ';
-            res = tres + '</tr></thead><tbody>' + res + '</tbody></table>';
+            //   res +=             < ul > ' + res + '</ul > '
+            res = tres + '</tr></thead><tbody>' + res + '</tbody></table>'
         }
 
-        $(".findres").html('Searching for ' + str + ' as ' + this.normalizeHTML(morse) + res);
+        $(".findres").html('Searching for ' + str + ' as ' + this.normalizeHTML(morse) + res)
     }
 
+    /**
+     * Generates an HTML representation of a string for display.  Replaces the X, O and -
+     * with more visible HTML equivalents
+     * @param str String to normalize (with - X and O representing morese characters)
+     */
     normalizeHTML(str: string): string {
-        return str.replace(/O/g, '&#9679;').replace(/-/g, "&ndash;").replace(/X/g, "&times;");
+        return str.replace(/O/g, '&#9679;').replace(/-/g, "&ndash;").replace(/X/g, "&times;")
     }
 
     load(): void {
-        this.encodedString = this.cleanString(<string>$('#encoded').val());
-        var res = this.build(this.encodedString);
-        $("#answer").empty().append(res);
+        this.encodedString = this.cleanString(<string>$('#encoded').val())
+        let res = this.build(this.encodedString)
+        $("#answer").empty().append(res)
         $("#analysis").each((i, elem) => {
             $(elem).empty().append(this.analyze(this.encodedString))
-        });
+        })
         // Show the update frequency values
-        this.displayFreq();
+        this.displayFreq()
         // We need to attach handlers for any newly created input fields
-        this.attachHandlers();
+        this.attachHandlers()
     }
 
 }

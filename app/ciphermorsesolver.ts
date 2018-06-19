@@ -177,7 +177,7 @@ export default
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
-        $(".cb").unbind('change').on('change', (e) => {
+        $(".cb").off('change').on('change', (e) => {
             let toupdate = $(e.target).attr('data-char')
             this.updateCheck(toupdate, $(e.target).prop("checked"))
         })

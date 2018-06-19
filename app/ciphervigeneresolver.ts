@@ -363,13 +363,13 @@ export default class CipherVigenereSolver extends CipherSolver {
         super.attachHandlers()
         this.setCodeVariant(<string>$("input[name='codevariant']:checked").val())
 
-        $('input[type=radio][name=codevariant]').unbind('change').change((e) => {
+        $('input[type=radio][name=codevariant]').off('change').on('change',(e) => {
             this.setCodeVariant(<string>$("input[name='codevariant']:checked").val())
         })
-        $('#keyword').unbind('input').on('input', (e) => {
+        $('#keyword').off('input').on('input', (e) => {
             this.setKeyword(<string>$(e.target).val())
         })
-        $("a.vkey").unbind('click').click((e) => {
+        $("a.vkey").off('click').on('click',(e) => {
             let newkey = $(e.target).attr('data-key')
             if (newkey === undefined) {
                 newkey = $(e.target).html()
@@ -377,11 +377,11 @@ export default class CipherVigenereSolver extends CipherSolver {
             this.setKeyword(newkey)
             $('#keyword').val(newkey)
         })
-        $(".slvi").unbind('blur').blur((e) => {
+        $(".slvi").off('blur').on('blur',(e) => {
             let tohighlight = $(e.target).attr('data-vslot')
             $("[data-vslot='" + tohighlight + "']").removeClass("allfocus")
             $(e.target).removeClass("focus")
-        }).unbind('focus').focus((e) => {
+        }).off('focus').on('focus',(e) => {
             let tohighlight = $(e.target).attr('data-vslot')
             $("[data-vslot='" + tohighlight + "']").addClass("allfocus")
             $(e.target).addClass("focus")

@@ -457,7 +457,7 @@ export default
      */
     attachHandlers() {
         super.attachHandlers()
-        $("#solve").unbind('click').click(() => {
+        $("#solve").off('click').on('click',() => {
             let msg = <string>$('#toencode').val()
             this.setEncodingTable(Number($("#a").val()), Number($("#b").val()))
             this.printSolution(msg,
@@ -486,7 +486,7 @@ export default
         let res = this.buildAffine(toencode, a, b)
         $("#answer").empty().append(res)
 
-        $("td").unbind('click').click((e) => {
+        $("td").off('click').on('click',(e) => {
             let id = $(e.target).attr('id')
             // change the style
             let clickedId = this.affineCheck['olderId']

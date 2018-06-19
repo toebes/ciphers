@@ -5,8 +5,6 @@
 	"command": "${workspaceRoot}/node_modules/.bin/webpack",
 	"isShellCommand": true,
 	"args": [
-		"--display-modules",
-		"--progress"
 	],
 	"echoCommand": true,
 	"tasks": [

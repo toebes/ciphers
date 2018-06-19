@@ -867,7 +867,7 @@ export default
      */
     attachHandlers(): void {
         super.attachHandlers()
-        $(".rtoggle").unbind('click').click(
+        $(".rtoggle").off('click').on('click',
             (e) => {
                 let id = $(e.target).attr("id")
                 let sel = $(e.target).attr("data-val")
@@ -878,7 +878,7 @@ export default
                 this.boxState[id] = sel
             }
         )
-        $(".cb").unbind('change').on('change', (e) => {
+        $(".cb").off('change').on('change', (e) => {
             let toupdate = $(e.target).attr('data-char')
             this.updateCheck(toupdate, $(e.target).prop("checked"))
         })

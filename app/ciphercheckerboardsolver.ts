@@ -225,10 +225,10 @@ export default
     }
 
     attachHandlers(): void {
-        $("#rowcharset").unbind('change').on('change', (e) => {
+        $("#rowcharset").off('change').on('change', (e) => {
             this.setrowcolset((<HTMLInputElement>e.target).value, this.colcharset, true)
         })
-        $("#colcharset").unbind('change').on('change', (e) => {
+        $("#colcharset").off('change').on('change', (e) => {
             this.setrowcolset(this.rowcharset, (<HTMLInputElement>e.target).value, true)
         })
         super.attachHandlers()

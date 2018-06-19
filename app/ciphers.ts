@@ -49,10 +49,6 @@ $(function () {
     })
     // process the "cipher-type" class
     $(".cipher-type").each((i, elem) => { cipherTool.setCipherType($(elem).attr('id')) })
-    // Handler for .ready() called.
-    $('#load').button().unbind('click').click(() => { cipherTool.load() })
-    $('#reset').button().unbind('click').click(() => { cipherTool.reset() })
-
     $(".lang").each((i, elem) => { cipherTool.setLangDropdown($(elem)) })
     cipherTool.layout()
     cipherTool.UpdateFreqEditTable()

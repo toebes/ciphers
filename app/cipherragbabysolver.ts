@@ -290,7 +290,11 @@ export default class CipherRagbabySolver extends CipherSolver {
         }
 
     }
-    leftShift(r: number): void {
+    /**
+     * Rotate left all the letters in a slot by 1
+     * @param r Which slot (-1 for all) to shift
+     */
+    leftRotate(r: number): void {
         if (r === -1) {
             for (let slot in this.replmap) {
                 this.rotateMap(Number(slot), 1)
@@ -300,7 +304,11 @@ export default class CipherRagbabySolver extends CipherSolver {
         }
         this.buildMap()
     }
-    rightShift(r: number): void {
+    /**
+     * Rotate right all the letters in a slot by 1
+     * @param r Which slot (-1 for all) to shift
+     */
+    rightRotate(r: number): void {
         if (r === -1) {
             for (let slot in this.replmap) {
                 this.rotateMap(Number(slot), -1)
@@ -315,24 +323,31 @@ export default class CipherRagbabySolver extends CipherSolver {
      */
     attachHandlers(): void {
         super.attachHandlers()
-
-        $('input[type=radio][name=alphasize]').unbind('change').change(() => {
+        $('input[type=radio][name=alphasize]').off('change').on('change',() => {
             this.setAlphabetSize(Number($("input[name='alphasize']:checked").val()))
         })
-        $("button.ls").unbind('click').click((e) => {
-            this.leftShift(Number($(e.target).attr('data-vrow')))
-        })
-        $("button.rs").unbind('click').click((e) => {
-            this.rightShift(Number($(e.target).attr('data-vrow')))
-        })
-        $(".slvi").unbind('blur').blur((e) => {
-            let tohighlight = $(e.target).attr('data-vslot')
-            $("[data-vslot='" + tohighlight + "']").removeClass("allfocus")
-            $(e.target).removeClass("focus")
-        }).unbind('focus').focus((e) => {
-            let tohighlight = $(e.target).attr('data-vslot')
-            $("[data-vslot='" + tohighlight + "']").addClass("allfocus")
-            $(e.target).addClass("focus")
-        })
+        $("button.ls")
+            .off('click')
+            .on('click', (e) => {
+                this.leftRotate(Number($(e.target).attr('data-vrow')))
+            })
+        $("button.rs")
+            .off('click')
+            .click((e) => {
+                this.rightRotate(Number($(e.target).attr('data-vrow')))
+            })
+        $(".slvi")
+            .off('blur')
+            .on('blur',(e) => {
+                let tohighlight = $(e.target).attr('data-vslot')
+                $("[data-vslot='" + tohighlight + "']").removeClass("allfocus")
+                $(e.target).removeClass("focus")
+            })
+            .off('focus')
+            .on('focus',(e) => {
+                let tohighlight = $(e.target).attr('data-vslot')
+                $("[data-vslot='" + tohighlight + "']").addClass("allfocus")
+                $(e.target).addClass("focus")
+            })
     }
 }

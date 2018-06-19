@@ -447,7 +447,7 @@ export default
      */
     minimizeString(str: string): string {
         let res: string = ''
-        for(let c of str.toUpperCase()){
+        for (let c of str.toUpperCase()) {
             if (this.isValidChar(c)) {
                 res += c
             }
@@ -583,9 +583,8 @@ export default
     */
     displayFreq(): void {
         let charset = this.getCharset()
-        let c, i, len
         this.holdupdates = true
-        for (c in this.freq) {
+        for (let c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
                 let subval: string = String(this.freq[c])
                 if (subval === '0') {
@@ -597,8 +596,7 @@ export default
         // Replicate all of the previously set values.  This is done when
         // you change the spacing in the encoded text and then do a reload.
         if (this.ShowRevReplace) {
-            for (i = 0, len = charset.length; i < len; i++) {
-                c = charset.substr(i, 1)
+            for (let c of charset) {
                 let repl: string = <string>$('#m' + c).val()
                 if (repl === '') { repl = $('#m' + c).html(); }
                 this.setChar(c, repl)
@@ -612,8 +610,7 @@ export default
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
-        $(".sli").unbind('keyup').keyup((event) => {
-            let newchar
+        $(".sli").off('keyup').on('keyup', (event) => {
             let repchar = $(event.target).attr('data-char')
             let current, next
             let focusables = $(".sli")
@@ -634,7 +631,7 @@ export default
                 this.setChar(repchar, '')
             }
             event.preventDefault()
-        }).unbind('keypress').keypress((event) => {
+        }).off('keypress').on('keypress', (event) => {
             let newchar
             let repchar = $(event.target).attr('data-char')
             let current, next
@@ -658,7 +655,7 @@ export default
                 console.log('Not valid:' + newchar)
             }
             event.preventDefault()
-        }).unbind('blur').blur((e) => {
+        }).off('blur').on('blur', (e) => {
             let tohighlight = $(e.target).attr('data-char')
             $("[data-char='" + tohighlight + "']").removeClass("allfocus")
             let althighlight = $(e.target).attr('data-schar')
@@ -666,7 +663,7 @@ export default
                 $("[data-schar='" + althighlight + "']").removeClass("allfocus")
             }
             $(e.target).removeClass("focus")
-        }).unbind('focus').focus((e) => {
+        }).off('focus').on('focus', (e) => {
             let tohighlight = $(e.target).attr('data-char')
             $("[data-char='" + tohighlight + "']").addClass("allfocus")
             let althighlight = $(e.target).attr('data-schar')
@@ -675,10 +672,13 @@ export default
             }
             $(e.target).addClass("focus")
         })
+        $('#load').button().off('click').on('click', () => { this.load() })
+        $('#reset').button().off('click').on('click', () => { this.reset() })
+
         $(".dragcol").each((i, elem) => {
             if (!$.fn.dataTable.isDataTable(".dragcol")) { $(elem).DataTable({ colReorder: true, ordering: false, dom: 't' }) }
         })
-        $(".msli").unbind('change').on('change', (e) => {
+        $(".msli").off('change').on('change', (e) => {
             let toupdate = $(e.target).attr('data-char')
             this.updateSel(toupdate, (<HTMLInputElement>e.target).value)
         })
@@ -702,7 +702,7 @@ export default
             ]
         })
 
-        $('.sfind').unbind('input').on('input', (e) => {
+        $('.sfind').off('input').on('input', (e) => {
             this.findPossible((<string>$(e.target).val()))
         })
     }
@@ -719,10 +719,8 @@ export default
     * @returns {string} Replacement pattern string
     */
     genReplPattern(str: string): Array<string> {
-        let i, len
         let res = []
-        for (i = 0, len = str.length; i < len; i++) {
-            let c = str.substr(i, 1)
+        for (let c of str) {
             res.push(this.replacement[c])
         }
         return res
@@ -866,7 +864,7 @@ export default
      * @param lang Language to load (2 character abbreviation)
      */
     loadRawLanguage(lang: string): void {
-        let jqxhr = $.get("Languages/" + lang + ".txt", function () {
+        let jqxhr = $.get("Languages/" + lang + ".txt", () => {
         }).done((data) => {
             // Empty out all the frequent words
             $(".langstatus").text("Processing " + this.langmap[lang] + '...')

@@ -2,8 +2,8 @@
 
 import CipherHandler from "./cipherhandler"
 
-export default 
-class CipherSolver extends CipherHandler {
+export default
+    class CipherSolver extends CipherHandler {
     /**
      * Indicates that a 
      * @type {Object.<string, bool>}
@@ -31,10 +31,10 @@ class CipherSolver extends CipherHandler {
         let encoded: string = this.cleanString(<string>$('#encoded').val());
         console.log('LoadSolver');
         let res = this.build(encoded);
-        let tool = this
+
         $("#answer").empty().append(res);
-        $("#analysis").each(function (i) {
-            $(this).empty().append(tool.analyze(encoded));
+        $("#analysis").each((i, elem) => {
+            $(elem).empty().append(this.analyze(encoded));
         });
 
         // Show the update frequency values
@@ -49,11 +49,11 @@ class CipherSolver extends CipherHandler {
         this.locked = {}
         for (let c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
-                $('#m' + c).val('');
-                $('#rf' + c).text('');
+                $('#m' + c).val('')
+                $('#rf' + c).text('')
             }
         }
-        this.load();
+        this.load()
     }
 
     /**
@@ -69,8 +69,8 @@ class CipherSolver extends CipherHandler {
         //         break
         //     }
         // }
-        let einput = $('<input/>', { type: "text", class: "sli", 'data-char': c, id: 'm' + c, value: this.replacement[c] });
-        return einput;
+        let einput = $('<input/>', { type: "text", class: "sli", 'data-char': c, id: 'm' + c, value: this.replacement[c] })
+        return einput
     }
     /*
      * Sorter to compare two frequency objects
@@ -79,15 +79,15 @@ class CipherSolver extends CipherHandler {
      */
     isort(a: any, b: any): number {
         if (a.freq > b.freq) {
-            return -1;
+            return -1
         } else if (a.freq < b.freq) {
-            return 1;
+            return 1
         } else if (a.val < b.val) {
-            return -1;
+            return -1
         } else if (a.val > b.val) {
-            return 1;
+            return 1
         }
-        return 0;
+        return 0
     }
     /** 
      * Finds the top n strings of a given width and formats an HTML 
@@ -100,7 +100,6 @@ class CipherSolver extends CipherHandler {
         let tfreq = {}
         let tobjs = []
         let work = ''
-        let len
         let res = $("<span>").text('None found')
         for (let t of str.toUpperCase()) {
             if (this.isValidChar(t)) {
@@ -196,7 +195,7 @@ class CipherSolver extends CipherHandler {
         }
         tobjs.sort(this.isort)
         let consonantline = ''
-        let freq:NumberMap = {}
+        let freq: NumberMap = {}
         let table = $("<table>", { class: "contact" })
         let thead = $("<thead>")
         let tr = $("<tr>")
@@ -217,7 +216,7 @@ class CipherSolver extends CipherHandler {
         tbody.appendTo(table)
         res.append(table)
         // Now go through and generate the Consonant line
-        let minfreq = freq[consonantline.substr(12,1)]
+        let minfreq = freq[consonantline.substr(12, 1)]
         for (let c of this.getCharset()) {
             prevs[c] = ''
             posts[c] = ''
@@ -237,7 +236,7 @@ class CipherSolver extends CipherHandler {
             prevlet = c
         }
         // Now we need to build the table
-        table = $("<table>", {class: "consonantline"})
+        table = $("<table>", { class: "consonantline" })
         thead = $("<thead>")
         tbody = $("<tbody>")
         let consonants = ''
@@ -245,23 +244,23 @@ class CipherSolver extends CipherHandler {
         for (let item of tobjs) {
             if (freq[item.let] <= minfreq) {
                 if (consonants != '' && item.freq !== lastfreq) {
-                    consonants = ' '+consonants
+                    consonants = ' ' + consonants
                 }
                 lastfreq = item.freq
                 consonants = item.let + consonants
             }
             if (prevs[item.let] !== '' || posts[item.let] !== '') {
                 tr = $("<tr>")
-                $("<td>", { class:"prev"}).text(prevs[item.let]).appendTo(tr)
+                $("<td>", { class: "prev" }).text(prevs[item.let]).appendTo(tr)
                 $("<td>", { class: "post" }).text(posts[item.let]).appendTo(tr)
-                tr.appendTo(tbody)                    
+                tr.appendTo(tbody)
             }
         }
         tr = $("<tr>")
-        $("<th>", {colspan:2}).text("Consonant Line").appendTo(tr)        
+        $("<th>", { colspan: 2 }).text("Consonant Line").appendTo(tr)
         tr.appendTo(thead)
         tr = $("<tr>")
-        $("<th>", {colspan:2}).text(consonants).appendTo(tr)        
+        $("<th>", { colspan: 2 }).text(consonants).appendTo(tr)
         tr.appendTo(thead)
         thead.appendTo(table)
         tbody.appendTo(table)
@@ -583,10 +582,9 @@ class CipherSolver extends CipherHandler {
      * @param {string} reqstr String of items to apply
      */
     updateMatchDropdowns(reqstr: string): void {
-        let tool = this;
         this.cacheReplacements();
-        $("[data-chars]").each(function () {
-            $(this).empty().append(tool.generateMatchDropdown($(this).attr('data-chars')));
+        $("[data-chars]").each((i, elem) => {
+            $(elem).empty().append(this.generateMatchDropdown($(elem).attr('data-chars')));
         });
     }
 

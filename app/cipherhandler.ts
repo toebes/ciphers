@@ -1,12 +1,12 @@
 /// <reference types="ciphertypes" />
 
-declare function tableDragger(elem:HTMLElement,any): any;
+declare function tableDragger(elem: HTMLElement, any): any;
 
 /**
  * Base class for all the Cipher Encoders/Decoders
  */
 export default
-class CipherHandler {
+    class CipherHandler {
     /**
      * User visible mapping of names of the various languages supported 
      * @type {StringMap} Mapping of language to visible name
@@ -520,24 +520,23 @@ class CipherHandler {
      * a new cipher to encode or decode
      */
     UpdateFreqEditTable(): void {
-        let tool = this;
-        $(".freq").each(function (i) {
-            $(this).empty().append(tool.createFreqEditTable())
+        $(".freq").each((i, elem) => {
+            $(elem).empty().append(this.createFreqEditTable())
         })
-        this.attachHandlers();
+        this.attachHandlers()
     }
     /**
      * Make multiple copies of a string concatenated
      * @param c Character (or string) to repeat
      * @param count number of times to repeat the string
      */
-    repeatStr(c:string, count:number): string {
+    repeatStr(c: string, count: number): string {
         let res = ''
-        for(let i = 0; i < count; i++) {
+        for (let i = 0; i < count; i++) {
             res += c
         }
         return res
-    } 
+    }
     /**
      * 
      * @param {*string} string String to compute value for
@@ -614,8 +613,7 @@ class CipherHandler {
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
-        let tool = this;
-        $(".sli").unbind('keyup').keyup(function (event) {
+        $(".sli").unbind('keyup').keyup((event) => {
             let newchar;
             let repchar = $(event.target).attr('data-char');
             let current, next;
@@ -634,10 +632,10 @@ class CipherHandler {
                 next = focusables.eq(current + 1).length ? focusables.eq(current + 1) : focusables.eq(0);
                 next.focus();
             } else if (event.keyCode === 46 || event.keyCode === 8) {
-                tool.setChar(repchar, '');
+                this.setChar(repchar, '');
             }
             event.preventDefault();
-        }).unbind('keypress').keypress(function (event) {
+        }).unbind('keypress').keypress((event) => {
             let newchar;
             let repchar = $(event.target).attr('data-char');
             let current, next;
@@ -648,12 +646,12 @@ class CipherHandler {
                 newchar = event.key.toUpperCase();
             }
 
-            if (tool.isValidChar(newchar) || newchar === ' ') {
+            if (this.isValidChar(newchar) || newchar === ' ') {
                 if (newchar === ' ') {
                     newchar = '';
                 }
                 console.log('Setting ' + repchar + ' to ' + newchar);
-                tool.setChar(repchar, newchar);
+                this.setChar(repchar, newchar);
                 current = focusables.index(event.target);
                 next = focusables.eq(current + 1).length ? focusables.eq(current + 1) : focusables.eq(0);
                 next.focus();
@@ -661,38 +659,37 @@ class CipherHandler {
                 console.log('Not valid:' + newchar);
             }
             event.preventDefault();
-        }).unbind('blur').blur(function () {
-            let tohighlight = $(this).attr('data-char');
+        }).unbind('blur').blur((e) => {
+            let tohighlight = $(e.target).attr('data-char');
             $("[data-char='" + tohighlight + "']").removeClass("allfocus");
-            let althighlight = $(this).attr('data-schar');
+            let althighlight = $(e.target).attr('data-schar');
             if (althighlight !== '') {
                 $("[data-schar='" + althighlight + "']").removeClass("allfocus");
             }
-            $(this).removeClass("focus");
-        }).unbind('focus').focus(function () {
-            let tohighlight = $(this).attr('data-char');
+            $(e.target).removeClass("focus");
+        }).unbind('focus').focus((e) => {
+            let tohighlight = $(e.target).attr('data-char');
             $("[data-char='" + tohighlight + "']").addClass("allfocus");
-            let althighlight = $(this).attr('data-schar');
+            let althighlight = $(e.target).attr('data-schar');
             if (althighlight !== '') {
                 $("[data-schar='" + althighlight + "']").addClass("allfocus");
             }
-            $(this).addClass("focus");
+            $(e.target).addClass("focus");
         });
-        $(".dragcol").each(function (i) {
-            if (!$.fn.dataTable.isDataTable(".dragcol"))
-             { $(this).DataTable({colReorder: true,  ordering: false, dom: 't'}) }
+        $(".dragcol").each((i, elem) => {
+            if (!$.fn.dataTable.isDataTable(".dragcol")) { $(elem).DataTable({ colReorder: true, ordering: false, dom: 't' }) }
         });
-        $(".msli").unbind('change').on('change', function () {
-            let toupdate = $(this).attr('data-char');
-            tool.updateSel(toupdate, (<HTMLInputElement>this).value);
+        $(".msli").unbind('change').on('change', (e) => {
+            let toupdate = $(e.target).attr('data-char');
+            this.updateSel(toupdate, (<HTMLInputElement>e.target).value);
         });
         $(".spin").spinner({
-            spin: function (event, ui) {
-                if (ui.value >= tool.getCharset().length) {
-                    $(this).spinner("value", 0);
+            spin: (event, ui) => {
+                if (ui.value >= this.getCharset().length) {
+                    $(event.target).spinner("value", 0);
                     return false;
                 } else if (ui.value < 0) {
-                    $(this).spinner("value", tool.getCharset().length - 1);
+                    $(event.target).spinner("value", this.getCharset().length - 1);
                     return false;
                 }
             }
@@ -706,8 +703,8 @@ class CipherHandler {
             ]
         });
 
-        $('.sfind').unbind('input').on('input', function () {
-            tool.findPossible((<string>$(this).val()))
+        $('.sfind').unbind('input').on('input', (e) => {
+            this.findPossible((<string>$(e.target).val()))
         });
     }
     /**
@@ -845,9 +842,8 @@ class CipherHandler {
                 $("<option />", { value: lang }).text(this.langmap[lang]).appendTo(lselect);
             }
         }
-        let tool = this;
-        lselect.change(function () {
-            tool.loadLanguage(<string>$(this).val());
+        lselect.change((e) => {
+            this.loadLanguage(<string>$(e.target).val());
         });
     }
     /**
@@ -855,16 +851,15 @@ class CipherHandler {
      * @param lang Language to load
      */
     loadLanguage(lang: string): void {
-        let tool = this;
-        tool.curlang = lang;
-        tool.setCharset(tool.langcharset[lang])
-        $(".langstatus").text("Attempting to load " + tool.langmap[lang] + '...')
-        $.getScript("Languages/" + lang + ".js", function (data, textStatus, jqxhr) {
+        this.curlang = lang;
+        this.setCharset(this.langcharset[lang])
+        $(".langstatus").text("Attempting to load " + this.langmap[lang] + '...')
+        $.getScript("Languages/" + lang + ".js", (data, textStatus, jqxhr) => {
             $(".langstatus").text('')
-            tool.updateMatchDropdowns('')
-        }).fail(function (jqxhr, settings, exception) {
+            this.updateMatchDropdowns('')
+        }).fail((jqxhr, settings, exception) => {
             console.log("Complied language file not found for " + lang + ".js")
-            tool.loadRawLanguage(lang)
+            this.loadRawLanguage(lang)
         });
     }
     /**
@@ -872,16 +867,15 @@ class CipherHandler {
      * @param lang Language to load (2 character abbreviation)
      */
     loadRawLanguage(lang: string): void {
-        let tool = this;
         let jqxhr = $.get("Languages/" + lang + ".txt", function () {
-        }).done(function (data) {
+        }).done((data) => {
             // Empty out all the frequent words
-            $(".langstatus").text("Processing " + tool.langmap[lang] + '...');
-            tool.Frequent[lang] = {};
-            tool.curlang = lang;
-            let charset = tool.langcharset[lang];
-            let langreplace = tool.langreplace[lang];
-            tool.setCharset(charset);
+            $(".langstatus").text("Processing " + this.langmap[lang] + '...');
+            this.Frequent[lang] = {};
+            this.curlang = lang;
+            let charset = this.langcharset[lang];
+            let langreplace = this.langreplace[lang];
+            this.setCharset(charset);
             let lines = data.split("\n");
             let i, len;
             len = lines.length;
@@ -902,7 +896,7 @@ class CipherHandler {
                     }
                 }
                 if (legal) {
-                    let pat = tool.makeUniquePattern(pieces[0], 1);
+                    let pat = this.makeUniquePattern(pieces[0], 1);
                     let elem = [
                         pieces[0].toUpperCase(),
                         i,
@@ -920,19 +914,19 @@ class CipherHandler {
                     } else {
                         elem[3] = 5;
                     }
-                    if (typeof tool.Frequent[lang][pat] === 'undefined') {
-                        tool.Frequent[lang][pat] = [];
+                    if (typeof this.Frequent[lang][pat] === 'undefined') {
+                        this.Frequent[lang][pat] = [];
                     }
-                    tool.Frequent[lang][pat].push(elem);
+                    this.Frequent[lang][pat].push(elem);
                 }
             }
-            // console.log(tool.Frequent);
-            $(".langout").each(function () {
-                $(".langstatus").text('Dumping ' + tool.langmap[lang] + '...');
-                $(this).text(tool.dumpLang(lang));
+            // console.log(this.Frequent);
+            $(".langout").each((i, elem) => {
+                $(".langstatus").text('Dumping ' + this.langmap[lang] + '...');
+                $(elem).text(this.dumpLang(lang));
             });
             $(".langstatus").text('');
-            tool.updateMatchDropdowns('');
+            this.updateMatchDropdowns('');
         });
         $(".langstatus").text("Loading " + this.langmap[lang] + '...');
     }

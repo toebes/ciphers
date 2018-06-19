@@ -14,7 +14,7 @@ enum CryptarithmType {
 }
 
 export default
-class CryptarithmSolver extends CipherSolver {
+    class CryptarithmSolver extends CipherSolver {
     usedletters: BoolMap = {}
     boxState: StringMap = {}
     base: number
@@ -23,15 +23,14 @@ class CryptarithmSolver extends CipherSolver {
      * Loads new data into a solver, preserving all solving matches made
      */
     load(): void {
-        var encoded: string = this.cleanString(<string>$('#encoded').val());
-        let res = this.build(encoded);
-        var tool = this
+        var encoded: string = this.cleanString(<string>$('#encoded').val())
+        let res = this.build(encoded)
         this.UpdateFreqEditTable()
 
-        $("#answer").empty().append(res);
-        $("#analysis").each(function (i) {
-            $(this).empty().append(tool.analyze(encoded));
-        });
+        $("#answer").empty().append(res)
+        $("#analysis").each((i, elem) => {
+            $(elem).empty().append(this.analyze(encoded))
+        })
         let pos = 0
         let charset = this.getCharset()
         for (let c in this.usedletters) {
@@ -48,7 +47,7 @@ class CryptarithmSolver extends CipherSolver {
      * Loads new data into a solver, resetting any solving matches made
      */
     reset(): void {
-        this.load();
+        this.load()
     }
     /**
      * Analyze the encoded text
@@ -155,7 +154,6 @@ class CryptarithmSolver extends CipherSolver {
             }
         }
         $("<span>", { class: "formula" }).text("[" + formula + "]").appendTo(result)
-        // return $("<span>").text("Comparing " + formula + "=" + expected + " to " + eformula + "=" + eexpected + " as " + cformula + "=" + cexpected)
         return result
     }
     /**
@@ -163,29 +161,26 @@ class CryptarithmSolver extends CipherSolver {
      * @param {string} reqstr String of items to apply
      */
     updateMatchDropdowns(reqstr: string): void {
-        var tool = this;
-        this.cacheReplacements();
-        $("[data-formula]").each(function () {
-            $(this).empty().append(tool.checkFormula($(this).attr('data-formula'), $(this).attr('data-expect')))
+        this.cacheReplacements()
+        $("[data-formula]").each((i, elem) => {
+            $(elem).empty().append(this.checkFormula($(elem).attr('data-formula'), $(elem).attr('data-expect')))
         })
     }
     /**
      * Fills in the frequency portion of the frequency table
      */
     displayFreq(): void {
-        let charset = this.getCharset();
-        let c, i, len;
-        this.holdupdates = true;
+        this.holdupdates = true
         // Replicate all of the previously set values.  This is done when
         // you change the spacing in the encoded text and then do a reload.
         for (let c in this.usedletters) {
-            let repl: string = <string>$('#m' + c).val();
+            let repl: string = <string>$('#m' + c).val()
             if (repl === '') { repl = $('#m' + c).html(); }
-            this.setChar(c, repl);
+            this.setChar(c, repl)
         }
 
-        this.holdupdates = false;
-        this.updateMatchDropdowns('');
+        this.holdupdates = false
+        this.updateMatchDropdowns('')
     }
 
     /**
@@ -527,7 +522,7 @@ class CryptarithmSolver extends CipherSolver {
                     // See if we need to format the number into place
                     let padding = ''
                     for (let pad = 0; pad < numwidth * item.indent; pad++) {
-                        padding += ' ';
+                        padding += ' '
                     }
                     item.indent = indent * numwidth
                     switch (this.cryptarithmType) {
@@ -587,7 +582,7 @@ class CryptarithmSolver extends CipherSolver {
                                         item.formula = "(" + item.formula + ")*1000+" + rootbase.substr(rootbase.length - (indent * 2), 2)
                                         indent--
                                     }
-                                } 
+                                }
                                 // We want to start at the end and put an extra
                                 // space between every third character
                                 let temp = '  ' + content + padding
@@ -621,7 +616,7 @@ class CryptarithmSolver extends CipherSolver {
                                         item.formula = "(" + item.formula + ")*10+" + dividend.substr(dividend.length - indent, 1)
                                         indent--
                                     }
-                                } 
+                                }
                                 item.content = content + padding
                                 if (state === buildState.WantQuotient) {
                                     quotient = content
@@ -734,7 +729,7 @@ class CryptarithmSolver extends CipherSolver {
             }
 
             $("<td>", { class: "solv" }).append(content).appendTo(tr)
-            tr.appendTo(tbody);
+            tr.appendTo(tbody)
         }
 
         tbody.appendTo(table)
@@ -825,7 +820,7 @@ class CryptarithmSolver extends CipherSolver {
      */
     updateCheck(c: string, lock: boolean): void {
         if (this.locked[c] != lock) {
-            this.locked[c] = lock;
+            this.locked[c] = lock
             let repl = this.replacement[c]
             $("input:text[data-char='" + c + "']").prop('disabled', lock)
             let charset = this.getCharset()
@@ -872,21 +867,20 @@ class CryptarithmSolver extends CipherSolver {
      */
     attachHandlers(): void {
         super.attachHandlers()
-        let tool = this
         $(".rtoggle").unbind('click').click(
-            function () {
-                let id = $(this).attr("id")
-                let sel = $(this).attr("data-val")
-                $(this).removeClass("rtoggle-" + sel)
+            (e) => {
+                let id = $(e.currentTarget).attr("id")
+                let sel = $(e.currentTarget).attr("data-val")
+                $(e.currentTarget).removeClass("rtoggle-" + sel)
                 sel = String((Number(sel) + 1) % 4)
-                $(this).addClass("rtoggle-" + sel).attr("data-val", sel)
+                $(e.currentTarget).addClass("rtoggle-" + sel).attr("data-val", sel)
                 console.log('Changing ' + id + " to " + sel)
-                tool.boxState[id] = sel
+                this.boxState[id] = sel
             }
         )
-        $(".cb").unbind('change').on('change', function () {
-            let toupdate = $(this).attr('data-char');
-            tool.updateCheck(toupdate, $(this).prop("checked"));
-        });
+        $(".cb").unbind('change').on('change', (e) => {
+            let toupdate = $(e.currentTarget).attr('data-char')
+            this.updateCheck(toupdate, $(e.currentTarget).prop("checked"))
+        })
     }
 }

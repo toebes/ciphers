@@ -2,10 +2,10 @@
 
 import CipherEncoder from "./cipherencoder"
 
-export default 
-class CipherVigenereEncoder extends CipherEncoder {
+export default
+    class CipherVigenereEncoder extends CipherEncoder {
     doEncoding: boolean = true
-    
+
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *
      * Vigenere Encoder
@@ -150,31 +150,28 @@ class CipherVigenereEncoder extends CipherEncoder {
         var key = this.cleanString(<string>$('#keystring').val())
         $('#err').text('')
         let res = this.buildVigenere(encoded, key)
-        let tool = this
         $('#answer').empty().append(res)
         this.attachHandlers();
     }
 
     layout(): void {
-        let tool = this
-        $('.precmds').each(function () {
-            $(this).empty().append(tool.layoutVigenere())
+        $('.precmds').each((i, elem) => {
+            $(elem).empty().append(this.layoutVigenere())
         });
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
-        let tool = this;
         //Argument of type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to parameter of type '"editor.unlink" | "unlink"'.
         // Type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to type '"unlink"'.
-        $('input[type=radio][name=enctype]').unbind('change').change(function () {
-            tool.setkvalinputs();
+        $('input[type=radio][name=enctype]').unbind('change').change((e) => {
+            this.setkvalinputs();
         });
-        $('input[type=radio][name=operation]').unbind('change').change(function () {
-            tool.setVigenereInputs();
+        $('input[type=radio][name=operation]').unbind('change').change((e) => {
+            this.setVigenereInputs();
         })
-        tool.setkvalinputs();
+        this.setkvalinputs();
         super.attachHandlers();
     }
 }

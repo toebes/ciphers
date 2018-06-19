@@ -1,8 +1,8 @@
 /// <reference types="ciphertypes" />
 
 import CipherSolver from "./ciphersolver"
-export default 
-class CipherMorseSolver extends CipherSolver {
+export default
+    class CipherMorseSolver extends CipherSolver {
     readonly tomorse: { [key: string]: string } = {
         ' ': '',
         'A': 'O-',
@@ -177,10 +177,9 @@ class CipherMorseSolver extends CipherSolver {
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
-        let tool = this
-        $(".cb").unbind('change').on('change', function () {
-            let toupdate = $(this).attr('data-char');
-            tool.updateCheck(toupdate, $(this).prop("checked"));
+        $(".cb").unbind('change').on('change', (e) => {
+            let toupdate = $(e.target).attr('data-char');
+            this.updateCheck(toupdate, $(e.target).prop("checked"));
         });
         super.attachHandlers()
     }
@@ -503,10 +502,9 @@ class CipherMorseSolver extends CipherSolver {
     load(): void {
         this.encodedString = this.cleanString(<string>$('#encoded').val());
         var res = this.build(this.encodedString);
-        var tool = this;
         $("#answer").empty().append(res);
-        $("#analysis").each(function (i) {
-            $(this).empty().append(tool.analyze(tool.encodedString))
+        $("#analysis").each((i, elem) => {
+            $(elem).empty().append(this.analyze(this.encodedString))
         });
         // Show the update frequency values
         this.displayFreq();

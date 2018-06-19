@@ -2,10 +2,11 @@
 
 const Aval = "A".charCodeAt(0)
 
+import JTTable from "./jttable"
 import CipherSolver from "./ciphersolver"
 import Mapper from "./mapper"
 import mapperFactory from "./mapperfactory"
-import TSTable from "./TSTable"
+
 export default class CipherVigenereSolver extends CipherSolver {
     /** The current cipher we are working on */
     cipherString: string = ''
@@ -87,12 +88,12 @@ export default class CipherVigenereSolver extends CipherSolver {
         let res = null
         let maxcols = 5
         let tdcount = 0
-        let table = new TSTable({class: 'found'})
+        let table = new JTTable({ class: 'found' })
         let row = table.addHeaderRow()
         for (let i = 0; i < maxcols; i++) {
             row.add("Pos").add("Key")
         }
-        row = table.addBodyRow() 
+        row = table.addBodyRow()
         str = this.minimizeString(str.toUpperCase())
         for (let i = 0; i <= this.cipherOffsets.length - str.length; i++) {
             let thiskey = blankkey
@@ -107,15 +108,15 @@ export default class CipherVigenereSolver extends CipherSolver {
                     valid = false
                     break
                 }
-                thiskey = thiskey.substr(0,keypos) + key + thiskey.substr(keypos+1)
+                thiskey = thiskey.substr(0, keypos) + key + thiskey.substr(keypos + 1)
             }
             if (valid) {
-                if ((tdcount > 0) && ((tdcount  % maxcols) === 0)) {
+                if ((tdcount > 0) && ((tdcount % maxcols) === 0)) {
                     row = table.addBodyRow()
                 }
                 tdcount = tdcount + 1
                 row.add(String(i))
-                   .add($("<a>", {class: 'vkey', href: '#'}).text(thiskey))
+                    .add($("<a>", { class: 'vkey', href: '#' }).text(thiskey))
             }
         }
         if (tdcount === 0) {
@@ -146,8 +147,10 @@ export default class CipherVigenereSolver extends CipherSolver {
         let prevc = ''
         let prevc2 = ''
         let pos = 0
-        let table1 = new TSTable({class: 'vdist',
-                                  head: [["Seq","Dist"]]})
+        let table1 = new JTTable({
+            class: 'vdist',
+            head: [["Seq", "Dist"]]
+        })
         for (let c of encoded) {
             if (this.isValidChar(c)) {
                 let two = prevc + c
@@ -155,7 +158,7 @@ export default class CipherVigenereSolver extends CipherSolver {
                 if (two.length === 2) {
                     if (typeof prevSpot[two] !== 'undefined') {
                         let dist = pos - prevSpot[two];
-                        table1.addBodyRow([two,String(dist)])
+                        table1.addBodyRow([two, String(dist)])
                         // Find all the factors of the distance and record them
                         if (typeof factorSet[dist] === 'undefined') {
                             factorSet[dist] = 0
@@ -175,7 +178,7 @@ export default class CipherVigenereSolver extends CipherSolver {
                 if (three.length === 3) {
                     if (typeof prevSpot[three] !== 'undefined') {
                         let dist = pos - prevSpot[three];
-                        table1.addBodyRow([three,String(dist)])
+                        table1.addBodyRow([three, String(dist)])
                         // Find all the factors of the distance and record them
                         if (typeof factorSet[dist] === 'undefined') {
                             factorSet[dist] = 0
@@ -199,12 +202,14 @@ export default class CipherVigenereSolver extends CipherSolver {
         }
 
         // Now dump out all the factors and the frequency of them
-        let table2 = new TSTable({class: "vfact",
-                                  head: [["Factor", "Freq"]]})
+        let table2 = new JTTable({
+            class: "vfact",
+            head: [["Factor", "Freq"]]
+        })
         for (let factor in factorSet) {
             if (factorSet[factor] > 1) {
-                let link = $("<a>", {class: 'vkey', href: '#', 'data-key': this.repeatStr("-",Number(factor))}).text(factor)
-                table2.addBodyRow([link,String(factorSet[factor])])
+                let link = $("<a>", { class: 'vkey', href: '#', 'data-key': this.repeatStr("-", Number(factor)) }).text(factor)
+                table2.addBodyRow([link, String(factorSet[factor])])
             }
         }
         return this.sideBySide(table1.generate(), table2.generate())
@@ -215,7 +220,7 @@ export default class CipherVigenereSolver extends CipherSolver {
      * @param elem2 Right side element
      */
     sideBySide(elem1: JQuery<HTMLElement>, elem2: JQuery<HTMLElement>): JQuery<HTMLElement> {
-        return new TSTable({body:[[elem1,elem2]]}).generate()
+        return new JTTable({ body: [[elem1, elem2]] }).generate()
     }
     /**
      * Change the encrypted character.  This primarily shows us what the key might be if we use it
@@ -335,9 +340,8 @@ export default class CipherVigenereSolver extends CipherSolver {
     }
 
     layout(): void {
-        let tool = this
-        $('.precmds').each(function () {
-            $(this).empty().append(tool.makeVigenereChoices())
+        $('.precmds').each((i, elem) => {
+            $(elem).empty().append(this.makeVigenereChoices())
         });
     }
     /** 
@@ -356,32 +360,31 @@ export default class CipherVigenereSolver extends CipherSolver {
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
-        let tool = this;
         super.attachHandlers()
-        tool.setCodeVariant(<string>$("input[name='codevariant']:checked").val())
+        this.setCodeVariant(<string>$("input[name='codevariant']:checked").val())
 
-        $('input[type=radio][name=codevariant]').unbind('change').change(function () {
-            tool.setCodeVariant(<string>$("input[name='codevariant']:checked").val())
+        $('input[type=radio][name=codevariant]').unbind('change').change((e) => {
+            this.setCodeVariant(<string>$("input[name='codevariant']:checked").val())
         })
-        $('#keyword').unbind('input').on('input', function () {
-            tool.setKeyword(<string>$(this).val())
+        $('#keyword').unbind('input').on('input', (e) => {
+            this.setKeyword(<string>$(e.target).val())
         })
-        $("a.vkey").unbind('click').click(function() {
-            let newkey =$(this).attr('data-key')
+        $("a.vkey").unbind('click').click((e) => {
+            let newkey = $(e.target).attr('data-key')
             if (newkey === undefined) {
-                newkey = $(this).html()
+                newkey = $(e.target).html()
             }
-            tool.setKeyword(newkey)
+            this.setKeyword(newkey)
             $('#keyword').val(newkey)
         })
-        $(".slvi").unbind('blur').blur(function () {
-            let tohighlight = $(this).attr('data-vslot');
+        $(".slvi").unbind('blur').blur((e) => {
+            let tohighlight = $(e.target).attr('data-vslot');
             $("[data-vslot='" + tohighlight + "']").removeClass("allfocus");
-            $(this).removeClass("focus");
-        }).unbind('focus').focus(function () {
-            let tohighlight = $(this).attr('data-vslot');
+            $(e.target).removeClass("focus");
+        }).unbind('focus').focus((e) => {
+            let tohighlight = $(e.target).attr('data-vslot');
             $("[data-vslot='" + tohighlight + "']").addClass("allfocus");
-            $(this).addClass("focus");
+            $(e.target).addClass("focus");
         });
     }
 }

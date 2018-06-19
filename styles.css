@@ -86,6 +86,10 @@ input.cb {
     margin: 5px;
 }
 
+.off {
+    font-size: 11px;
+    text-align: center;
+}
 .sitem {
     display: inline;
 }
@@ -195,6 +199,7 @@ table.mword {
 }
 .tword .vans {
     color: green;
+    text-align:center;
 }
 .idiv {
     float: left;

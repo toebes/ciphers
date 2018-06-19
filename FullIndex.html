@@ -13,8 +13,8 @@ function dosearch(str){
     if (str.length > 2) {
         var found = 0
         $("h3,.a,.c,h2:not(.i),a.i").hide();
-        $("h3:containsIN("+str+")").each(function () { found ++;$(this).show().nextUntil("h3,h2").show(); })
-        $(".a:containsIN("+str+")").each(function () { found++; $(this).show().prevUntil("h3").prev("h3").show(); $(this).prev("h3").show();})
+        $("h3:containsIN("+str+")").each( (i,elem) =>{ found ++;$(elem).show().nextUntil("h3,h2").show(); })
+        $(".a:containsIN("+str+")").each( (i,elem) => { found++; $(elem).show().prevUntil("h3").prev("h3").show(); $(elem).prev("h3").show();})
         if (found > 0) {$("#searchres").text(found+" occurrences found");}else{$("#searchres").text("Not found!");}
     } else {
         $("h2,h3,.a,.c,.i").show();
@@ -23,9 +23,7 @@ function dosearch(str){
 }
 $(function() {
     console.log('Starting');
- $("#search").on('input', function() {
-     dosearch($(this).val())
- })
+ $("#search").on('input',(e)=>{dosearch($(e.target).val())})
 });
         </script>
     <style>

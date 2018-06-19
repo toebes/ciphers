@@ -39,28 +39,28 @@ import '../summernote-lite.css'
 import CipherHandler from "./cipherhandler"
 import CipherFactory from "./cipherfactory"
 
- let cipherTool:CipherHandler = new CipherHandler();
+let cipherTool: CipherHandler = new CipherHandler();
 
- $(function () {
-    cipherTool = CipherFactory(undefined,undefined)
+$(function () {
+    cipherTool = CipherFactory(undefined, undefined)
     // First figure out what type of solver we are building
-    $("[data-cipher]").each(function () {
-        cipherTool = CipherFactory($(this).attr('data-cipher'),$(this).attr('data-lang'))
+    $("[data-cipher]").each((i, elem) => {
+        cipherTool = CipherFactory($(elem).attr('data-cipher'), $(elem).attr('data-lang'))
     });
     // process the "cipher-type" class
-    $(".cipher-type").each(function () {
-        cipherTool.setCipherType($(this).attr('id'))
+    $(".cipher-type").each((i, elem) => {
+        cipherTool.setCipherType($(elem).attr('id'))
     });
     // Handler for .ready() called.
-    $('#load').button().unbind('click').click(function () {
+    $('#load').button().unbind('click').click(() => {
         cipherTool.load()
     });
-    $('#reset').button().unbind('click').click(function () {
+    $('#reset').button().unbind('click').click(() => {
         cipherTool.reset()
     });
 
-    $(".lang").each(function () {
-        cipherTool.setLangDropdown($(this));
+    $(".lang").each((i, elem) => {
+        cipherTool.setLangDropdown($(elem));
     });
     cipherTool.layout()
     cipherTool.UpdateFreqEditTable()

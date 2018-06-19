@@ -442,12 +442,12 @@
         }
         $(".spin").spinner({
 
-            spin: function (event, ui) {
+            spin:  (event, ui) => {
                 if (ui.value >= charset.length) {
-                    $(this).spinner("value", 0);
+                    $(event.target).spinner("value", 0);
                     return false;
                 } else if (ui.value < 0) {
-                    $(this).spinner("value", charset.length - 1);
+                    $(event.target).spinner("value", charset.length - 1);
                     return false;
                 }
             }

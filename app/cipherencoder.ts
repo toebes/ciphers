@@ -7,7 +7,7 @@ import CipherHandler from "./cipherhandler"
  * a cipher.
  */
 export default
-class CipherEncoder extends CipherHandler {
+    class CipherEncoder extends CipherHandler {
     /**
      * Size of chunks of text to format to.  0 Indicates that the original spacing
      * is to be preserved.  Any other value indicates that spaces are to be removed
@@ -25,7 +25,7 @@ class CipherEncoder extends CipherHandler {
         this.setCharset(this.acalangcharset[lang]);
         this.setSourceCharset(this.encodingcharset[lang])
     }
-    
+
     /**
      * Enable / Disable the HTML elements based on the alphabet selection
      */
@@ -65,18 +65,17 @@ class CipherEncoder extends CipherHandler {
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
-        let tool = this
-        $('input[type=radio][name=enctype]').unbind('change').change(function () {
-            tool.setkvalinputs()
+        $('input[type=radio][name=enctype]').unbind('change').change(() => {
+            this.setkvalinputs()
         })
-        tool.setkvalinputs()
+        this.setkvalinputs()
         super.attachHandlers()
     }
     /**
      * Set chunking size for input data string befre encoding. 
      * Primarily Used in Patristocrat, but could be used for other types to indicate the period 
      */
-    setCipherType (cipherType:string):void {
+    setCipherType(cipherType: string): void {
         if (cipherType == 'patristocrat') {
             this.groupingSize = 5
         }
@@ -85,7 +84,7 @@ class CipherEncoder extends CipherHandler {
     /**
      * Generate the maping from the source to the destination alphabet
      */
-    genMap ():void {
+    genMap(): void {
         let val = $('input[name=enctype]:checked').val();
         let keyword = <string>$('#keyword').val();
         let offset = $('#offset').spinner("value");
@@ -112,10 +111,10 @@ class CipherEncoder extends CipherHandler {
      * @param {string} repl Replacement character set
      * @param {string} cset Source character set
      */
-    setReplacement (cset:string, repl:string):void {
+    setReplacement(cset: string, repl: string): void {
         let i, len, errors;
         errors = '';
-        console.log('Set Replacement cset='+cset+' repl='+repl)
+        console.log('Set Replacement cset=' + cset + ' repl=' + repl)
         // Figure out what letters map to the destination letters.  Note that
         // the input chracterset alphabet may not be in the same order as the
         // actual alphabet.
@@ -140,8 +139,8 @@ class CipherEncoder extends CipherHandler {
      * @param keyword Keyword/keyphrase to map
      * @param offset Offset from the start of the alphabet to place the keyword
      */
-    genAlphabetK1(keyword:string, offset:number):void {
-        let repl = this.genKstring(keyword, offset,this.getCharset());
+    genAlphabetK1(keyword: string, offset: number): void {
+        let repl = this.genKstring(keyword, offset, this.getCharset());
         this.setReplacement(this.getSourceCharset(), repl);
     }
     /**
@@ -149,7 +148,7 @@ class CipherEncoder extends CipherHandler {
      * @param keyword Keyword/Keyphrase to map
      * @param offset Offset from the start of the alphabet to place the keyword
      */
-    genAlphabetK2(keyword:string, offset:number):void {
+    genAlphabetK2(keyword: string, offset: number): void {
         let repl = this.genKstring(keyword, offset, this.getSourceCharset());
         this.setReplacement(repl, this.getCharset());
     }
@@ -163,7 +162,7 @@ class CipherEncoder extends CipherHandler {
      * @param offset Offset from the start of the alphabet to place the keyword
      * @param shift Shift of the destination alphabet from the source alphabet
      */
-    genAlphabetK3(keyword:string, offset:number, shift:number):void {
+    genAlphabetK3(keyword: string, offset: number, shift: number): void {
         if (this.getCharset() != this.getSourceCharset()) {
             let error = 'Source and encoding character sets must be the same'
             console.log(error)
@@ -181,15 +180,15 @@ class CipherEncoder extends CipherHandler {
      * @param keyword2 Keyword for the destination alphabet
      * @param offset2 Offset for the keyword in the destination alphabet
      */
-    genAlphabetK4(keyword:string, offset:number,keyword2:string, offset2:number):void {
+    genAlphabetK4(keyword: string, offset: number, keyword2: string, offset2: number): void {
         if (this.getCharset().length != this.getSourceCharset().length) {
             let error = 'Source and encoding character sets must be the same length'
             console.log(error)
             $(".err").text(error)
             return
         }
-        let cset = this.genKstring(keyword, offset,this.getCharset());
-        let repl = this.genKstring(keyword2, offset2,this.getSourceCharset());
+        let cset = this.genKstring(keyword, offset, this.getCharset());
+        let repl = this.genKstring(keyword2, offset2, this.getSourceCharset());
         this.setReplacement(cset, repl);
     }
     /**
@@ -197,7 +196,7 @@ class CipherEncoder extends CipherHandler {
      * @param keyword Keyword to map into the alphabet
      * @param offset Offset from the start of the alphabet to place the keyword
      */
-    genKstring(keyword:string, offset:number, alphabet:string):string {
+    genKstring(keyword: string, offset: number, alphabet: string): string {
         let unasigned = alphabet
         let repl = ""
         let i, len
@@ -219,13 +218,13 @@ class CipherEncoder extends CipherHandler {
         }
         repl = unasigned.substr(unasigned.length - offset) + repl + unasigned.substr(0, unasigned.length - offset)
         return repl;
-    } 
+    }
     /**
      * Gets a random replacement character from the remaining set of unassigned
      * characters
      * @returns {string} Single character replacement
      */
-    getRepl():string {
+    getRepl(): string {
         let sel = Math.floor(Math.random() * this.unasigned.length);
         let res = this.unasigned.substr(sel, 1);
         this.unasigned = this.unasigned.substr(0, sel) + this.unasigned.substr(sel + 1);
@@ -276,7 +275,7 @@ class CipherEncoder extends CipherHandler {
      * @param {string} str String to be encoded
      * @returns {string} HTML of encoded string to display
      */
-    build(str:string):JQuery<HTMLElement> {
+    build(str: string): JQuery<HTMLElement> {
         let res = $('<div>')
         let charset = this.getCharset()
         let sourcecharset = this.getSourceCharset()
@@ -290,10 +289,10 @@ class CipherEncoder extends CipherHandler {
         // Build a reverse replacement map so that we can encode the string
         for (var repc in this.replacement) {
             if (this.replacement.hasOwnProperty(repc)) {
-                revRepl[this.replacement[repc]] = repc; 
+                revRepl[this.replacement[repc]] = repc;
             }
         }
-       // Zero out the frequency table 
+        // Zero out the frequency table 
         this.freq = {};
         for (i = 0, len = sourcecharset.length; i < len; i++) {
             this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0;
@@ -312,9 +311,9 @@ class CipherEncoder extends CipherHandler {
             if (pos >= 0) {
                 t = revRepl[t];
                 if (isNaN(this.freq[t])) {
-                   this.freq[t] = 0;
-              }
-              this.freq[t]++;
+                    this.freq[t] = 0;
+                }
+                this.freq[t]++;
             } else {
                 // This is a potential split position, so remember it
                 lastsplit = decodeline.length;
@@ -323,25 +322,25 @@ class CipherEncoder extends CipherHandler {
             // See if we have to split the line now
             if (encodeline.length >= this.maxEncodeWidth) {
                 if (lastsplit === -1) {
-                    res.append($('<div>', {class: "TOSOLVE"}).text(encodeline));
-                    res.append($('<div>', {class: "TOANSWER"}).text(decodeline));
+                    res.append($('<div>', { class: "TOSOLVE" }).text(encodeline));
+                    res.append($('<div>', { class: "TOANSWER" }).text(decodeline));
                     encodeline = "";
                     decodeline = "";
                     lastsplit = -1;
                 } else {
-                    let encodepart = encodeline.substr(0,lastsplit);
-                    let decodepart = decodeline.substr(0,lastsplit);
+                    let encodepart = encodeline.substr(0, lastsplit);
+                    let decodepart = decodeline.substr(0, lastsplit);
                     encodeline = encodeline.substr(lastsplit);
                     decodeline = decodeline.substr(lastsplit);
-                    res.append($('<div>', {class: "TOSOLVE"}).text(encodepart));
-                    res.append($('<div>', {class: "TOANSWER"}).text(decodepart));
+                    res.append($('<div>', { class: "TOSOLVE" }).text(encodepart));
+                    res.append($('<div>', { class: "TOANSWER" }).text(decodepart));
                 }
             }
         }
         // And put together any residual parts
         if (encodeline.length > 0) {
-            res.append($('<div>', {class: "TOSOLVE"}).text(encodeline));
-            res.append($('<div>', {class: "TOANSWER"}).text(decodeline));
+            res.append($('<div>', { class: "TOSOLVE" }).text(encodeline));
+            res.append($('<div>', { class: "TOANSWER" }).text(decodeline));
         }
         return res
     }
@@ -398,9 +397,8 @@ class CipherEncoder extends CipherHandler {
      * a new cipher to encode or decode
      */
     UpdateFreqEditTable(): void {
-        let tool = this;
-        $(".alphabet").each(function (i) {
-            $(this).empty().append(tool.createAlphabetType());
+        $(".alphabet").each((i, elem) => {
+            $(elem).empty().append(this.createAlphabetType());
         });
         super.UpdateFreqEditTable()
     }
@@ -409,8 +407,8 @@ class CipherEncoder extends CipherHandler {
     /**
      * Loads up the values for the encoder
      */
-    load():void {
-       // this.hideRevReplace = true;
+    load(): void {
+        // this.hideRevReplace = true;
         let encoded = this.cleanString(<string>$('#toencode').val());
         /*
         * If it is characteristic of the cipher type (e.g. patristocrat),
@@ -422,7 +420,6 @@ class CipherEncoder extends CipherHandler {
         $(".err").text('')
         this.genMap()
         let res = this.build(encoded)
-        let tool = this
         $("#answer").empty().append(res)
 
         /* testStrings */
@@ -430,14 +427,14 @@ class CipherEncoder extends CipherHandler {
             let chi = this.CalculateChiSquare(this.testStrings[i]);
             let teststr = this.cleanString(this.testStrings[i]);
             let l = teststr.length;
-            console.log(l+'`'+chi+'`'+teststr);
+            console.log(l + '`' + chi + '`' + teststr);
         }
 
         let chi = this.CalculateChiSquare(encoded);
-        
+
         let chitext = '';
         if (!isNaN(chi)) {
-            chitext = "Chi-Square Value="+chi.toFixed();
+            chitext = "Chi-Square Value=" + chi.toFixed();
             if (chi < 20) {
                 chitext += ' [Easy]';
             } else if (chi < 30) {
@@ -449,7 +446,7 @@ class CipherEncoder extends CipherHandler {
             } else {
                 chitext += ' [Extremely Difficult]';
             }
-            chitext += ' Length='+encoded.length;
+            chitext += ' Length=' + encoded.length;
             if (encoded.length < 60) {
                 chitext += ' [Too Short]';
             } else if (encoded.length < 80) {
@@ -460,18 +457,18 @@ class CipherEncoder extends CipherHandler {
                 chitext += ' [Long]';
             }
         }
-        
+
         $("#chi").text(chitext);
         // Show the update frequency values
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
     }
-    
-    makeFreqEditField(c:string):JQuery<HTMLElement> {
+
+    makeFreqEditField(c: string): JQuery<HTMLElement> {
         let einput = $('<span/>', { type: "text", 'data-char': c, id: 'm' + c });
         return einput;
     }
 
-        
+
 }

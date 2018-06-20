@@ -285,7 +285,7 @@ export default class CipherRagbabySolver extends CipherSolver {
         this.alphalen = Number(alphalen)
         switch (this.alphalen) {
             case 26:
-                this.setCharset("ABCDEFGHIKLMNOPQRSTUVWYZ")
+                this.setCharset("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
                 break
 
             case 36:
@@ -293,7 +293,7 @@ export default class CipherRagbabySolver extends CipherSolver {
                 break
 
             default:
-                this.setCharset("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                this.setCharset("ABCDEFGHIKLMNOPQRSTUVWYZ")
                 break
         }
         this.buildMap()
@@ -445,7 +445,6 @@ export default class CipherRagbabySolver extends CipherSolver {
      * Replaces the map of letters for shifting
      */
     buildMap(): void {
-        let editmap = $("<h1>Editmap goes here</h1>")
         let table = new JTTable({ class: "tfreq editmap" })
         let row = table.addHeaderRow(["Shift Left"])
         for (let i = 0; i < this.alphalen; i++) {
@@ -490,7 +489,7 @@ export default class CipherRagbabySolver extends CipherSolver {
             row.add({ settings: { class: "off" }, content: repc })
         }
         row.add($("<button>", { href: "#", class: "rs", 'data-vrow': -1 }).html("&#8649;"))
-        row.add("")
+        row.add("Enter what-if letters on this strip.  It will not combine.")
 
 
         $("#ragwork").empty().append(table.generate())

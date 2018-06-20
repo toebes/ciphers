@@ -51,6 +51,15 @@ export default class CipherRagbabySolver extends CipherSolver {
     }
 
     /**
+     * Set up the cipher environment
+     * @param lang Language to initialize for
+     */
+    init(lang: string): void {
+        super.init(lang)
+        this.alphalen = 24
+        this.setCharset("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    }
+    /**
      * This rotates all entries in a line by the specified amount.
      * @param r Which map to shift
      * @param dist Distance to shift by
@@ -225,7 +234,7 @@ export default class CipherRagbabySolver extends CipherSolver {
                                     }
                                 }
                                 // Copy over the notes
-                                lines[tomerge].notes += "," + lines[testslot].notes
+                                lines[tomerge].notes += " " + lines[testslot].notes
                                 lines.splice(testslot, 1)
                                 // Now that we merged once, we may have to merge with something else, so check again
                                 mergeslot = tomerge
@@ -457,6 +466,10 @@ export default class CipherRagbabySolver extends CipherSolver {
         // Now add all of the remaining rows
         for (let r = 1; r < this.replmap.length; r++) {
             let extranote = ''
+            if (r === 1) {
+                extranote = "Enter what-if letters on this strip.  It will not combine."
+            }
+
             row = table.addBodyRow([$("<button>", { href: "#", class: "ls", 'data-vrow': r }).html("&#8647;")])
             for (let i = 0; i < this.alphalen; i++) {
                 let repc = ''
@@ -489,7 +502,7 @@ export default class CipherRagbabySolver extends CipherSolver {
             row.add({ settings: { class: "off" }, content: repc })
         }
         row.add($("<button>", { href: "#", class: "rs", 'data-vrow': -1 }).html("&#8649;"))
-        row.add("Enter what-if letters on this strip.  It will not combine.")
+        row.add("")
 
 
         $("#ragwork").empty().append(table.generate())

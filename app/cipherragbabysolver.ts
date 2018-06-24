@@ -51,15 +51,6 @@ export default class CipherRagbabySolver extends CipherSolver {
     }
 
     /**
-     * Set up the cipher environment
-     * @param lang Language to initialize for
-     */
-    init(lang: string): void {
-        super.init(lang)
-        this.alphalen = 24
-        this.setCharset("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-    }
-    /**
      * This rotates all entries in a line by the specified amount.
      * @param r Which map to shift
      * @param dist Distance to shift by
@@ -323,7 +314,6 @@ export default class CipherRagbabySolver extends CipherSolver {
     * we don't have the frequency table, so this doesn't need to do anything
     */
     displayFreq(): void {
-        this.setAlphabetSize(Number($("input[name='alphasize']:checked").val()))
     }
     /**
      * Analyze the encoded text
@@ -454,6 +444,10 @@ export default class CipherRagbabySolver extends CipherSolver {
      * Replaces the map of letters for shifting
      */
     buildMap(): void {
+        if (this.cipherString === ''){
+            $("#ragwork").empty().append($("Enter a cipher to get started"))
+            return 
+        }
         let table = new JTTable({ class: "tfreq editmap" })
         let row = table.addHeaderRow(["Shift Left"])
         for (let i = 0; i < this.alphalen; i++) {
@@ -532,6 +526,7 @@ export default class CipherRagbabySolver extends CipherSolver {
         $('.precmds').each((i, elem) => {
             $(elem).empty().append(this.makeChoices())
         })
+        this.setAlphabetSize(Number($("input[name='alphasize']:checked").val()))
     }
     /** 
      * Creates an HTML table to display the frequency of characters

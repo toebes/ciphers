@@ -35,6 +35,10 @@ input.cb {
     line-height: 200%;
 }
 
+.rail {
+    line-height: 100%;
+}
+
 .err {
     height: 18px;
 }
@@ -116,8 +120,11 @@ label {
     border: 1px solid black !important;
 }
 
-label:after {
+label:not(.rlab):after {
     content: ": ";
+}
+label.rlab {
+    padding-right:5px;
 }
 
 table.cmath td.solv {

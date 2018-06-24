@@ -341,7 +341,7 @@ export default
     reset(): void {
     }
     /**
-     * Initializes any layout of the handler
+     * Initializes any layout of the handler.  This is when the solver should initialize any globals
      */
     layout(): void {
 

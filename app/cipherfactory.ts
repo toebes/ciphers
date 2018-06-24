@@ -14,6 +14,7 @@ import CipherXenocryptSolver from "./cipherxenocryptsolver"
 import CryptarithmSolver from "./ciphercryptarithmsolver"
 import CipherVigenereSolver from "./ciphervigeneresolver"
 import CipherRagbabySolver from "./cipherragbabysolver"
+import CipherRailfenceSolver from "./cipherrailfencesolver"
 
 export default
     function CipherFactory(ciphertype: string, lang: string): CipherHandler {
@@ -67,6 +68,10 @@ export default
 
         case 'RagbabySolver':
             cipherTool = new CipherRagbabySolver()
+            break
+
+        case 'RailfenceSolver':
+            cipherTool = new CipherRailfenceSolver()
             break
 
         case 'Standard':

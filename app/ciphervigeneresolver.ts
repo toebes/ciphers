@@ -339,7 +339,7 @@ export default class CipherVigenereSolver extends CipherSolver {
         return $(res)
     }
 
-    layout(): void {
+    buildCustomUI(): void {
         $('.precmds').each((i, elem) => {
             $(elem).empty().append(this.makeVigenereChoices())
         })

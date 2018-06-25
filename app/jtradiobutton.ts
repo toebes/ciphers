@@ -21,17 +21,19 @@ export default function JTRadioButton(id: string, label: string, name: string, b
     let result = $("<div/>").append($('<label/>', { for: id }).text(label))
     for (let choice of buttons) {
         let options: RadioButtonOptions = { id: choice.id, type: 'radio', name: name, value: choice.value }
+        let lblclass = 'rlab'
         if (choice.value === selected) {
             options.checked = "checked"
         }
         if (choice.class !== undefined){
             options.class = choice.class
+            lblclass += ' '+choice.class
         }
         if (choice.disabled !== undefined){
             options.disabled = choice.disabled
         }
         result.append($('<input/>', options))
-        result.append($('<label/>', { for: choice.id, class: 'rlab' }).html(choice.title))
+        result.append($('<label/>', { for: choice.id, class: lblclass }).html(choice.title))
     }
     return result
 }

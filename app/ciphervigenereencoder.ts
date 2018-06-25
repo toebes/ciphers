@@ -154,7 +154,7 @@ export default
         this.attachHandlers()
     }
 
-    layout(): void {
+    buildCustomUI(): void {
         $('.precmds').each((i, elem) => {
             $(elem).empty().append(this.layoutVigenere())
         })

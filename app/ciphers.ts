@@ -50,7 +50,5 @@ $(function () {
     // process the "cipher-type" class
     $(".cipher-type").each((i, elem) => { cipherTool.setCipherType($(elem).attr('id')) })
     $(".lang").each((i, elem) => { cipherTool.setLangDropdown($(elem)) })
-    cipherTool.layout()
-    cipherTool.UpdateFreqEditTable()
-    cipherTool.attachHandlers()
+    cipherTool.layout();
 })

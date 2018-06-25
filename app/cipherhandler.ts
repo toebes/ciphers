@@ -341,10 +341,22 @@ export default
     reset(): void {
     }
     /**
-     * Initializes any layout of the handler.  This is when the solver should initialize any globals
+     * Initializes any layout of the handler.  This is when the solver should initialize any UI globals
      */
-    layout(): void {
+    buildCustomUI(): void {
 
+    }
+    layout(): void {
+        this.buildCustomUI();
+        this.UpdateFreqEditTable();
+        this.attachHandlers();
+        this.setUIDefaults()
+    }
+
+    /**
+     * Propagate any default settings to the UI
+     */
+    setUIDefaults(): void {
     }
     /**
      * Builds ??

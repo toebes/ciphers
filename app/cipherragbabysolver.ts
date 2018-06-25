@@ -522,7 +522,7 @@ export default class CipherRagbabySolver extends CipherSolver {
     /**
      * 
      */
-    layout(): void {
+    buildCustomUI(): void {
         $('.precmds').each((i, elem) => {
             $(elem).empty().append(this.makeChoices())
         })

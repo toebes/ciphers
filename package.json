@@ -37,6 +37,7 @@
     "summernote-typescript": "^0.8.9",
     "table-dragger": "^1.0.2",
     "ts-loader": "^4.3.0",
+    "tslint": "^5.10.0",
     "uglify-es": "^3.3.9",
     "uglify-js": "^3.3.25",
     "webpack": "^4.8.3"

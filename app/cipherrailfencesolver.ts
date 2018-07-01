@@ -20,17 +20,54 @@ enum RailType {
  * The CipherRailfenceSolver class implements a solver for the Railfence Cipher
  */
 export default class CipherRailfenceSolver extends CipherSolver {
-    /** The current cipher we are working on */
-    cipherString: string = ''
-    /** The number of rails currently being tested */
-    rails: number = 3
-    /** The current rail offset being tested */
-    railOffset: number = 0
+    defaultstate = {
+        /** The current cipher we are working on */
+        cipherString: '',
+        /** The number of rails currently being tested */
+        rails: 3,
+        /** The current rail offset being tested */
+        railOffset: 0,
+        /** The type of cipher we are doing */
+        railType: RailType.Railfence,
+        /** How the rails are laid out */
+        railLayout: RailLayout.W_by_Row,
+        /** The order string for a Redefence */
+        railOrder: "123456789"
+    }
+    state = this.defaultstate
 
-    railType: RailType = RailType.Railfence
-    railLayout: RailLayout = RailLayout.W_by_Row
-    railOrder: string = "123456789"
     railOrderOffs: Array<number>
+    restore(data: SaveSet): void {
+        this.state = this.defaultstate
+        if (data.cipherString !== undefined) {
+            this.state.cipherString = data.cipherString
+        }
+        if (data.rails !== undefined) {
+            this.state.rails = data.rails
+        }
+        if (data.railOffset !== undefined) {
+            this.state.railOffset = data.railOffset
+        }
+        if (data.railType !== undefined) {
+            this.state.railType = data.railType
+        }
+        if (data.railLayout !== undefined) {
+            this.state.railLayout = data.railLayout
+        }
+        if (data.railOrder !== undefined) {
+            this.state.railOrder = data.railOrder
+        }
+
+        $('#encoded').val(this.state.cipherString)
+        this.setUIDefaults()
+        this.updateOutput()
+    }
+    /**
+     * Make a copy of the current state
+     */
+    save(): SaveSet {
+        return {...this.state}
+    }
     /**
      * Set the number of rails
      * @param rails Number of rails requested
@@ -43,10 +80,10 @@ export default class CipherRailfenceSolver extends CipherSolver {
         else if (rails < minRails) {
             rails = maxRails;
         }
-        this.rails = rails
+        this.state.rails = rails
         // Make sure that the rail offset is in range
-        this.setRailOffset(this.railOffset)
-        this.setRailOrder(this.railOrder)
+        this.setRailOffset(this.state.railOffset)
+        this.setRailOrder(this.state.railOrder)
     }
     /**
      * Set rail offset
@@ -54,12 +91,12 @@ export default class CipherRailfenceSolver extends CipherSolver {
      */
     private setRailOffset(railOffset: number): void {
         if (railOffset < 0) {
-            railOffset = this.rails - 1;
+            railOffset = this.state.rails - 1;
         }
-        else if (railOffset >= this.rails - 1) {
+        else if (railOffset >= this.state.rails - 1) {
             railOffset = 0;
         }
-        this.railOffset = railOffset
+        this.state.railOffset = railOffset
     }
     /**
      * Set rail layout type (M/W and by row or zig zag)
@@ -67,22 +104,22 @@ export default class CipherRailfenceSolver extends CipherSolver {
      */
     private setRailLayout(layout: RailLayout): void {
         // We don't allow zig zag with Redefence, so switch to the matching by row type
-        if (this.railType === RailType.Redefence) {
+        if (this.state.railType === RailType.Redefence) {
             if (layout === RailLayout.W_Zig_Zag) {
                 layout = RailLayout.W_by_Row
             } else if (layout === RailLayout.M_Zig_Zag) {
                 layout = RailLayout.M_by_Row
             }
         }
-        this.railLayout = layout
+        this.state.railLayout = layout
     }
     /**
      * Set rail cipher type
      * @param railtype Type of rail
      */
     private setRailType(railtype: RailType): void {
-        this.railType = railtype
-        if (this.railType === RailType.Railfence) {
+        this.state.railType = railtype
+        if (this.state.railType === RailType.Railfence) {
             this.setRailOrder("0123456789")
         }
     }
@@ -105,11 +142,11 @@ export default class CipherRailfenceSolver extends CipherSolver {
      * Computer the order of rails based on the rail order string
      */
     private computeRailOrder(): void {
-        let railorder = this.railOrder + this.repeatStr('z', this.rails);
+        let railorder = this.state.railOrder + this.repeatStr('z', this.state.rails);
         // Given the rail order string, compute the actual rail order.  Note that
         // the rail order string could be characters or just about anything else
         let sortset = [];
-        for (let i = 0; i < this.rails; i++) {
+        for (let i = 0; i < this.state.rails; i++) {
             sortset.push({ let: railorder.substr(i, 1), order: i });
         }
         sortset.sort(this.rsort);
@@ -123,7 +160,7 @@ export default class CipherRailfenceSolver extends CipherSolver {
      * @param railorder New order string
      */
     private setRailOrder(railorder: string): void {
-        this.railOrder = railorder
+        this.state.railOrder = railorder
         this.computeRailOrder()
     }
     /**
@@ -138,16 +175,16 @@ export default class CipherRailfenceSolver extends CipherSolver {
             { id: 'wzig', value: RailLayout.W_Zig_Zag, title: 'W - by zig-zag', class: 'rail' },
             { id: 'mzig', value: RailLayout.M_Zig_Zag, title: 'M - by zig-zag', class: 'rail' },
         ]
-        result.append(JTRadioButton('raillay', 'Variant', 'rlayout', radiobuttons, this.railLayout))
+        result.append(JTRadioButton('raillay', 'Variant', 'rlayout', radiobuttons, this.state.railLayout))
 
         result.append($('<label>', { for: 'rails' }).text('Number of Rails'))
-        result.append($('<input/>', { id: 'rails', class: 'inp spinr', title: 'Number of Rails', type: 'text', value: this.rails }))
+        result.append($('<input/>', { id: 'rails', class: 'inp spinr', title: 'Number of Rails', type: 'text', value: this.state.rails }))
 
         result.append($('<label>', { for: 'offset' }).text('Starting Offset'))
-        result.append($('<input/>', { id: 'offset', class: 'inp spino', title: 'Starting Offset', type: 'text', value: this.railOffset }))
+        result.append($('<input/>', { id: 'offset', class: 'inp spino', title: 'Starting Offset', type: 'text', value: this.state.railOffset }))
 
         result.append($('<label>', { for: 'rorder', class: "rede" }).text('Rail Order'))
-        result.append($('<input/>', { id: 'rorder', class: "rede", title: 'Rail Order', type: 'text', value: this.railOrder.substr(0, this.rails) }))
+        result.append($('<input/>', { id: 'rorder', class: "rede", title: 'Rail Order', type: 'text', value: this.state.railOrder.substr(0, this.state.rails) }))
 
         return result
     }
@@ -161,7 +198,7 @@ export default class CipherRailfenceSolver extends CipherSolver {
             { id: 'rail', value: RailType.Railfence, title: 'Railfence' },
             { id: 'rede', value: RailType.Redefence, title: 'Redefence' },
         ]
-        operationChoice.append(JTRadioButton('railtyper', 'Cipher Type', 'railtype', radiobuttons, this.railType))
+        operationChoice.append(JTRadioButton('railtyper', 'Cipher Type', 'railtype', radiobuttons, this.state.railType))
 
         return operationChoice
     }
@@ -197,12 +234,12 @@ export default class CipherRailfenceSolver extends CipherSolver {
      * @returns {string} HTML of solver structure
      */
     build(str: string): JQuery<HTMLElement> {
-        this.cipherString = str
+        this.state.cipherString = str
         str = this.minimizeString(str)
         // Generate the empty outlines array that we will output later.  This way
         // we don't have to check if a spot is empty, we can just write to it
         let outlines: Array<Array<string>> = []
-        for (let row = 0; row < this.rails; row++) {
+        for (let row = 0; row < this.state.rails; row++) {
             let line: Array<string> = []
             for (let col = 0; col < str.length; col++) {
                 line.push(" ")
@@ -213,18 +250,18 @@ export default class CipherRailfenceSolver extends CipherSolver {
         let col = 0
         let ydir = 1
         let isZigZag = false
-        switch (this.railLayout) {
+        switch (this.state.railLayout) {
             case RailLayout.M_by_Row:
                 isZigZag = true
             case RailLayout.M_Zig_Zag:
                 ydir = -1
-                row = this.rails - 1 - this.railOffset
+                row = this.state.rails - 1 - this.state.railOffset
                 break
             case RailLayout.W_by_Row:
                 isZigZag = true
             case RailLayout.W_Zig_Zag:
                 ydir = 1
-                row = this.railOffset
+                row = this.state.railOffset
                 break
         }
         let trow = row
@@ -234,8 +271,8 @@ export default class CipherRailfenceSolver extends CipherSolver {
             if (row < 0) {
                 row = 1
                 ydir = 1
-            } else if (row >= this.rails) {
-                row = this.rails - 2
+            } else if (row >= this.state.rails) {
+                row = this.state.rails - 2
                 ydir = -1
             }
             col++
@@ -251,11 +288,11 @@ export default class CipherRailfenceSolver extends CipherSolver {
             // We need to figure out the number of letters in each column
             let lens: Array<number> = []
             let tydir = ydir
-            let railcost = this.rails * 2 - 2
+            let railcost = this.state.rails * 2 - 2
             let baselen = Math.floor(str.length / railcost)
             let remain = str.length - baselen * railcost
             lens.push(baselen)
-            for (let i = 1; i < this.rails - 1; i++) {
+            for (let i = 1; i < this.state.rails - 1; i++) {
                 lens.push(baselen * 2)
             }
             lens.push(baselen)
@@ -266,8 +303,8 @@ export default class CipherRailfenceSolver extends CipherSolver {
                 if (trow < 0) {
                     trow = 1
                     tydir = 1
-                } else if (trow >= this.rails) {
-                    trow = this.rails - 2
+                } else if (trow >= this.state.rails) {
+                    trow = this.state.rails - 2
                     tydir = -1
                 }
                 remain--
@@ -279,7 +316,7 @@ export default class CipherRailfenceSolver extends CipherSolver {
             }
             sortset.sort(this.rsort);
 
-            for (let row = 0; row < this.rails; row++) {
+            for (let row = 0; row < this.state.rails; row++) {
                 let offset = 0
                 for (let order = 0; order < this.railOrderOffs[row]; order++) {
                     offset += sortset[order].size
@@ -324,26 +361,27 @@ export default class CipherRailfenceSolver extends CipherSolver {
         this.updateUI();
 
         // Compute the answer and populate that
-        let res = this.build(this.cipherString);
+        let res = this.build(this.state.cipherString);
         $("#answer").empty().append(res);
 
     }
     private updateUI(): void {
-        $(".spinr").spinner("value", this.rails);
-        $(".spino").spinner("value", this.railOffset);
+        $(".spinr").spinner("value", this.state.rails);
+        $(".spino").spinner("value", this.state.railOffset);
         $('[name="rlayout"]').removeAttr('checked');
-        $("input[name=rlayout][value=" + this.railLayout + "]").prop('checked', true);
+        $("input[name=rlayout][value=" + this.state.railLayout + "]").prop('checked', true);
         $('[name="railtype"]').removeAttr('checked');
-        $("input[name=railtype][value=" + this.railType + "]").prop('checked', true);
-        $(".rorder").val(this.railOffset);
-        $(".rail").toggle((this.railType === RailType.Railfence));
-        $(".rede").toggle((this.railType === RailType.Redefence));
+        $("input[name=railtype][value=" + this.state.railType + "]").prop('checked', true);
+        $(".rorder").val(this.state.railOffset);
+        $(".rail").toggle((this.state.railType === RailType.Railfence));
+        $(".rede").toggle((this.state.railType === RailType.Redefence));
     }
 
     /**
      * 
      */
     buildCustomUI(): void {
+        super.buildCustomUI()
         $('.precmds').each((i, elem) => {
             $(elem).empty().append(this.makeChoices())
         })
@@ -364,11 +402,11 @@ export default class CipherRailfenceSolver extends CipherSolver {
      * Propagate any default settings to the UI
      */
     setUIDefaults(): void {
-        this.setRailType(this.railType)
-        this.setRailLayout(this.railLayout)
-        this.setRailCount(this.rails)
-        this.setRailOffset(this.railOffset)
-        this.setRailOrder(this.railOrder)
+        this.setRailType(this.state.railType)
+        this.setRailLayout(this.state.railLayout)
+        this.setRailCount(this.state.rails)
+        this.setRailOffset(this.state.railOffset)
+        this.setRailOrder(this.state.railOrder)
         this.updateUI()
     }
     /**
@@ -378,33 +416,42 @@ export default class CipherRailfenceSolver extends CipherSolver {
         super.attachHandlers()
         $(".spinr").spinner({
             spin: (event, ui) => {
-                this.setRailCount(ui.value);
-                this.updateOutput()
-                if (ui.value != this.rails) {
-                    $(event.target).spinner("value", this.rails)
-                    return false
+                if (ui.value != this.state.rails) {
+                    this.markUndo()
+                    this.setRailCount(ui.value)
+                    this.updateOutput()
+                    if (ui.value != this.state.rails) {
+                        $(event.target).spinner("value", this.state.rails)
+                        return false
+                    }
                 }
             }
         })
         $(".spino").spinner({
             spin: (event, ui) => {
-                this.setRailOffset(ui.value)
-                this.updateOutput()
-                if (ui.value != this.railOffset) {
-                    $(event.target).spinner("value", this.railOffset)
-                    return false
+                if (ui.value != this.state.railOffset) {
+                    this.markUndo()
+                    this.setRailOffset(ui.value)
+                    this.updateOutput()
+                    if (ui.value != this.state.railOffset) {
+                        $(event.target).spinner("value", this.state.railOffset)
+                        return false
+                    }
                 }
             }
         })
         $('input[type=radio][name=rlayout]').off('change').on('change', () => {
+            this.markUndo()
             this.setRailLayout(<RailLayout>Number($("input[name='rlayout']:checked").val()))
             this.updateOutput()
         })
         $('input[type=radio][name=railtype]').off('change').on('change', () => {
+            this.markUndo()
             this.setRailType(<RailType>Number($("input[name='railtype']:checked").val()))
             this.updateOutput()
         })
         $("#rorder").off('input').on('input', (e) => {
+            this.markUndo()
             this.setRailOrder(<string>$(e.target).val())
             this.updateOutput()
         })

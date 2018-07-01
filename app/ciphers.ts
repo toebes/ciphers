@@ -47,8 +47,5 @@ $(function () {
     $("[data-cipher]").each((i, elem) => {
         cipherTool = CipherFactory($(elem).attr('data-cipher'), $(elem).attr('data-lang'))
     })
-    // process the "cipher-type" class
-    $(".cipher-type").each((i, elem) => { cipherTool.setCipherType($(elem).attr('id')) })
-    $(".lang").each((i, elem) => { cipherTool.setLangDropdown($(elem)) })
     cipherTool.layout();
 })

@@ -1,14 +1,15 @@
 /// <reference types="ciphertypes" />
 
-declare function tableDragger(elem: HTMLElement, any): any
 
+
+type JQElement = JQuery<HTMLElement>
 /**
  * Base class for all the Cipher Encoders/Decoders
  */
 export default
     class CipherHandler {
     /**
-     * User visible mapping of names of the various languages supported 
+     * User visible mapping of names of the various languages supported
      * @type {StringMap} Mapping of language to visible name
      */
     readonly langmap: StringMap = {
@@ -28,7 +29,7 @@ export default
     /**
      * This maps which characters are legal in a cipher for a given language
      * @type {StringMap} Mapping of legal characters
-    */
+     */
     readonly langcharset: StringMap = {
         'en': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         'nl': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -251,25 +252,29 @@ export default
         }
     }
 
-    testStrings: Array<string> = [
+    testStrings: string[] = [
     ]
     cipherWidth: number = 1
     charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     sourcecharset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     unasigned: string = ""
-    replacement: Array<string> = []
+    replacement: string[] = []
     curlang: string = ""
     holdupdates: boolean = false
+    /** Stack of current Undo/Redo operations */
+    undoStack: SaveSet[] = []
+    /** Where we are in the undo stack */
+    undoPosition: number = 0
     /**
      * The maximum number of characters to
      * be shown on an encoded line so that it can be readily pasted into a test
      */
     maxEncodeWidth: number = 53
-    /** 
+    /**
      * Output the reverse replacement row in the frequency table
      */
     ShowRevReplace: boolean = true
-    /** 
+    /**
      * Input string cleaned up
      */
     encodedString: string = ""
@@ -290,11 +295,11 @@ export default
     normalizeHTML(str: string): string {
         return str
     }
-    /** 
+    /**
      * Creates an HTML table to display the frequency of characters
      * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
-    createFreqEditTable(): JQuery<HTMLElement> {
+    createFreqEditTable(): JQElement {
         let table = $('<table/>').addClass("tfreq dragcol")
         let thead = $('<thead/>')
         let tbody = $('<tbody/>')
@@ -302,14 +307,13 @@ export default
         let freqrow = $('<tr/>')
         let replrow = $('<tr/>')
         let altreprow = $('<tr/>')
-        let i, len
         let charset = this.getSourceCharset()
 
         headrow.append($('<th/>').addClass("topleft"))
         freqrow.append($('<th/>').text("Frequency"))
         replrow.append($('<th/>').text("Replacement"))
         altreprow.append($('<th/>').text("Rev Replace"))
-        for (i = 0, len = charset.length; i < len; i++) {
+        for (let i = 0, len = charset.length; i < len; i++) {
             let c = charset.substr(i, 1).toUpperCase()
             headrow.append($('<th/>').text(c))
             freqrow.append($('<td id="f' + c + '"/>'))
@@ -333,7 +337,6 @@ export default
      * Loads new data into a solver, preserving all solving matches made
      */
     load(): void {
-
     }
     /**
      * Loads new data into a solver, resetting any solving matches made
@@ -341,15 +344,61 @@ export default
     reset(): void {
     }
     /**
+     * Adds the Undo and Redo command buttons
+     */
+    addUndoRedo(): JQElement {
+        let buttons = $("<div/>")
+        buttons.append($("<button/>", { href: "#", class: "undo"}).text("Undo").prop("disabled", true))
+        buttons.append($("<button/>", { href: "#", class: "redo"}).text("Redo").prop("disabled", true))
+        return buttons
+    }
+    /**
      * Initializes any layout of the handler.  This is when the solver should initialize any UI globals
      */
     buildCustomUI(): void {
+        $(".undocmds").each((i, elem) => {
+            $(elem).empty().append(this.addUndoRedo())
+        })
 
     }
+    restore(data: SaveSet): void {
+    }
+    save(): SaveSet {
+        return null
+    }
+    markUndo(): void {
+        if (this.undoPosition < this.undoStack.length) {
+            // truncate
+        }
+        this.undoStack.push(this.save())
+        this.undoPosition = this.undoStack.length - 1
+        $(".undo").button("option","disabled", false)
+        $(".redo").button("option","disabled", true)
+
+    }
+    unDo(): void {
+        if (this.undoPosition > 0) {
+            this.undoPosition--
+            this.restore(this.undoStack[this.undoPosition])
+            $(".redo").button("option", "disabled", false)
+            $(".undo").button("option","disabled", (this.undoPosition === 0))
+        }
+    }
+    reDo(): void {
+        if (this.undoPosition < this.undoStack.length-1) {
+            this.undoPosition++
+            this.restore(this.undoStack[this.undoPosition])
+            $(".undo").button("option","disabled", false)
+            $(".redo").button("option","disabled", (this.undoPosition >= (this.undoStack.length - 1)))
+        }
+    }
     layout(): void {
-        this.buildCustomUI();
-        this.UpdateFreqEditTable();
-        this.attachHandlers();
+        // process the "cipher-type" class
+        $(".cipher-type").each((i, elem) => { this.setCipherType($(elem).attr('id')) })
+        $(".lang").each((i, elem) => { this.setLangDropdown($(elem)) })
+        this.buildCustomUI()
+        this.UpdateFreqEditTable()
+        this.attachHandlers()
         this.setUIDefaults()
     }
 
@@ -363,7 +412,7 @@ export default
      * @param {string} str String to decode
      * @returns {string} HTML of solver structure
      */
-    build(str: string): JQuery<HTMLElement> {
+    build(str: string): JQElement {
         return null
     }
 
@@ -372,7 +421,7 @@ export default
      * @param {string} str character to generate dropdown for
      * @returns {string} HTML of dropdown
      */
-    makeFreqEditField(c: string): JQuery<HTMLElement> {
+    makeFreqEditField(c: string): JQElement {
         return null
     }
     /**
@@ -392,7 +441,7 @@ export default
     }
     /**
      * Assign a new value for an entry
-     * @param {string} entry Character to be updated 
+     * @param {string} entry Character to be updated
      * @param {string} val New value to associate with the character
      */
     setMorseMapEntry(entry: string, val: string): void {
@@ -409,11 +458,11 @@ export default
      * @param {string} newchar New char to assign as decoding for the character
      */
     setChar(repchar: string, newchar: string): void {
-        console.log("handler setChar data-char=" + repchar + ' newchar=' + newchar)
+        console.log("handler setChar data-char=" + repchar + " newchar=" + newchar)
         this.replacement[repchar] = newchar
         $("input[data-char='" + repchar + "']").val(newchar)
-        if (newchar === '') {
-            newchar = '?'
+        if (newchar === "") {
+            newchar = "?"
         }
         $("span[data-char='" + repchar + "']").text(newchar)
         this.cacheReplacements()
@@ -424,21 +473,18 @@ export default
      * @param {string} reqstr String of items to apply
      */
     setMultiChars(reqstr: string): void {
-
     }
     /**
-     * 
+     *
      * @param {string} reqstr String of items to apply
      */
     updateMatchDropdowns(reqstr: string): void {
-
     }
     /**
      * Locate a string
      * @param {string} str string to look for
      */
     findPossible(str: string): void {
-
     }
 
     /**
@@ -458,7 +504,7 @@ export default
      * @returns {string} Result string with only characters in the legal characterset
      */
     minimizeString(str: string): string {
-        let res: string = ''
+        let res: string = ""
         for (let c of str.toUpperCase()) {
             if (this.isValidChar(c)) {
                 res += c
@@ -468,7 +514,7 @@ export default
     }
     /**
      * Convert the text to chunks of (chunkSize) characters separated
-     * by a space.  Just keep characters that are in the character set and 
+     * by a space.  Just keep characters that are in the character set and
      * remove all punctuation, etc.
      * Note: the string could be toUpperCase()'d here, but it is done later.
      * @returns chunked input string
@@ -476,8 +522,7 @@ export default
     chunk(inputString: string, chunkSize: number): string {
         let chunkIndex = 1
         let charset = this.getCharset()
-        let chunkedString = ''
-        let inputStringLen = inputString.length
+        let chunkedString = ""
         for (let c of inputString) {
 
             // Skip anthing that is not in the character set (i.e spaces,
@@ -488,7 +533,7 @@ export default
 
             // Test for a chunk boundary using modulo of chunk size.
             if (chunkIndex % (chunkSize + 1) === 0) {
-                chunkedString += ' '
+                chunkedString += " "
                 chunkIndex = 1
             }
 
@@ -500,7 +545,7 @@ export default
     }
 
     /** @description Sets the character set used by the Decoder.
-     * @param {string} charset the set of characters to be used. 
+     * @param {string} charset the set of characters to be used.
      */
     setCharset(charset: string): void {
         this.charset = charset
@@ -514,14 +559,14 @@ export default
     }
     /**
      * Gets the character set to be use for encoding.
-     * @param {string} charset the set of characters to be used. 
+     * @param {string} charset the set of characters to be used.
      */
     getSourceCharset(): string {
         return this.sourcecharset
     }
     /**
      * Sets the character set to be use for encoding.
-     * @param {string} charset the set of characters to be used. 
+     * @param {string} charset the set of characters to be used.
      */
     setSourceCharset(charset: string): void {
         this.sourcecharset = charset
@@ -542,27 +587,26 @@ export default
      * @param count number of times to repeat the string
      */
     repeatStr(c: string, count: number): string {
-        let res = ''
+        let res = ""
         for (let i = 0; i < count; i++) {
             res += c
         }
         return res
     }
     /**
-     * 
+     *
      * @param {*string} string String to compute value for
-     * @returns {number} Value calculated 
+     * @returns {number} Value calculated
      */
     CalculateChiSquare(str: string): number {
         let charset = this.getCharset()
-        let i, len
-        len = charset.length
+        let len = charset.length
         let counts = new Array(len)
         let total = 0
-        for (i = 0; i < len; i++) {
+        for (let i = 0; i < len; i++) {
             counts[i] = 0
         }
-        for (i = 0; i < str.length; i++) {
+        for (let i = 0; i < str.length; i++) {
             let c = str.substr(i, 1).toUpperCase()
             let pos = charset.indexOf(c)
             if (pos >= 0) {
@@ -571,7 +615,7 @@ export default
             }
         }
         let chiSquare = 0.0
-        for (i = 0; i < len; i++) {
+        for (let i = 0; i < len; i++) {
             let c = charset.substr(i, 1)
             let expected = this.langfreq[this.curlang][c]
             if (expected !== undefined && expected !== 0) {
@@ -586,45 +630,48 @@ export default
      * @param {number} width
      * @param {number} num
      */
-    analyze(encoded: string): JQuery<HTMLElement> {
+    analyze(encoded: string): JQElement {
         return null
     }
 
     /**
-    * Fills in the frequency portion of the frequency table
-    */
+     * Fills in the frequency portion of the frequency table
+     */
     displayFreq(): void {
         let charset = this.getCharset()
         this.holdupdates = true
         for (let c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
                 let subval: string = String(this.freq[c])
-                if (subval === '0') {
-                    subval = ''
+                if (subval === "0") {
+                    subval = ""
                 }
                 $('#f' + c).text(subval)
             }
         }
-        // Replicate all of the previously set values.  This is done when
+        // replicate all of the previously set values.  This is done when
         // you change the spacing in the encoded text and then do a reload.
         if (this.ShowRevReplace) {
             for (let c of charset) {
-                let repl: string = <string>$('#m' + c).val()
-                if (repl === '') { repl = $('#m' + c).html(); }
+                let repl: string = $('#m' + c).val() as string
+                if (repl === "") {
+                    repl = $('#m' + c).html()
+                }
                 this.setChar(c, repl)
             }
         }
 
         this.holdupdates = false
-        this.updateMatchDropdowns('')
+        this.updateMatchDropdowns("")
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
-        $(".sli").off('keyup').on('keyup', (event) => {
-            let repchar = $(event.target).attr('data-char')
-            let current, next
+        $(".sli").off("keyup").on("keyup", (event) => {
+            let repchar = $(event.target).attr("data-char")
+            let current
+            let next
             let focusables = $(".sli")
 
             if (event.keyCode === 37) { // left
@@ -640,62 +687,81 @@ export default
                 next = focusables.eq(current + 1).length ? focusables.eq(current + 1) : focusables.eq(0)
                 next.focus()
             } else if (event.keyCode === 46 || event.keyCode === 8) {
-                this.setChar(repchar, '')
+                this.markUndo()
+                this.setChar(repchar, "")
             }
             event.preventDefault()
-        }).off('keypress').on('keypress', (event) => {
+        }).off("keypress").on("keypress", (event) => {
             let newchar
-            let repchar = $(event.target).attr('data-char')
-            let current, next
+            let repchar = $(event.target).attr("data-char")
+            let current
+            let next
             let focusables = $(".sli")
-            if (typeof event.key === 'undefined') {
+            if (typeof event.key === "undefined") {
                 newchar = String.fromCharCode(event.keyCode).toUpperCase()
             } else {
                 newchar = event.key.toUpperCase()
             }
 
-            if (this.isValidChar(newchar) || newchar === ' ') {
-                if (newchar === ' ') {
-                    newchar = ''
+            if (this.isValidChar(newchar) || newchar === " ") {
+                if (newchar === " ") {
+                    newchar = ""
                 }
-                console.log('Setting ' + repchar + ' to ' + newchar)
+                console.log("Setting " + repchar + " to " + newchar)
+                this.markUndo()
                 this.setChar(repchar, newchar)
                 current = focusables.index(event.target)
                 next = focusables.eq(current + 1).length ? focusables.eq(current + 1) : focusables.eq(0)
                 next.focus()
             } else {
-                console.log('Not valid:' + newchar)
+                console.log("Not valid:" + newchar)
             }
             event.preventDefault()
-        }).off('blur').on('blur', (e) => {
-            let tohighlight = $(e.target).attr('data-char')
+        }).off("blur").on("blur", (e) => {
+            let tohighlight = $(e.target).attr("data-char")
             $("[data-char='" + tohighlight + "']").removeClass("allfocus")
-            let althighlight = $(e.target).attr('data-schar')
-            if (althighlight !== '') {
+            let althighlight = $(e.target).attr("data-schar")
+            if (althighlight !== "") {
                 $("[data-schar='" + althighlight + "']").removeClass("allfocus")
             }
             $(e.target).removeClass("focus")
-        }).off('focus').on('focus', (e) => {
-            let tohighlight = $(e.target).attr('data-char')
+        }).off("focus").on("focus", (e) => {
+            let tohighlight = $(e.target).attr("data-char")
             $("[data-char='" + tohighlight + "']").addClass("allfocus")
-            let althighlight = $(e.target).attr('data-schar')
-            if (althighlight !== '') {
+            let althighlight = $(e.target).attr("data-schar")
+            if (althighlight !== "") {
                 $("[data-schar='" + althighlight + "']").addClass("allfocus")
             }
             $(e.target).addClass("focus")
         })
-        $('#load').button().off('click').on('click', () => { this.load() })
-        $('#reset').button().off('click').on('click', () => { this.reset() })
+        $("#load").button().off("click").on("click", () => {
+            this.markUndo()
+            this.load()
+        })
+        $(".undo").button().off("click").on("click", () => {
+            this.unDo()
+        })
+        $(".redo").button().off("click").on("click", () => {
+            this.reDo()
+        })
+        $("#reset").button().off("click").on("click", () => {
+            this.markUndo()
+            this.reset()
+        })
 
         $(".dragcol").each((i, elem) => {
-            if (!$.fn.dataTable.isDataTable(".dragcol")) { $(elem).DataTable({ colReorder: true, ordering: false, dom: 't' }) }
+            if (!$.fn.dataTable.isDataTable(".dragcol")) {
+                $(elem).DataTable({ colReorder: true, ordering: false, dom: "t" })
+            }
         })
-        $(".msli").off('change').on('change', (e) => {
-            let toupdate = $(e.target).attr('data-char')
-            this.updateSel(toupdate, (<HTMLInputElement>e.target).value)
+        $(".msli").off("change").on("change", (e) => {
+            this.markUndo()
+            let toupdate = $(e.target).attr("data-char")
+            this.updateSel(toupdate, (e.target as HTMLInputElement).value)
         })
         $(".spin").spinner({
             spin: (event, ui) => {
+                this.markUndo();
                 if (ui.value >= this.getCharset().length) {
                     $(event.target).spinner("value", 0)
                     return false
@@ -703,80 +769,83 @@ export default
                     $(event.target).spinner("value", this.getCharset().length - 1)
                     return false
                 }
-            }
+            },
         })
-        $('.richtext').summernote({
-            fontNames: ['Arial', 'Courier New'],
+        $(".richtext").summernote({
+            fontNames: ["Arial", "Courier New"],
             toolbar: [
-                ['style', ['bold', 'italic', 'underline', 'clear']],
-                ['font', ['fontname', 'superscript', 'subscript']],
-                ['fontsize', ['fontsize']],
-            ]
+                ["style", ["bold", "italic", "underline", "clear"]],
+                ["font", ["fontname", "superscript", "subscript"]],
+                ["fontsize", ["fontsize"]],
+            ],
         })
 
-        $('.sfind').off('input').on('input', (e) => {
-            this.findPossible((<string>$(e.target).val()))
+        $('.sfind').off("input").on("input", (e) => {
+            this.markUndo();
+            this.findPossible(($(e.target).val() as string))
         })
     }
+
     /**
-    * Generate a replacement pattern string.  Any unknown characters are represented as a space
-    * otherwise they are given as the character it replaces as.
-    *
-    * For example if we know
-    *    A B C D E F G J I J K L M N O P Q R S T U V W X Y Z
-    *        E             H
-    *
-    * And were given the input string of "RJCXC" then the result would be " HE E"
-    * @param {any} str String of encoded characters
-    * @returns {string} Replacement pattern string
-    */
-    genReplPattern(str: string): Array<string> {
+     * Generate a replacement pattern string.  Any unknown characters are represented as a space
+     * otherwise they are given as the character it replaces as.
+     *
+     * For example if we know
+     *    A B C D E F G J I J K L M N O P Q R S T U V W X Y Z
+     *        E             H
+     *
+     * And were given the input string of "RJCXC" then the result would be " HE E"
+     * @param {any} str String of encoded characters
+     * @returns {string} Replacement pattern string
+     */
+    genReplPattern(str: string): string[] {
         let res = []
         for (let c of str) {
             res.push(this.replacement[c])
         }
         return res
     }
+
     /**
      * @param {string} str String to check
      * @param {Array.<string>} repl Replacement characters which are pre-known
      * @param {BoolMap} used Array of flags whether a character is already known to be used
      * @returns {bool} True/false if the string is a valid replacement
      */
-    isValidReplacement(str: string, repl: Array<string>, used: BoolMap): boolean {
-        let i, len
+    isValidReplacement(str: string, repl: string[], used: BoolMap): boolean {
         //   console.log(str)
-        for (i = 0, len = str.length; i < len; i++) {
+        for (let i = 0, len = str.length; i < len; i++) {
             let c = str.substr(i, 1)
-            if (repl[i] !== '') {
+            if (repl[i] !== "") {
                 if (c !== repl[i]) {
-                    //             console.log('No match c=' + c + ' repl[' + i + ']=' + repl[i])
+                    //             console.log("No match c=" + c + " repl[" + i + "]=" + repl[i])
                     return false
                 }
             } else if (used[c]) {
-                //          console.log('No match c=' + c + ' used[c]=' + used[c])
+                //          console.log("No match c=" + c + " used[c]=" + used[c])
                 return false
             }
         }
         return true
     }
     /**
-     * Set flag to 'chunk' input data string befre encoding.  Used in Patristocrat, 
+     * Set flag to "chunk" input data string befre encoding.  Used in Patristocrat,
      */
-    setCipherType(cipherType: string): void {
+    public setCipherType(cipherType: string): void {
         this.attachHandlers()
     }
 
     /**
+     * Quote a string, escaping any quotes with \.  This is used for generating Javascript
+     * that can be safely loaded.
      * @param {string} str String to be enqoted
      * @return {string} Quoted string
      */
-
     quote(str: string): string {
-        if (typeof str === 'undefined') {
-            return '\'\''
+        if (typeof str === "undefined") {
+            return "\"\""
         }
-        return '\'' + str.replace(/(['"])/g, "\\$1") + '\''
+        return "'" + str.replace(/([""])/g, "\\$1") + "'"
     }
     /**
      * Given a string with groupings of a size, this computes a pattern which matches the
@@ -792,17 +861,16 @@ export default
      */
     makeUniquePattern(str: string, width: number): string {
         let cmap = {}
-        let res: string = ''
+        let res = ""
         let mapval: number = 0
-        let i, len, c
-        len = str.length
-        // In case they give us an odd length string, just padd it with enough Xs
-        str += 'XXXX'
+        let len = str.length
+        // in case they give us an odd length string, just padd it with enough Xs
+        str += "XXXX"
 
-        for (i = 0; i < len; i += width) {
-            c = str.substr(i, width)
-            if (typeof cmap[c] === 'undefined') {
-                cmap[c] = '' + mapval
+        for (let i = 0; i < len; i += width) {
+            let c = str.substr(i, width)
+            if (typeof cmap[c] === "undefined") {
+                cmap[c] = "" + mapval
                 mapval++
             }
             res += cmap[c]
@@ -810,49 +878,46 @@ export default
         return res
     }
 
-
     /**
-     * @param {string} lang 2 character Language to dump language template for 
+     * @param {string} lang 2 character Language to dump language template for
      */
     dumpLang(lang: string): string {
-        let res = ''
-        let extra = ''
-        res = 'cipherTool.Frequent[' + this.quote(lang) + ']={'
+        let extra = ""
+        let res = "cipherTool.Frequent[" + this.quote(lang) + "]={"
         for (let pat in this.Frequent[lang]) {
-            if (this.Frequent[lang].hasOwnProperty(pat) && pat !== '') {
-                res += extra + '\'' + pat + '\':['
-                let i, len
-                let extra1 = ''
+            if (this.Frequent[lang].hasOwnProperty(pat) && pat !== "") {
+                res += extra + "\"" + pat + "\":["
+                let extra1 = ""
                 let matches = this.Frequent[lang][pat]
-                for (i = 0, len = matches.length; i < len; i++) {
-                    //console.log(matches[i])
+                for (let i = 0, len = matches.length; i < len; i++) {
+                    // console.log(matches[i])
                     res += extra1 +
-                        '[' + this.quote(matches[i][0]) + ',' +
-                        matches[i][1] + ',' +
-                        matches[i][2] + ',' +
-                        matches[i][3] + ']'
-                    extra1 = ','
+                        "[" + this.quote(matches[i][0]) + "," +
+                        matches[i][1] + "," +
+                        matches[i][2] + "," +
+                        matches[i][3] + "]"
+                    extra1 = ","
                 }
-                res += ']'
-                extra = ','
+                res += "]"
+                extra = ","
             }
         }
-        res += '};'
+        res += "};"
         return res
     }
     /**
      * Fills in the language choices on an HTML Select
      * @param lselect HTML Element to populate
      */
-    setLangDropdown(lselect: JQuery<HTMLElement>): void {
-        lselect.empty().append($("<option />", { value: '' }).text('--Select a language--'))
+    setLangDropdown(lselect: JQElement): void {
+        lselect.empty().append($('<option />', { value: "" }).text("--Select a language--"))
         for (let lang in this.langmap) {
             if (this.langmap.hasOwnProperty(lang)) {
                 $("<option />", { value: lang }).text(this.langmap[lang]).appendTo(lselect)
             }
         }
         lselect.change((e) => {
-            this.loadLanguage(<string>$(e.target).val())
+            this.loadLanguage($(e.target).val() as string)
         })
     }
     /**
@@ -862,10 +927,10 @@ export default
     loadLanguage(lang: string): void {
         this.curlang = lang
         this.setCharset(this.langcharset[lang])
-        $(".langstatus").text("Attempting to load " + this.langmap[lang] + '...')
+        $(".langstatus").text("Attempting to load " + this.langmap[lang] + "...")
         $.getScript("Languages/" + lang + ".js", (data, textStatus, jqxhr) => {
-            $(".langstatus").text('')
-            this.updateMatchDropdowns('')
+            $(".langstatus").text("")
+            this.updateMatchDropdowns("")
         }).fail((jqxhr, settings, exception) => {
             console.log("Complied language file not found for " + lang + ".js")
             this.loadRawLanguage(lang)
@@ -878,30 +943,29 @@ export default
     loadRawLanguage(lang: string): void {
         let jqxhr = $.get("Languages/" + lang + ".txt", () => {
         }).done((data) => {
-            // Empty out all the frequent words
-            $(".langstatus").text("Processing " + this.langmap[lang] + '...')
+            // empty out all the frequent words
+            $(".langstatus").text("Processing " + this.langmap[lang] + "...")
             this.Frequent[lang] = {}
             this.curlang = lang
             let charset = this.langcharset[lang]
             let langreplace = this.langreplace[lang]
             this.setCharset(charset)
             let lines = data.split("\n")
-            let i, len
-            len = lines.length
+            let len = lines.length
             charset = charset.toUpperCase()
-            for (i = 0; i < len; i++) {
-                let pieces = lines[i].replace(/\r/g, ' ').toUpperCase().split(/ /)
-                // Make sure that all the characters in the pieces are valid
+            for (let i = 0; i < len; i++) {
+                let pieces = lines[i].replace(/\r/g, " ").toUpperCase().split(/ /)
+                // make sure that all the characters in the pieces are valid
                 // for this character set.  Otherwise we can throw it away
                 let legal = true
-                for (let j = 0; j < pieces[0].length; j++) {
-                    if (charset.indexOf(pieces[0][j]) < 0) {
-                        if (typeof langreplace[pieces[0][j]] === 'undefined') {
-                            console.log("skipping out on " + pieces[0] + " for " + pieces[0][j] + " against " + charset)
+                for (let c of pieces[0]) {
+                    if (charset.indexOf(c) < 0) {
+                        if (typeof langreplace[c] === "undefined") {
+                            console.log("skipping out on " + pieces[0] + " for " + c + " against " + charset)
                             legal = false
                             break
                         }
-                        pieces[0] = pieces[0].replace(pieces[0][j], langreplace[pieces[0][j]])
+                        pieces[0] = pieces[0].replace(c, langreplace[c])
                     }
                 }
                 if (legal) {
@@ -910,7 +974,7 @@ export default
                         pieces[0].toUpperCase(),
                         i,
                         pieces[1],
-                        '',
+                        "",
                     ]
                     if (i < 500) {
                         elem[3] = 0
@@ -923,7 +987,7 @@ export default
                     } else {
                         elem[3] = 5
                     }
-                    if (typeof this.Frequent[lang][pat] === 'undefined') {
+                    if (typeof this.Frequent[lang][pat] === "undefined") {
                         this.Frequent[lang][pat] = []
                     }
                     this.Frequent[lang][pat].push(elem)
@@ -931,13 +995,13 @@ export default
             }
             // console.log(this.Frequent)
             $(".langout").each((i, elem) => {
-                $(".langstatus").text('Dumping ' + this.langmap[lang] + '...')
+                $(".langstatus").text("Dumping " + this.langmap[lang] + "...")
                 $(elem).text(this.dumpLang(lang))
             })
-            $(".langstatus").text('')
-            this.updateMatchDropdowns('')
+            $(".langstatus").text("")
+            this.updateMatchDropdowns("")
         })
-        $(".langstatus").text("Loading " + this.langmap[lang] + '...')
+        $(".langstatus").text("Loading " + this.langmap[lang] + "...")
     }
 
     /**
@@ -946,11 +1010,11 @@ export default
     cacheReplacements(): void {
         let charset = this.getSourceCharset().toUpperCase()
         for (let c of charset) {
-            let repl = $('#m' + c).val()
-            // When we are doing an encode, there are no input fields, everything
+            let repl = $('#m' + c).val() as string
+            // when we are doing an encode, there are no input fields, everything
             // is in a text field so we need to check for that case and retrieve
             // the text value instead
-            if (repl === '') {
+            if (repl === "") {
                 repl = $('#m' + c).text()
             }
             this.replacement[c] = repl
@@ -962,16 +1026,16 @@ export default
      * string was "01232" and the repl string was " HE E" then the output would be "0HE3E"
      * NOTE: Is this used anymore?
      * @param {string} str Input string to apply the replacement characters to
-     * @param {string} repl Replacement characters.  Any non blank character replaces the corresponding character in the input string
+     * @param {string} repl Replacement characters.  Any non blank character replaces the
+     *                      corresponding character in the input string
      * @returns {string} Comparable replacement string
      */
     applyReplPattern(str: string, repl: string): string {
-        let i, len
-        let res = ''
-        len = str.length
-        for (i = 0; i < len; i++) {
+        let res = ""
+        let len = str.length
+        for (let i = 0; i < len; i++) {
             let c = repl.substr(i, 1)
-            if (c === ' ') {
+            if (c === " ") {
                 c = str.substr(i, 1)
             }
             res += c

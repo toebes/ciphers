@@ -155,6 +155,7 @@ export default
     }
 
     buildCustomUI(): void {
+        super.buildCustomUI()
         $('.precmds').each((i, elem) => {
             $(elem).empty().append(this.layoutVigenere())
         })

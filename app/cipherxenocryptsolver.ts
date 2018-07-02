@@ -1,8 +1,7 @@
 /// <reference types="ciphertypes" />
 
-import CipherSolver from "./ciphersolver"
-export default 
-class CipherXenocryptSolver extends CipherSolver {
+import { CipherSolver } from "./ciphersolver"
+export class CipherXenocryptSolver extends CipherSolver {
 }
 
 // Xenocrypt: {

@@ -2,7 +2,7 @@
  * TSTable - Class for dynamically generating JQuery tables in TypeScript
  */
 /**
- * 
+ *
  */
 export interface JTTDParms {
     celltype?: string
@@ -37,12 +37,11 @@ export interface JTRowParms {
     row?: JTRowItems
 }
 
-
 /**
  * Determines the type of a parameter for a new row so that you
  * don't have to pass in the class or other attributes if you only
  * want to create a simple row
- * @param parms 
+ * @param parms
  */
 function isRowParms(parms: JTRowParms | JTRowItems): parms is JTRowParms {
     return true;
@@ -127,7 +126,7 @@ export class JTRow {
 /**
  * Creates a new table object that can be used to generate an HTML Table
  */
-export default class JTTable {
+export class JTTable {
     class: string = null
     caption: string = null
     header: Array<JTRow> = []

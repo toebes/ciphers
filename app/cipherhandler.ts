@@ -1,13 +1,27 @@
 /// <reference types="ciphertypes" />
+import { ICipherType } from "./ciphertypes"
 
+export interface IState {
 
-
+    /** The current cipher typewe are working on */
+    cipherType: ICipherType,
+    /** The current cipher we are working on */
+    cipherString: string,
+    /** The current string we are looking for */
+    findString?: string,
+    /** Currently selected keyword */
+    keyword?: string,
+    /** Replacement characters */
+    replacements?: StringMap
+    /** Any additional save state data */
+    undotype?: string,
+    any?: any
+}
 type JQElement = JQuery<HTMLElement>
 /**
  * Base class for all the Cipher Encoders/Decoders
  */
-export default
-    class CipherHandler {
+export class CipherHandler {
     /**
      * User visible mapping of names of the various languages supported
      * @type {StringMap} Mapping of language to visible name
@@ -251,7 +265,19 @@ export default
             'Y': 0.0000000, 'Z': 0.0000000
         }
     }
-
+    defaultstate: IState = {
+        /** The current cipher typewe are working on */
+        cipherType: ICipherType.Vigenere,
+        /** Currently selected keyword */
+        keyword: "",
+        /** The current cipher we are working on */
+        cipherString: "",
+        /** The current string we are looking for */
+        findString: "",
+        /** Replacement characters */
+        replacements: {}
+    }
+    state: IState = { ...this.defaultstate }
     testStrings: string[] = [
     ]
     cipherWidth: number = 1
@@ -262,7 +288,7 @@ export default
     curlang: string = ""
     holdupdates: boolean = false
     /** Stack of current Undo/Redo operations */
-    undoStack: SaveSet[] = []
+    undoStack: IState[] = []
     /** Where we are in the undo stack */
     undoPosition: number = 0
     /** Indicates that we need to queue an undo item before executing an Undo */
@@ -363,9 +389,9 @@ export default
         })
 
     }
-    restore(data: SaveSet): void {
+    restore(data: IState): void {
     }
-    save(): SaveSet {
+    save(): IState {
         return null
     }
     /**
@@ -378,7 +404,7 @@ export default
         if (this.undoPosition < this.undoStack.length - 1) {
             this.undoStack.splice(this.undoPosition)
         }
-        if (undotype === undefined){
+        if (undotype === undefined) {
             undotype = null
         }
         this.pushUndo(undotype);
@@ -391,7 +417,7 @@ export default
      * Pushes or merges an undo operation to the top of the stack
      * @param undotype Type of undo (for merging with previous entries)
      */
-    pushUndo(undotype: string) {
+    pushUndo(undotype: string): void {
         let undodata = this.save()
         if (undotype !== undefined && undotype !== null) {
             undodata.undotype = undotype
@@ -401,8 +427,7 @@ export default
         // See if we can merge this (such as a find operation) with the previous undo
         if (undotype !== null && this.undoStack.length > 0 && this.undoStack[this.undoStack.length - 1].undotype === undotype) {
             this.undoStack[this.undoStack.length - 1] = undodata;
-        }
-        else {
+        } else {
             this.undoStack.push(undodata);
         }
         this.undoPosition = this.undoStack.length - 1;
@@ -438,8 +463,8 @@ export default
     }
     layout(): void {
         // process the "cipher-type" class
-        $(".cipher-type").each((i, elem) => { this.setCipherType($(elem).attr('id')) })
-        $(".lang").each((i, elem) => { this.setLangDropdown($(elem)) })
+        $(".cipher-type").each((i: number, elem: HTMLElement) => { this.setCipherType($(elem).attr('id')) })
+        $(".lang").each((i: number, elem: HTMLElement) => { this.setLangDropdown($(elem)) })
         this.buildCustomUI()
         this.UpdateFreqEditTable()
         this.attachHandlers()
@@ -620,7 +645,7 @@ export default
      * a new cipher to encode or decode
      */
     UpdateFreqEditTable(): void {
-        $(".freq").each((i, elem) => {
+        $(".freq").each((i: number, elem: HTMLElement) => {
             $(elem).empty().append(this.createFreqEditTable())
         })
         this.attachHandlers()
@@ -793,7 +818,7 @@ export default
             this.reset()
         })
 
-        $(".dragcol").each((i, elem) => {
+        $(".dragcol").each((i: number, elem: HTMLElement) => {
             if (!$.fn.dataTable.isDataTable(".dragcol")) {
                 $(elem).DataTable({ colReorder: true, ordering: false, dom: "t" })
             }
@@ -1039,7 +1064,7 @@ export default
                 }
             }
             // console.log(this.Frequent)
-            $(".langout").each((i, elem) => {
+            $(".langout").each((i: number, elem: HTMLElement) => {
                 $(".langstatus").text("Dumping " + this.langmap[lang] + "...")
                 $(elem).text(this.dumpLang(lang))
             })

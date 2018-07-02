@@ -1,8 +1,7 @@
 /// <reference types="ciphertypes" />
 
-import CipherEncoder from "./cipherencoder"
-export default
-    class CipherAffineEncoder extends CipherEncoder {
+import { CipherEncoder } from "./cipherencoder"
+export class CipherAffineEncoder extends CipherEncoder {
 
     affineCheck: { [key: string]: number } = {
         'p': -1,
@@ -63,7 +62,7 @@ export default
         return table
     }
     /**
-     * Initializes the encoder. 
+     * Initializes the encoder.
      * We don't want to show the reverse replacement since we are doing an encode
      */
     init(): void {
@@ -107,8 +106,7 @@ export default
                 message += messageChar
                 cipherChar = this.affinechar(a, b, messageChar)
                 cipher += cipherChar
-            }
-            else {
+            } else {
                 message += messageChar
                 cipher += messageChar
                 lastSplit = cipher.length
@@ -172,9 +170,9 @@ export default
         if (b > a) { let temp = a; a = b; b = temp; }
         while (true) {
             console.log('gcd a=' + a + ' b=' + b)
-            if (b == 0) { return a }
+            if (b === 0) { return a }
             a %= b
-            if (a == 0) { return b }
+            if (a === 0) { return b }
             b %= a
         }
     }
@@ -184,17 +182,17 @@ export default
         console.log('iscoprime a=' + a + ' len=' + charset.length)
         let gcdval = this.gcd(a, charset.length)
         console.log('gcd(' + a + ',' + charset.length + ')=' + gcdval)
-        if (gcdval != 1) {
+        if (gcdval !== 1) {
             return false
         }
         return true
     }
 
     /**
-     * 
-     * @param a 
-     * @param b 
-     * @param letterString 
+     *
+     * @param a
+     * @param b
+     * @param letterString
      */
     encodeLetters(a: number, b: number, letterString: string): string {
         let encoding = '\\begin{array}{lccrcl}'
@@ -203,27 +201,28 @@ export default
             let mVal = charset.indexOf(m)
             let cVal = ((a * mVal) + b)
             let c = charset.substr(cVal % 26, 1)
-            encoding += m + '(' + mVal + ') & \\to & ' + mVal + ' * ' + a + ' + ' + b + ' & ' + cVal + ' & \\to & ' + c + '(' + cVal % 26 + ')\\\\'
+            encoding += m + '(' + mVal + ') & \\to & ' + mVal + ' * ' + a + ' + ' +
+                b + ' & ' + cVal + ' & \\to & ' + c + '(' + cVal % 26 + ')\\\\'
 
         }
         encoding += '\\end{array}'
         return encoding
     }
     /**
-     * 
-     * @param s 
+     *
+     * @param s
      */
     encodeString(s: string): string {
         let encoded = ''
-        for (var i = 0; i < s.length; i++) {
+        for (let i = 0; i < s.length; i++) {
             encoded += this.encodeTable[s.substr(i, 1)]
         }
         return encoded
     }
     /**
-     * 
-     * @param a 
-     * @param b 
+     *
+     * @param a
+     * @param b
      */
     setEncodingTable(a: number, b: number): void {
         let charset = this.getCharset()
@@ -238,9 +237,9 @@ export default
         }
     }
     /**
-     * 
-     * @param msg 
-     * @param letters 
+     *
+     * @param msg
+     * @param letters
      */
     showOutput(msg: string, letters: string): JQuery<HTMLElement> {
         let i
@@ -269,15 +268,14 @@ export default
                 message += messageChar
                 cipherChar = this.encodeTable[messageChar]
                 cipher += cipherChar
-            }
-            else {
+            } else {
                 message += messageChar
                 cipher += messageChar
                 lastSplit = cipher.length
                 continue
             }
 
-            if (letters.indexOf(messageChar) != -1) {
+            if (letters.indexOf(messageChar) !== -1) {
                 messageRow.append($('<td/>').addClass("TOANSWER").text(messageChar))
             } else {
                 // Alas one of the letters is unresolved, to the solution is not complete
@@ -295,7 +293,6 @@ export default
         //return result.html()
         return table
     }
-
 
     printSolution(theMessage: string, m1: string, c1: string, m2: string, c2: string): void {
         let charset = this.getCharset()
@@ -317,8 +314,7 @@ export default
         if (m1Val > m2Val) {
             solution += ('\\begin{align}' + equation1)
             solution += (equation2 + '\\end{align}')
-        }
-        else {
+        } else {
             solution += ('\\begin{align}' + equation2)
             solution += (equation1 + '\\end{align}')
         }
@@ -359,13 +355,13 @@ export default
         let message = ''
         let a = cVal / mVal
         let aRemainder = cVal % mVal
-        if (a != 0) {
+        if (a !== 0) {
             let cValOriginal = cVal
             if (aRemainder !== 0) {
                 message = 'Since $' + cVal + ' \\div ' + mVal + ' = ' + (cVal / mVal).toPrecision(5) + '$ we have to find another value.'
                 let count = 0
 
-                while (aRemainder != 0) {
+                while (aRemainder !== 0) {
                     count += 1
                     cVal += 26
                     aRemainder = cVal % mVal
@@ -378,8 +374,11 @@ export default
 
         // solution for b
         let findingB = 'To find $b$, substitute that back into the equation with the lowest multiplier.  '
-        findingB += '\\begin{align}(' + a + ' * ' + mSubstitute + ' + b)\\;\\text{mod 26} & = ' + cSubstitute + '\\\\(' + (a * mSubstitute) + ' + b)\\;\\text{mod 26} & = ' + cSubstitute + '\\end{align}'
-        findingB += 'Subtract $' + (a * mSubstitute) + '$ from both sides: \\begin{align}(' + (a * mSubstitute) + ' +b)\\;\\text{mod 26} - ' + (a * mSubstitute) + ' & = (' + cSubstitute + ' - ' + (a * mSubstitute) + ')\\;\\text{mod 26}\\\\'
+        findingB += '\\begin{align}(' + a + ' * ' + mSubstitute + ' + b)\\;\\text{mod 26} & = ' +
+            cSubstitute + '\\\\(' + (a * mSubstitute) + ' + b)\\;\\text{mod 26} & = ' + cSubstitute + '\\end{align}'
+        findingB += 'Subtract $' + (a * mSubstitute) + '$ from both sides: \\begin{align}(' +
+            (a * mSubstitute) + ' +b)\\;\\text{mod 26} - ' + (a * mSubstitute) + ' & = (' +
+            cSubstitute + ' - ' + (a * mSubstitute) + ')\\;\\text{mod 26}\\\\'
         findingB += 'b\\;\\text{mod 26} & = ' + (cSubstitute - (a * mSubstitute)) + '\\;\\text{mod 26}\\\\'
 
         let b = cSubstitute - (a * mSubstitute)
@@ -400,7 +399,8 @@ export default
             // encode ETAOIN
             let found = this.encodeString('ETAOIN')
             solution = '<p>The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.</p>  ' +
-                this.encodeLetters(a, b, 'ETAOIN') + '<p>Filling in the letter we found ($' + found + '$) we get a bit more of the answer.</p>'
+                this.encodeLetters(a, b, 'ETAOIN') +
+                '<p>Filling in the letter we found ($' + found + '$) we get a bit more of the answer.</p>'
             outdiv.append($("<div>", { id: "ETAOIN" }).html(solution))
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'ETAOIN'])
             l += 'ETAOIN'
@@ -411,7 +411,8 @@ export default
             // encode SRHLD
             let found = this.encodeString('SRHLD')
             solution = '<p>Next, encode the next 5 common letters <b>SRHLD</b>.' +
-                this.encodeLetters(a, b, 'SRHLD') + '<p>We know the reverse mapping of 5 more letters ($' + found + '$) which we can fill in.</p>'
+                this.encodeLetters(a, b, 'SRHLD') +
+                '<p>We know the reverse mapping of 5 more letters ($' + found + '$) which we can fill in.</p>'
             outdiv.append($("<div>", { id: "SRHLD" }).html(solution))
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'SRHLD'])
             l += 'SRHLD'
@@ -433,7 +434,8 @@ export default
             // encode GWYBV
             let found = this.encodeString('GWYBV')
             solution = '<p>Next, encode the next 5 common letters <b>GWYBV</b>.' +
-                this.encodeLetters(a, b, 'GWYBV') + '<p>We know the reverse mapping of 5 more letters ($' + found + '$) which we can fill in.</p>'
+                this.encodeLetters(a, b, 'GWYBV') +
+                '<p>We know the reverse mapping of 5 more letters ($' + found + '$) which we can fill in.</p>'
             outdiv.append($("<div>", { id: "GWYBV" }).html(solution))
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'GWYBV'])
             l += 'GWYBV'
@@ -453,22 +455,22 @@ export default
         outdiv.append($("<p>").text("The solution is now complete!"))
     }
     /**
-     * 
+     *
      */
-    attachHandlers() {
+    attachHandlers(): void {
         super.attachHandlers()
-        $("#solve").off('click').on('click',() => {
+        $("#solve").off('click').on('click', () => {
             let msg = <string>$('#toencode').val()
             this.setEncodingTable(Number($("#a").val()), Number($("#b").val()))
             this.printSolution(msg,
-                this.charset.substr(this.affineCheck['p'], 1),
-                this.charset.substr(this.affineCheck['r'], 1),
-                this.charset.substr(this.affineCheck['q'], 1),
-                this.charset.substr(this.affineCheck['s'], 1))
+                               this.charset.substr(this.affineCheck['p'], 1),
+                               this.charset.substr(this.affineCheck['r'], 1),
+                               this.charset.substr(this.affineCheck['q'], 1),
+                               this.charset.substr(this.affineCheck['s'], 1))
         })
     }
     /**
-     * 
+     *
      */
     load(): void {
         let charset = this.getCharset()
@@ -486,7 +488,7 @@ export default
         let res = this.buildAffine(toencode, a, b)
         $("#answer").empty().append(res)
 
-        $("td").off('click').on('click',(e) => {
+        $("td").off('click').on('click', (e) => {
             let id = $(e.target).attr('id')
             // change the style
             let clickedId = this.affineCheck['olderId']
@@ -495,26 +497,25 @@ export default
                 $('td#' + clickedId + '.TOSOLVECLICK').removeClass("TOSOLVECLICK").addClass("TOSOLVE")
             }
             $('td#' + id + '.TOSOLVE').removeClass("TOSOLVE").addClass("TOSOLVECLICK")
-            // turn 
-            this.affineCheck['q'] = this.affineCheck['p']
+            // turn
+            this.affineCheck.q = this.affineCheck['p']
             this.affineCheck['s'] = this.affineCheck['r']
             this.affineCheck['p'] = charset.indexOf($('td#m' + id + '.TOANSWER').text())
             this.affineCheck['r'] = charset.indexOf($('td#' + id + '.TOSOLVECLICK').text())
             this.affineCheck['olderId'] = this.affineCheck['oldId']
-            this.affineCheck['oldId'] = parseInt(id)
+            this.affineCheck['oldId'] = parseInt(id, 10)
 
             if (this.affineCheck.p !== -1 && this.affineCheck.q !== -1) {
                 //solve it
                 console.log('solve: ')
                 let sol = this.solveIt(this.affineCheck['p'], this.affineCheck['r'],
-                    this.affineCheck['q'], this.affineCheck['s'])
+                                       this.affineCheck.q, this.affineCheck.s)
                 let expected = 'A = ' + $("#a").val() + '; B = ' + $("#b").val()
                 if (sol === expected) {
                     console.log('showing button')
                     $("[id='solve']").prop('disabled', false)
                     $("[id='solve']").prop('value', 'Display Solution')
-                }
-                else {
+                } else {
                     console.log('hiding button')
                     $("[id='solve']").prop('disabled', true)
                     $("[id='solve']").prop('value', 'Indeterminate Solution')

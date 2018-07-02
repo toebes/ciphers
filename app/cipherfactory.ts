@@ -1,23 +1,22 @@
 /// <reference types="ciphertypes" />
 
-import CipherHandler from "./cipherhandler"
-import CipherEncoder from "./cipherencoder"
-import CipherAffineEncoder from "./cipheraffineencoder"
+import { CipherAffineEncoder } from "./cipheraffineencoder"
+import { CipherEncoder } from "./cipherencoder"
+import { CipherHandler } from "./cipherhandler"
 
-import CipherSolver from "./ciphersolver"
-import CipherCheckerboardSolver from "./ciphercheckerboardsolver"
-import CipherGromarkSolver from "./ciphergromarksolver"
-import CipherMorbitSolver from "./ciphermorbitsolver"
-import CipherFractionatedMorseSolver from "./cipherfractionatedmorsesolver"
-import CipherVigenereEncoder from "./ciphervigenereencoder"
-import CipherXenocryptSolver from "./cipherxenocryptsolver"
-import CryptarithmSolver from "./ciphercryptarithmsolver"
-import CipherVigenereSolver from "./ciphervigeneresolver"
-import CipherRagbabySolver from "./cipherragbabysolver"
-import CipherRailfenceSolver from "./cipherrailfencesolver"
+import { CipherCheckerboardSolver } from "./ciphercheckerboardsolver"
+import { CryptarithmSolver } from "./ciphercryptarithmsolver"
+import { CipherFractionatedMorseSolver } from "./cipherfractionatedmorsesolver"
+import { CipherGromarkSolver } from "./ciphergromarksolver"
+import { CipherMorbitSolver } from "./ciphermorbitsolver"
+import { CipherRagbabySolver } from "./cipherragbabysolver"
+import { CipherRailfenceSolver } from "./cipherrailfencesolver"
+import { CipherSolver } from "./ciphersolver"
+import { CipherVigenereEncoder } from "./ciphervigenereencoder"
+import { CipherVigenereSolver } from "./ciphervigeneresolver"
+import { CipherXenocryptSolver } from "./cipherxenocryptsolver"
 
-export default
-    function CipherFactory(ciphertype: string, lang: string): CipherHandler {
+export function CipherFactory(ciphertype: string, lang: string): CipherHandler {
     console.log('Selecting:' + ciphertype + " lang=" + lang)
     if (typeof lang === 'undefined') {
         lang = "en"

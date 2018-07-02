@@ -1,8 +1,7 @@
 /// <reference types="ciphertypes" />
 
-import CipherSolver from "./ciphersolver"
-export default
-    class CipherGromarkSolver extends CipherSolver {
+import { CipherSolver } from "./ciphersolver"
+export class CipherGromarkSolver extends CipherSolver {
     gromarkRepl: StringMap
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
      *
@@ -10,13 +9,13 @@ export default
      *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     /**
-     * 
+     *
      */
     init(): void {
         this.cipherWidth = 2
     }
     /**
-     * 
+     *
      * @param {string} str Input string to parse and generate the solver
      */
     build(str: string): JQuery<HTMLElement> {
@@ -26,7 +25,7 @@ export default
         let posthead1 = '</tr></tbody></table><div class="repl" data-chars="'
         let posthead2 = '"></div></div>'
         let pre = prehead
-        let i, len, c, piece, datachars
+        let c, piece, datachars
         let offsets = []
         let offpos = 0
         let docwidth = $(document).width()
@@ -35,8 +34,8 @@ export default
 
         // Make sure all white space is just a space
         str = str.replace(/\s+/g, ' ')
-        // Get the leading digits 
-        for (i = 0, len = str.length; i < len; i++) {
+        // Get the leading digits
+        for (let i = 0, len = str.length; i < len; i++) {
             c = str.substr(i, 1)
             if (c !== ' ') {
                 if (!isNaN(c)) {
@@ -51,7 +50,7 @@ export default
             }
         }
         // Now we pull the single check digit off the end
-        for (i = str.length - 1; i > 0; i--) {
+        for (let i = str.length - 1; i > 0; i--) {
             c = str.substr(i, 1)
             if (c !== ' ') {
                 if (!isNaN(c)) {
@@ -68,7 +67,7 @@ export default
         this.encodedString = ''
 
         // Now go through and get all the characters
-        for (i = 0, len = str.length; i < len; i++) {
+        for (let i = 0, len = str.length; i < len; i++) {
             c = str.substr(i, 1).toUpperCase()
             if (this.isValidChar(c)) {
                 offpos++
@@ -112,7 +111,7 @@ export default
         return $(res)
     }
     /**
-     Creates the Frequency Table for a Gromark
+     * Creates the Frequency Table for a Gromark
      */
     createFreqEditTable(): JQuery<HTMLElement> {
         let topdiv = $('<div/>')
@@ -122,14 +121,14 @@ export default
         let headrow = $('<tr/>')
         let freqrow
         let replrow = $('<tr/>')
-        let i, len, n, c
+        let n, c
         let charset = this.getCharset()
 
         headrow.append($('<th/>').addClass("topleft"))
         for (n = 0; n <= 9; n++) {
             freqrow = $('<tr/>')
             freqrow.append($('<th/>').text(n))
-            for (i = 0, len = charset.length; i < len; i++) {
+            for (let i = 0, len = charset.length; i < len; i++) {
                 c = charset.substr(i, 1).toUpperCase()
                 if (n === 0) {
                     headrow.append($('<th/>').text(c))
@@ -147,7 +146,7 @@ export default
         freqrow = $('<tr/>')
         freqrow.append($('<th/>').text("Frequency"))
         replrow.append($('<th/>').text("Replacement"))
-        for (i = 0, len = charset.length; i < len; i++) {
+        for (let i = 0, len = charset.length; i < len; i++) {
             c = charset.substr(i, 1).toUpperCase()
             headrow.append($('<th/>').text(c))
             freqrow.append($('<td id="f' + c + '"/>'))
@@ -176,7 +175,7 @@ export default
         let charset = this.getSourceCharset()
 
         // If we came in with something like J5 instead of J, it means that they have typed
-        // into the replacement section 
+        // into the replacement section
         // For example if we type the letter 'U' into V3 slot, should actually act as if they had typed a 'V' into the 'X' slot.
         //  Hence repchar="V3", newchar="U" needs to switch to be repchar="X" newchar="V"
         // We compute this by Taking the offset for the U and adding 3 getting to the X and we use the V for the replacement.
@@ -229,9 +228,8 @@ export default
      */
     setMultiChars(reqstr: string): void {
         //console.log('Gromark setMultiChars ' + reqstr)
-        let i, len
         this.holdupdates = true
-        for (i = 0, len = reqstr.length / 2; i < len; i++) {
+        for (let i = 0, len = reqstr.length / 2; i < len; i++) {
             let repchar = reqstr.substr(i * 2, 1)
             let newchar = reqstr.substr(i * 2 + 1, 1)
             this.setChar(repchar, newchar)
@@ -259,19 +257,18 @@ export default
         if (this.curlang === '') {
             return $('')
         }
-        let i, len
         let matchstr = ''
         let keepadding = true
         let repl = []
         let matches = []
-        let used: BoolMap = {} as BoolMap
+        let used: BoolMap = {}
         let slen = str.length / this.cipherWidth
         // First we need to find a pattern for the replacement that we can work with
 
-        for (i = 0; i < slen; i++) {
+        for (let i = 0; i < slen; i++) {
             let piece = str.substr(i * this.cipherWidth, this.cipherWidth)
             let substitute = ''
-            if (typeof this.gromarkRepl[piece] == 'undefined') {
+            if (typeof this.gromarkRepl[piece] === 'undefined') {
                 keepadding = false
             } else {
                 substitute = this.gromarkRepl[piece]
@@ -290,7 +287,7 @@ export default
             if (this.Frequent[this.curlang].hasOwnProperty(tpat) && tpat.length === slen && tpat.substr(0, patlen) === pat) {
                 let tmatches = this.Frequent[this.curlang][tpat]
                 let added = 0
-                for (i = 0, len = tmatches.length; i < len; i++) {
+                for (let i = 0, len = tmatches.length; i < len; i++) {
                     let entry = tmatches[i]
                     if (this.isValidReplacement(entry[0], repl, used)) {
                         matches.push(entry)
@@ -311,7 +308,7 @@ export default
             let matched = false
             let added = 0
 
-            for (i = 0, len = matches.length; i < len; i++) {
+            for (let i = 0, len = matches.length; i < len; i++) {
                 let entry = matches[i]
                 if (this.isValidReplacement(entry.t, repl, used)) {
                     if (!matched) {
@@ -352,7 +349,7 @@ export default
      * Build a set of replacements so that we can quickly check against them
      */
     saveGromarkReplacements(): void {
-        this.gromarkRepl = {} as StringMap
+        this.gromarkRepl = {}
         let i, n, len, charset
         // Get the replacement character set and double it so that we can index past the beginning and wrap around to get the set again
         charset = this.getSourceCharset()
@@ -380,19 +377,18 @@ export default
      * @return {Array.string} Array of mapping strings for each character
      */
     makeGromarkMap(str: string, gromark: string): StringMap {
-        let i, len
         let charset = this.getSourceCharset()
-        let res: StringMap = {} as StringMap
+        let res: StringMap = {}
         // Empty out the result so it can be readily used
-        for (i = 0, len = charset.length; i < len; i++) {
-            res[charset.substr(i, 1)] = ''
+        for (let c of charset) {
+            res[c] = ''
         }
         // Double the character set so we can get the wrapping for free
         charset += charset
-        for (i = 0, len = str.length; i < len; i++) {
+        for (let i = 0, len = str.length; i < len; i++) {
             let c = str.substr(i, 1)
             let piece = gromark.substr(i * this.cipherWidth, this.cipherWidth)
-            // Let's compute the value for the letter plus the offset 
+            // Let's compute the value for the letter plus the offset
             let offset = charset.indexOf(c) + parseInt(piece.substr(1, 1), 10)
             let repl = piece.substr(0, 1)
             res[charset.substr(offset, 1)] = repl
@@ -407,8 +403,9 @@ export default
      * @return {number} Indicates qualify of Gromark match. 0= inconsistent, 1=possible, 2=confirmed
      */
     checkGromark(tomatch: string, gromark: string): number {
-        if (tomatch.length * this.cipherWidth != gromark.length) {
-            console.log('Invalid check comparing "' + tomatch + '"(' + tomatch.length + ') against "' + gromark + '"(' + gromark.length + ')')
+        if (tomatch.length * this.cipherWidth !== gromark.length) {
+            console.log('Invalid check comparing "' + tomatch +
+                         '"(' + tomatch.length + ') against "' + gromark + '"(' + gromark.length + ')')
             return 0
         }
         let i, len
@@ -419,27 +416,27 @@ export default
             let c = tomatch.substr(i, 1)
             let piece = gromark.substr(i * this.cipherWidth, this.cipherWidth)
             // See if we already know that this letter actually maps to something.
-            if (typeof this.gromarkRepl[piece] != 'undefined') {
+            if (typeof this.gromarkRepl[piece] !== 'undefined') {
                 // This is already known to map to a letter.  Let's make sure we match the corresponding character
                 if (this.gromarkRepl[piece] !== c) {
                     //console.log('Failed to match c=' + c + ' vs known[' + piece + ']=' + this.gromarkRepl[piece])
                     return 0
                 }
             }
-            // We don't map, so let's compute the value for the letter plus the offset 
+            // We don't map, so let's compute the value for the letter plus the offset
             let offset = parseInt(piece.substr(1, 1), 10)
             let repl = piece.substr(0, 1)
             //console.log('Piece='+piece+' Repl=' + repl + ' offset=' + offset + ' delta='+charset.indexOf(c))
             offset += charset.indexOf(c)
-            if (typeof sets[offset] != 'undefined') {
-                if (sets[offset] != repl) {
+            if (typeof sets[offset] !== 'undefined') {
+                if (sets[offset] !== repl) {
                     //console.log('Already found another sets[' + offset + ']=' + sets[offset] + ' vs ' + repl)
                     return 0
                 }
                 matchlevel = 2
             }
-            if (typeof sets[repl] != 'undefined') {
-                if (sets[repl] != offset) {
+            if (typeof sets[repl] !== 'undefined') {
+                if (sets[repl] !== offset) {
                     // console.log('Already found another sets[' + repl + ']=' + sets[repl] + ' vs ' + offset)
                     return 0
                 }
@@ -480,7 +477,9 @@ export default
                         mapfix += c + mapc
                     }
                 }
-                res += '<tr><td>' + i + '</td><td>' + matchlevel + '</td><td class="dapply" onclick="cipherTool.setMultiChars(\'' + mapfix + '\');">' + gromark + '</td>' + maptable + '</tr>'
+                res += '<tr><td>' + i + '</td><td>' + matchlevel +
+                    '</td><td class="dapply" onclick="cipherTool.setMultiChars(\'' + mapfix + '\');">' +
+                     gromark + '</td>' + maptable + '</tr>'
             }
         }
         if (res === '') {

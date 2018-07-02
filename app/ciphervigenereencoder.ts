@@ -1,9 +1,8 @@
 /// <reference types="ciphertypes" />
 
-import CipherEncoder from "./cipherencoder"
+import { CipherEncoder } from "./cipherencoder"
 
-export default
-    class CipherVigenereEncoder extends CipherEncoder {
+export class CipherVigenereEncoder extends CipherEncoder {
     doEncoding: boolean = true
 
     /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -166,10 +165,10 @@ export default
     attachHandlers(): void {
         //Argument of type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to parameter of type '"editor.unlink" | "unlink"'.
         // Type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to type '"unlink"'.
-        $('input[type=radio][name=enctype]').off('change').on('change',(e) => {
+        $('input[type=radio][name=enctype]').off('change').on('change', (e) => {
             this.setkvalinputs()
         })
-        $('input[type=radio][name=operation]').off('change').on('change',(e) => {
+        $('input[type=radio][name=operation]').off('change').on('change', (e) => {
             this.setVigenereInputs()
         })
         this.setkvalinputs()

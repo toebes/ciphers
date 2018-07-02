@@ -1,6 +1,6 @@
 /// <reference types="ciphertypes" />
 
-import CipherSolver from "./ciphersolver"
+import { CipherSolver } from "./ciphersolver"
 
 enum CryptarithmType {
     Automatic,
@@ -13,8 +13,7 @@ enum CryptarithmType {
     Equations,
 }
 
-export default
-    class CryptarithmSolver extends CipherSolver {
+export class CryptarithmSolver extends CipherSolver {
     usedletters: BoolMap = {}
     boxState: StringMap = {}
     base: number
@@ -88,14 +87,14 @@ export default
                     } else {
                         gathered += c
                     }
-                } else if (gathered != '') {
+                } else if (gathered !== '') {
                     result += parseInt(gathered, this.base) + c
                     gathered = ''
                 } else {
                     result += c
                 }
             }
-            if (gathered != '') {
+            if (gathered !== '') {
                 result += parseInt(gathered, this.base)
             }
         }
@@ -157,7 +156,7 @@ export default
         return result
     }
     /**
-     * 
+     *
      * @param {string} reqstr String of items to apply
      */
     updateMatchDropdowns(reqstr: string): void {
@@ -192,7 +191,7 @@ export default
     setChar(repchar: string, newchar: string): void {
         console.log("setChar data-char=" + repchar + ' newchar=' + newchar)
         // See if we actually have to do anything at all
-        if (this.replacement[repchar] != newchar) {
+        if (this.replacement[repchar] !== newchar) {
             // Ok we need to figure out what slot we are swapping with
             let oldchar = this.replacement[repchar]
             if (oldchar !== '' && oldchar !== ' ') {
@@ -359,6 +358,9 @@ export default
                             }
                             lastbase = lastval
                             break
+
+                        default:
+                            break
                     }
                     prefix = token
                     state = buildState.WantMinus
@@ -433,7 +435,7 @@ export default
                         case CryptarithmType.SquareRoot:
                             formula = lastbase + '-' + lastval
                             if (indent > 0) {
-                                // We need to make sure that the last two digits 
+                                // We need to make sure that the last two digits
                                 expected = rootbase.substr(rootbase.length - (indent * numwidth), numwidth)
                                 formula = "(" + formula + ")*100+" + expected
                                 indent--
@@ -442,7 +444,7 @@ export default
                         case CryptarithmType.CubeRoot:
                             formula = lastbase + '-' + lastval
                             if (indent > 0) {
-                                // We need to make sure that the last two digits 
+                                // We need to make sure that the last two digits
                                 expected = rootbase.substr(rootbase.length - (indent * numwidth), numwidth)
                                 formula = "(" + formula + ")*1000+" + expected
                                 indent--
@@ -460,6 +462,9 @@ export default
                         case CryptarithmType.Addition:
                         case CryptarithmType.Subtraction:
                             formula = lastbase + lastval
+                            break
+
+                        default:
                             break
                     }
                     break
@@ -479,7 +484,7 @@ export default
                     // based on how many letters are grouped
                     for (let c of token) {
                         if (c === '\'') {
-                            if (prefix != '') {
+                            if (prefix !== '') {
                                 console.log('Found quotes on other than the first token')
                             }
                             isRoot = true
@@ -504,7 +509,7 @@ export default
                             }
                             rootLen = 0
                         } else {
-                            if (c.toLocaleLowerCase != c.toUpperCase) {
+                            if (c.toLocaleLowerCase !== c.toUpperCase) {
                                 this.usedletters[c] = true
                             }
                             content += c
@@ -539,8 +544,8 @@ export default
                                 rootbase = item.content.replace(new RegExp(" ", "g"), "")
                                 lastval = rootbase.substr(0, numwidth)
                             } else {
-                                if (indent > 0 && expected != '') {
-                                    if (content.substr(content.length - numwidth, numwidth) != expected) {
+                                if (indent > 0 && expected !== '') {
+                                    if (content.substr(content.length - numwidth, numwidth) !== expected) {
                                         // Special case where we had a zero and have to skip one more
                                         padding = padding.substr(0, padding.length - numwidth)
                                         item.formula = "(" + item.formula + ")*100+" + rootbase.substr(rootbase.length - (indent * 2), 2)
@@ -553,7 +558,7 @@ export default
                                 item.content = ''
                                 for (let i = temp.length - numwidth; i >= 0; i -= numwidth) {
                                     let toadd = temp.substr(i, numwidth)
-                                    if (item.content != '') {
+                                    if (item.content !== '') {
                                         item.content = toadd + ' ' + item.content
                                     } else {
                                         item.content = toadd
@@ -575,8 +580,8 @@ export default
                                 rootbase = item.content.replace(new RegExp(" ", "g"), "")
                                 lastval = rootbase.substr(0, numwidth)
                             } else {
-                                if (indent > 0 && expected != '') {
-                                    if (content.substr(content.length - numwidth, numwidth) != expected) {
+                                if (indent > 0 && expected !== '') {
+                                    if (content.substr(content.length - numwidth, numwidth) !== expected) {
                                         // Special case where we had a zero and have to skip one more
                                         padding = padding.substr(0, padding.length - numwidth)
                                         item.formula = "(" + item.formula + ")*1000+" + rootbase.substr(rootbase.length - (indent * 2), 2)
@@ -589,7 +594,7 @@ export default
                                 item.content = ''
                                 for (let i = temp.length - numwidth; i >= 0; i -= numwidth) {
                                     let toadd = temp.substr(i, numwidth)
-                                    if (item.content != '') {
+                                    if (item.content !== '') {
                                         item.content = toadd + ' ' + item.content
                                     } else {
                                         item.content = toadd
@@ -609,8 +614,8 @@ export default
                                 item.content = content + ')' + item.content
                                 state = buildState.WantQuotient
                             } else {
-                                if (indent > 0 && expected != '') {
-                                    if (content.substr(content.length - numwidth, numwidth) != expected) {
+                                if (indent > 0 && expected !== '') {
+                                    if (content.substr(content.length - numwidth, numwidth) !== expected) {
                                         // Special case where we had a zero and have to skip one more
                                         padding = padding.substr(0, padding.length - numwidth)
                                         item.formula = "(" + item.formula + ")*10+" + dividend.substr(dividend.length - indent, 1)
@@ -736,7 +741,7 @@ export default
 
         return table
     }
-    /** 
+    /**
      * Creates an HTML table to display the mapping table
      * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
@@ -777,7 +782,7 @@ export default
 
         // Now we want to build the solving table
         for (let c in this.usedletters) {
-            let tr = $("<tr>")
+            tr = $("<tr>")
             let th = $("<th>")
             $("<div>", { class: "slil" }).text(c).appendTo(th)
             th.appendTo(tr)
@@ -819,7 +824,7 @@ export default
      * @param lock new state for the symbol
      */
     updateCheck(c: string, lock: boolean): void {
-        if (this.locked[c] != lock) {
+        if (this.locked[c] !== lock) {
             this.locked[c] = lock
             let repl = this.replacement[c]
             $("input:text[data-char='" + c + "']").prop('disabled', lock)
@@ -867,16 +872,15 @@ export default
      */
     attachHandlers(): void {
         super.attachHandlers()
-        $(".rtoggle").off('click').on('click',
-            (e) => {
-                let id = $(e.target).attr("id")
-                let sel = $(e.target).attr("data-val")
-                $(e.target).removeClass("rtoggle-" + sel)
-                sel = String((Number(sel) + 1) % 4)
-                $(e.target).addClass("rtoggle-" + sel).attr("data-val", sel)
-                console.log('Changing ' + id + " to " + sel)
-                this.boxState[id] = sel
-            }
+        $(".rtoggle").off('click').on('click', (e) => {
+            let id = $(e.target).attr("id")
+            let sel = $(e.target).attr("data-val")
+            $(e.target).removeClass("rtoggle-" + sel)
+            sel = String((Number(sel) + 1) % 4)
+            $(e.target).addClass("rtoggle-" + sel).attr("data-val", sel)
+            console.log('Changing ' + id + " to " + sel)
+            this.boxState[id] = sel
+        }
         )
         $(".cb").off('change').on('change', (e) => {
             let toupdate = $(e.target).attr('data-char')

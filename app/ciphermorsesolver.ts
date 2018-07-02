@@ -1,7 +1,15 @@
 /// <reference types="ciphertypes" />
 
-import CipherSolver from "./ciphersolver"
-export default
+import { IState } from "./cipherhandler"
+import { CipherSolver } from "./ciphersolver"
+import { ICipherType } from "./ciphertypes";
+
+interface IMorseState extends IState {
+    morsemap: StringMap
+    locked: { [key: string]: boolean }
+}
+
+export
     class CipherMorseSolver extends CipherSolver {
     readonly tomorse: { [key: string]: string } = {
         ' ': '',
@@ -51,9 +59,9 @@ export default
         '()': '-O--O-'
     }
     /**
-    * Table of classes to be associated with morse code dots/dashes/spaces
-    * @type {Object.<string, string>} 
-    */
+     * Table of classes to be associated with morse code dots/dashes/spaces
+     * @type {Object.<string, string>}
+     */
     readonly morsedigitClass: { [key: string]: string } = {
         'O': 'dot',
         '-': 'dash',
@@ -61,10 +69,10 @@ export default
         'X': 'null'
     }
     /**
-    * Table of classes to be associated with any particular morse code decoded character
-    * @type {Object.<string, string>} 
-    */
-    morseClass: { [key: string]: string } = {
+     * Table of classes to be associated with any particular morse code decoded character
+     * @type {Object.<string, string>}
+     */
+    readonly morseClass: { [key: string]: string } = {
         'A': '',
         'B': '',
         'C': '',
@@ -112,9 +120,9 @@ export default
     }
     /**
      * Table to map from a morse code string to the corresponding character
-     * @type {Object.<string, string>} 
+     * @type {Object.<string, string>}
      */
-    frommorse: { [key: string]: string } = {
+    readonly frommorse: { [key: string]: string } = {
         'O-': 'A',
         '-OOO': 'B',
         '-O-O': 'C',
@@ -160,17 +168,71 @@ export default
         '-OOOO-': '-',
         '-O--O-': '()'
     }
+    cipherType: ICipherType
     /**
      * Marks a symbol as locked and prevents it from being changed in the interactive solver
      * @param c Symbol to be marked as locked/unlocked
      * @param lock new state for the symbol
      */
     updateCheck(c: string, lock: boolean): void {
-        if (this.locked[c] != lock) {
+        if (this.locked[c] !== lock) {
             this.locked[c] = lock
             this.UpdateFreqEditTable()
             this.load()
         }
+    }
+    restore(data: IMorseState): void {
+        if (data.morsemap !== undefined) {
+            for (let ent in data.morsemap) {
+                this.setMorseMapEntry(ent, data.morsemap[ent])
+            }
+        }
+        if (data.cipherString !== undefined) {
+            this.encodedString = data.cipherString
+        }
+        if (data.locked !== undefined) {
+            this.locked = { ...data.locked }
+        }
+        this.UpdateFreqEditTable()
+        $('#encoded').val(this.encodedString)
+        this.load()
+        if (data.findString !== undefined) {
+            $("#find").val(data.findString)
+            this.findPossible(data.findString)
+        }
+    }
+    /**
+     * Make a copy of the current state
+     */
+    save(): IState {
+        let savestate: IMorseState = {
+            cipherType: this.cipherType,
+            morsemap: { ... this.getMorseMap() },
+            cipherString: this.encodedString,
+            locked: { ...this.locked },
+            findString: this.state.findString,
+        }
+        // // We need a deep copy of the save state
+        // let savestate = {...this.state}
+        // // And the replacements hash also has to have a deep copy
+        // savestate.replacements = {...this.state.replacements}
+        return savestate
+    }
+    /**
+     * @returns {Object.<string, string>}
+     */
+    getMorseMap(): any {
+        return null;
+    }
+    unmapMorse(entry: string): number {
+        return 0
+    }
+    /**
+     * Assign a new value for an entry
+     * @param {string} entry Character to be updated
+     * @param {string} val New value to associate with the character
+     */
+    setMorseMapEntry(entry: string, val: string): void {
     }
 
     /**
@@ -184,10 +246,14 @@ export default
         super.attachHandlers()
     }
     reset(): void {
+        this.init(this.curlang)
         super.reset()
         this.locked = {}
     }
 
+    analyze(str: string): JQuery<HTMLElement> {
+        return null
+    }
     /**
      * When building a Morbit or Fractionated Morse, we want to create the table with three rows.
      * the top row is the input characters each with a colspan of 2.  This
@@ -221,7 +287,7 @@ export default
      * 2- If it is a space after a null (i.e. an x immediately after a single preceeding x) then
      *    we output an empty cell with a class of "space"
      * 3- if it is an error null (i.e. an x at the start of the string or an x preceeded by 2 or more x)
-     *    or a bad morse code 
+     *    or a bad morse code
      *    then we output a cell with a class of "error"
      * 4- Otherwise it is a valid morse code string and we output the cell with the class from the morseClass
      * @param {string} str String to decode
@@ -234,7 +300,7 @@ export default
         let inrow = $('<tr/>')
         let morserow = $('<tr/>')
         let outrow = $('<tr/>')
-        let c, i, len, morseclass
+        let c, morseclass
         let remaining
         let lastsep = 'XX';  // Start out with a few Xs so that an initial X generates an error
         let extraout = ''
@@ -246,14 +312,14 @@ export default
         let finaltext = ''
         let docwidth = $(document).width()
         //docwidth = 9 * 24 * cipherwidth
-        let width = cipherwidth * Math.floor(docwidth / (24 * cipherwidth))
+        let width = cipherwidth * Math.floor(docwidth / (cipherwidth * 24))
 
         //
         // Build up the input string and the corresponding morse code
         // string.  We will guarantee that the morse code string is
         // exactly cipherwidth times the length of the input string
         //
-        for (i = 0, len = str.length; i < len; i++) {
+        for (let i = 0, len = str.length; i < len; i++) {
             c = str.substr(i, 1).toUpperCase()
             if (this.isValidChar(c)) {
                 intext += c
@@ -275,7 +341,7 @@ export default
         //
         // Now that we have the strings, go through and output the rows
         //
-        for (i = 0, len = intext.length; i < len; i++) {
+        for (let i = 0, len = intext.length; i < len; i++) {
             c = intext.substr(i, 1)
             let mpos, td
             td = $('<td>', { colspan: cipherwidth })
@@ -322,7 +388,8 @@ export default
                         }
                     } else {
                         let morselet = morsetext.substr(startpos, mlen)
-                        console.log('Moreselet:' + morselet + 'len=' + mlen + ' remaining=' + remaining + ' mpos=' + mpos + ' Cipherwidth=' + cipherwidth)
+                        console.log('Moreselet:' + morselet + 'len=' + mlen +
+                                    ' remaining=' + remaining + ' mpos=' + mpos + ' Cipherwidth=' + cipherwidth)
                         lastsep = ''
                         let outchar = ''
                         // See if we have an invalid morse sequence.  If so
@@ -346,7 +413,8 @@ export default
                             outrow.append($('<td colspan="' + mlen + '"/>').addClass(morseclass).text(outchar))
                         } else {
                             // We won't fit. Figure out which side gets the character
-                            // console.log('***NO FIT: remaining =' + remaining + ' mlen=' + mlen + ' outchar=' + outchar + ' morseclass=' + morseclass+' extralen='+extralen)
+                            // console.log('***NO FIT: remaining =' + remaining + ' mlen=' + mlen +
+                            //             ' outchar=' + outchar + ' morseclass=' + morseclass+' extralen='+extralen)
                             if (remaining * 2 >= mlen) {
                                 outrow.append($('<td colspan="' + remaining + '"/>').addClass(morseclass).text(outchar))
                                 extraout = ''
@@ -400,14 +468,13 @@ export default
         let freqrow = $('<tr/>')
         let replrow = $('<tr/>')
         let lockrow = $('<tr/>')
-        let i, len
         let charset = this.getCharset()
 
         headrow.append($('<th/>').addClass("topleft"))
         freqrow.append($('<th/>').text("Frequency"))
         replrow.append($('<th/>').text("Replacement"))
         lockrow.append($('<th/>').text("Locked"))
-        for (i = 0, len = charset.length; i < len; i++) {
+        for (let i = 0, len = charset.length; i < len; i++) {
             let c = charset.substr(i, 1).toUpperCase()
             headrow.append($('<th/>').text(c))
             freqrow.append($('<td id="f' + c + '"/>'))
@@ -440,13 +507,13 @@ export default
      */
     setMultiChars(reqstr: string): void {
         console.log('setMorseMultiChars ' + reqstr)
-        let i, len
         this.holdupdates = true
-        for (i = 0, len = reqstr.length / (this.cipherWidth + 1); i < len; i++) {
+        for (let i = 0, len = reqstr.length / (this.cipherWidth + 1); i < len; i++) {
             let repchar = reqstr.substr(i * (this.cipherWidth + 1), 1)
             let newchar = reqstr.substr(i * (this.cipherWidth + 1) + 1, this.cipherWidth)
+            let newval = this.unmapMorse(newchar)
             console.log('Set ' + repchar + ' to ' + newchar)
-            this.updateSel(repchar, newchar)
+            this.updateSel(repchar, String(newval))
         }
         this.holdupdates = false
         this.updateMatchDropdowns('')
@@ -461,6 +528,7 @@ export default
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     findPossible(str: string): void {
         let encoded = this.minimizeString(<string>$('#encoded').val())
+        this.state.findString = str
         let morse = ''
         let extra = ''
         let res = ''
@@ -491,6 +559,7 @@ export default
         }
 
         $(".findres").html('Searching for ' + str + ' as ' + this.normalizeHTML(morse) + res)
+        this.attachHandlers()
     }
 
     /**

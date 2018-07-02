@@ -1,17 +1,16 @@
 /// <reference types="ciphertypes" />
 
-import CipherHandler from "./cipherhandler"
+import { CipherHandler } from "./cipherhandler"
 
-export default
-    class CipherSolver extends CipherHandler {
+export class CipherSolver extends CipherHandler {
     /**
-     * Indicates that a 
+     * Indicates that a
      * @type {Object.<string, bool>}
-     * 
+     *
      */
     locked: { [key: string]: boolean } = {}
     /**
-     * Initializes the encoder/decoder. 
+     * Initializes the encoder/decoder.
      * We don't want to show the reverse replacement since we are doing an encode
      * @param {string} lang Language to select (EN is the default)
      */
@@ -89,8 +88,8 @@ export default
         }
         return 0
     }
-    /** 
-     * Finds the top n strings of a given width and formats an HTML 
+    /**
+     * Finds the top n strings of a given width and formats an HTML
      * unordered list of them.  Only strings which repeat 2 or more times are included
      * @param {string} string
      * @param {number} width
@@ -118,14 +117,14 @@ export default
         // tfreq holds the frequency of each string which is of the width requested.  Now we just
         // need to go through and pick out the big ones and display them in sorted order.  To sort
         // it we need to build an array of objects holding the frequency and values.
-        Object.keys(tfreq).forEach(function (value) {
+        Object.keys(tfreq).forEach((value: string) => {
             let frequency = tfreq[value]
             if (frequency > 1) {
                 let item = { freq: frequency, val: value }
                 tobjs.push(item)
             }
         })
-        // Now we sort them and pull out the top requested items.  It is possible that 
+        // Now we sort them and pull out the top requested items.  It is possible that
         // the array is empty because there are not any duplicates
         tobjs.sort(this.isort)
         if (num > tobjs.length) {
@@ -138,10 +137,9 @@ export default
                 let valtext = tobjs[i].val;
                 if (this.cipherWidth > 1) {
                     // We need to insert spaces every x characters
-                    let vpos, vlen;
                     let extra = '';
                     let final = '';
-                    for (vpos = 0, vlen = valtext.length / 2; vpos < vlen; vpos++) {
+                    for (let vpos = 0, vlen = valtext.length / 2; vpos < vlen; vpos++) {
                         final += extra + valtext.substr(vpos * 2, 2);
                         extra = ' ';
                     }
@@ -187,7 +185,7 @@ export default
         let tobjs = []
         // Now sort all of the letters
         for (let c of this.getCharset()) {
-            if (prevs[c] !== '' && posts[c] != '') {
+            if (prevs[c] !== '' && posts[c] !== '') {
                 let frequency = prevs[c].length + posts[c].length
                 let item = { freq: frequency, let: c, prevs: prevs[c], posts: posts[c] }
                 tobjs.push(item)
@@ -243,7 +241,7 @@ export default
         let lastfreq = 0
         for (let item of tobjs) {
             if (freq[item.let] <= minfreq) {
-                if (consonants != '' && item.freq !== lastfreq) {
+                if (consonants !== '' && item.freq !== lastfreq) {
                     consonants = ' ' + consonants
                 }
                 lastfreq = item.freq
@@ -306,19 +304,6 @@ export default
     }
 
     /**
-     * @returns {Object.<string, string>}
-     */
-    getMorseMap(): any {
-        return null;
-    }
-    /**
-     * Assign a new value for an entry
-     * @param {string} entry Character to be updated 
-     * @param {string} val New value to associate with the character
-     */
-    setMorseMapEntry(entry: string, val: string): void {
-    }
-    /**
      * Locate a string
      * @param {string} str string to look for
      */
@@ -345,6 +330,7 @@ export default
         }
 
         $(".findres").html('Searching for ' + str + ' as ' + this.normalizeHTML(str) + res);
+        this.attachHandlers()
     }
 
     /**
@@ -368,11 +354,11 @@ export default
 
         let used: { [key: string]: boolean } = {};
         let charset = this.getCharset().toUpperCase();
-        for (i = 0, len = charset.length; i < len; i++) {
-            used[charset.substr(i, 1)] = false;
+        for (let c of charset) {
+            used[c] = false;
         }
-        for (i = 0, len = charset.length; i < len; i++) {
-            used[this.replacement[charset.substr(i, 1)]] = true;
+        for (let c of charset) {
+            used[this.replacement[c]] = true;
         }
 
         for (i = 0; i + searchlen * encodewidth <= encrlen; i += encodewidth) {
@@ -394,11 +380,11 @@ export default
                 for (j = 0; j < searchlen; j++) {
                     let keystr = tofind.substr(j * findwidth, findwidth);
                     keymap[checkstr.substr(j, 1)] = keystr;
-                    if (findwidth == 1 && keystr === checkstr.substr(j, 1)) {
+                    if (findwidth === 1 && keystr === checkstr.substr(j, 1)) {
                         matched = false;
                     }
                 }
-                // We matched, BUT we need to make sure that there are no signs that preclude it from 
+                // We matched, BUT we need to make sure that there are no signs that preclude it from
                 if (findwidth > 1) {
                     // Check the preceeding character to see if we have a match for it.  The preceeding
                     // character can not be known to be a dot or a dash when dealing with morse code
@@ -436,7 +422,8 @@ export default
                             mapfix += key + keymap[key];
                         }
                     }
-                    res += '<tr><td>' + i + '</td><td><a class="dapply" href="#" onclick="cipherTool.setMultiChars(\'' + mapfix + '\');">' + checkstr + '</a></td>' + maptable + '</tr>';
+                    res += '<tr><td>' + i + '</td><td><a class="dapply" href="#" data-mapfix="' +
+                        mapfix + '">' + checkstr + '</a></td>' + maptable + '</tr>';
                 }
             }
         }
@@ -455,16 +442,14 @@ export default
         let posthead1 = '</tr></tbody></table><div class="repl" data-chars="';
         let posthead2 = '"></div></div>';
         let pre = prehead;
-        let post = '';
-        let i, len;
         let datachars = '';
         let charset = this.getCharset().toUpperCase();
         this.freq = {};
-        for (i = 0, len = charset.length; i < len; i++) {
-            this.freq[charset.substr(i, 1).toUpperCase()] = 0;
+        for (let c of charset.toUpperCase()) {
+            this.freq[c] = 0;
         }
 
-        for (i = 0, len = str.length; i < len; i++) {
+        for (let i = 0, len = str.length; i < len; i++) {
             let t = str.substr(i, 1).toUpperCase();
             if (this.isValidChar(t)) {
                 if (isNaN(this.freq[t])) {
@@ -506,11 +491,10 @@ export default
      */
     setMultiChars(reqstr: string): void {
         console.log('setStandardMultiChars ' + reqstr);
-        let i, len;
         this.holdupdates = true;
-        for (i = 0, len = reqstr.length / 2; i < len; i++) {
-            let repchar = reqstr.substr(i * 2, 1);
-            let newchar = reqstr.substr(i * 2 + 1, this.cipherWidth);
+        for (let i = 0, len = reqstr.length / 2; i < len; i++) {
+            let repchar = reqstr.substr(i * (this.cipherWidth + 1), 1);
+            let newchar = reqstr.substr(i * (this.cipherWidth + 1) + 1, this.cipherWidth);
             console.log('Set ' + repchar + ' to ' + newchar);
             this.updateSel(repchar, newchar);
         }
@@ -531,24 +515,23 @@ export default
         let pat = this.makeUniquePattern(str, 1);
         let repl = this.genReplPattern(str);
         let mselect = $('<select/>').addClass('match');
-        if (typeof this.Frequent[this.curlang][pat] != 'undefined') {
+        if (typeof this.Frequent[this.curlang][pat] !== 'undefined') {
             let matches = this.Frequent[this.curlang][pat];
             let selectclass = '';
             let matched = false;
             let added = 0;
-            let i, len;
-            let used: BoolMap = {} as BoolMap;
+            let used: BoolMap = {};
             let charset = this.getCharset().toUpperCase();
-            for (i = 0, len = charset.length; i < len; i++) {
-                used[charset.substr(i, 1)] = false;
+            for (let c of charset) {
+                used[c] = false;
             }
-            for (i = 0, len = charset.length; i < len; i++) {
-                used[this.replacement[charset.substr(i, 1)]] = true;
+            for (let c of charset) {
+                used[this.replacement[c]] = true;
             }
 
             //     console.log(repl);
             //     console.log(used);
-            for (i = 0, len = matches.length; i < len; i++) {
+            for (let i = 0, len = matches.length; i < len; i++) {
                 let entry = matches[i];
                 if (this.isValidReplacement(entry[0], repl, used)) {
                     if (!matched) {
@@ -578,7 +561,7 @@ export default
         return mselect;
     }
     /**
-     * 
+     *
      * @param {string} reqstr String of items to apply
      */
     updateMatchDropdowns(reqstr: string): void {
@@ -587,6 +570,13 @@ export default
             $(elem).empty().append(this.generateMatchDropdown($(elem).attr('data-chars')));
         });
     }
+    attachHandlers(): void {
+        super.attachHandlers()
 
-
+        $("a.dapply").off('click').on('click', (e) => {
+            let mapfix = $(e.target).attr('data-mapfix')
+            this.markUndo()
+            this.setMultiChars(mapfix)
+        })
+    }
 }

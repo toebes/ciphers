@@ -1,8 +1,7 @@
 /// <reference types="ciphertypes" />
 
-import CipherSolver from "./ciphersolver"
-export default
-    class CipherCheckerboardSolver extends CipherSolver {
+import { CipherSolver } from "./ciphersolver"
+export class CipherCheckerboardSolver extends CipherSolver {
 
     rowcharset: string = ""
     colcharset: string = ""
@@ -20,7 +19,6 @@ export default
 
     setrowcolset(rowcharset: string, colcharset: string, forceorder: boolean): void {
         let changed = false
-        let i, len, c
 
         rowcharset = rowcharset.toUpperCase()
         colcharset = colcharset.toUpperCase()
@@ -33,8 +31,7 @@ export default
                 changed = true
                 this.rowcharset = rowcharset
             } else {
-                for (i = 0, len = rowcharset.length; i < len; i++) {
-                    c = rowcharset.substr(i, 1)
+                for (let c of rowcharset) {
                     if (this.rowcharset.indexOf(c) < 0) {
                         this.rowcharset += c
                         changed = true
@@ -48,8 +45,7 @@ export default
                 changed = true
                 this.colcharset = colcharset
             } else {
-                for (i = 0, len = colcharset.length; i < len; i++) {
-                    c = colcharset.substr(i, 1)
+                for (let c of colcharset) {
                     if (this.colcharset.indexOf(c) < 0) {
                         this.colcharset += c
                         changed = true
@@ -76,8 +72,6 @@ export default
         let prehead = '<div class="sword"><table class="tword"><tbody><tr>'
         let posthead = '</tr></tbody></table></div>'
         let pre = prehead
-        let post = ''
-        let i, len
         let firstchar = ''
         let firstset = ''
         let secondset = ''
@@ -88,7 +82,7 @@ export default
         let charset = this.getCharset().toUpperCase()
         this.freq = {}
 
-        for (i = 0, len = str.length; i < len; i++) {
+        for (let i = 0, len = str.length; i < len; i++) {
             let t = str.substr(i, 1).toUpperCase()
             if (this.isValidChar(t)) {
                 if (firstchar === '') {

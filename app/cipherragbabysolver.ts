@@ -1,8 +1,7 @@
 /// <reference types="ciphertypes" />
 
-
-import JTTable from "./jttable"
-import CipherSolver from "./ciphersolver"
+import { CipherSolver } from "./ciphersolver"
+import { JTTable } from "./jttable"
 interface mapSet {
     ct: string    // Cipher text
     ctoff: number // Cipher text offset
@@ -23,14 +22,14 @@ interface mappedLine {
 }
 /**
  * The CipherRagbabySolver class implements a solver for the Ragbaby Cipher
- * replmap is the map of letters.  
+ * replmap is the map of letters.
  *   replmap[0] is the combined entries
  *   replmap[1] is editable entries from the user
  *   replmap[2..n] is the mappings derived from entries under the cipher text
  *   ctmap[] maps from a Cipher text (Letter:Number) to a plaintext letter
- * It keeps track of a list of letters that a user has entered (in order) 
+ * It keeps track of a list of letters that a user has entered (in order)
  */
-export default class CipherRagbabySolver extends CipherSolver {
+export class CipherRagbabySolver extends CipherSolver {
     /** The current cipher we are working on */
     cipherString: string = ''
     /** Maps the cipher text (Letter concatenated with a number) to a plaintext letter */
@@ -97,7 +96,7 @@ export default class CipherRagbabySolver extends CipherSolver {
             let c = this.replmap[1].line[i]
             newmap[1][i] = c
             newmap[0][i] = c
-            if (c != '') {
+            if (c !== '') {
                 cslot[c] = Number(i)
             }
         }
@@ -117,7 +116,7 @@ export default class CipherRagbabySolver extends CipherSolver {
             // See if we already know what slot the plaintext goes in
             let ptslot = cslot[entry.pt]
             let ctslot = cslot[entry.ct]
-            if (ptslot != -1 && ctslot != -1) {
+            if (ptslot !== -1 && ctslot !== -1) {
                 let ctslottarget = (ptslot + entry.ctoff) % this.alphalen
                 // Ok we are good for the plaintext.  Do we have a slot for the cipher text
                 // Now see if the distance between the two is acceptable
@@ -134,11 +133,11 @@ export default class CipherRagbabySolver extends CipherSolver {
                     let testline = lines[testslot]
                     ptslot = testline.usedlet[entry.pt]
                     ctslot = testline.usedlet[entry.ct]
-                    if (ptslot != undefined) {
+                    if (ptslot !== undefined) {
                         // We have the plain text character, see where the cipher text should be
                         let ctslottarget = (ptslot + entry.ctoff) % this.alphalen
                         // Does it also have the cipher text character?
-                        if (ctslot != undefined) {
+                        if (ctslot !== undefined) {
                             // It does.  If the cipher text is at the same slot, we are safe
                             if (ctslottarget === ctslot) {
                                 testline.notes += " " + entry.ct + String(entry.ctoff)
@@ -161,7 +160,8 @@ export default class CipherRagbabySolver extends CipherSolver {
                             }
                             // The slot is occupied, so try for the next line
                         }
-                    } if (ctslot != undefined) {
+                    }
+                    if (ctslot !== undefined) {
                         // We have the cipher text letter (but not the plain text one)
                         let ptslottarget = (this.alphalen + ctslot - entry.ctoff) % this.alphalen
                         if (testline.line[ptslottarget] === '') {
@@ -178,7 +178,7 @@ export default class CipherRagbabySolver extends CipherSolver {
                 }
             }
             if (needNew) {
-                // Brand new slot. 
+                // Brand new slot.
                 let newline: mapLine = { line: [], notes: "", usedlet: {} }
                 for (let i = 0; i < this.alphalen; i++) {
                     newline.line.push("")
@@ -190,7 +190,7 @@ export default class CipherRagbabySolver extends CipherSolver {
                 newline.line[entry.ctoff] = entry.ct
                 lines.push(newline)
             } else {
-                while (mergeslot != -1) {
+                while (mergeslot !== -1) {
                     let tomerge = mergeslot
                     mergeslot = -1
                     for (let testslot = tomerge + 1; testslot < lines.length; testslot++) {
@@ -200,7 +200,7 @@ export default class CipherRagbabySolver extends CipherSolver {
                         // character in the testslot must be in the tomerge slot and all other
                         // characters in the testslot must not overlap
                         for (let c in lines[testslot].usedlet) {
-                            if (lines[tomerge].usedlet[c] != undefined) {
+                            if (lines[tomerge].usedlet[c] !== undefined) {
                                 shift = lines[testslot].usedlet[c] - lines[tomerge].usedlet[c]
                                 canmerge = true
                                 break
@@ -219,7 +219,7 @@ export default class CipherRagbabySolver extends CipherSolver {
                                 // We have the shifted array, copy all of the characters into the target line
                                 for (let i in shifted) {
                                     let c = shifted[i]
-                                    if (c != '') {
+                                    if (c !== '') {
                                         lines[tomerge].line[i] = c
                                         lines[tomerge].usedlet[c] = Number(i)
                                     }
@@ -310,9 +310,9 @@ export default class CipherRagbabySolver extends CipherSolver {
     }
 
     /**
-    * Fills in the frequency portion of the frequency table.  For the Ragbaby
-    * we don't have the frequency table, so this doesn't need to do anything
-    */
+     * Fills in the frequency portion of the frequency table.  For the Ragbaby
+     * we don't have the frequency table, so this doesn't need to do anything
+     */
     displayFreq(): void {
     }
     /**
@@ -336,11 +336,11 @@ export default class CipherRagbabySolver extends CipherSolver {
         let dist = Number(repchar.substr(1))
 
         if (ct === '-') {
-            if (newchar != '') {
+            if (newchar !== '') {
                 // See if we had this character in a different slot.  If so, we need
                 // to delete
                 let oldpos = this.replmap[1].line.indexOf(newchar)
-                if (oldpos != -1) {
+                if (oldpos !== -1) {
                     this.replmap[1].line[oldpos] = ''
                 }
             }
@@ -444,9 +444,9 @@ export default class CipherRagbabySolver extends CipherSolver {
      * Replaces the map of letters for shifting
      */
     buildMap(): void {
-        if (this.cipherString === ''){
+        if (this.cipherString === '') {
             $("#ragwork").empty().append($("Enter a cipher to get started"))
-            return 
+            return
         }
         let table = new JTTable({ class: "tfreq editmap" })
         let row = table.addHeaderRow(["Shift Left"])
@@ -470,10 +470,10 @@ export default class CipherRagbabySolver extends CipherSolver {
                 if (i < this.replmap[r].line.length) {
                     repc = this.replmap[r].line[i]
                 }
-                if (repc != '') {
-                    if (this.replmap[0].line[i] == '') {
+                if (repc !== '') {
+                    if (this.replmap[0].line[i] === '') {
                         this.replmap[0].line[i] = repc
-                    } else if (repc != this.replmap[0].line[i]) {
+                    } else if (repc !== this.replmap[0].line[i]) {
                         extranote += " '" + repc + "' conflict"
                     }
                 }
@@ -498,7 +498,6 @@ export default class CipherRagbabySolver extends CipherSolver {
         row.add($("<button>", { href: "#", class: "rs", 'data-vrow': -1 }).html("&#8649;"))
         row.add("")
 
-
         $("#ragwork").empty().append(table.generate())
 
         // Now go through and update all of the character maps
@@ -510,7 +509,7 @@ export default class CipherRagbabySolver extends CipherSolver {
             if (i !== -1) {
                 let ptpos = (this.alphalen + i - dist) % this.alphalen
                 let pt = this.replmap[0].line[ptpos]
-                if (pt != '') {
+                if (pt !== '') {
                     repl = pt
                 }
             }
@@ -520,7 +519,7 @@ export default class CipherRagbabySolver extends CipherSolver {
         this.attachHandlers()
     }
     /**
-     * 
+     *
      */
     buildCustomUI(): void {
         super.buildCustomUI()
@@ -529,7 +528,7 @@ export default class CipherRagbabySolver extends CipherSolver {
         })
         this.setAlphabetSize(Number($("input[name='alphasize']:checked").val()))
     }
-    /** 
+    /**
      * Creates an HTML table to display the frequency of characters
      * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
@@ -543,7 +542,7 @@ export default class CipherRagbabySolver extends CipherSolver {
      * @param r Which map to shift
      * @param dist Distance to shift by
      */
-    rotateMap(r: number, dist: number) {
+    rotateMap(r: number, dist: number): void {
         if (r < this.replmap.length) {
             let newmap: Array<string> = []
             for (let i = 0; i < this.alphalen; i++) {

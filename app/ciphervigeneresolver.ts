@@ -1,15 +1,16 @@
 /// <reference types="ciphertypes" />
 
-import JTRadioButton from "./jtradiobutton"
-import JTTable from "./jttable"
-import CipherSolver from "./ciphersolver"
+import { IState } from "./cipherhandler";
+import { CipherSolver } from "./ciphersolver"
+import { CipherTypeInfo, ICipherType } from "./ciphertypes"
+import { JTRadioButton } from "./jtradiobutton"
+import { JTTable } from "./jttable"
 import Mapper from "./mapper"
 import mapperFactory from "./mapperfactory"
-import { ICipherType, CipherTypeInfo } from "./ciphertypes"
 
-export default class CipherVigenereSolver extends CipherSolver {
-    defaultstate = {
-        /** The current cipher typewe are working on */
+export class CipherVigenereSolver extends CipherSolver {
+    defaultvigenerestate: IState = {
+        /** The current cipher type we are working on */
         cipherType: ICipherType.Vigenere,
         /** Currently selected keyword */
         keyword: "",
@@ -20,14 +21,14 @@ export default class CipherVigenereSolver extends CipherSolver {
         /** Replacement characters */
         replacements: {}
     }
-    state = this.defaultstate
+    state: IState = { ...this.defaultvigenerestate }
 
     /** Map of indexes into which character of the string is at that index */
     cipherOffsets: Array<number> = []
     /** Implements the mapping for the various cipher types */
     ciphermap: Mapper = null
     restore(data: SaveSet): void {
-        this.state = this.defaultstate
+        this.state = this.defaultvigenerestate
         if (data.cipherType !== undefined) {
             this.state.cipherType = data.cipherType
         }
@@ -55,11 +56,11 @@ export default class CipherVigenereSolver extends CipherSolver {
     /**
      * Make a copy of the current state
      */
-    save(): SaveSet {
+    save(): IState {
         // We need a deep copy of the save state
-        let savestate = {...this.state}
+        let savestate = { ...this.state }
         // And the replacements hash also has to have a deep copy
-        savestate.replacements = {...this.state.replacements}
+        savestate.replacements = { ...this.state.replacements }
         return savestate
     }
 
@@ -97,7 +98,7 @@ export default class CipherVigenereSolver extends CipherSolver {
         this.state.cipherType = cipherType
         this.ciphermap = mapperFactory(cipherType)
         this.setKeyword(this.state.keyword)
-        for(let repc in this.state.replacements){
+        for (let repc in this.state.replacements) {
             this.setChar(repc, this.state.replacements[repc])
         }
     }
@@ -161,7 +162,7 @@ export default class CipherVigenereSolver extends CipherSolver {
                 let key = this.ciphermap.decodeKey(ct, pt)
                 let keypos = (i + pos) % this.state.keyword.length
                 let prevkey = thiskey.charAt(keypos)
-                if (prevkey != '-' && prevkey != key || key === '?') {
+                if (prevkey !== '-' && prevkey !== key || key === '?') {
                     valid = false
                     break
                 }
@@ -187,9 +188,9 @@ export default class CipherVigenereSolver extends CipherSolver {
     }
 
     /**
-    * Fills in the frequency portion of the frequency table.  For the Vigenere
-    * we don't have the frequency table, so this doesn't need to do anything
-    */
+     * Fills in the frequency portion of the frequency table.  For the Vigenere
+     * we don't have the frequency table, so this doesn't need to do anything
+     */
     displayFreq(): void {
     }
     /**
@@ -312,15 +313,14 @@ export default class CipherVigenereSolver extends CipherSolver {
         let posthead1 = '</tr></tbody></table><div class="repl" data-chars="'
         let posthead2 = '"></div></div>'
         let pre = prehead
-        let i, len
         let datachars = ''
         let charset = this.getCharset().toUpperCase()
         this.freq = {}
-        for (i = 0, len = charset.length; i < len; i++) {
+        for (let i = 0, len = charset.length; i < len; i++) {
             this.freq[charset.substr(i, 1).toUpperCase()] = 0
         }
 
-        for (i = 0, len = str.length; i < len; i++) {
+        for (let i = 0, len = str.length; i < len; i++) {
             let t = str.substr(i, 1).toUpperCase()
             if (this.isValidChar(t)) {
                 this.cipherOffsets.push(i)
@@ -360,7 +360,7 @@ export default class CipherVigenereSolver extends CipherSolver {
             $(elem).empty().append(this.makeChoices())
         })
     }
-    /** 
+    /**
      * Creates an HTML table to display the frequency of characters
      * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */

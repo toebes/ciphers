@@ -1,77 +1,79 @@
 /// <reference types="ciphertypes" />
 
-import CipherMorseSolver from "./ciphermorsesolver"
-export default 
+import {CipherMorseSolver} from "./ciphermorsesolver"
+import { ICipherType } from "./ciphertypes";
+export class CipherFractionatedMorseSolver extends CipherMorseSolver {
 
-class CipherFractionatedMorseSolver extends CipherMorseSolver {
-    
-    /** @type {Object.<string, string>} 
-    */
-   fractionatedMorseMap:StringMap = {
-    'A': 'OOO',
-    'B': 'OO-',
-    'C': 'OOX',
-    'D': 'O-O',
-    'E': 'O--',
-    'F': 'O-X',
-    'G': 'OXO',
-    'H': 'OX-',
-    'I': 'OXX',
-    'J': '-OO',
-    'K': '-O-',
-    'L': '-OX',
-    'M': '--O',
-    'N': '---',
-    'O': '--X',
-    'P': '-XO',
-    'Q': '-X-',
-    'R': '-XX',
-    'S': 'XOO',
-    'T': 'XO-',
-    'U': 'XOX',
-    'V': 'X-O',
-    'W': 'X--',
-    'X': 'X-X',
-    'Y': 'XXO',
-    'Z': 'XX-'
-}
+    readonly defaultfractionatedMorseMap: StringMap = {
+        'A': 'OOO',
+        'B': 'OO-',
+        'C': 'OOX',
+        'D': 'O-O',
+        'E': 'O--',
+        'F': 'O-X',
+        'G': 'OXO',
+        'H': 'OX-',
+        'I': 'OXX',
+        'J': '-OO',
+        'K': '-O-',
+        'L': '-OX',
+        'M': '--O',
+        'N': '---',
+        'O': '--X',
+        'P': '-XO',
+        'Q': '-X-',
+        'R': '-XX',
+        'S': 'XOO',
+        'T': 'XO-',
+        'U': 'XOX',
+        'V': 'X-O',
+        'W': 'X--',
+        'X': 'X-X',
+        'Y': 'XXO',
+        'Z': 'XX-'
+    }
+    fractionatedMorseMap: StringMap = {}
 
-/** @type {Array.string} 
- */
-readonly fractionatedMorseReplaces: Array<string> = [
-    'OOO', 'OO-', 'OOX', 'O-O', 'O--', 'O-X', 'OXO', 'OX-', 'OXX',
-    '-OO', '-O-', '-OX', '--O', '---', '--X', '-XO', '-X-', '-XX',
-    'XOO', 'XO-', 'XOX', 'X-O', 'X--', 'X-X', 'XXO', 'XX-']
+    readonly fractionatedMorseReplaces: Array<string> = [
+        'OOO', 'OO-', 'OOX', 'O-O', 'O--', 'O-X', 'OXO', 'OX-', 'OXX',
+        '-OO', '-O-', '-OX', '--O', '---', '--X', '-XO', '-X-', '-XX',
+        'XOO', 'XO-', 'XOX', 'X-O', 'X--', 'X-X', 'XXO', 'XX-']
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     *
-     * Fractionated Morse Solver
-     *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    init():void {
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+         *
+         * Fractionated Morse Solver
+         *
+         * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+    init(): void {
+        this.cipherType = ICipherType.FractionatedMorse
         this.cipherWidth = 3
+        this.fractionatedMorseMap = { ...this.defaultfractionatedMorseMap }
         this.setCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
     }
     getMorseMap(): StringMap {
         return this.fractionatedMorseMap
     }
-    setMorseMapEntry(entry:string, val:string):void {
+    setMorseMapEntry(entry: string, val: string): void {
         this.fractionatedMorseMap[entry] = val
     }
+    unmapMorse(entry: string): number {
+        return this.fractionatedMorseReplaces.indexOf(entry)
+    }
+
     /*
      * Create an edit field for a dropdown
     */
-   makeFreqEditField(c:string):JQuery<HTMLElement> {
+    makeFreqEditField(c: string): JQuery<HTMLElement> {
         if (this.locked[c]) {
             return $(this.normalizeHTML(this.fractionatedMorseMap[c]))
         }
         let mselect = $('<select class="msli" data-char="' + c + '" id="m' + c + '"/>')
-        let locklist = {}
+        const locklist = {}
         /* Build a list of the locked strings we should skip */
         for (let key in this.locked) {
             if (this.locked.hasOwnProperty(key) && this.locked[key]) {
                 locklist[this.fractionatedMorseMap[key]] = true
-                console.log('Recording locklist['+key+']='+locklist[key])
+                console.log('Recording locklist[' + key + ']=' + locklist[key])
             }
         }
         let mreplaces = this.fractionatedMorseReplaces.length
@@ -79,11 +81,11 @@ readonly fractionatedMorseReplaces: Array<string> = [
         selected[this.fractionatedMorseMap[c]] = " selected"
         for (let i = 0; i < mreplaces; i++) {
             let text = this.fractionatedMorseReplaces[i]
-            console.log('Checkign for '+text)
+            console.log('Checkign for ' + text)
             if (!locklist[text]) {
                 $("<option />", { value: text, selected: selected[text] })
-                                 .html(this.normalizeHTML(text))
-                                 .appendTo(mselect)
+                    .html(this.normalizeHTML(text))
+                    .appendTo(mselect)
             }
         }
         return mselect
@@ -95,23 +97,24 @@ readonly fractionatedMorseReplaces: Array<string> = [
      * @param {string} item This is which character we are changing the mapping for
      * @param {number} val This is which element we are changing it to.  This is an index into the fractionatedMorseReplaces table
      */
-    updateSel(item:string, val:string):void {
+    public updateSel(item: string, val: string): void {
         console.log('updateFractionatedMorseSel item=' + item + ' val=' + val)
         let toswapwith = item
 
         for (let key in this.fractionatedMorseMap) {
-            if (this.fractionatedMorseMap.hasOwnProperty(key))
+            if (this.fractionatedMorseMap.hasOwnProperty(key)) {
                 if (this.fractionatedMorseMap[key] === val) {
                     toswapwith = key
                     break
                 }
+            }
         }
         if (toswapwith !== item) {
-            let swapval = this.fractionatedMorseMap[item]
-            this.fractionatedMorseMap[item] = this.fractionatedMorseMap[toswapwith]
-            this.fractionatedMorseMap[toswapwith] = swapval
-            this.UpdateFreqEditTable()
-            this.load()
+            const swapval = this.fractionatedMorseMap[item];
+            this.fractionatedMorseMap[item] = this.fractionatedMorseMap[toswapwith];
+            this.fractionatedMorseMap[toswapwith] = swapval;
+            this.UpdateFreqEditTable();
+            this.load();
         }
     }
 }

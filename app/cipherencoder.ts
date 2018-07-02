@@ -1,13 +1,12 @@
 /// <reference types="ciphertypes" />
 
-import CipherHandler from "./cipherhandler"
+import { CipherHandler } from "./cipherhandler"
 
 /**
  * CipherEncoder - This class handles all of the actions associated with encoding
  * a cipher.
  */
-export default
-    class CipherEncoder extends CipherHandler {
+export class CipherEncoder extends CipherHandler {
     /**
      * Size of chunks of text to format to.  0 Indicates that the original spacing
      * is to be preserved.  Any other value indicates that spaces are to be removed
@@ -15,7 +14,7 @@ export default
      */
     groupingSize: number = 0
     /**
-     * Initializes the encoder. 
+     * Initializes the encoder.
      * We don't want to show the reverse replacement since we are doing an encode
      * @param {string} lang Language to select (EN is the default)
      */
@@ -58,25 +57,25 @@ export default
         // Call the super if we plan to match the text against a dictionary.
         // That is generally used for a solver, but we might want to do it in the
         // case that we want to analyze the complexity of the phrase
-        // super.loadLanguage(lang) 
+        // super.loadLanguage(lang)
     }
 
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
-        $('input[type=radio][name=enctype]').off('change').on('change',() => {
+        $('input[type=radio][name=enctype]').off('change').on('change', () => {
             this.setkvalinputs()
         })
         this.setkvalinputs()
         super.attachHandlers()
     }
     /**
-     * Set chunking size for input data string befre encoding. 
-     * Primarily Used in Patristocrat, but could be used for other types to indicate the period 
+     * Set chunking size for input data string befre encoding.
+     * Primarily Used in Patristocrat, but could be used for other types to indicate the period
      */
     setCipherType(cipherType: string): void {
-        if (cipherType == 'patristocrat') {
+        if (cipherType === 'patristocrat') {
             this.groupingSize = 5
         }
         this.attachHandlers()
@@ -112,13 +111,12 @@ export default
      * @param {string} cset Source character set
      */
     setReplacement(cset: string, repl: string): void {
-        let i, len, errors
-        errors = ''
+        let errors = ''
         console.log('Set Replacement cset=' + cset + ' repl=' + repl)
         // Figure out what letters map to the destination letters.  Note that
         // the input chracterset alphabet may not be in the same order as the
         // actual alphabet.
-        for (i = 0, len = repl.length; i < len; i++) {
+        for (let i = 0, len = repl.length; i < len; i++) {
             let repc = repl.substr(i, 1)
             let orig = cset.substr(i, 1)
             // Remember that we are backwards because this an encoder
@@ -156,14 +154,14 @@ export default
      * Generate a K3 alphabet where both alphabets are the same using a Keyword
      * like a K1 or K2 alphabet, but both are the same alphabet order.
      * It is important to note that for a K3 alphabet you must have the same
-     * alphabet for source and destination.  This means languages like Swedish 
+     * alphabet for source and destination.  This means languages like Swedish
      * and Norwegian can not use a K3
      * @param keyword Keyword/Keyphrase to map
      * @param offset Offset from the start of the alphabet to place the keyword
      * @param shift Shift of the destination alphabet from the source alphabet
      */
     genAlphabetK3(keyword: string, offset: number, shift: number): void {
-        if (this.getCharset() != this.getSourceCharset()) {
+        if (this.getCharset() !== this.getSourceCharset()) {
             let error = 'Source and encoding character sets must be the same'
             console.log(error)
             $(".err").text(error)
@@ -181,7 +179,7 @@ export default
      * @param offset2 Offset for the keyword in the destination alphabet
      */
     genAlphabetK4(keyword: string, offset: number, keyword2: string, offset2: number): void {
-        if (this.getCharset().length != this.getSourceCharset().length) {
+        if (this.getCharset().length !== this.getSourceCharset().length) {
             let error = 'Source and encoding character sets must be the same length'
             console.log(error)
             $(".err").text(error)
@@ -199,13 +197,12 @@ export default
     genKstring(keyword: string, offset: number, alphabet: string): string {
         let unasigned = alphabet
         let repl = ""
-        let i, len
 
         // Go through each character in the source string one at a time
         // and see if it is a legal character.  if we have not already seen
         // it, then remove it from the list of legal characters and add it
         // to the output string
-        for (i = 0, len = keyword.length; i < len; i++) {
+        for (let i = 0, len = keyword.length; i < len; i++) {
             let c = keyword.substr(i, 1).toUpperCase()
             // Is it one of the characters we haven't used?
             let pos = unasigned.indexOf(c)
@@ -246,7 +243,7 @@ export default
             // If the replacement character is the same as the original
             // then we just get another one and put the replacement back at the end
             // This is guaranteed to be unique
-            if (orig == repl) {
+            if (orig === repl) {
                 let newrepl = this.getRepl()
                 this.unasigned += repl
                 repl = newrepl
@@ -256,7 +253,7 @@ export default
         }
 
         // Now we have to handle the special case of the last character
-        if (charset.substr(pos, 1) == this.unasigned) {
+        if (charset.substr(pos, 1) === this.unasigned) {
             // Just pick a random spot in what we have already done and
             // swap it.  We are guaranteed that it won't be the last character
             // since it matches already
@@ -279,7 +276,6 @@ export default
         let res = $('<div>')
         let charset = this.getCharset()
         let sourcecharset = this.getSourceCharset()
-        let i, len
         let revRepl = []
         let encodeline = ""
         let decodeline = ""
@@ -292,14 +288,14 @@ export default
                 revRepl[this.replacement[repc]] = repc
             }
         }
-        // Zero out the frequency table 
+        // Zero out the frequency table
         this.freq = {}
-        for (i = 0, len = sourcecharset.length; i < len; i++) {
+        for (let i = 0, len = sourcecharset.length; i < len; i++) {
             this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0
         }
         // Now go through the string to encode and compute the character
         // to map to as well as update the frequency of the match
-        for (i = 0, len = str.length; i < len; i++) {
+        for (let i = 0, len = str.length; i < len; i++) {
             let t = str.substr(i, 1).toUpperCase()
             // See if the character needs to be mapped.
             if (typeof langreplace[t] !== 'undefined') {
@@ -345,9 +341,9 @@ export default
         return res
     }
     /**
-     * Generates the HTML code for allowing an encoder to select the alphabet type 
+     * Generates the HTML code for allowing an encoder to select the alphabet type
      * along with specifying the parameters for that alphabet
-     * @returns HTML Elements for selecting the alphabet 
+     * @returns HTML Elements for selecting the alphabet
      */
     createAlphabetType(): JQuery<HTMLElement> {
         let res = $('<div>')
@@ -403,7 +399,6 @@ export default
         super.UpdateFreqEditTable()
     }
 
-
     /**
      * Loads up the values for the encoder
      */
@@ -423,11 +418,11 @@ export default
         $("#answer").empty().append(res)
 
         /* testStrings */
-        for (let i = 0; i < this.testStrings.length; i++) {
-            let chi = this.CalculateChiSquare(this.testStrings[i])
-            let teststr = this.cleanString(this.testStrings[i])
+        for (let teststr of this.testStrings) {
+            let chi1 = this.CalculateChiSquare(teststr)
+            teststr = this.cleanString(teststr)
             let l = teststr.length
-            console.log(l + '`' + chi + '`' + teststr)
+            console.log(l + '`' + chi1 + '`' + teststr)
         }
 
         let chi = this.CalculateChiSquare(encoded)

@@ -49,4 +49,22 @@ export default class mapBeaufort extends Mapper {
         let keyval = (ct.charCodeAt(0) - Aval) + (cpt.charCodeAt(0) - Aval)
         return this.getCharCode(keyval)
     }
+    // Test cases to confirm that the Beaufort encoders/decoders work
+    //     'encBeaufort-aa=A': this.encBeaufort("a","a"), // OK
+    //     'encBeaufort-_a=?': this.encBeaufort("_","a"), // OK
+    //     'encBeaufort-lo=D': this.encBeaufort("l","o"), // OK
+    //     'encBeaufort-Zz=A': this.encBeaufort("Z","z"), // OK
+    //     'encBeaufort-Yb=D': this.encBeaufort("Y","b"), // OK
+    //     'decBeaufort-aa=A': this.decBeaufort("a","a"), // OK
+    //     'decBeaufort-_a=?': this.decBeaufort("_","a"), // OK
+    //     'decBeaufort-lo=D': this.decBeaufort("l","o"), // OK
+    //     'decBeaufort-Zz=A': this.decBeaufort("Z","z"), // OK
+    //     'decBeaufort-Yb=D': this.decBeaufort("Y","b"), // OK
+    //     'decKeyBeaufort-aa=A': this.decKeyBeaufort("a","a"), // OK
+    //     'decKeyBeaufort-_a=?': this.decKeyBeaufort("_","a"), // OK
+    //     'decKeyBeaufort-lo=Z': this.decKeyBeaufort("l","o"), // OK
+    //     'decKeyBeaufort-Zz=Y': this.decKeyBeaufort("Z","z"), // OK
+    //     'decKeyBeaufort-Yb=Z': this.decKeyBeaufort("Y","b"), // OK
+    // }
+
 }

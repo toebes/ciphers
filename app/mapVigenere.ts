@@ -46,4 +46,16 @@ export default class mapVigenere extends Mapper {
     decodeKey(ct: string, cpt: string): string {
         return this.decode(ct, cpt);
     }
+    // let testmap:StringMap = {
+    //     'encVigenere-aa=A': this.encVigenere("a","a"), // OK
+    //     'encVigenere-_a=?': this.encVigenere("_","a"), // OK
+    //     'encVigenere-lo=Z': this.encVigenere("l","o"), // OK
+    //     'encVigenere-Zz=Y': this.encVigenere("Z","z"), // OK
+    //     'encVigenere-Yb=Z': this.encVigenere("Y","b"), // OK
+    //     'decVigenere-aa=A': this.decVigenere("a","a"),  // OK
+    //     'decVigenere-_a=?': this.decVigenere("_","a"), // OK
+    //     'decVigenere-lo=X': this.decVigenere("l","o"), // OK
+    //     'decVigenere-Zz=A': this.decVigenere("Z","z"), // OK
+    //     'decVigenere-Yb=X': this.decVigenere("Y","b"), // OK
+
 }

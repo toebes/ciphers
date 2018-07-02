@@ -60,4 +60,20 @@ export default class mapVariant extends Mapper {
         let keyval = 26 - ((ct.charCodeAt(0) - Aval - cpt.charCodeAt(0) - Aval) % 26)
         return this.getCharCode(keyval)
     }
+    // let testmap:StringMap = {
+    //     'encVariant-aa=A': this.encVariant("a","a"), // OK
+    //     'encVariant-_a=?': this.encVariant("_","a"), // OK
+    //     'encVariant-lo=X': this.encVariant("l","o"), // OK
+    //     'encVariant-Zz=A': this.encVariant("Z","z"), // OK
+    //     'encVariant-Yb=X': this.encVariant("Y","b"), // OK
+    //     'decVariant-aa=A': this.decVariant("a","a"), // OK
+    //     'decVariant-_a=?': this.decVariant("_","a"), // OK
+    //     'decVariant-lo=Z': this.decVariant("l","o"), // OK
+    //     'decVariant-Zz=Y': this.decVariant("Z","z"), // OK
+    //     'decVariant-Yb=Z': this.decVariant("Y","b"), // OK
+    //     'decKeyVariant-aa=A': this.decKeyVariant("a","a"), // OK
+    //     'decKeyVariant-_a=?': this.decKeyVariant("_","a"), // OK
+    //     'decKeyVariant-lo=D': this.decKeyVariant("l","o"), // OK
+    //     'decKeyVariant-Zz=A': this.decKeyVariant("Z","z"), // OK
+    //     'decKeyVariant-Yb=D': this.decKeyVariant("Y","b"), // OK
 }

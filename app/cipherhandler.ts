@@ -265,6 +265,8 @@ export default
     undoStack: SaveSet[] = []
     /** Where we are in the undo stack */
     undoPosition: number = 0
+    /** Indicates that we need to queue an undo item before executing an Undo */
+    undoNeeded: string = undefined
     /**
      * The maximum number of characters to
      * be shown on an encoded line so that it can be readily pasted into a test
@@ -348,8 +350,8 @@ export default
      */
     addUndoRedo(): JQElement {
         let buttons = $("<div/>")
-        buttons.append($("<button/>", { href: "#", class: "undo"}).text("Undo").prop("disabled", true))
-        buttons.append($("<button/>", { href: "#", class: "redo"}).text("Redo").prop("disabled", true))
+        buttons.append($("<button/>", { href: "#", class: "undo" }).text("Undo").prop("disabled", true))
+        buttons.append($("<button/>", { href: "#", class: "redo" }).text("Redo").prop("disabled", true))
         return buttons
     }
     /**
@@ -366,30 +368,72 @@ export default
     save(): SaveSet {
         return null
     }
-    markUndo(): void {
-        if (this.undoPosition < this.undoStack.length) {
-            // truncate
+    /**
+     * Saves the current state of the cipher work so that it can be undone
+     * This code will attempt to merge named operations when pushing a second
+     * to the top of the stack.  This is useful for operations such as search
+     * @param undotype Type of undo (for merging with previous entries)
+     */
+    markUndo(undotype?: string): void {
+        if (this.undoPosition < this.undoStack.length - 1) {
+            this.undoStack.splice(this.undoPosition)
         }
-        this.undoStack.push(this.save())
-        this.undoPosition = this.undoStack.length - 1
-        $(".undo").button("option","disabled", false)
-        $(".redo").button("option","disabled", true)
+        if (undotype === undefined){
+            undotype = null
+        }
+        this.pushUndo(undotype);
+        this.undoNeeded = undotype
+        $(".undo").button("option", "disabled", false)
+        $(".redo").button("option", "disabled", true)
 
     }
+    /**
+     * Pushes or merges an undo operation to the top of the stack
+     * @param undotype Type of undo (for merging with previous entries)
+     */
+    pushUndo(undotype: string) {
+        let undodata = this.save()
+        if (undotype !== undefined && undotype !== null) {
+            undodata.undotype = undotype
+        } else {
+            undotype = null
+        }
+        // See if we can merge this (such as a find operation) with the previous undo
+        if (undotype !== null && this.undoStack.length > 0 && this.undoStack[this.undoStack.length - 1].undotype === undotype) {
+            this.undoStack[this.undoStack.length - 1] = undodata;
+        }
+        else {
+            this.undoStack.push(undodata);
+        }
+        this.undoPosition = this.undoStack.length - 1;
+    }
+    /**
+     * Restore work to a previous state stored on the stack
+     */
     unDo(): void {
+        // Note that if we are at the top of the undo stack, we have to push
+        // a new entry so that they can get back to where they are
+        if (this.undoNeeded !== undefined) {
+            this.pushUndo(this.undoNeeded)
+            this.undoNeeded = undefined
+        }
         if (this.undoPosition > 0) {
             this.undoPosition--
             this.restore(this.undoStack[this.undoPosition])
             $(".redo").button("option", "disabled", false)
-            $(".undo").button("option","disabled", (this.undoPosition === 0))
+            $(".undo").button("option", "disabled", (this.undoPosition <= 0))
         }
     }
+    /**
+     * Redo work (i.e. undo an undo)
+     */
     reDo(): void {
-        if (this.undoPosition < this.undoStack.length-1) {
+        if (this.undoPosition < this.undoStack.length - 1) {
             this.undoPosition++
             this.restore(this.undoStack[this.undoPosition])
-            $(".undo").button("option","disabled", false)
-            $(".redo").button("option","disabled", (this.undoPosition >= (this.undoStack.length - 1)))
+            this.undoNeeded = undefined
+            $(".undo").button("option", "disabled", false)
+            $(".redo").button("option", "disabled", (this.undoPosition >= (this.undoStack.length - 1)))
         }
     }
     layout(): void {
@@ -781,8 +825,9 @@ export default
         })
 
         $('.sfind').off("input").on("input", (e) => {
-            this.markUndo();
-            this.findPossible(($(e.target).val() as string))
+            this.markUndo("find")
+            let findStr = $(e.target).val() as string
+            this.findPossible(findStr)
         })
     }
 

@@ -1,5 +1,6 @@
 import JTRadioButton from "./jtradiobutton"
 import CipherSolver from "./ciphersolver"
+import { ICipherType, CipherTypeInfo }  from "./ciphertypes"
 
 /** Limits on the range of the number of rails allowed */
 const maxRails: number = 10
@@ -11,11 +12,7 @@ enum RailLayout {
     W_Zig_Zag,  // Railfence only
     M_Zig_Zag,  // Railfence only
 }
-/** Which type of cipher we are solving */
-enum RailType {
-    Railfence,
-    Redefence,
-}
+
 /**
  * The CipherRailfenceSolver class implements a solver for the Railfence Cipher
  */
@@ -28,7 +25,7 @@ export default class CipherRailfenceSolver extends CipherSolver {
         /** The current rail offset being tested */
         railOffset: 0,
         /** The type of cipher we are doing */
-        railType: RailType.Railfence,
+        railType: ICipherType.Railfence,
         /** How the rails are laid out */
         railLayout: RailLayout.W_by_Row,
         /** The order string for a Redefence */
@@ -104,7 +101,7 @@ export default class CipherRailfenceSolver extends CipherSolver {
      */
     private setRailLayout(layout: RailLayout): void {
         // We don't allow zig zag with Redefence, so switch to the matching by row type
-        if (this.state.railType === RailType.Redefence) {
+        if (this.state.railType === ICipherType.Redefence) {
             if (layout === RailLayout.W_Zig_Zag) {
                 layout = RailLayout.W_by_Row
             } else if (layout === RailLayout.M_Zig_Zag) {
@@ -117,9 +114,9 @@ export default class CipherRailfenceSolver extends CipherSolver {
      * Set rail cipher type
      * @param railtype Type of rail
      */
-    private setRailType(railtype: RailType): void {
+    private setRailType(railtype: ICipherType): void {
         this.state.railType = railtype
-        if (this.state.railType === RailType.Railfence) {
+        if (this.state.railType === ICipherType.Railfence) {
             this.setRailOrder("0123456789")
         }
     }
@@ -195,8 +192,8 @@ export default class CipherRailfenceSolver extends CipherSolver {
         let operationChoice = $('<div>')
 
         let radiobuttons = [
-            { id: 'rail', value: RailType.Railfence, title: 'Railfence' },
-            { id: 'rede', value: RailType.Redefence, title: 'Redefence' },
+            CipherTypeInfo.RadioButtonItem(ICipherType.Railfence),
+            CipherTypeInfo.RadioButtonItem(ICipherType.Redefence),
         ]
         operationChoice.append(JTRadioButton('railtyper', 'Cipher Type', 'railtype', radiobuttons, this.state.railType))
 
@@ -373,8 +370,8 @@ export default class CipherRailfenceSolver extends CipherSolver {
         $('[name="railtype"]').removeAttr('checked');
         $("input[name=railtype][value=" + this.state.railType + "]").prop('checked', true);
         $(".rorder").val(this.state.railOffset);
-        $(".rail").toggle((this.state.railType === RailType.Railfence));
-        $(".rede").toggle((this.state.railType === RailType.Redefence));
+        $(".rail").toggle((this.state.railType === ICipherType.Railfence));
+        $(".rede").toggle((this.state.railType === ICipherType.Redefence));
     }
 
     /**
@@ -442,12 +439,12 @@ export default class CipherRailfenceSolver extends CipherSolver {
         })
         $('input[type=radio][name=rlayout]').off('change').on('change', () => {
             this.markUndo()
-            this.setRailLayout(<RailLayout>Number($("input[name='rlayout']:checked").val()))
+            this.setRailLayout(Number($("input[name='rlayout']:checked").val()) as RailLayout)
             this.updateOutput()
         })
         $('input[type=radio][name=railtype]').off('change').on('change', () => {
             this.markUndo()
-            this.setRailType(<RailType>Number($("input[name='railtype']:checked").val()))
+            this.setRailType(Number($("input[name='railtype']:checked").val()) as ICipherType)
             this.updateOutput()
         })
         $("#rorder").off('input').on('input', (e) => {

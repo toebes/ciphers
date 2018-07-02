@@ -1,53 +1,105 @@
 /// <reference types="ciphertypes" />
 
-const Aval = "A".charCodeAt(0)
-
+import JTRadioButton from "./jtradiobutton"
 import JTTable from "./jttable"
 import CipherSolver from "./ciphersolver"
 import Mapper from "./mapper"
 import mapperFactory from "./mapperfactory"
+import { ICipherType, CipherTypeInfo } from "./ciphertypes"
 
 export default class CipherVigenereSolver extends CipherSolver {
-    /** The current cipher we are working on */
-    cipherString: string = ''
+    defaultstate = {
+        /** The current cipher typewe are working on */
+        cipherType: ICipherType.Vigenere,
+        /** Currently selected keyword */
+        keyword: "",
+        /** The current cipher we are working on */
+        cipherString: "",
+        /** The current string we are looking for */
+        findString: "",
+        /** Replacement characters */
+        replacements: {}
+    }
+    state = this.defaultstate
+
     /** Map of indexes into which character of the string is at that index */
     cipherOffsets: Array<number> = []
     /** Implements the mapping for the various cipher types */
     ciphermap: Mapper = null
-    /** Currently selected keyword */
-    keyword: string = ""
+    restore(data: SaveSet): void {
+        this.state = this.defaultstate
+        if (data.cipherType !== undefined) {
+            this.state.cipherType = data.cipherType
+        }
+        if (data.keyword !== undefined) {
+            this.state.keyword = data.keyword
+        }
+        if (data.cipherString !== undefined) {
+            this.state.cipherString = data.cipherString
+        }
+        if (data.findString !== undefined) {
+            this.state.findString = data.findString
+        }
+        if (data.replacements !== undefined) {
+            this.state.replacements = data.replacements
+        }
+
+        this.updateUI()
+        this.setCipherVariant(this.state.cipherType)
+        this.setUIDefaults()
+        $("#analysis").each((i, elem) => {
+            $(elem).empty().append(this.analyze(this.state.cipherString))
+        });
+        this.findPossible(this.state.findString)
+    }
+    /**
+     * Make a copy of the current state
+     */
+    save(): SaveSet {
+        // We need a deep copy of the save state
+        let savestate = {...this.state}
+        // And the replacements hash also has to have a deep copy
+        savestate.replacements = {...this.state.replacements}
+        return savestate
+    }
+
     /**
      * Sets up the radio button to choose the variant
      */
-    makeVigenereChoices(): JQuery<HTMLElement> {
+    makeChoices(): JQuery<HTMLElement> {
         let operationChoice = $('<div>')
-        let label = $('<label>', { for: 'codetab' }).text('Variant')
-        operationChoice.append(label)
 
-        let radioBox = $('<div>', { id: 'codetab', class: 'ibox' })
-        radioBox.append($('<input>', { id: 'vigenere', type: 'radio', name: 'codevariant', value: 'vigenere', checked: 'checked' }))
-        radioBox.append($('<label>', { for: 'vigenere', class: 'rlab' }).html('Vigen&egrave;re'))
-        radioBox.append($('<input>', { id: 'variant', type: 'radio', name: 'codevariant', value: 'variant' }))
-        radioBox.append($('<label>', { for: 'variant', class: 'rlab' }).text('Variant'))
-        radioBox.append($('<input>', { id: 'beaufort', type: 'radio', name: 'codevariant', value: 'beaufort' }))
-        radioBox.append($('<label>', { for: 'beaufort', class: 'rlab' }).text('Beaufort'))
-        radioBox.append($('<input>', { id: 'gronsfeld', type: 'radio', name: 'codevariant', value: 'gronsfeld' }))
-        radioBox.append($('<label>', { for: 'gronsfeld', class: 'rlab' }).text('Gronsfeld'))
-        radioBox.append($('<input>', { id: 'porta', type: 'radio', name: 'codevariant', value: 'porta' }))
-        radioBox.append($('<label>', { for: 'porta', class: 'rlab' }).text('Porta'))
-
-        operationChoice.append(radioBox)
-
+        let radiobuttons = [
+            CipherTypeInfo.RadioButtonItem(ICipherType.Vigenere),
+            CipherTypeInfo.RadioButtonItem(ICipherType.Variant),
+            CipherTypeInfo.RadioButtonItem(ICipherType.Beaufort),
+            CipherTypeInfo.RadioButtonItem(ICipherType.Gronsfeld),
+            CipherTypeInfo.RadioButtonItem(ICipherType.Porta),
+        ]
+        operationChoice.append(JTRadioButton('codetab', 'Cipher Type', 'codevariant', radiobuttons, this.state.cipherType))
         return operationChoice
     }
+
+    private updateUI(): void {
+        $('#encoded').val(this.state.cipherString)
+        $('#keyword').val(this.state.keyword)
+        $("#find").val(this.state.findString)
+        $("#answer").empty().append(this.build(this.state.cipherString))
+        $('[name="codevariant"]').removeAttr('checked');
+        $("input[name=codevariant][value=" + this.state.cipherType + "]").prop('checked', true);
+    }
+
     /**
      * Selects which variant table is to be used for mapping
-     * @param codevariant Name of code variant - one of vigenere, variant or beufort
+     * @param cipherType Name of code variant - one of vigenere, variant or beaufort
      */
-    setCodeVariant(codevariant: string): void {
-        console.log(codevariant)
-        this.ciphermap = mapperFactory(codevariant)
-        this.setKeyword(this.keyword)
+    setCipherVariant(cipherType: ICipherType): void {
+        this.state.cipherType = cipherType
+        this.ciphermap = mapperFactory(cipherType)
+        this.setKeyword(this.state.keyword)
+        for(let repc in this.state.replacements){
+            this.setChar(repc, this.state.replacements[repc])
+        }
     }
     /**
      * Changes the keyword to map against the table.  The length of the keyword is
@@ -58,7 +110,7 @@ export default class CipherVigenereSolver extends CipherSolver {
     setKeyword(str: string): void {
         if (str.length > 0) {
             console.log('Keyword is' + str)
-            this.keyword = str
+            this.state.keyword = str
             str = str.replace(" ", "")
             let period = str.length
             $("#period").text("Period = " + period)
@@ -68,7 +120,7 @@ export default class CipherVigenereSolver extends CipherSolver {
                 let vslot = Number(i) % period
                 let ckey = str.charAt(vslot)
                 $("[data-char='" + this.cipherOffsets[i] + "']").attr('data-vslot', vslot)
-                let pt = this.ciphermap.decode(this.cipherString.charAt(this.cipherOffsets[i]), ckey)
+                let pt = this.ciphermap.decode(this.state.cipherString.charAt(this.cipherOffsets[i]), ckey)
                 console.log('Set:' + i + ' for CT=' + this.cipherOffsets[i] + ' Key=' + ckey + ' to pt=' + pt)
                 $("span[data-char='" + this.cipherOffsets[i] + "']").text(pt)
                 $("div[data-char='" + this.cipherOffsets[i] + "']").html(pt)
@@ -81,8 +133,12 @@ export default class CipherVigenereSolver extends CipherSolver {
      * @param {string} str string to look for
      */
     findPossible(str: string): void {
+        this.state.findString = str
+        if (str === "") {
+            return null
+        }
         let blankkey = ''
-        for (let c of this.keyword) {
+        for (let c of this.state.keyword) {
             blankkey += '-'
         }
         let res = null
@@ -99,10 +155,10 @@ export default class CipherVigenereSolver extends CipherSolver {
             let thiskey = blankkey
             let valid = true
             for (let pos = 0; pos < str.length; pos++) {
-                let ct = this.cipherString.charAt(this.cipherOffsets[i + pos])
+                let ct = this.state.cipherString.charAt(this.cipherOffsets[i + pos])
                 let pt = str.charAt(pos)
                 let key = this.ciphermap.decodeKey(ct, pt)
-                let keypos = (i + pos) % this.keyword.length
+                let keypos = (i + pos) % this.state.keyword.length
                 let prevkey = thiskey.charAt(keypos)
                 if (prevkey != '-' && prevkey != key || key === '?') {
                     valid = false
@@ -142,6 +198,9 @@ export default class CipherVigenereSolver extends CipherSolver {
      * @param {number} num
      */
     analyze(encoded: string): JQuery<HTMLElement> {
+        if (encoded === "") {
+            return null
+        }
         let prevSpot: NumberMap = {}
         let factorSet: NumberMap = {}
         let prevc = ''
@@ -230,8 +289,9 @@ export default class CipherVigenereSolver extends CipherSolver {
     setChar(repchar: string, newchar: string): void {
         console.log("vigenere setChar data-char=" + repchar + ' newchar=' + newchar)
 
+        this.state.replacements[repchar] = newchar
         let index = Number(repchar)
-        let ct = this.cipherString.charAt(index)
+        let ct = this.state.cipherString.charAt(index)
         $("input[data-char='" + repchar + "']").val(newchar)
         let key = this.ciphermap.decodeKey(ct, newchar)
         $("div[data-schar='" + repchar + "']").html(key)
@@ -243,60 +303,14 @@ export default class CipherVigenereSolver extends CipherSolver {
      * @returns {string} HTML of solver structure
      */
     build(str: string): JQuery<HTMLElement> {
-        this.cipherString = str
+        this.state.cipherString = str
         this.cipherOffsets = []
-        // Test cases to confirm that the Vigenere/Variant/Beufort encoders/decoders work
-        // let testmap:StringMap = {
-        //     'encVigenere-aa=A': this.encVigenere("a","a"), // OK
-        //     'encVigenere-_a=?': this.encVigenere("_","a"), // OK
-        //     'encVigenere-lo=Z': this.encVigenere("l","o"), // OK
-        //     'encVigenere-Zz=Y': this.encVigenere("Z","z"), // OK
-        //     'encVigenere-Yb=Z': this.encVigenere("Y","b"), // OK
-        //     'decVigenere-aa=A': this.decVigenere("a","a"),  // OK
-        //     'decVigenere-_a=?': this.decVigenere("_","a"), // OK
-        //     'decVigenere-lo=X': this.decVigenere("l","o"), // OK
-        //     'decVigenere-Zz=A': this.decVigenere("Z","z"), // OK
-        //     'decVigenere-Yb=X': this.decVigenere("Y","b"), // OK
-
-        //     'encVariant-aa=A': this.encVariant("a","a"), // OK
-        //     'encVariant-_a=?': this.encVariant("_","a"), // OK
-        //     'encVariant-lo=X': this.encVariant("l","o"), // OK
-        //     'encVariant-Zz=A': this.encVariant("Z","z"), // OK
-        //     'encVariant-Yb=X': this.encVariant("Y","b"), // OK
-        //     'decVariant-aa=A': this.decVariant("a","a"), // OK
-        //     'decVariant-_a=?': this.decVariant("_","a"), // OK
-        //     'decVariant-lo=Z': this.decVariant("l","o"), // OK
-        //     'decVariant-Zz=Y': this.decVariant("Z","z"), // OK
-        //     'decVariant-Yb=Z': this.decVariant("Y","b"), // OK
-        //     'decKeyVariant-aa=A': this.decKeyVariant("a","a"), // OK
-        //     'decKeyVariant-_a=?': this.decKeyVariant("_","a"), // OK
-        //     'decKeyVariant-lo=D': this.decKeyVariant("l","o"), // OK
-        //     'decKeyVariant-Zz=A': this.decKeyVariant("Z","z"), // OK
-        //     'decKeyVariant-Yb=D': this.decKeyVariant("Y","b"), // OK
-
-        //     'encBeaufort-aa=A': this.encBeaufort("a","a"), // OK
-        //     'encBeaufort-_a=?': this.encBeaufort("_","a"), // OK
-        //     'encBeaufort-lo=D': this.encBeaufort("l","o"), // OK
-        //     'encBeaufort-Zz=A': this.encBeaufort("Z","z"), // OK
-        //     'encBeaufort-Yb=D': this.encBeaufort("Y","b"), // OK
-        //     'decBeaufort-aa=A': this.decBeaufort("a","a"), // OK
-        //     'decBeaufort-_a=?': this.decBeaufort("_","a"), // OK
-        //     'decBeaufort-lo=D': this.decBeaufort("l","o"), // OK
-        //     'decBeaufort-Zz=A': this.decBeaufort("Z","z"), // OK
-        //     'decBeaufort-Yb=D': this.decBeaufort("Y","b"), // OK
-        //     'decKeyBeaufort-aa=A': this.decKeyBeaufort("a","a"), // OK
-        //     'decKeyBeaufort-_a=?': this.decKeyBeaufort("_","a"), // OK
-        //     'decKeyBeaufort-lo=Z': this.decKeyBeaufort("l","o"), // OK
-        //     'decKeyBeaufort-Zz=Y': this.decKeyBeaufort("Z","z"), // OK
-        //     'decKeyBeaufort-Yb=Z': this.decKeyBeaufort("Y","b"), // OK
-        // }
         let res = ""
         let combinedtext = ""
         let prehead = '<div class="sword"><table class="tword"><tbody><tr>'
         let posthead1 = '</tr></tbody></table><div class="repl" data-chars="'
         let posthead2 = '"></div></div>'
         let pre = prehead
-        let post = ''
         let i, len
         let datachars = ''
         let charset = this.getCharset().toUpperCase()
@@ -313,7 +327,7 @@ export default class CipherVigenereSolver extends CipherSolver {
                 combinedtext += '<span data-char="' + i + '">?</span>'
                 t = pre + '<td><div class="slil">' + t + '</div>' +
                     '<div data-char="' + i + '" class="vans">?</div>' +
-                    '<input type="text" id="ti' + i + '" class="sli slvi" data-char="' + i + '" />' +
+                    '<input type="text" id="ti' + i + '" class="sli slvi" data-char="' + i + '"/>' +
                     '<div data-schar="' + i + '">&nbsp;</div></td>'
                 pre = ''
             } else if (t === ' ' || t === '\n' || t === '\r') {
@@ -342,7 +356,7 @@ export default class CipherVigenereSolver extends CipherSolver {
     buildCustomUI(): void {
         super.buildCustomUI()
         $('.precmds').each((i, elem) => {
-            $(elem).empty().append(this.makeVigenereChoices())
+            $(elem).empty().append(this.makeChoices())
         })
     }
     /** 
@@ -362,27 +376,35 @@ export default class CipherVigenereSolver extends CipherSolver {
      */
     attachHandlers(): void {
         super.attachHandlers()
-        this.setCodeVariant(<string>$("input[name='codevariant']:checked").val())
+        this.setCipherVariant(Number($("input[name='codevariant']:checked").val()) as ICipherType)
 
-        $('input[type=radio][name=codevariant]').off('change').on('change',(e) => {
-            this.setCodeVariant(<string>$("input[name='codevariant']:checked").val())
+        $('input[type=radio][name=codevariant]').off('change').on('change', (e) => {
+            this.markUndo()
+            this.setCipherVariant(Number($("input[name='codevariant']:checked").val()) as ICipherType)
         })
         $('#keyword').off('input').on('input', (e) => {
-            this.setKeyword(<string>$(e.target).val())
+            let newkeyword = $(e.target).val() as string
+            if (newkeyword !== this.state.keyword) {
+                this.markUndo()
+                this.setKeyword(newkeyword)
+            }
         })
-        $("a.vkey").off('click').on('click',(e) => {
+        $("a.vkey").off('click').on('click', (e) => {
             let newkey = $(e.target).attr('data-key')
             if (newkey === undefined) {
                 newkey = $(e.target).html()
             }
-            this.setKeyword(newkey)
-            $('#keyword').val(newkey)
+            if (newkey !== this.state.keyword) {
+                this.markUndo()
+                this.setKeyword(newkey)
+                $('#keyword').val(newkey)
+            }
         })
-        $(".slvi").off('blur').on('blur',(e) => {
+        $(".slvi").off('blur').on('blur', (e) => {
             let tohighlight = $(e.target).attr('data-vslot')
             $("[data-vslot='" + tohighlight + "']").removeClass("allfocus")
             $(e.target).removeClass("focus")
-        }).off('focus').on('focus',(e) => {
+        }).off('focus').on('focus', (e) => {
             let tohighlight = $(e.target).attr('data-vslot')
             $("[data-vslot='" + tohighlight + "']").addClass("allfocus")
             $(e.target).addClass("focus")

@@ -135,7 +135,8 @@ export default class CipherVigenereSolver extends CipherSolver {
     findPossible(str: string): void {
         this.state.findString = str
         if (str === "") {
-            return null
+            $(".findres").empty()
+            return
         }
         let blankkey = ''
         for (let c of this.state.keyword) {

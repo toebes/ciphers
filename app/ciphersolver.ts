@@ -69,6 +69,9 @@ export class CipherSolver extends CipherHandler {
         //     }
         // }
         let einput = $('<input/>', { type: "text", class: "sli", 'data-char': c, id: 'm' + c, value: this.replacement[c] })
+        if (this.locked[c]) {
+            einput.prop("disabled", true)
+        }
         return einput
     }
     /*

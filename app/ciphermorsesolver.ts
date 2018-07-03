@@ -241,6 +241,7 @@ export
     attachHandlers(): void {
         $(".cb").off('change').on('change', (e) => {
             let toupdate = $(e.target).attr('data-char')
+            this.markUndo()
             this.updateCheck(toupdate, $(e.target).prop("checked"))
         })
         super.attachHandlers()

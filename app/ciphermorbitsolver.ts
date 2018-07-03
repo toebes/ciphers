@@ -48,6 +48,9 @@ export class CipherMorbitSolver extends CipherMorseSolver {
     */
     makeFreqEditField(c: string): JQuery<HTMLElement> {
         let mselect = $('<select class="msli" data-char="' + c + '" id="m' + c + '"/>')
+        if (this.locked[c]) {
+            mselect.prop("disabled", true)
+        }
         let mreplaces = this.morbitReplaces.length
         let selected = []
         selected[this.morbitMap[c]] = " selected"

@@ -307,7 +307,7 @@
           */
         "ban": false, // only enable this if you have some code pattern that you want to ban
         "ban-types": true,
-        "cyclomatic-complexity": false, // should be true,
+        "cyclomatic-complexity": true, // should be true,
         "deprecation": false, // deprecated APIs are sometimes unavoidable
         "file-header": false, // enable this rule only if you are legally required to add a file header
         "import-blacklist": false, // enable and configure this as you desire

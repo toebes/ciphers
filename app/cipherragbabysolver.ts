@@ -1,6 +1,9 @@
 /// <reference types="ciphertypes" />
 
+import { IState } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver"
+import { ICipherType } from "./ciphertypes";
+import { JTRadioButton } from "./jtradiobutton";
 import { JTTable } from "./jttable"
 interface mapSet {
     ct: string    // Cipher text
@@ -20,6 +23,13 @@ interface mappedLine {
     line: RagLine
     notes: string
 }
+
+interface IRagbabyState extends IState {
+    /** length of the alphabet */
+    alphalen: number
+    /** Maps the cipher text (Letter concatenated with a number) to a plaintext letter */
+    ctmap: mapSet[]
+}
 /**
  * The CipherRagbabySolver class implements a solver for the Ragbaby Cipher
  * replmap is the map of letters.
@@ -30,23 +40,63 @@ interface mappedLine {
  * It keeps track of a list of letters that a user has entered (in order)
  */
 export class CipherRagbabySolver extends CipherSolver {
-    /** The current cipher we are working on */
-    cipherString: string = ''
-    /** Maps the cipher text (Letter concatenated with a number) to a plaintext letter */
-    ctmap: Array<mapSet> = []
+    defaultstate: IRagbabyState = {
+        cipherType: ICipherType.Ragbaby,
+        alphalen: 24,
+        cipherString: "",
+        ctmap: [],
+    }
+    state: IRagbabyState = { ...this.defaultstate }
     /** List of all CT:Offset mappings */
     ctoffsets: BoolMap = {}
 
-    /** length of the alphabet */
-    alphalen: number = 24
     replmap: Array<mappedLine>
 
     emptyRagline(): RagLine {
         let rslt: RagLine = []
-        for (let i = 0; i < this.alphalen; i++) {
+        for (let i = 0; i < this.state.alphalen; i++) {
             rslt.push("")
         }
         return rslt
+    }
+    init(): void {
+        this.state = {...this.defaultstate}
+        this.state.ctmap = this.defaultstate.ctmap.slice()
+    }
+    restore(data: IRagbabyState): void {
+        if (data.cipherString !== undefined) {
+            this.state.cipherString = data.cipherString
+        }
+        if (data.ctmap !== undefined) {
+            this.state.ctmap = data.ctmap.slice()
+        }
+        if (data.alphalen !== undefined) {
+            this.state.alphalen = data.alphalen
+        }
+        $('#encoded').val(this.state.cipherString)
+        $('[name="alphasize"]').removeAttr('checked');
+        $("input[name=alphasize][value=" + this.state.alphalen + "]").prop('checked', true);
+        this.load()
+        for (let entry of this.state.ctmap) {
+            $("input[data-char='" + entry.ct + entry.ctoff + "']").val(entry.pt)
+        }
+        if (data.findString !== undefined) {
+            $("#find").val(data.findString)
+            this.findPossible(data.findString)
+        }
+
+        this.applyMappings()
+        this.buildMap()
+    }
+    /**
+     * Make a copy of the current state
+     */
+    save(): IState {
+        // We need a deep copy of the save state
+        let savestate = { ...this.state }
+        // And the ctmap hash also has to have a deep copy
+        savestate.ctmap = this.state.ctmap.slice()
+        return savestate
     }
 
     /**
@@ -60,8 +110,8 @@ export class CipherRagbabySolver extends CipherSolver {
         }
 
         let newmap: RagLine = []
-        for (let i = 0; i < this.alphalen; i++) {
-            let ipos = (this.alphalen + i + dist) % this.alphalen
+        for (let i = 0; i < this.state.alphalen; i++) {
+            let ipos = (this.state.alphalen + i + dist) % this.state.alphalen
             let fillc = ''
             if (ipos < s.length) {
                 fillc = s[ipos]
@@ -79,7 +129,7 @@ export class CipherRagbabySolver extends CipherSolver {
         let prevslot: NumberMap = {}
         let charset = this.getCharset()
         let newmap: Array<RagLine> = [this.emptyRagline(), this.emptyRagline()]
-        let lines: Array<mapLine> = []
+        let lines: mapLine[] = []
 
         // No default preferred position for any character
         for (let i of charset) {
@@ -103,7 +153,7 @@ export class CipherRagbabySolver extends CipherSolver {
         this.replmap.splice(2, this.replmap.length - 2)
 
         // Now go through all of the mappings that have been defined
-        for (let entry of this.ctmap) {
+        for (let entry of this.state.ctmap) {
             // 1. If the mapped letters are already known in the main map
             //    1a.  If the offset fits, skip the entry
             //    1b.  Create a new slot for the mismatch entry with PT as first letter
@@ -117,7 +167,7 @@ export class CipherRagbabySolver extends CipherSolver {
             let ptslot = cslot[entry.pt]
             let ctslot = cslot[entry.ct]
             if (ptslot !== -1 && ctslot !== -1) {
-                let ctslottarget = (ptslot + entry.ctoff) % this.alphalen
+                let ctslottarget = (ptslot + entry.ctoff) % this.state.alphalen
                 // Ok we are good for the plaintext.  Do we have a slot for the cipher text
                 // Now see if the distance between the two is acceptable
                 if (ctslot === ctslottarget) {
@@ -135,7 +185,7 @@ export class CipherRagbabySolver extends CipherSolver {
                     ctslot = testline.usedlet[entry.ct]
                     if (ptslot !== undefined) {
                         // We have the plain text character, see where the cipher text should be
-                        let ctslottarget = (ptslot + entry.ctoff) % this.alphalen
+                        let ctslottarget = (ptslot + entry.ctoff) % this.state.alphalen
                         // Does it also have the cipher text character?
                         if (ctslot !== undefined) {
                             // It does.  If the cipher text is at the same slot, we are safe
@@ -163,7 +213,7 @@ export class CipherRagbabySolver extends CipherSolver {
                     }
                     if (ctslot !== undefined) {
                         // We have the cipher text letter (but not the plain text one)
-                        let ptslottarget = (this.alphalen + ctslot - entry.ctoff) % this.alphalen
+                        let ptslottarget = (this.state.alphalen + ctslot - entry.ctoff) % this.state.alphalen
                         if (testline.line[ptslottarget] === '') {
                             // Nothing is there, so we can add to it
                             testline.line[ptslottarget] = entry.pt
@@ -180,7 +230,7 @@ export class CipherRagbabySolver extends CipherSolver {
             if (needNew) {
                 // Brand new slot.
                 let newline: mapLine = { line: [], notes: "", usedlet: {} }
-                for (let i = 0; i < this.alphalen; i++) {
+                for (let i = 0; i < this.state.alphalen; i++) {
                     newline.line.push("")
                 }
                 newline.notes = entry.ct + String(entry.ctoff) + note
@@ -189,55 +239,70 @@ export class CipherRagbabySolver extends CipherSolver {
                 newline.usedlet[entry.ct] = entry.ctoff
                 newline.line[entry.ctoff] = entry.ct
                 lines.push(newline)
-            } else {
-                while (mergeslot !== -1) {
-                    let tomerge = mergeslot
-                    mergeslot = -1
-                    for (let testslot = tomerge + 1; testslot < lines.length; testslot++) {
-                        let canmerge = false
-                        let shift = 0
-                        // See if these two are compatible. To be compatible, at least one
-                        // character in the testslot must be in the tomerge slot and all other
-                        // characters in the testslot must not overlap
-                        for (let c in lines[testslot].usedlet) {
-                            if (lines[tomerge].usedlet[c] !== undefined) {
-                                shift = lines[testslot].usedlet[c] - lines[tomerge].usedlet[c]
-                                canmerge = true
-                                break
+            } else if (mergeslot !== -1) {
+                this.mergeMappings(lines, mergeslot)
+            }
+        }
+        // We have created all the new lines, now we want to line them up as best as we can
+        this.lineUpMappings(lines, prevslot)
+    }
+    /**
+     * Merge any potential strips
+     * @param lines Computed line strips
+     * @param mergeslot slot to attempt to merge
+     */
+    mergeMappings(lines: mapLine[], mergeslot: number): void {
+        while (mergeslot !== -1) {
+            let tomerge = mergeslot
+            mergeslot = -1
+            for (let testslot = tomerge + 1; testslot < lines.length; testslot++) {
+                let canmerge = false
+                let shift = 0
+                // See if these two are compatible. To be compatible, at least one
+                // character in the testslot must be in the tomerge slot and all other
+                // characters in the testslot must not overlap
+                for (let c in lines[testslot].usedlet) {
+                    if (lines[tomerge].usedlet[c] !== undefined) {
+                        shift = lines[testslot].usedlet[c] - lines[tomerge].usedlet[c]
+                        canmerge = true
+                        break
+                    }
+                }
+                if (canmerge) {
+                    // We have at least one character in common.  Shift the
+                    let shifted = this.rotateSet(lines[testslot].line, shift)
+                    for (let i in shifted) {
+                        if (shifted[i] !== '' && lines[tomerge].line[i] !== '' && lines[tomerge].line[i] !== shifted[i]) {
+                            canmerge = false
+                            break
+                        }
+                    }
+                    if (canmerge) {
+                        // We have the shifted array, copy all of the characters into the target line
+                        for (let i in shifted) {
+                            let c = shifted[i]
+                            if (c !== '') {
+                                lines[tomerge].line[i] = c
+                                lines[tomerge].usedlet[c] = Number(i)
                             }
                         }
-                        if (canmerge) {
-                            // We have at least one character in common.  Shift the
-                            let shifted = this.rotateSet(lines[testslot].line, shift)
-                            for (let i in shifted) {
-                                if (shifted[i] !== '' && lines[tomerge].line[i] !== '' && lines[tomerge].line[i] !== shifted[i]) {
-                                    canmerge = false
-                                    break
-                                }
-                            }
-                            if (canmerge) {
-                                // We have the shifted array, copy all of the characters into the target line
-                                for (let i in shifted) {
-                                    let c = shifted[i]
-                                    if (c !== '') {
-                                        lines[tomerge].line[i] = c
-                                        lines[tomerge].usedlet[c] = Number(i)
-                                    }
-                                }
-                                // Copy over the notes
-                                lines[tomerge].notes += " " + lines[testslot].notes
-                                lines.splice(testslot, 1)
-                                // Now that we merged once, we may have to merge with something else, so check again
-                                mergeslot = tomerge
-                                break
-                            }
-                        }
+                        // Copy over the notes
+                        lines[tomerge].notes += " " + lines[testslot].notes
+                        lines.splice(testslot, 1)
+                        // Now that we merged once, we may have to merge with something else, so check again
+                        mergeslot = tomerge
+                        break
                     }
                 }
             }
         }
-
-        // We have created all the new lines, now we want to line them up as best as we can
+    }
+    /**
+     * Line up all lines and put them in the the replacement map
+     * @param lines Computed lines
+     * @param prevslot Previous positions of letters to attempt to line up against
+     */
+    lineUpMappings(lines: mapLine[], prevslot: NumberMap): void {
         for (let testline of lines) {
             // For convenience we try to see if the first letter has a corresponding favorite position
             let rotate = -prevslot[testline.line[0]]
@@ -261,29 +326,24 @@ export class CipherRagbabySolver extends CipherSolver {
      * Sets up the radio button to choose the variant
      */
     makeChoices(): JQuery<HTMLElement> {
-        let operationChoice = $('<div>')
-        let label = $('<label>', { for: 'codetab' }).text('Variant')
-        operationChoice.append(label)
+        let result = $("<div>")
 
-        let radioBox = $('<div>', { id: 'alphasizer', class: 'ibox' })
-        radioBox.append($('<input>', { id: 'a24', type: 'radio', name: 'alphasize', value: '24', checked: 'checked' }))
-        radioBox.append($('<label>', { for: 'a24', class: 'rlab' }).html('24 [No I/X]'))
-        radioBox.append($('<input>', { id: 'a26', type: 'radio', name: 'alphasize', value: '26' }))
-        radioBox.append($('<label>', { for: 'a26', class: 'rlab' }).text('26 [A-Z]'))
-        radioBox.append($('<input>', { id: 'a36', type: 'radio', name: 'alphasize', value: '36' }))
-        radioBox.append($('<label>', { for: 'a36', class: 'rlab' }).text('36 [A-Z 0-9]'))
+        let radiobuttons = [
+            { id: 'a24', value: 24, title: '24 [No I/X]' },
+            { id: 'a26', value: 26, title: '26 [A-Z]' },
+            { id: 'a36', value: 36, title: '36 [A-Z 0-9]' },
+        ]
+        result.append(JTRadioButton('alphasizer', 'Variant', 'alphasize', radiobuttons, this.state.alphalen))
 
-        operationChoice.append(radioBox)
-
-        return operationChoice
+        return result
     }
     /**
      * Selects which form of a ragbaby we are doing
      * @param alphalen Number of characters in the alphabet (24, 26, 36)
      */
     setAlphabetSize(alphalen: number): void {
-        this.alphalen = Number(alphalen)
-        switch (this.alphalen) {
+        this.state.alphalen = Number(alphalen)
+        switch (this.state.alphalen) {
             case 26:
                 this.setCharset("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
                 break
@@ -304,7 +364,7 @@ export class CipherRagbabySolver extends CipherSolver {
      * @param {string} str string to look for
      */
     findPossible(str: string): void {
-        let res = $("<span>").text('Unable to find ' + str + ' as ' + this.normalizeHTML(str))
+        let res = $("<span>").text('Unable to find ' + str + ' as ' + this.normalizeHTML(str) + ' - Not yet implemented')
         $(".findres").empty().append(res)
         this.attachHandlers()
     }
@@ -352,14 +412,14 @@ export class CipherRagbabySolver extends CipherSolver {
             // with a non-zero distance
             if (pt !== ct || dist !== 0) {
                 $("input[data-char='" + repchar + "']").val(newchar)
-                for (let pos in this.ctmap) {
-                    let entry = this.ctmap[pos]
+                for (let pos in this.state.ctmap) {
+                    let entry = this.state.ctmap[pos]
                     if (entry.ct === ct && entry.ctoff === dist) {
-                        this.ctmap.splice(Number(pos), 1)
+                        this.state.ctmap.splice(Number(pos), 1)
                     }
                 }
                 if (pt !== '') {
-                    this.ctmap.push({ ct: ct, pt: pt, ctoff: dist })
+                    this.state.ctmap.push({ ct: ct, pt: pt, ctoff: dist })
                 }
                 this.applyMappings()
                 this.buildMap()
@@ -373,9 +433,8 @@ export class CipherRagbabySolver extends CipherSolver {
      * @returns {string} HTML of solver structure
      */
     build(str: string): JQuery<HTMLElement> {
-        this.cipherString = str
+        this.state.cipherString = str
         this.ctoffsets = {}
-        this.ctmap = []
         this.replmap = [{ line: this.emptyRagline(), notes: "" }, { line: this.emptyRagline(), notes: "" }]
         let res = ""
         let combinedtext = ""
@@ -396,7 +455,7 @@ export class CipherRagbabySolver extends CipherSolver {
         for (let i = 0, len = str.length; i < len; i++) {
             let t = str.substr(i, 1).toUpperCase()
             if (this.isValidChar(t)) {
-                let off = (wordidx + wordlen) % this.alphalen
+                let off = (wordidx + wordlen) % this.state.alphalen
                 let id = t + off
                 this.ctoffsets[id] = true
                 let disabled = ''
@@ -444,13 +503,13 @@ export class CipherRagbabySolver extends CipherSolver {
      * Replaces the map of letters for shifting
      */
     buildMap(): void {
-        if (this.cipherString === '') {
+        if (this.state.cipherString === '') {
             $("#ragwork").empty().append($("Enter a cipher to get started"))
             return
         }
         let table = new JTTable({ class: "tfreq editmap" })
         let row = table.addHeaderRow(["Shift Left"])
-        for (let i = 0; i < this.alphalen; i++) {
+        for (let i = 0; i < this.state.alphalen; i++) {
             this.replmap[0].line[i] = ''
             row.add({ settings: { class: "off" }, content: i })
         }
@@ -465,7 +524,7 @@ export class CipherRagbabySolver extends CipherSolver {
             }
 
             row = table.addBodyRow([$("<button>", { href: "#", class: "ls", 'data-vrow': r }).html("&#8647;")])
-            for (let i = 0; i < this.alphalen; i++) {
+            for (let i = 0; i < this.state.alphalen; i++) {
                 let repc = ''
                 if (i < this.replmap[r].line.length) {
                     repc = this.replmap[r].line[i]
@@ -488,7 +547,7 @@ export class CipherRagbabySolver extends CipherSolver {
         }
         // Go back and put a header row showing all the letters we have picked up
         row = table.addHeaderRow([$("<button>", { href: "#", class: "ls", 'data-vrow': -1 }).html("&#8647;")])
-        for (let i = 0; i < this.alphalen; i++) {
+        for (let i = 0; i < this.state.alphalen; i++) {
             let repc = '?'
             if (i < this.replmap[0].line.length) {
                 repc = this.replmap[0].line[i]
@@ -507,7 +566,7 @@ export class CipherRagbabySolver extends CipherSolver {
             let i = this.replmap[0].line.indexOf(ct)
             let repl = '?'
             if (i !== -1) {
-                let ptpos = (this.alphalen + i - dist) % this.alphalen
+                let ptpos = (this.state.alphalen + i - dist) % this.state.alphalen
                 let pt = this.replmap[0].line[ptpos]
                 if (pt !== '') {
                     repl = pt
@@ -545,8 +604,8 @@ export class CipherRagbabySolver extends CipherSolver {
     rotateMap(r: number, dist: number): void {
         if (r < this.replmap.length) {
             let newmap: Array<string> = []
-            for (let i = 0; i < this.alphalen; i++) {
-                let ipos = (this.alphalen + i + dist) % this.alphalen
+            for (let i = 0; i < this.state.alphalen; i++) {
+                let ipos = (this.state.alphalen + i + dist) % this.state.alphalen
                 let fillc = ''
                 if (ipos < this.replmap[r].line.length) {
                     fillc = this.replmap[r].line[ipos]
@@ -591,16 +650,19 @@ export class CipherRagbabySolver extends CipherSolver {
     attachHandlers(): void {
         super.attachHandlers()
         $('input[type=radio][name=alphasize]').off('change').on('change', () => {
+            this.markUndo()
             this.setAlphabetSize(Number($("input[name='alphasize']:checked").val()))
         })
         $("button.ls")
             .off('click')
             .on('click', (e) => {
+                this.markUndo()
                 this.leftRotate(Number($(e.target).attr('data-vrow')))
             })
         $("button.rs")
             .off('click')
             .click((e) => {
+                this.markUndo()
                 this.rightRotate(Number($(e.target).attr('data-vrow')))
             })
         $(".slvi")

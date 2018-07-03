@@ -11,6 +11,7 @@ export const enum ICipherType {
     Porta,
     FractionatedMorse,
     Morbit,
+    Ragbaby,
 }
 // export const xxx = {
 //      ICipherType.Railfence:
@@ -70,6 +71,10 @@ export class CipherTypeInfo {
 
             case ICipherType.FractionatedMorse:
                 res = { value: cipherType, title: "Fractionated Morse", id: "fractionatedmorse" }
+                break
+
+            case ICipherType.Ragbaby:
+                res = { value: cipherType, title: "Ragbaby", id: "ragbaby" }
                 break
 
             default:

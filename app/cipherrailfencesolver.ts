@@ -188,12 +188,16 @@ export class CipherRailfenceSolver extends CipherSolver {
         result.append($('<input/>', { id: 'rails', class: 'inp spinr', title: 'Number of Rails', type: 'text', value: this.state.rails }))
 
         result.append($('<label>', { for: 'offset' }).text('Starting Offset'))
-        result.append($('<input/>', { id: 'offset', class: 'inp spino',
-                                      title: 'Starting Offset', type: 'text', value: this.state.railOffset }))
+        result.append($('<input/>', {
+            id: 'offset', class: 'inp spino',
+            title: 'Starting Offset', type: 'text', value: this.state.railOffset
+        }))
 
         result.append($('<label>', { for: 'rorder', class: "rede" }).text('Rail Order'))
-        result.append($('<input/>', { id: 'rorder', class: "rede",
-                                      title: 'Rail Order', type: 'text', value: this.state.railOrder.substr(0, this.state.rails) }))
+        result.append($('<input/>', {
+            id: 'rorder', class: "rede",
+            title: 'Rail Order', type: 'text', value: this.state.railOrder.substr(0, this.state.rails)
+        }))
 
         return result
     }
@@ -247,7 +251,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         str = this.minimizeString(str)
         // Generate the empty outlines array that we will output later.  This way
         // we don't have to check if a spot is empty, we can just write to it
-        let outlines: Array<Array<string>> = []
+        let outlines: string[][] = []
         for (let rail = 0; rail < this.state.rails; rail++) {
             let line: Array<string> = []
             for (let c of str) {
@@ -286,12 +290,6 @@ export class CipherRailfenceSolver extends CipherSolver {
                 ydir = -1
             }
             col++
-        }
-        let ans: Array<string> = []
-        if (isZigZag) {
-            for (let c of str) {
-                ans.push(" ")
-            }
         }
         let offs: Array<number> = []
         if (isZigZag) {
@@ -332,6 +330,22 @@ export class CipherRailfenceSolver extends CipherSolver {
                     offset += sortset[order].size
                 }
                 offs.push(offset)
+            }
+        }
+        return this.buildRailPre(outlines, offs, isZigZag, str)
+    }
+    /**
+     * build the output which shows the actual rails
+     * @param outlines Array representation of the computed rail positions
+     * @param offs Offsets for getting data from the string for a zigZag
+     * @param isZigZag This is a zigzag version of the rail
+     * @param str Original string for replacing from a zig zag
+     */
+    buildRailPre(outlines: string[][], offs: number[], isZigZag: boolean, str: string): JQuery<HTMLElement> {
+        let ans: string[] = []
+        if (isZigZag) {
+            for (let c of str) {
+                ans.push(" ")
             }
         }
         let ansline = ""

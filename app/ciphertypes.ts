@@ -2,38 +2,31 @@ import { JTRadioButton, JTRadioButtonItem } from "./jtradiobutton"
 
 /** Which type of cipher we are solving */
 export const enum ICipherType {
-    Railfence,
-    Redefence,
-    Vigenere,
-    Variant,
-    Beaufort,
-    Gronsfeld,
-    Porta,
-    FractionatedMorse,
-    Morbit,
-    Ragbaby,
+    Railfence = "railfence",
+    Redefence = "redefence",
+    Vigenere = "vigenere",
+    Variant = "variant",
+    Beaufort = "beaufort",
+    Gronsfeld = "gronsfeld",
+    Porta = "porta",
+    FractionatedMorse = "fractionatedmorse",
+    Morbit = "morbit",
+    Ragbaby = "ragbaby",
 }
-// export const xxx = {
-//      ICipherType.Railfence:
-//      { value: ICipherType.Railfence, title: "Railfence", id: "railfence" },
-//  ICipherType.Redefence:
-//      { value: ICipherType.Redefence, title: "Redefence", id: "redefence" },
 
-//  ICipherType.Vigenere:
-//     { value: ICipherType.Vigenere, title: "Vigen&egrave;re", id: "vigenere" }
-
-//  ICipherType.Variant:
-//      { value: ICipherType.Variant, title: "Variant", id: "variant" }
-//  ICipherType.Beaufort:
-//      { value: ICipherType.Beaufort, title: "Beaufort", id: "beaufort" }
-//  ICipherType.Gronsfeld:
-//      { value: ICipherType.Gronsfeld, title: "Gronsfeld", id: "gronsfeld" }
-//  ICipherType.Porta:
-//      { value: ICipherType.Porta, title: "Porta", id: "porta" }
-//  ICipherType.FractionatedMorse:
-//      { value: ICipherType.FractionatedMorse, title: "Fractionated Morse", id: "fractionatedmorse" }
-//  ICipherType.Morbit:
-//      { value: ICipherType.Morbit, title: "Morbit", id: "morbit" }
+// interface JTRBL {
+//     [index: ICipherType]: JTRadioButtonItem
+// }
+// export const foo: JTRBL = {
+//     Railfence: { value: ICipherType.Railfence, title: "Railfence", id: "railfence" },
+//     Redefence: { value: ICipherType.Redefence, title: "Redefence", id: "redefence" },
+//     Vigenere: { value: ICipherType.Vigenere, title: "Vigen&egrave;re", id: "vigenere" },
+//     Variant: { value: ICipherType.Variant, title: "Variant", id: "variant" },
+//     Beaufort: { value: ICipherType.Beaufort, title: "Beaufort", id: "beaufort" },
+//     Gronsfeld: { value: ICipherType.Gronsfeld, title: "Gronsfeld", id: "gronsfeld" },
+//     Porta: { value: ICipherType.Porta, title: "Porta", id: "porta" },
+//     FractionatedMorse: { value: ICipherType.FractionatedMorse, title: "Fractionated Morse", id: "fractionatedmorse" },
+//     Morbit: { value: ICipherType.Morbit, title: "Morbit", id: "morbit" },
 // }
 
 export class CipherTypeInfo {

@@ -1,6 +1,6 @@
 /// <reference types="ciphertypes" />
 import { ICipherType } from "./ciphertypes"
-
+import { parseQueryString } from "./parsequerystring"
 export interface IState {
 
     /** The current cipher typewe are working on */
@@ -469,6 +469,14 @@ export class CipherHandler {
         this.UpdateFreqEditTable()
         this.attachHandlers()
         this.setUIDefaults()
+        let parms = parseQueryString(window.location.search.substring(1))
+        let saveSet = this.save()
+        for (let v in parms) {
+            if (parms.hasOwnProperty(v)) {
+                saveSet[v] = parms[v]
+            }
+        }
+        this.restore(saveSet)
     }
 
     /**

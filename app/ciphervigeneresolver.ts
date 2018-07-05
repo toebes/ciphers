@@ -377,11 +377,11 @@ export class CipherVigenereSolver extends CipherSolver {
      */
     attachHandlers(): void {
         super.attachHandlers()
-        this.setCipherVariant(Number($("input[name='codevariant']:checked").val()) as ICipherType)
+        this.setCipherVariant($("input[name='codevariant']:checked").val() as ICipherType)
 
         $('input[type=radio][name=codevariant]').off('change').on('change', (e) => {
             this.markUndo()
-            this.setCipherVariant(Number($("input[name='codevariant']:checked").val()) as ICipherType)
+            this.setCipherVariant($("input[name='codevariant']:checked").val() as ICipherType)
         })
         $('#keyword').off('input').on('input', (e) => {
             let newkeyword = $(e.target).val() as string

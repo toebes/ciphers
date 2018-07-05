@@ -57,8 +57,8 @@ export class CipherRailfenceSolver extends CipherSolver {
         if (data.railOffset !== undefined) {
             this.state.railOffset = data.railOffset
         }
-        if (data.railType !== undefined) {
-            this.state.cipherType = data.railType
+        if (data.cipherType !== undefined) {
+            this.state.cipherType = data.cipherType
         }
         if (data.railLayout !== undefined) {
             this.state.railLayout = data.railLayout
@@ -471,7 +471,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         })
         $('input[type=radio][name=railtype]').off('change').on('change', () => {
             this.markUndo()
-            this.setRailType(Number($("input[name='railtype']:checked").val()) as ICipherType)
+            this.setRailType($("input[name='railtype']:checked").val() as ICipherType)
             this.updateOutput()
         })
         $("#rorder").off('input').on('input', (e) => {

@@ -9,21 +9,22 @@
  *     params["b"] = "2"
  *     params["c"] = "3"
  */
-export default function parseQueryString(queryString: string): Map<string, string> {
+
+export function parseQueryString(queryString: string): StringMap {
     // if the query string is NULL
     if (queryString == null) {
         queryString = window.location.search.substring(1);
     }
 
-    var params = new Map<string, string>();
+    let params = {}
 
-    var queries = queryString.split("&");
+    let queries = queryString.split("&")
 
     queries.forEach((indexQuery: string) => {
-        var indexPair = indexQuery.split("=");
+        let indexPair = indexQuery.split("=")
 
-        var queryKey = decodeURIComponent(indexPair[0]);
-        var queryValue = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "");
+        let queryKey = decodeURIComponent(indexPair[0]);
+        let queryValue = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "")
 
         // If we want to handle the multi value case
         if (params[queryKey] !== undefined) {
@@ -32,9 +33,9 @@ export default function parseQueryString(queryString: string): Map<string, strin
             }
             params[queryKey].push(queryValue)
         } else {
-            params[queryKey] = queryValue;
+            params[queryKey] = queryValue
         }
-    });
+    })
 
-    return params;
+    return params
 }

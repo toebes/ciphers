@@ -1,8 +1,19 @@
 /// <reference types="ciphertypes" />
 
-import { CipherHandler } from "./cipherhandler"
+import { CipherHandler, IState } from "./cipherhandler"
+import { ICipherType } from "./ciphertypes";
 
 export class CipherSolver extends CipherHandler {
+    defaultsolverstate: IState = {
+        /** The current cipher type we are working on */
+        cipherType: ICipherType.Aristocrat,
+        /** The current cipher we are working on */
+        cipherString: "",
+        /** The current string we are looking for */
+        findString: "",
+    }
+    state: IState = { ...this.defaultsolverstate }
+
     /**
      * Indicates that a
      * @type {Object.<string, bool>}
@@ -15,6 +26,46 @@ export class CipherSolver extends CipherHandler {
      * @param {string} lang Language to select (EN is the default)
      */
     init(lang: string): void {
+        this.state = { ...this.defaultsolverstate }
+    }
+    restore(data: SaveSet): void {
+        this.state = this.defaultsolverstate
+        if (data.cipherType !== undefined) {
+            this.state.cipherType = data.cipherType
+        }
+        if (data.cipherString !== undefined) {
+            this.state.cipherString = data.cipherString
+        }
+        if (data.findString !== undefined) {
+            this.state.findString = data.findString
+        }
+        if (data.replacements !== undefined) {
+            this.replacement = {...data.replacements}
+        }
+
+        //  this.updateUI()
+        $('#encoded').val(this.state.cipherString)
+        $('#find').val(this.state.findString)
+        let charset = this.getCharset()
+        for (let i = 0; i < charset.length; i++) {
+            this.setChar(charset.substr(i, 1), this.replacement[i])
+        }
+
+        this.setUIDefaults()
+        $("#analysis").each((i, elem) => {
+            $(elem).empty().append(this.analyze(this.state.cipherString))
+        });
+        this.findPossible(this.state.findString)
+    }
+    /**
+     * Make a copy of the current state
+     */
+    save(): IState {
+        // We need a deep copy of the save state
+        let savestate = { ...this.state }
+        // And the replacement array also has to have a deep copy
+        savestate.replacements = {...this.replacement}
+        return savestate
     }
     /**
      * Generates an HTML representation of a string for display
@@ -28,6 +79,7 @@ export class CipherSolver extends CipherHandler {
      */
     load(): void {
         let encoded: string = this.cleanString(<string>$('#encoded').val());
+        this.state.cipherString = encoded
         console.log('LoadSolver');
         let res = this.build(encoded);
 
@@ -158,6 +210,7 @@ export class CipherSolver extends CipherHandler {
      * Builds an HTML Representation of the contact table
      * @param encoded String to make a contact table from
      */
+    // tslint:disable-next-line:cyclomatic-complexity
     makeContactTable(encoded: string): JQuery<HTMLElement> {
         let prevs: StringMap = {}
         let posts: StringMap = {}
@@ -312,7 +365,7 @@ export class CipherSolver extends CipherHandler {
      */
     findPossible(str: string): void {
         let encoded = this.minimizeString(<string>$('#encoded').val())
-        let extra = ''
+        this.state.findString = str
         let res = ''
         let i
         str = this.minimizeString(str.toUpperCase())
@@ -343,6 +396,7 @@ export class CipherSolver extends CipherHandler {
      * @param {any} tofind
      * @param {any} findwidth
      */
+    // tslint:disable-next-line:cyclomatic-complexity
     searchPattern(encoded: string, encodewidth: number, tofind: string, findwidth: number): string {
         let res: string = '';
         let notmapped: string = "????".substr(0, findwidth);

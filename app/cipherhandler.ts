@@ -284,7 +284,7 @@ export class CipherHandler {
     charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     sourcecharset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     unasigned: string = ""
-    replacement: string[] = []
+    replacement: StringMap = {}
     curlang: string = ""
     holdupdates: boolean = false
     /** Stack of current Undo/Redo operations */
@@ -392,7 +392,10 @@ export class CipherHandler {
     restore(data: IState): void {
     }
     save(): IState {
-        return null
+        return {
+            cipherType: ICipherType.None,
+            cipherString: ""
+        }
     }
     /**
      * Saves the current state of the cipher work so that it can be undone

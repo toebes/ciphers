@@ -218,6 +218,7 @@ export class CryptarithmSolver extends CipherSolver {
      * @param {string} str String to decode
      * @returns {string} HTML of solver structure
      */
+    // tslint:disable-next-line:cyclomatic-complexity
     build(str: string): JQuery<HTMLElement> {
         enum buildState {
             Initial = "Initial",
@@ -243,7 +244,7 @@ export class CryptarithmSolver extends CipherSolver {
         this.usedletters = {}
         this.boxState = {}
         this.locked = {}
-        this.replacement = []
+        this.replacement = {}
         this.base = 0
         let lineitems: Array<lineitem> = []
         str = str.replace(new RegExp("gives root", "g"), "^")

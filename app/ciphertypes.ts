@@ -2,6 +2,10 @@ import { JTRadioButton, JTRadioButtonItem } from "./jtradiobutton"
 
 /** Which type of cipher we are solving */
 export const enum ICipherType {
+    None = "none",
+    Aristocrat = "aristocrat",
+    Patristocrat = "patristocrat",
+    Cryptarithm = "cryptarithm",
     Railfence = "railfence",
     Redefence = "redefence",
     Vigenere = "vigenere",

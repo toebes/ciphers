@@ -39,6 +39,8 @@ import { CipherFactory } from "./cipherfactory"
 import { CipherHandler } from "./cipherhandler"
 
 let cipherTool: CipherHandler = new CipherHandler()
+declare let window: any
+window.cipherTool = cipherTool
 
 $(function (): void {
     cipherTool = CipherFactory(undefined, undefined)
@@ -46,5 +48,6 @@ $(function (): void {
     $("[data-cipher]").each((i, elem) => {
         cipherTool = CipherFactory($(elem).attr('data-cipher'), $(elem).attr('data-lang'))
     })
+    window.cipherTool = cipherTool
     cipherTool.layout();
 })

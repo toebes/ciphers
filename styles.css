@@ -240,6 +240,9 @@ table.mfind {
     table.mfind th {
         background-color: #D3D3D3;
     }
+.tfreq thead th {
+    width: 20px;
+}
 
 .ckfreq thead .topleft,
 .tfreq thead .topleft {
@@ -254,7 +257,6 @@ table.mfind {
 }
 
 .ckfreq td, .tfreq td {
-    /* width: 40px;*/
     text-align: center;
 }
 

@@ -160,7 +160,7 @@ export class CryptarithmSolver extends CipherSolver {
      * @param {string} reqstr String of items to apply
      */
     updateMatchDropdowns(reqstr: string): void {
-        this.cacheReplacements()
+        this.UpdateReverseReplacements()
         $("[data-formula]").each((i, elem) => {
             $(elem).empty().append(this.checkFormula($(elem).attr('data-formula'), $(elem).attr('data-expect')))
         })

@@ -17,6 +17,8 @@ export interface IState {
     undotype?: string,
     any?: any
 }
+
+type patelem = [string, number, number, number]
 type JQElement = JQuery<HTMLElement>
 /**
  * Base class for all the Cipher Encoders/Decoders
@@ -306,7 +308,7 @@ export class CipherHandler {
      * Input string cleaned up
      */
     encodedString: string = ""
-    Frequent: any = {}
+    Frequent: { [key: string]: { [key: string]: patelem[] } } = {}
     freq: { [key: string]: number } = {}
     /**
      * Initializes the encoder/decoder.
@@ -539,13 +541,21 @@ export class CipherHandler {
      */
     setChar(repchar: string, newchar: string): void {
         console.log("handler setChar data-char=" + repchar + " newchar=" + newchar)
+        // See if any other slots have this character and reset it
+        if (newchar !== '') {
+            for (let i in this.replacement) {
+                if (this.replacement[i] === newchar && i !== repchar) {
+                    this.setChar(i, '')
+                }
+            }
+        }
         this.replacement[repchar] = newchar
         $("input[data-char='" + repchar + "']").val(newchar)
         if (newchar === "") {
             newchar = "?"
         }
         $("span[data-char='" + repchar + "']").text(newchar)
-        this.cacheReplacements()
+        this.UpdateReverseReplacements()
         this.updateMatchDropdowns(repchar)
     }
     /**
@@ -1051,11 +1061,11 @@ export class CipherHandler {
                 }
                 if (legal) {
                     let pat = this.makeUniquePattern(pieces[0], 1)
-                    let elem = [
+                    let elem: patelem = [
                         pieces[0].toUpperCase(),
                         i,
                         pieces[1],
-                        "",
+                        0,
                     ]
                     if (i < 500) {
                         elem[3] = 0
@@ -1088,18 +1098,11 @@ export class CipherHandler {
     /**
      * Retrieve all of the replacement characters that have been selected so far
      */
-    cacheReplacements(): void {
+    UpdateReverseReplacements(): void {
         let charset = this.getSourceCharset().toUpperCase()
+        $("[id^=rf").text('')
         for (let c of charset) {
-            let repl = $('#m' + c).val() as string
-            // when we are doing an encode, there are no input fields, everything
-            // is in a text field so we need to check for that case and retrieve
-            // the text value instead
-            if (repl === "") {
-                repl = $('#m' + c).text()
-            }
-            this.replacement[c] = repl
-            $('#rf' + repl).text(c)
+            $('#rf' + this.replacement[c]).text(c)
         }
     }
     /**

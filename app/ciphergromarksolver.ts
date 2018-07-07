@@ -338,7 +338,7 @@ export class CipherGromarkSolver extends CipherSolver {
         if (this.holdupdates) {
             return
         }
-        this.cacheReplacements()
+        this.UpdateReverseReplacements()
         this.saveGromarkReplacements()
         $("[data-chars]").each((i, elem) => {
             $(elem).empty().append(this.generateGromarkDropdown($(elem).attr('data-chars')))

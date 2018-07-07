@@ -22,41 +22,51 @@ export class CipherSolver extends CipherHandler {
     locked: { [key: string]: boolean } = {}
     /**
      * Initializes the encoder/decoder.
-     * We don't want to show the reverse replacement since we are doing an encode
      * @param {string} lang Language to select (EN is the default)
      */
     init(lang: string): void {
+        super.init(lang)
         this.state = { ...this.defaultsolverstate }
     }
     restore(data: SaveSet): void {
+        let rebuild = false
         this.state = this.defaultsolverstate
         if (data.cipherType !== undefined) {
             this.state.cipherType = data.cipherType
         }
         if (data.cipherString !== undefined) {
-            this.state.cipherString = data.cipherString
+            if (this.state.cipherString !== data.cipherString) {
+                this.state.cipherString = data.cipherString
+                rebuild = true
+            }
         }
         if (data.findString !== undefined) {
             this.state.findString = data.findString
         }
         if (data.replacements !== undefined) {
-            this.replacement = {...data.replacements}
+            this.replacement = { ...data.replacements }
         }
 
-        //  this.updateUI()
-        $('#encoded').val(this.state.cipherString)
-        $('#find').val(this.state.findString)
+        this.setUIDefaults();
+        if (rebuild) {
+            this.load()
+        }
         let charset = this.getCharset()
-        for (let i = 0; i < charset.length; i++) {
-            this.setChar(charset.substr(i, 1), this.replacement[i])
+        for (let c of charset) {
+            this.setChar(c, this.replacement[c])
         }
 
         this.setUIDefaults()
+        this.findPossible(this.state.findString)
+    }
+    setUIDefaults(): void {
+        $('#encoded').val(this.state.cipherString);
+        $('#find').val(this.state.findString);
         $("#analysis").each((i, elem) => {
             $(elem).empty().append(this.analyze(this.state.cipherString))
         });
-        this.findPossible(this.state.findString)
     }
+
     /**
      * Make a copy of the current state
      */
@@ -64,7 +74,7 @@ export class CipherSolver extends CipherHandler {
         // We need a deep copy of the save state
         let savestate = { ...this.state }
         // And the replacement array also has to have a deep copy
-        savestate.replacements = {...this.replacement}
+        savestate.replacements = { ...this.replacement }
         return savestate
     }
     /**
@@ -366,6 +376,10 @@ export class CipherSolver extends CipherHandler {
     findPossible(str: string): void {
         let encoded = this.minimizeString(<string>$('#encoded').val())
         this.state.findString = str
+        if (str === "") {
+            $(".findres").empty()
+            return
+        }
         let res = ''
         let i
         str = this.minimizeString(str.toUpperCase())
@@ -565,10 +579,9 @@ export class CipherSolver extends CipherHandler {
      * @returns {string} Html for a select
      */
     generateMatchDropdown(str: string): JQuery<HTMLElement> {
-        if (this.curlang === '') {
+        if (this.curlang === '' || !this.Frequent.hasOwnProperty(this.curlang)) {
             return $('');
         }
-
         let pat = this.makeUniquePattern(str, 1);
         let repl = this.genReplPattern(str);
         let mselect = $('<select/>').addClass('match');
@@ -622,7 +635,7 @@ export class CipherSolver extends CipherHandler {
      * @param {string} reqstr String of items to apply
      */
     updateMatchDropdowns(reqstr: string): void {
-        this.cacheReplacements();
+        this.UpdateReverseReplacements();
         $("[data-chars]").each((i, elem) => {
             $(elem).empty().append(this.generateMatchDropdown($(elem).attr('data-chars')));
         });

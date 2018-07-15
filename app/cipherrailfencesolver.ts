@@ -46,6 +46,14 @@ export class CipherRailfenceSolver extends CipherSolver {
     state: IRailState = { ...this.defaultstate }
 
     railOrderOffs: Array<number>
+    /**
+     * Initializes the encoder/decoder.
+     * @param {string} lang Language to select (EN is the default)
+     */
+    init(lang: string): void {
+        super.init(lang)
+        this.state = { ...this.defaultstate }
+    }
     restore(data: SaveSet): void {
         this.state = this.defaultstate
         if (data.cipherString !== undefined) {
@@ -184,20 +192,23 @@ export class CipherRailfenceSolver extends CipherSolver {
         ]
         result.append(JTRadioButton('raillay', 'Variant', 'rlayout', radiobuttons, this.state.railLayout))
 
-        result.append($('<label>', { for: 'rails' }).text('Number of Rails'))
-        result.append($('<input/>', { id: 'rails', class: 'inp spinr', title: 'Number of Rails', type: 'text', value: this.state.rails }))
+        let inputgroup = $("<div/>", { class: "input-group medium-6 small-12 large-3" })
+        $("<span/>", { class: "input-group-label" }).text("Number of Rails").appendTo(inputgroup)
+        $('<input/>', { id: 'rails', class: 'input-group-field', type: 'number', value: this.state.rails }).appendTo(inputgroup)
+        result.append(inputgroup)
 
-        result.append($('<label>', { for: 'offset' }).text('Starting Offset'))
-        result.append($('<input/>', {
-            id: 'offset', class: 'inp spino',
-            title: 'Starting Offset', type: 'text', value: this.state.railOffset
-        }))
+        inputgroup = $("<div/>", { class: "input-group medium-6 small-12 large-3" })
+        $("<span/>", { class: "input-group-label" }).text("Starting Offset").appendTo(inputgroup)
+        $('<input/>', { id: 'offset', class: 'input-group-field', type: 'number', value: this.state.railOffset }).appendTo(inputgroup)
+        result.append(inputgroup)
 
-        result.append($('<label>', { for: 'rorder', class: "rede" }).text('Rail Order'))
-        result.append($('<input/>', {
-            id: 'rorder', class: "rede",
-            title: 'Rail Order', type: 'text', value: this.state.railOrder.substr(0, this.state.rails)
-        }))
+        inputgroup = $("<div/>", { class: "input-group rede small-12 large-6 medium-12" })
+        $("<span/>", { class: "input-group-label" }).text("Rail Order").appendTo(inputgroup)
+        $('<input/>', {
+            id: 'rorder', class: 'input-group-field',
+            type: 'text', value: this.state.railOrder.substr(0, this.state.rails)
+        }).appendTo(inputgroup)
+        result.append(inputgroup)
 
         return result
     }
@@ -205,7 +216,7 @@ export class CipherRailfenceSolver extends CipherSolver {
      * Sets up the radio button to choose the variant of the cipher
      */
     makeChoices(): JQuery<HTMLElement> {
-        let operationChoice = $('<div>')
+        let operationChoice = $('<div/>', { class: "row column medium-5 align-center" })
 
         let radiobuttons = [
             CipherTypeInfo.RadioButtonItem(ICipherType.Railfence),
@@ -392,10 +403,10 @@ export class CipherRailfenceSolver extends CipherSolver {
     private updateUI(): void {
         $(".spinr").spinner("value", this.state.rails);
         $(".spino").spinner("value", this.state.railOffset);
-        $('[name="rlayout"]').removeAttr('checked');
-        $("input[name=rlayout][value=" + this.state.railLayout + "]").prop('checked', true);
-        $('[name="railtype"]').removeAttr('checked');
-        $("input[name=railtype][value=" + this.state.cipherType + "]").prop('checked', true);
+        $('[name="rlayout"]').removeClass('is-active');
+        $('[name="rlayout"][value=' + this.state.railLayout + "]").addClass('is-active');
+        $('[name="railtype"]').removeClass('is-active');
+        $('[name="railtype"][value=' + this.state.cipherType + "]").addClass('is-active');
         $(".rorder").val(this.state.railOffset);
         $(".rail").toggle((this.state.cipherType === ICipherType.Railfence));
         $(".rede").toggle((this.state.cipherType === ICipherType.Redefence));
@@ -407,10 +418,10 @@ export class CipherRailfenceSolver extends CipherSolver {
     buildCustomUI(): void {
         super.buildCustomUI()
         $('.precmds').each((i, elem) => {
-            $(elem).empty().append(this.makeChoices())
+            $(elem).replaceWith(this.makeChoices())
         })
         $('.postcmds').each((i, elem) => {
-            $(elem).empty().append(this.makeCommands())
+            $(elem).replaceWith(this.makeCommands())
         })
     }
     /**
@@ -438,42 +449,70 @@ export class CipherRailfenceSolver extends CipherSolver {
      */
     attachHandlers(): void {
         super.attachHandlers()
-        $(".spinr").spinner({
-            spin: (event, ui) => {
-                if (ui.value !== this.state.rails) {
-                    this.markUndo()
-                    this.setRailCount(ui.value)
-                    this.updateOutput()
-                    if (ui.value !== this.state.rails) {
-                        $(event.target).spinner("value", this.state.rails)
-                        return false
-                    }
+        // $(".spinr").spinner({
+        //     spin: (event, ui) => {
+        //         if (ui.value !== this.state.rails) {
+        //             this.markUndo()
+        //             this.setRailCount(ui.value)
+        //             this.updateOutput()
+        //             if (ui.value !== this.state.rails) {
+        //                 $(event.target).spinner("value", this.state.rails)
+        //                 return false
+        //             }
+        //         }
+        //     }
+        // })
+        // $(".spino").spinner({
+        //     spin: (event, ui) => {
+        //         if (ui.value !== this.state.railOffset) {
+        //             this.markUndo()
+        //             this.setRailOffset(ui.value)
+        //             this.updateOutput()
+        //             if (ui.value !== this.state.railOffset) {
+        //                 $(event.target).spinner("value", this.state.railOffset)
+        //                 return false
+        //             }
+        //         }
+        //     }
+        // })
+        $("#rails").off('input').on('input', (e) => {
+            let newrails: number = Number($(e.target).val())
+            if (newrails !== this.state.rails) {
+                this.markUndo()
+                this.setRailCount(newrails)
+                this.updateOutput()
+                if (newrails !== this.state.rails) {
+                    $(e.target).val(this.state.rails)
+                    return false
                 }
             }
         })
-        $(".spino").spinner({
-            spin: (event, ui) => {
-                if (ui.value !== this.state.railOffset) {
-                    this.markUndo()
-                    this.setRailOffset(ui.value)
-                    this.updateOutput()
-                    if (ui.value !== this.state.railOffset) {
-                        $(event.target).spinner("value", this.state.railOffset)
-                        return false
-                    }
+        $("#offset").off('input').on('input', (e) => {
+            let newoffset = Number($(e.target).val())
+            if (newoffset !== this.state.railOffset) {
+                this.markUndo()
+                this.setRailOffset(newoffset)
+                this.updateOutput()
+                if (newoffset !== this.state.railOffset) {
+                    $(e.target).val(this.state.railOffset)
+                    return false
                 }
             }
         })
-        $('input[type=radio][name=rlayout]').off('change').on('change', () => {
+        $('[name="railtype"]').off('click').on('click', (e) => {
+            $(e.target).siblings().removeClass('is-active');
+            $(e.target).addClass('is-active');
             this.markUndo()
-            this.setRailLayout(Number($("input[name='rlayout']:checked").val()) as RailLayout)
+            this.setRailType($(e.target).val() as ICipherType)
             this.updateOutput()
-        })
-        $('input[type=radio][name=railtype]').off('change').on('change', () => {
+        });
+        $('[name="rlayout"]').off('click').on('click', (e) => {
+            $(e.target).siblings().removeClass('is-active');
+            $(e.target).addClass('is-active');
             this.markUndo()
-            this.setRailType($("input[name='railtype']:checked").val() as ICipherType)
+            this.setRailLayout(Number($(e.target).val()) as RailLayout)
             this.updateOutput()
-        })
+        });
         $("#rorder").off('input').on('input', (e) => {
             this.markUndo()
             this.setRailOrder(<string>$(e.target).val())

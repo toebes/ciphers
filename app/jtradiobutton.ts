@@ -12,28 +12,30 @@ interface RadioButtonOptions {
     type: string
     name: string
     value: any
-    checked?: string
     class?: string
     disabled?: string
 }
 
 export function JTRadioButton(id: string, label: string, name: string, buttons: JTRadioButtonSet, selected: any): JQuery<HTMLElement> {
-    let result = $("<div/>").append($('<label/>', { for: id }).text(label))
+    let result = $("<div/>", {class: "mobile-app-toggle", 'data-mobile-app-toggle': ''})
     for (let choice of buttons) {
-        let options: RadioButtonOptions = { id: choice.id, type: 'radio', name: name, value: choice.value }
-        let lblclass = 'rlab'
+        let options: RadioButtonOptions = {
+            id: choice.id,
+            type: 'radio',
+            name: name,
+            value: choice.value,
+            class: "button"
+        }
         if (choice.value === selected) {
-            options.checked = "checked"
+            options.class += " is-active"
         }
         if (choice.class !== undefined) {
-            options.class = choice.class
-            lblclass += ' ' + choice.class
+            options.class += ' ' + choice.class
         }
         if (choice.disabled !== undefined) {
             options.disabled = choice.disabled
         }
-        result.append($('<input/>', options))
-        result.append($('<label/>', { for: choice.id, class: lblclass }).html(choice.title))
+        result.append($('<button/>', options).text(choice.title))
     }
     return result
 }

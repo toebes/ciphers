@@ -1,4 +1,5 @@
-﻿input, textarea, .ibox, .ui-spinner, .note-editor, .ui-sel, .note {
+﻿/* textarea, input, */ 
+ .ibox, .ui-spinner, .note-editor, .ui-sel, .note {
     display: block;
     margin-left: 160px;
     margin-bottom: 10px;
@@ -97,7 +98,7 @@ input.cb {
 .sitem {
     display: inline;
 }
-
+/*
 label {
     clear: both;
     color: #B4886B;
@@ -107,7 +108,7 @@ label {
     float: left;
     text-align: right;
 }
-
+*/
     label.slil:after {
         content: none;
     }
@@ -119,13 +120,13 @@ label {
 .focus {
     border: 1px solid black !important;
 }
-
+/*
 label:not(.rlab):after {
     content: ": ";
 }
 label.rlab {
     padding-right:5px;
-}
+}*/
 
 table.cmath td.solv {
     font-family: 'Courier New', Courier, monospace;
@@ -355,6 +356,12 @@ div.sols .sol {
     font-family: 'Courier New', Courier, monospace;
 }
 
+#qtext {
+    font-size: 24px;
+    background: rgb(200, 241, 177);
+    font-weight: bold;
+}
+
 table.contact,
 table.consonantline {
     margin-left:auto;
@@ -519,3 +526,33 @@ table.found tr th:nth-child(odd) {
     text-align: right;
     border-bottom: 1px solid grey;
 }
+
+.mobile-app-toggle {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    width: 100%;
+    border: 1px solid #1779ba;
+    border-radius: 0.625rem;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  
+  .mobile-app-toggle .button {
+    background: transparent;
+    color: #1779ba;
+    margin-bottom: 0;
+    -webkit-flex: 1 0 0;
+        -ms-flex: 1 0 0px;
+            flex: 1 0 0;
+  }
+  
+  .mobile-app-toggle .button:nth-child(n+1) {
+    border-left: 1px solid #1779ba;
+  }
+  
+  .mobile-app-toggle .button.is-active {
+    background: #1779ba;
+    color: #fefefe;
+  }
+  

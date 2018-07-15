@@ -43,6 +43,10 @@ export class CipherSolver extends CipherHandler {
         if (data.findString !== undefined) {
             this.state.findString = data.findString
         }
+        if (data.qtext !== undefined) {
+            this.state.qtext = data.qtext
+        }
+
         if (data.replacements !== undefined) {
             this.replacement = { ...data.replacements }
         }
@@ -60,6 +64,7 @@ export class CipherSolver extends CipherHandler {
         this.findPossible(this.state.findString)
     }
     setUIDefaults(): void {
+        $("#qtext").text(this.state.qtext)
         $('#encoded').val(this.state.cipherString);
         $('#find').val(this.state.findString);
         $("#analysis").each((i, elem) => {
@@ -338,7 +343,7 @@ export class CipherSolver extends CipherHandler {
      * @param {number} num
      */
     analyze(encoded: string): JQuery<HTMLElement> {
-        console.log('Analyze encoded=' + encoded);
+        // console.log('Analyze encoded=' + encoded);
         let topdiv = $("<div>")
         let table = $("<table>", { class: "satable" })
         let thead = $("<thead>")

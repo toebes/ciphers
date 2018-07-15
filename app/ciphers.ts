@@ -26,8 +26,10 @@
  * Main CipherTool class object
  * @type {Object.<string, function>}
  */
-import 'dataTables'
-import 'dataTables-colReorder'
+import 'dataTables-colReorder-zf'
+import 'dataTables-zf'
+import 'foundation-sites'
+import 'foundation.css'
 import * as $ from "jquery"
 import 'jquery-ui'
 import 'summernote'
@@ -43,6 +45,10 @@ declare let window: any
 window.cipherTool = cipherTool
 
 $(function (): void {
+    // Patch for a Foundation Bug in v6.3.1
+    $(window).on('changed.zf.mediaquery', () => {
+        $('.is-dropdown-submenu.invisible').removeClass('invisible');
+    });
     cipherTool = CipherFactory(undefined, undefined)
     // First figure out what type of solver we are building
     $("[data-cipher]").each((i, elem) => {
@@ -50,4 +56,5 @@ $(function (): void {
     })
     window.cipherTool = cipherTool
     cipherTool.layout();
+    $(document).foundation()
 })

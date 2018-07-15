@@ -1,6 +1,8 @@
 /// <reference types="ciphertypes" />
 import { ICipherType } from "./ciphertypes"
+import { jtCreateMenu, menuItem } from "./jtmenu"
 import { parseQueryString } from "./parsequerystring"
+
 export interface IState {
 
     /** The current cipher typewe are working on */
@@ -15,6 +17,8 @@ export interface IState {
     replacements?: StringMap
     /** Any additional save state data */
     undotype?: string,
+    /** Any quotation text to associate with the cipher */
+    qtext?: string,
     any?: any
 }
 
@@ -24,6 +28,42 @@ type JQElement = JQuery<HTMLElement>
  * Base class for all the Cipher Encoders/Decoders
  */
 export class CipherHandler {
+    /**
+     * Open a cipher and load it in
+     */
+    openCipher(): void {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     *  Save the current cipher to the current file
+     */
+    saveCipher(): void {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Save the current cipher state to a new file
+     */
+    saveCipherAs(): void {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Submit a cipher for checking
+     */
+    submit(): void {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Copy the current completed cipher to the clipboard
+     */
+    copy(): void {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Start a new cipher
+     */
+    newCipher(): void {
+        throw new Error("Method not implemented.");
+    }
     /**
      * User visible mapping of names of the various languages supported
      * @type {StringMap} Mapping of language to visible name
@@ -378,16 +418,16 @@ export class CipherHandler {
      */
     addUndoRedo(): JQElement {
         let buttons = $("<div/>")
-        buttons.append($("<button/>", { href: "#", class: "undo" }).text("Undo").prop("disabled", true))
-        buttons.append($("<button/>", { href: "#", class: "redo" }).text("Redo").prop("disabled", true))
-        return buttons
+        buttons.append($("<input/>", { type: "button", id: "undo", class: "button primary undo", value: "Undo", disabled: true }))
+        buttons.append($("<input/>", { type: "button", id: "redo", class: "button primary redo", value: "Redo", disabled: true }))
+        return buttons.children()
     }
     /**
      * Initializes any layout of the handler.  This is when the solver should initialize any UI globals
      */
     buildCustomUI(): void {
         $(".undocmds").each((i, elem) => {
-            $(elem).empty().append(this.addUndoRedo())
+            $(elem).replaceWith(this.addUndoRedo())
         })
 
     }
@@ -414,9 +454,7 @@ export class CipherHandler {
         }
         this.pushUndo(undotype);
         this.undoNeeded = undotype
-        $(".undo").button("option", "disabled", false)
-        $(".redo").button("option", "disabled", true)
-
+        this.markUndoUI(false, true)
     }
     /**
      * Pushes or merges an undo operation to the top of the stack
@@ -450,10 +488,18 @@ export class CipherHandler {
         if (this.undoPosition > 0) {
             this.undoPosition--
             this.restore(this.undoStack[this.undoPosition])
-            $(".redo").button("option", "disabled", false)
-            $(".undo").button("option", "disabled", (this.undoPosition <= 0))
+            this.markUndoUI((this.undoPosition <= 0), false)
         }
     }
+    markUndoUI(undostate: boolean, redostate: boolean): void {
+        $(".redo").prop("disabled", redostate)
+        $(".undo").prop("disabled", undostate)
+        // $("button.redo").button("option", "disabled", redostate)
+        // $("button.undo").button("option", "disabled", undostate)
+        // $("button.redo").prop("disabled", redostate)
+        // $("button.undo").prop("disabled", undostate)
+    }
+
     /**
      * Redo work (i.e. undo an undo)
      */
@@ -462,14 +508,14 @@ export class CipherHandler {
             this.undoPosition++
             this.restore(this.undoStack[this.undoPosition])
             this.undoNeeded = undefined
-            $(".undo").button("option", "disabled", false)
-            $(".redo").button("option", "disabled", (this.undoPosition >= (this.undoStack.length - 1)))
+            this.markUndoUI(false, (this.undoPosition >= (this.undoStack.length - 1)))
         }
     }
     layout(): void {
         // process the "cipher-type" class
         $(".cipher-type").each((i: number, elem: HTMLElement) => { this.setCipherType($(elem).attr('id')) })
         $(".lang").each((i: number, elem: HTMLElement) => { this.setLangDropdown($(elem)) })
+        $(".MenuBar").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.createMainMenu()) })
         this.buildCustomUI()
         this.UpdateFreqEditTable()
         this.attachHandlers()
@@ -540,7 +586,7 @@ export class CipherHandler {
      * @param {string} newchar New char to assign as decoding for the character
      */
     setChar(repchar: string, newchar: string): void {
-        console.log("handler setChar data-char=" + repchar + " newchar=" + newchar)
+        // console.log("handler setChar data-char=" + repchar + " newchar=" + newchar)
         // See if any other slots have this character and reset it
         if (newchar !== '') {
             for (let i in this.replacement) {
@@ -723,6 +769,45 @@ export class CipherHandler {
     analyze(encoded: string): JQElement {
         return null
     }
+    doAction(action: string): void {
+        switch (action) {
+            case "new":
+                this.newCipher()
+                break
+
+            case "open":
+                this.openCipher()
+                break
+
+            case "save":
+                this.saveCipher()
+                break
+
+            case "saveas":
+                this.saveCipherAs()
+                break
+
+            case "submit":
+                this.submit()
+                break
+
+            case "undo":
+                this.unDo()
+                break
+
+            case "redo":
+                this.reDo()
+                break
+
+            case "copy":
+                this.copy()
+                break
+
+            default:
+                console.log('Unknown action: ' + action)
+                break
+        }
+    }
 
     /**
      * Fills in the frequency portion of the frequency table
@@ -824,19 +909,22 @@ export class CipherHandler {
             }
             $(e.target).addClass("focus")
         })
-        $("#load").button().off("click").on("click", () => {
+        $("#load").off("click").on("click", () => {
             this.markUndo()
             this.load()
         })
-        $(".undo").button().off("click").on("click", () => {
+        $("#undo").off("click").on("click", () => {
             this.unDo()
         })
-        $(".redo").button().off("click").on("click", () => {
+        $("#redo").off("click").on("click", () => {
             this.reDo()
         })
-        $("#reset").button().off("click").on("click", () => {
+        $("#reset").off("click").on("click", () => {
             this.markUndo()
             this.reset()
+        })
+        $("a[data-action]").off("click").on("click", (e) => {
+            this.doAction($(e.target).attr("data-action"))
         })
 
         $(".dragcol").each((i: number, elem: HTMLElement) => {
@@ -1125,5 +1213,56 @@ export class CipherHandler {
             res += c
         }
         return res
+    }
+    createMainMenu(): JQElement {
+        let menu: menuItem[] = [
+            {
+                title: "File",
+                menu: [
+                    { title: "New", action: "new" },
+                    { title: "Open", action: "open" },
+                    { title: "Save", action: "save", classname: "save" },
+                    { title: "Save As...", action: "saveas", classname: "saveas" },
+                    { title: "Submit", action: "submit", classname: "submit" },
+                ]
+            },
+            {
+                title: "Edit",
+                menu: [
+                    { title: "Undo", action: "undo", classname: "undo" },
+                    { title: "Redo", action: "redo", classname: "redo" },
+                    { title: "Copy", action: "copy" },
+                ]
+            },
+            {
+                title: "Other Assistants",
+                menu: [
+                    { title: "Aristocrat/Patristocrat Solving Assistant", href: "Solver.html" },
+                    { title: "Morbit Solving Assistant", href: "MorbitSolver.html", },
+                    { title: "Fractionated Morse Solving Assistant", href: "FractionatedMorseSolver.html", },
+                    { title: "Checkerboard Solving Assistant", href: "CheckerboardSolver.html", },
+                    { title: "Xenocrypt Solving Assistant", href: "XenocryptSolver.html", },
+                    { title: "Vigen&egrave;re Solving Assistant", href: "VigenereSolver.html", },
+                    { title: "Gromark Solving Assistant", href: "GromarkSolver.html", },
+                    { title: "Cryptarithm Solving Assistant", href: "CryptarithmSolver.html", },
+                ]
+            },
+            {
+                title: "Encryption Tools",
+                menu: [
+                    { title: "AffineEncrypt.html", action: "Affine", },
+                    { title: "CipherCounter.html", action: "Cipher Counter", },
+                    { title: "AristocratEncrypt.html", action: "Aristocrat Encoder", },
+                    { title: "AristocratSpanishEncrypt.html", action: "Spanish Aristocrat Encoder", },
+                    { title: "XenocryptEncrypt.html", action: "Xenocrypt Encoder", },
+                    { title: "PatristocratEncrypt.html", action: "Patristocrat Encoder", },
+                    { title: "DancingMenEncrypt.html", action: "Dancing Men Encoder", },
+                    { title: "HillEncrypt.html", action: "Hill Encoder (2x2 and 3x3)", },
+                    { title: "VigenereEncrypt.html", action: "Vigen&egrave;re Encoder", },
+                    { title: "GenLanguage.html", action: "Language Template Processor", },
+                ]
+            },
+        ]
+        return jtCreateMenu(menu, "example-menu", "Cipher Tools")
     }
 }

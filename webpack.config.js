@@ -28,11 +28,12 @@ module.exports = {
         alias: {
             "jquery-ui": path.join(__dirname, "jquery-ui.min.js"),
             "summernote": path.join(__dirname, "summernote-lite.js"),
-            "dataTables": path.join(__dirname, "node_modules", "datatables.net", "js", "jquery.dataTables.js"),
-            "dataTables-colReorder": path.join(__dirname, "node_modules", "datatables.net-colreorder", "js", "dataTables.colReorder.min.js"),
+            "dataTables-zf": path.join(__dirname, "node_modules", "datatables.net-zf", "js", "dataTables.foundation.js"),
+            "dataTables-colReorder-zf": path.join(__dirname, "node_modules", "datatables.net-colreorder-zf", "js", "colReorder.foundation.js"),
             "jquery-css": path.join(__dirname, "jquery-ui.min.css"),
             "styles-css": path.join(__dirname, "styles.css"),
             "summernote-css": path.join(__dirname, "summernote-lite.css"),
+            "foundation.css": path.join(__dirname, "node_modules", "foundation-sites", "dist", "css", "foundation.css"),
         },
         modules: [__dirname, path.join(__dirname, 'node_modules'),],
         extensions: ['.ts', '.js', '.css', '.ttf', '.eot','.woff','.woff2','.png']

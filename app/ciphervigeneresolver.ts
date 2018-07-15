@@ -77,7 +77,7 @@ export class CipherVigenereSolver extends CipherSolver {
             CipherTypeInfo.RadioButtonItem(ICipherType.Gronsfeld),
             CipherTypeInfo.RadioButtonItem(ICipherType.Porta),
         ]
-        operationChoice.append(JTRadioButton('codetab', 'Cipher Type', 'codevariant', radiobuttons, this.state.cipherType))
+        operationChoice.append(JTRadioButton(8, 'codevariant', radiobuttons, this.state.cipherType))
         return operationChoice
     }
 

@@ -16,8 +16,10 @@ interface RadioButtonOptions {
     disabled?: string
 }
 
-export function JTRadioButton(id: string, label: string, name: string, buttons: JTRadioButtonSet, selected: any): JQuery<HTMLElement> {
-    let result = $("<div/>", {class: "mobile-app-toggle", 'data-mobile-app-toggle': ''})
+export function JTRadioButton(width: number, name: string, buttons: JTRadioButtonSet, selected: any): JQuery<HTMLElement> {
+    let result = $("<div/>", {class: "grid-x"})
+    let cell = $("<div/>", {class: "cell medium-" + width + " medium-offset-2"})
+    let appmenu = $("<div/>", {class: "mobile-app-toggle", 'data-mobile-app-toggle': ''})
     for (let choice of buttons) {
         let options: RadioButtonOptions = {
             id: choice.id,
@@ -35,7 +37,9 @@ export function JTRadioButton(id: string, label: string, name: string, buttons: 
         if (choice.disabled !== undefined) {
             options.disabled = choice.disabled
         }
-        result.append($('<button/>', options).text(choice.title))
+        appmenu.append($('<button/>', options).text(choice.title))
     }
+    cell.append(appmenu)
+    result.append(cell)
     return result
 }

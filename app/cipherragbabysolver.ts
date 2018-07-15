@@ -333,7 +333,7 @@ export class CipherRagbabySolver extends CipherSolver {
             { id: 'a26', value: 26, title: '26 [A-Z]' },
             { id: 'a36', value: 36, title: '36 [A-Z 0-9]' },
         ]
-        result.append(JTRadioButton('alphasizer', 'Variant', 'alphasize', radiobuttons, this.state.alphalen))
+        result.append(JTRadioButton(5, 'alphasize', radiobuttons, this.state.alphalen))
 
         return result
     }

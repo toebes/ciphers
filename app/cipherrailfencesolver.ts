@@ -190,41 +190,43 @@ export class CipherRailfenceSolver extends CipherSolver {
             { id: 'wzig', value: RailLayout.W_Zig_Zag, title: 'W - by zig-zag', class: 'rail' },
             { id: 'mzig', value: RailLayout.M_Zig_Zag, title: 'M - by zig-zag', class: 'rail' },
         ]
-        result.append(JTRadioButton('raillay', 'Variant', 'rlayout', radiobuttons, this.state.railLayout))
+        result.append(JTRadioButton(8, 'rlayout', radiobuttons, this.state.railLayout))
 
-        let inputgroup = $("<div/>", { class: "input-group medium-6 small-12 large-3" })
+        let inputbox = $("<div/>", { class: "grid-x grid-margin-x"})
+        let inputgroup = $("<div/>", { class: "input-group cell small-6 medium-4 large-3" })
         $("<span/>", { class: "input-group-label" }).text("Number of Rails").appendTo(inputgroup)
         $('<input/>', { id: 'rails', class: 'input-group-field', type: 'number', value: this.state.rails }).appendTo(inputgroup)
-        result.append(inputgroup)
+        inputbox.append(inputgroup)
 
-        inputgroup = $("<div/>", { class: "input-group medium-6 small-12 large-3" })
+        inputgroup = $("<div/>", { class: "input-group cell small-6 medium-4 large-3" })
         $("<span/>", { class: "input-group-label" }).text("Starting Offset").appendTo(inputgroup)
         $('<input/>', { id: 'offset', class: 'input-group-field', type: 'number', value: this.state.railOffset }).appendTo(inputgroup)
-        result.append(inputgroup)
+        inputbox.append(inputgroup)
 
-        inputgroup = $("<div/>", { class: "input-group rede small-12 large-6 medium-12" })
+        inputgroup = $("<div/>", { class: "input-group rede cell small-12 medium-4 large-6" })
         $("<span/>", { class: "input-group-label" }).text("Rail Order").appendTo(inputgroup)
         $('<input/>', {
             id: 'rorder', class: 'input-group-field',
             type: 'text', value: this.state.railOrder.substr(0, this.state.rails)
         }).appendTo(inputgroup)
-        result.append(inputgroup)
-
+        inputbox.append(inputgroup)
+        result.append(inputbox)
         return result
     }
     /**
      * Sets up the radio button to choose the variant of the cipher
      */
     makeChoices(): JQuery<HTMLElement> {
-        let operationChoice = $('<div/>', { class: "row column medium-5 align-center" })
+        // let operationChoice = $('<div/>', { class: "row column medium-5 align-center" })
 
         let radiobuttons = [
             CipherTypeInfo.RadioButtonItem(ICipherType.Railfence),
             CipherTypeInfo.RadioButtonItem(ICipherType.Redefence),
         ]
-        operationChoice.append(JTRadioButton('railtyper', 'Cipher Type', 'railtype', radiobuttons, this.state.cipherType))
+        return JTRadioButton(6, 'railtype', radiobuttons, this.state.cipherType)
+        // operationChoice.append(JTRadioButton(6, 'railtype', radiobuttons, this.state.cipherType))
 
-        return operationChoice
+        // return operationChoice
     }
     /**
      * Locate a string.
@@ -449,32 +451,6 @@ export class CipherRailfenceSolver extends CipherSolver {
      */
     attachHandlers(): void {
         super.attachHandlers()
-        // $(".spinr").spinner({
-        //     spin: (event, ui) => {
-        //         if (ui.value !== this.state.rails) {
-        //             this.markUndo()
-        //             this.setRailCount(ui.value)
-        //             this.updateOutput()
-        //             if (ui.value !== this.state.rails) {
-        //                 $(event.target).spinner("value", this.state.rails)
-        //                 return false
-        //             }
-        //         }
-        //     }
-        // })
-        // $(".spino").spinner({
-        //     spin: (event, ui) => {
-        //         if (ui.value !== this.state.railOffset) {
-        //             this.markUndo()
-        //             this.setRailOffset(ui.value)
-        //             this.updateOutput()
-        //             if (ui.value !== this.state.railOffset) {
-        //                 $(event.target).spinner("value", this.state.railOffset)
-        //                 return false
-        //             }
-        //         }
-        //     }
-        // })
         $("#rails").off('input').on('input', (e) => {
             let newrails: number = Number($(e.target).val())
             if (newrails !== this.state.rails) {

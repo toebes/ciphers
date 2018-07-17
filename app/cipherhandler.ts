@@ -909,6 +909,18 @@ export class CipherHandler {
             }
             $(e.target).addClass("focus")
         })
+        $('.input-number-increment').off('click').on('click', (e) => {
+            let $input = $(e.target).parents('.input-number-group').find('.input-number')
+            let val = Number($input.val())
+            $input.val(val + 1)
+            $input.trigger('input')
+        })
+        $('.input-number-decrement').off('click').on('click', (e) => {
+            let $input = $(e.target).parents('.input-number-group').find('.input-number');
+            let val = Number($input.val())
+            $input.val(val - 1)
+            $input.trigger('input')
+        })
         $("#load").off("click").on("click", () => {
             this.markUndo()
             this.load()

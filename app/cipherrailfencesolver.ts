@@ -1,8 +1,8 @@
 import { IState } from "./cipherhandler"
 import { CipherSolver } from "./ciphersolver"
 import { CipherTypeInfo, ICipherType } from "./ciphertypes"
+import { JTFIncButton } from "./jtfIncButton"
 import { JTRadioButton } from "./jtradiobutton"
-
 interface IRailState extends IState {
     /** The number of rails currently being tested */
     rails: number
@@ -193,17 +193,23 @@ export class CipherRailfenceSolver extends CipherSolver {
         result.append(JTRadioButton(8, 'rlayout', radiobuttons, this.state.railLayout))
 
         let inputbox = $("<div/>", { class: "grid-x grid-margin-x"})
-        let inputgroup = $("<div/>", { class: "input-group cell small-6 medium-4 large-3" })
-        $("<span/>", { class: "input-group-label" }).text("Number of Rails").appendTo(inputgroup)
-        $('<input/>', { id: 'rails', class: 'input-group-field', type: 'number', value: this.state.rails }).appendTo(inputgroup)
-        inputbox.append(inputgroup)
+        // let inputgroup = $("<div/>", { class: "input-group input-number-group cell small-6 medium-4" })
+        // $("<span/>", { class: "input-group-label" }).text("Number of Rails").appendTo(inputgroup)
+        // $("<div/>", {class: "input-group-button"}).append($("<span/>", {class: "input-number-decrement"}).text("-")).appendTo(inputgroup)
+        // $('<input/>', { id: 'rails', class: 'input-number', type: 'number', value: this.state.rails }).appendTo(inputgroup)
+        // $("<div/>", {class: "input-group-button"}).append($("<span/>", {class: "input-number-increment"}).text("+")).appendTo(inputgroup)
+        // inputbox.append(inputgroup)
+        inputbox.append(JTFIncButton("Number of Rails", "rails", this.state.rails, "small-6 medium-4"))
 
-        inputgroup = $("<div/>", { class: "input-group cell small-6 medium-4 large-3" })
-        $("<span/>", { class: "input-group-label" }).text("Starting Offset").appendTo(inputgroup)
-        $('<input/>', { id: 'offset', class: 'input-group-field', type: 'number', value: this.state.railOffset }).appendTo(inputgroup)
-        inputbox.append(inputgroup)
+        // inputgroup = $("<div/>", { class: "input-group input-number-group cell small-6 medium-4" })
+        // $("<span/>", { class: "input-group-label" }).text("Starting Offset").appendTo(inputgroup)
+        // $("<div/>", {class: "input-group-button"}).append($("<span/>", {class: "input-number-decrement"}).text("-")).appendTo(inputgroup)
+        // $('<input/>', { id: 'offset', class: 'input-number', type: 'number', value: this.state.railOffset }).appendTo(inputgroup)
+        // $("<div/>", {class: "input-group-button"}).append($("<span/>", {class: "input-number-increment"}).text("+")).appendTo(inputgroup)
+        // inputbox.append(inputgroup)
+        inputbox.append(JTFIncButton("Starting Offset", "offset", this.state.railOffset, "small-6 medium-4"))
 
-        inputgroup = $("<div/>", { class: "input-group rede cell small-12 medium-4 large-6" })
+        let inputgroup = $("<div/>", { class: "input-group rede cell small-12 medium-4" })
         $("<span/>", { class: "input-group-label" }).text("Rail Order").appendTo(inputgroup)
         $('<input/>', {
             id: 'rorder', class: 'input-group-field',
@@ -403,15 +409,15 @@ export class CipherRailfenceSolver extends CipherSolver {
 
     }
     private updateUI(): void {
-        $(".spinr").spinner("value", this.state.rails);
-        $(".spino").spinner("value", this.state.railOffset);
-        $('[name="rlayout"]').removeClass('is-active');
-        $('[name="rlayout"][value=' + this.state.railLayout + "]").addClass('is-active');
-        $('[name="railtype"]').removeClass('is-active');
-        $('[name="railtype"][value=' + this.state.cipherType + "]").addClass('is-active');
-        $(".rorder").val(this.state.railOffset);
-        $(".rail").toggle((this.state.cipherType === ICipherType.Railfence));
-        $(".rede").toggle((this.state.cipherType === ICipherType.Redefence));
+        $("#rails").val(this.state.rails)
+        $("#offset").val(this.state.railOffset)
+        $('[name="rlayout"]').removeClass('is-active')
+        $('[name="rlayout"][value=' + this.state.railLayout + "]").addClass('is-active')
+        $('[name="railtype"]').removeClass('is-active')
+        $('[name="railtype"][value=' + this.state.cipherType + "]").addClass('is-active')
+        $(".rorder").val(this.state.railOffset)
+        $(".rail").toggle((this.state.cipherType === ICipherType.Railfence))
+        $(".rede").toggle((this.state.cipherType === ICipherType.Redefence))
     }
 
     /**

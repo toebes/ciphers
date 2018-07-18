@@ -28,7 +28,7 @@ input.cb {
 }
 
 .ans {
-    width: 600px;
+    /* width: 600px; */
     font-size: 16px;
     font-family: "Courier New", Courier, monospace;
     margin-bottom: 24px;
@@ -58,7 +58,7 @@ input.cb {
     margin-bottom: 5px;
     font-style: italic;
 }
-.sword {
+.sword, .sword tbody {
     float: left;
     background-color: #eaeaea;
     margin: 3px 5px;
@@ -74,6 +74,7 @@ input.cb {
 .sli {
     margin: 0;
     width: 15px;
+    padding: 0;
     text-align: center;
     border: 1px black dotted;
     height: 25px;
@@ -205,6 +206,10 @@ table.mword {
     border: 0;
     border-spacing: 0;
 }
+.tword thead th, .tword tbody td {
+    margin: 0;
+    padding: 0.3rem;
+}
 .tword .vans {
     color: green;
     text-align:center;
@@ -216,6 +221,7 @@ table.mword {
 table.tfreq, table.satable {
     clear: both;
     border-collapse: collapse;
+    width: auto;
 }
 
 table.ckfreq {
@@ -223,8 +229,13 @@ table.ckfreq {
     margin-left: 20px;
 }
 
+table.tfreq th {
+    padding: 0.1rem 0.3rem 0.1rem;
+}
 .ckfreq td, .ckfreq th, .tfreq td, table.mfind td {
     border: 1px solid black;
+    margin: 0px;
+    padding: 0.1rem 0.3rem 0.1rem;
 }
 
 table.mfind {
@@ -374,6 +385,7 @@ table.contact th {
 }
 table.consonantline th {
     text-align:center;
+    padding: .1rem;
 }
 table.consonantline th.c {
     border-bottom: 1px solid black;
@@ -384,6 +396,7 @@ table.consonantline th.c {
 table.contact td,
 table.consonantline td {
     font-family: 'Courier New', Courier, monospace;
+    padding: .1rem;
 }
 table.contact td.prev {
     text-align: right;

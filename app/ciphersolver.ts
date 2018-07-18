@@ -2,6 +2,7 @@
 
 import { CipherHandler, IState } from "./cipherhandler"
 import { ICipherType } from "./ciphertypes";
+import { JTTable } from "./jttable";
 
 export class CipherSolver extends CipherHandler {
     defaultsolverstate: IState = {
@@ -265,25 +266,18 @@ export class CipherSolver extends CipherHandler {
         tobjs.sort(this.isort)
         let consonantline = ''
         let freq: NumberMap = {}
-        let table = $("<table>", { class: "contact" })
-        let thead = $("<thead>")
-        let tr = $("<tr>")
-        $("<th>", { colspan: 3 }).text("Contact Table").appendTo(tr)
-        tr.appendTo(thead)
-        thead.appendTo(table)
-        let tbody = $("<tbody>")
+        let table = new JTTable({ class: 'cell shrink contact' })
+        table.addHeaderRow([{ celltype: "th", settings: { colspan: 3 }, content: "Contact Table" }])
         for (let item of tobjs) {
-            tr = $("<tr>")
-            $("<td>", { class: "prev" }).text(item.prevs).appendTo(tr)
-            $("<td>", { class: "tlet" }).text(item.let).appendTo(tr)
-            $("<td>", { class: "post" }).text(item.posts).appendTo(tr)
-            tr.appendTo(tbody)
+            let row = table.addBodyRow()
+            row.add({ settings: { class: "prev" }, content: item.prevs })
+            row.add({ settings: { class: "tlet" }, content: item.let })
+            row.add({ settings: { class: "post" }, content: item.posts })
             freq[item.let] = item.freq
             consonantline = item.let + consonantline
         }
         let res = $("<div>")
-        tbody.appendTo(table)
-        res.append(table)
+        res.append(table.generate())
         // Now go through and generate the Consonant line
         let minfreq = freq[consonantline.substr(12, 1)]
         for (let c of this.getCharset()) {
@@ -305,9 +299,7 @@ export class CipherSolver extends CipherHandler {
             prevlet = c
         }
         // Now we need to build the table
-        table = $("<table>", { class: "consonantline" })
-        thead = $("<thead>")
-        tbody = $("<tbody>")
+        table = new JTTable({ class: 'cell shrink consonantline' })
         let consonants = ''
         let lastfreq = 0
         for (let item of tobjs) {
@@ -319,22 +311,17 @@ export class CipherSolver extends CipherHandler {
                 consonants = item.let + consonants
             }
             if (prevs[item.let] !== '' || posts[item.let] !== '') {
-                tr = $("<tr>")
-                $("<td>", { class: "prev" }).text(prevs[item.let]).appendTo(tr)
-                $("<td>", { class: "post" }).text(posts[item.let]).appendTo(tr)
-                tr.appendTo(tbody)
+                let row = table.addBodyRow()
+                row.add({ settings: { class: "prev" }, content: prevs[item.let] })
+                row.add({ settings: { class: "post" }, content: posts[item.let] })
             }
         }
-        tr = $("<tr>")
-        $("<th>", { colspan: 2 }).text("Consonant Line").appendTo(tr)
-        tr.appendTo(thead)
-        tr = $("<tr>")
-        $("<th>", { colspan: 2 }).text(consonants).appendTo(tr)
-        tr.appendTo(thead)
-        thead.appendTo(table)
-        tbody.appendTo(table)
-        res.append(table)
-        return res
+        table.addHeaderRow([
+            { celltype: "th", settings: { colspan: 2 }, content: "Consonant Line" },
+            { celltype: "th", settings: { colspan: 2 }, content: consonants }
+        ])
+        res.append(table.generate())
+        return res.children()
     }
     /**
      * Analyze the encoded text
@@ -343,25 +330,19 @@ export class CipherSolver extends CipherHandler {
      * @param {number} num
      */
     analyze(encoded: string): JQuery<HTMLElement> {
-        // console.log('Analyze encoded=' + encoded);
         let topdiv = $("<div>")
-        let table = $("<table>", { class: "satable" })
-        let thead = $("<thead>")
-        let trhead = $("<tr>")
-        let tbody = $("<tbody>")
-        let trbody = $("<tr>")
 
+        let table = new JTTable({ class: 'cell shrink satable' })
+        let thead = table.addHeaderRow()
+        let tbody = table.addBodyRow()
         for (let num of [2, 3, 4, 5]) {
-            $("<th>").text(num + " Characters").appendTo(trhead)
-            $('<td>').append(this.makeTopList(encoded, Number(num), 12)).appendTo(trbody)
+            thead.add(num + " Chars")
+            tbody.add(this.makeTopList(encoded, Number(num), 12))
         }
-        trhead.appendTo(thead)
-        thead.appendTo(table)
-        trbody.appendTo(tbody)
-        tbody.appendTo(table)
-        table.appendTo(topdiv)
+
+        topdiv.append(table.generate())
         topdiv.append(this.makeContactTable(encoded))
-        return topdiv;
+        return topdiv.children()
     }
     /**
      * Handle a dropdown event.  They are changing the mapping for a character.

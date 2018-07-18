@@ -316,10 +316,8 @@ export class CipherSolver extends CipherHandler {
                 row.add({ settings: { class: "post" }, content: posts[item.let] })
             }
         }
-        table.addHeaderRow([
-            { celltype: "th", settings: { colspan: 2 }, content: "Consonant Line" },
-            { celltype: "th", settings: { colspan: 2 }, content: consonants }
-        ])
+        table.addHeaderRow([{ celltype: "th", settings: { colspan: 2 }, content: "Consonant Line" }])
+        table.addHeaderRow([{ celltype: "th", settings: { colspan: 2 }, content: consonants }])
         res.append(table.generate())
         return res.children()
     }
@@ -376,7 +374,7 @@ export class CipherSolver extends CipherHandler {
             res = '<br/><b>Not Found</b>';
         } else {
             let charset = this.getCharset();
-            let tres = '<table class="mfind"><thead><tr><th>Pos</th><th>Match</th>';
+            let tres = '<table class="mfind cell shrink"><thead><tr><th>Pos</th><th>Match</th>';
             for (i = 0; i < charset.length; i++) {
                 let key = charset.substr(i, 1);
                 tres += '<th>' + key + '</th>';

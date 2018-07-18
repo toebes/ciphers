@@ -44,7 +44,7 @@ input.cb {
     height: 18px;
 }
 
-.cmds {
+.xxxxcmds {
     clear:both;
     display: block;
     border-bottom: 1px solid grey;
@@ -208,7 +208,7 @@ table.mword {
 }
 .tword thead th, .tword tbody td {
     margin: 0;
-    padding: 0.3rem;
+    padding: 0.05rem;
 }
 .tword .vans {
     color: green;
@@ -240,10 +240,12 @@ table.tfreq th {
 
 table.mfind {
     border-collapse: collapse;
+    width: auto
 }
 
     table.mfind td {
         font-family: Courier New, Courier, monospace;
+        padding: 0.1rem; 
     }
 
     .ckfreq th,

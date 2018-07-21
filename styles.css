@@ -571,17 +571,17 @@ table.found tr th:nth-child(odd) {
     color: #fefefe;
   }
   
-.input-number-group {
+.input-group {
     display: -webkit-flex;
     display: -ms-flexbox;
     display: flex;
     -webkit-justify-content: center;
-        -ms-flex-pack: center;
-            justify-content: center;
+        -ms-flex-pack: start;
+            justify-content: start;
   }
   
-  .input-number-group input[type=number]::-webkit-inner-spin-button,
-  .input-number-group input[type=number]::-webkit-outer-spin-button {
+  .input-group input[type=number]::-webkit-inner-spin-button,
+  .input-group input[type=number]::-webkit-outer-spin-button {
     -webkit-appearance: none;
             appearance: none;
   }
@@ -590,7 +590,7 @@ table.found tr th:nth-child(odd) {
     line-height: calc(80px/2 - 5px);
   }
   
-  .input-number-group .input-number {
+  .input-group .input-number {
     width: 80px;
     padding: 0 12px;
     vertical-align: top;
@@ -600,9 +600,9 @@ table.found tr th:nth-child(odd) {
     margin: 0;
   }
   
-  .input-number-group .input-number,
-  .input-number-group .input-number-decrement,
-  .input-number-group .input-number-increment {
+  .input-group .input-number,
+  .input-group .input-number-decrement,
+  .input-group .input-number-increment {
     border: 1px solid #cacaca;
     height: 40px;
     -webkit-user-select: none;
@@ -612,8 +612,8 @@ table.found tr th:nth-child(odd) {
     border-radius: 0;
   }
   
-  .input-number-group .input-number-decrement,
-  .input-number-group .input-number-increment {
+  .input-group .input-number-decrement,
+  .input-group .input-number-increment {
     display: inline-block;
     width: 40px;
     background: #e6e6e6;
@@ -625,12 +625,24 @@ table.found tr th:nth-child(odd) {
     font-weight: 400;
   }
   
-  .input-number-group .input-number-decrement {
+  .input-group .input-number-decrement {
     margin-right: 0.1rem;
   }
   
-  .input-number-group .input-number-increment {
+  .input-group .input-number-increment {
     margin-left: 0.1rem;
   }
+
+
+
+
   
   
+.dropdown.menu a {
+    background: none;
+}
+
+.menu .active > a {
+        background: #1779ba !important;
+        color: #fefefe;
+    }

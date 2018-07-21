@@ -22,8 +22,10 @@ export function jtAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]
         let href = "#"
         if (item.href !== undefined) {
             href = item.href
+            let match = '/' + href
+            let tocheck = '/' + window.location.pathname
             // See if we are at the location of the href and mark it as such
-            if (window.location.pathname.substr(window.location.pathname.length - item.href.length) === item.href) {
+            if (tocheck.substr(tocheck.length - match.length) === match) {
                 li.addClass("active")
             }
         }

@@ -199,7 +199,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         // $('<input/>', { id: 'rails', class: 'input-number', type: 'number', value: this.state.rails }).appendTo(inputgroup)
         // $("<div/>", {class: "input-group-button"}).append($("<span/>", {class: "input-number-increment"}).text("+")).appendTo(inputgroup)
         // inputbox.append(inputgroup)
-        inputbox.append(JTFIncButton("Number of Rails", "rails", this.state.rails, "small-6 medium-4"))
+        inputbox.append(JTFIncButton("Number of Rails", "rails", this.state.rails, "small-12 medium-6 large-4"))
 
         // inputgroup = $("<div/>", { class: "input-group input-number-group cell small-6 medium-4" })
         // $("<span/>", { class: "input-group-label" }).text("Starting Offset").appendTo(inputgroup)
@@ -207,9 +207,9 @@ export class CipherRailfenceSolver extends CipherSolver {
         // $('<input/>', { id: 'offset', class: 'input-number', type: 'number', value: this.state.railOffset }).appendTo(inputgroup)
         // $("<div/>", {class: "input-group-button"}).append($("<span/>", {class: "input-number-increment"}).text("+")).appendTo(inputgroup)
         // inputbox.append(inputgroup)
-        inputbox.append(JTFIncButton("Starting Offset", "offset", this.state.railOffset, "small-6 medium-4"))
+        inputbox.append(JTFIncButton("Starting Offset", "offset", this.state.railOffset, "small-12 medium-6 large-4"))
 
-        let inputgroup = $("<div/>", { class: "input-group rede cell small-12 medium-4" })
+        let inputgroup = $("<div/>", { class: "input-group rede cell small-12 medium-12 large-4" })
         $("<span/>", { class: "input-group-label" }).text("Rail Order").appendTo(inputgroup)
         $('<input/>', {
             id: 'rorder', class: 'input-group-field',

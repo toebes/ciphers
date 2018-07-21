@@ -1,41 +1,39 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
+
 <head>
     <script type="text/javascript" src="dist/ciphers.js"></script>
     <title>Xenocrypt Assistant</title>
 </head>
+
 <body>
-    <a href="index.html">Back to Cipher Tools</a>
-    <h1>
-        Xenocrypt Assistant
-    </h1>
-    <hr />
-    <label for="encoded">
+    <div class="MenuBar"></div>
+    <h2>Xenocrypt Assistant</h2>
+    <label>
         Encoded Text
+        <textarea id="encoded" cols="20" rows="4"></textarea>
     </label>
-    <textarea id="encoded" cols="20" rows="5"></textarea>
-    <div class="cmds" data-cipher="Xenocrypt">
-        <input id="load" type="button" value="Load" />
+    <div class="button-group round cmds" data-cipher="Xenocrypt">
+        <input id="load" type="button" class="button primary" value="Load" />
+        <div class="undocmds"></div>
+        <input id="reset" type="button" class="button warning" value="Reset" />
     </div>
-    <div id="qtext"></div>
-    <div class="ans" id="answer"></div>
-    <div class="freq"></div>
-    <div class="undocmds"></div>
-    <div class="cmds">
-        <input id="reset" type="button" value="Reset" />
-    </div>
-    <div class="sanalysis" id="analysis"></div>
-    <div class="slookup" id="lookup">
-        <div class="langstatus"></div>
-        <div>
-            <label for="lang">Fill Language</label>
-            <select class="lang"></select>
+    <div id="qtext cell"></div>
+    <div class="ans cell" id="answer"></div>
+    <div class="freq shrink cell"></div>
+    <div class="sanalysis grid-x" id="analysis"></div>
+    <div class="slookup cell small-12 large-6" id="lookup">
+        <div class="cell input-group">
+            <span class="input-group-label">Fill Language</span>
+            <select class="lang input-group-field"></select>
         </div>
-        <div>
-            <label for="find">Find spot for</label>
-            <input id="find" class="sfind" type="text" />
+        <div class="cell langstatus"></div>
+        <div class="cell input-group">
+            <span class="input-group-label">Find spot for</span>
+            <input id="find" class="sfind input-group-field" type="text" />
         </div>
-        <div class="findres"></div>
+        <div class="findres cell shrink"></div>
     </div>
 </body>
+
 </html>

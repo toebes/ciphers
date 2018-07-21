@@ -910,13 +910,13 @@ export class CipherHandler {
             $(e.target).addClass("focus")
         })
         $('.input-number-increment').off('click').on('click', (e) => {
-            let $input = $(e.target).parents('.input-number-group').find('.input-number')
+            let $input = $(e.target).parents('.input-group').find('.input-number')
             let val = Number($input.val())
             $input.val(val + 1)
             $input.trigger('input')
         })
         $('.input-number-decrement').off('click').on('click', (e) => {
-            let $input = $(e.target).parents('.input-number-group').find('.input-number');
+            let $input = $(e.target).parents('.input-group').find('.input-number');
             let val = Number($input.val())
             $input.val(val - 1)
             $input.trigger('input')
@@ -1262,16 +1262,16 @@ export class CipherHandler {
             {
                 title: "Encryption Tools",
                 menu: [
-                    { title: "AffineEncrypt.html", action: "Affine", },
-                    { title: "CipherCounter.html", action: "Cipher Counter", },
-                    { title: "AristocratEncrypt.html", action: "Aristocrat Encoder", },
-                    { title: "AristocratSpanishEncrypt.html", action: "Spanish Aristocrat Encoder", },
-                    { title: "XenocryptEncrypt.html", action: "Xenocrypt Encoder", },
-                    { title: "PatristocratEncrypt.html", action: "Patristocrat Encoder", },
-                    { title: "DancingMenEncrypt.html", action: "Dancing Men Encoder", },
-                    { title: "HillEncrypt.html", action: "Hill Encoder (2x2 and 3x3)", },
-                    { title: "VigenereEncrypt.html", action: "Vigen&egrave;re Encoder", },
-                    { title: "GenLanguage.html", action: "Language Template Processor", },
+                    { title: "Affine", href: "AffineEncrypt.html", },
+                    { title: "Cipher Counter", href: "CipherCounter.html", },
+                    { title: "Aristocrat Encoder", href: "AristocratEncrypt.html", },
+                    { title: "Spanish Aristocrat Encoder", href: "AristocratSpanishEncrypt.html", },
+                    { title: "Xenocrypt Encoder", href: "XenocryptEncrypt.html", },
+                    { title: "Patristocrat Encoder", href: "PatristocratEncrypt.html", },
+                    { title: "Dancing Men Encoder", href: "DancingMenEncrypt.html", },
+                    { title: "Hill Encoder (2x2 and 3x3)", href: "HillEncrypt.html", },
+                    { title: "Vigen&egrave;re Encoder", href: "VigenereEncrypt.html", },
+                    { title: "Language Template Processor", href: "GenLanguage.html", },
                 ]
             },
         ]

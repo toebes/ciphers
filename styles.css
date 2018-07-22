@@ -646,3 +646,7 @@ table.found tr th:nth-child(odd) {
         background: #1779ba !important;
         color: #fefefe;
     }
+
+.mwide select.msli {
+    width: 3rem;
+}

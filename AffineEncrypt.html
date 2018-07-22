@@ -15,37 +15,32 @@
     <title>Affine Encrypt</title>
 </head>
 
+
 <body>
-    <h1>Affine Encrypt</h1>
-    <a href="index.html">Back to Cipher Tools</a>
-    <hr />
-    <div class="cipher-type" id="affine"></div>
+    <div class="MenuBar"></div>
+    <h2>Affine Encryption</h2>
+    <div class="precmds"></div>
     <label for="toencode">
-        Text to encode</label>
-    <input id="toencode" class="inp" title="Text to encode" type="text" />
-    <div>
-        <label for="a">
-            a</label>
-        <input id="a" class="inp spin" title="a" type="text" value="1" />
+        Text to encode
+        <textarea id="toencode" title="Text to encode" cols="20" rows="5"></textarea>
+    </label>
+    <div class="postcmds"></div>
+    <div class="cipher-type" id="affine"></div>
+    <div class="button-group round cmds" data-cipher="Affine">
+        <input id="load" type="button" class="button primary" value="Encrypt" />
     </div>
-    <div>
-        <label for="b">
-            b</label>
-        <input id="b" class="inp spin" title="b" type="text" value="1" />
-    </div>
-    <div class="err" id="err">
-    </div>
-    <div class="cmds" data-cipher="Affine">
-        <input id="load" type="button" value="Encrypt" />
-    </div>
-    <div class="solveButton" id="solveButton" >
+
+    <div class="ans" id="answer"></div>
+    <div class="freq"></div>
+    <div class="sanalysis" id="analysis"></div>
+    <div class="err" id="err"></div>
+    <div class="solveButton" id="solveButton">
         <input id="solve" type="button" value="Print Solution" class="ui-button ui-corner-all ui-widget" />
     </div>
 
     <hr />
     <div class="ans" id="answer"></div>
     <div class="sol" id="sol"></div>
-
 </body>
 
 </html>

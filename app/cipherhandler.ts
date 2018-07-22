@@ -494,6 +494,7 @@ export class CipherHandler {
     markUndoUI(undostate: boolean, redostate: boolean): void {
         $(".redo").prop("disabled", redostate)
         $(".undo").prop("disabled", undostate)
+        console.log($(".undo").length)
         // $("button.redo").button("option", "disabled", redostate)
         // $("button.undo").button("option", "disabled", undostate)
         // $("button.redo").prop("disabled", redostate)

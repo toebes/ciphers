@@ -1,7 +1,27 @@
 /// <reference types="ciphertypes" />
 
 import { CipherEncoder } from "./cipherencoder"
+import { IState } from "./cipherhandler";
+import {  ICipherType } from "./ciphertypes"
+import { JTFIncButton } from "./jtfIncButton";
+interface IAffineState extends IState {
+    /** a value */
+    a: number
+    /** b value */
+    b: number
+}
+
 export class CipherAffineEncoder extends CipherEncoder {
+    defaultstate: IAffineState = {
+        /** The current cipher we are working on */
+        a: 0,
+        /** The number of rails currently being tested */
+        b: 0,
+        cipherString: "",
+        /** The type of cipher we are doing */
+        cipherType: ICipherType.Affine,
+    }
+    state: IAffineState = { ...this.defaultstate }
 
     affineCheck: { [key: string]: number } = {
         'p': -1,
@@ -66,6 +86,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      * We don't want to show the reverse replacement since we are doing an encode
      */
     init(): void {
+        this.state = {...this.defaultstate}
         this.ShowRevReplace = false
         let affineCheck = {}
         this.affineCheck['p'] = -1
@@ -469,23 +490,44 @@ export class CipherAffineEncoder extends CipherEncoder {
                                this.charset.substr(this.affineCheck['s'], 1))
         })
     }
+    makeCommands(): JQuery<HTMLElement> {
+        let result = $("<div>")
+        let inputbox = $("<div/>", { class: "grid-x grid-margin-x"})
+        inputbox.append(JTFIncButton("A", "a", this.state.a, "small-12 medium-6 large-6"))
+        inputbox.append(JTFIncButton("B", "b", this.state.b, "small-12 medium-6 large-6"))
+        result.append(inputbox)
+        return result
+    }
+    /**
+     *
+     */
+    buildCustomUI(): void {
+        super.buildCustomUI()
+        // $('.precmds').each((i, elem) => {
+        //     $(elem).replaceWith(this.makeChoices())
+        // })
+        $('.postcmds').each((i, elem) => {
+            $(elem).replaceWith(this.makeCommands())
+        })
+    }
+
     /**
      *
      */
     load(): void {
         let charset = this.getCharset()
-        let a = $('#a').spinner("value")
-        let b = $('#b').spinner("value")
+        this.state.a = Number($('#a').val())
+        this.state.b = Number($('#b').val())
 
-        if (!this.iscoprime(a)) {
+        if (!this.iscoprime(this.state.a)) {
             console.log('not coprime')
-            $('#err').text('A value of ' + a + ' is not coprime with ' + charset.length)
+            $('#err').text('A value of ' + this.state.a + ' is not coprime with ' + charset.length)
             return
         }
 
         let toencode = this.cleanString(<string>$('#toencode').val())
-        console.log('a=' + a + ' b=' + b + ' encode=' + toencode)
-        let res = this.buildAffine(toencode, a, b)
+        console.log('a=' + this.state.a + ' b=' + this.state.b + ' encode=' + toencode)
+        let res = this.buildAffine(toencode, this.state.a, this.state.b)
         $("#answer").empty().append(res)
 
         $("td").off('click').on('click', (e) => {

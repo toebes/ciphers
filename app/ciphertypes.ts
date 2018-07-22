@@ -16,6 +16,7 @@ export const enum ICipherType {
     FractionatedMorse = "fractionatedmorse",
     Morbit = "morbit",
     Ragbaby = "ragbaby",
+    Affine = "affine",
 }
 
 // interface JTRBL {
@@ -72,6 +73,10 @@ export class CipherTypeInfo {
 
             case ICipherType.Ragbaby:
                 res = { value: cipherType, title: "Ragbaby", id: "ragbaby" }
+                break
+
+            case ICipherType.Affine:
+                res = { value: cipherType, title: "Affine", id: "affine" }
                 break
 
             default:

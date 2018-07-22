@@ -1,8 +1,10 @@
 import { IState } from "./cipherhandler"
 import { CipherSolver } from "./ciphersolver"
 import { CipherTypeInfo, ICipherType } from "./ciphertypes"
+import { JTButtonItem } from "./jtbuttongroup"
 import { JTFIncButton } from "./jtfIncButton"
 import { JTRadioButton } from "./jtradiobutton"
+
 interface IRailState extends IState {
     /** The number of rails currently being tested */
     rails: number
@@ -44,7 +46,11 @@ export class CipherRailfenceSolver extends CipherSolver {
         railOrder: "123456789"
     }
     state: IRailState = { ...this.defaultstate }
-
+    cmdButtons: JTButtonItem[] = [
+        { title: "Load", id: "load", },
+        this.undocmdButton,
+        this.redocmdButton,
+    ]
     railOrderOffs: Array<number>
     /**
      * Initializes the encoder/decoder.

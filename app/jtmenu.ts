@@ -1,5 +1,3 @@
-/// <reference types="ciphertypes" />
-
 export interface menuItem {
     /** Text to appear for the menu item */
     title: string,

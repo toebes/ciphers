@@ -7,18 +7,14 @@
 </head>
 
 <body>
-    <div class="MenuBar"></div>
+    <div class="MenuBar" data-cipher="RailfenceSolver"></div>
     <h2>Railfence and Redefence Assistant</h2>
     <div class="precmds"></div>
     <label for="encoded">
         Encoded Text
         <textarea id="encoded" cols="20" rows="5"></textarea>
     </label>
-    <div class="button-group round cmds" data-cipher="RailfenceSolver">
-        <input id="load" type="button" class="button primary" value="Load" />
-        <div class="undocmds"></div>
-    </div>
-
+    <div class="cmdbuttons" ></div>
     <div class="postcmds"></div>
     <div class="ans" id="answer"></div>
     <div class="freq"></div>
@@ -30,6 +26,9 @@
         </div>
         <div class="findres cell"></div>
     </div>
+
+
+
     <div class="references">
         <h2>Cipher Descriptions</h2>
         <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Railfence.pdf">RAILFENCE (3-7 rows, 10-15 times number of rows)</a>

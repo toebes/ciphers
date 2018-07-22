@@ -1,5 +1,6 @@
 /// <reference types="ciphertypes" />
 import { ICipherType } from "./ciphertypes"
+import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
 import { jtCreateMenu, menuItem } from "./jtmenu"
 import { parseQueryString } from "./parsequerystring"
 
@@ -320,7 +321,16 @@ export class CipherHandler {
         replacements: {}
     }
     state: IState = { ...this.defaultstate }
-    testStrings: string[] = [
+    undocmdButton: JTButtonItem = {title: "Undo", id: "undo", color: "Primary", class: "undo", disabled: true }
+    redocmdButton: JTButtonItem = {title: "Redo", id: "redo", color: "Primary", class: "redo", disabled: true }
+
+    cmdButtons: JTButtonItem[] = [
+        { title: "Load", id: "load", },
+        this.undocmdButton,
+        this.redocmdButton,
+        { title: "Reset", id: "reset", },
+    ]
+testStrings: string[] = [
     ]
     cipherWidth: number = 1
     charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -413,11 +423,17 @@ export class CipherHandler {
      */
     reset(): void {
     }
+
+    genCmdButtons(): JQElement {
+        return JTButtonGroup(this.cmdButtons)
+    }
+
     /**
-     * Adds the Undo and Redo command buttons
+     * Creates the Undo and Redo command buttons
      */
-    addUndoRedo(): JQElement {
+    genUndoRedoButtons(): JQElement {
         let buttons = $("<div/>")
+
         buttons.append($("<input/>", { type: "button", id: "undo", class: "button primary undo", value: "Undo", disabled: true }))
         buttons.append($("<input/>", { type: "button", id: "redo", class: "button primary redo", value: "Redo", disabled: true }))
         return buttons.children()
@@ -426,10 +442,12 @@ export class CipherHandler {
      * Initializes any layout of the handler.  This is when the solver should initialize any UI globals
      */
     buildCustomUI(): void {
-        $(".undocmds").each((i, elem) => {
-            $(elem).replaceWith(this.addUndoRedo())
+        $('.cmdbuttons').each((i, elem) => {
+            $(elem).replaceWith(this.genCmdButtons())
         })
-
+        $(".undocmds").each((i, elem) => {
+            $(elem).replaceWith(this.genUndoRedoButtons())
+        })
     }
     restore(data: IState): void {
     }

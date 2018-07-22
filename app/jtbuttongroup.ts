@@ -2,7 +2,7 @@ export interface JTButtonItem {
     /** Text to appear for the menu item */
     title: string,
     /** Color type for button (primary, secondary, warning, etc) */
-    color?: "Primary" | "Secondary" | "Success" | "Warning" | "Alert"
+    color?: "primary" | "secondary" | "success" | "warning" | "alert"
     /** Optional id for the item */
     id?: string
     /** Initial enable/disabled status for the button */

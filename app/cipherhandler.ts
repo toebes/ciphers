@@ -321,14 +321,14 @@ export class CipherHandler {
         replacements: {}
     }
     state: IState = { ...this.defaultstate }
-    undocmdButton: JTButtonItem = {title: "Undo", id: "undo", color: "Primary", class: "undo", disabled: true }
-    redocmdButton: JTButtonItem = {title: "Redo", id: "redo", color: "Primary", class: "redo", disabled: true }
+    undocmdButton: JTButtonItem = {title: "Undo", id: "undo", color: "primary", class: "undo", disabled: true }
+    redocmdButton: JTButtonItem = {title: "Redo", id: "redo", color: "primary", class: "redo", disabled: true }
 
     cmdButtons: JTButtonItem[] = [
-        { title: "Load", id: "load", },
+        { title: "Load", color: "primary", id: "load", },
         this.undocmdButton,
         this.redocmdButton,
-        { title: "Reset", id: "reset", },
+        { title: "Reset", color: "warning", id: "reset", },
     ]
 testStrings: string[] = [
     ]
@@ -1273,9 +1273,12 @@ testStrings: string[] = [
                     { title: "Fractionated Morse Solving Assistant", href: "FractionatedMorseSolver.html", },
                     { title: "Checkerboard Solving Assistant", href: "CheckerboardSolver.html", },
                     { title: "Xenocrypt Solving Assistant", href: "XenocryptSolver.html", },
-                    { title: "Vigen&egrave;re Solving Assistant", href: "VigenereSolver.html", },
+                    { title: "Vigen&egrave;re Family Solving Assistant", href: "VigenereSolver.html", },
                     { title: "Gromark Solving Assistant", href: "GromarkSolver.html", },
                     { title: "Cryptarithm Solving Assistant", href: "CryptarithmSolver.html", },
+                    { title: "Checkerboard Solving Assistant", href: "CheckerboardSolver.html", },
+                    { title: "Ragbaby Solving Assistant", href: "RagbabySolver.html", },
+                    { title: "Railfence/Redefence Solving Assistant", href: "RailfenceSolver.html", },
                 ]
             },
             {

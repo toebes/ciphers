@@ -2,7 +2,8 @@
 
 import { CipherEncoder } from "./cipherencoder"
 import { IState } from "./cipherhandler";
-import {  ICipherType } from "./ciphertypes"
+import { ICipherType } from "./ciphertypes"
+import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
 interface IAffineState extends IState {
     /** a value */
@@ -22,7 +23,12 @@ export class CipherAffineEncoder extends CipherEncoder {
         cipherType: ICipherType.Affine,
     }
     state: IAffineState = { ...this.defaultstate }
-
+    cmdButtons: JTButtonItem[] = [
+        { title: "Encrypt", color: "primary", id: "load", },
+        this.undocmdButton,
+        this.redocmdButton,
+        { title: "Print Solution", color: "primary", id: "solve", disabled: true },
+    ]
     affineCheck: { [key: string]: number } = {
         'p': -1,
         'q': -1,
@@ -86,7 +92,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      * We don't want to show the reverse replacement since we are doing an encode
      */
     init(): void {
-        this.state = {...this.defaultstate}
+        this.state = { ...this.defaultstate }
         this.ShowRevReplace = false
         let affineCheck = {}
         this.affineCheck['p'] = -1
@@ -492,7 +498,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     }
     makeCommands(): JQuery<HTMLElement> {
         let result = $("<div>")
-        let inputbox = $("<div/>", { class: "grid-x grid-margin-x"})
+        let inputbox = $("<div/>", { class: "grid-x grid-margin-x" })
         inputbox.append(JTFIncButton("A", "a", this.state.a, "small-12 medium-6 large-6"))
         inputbox.append(JTFIncButton("B", "b", this.state.b, "small-12 medium-6 large-6"))
         result.append(inputbox)

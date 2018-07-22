@@ -17,7 +17,7 @@
 
 
 <body>
-    <div class="MenuBar"></div>
+    <div class="MenuBar" data-cipher="Affine"></div>
     <h2>Affine Encryption</h2>
     <div class="precmds"></div>
     <label for="toencode">
@@ -25,20 +25,12 @@
         <textarea id="toencode" title="Text to encode" cols="20" rows="5"></textarea>
     </label>
     <div class="postcmds"></div>
-    <div class="cipher-type" id="affine"></div>
-    <div class="button-group round cmds" data-cipher="Affine">
-        <input id="load" type="button" class="button primary" value="Encrypt" />
-    </div>
-
+    <div class="cmdbuttons" ></div>
     <div class="ans" id="answer"></div>
     <div class="freq"></div>
     <div class="sanalysis" id="analysis"></div>
     <div class="err" id="err"></div>
-    <div class="solveButton" id="solveButton">
-        <input id="solve" type="button" value="Print Solution" class="ui-button ui-corner-all ui-widget" />
-    </div>
-
-    <hr />
+     <hr />
     <div class="ans" id="answer"></div>
     <div class="sol" id="sol"></div>
 </body>

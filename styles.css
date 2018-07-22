@@ -648,5 +648,9 @@ table.found tr th:nth-child(odd) {
     }
 
 .mwide select.msli {
-    width: 3rem;
+    width: 3.5rem;
+}
+
+.fmwide select.msli {
+    width: 3.9rem;
 }

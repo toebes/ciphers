@@ -15,7 +15,7 @@ interface IAffineState extends IState {
 export class CipherAffineEncoder extends CipherEncoder {
     defaultstate: IAffineState = {
         /** The current cipher we are working on */
-        a: 0,
+        a: 1,
         /** The number of rails currently being tested */
         b: 0,
         cipherString: "",
@@ -41,7 +41,8 @@ export class CipherAffineEncoder extends CipherEncoder {
     charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     encodeTable: StringMap = {}
     completeSolution: boolean = false
-
+    /** The direction of the last advance */
+    advancedir: number = 0
     affinechar(a: number, b: number, chr: string): string {
         let charset = this.getCharset()
         let x = charset.indexOf(chr.toUpperCase())
@@ -50,6 +51,34 @@ export class CipherAffineEncoder extends CipherEncoder {
         let res = charset.substr(y, 1)
         console.log('char=' + chr + ' x=' + x + ' a=' + a + ' b=' + b + ' y=' + y + ' res=' + res)
         return res
+    }
+    restore(data: SaveSet): void {
+        this.state = this.defaultstate
+        if (data.a !== undefined) {
+            this.state.a = data.a
+        }
+        if (data.a !== undefined) {
+            this.state.b = data.b
+        }
+        if (data.cipherString !== undefined) {
+            this.state.cipherString = data.cipherString
+        }
+        this.seta(this.state.a, 0)
+        this.setb(this.state.b)
+        $("#a").val(this.state.a)
+        $("#b").val(this.state.b)
+        $("#toencode").val(this.state.cipherString)
+        this.setUIDefaults()
+    }
+    /**
+     * Make a copy of the current state
+     */
+    save(): IState {
+        // We need a deep copy of the save state
+        let savestate = { ...this.state }
+        // And the replacements hash also has to have a deep copy
+        savestate.replacements = { ...this.state.replacements }
+        return savestate
     }
     /*
     * Creates an HTML table to display the frequency of characters
@@ -486,6 +515,45 @@ export class CipherAffineEncoder extends CipherEncoder {
      */
     attachHandlers(): void {
         super.attachHandlers()
+        $("#a").off('input').on('input', (e) => {
+            let newa: number = Number($(e.target).val())
+            if (newa !== this.state.a) {
+                this.markUndo()
+                this.seta(newa, this.advancedir)
+                if (newa !== this.state.a) {
+                    $(e.target).val(this.state.a)
+                    return false
+                }
+            }
+            this.advancedir = 0
+        })
+        $("#b").off('input').on('input', (e) => {
+            let newb: number = Number($(e.target).val())
+            if (newb !== this.state.b) {
+                this.markUndo()
+                this.setb(newb)
+                if (newb !== this.state.b) {
+                    $(e.target).val(this.state.b)
+                    return false
+                }
+            }
+            this.advancedir = 0
+        })
+        $('.input-number-increment').off('click').on('click', (e) => {
+            let $input = $(e.target).parents('.input-group').find('.input-number')
+            let val = Number($input.val())
+            this.advancedir = 1
+            $input.val(val + this.advancedir)
+            $input.trigger('input')
+        })
+        $('.input-number-decrement').off('click').on('click', (e) => {
+            let $input = $(e.target).parents('.input-group').find('.input-number');
+            let val = Number($input.val())
+            this.advancedir = -1
+            $input.val(val + this.advancedir)
+            $input.trigger('input')
+        })
+
         $("#solve").off('click').on('click', () => {
             let msg = <string>$('#toencode').val()
             this.setEncodingTable(Number($("#a").val()), Number($("#b").val()))
@@ -495,48 +563,8 @@ export class CipherAffineEncoder extends CipherEncoder {
                                this.charset.substr(this.affineCheck['q'], 1),
                                this.charset.substr(this.affineCheck['s'], 1))
         })
-    }
-    makeCommands(): JQuery<HTMLElement> {
-        let result = $("<div>")
-        let inputbox = $("<div/>", { class: "grid-x grid-margin-x" })
-        inputbox.append(JTFIncButton("A", "a", this.state.a, "small-12 medium-6 large-6"))
-        inputbox.append(JTFIncButton("B", "b", this.state.b, "small-12 medium-6 large-6"))
-        result.append(inputbox)
-        return result
-    }
-    /**
-     *
-     */
-    buildCustomUI(): void {
-        super.buildCustomUI()
-        // $('.precmds').each((i, elem) => {
-        //     $(elem).replaceWith(this.makeChoices())
-        // })
-        $('.postcmds').each((i, elem) => {
-            $(elem).replaceWith(this.makeCommands())
-        })
-    }
-
-    /**
-     *
-     */
-    load(): void {
-        let charset = this.getCharset()
-        this.state.a = Number($('#a').val())
-        this.state.b = Number($('#b').val())
-
-        if (!this.iscoprime(this.state.a)) {
-            console.log('not coprime')
-            $('#err').text('A value of ' + this.state.a + ' is not coprime with ' + charset.length)
-            return
-        }
-
-        let toencode = this.cleanString(<string>$('#toencode').val())
-        console.log('a=' + this.state.a + ' b=' + this.state.b + ' encode=' + toencode)
-        let res = this.buildAffine(toencode, this.state.a, this.state.b)
-        $("#answer").empty().append(res)
-
         $("td").off('click').on('click', (e) => {
+            let charset = this.getCharset()
             let id = $(e.target).attr('id')
             // change the style
             let clickedId = this.affineCheck['olderId']
@@ -570,5 +598,64 @@ export class CipherAffineEncoder extends CipherEncoder {
                 }
             }
         })
+    }
+    makeCommands(): JQuery<HTMLElement> {
+        let result = $("<div>")
+        let inputbox = $("<div/>", { class: "grid-x grid-margin-x" })
+        inputbox.append(JTFIncButton("A", "a", this.state.a, "small-12 medium-4 large-4"))
+        inputbox.append(JTFIncButton("B", "b", this.state.b, "small-12 medium-4 large-4"))
+        result.append(inputbox)
+        return result
+    }
+    /**
+     *
+     */
+    buildCustomUI(): void {
+        super.buildCustomUI()
+        // $('.precmds').each((i, elem) => {
+        //     $(elem).replaceWith(this.makeChoices())
+        // })
+        $('.postcmds').each((i, elem) => {
+            $(elem).replaceWith(this.makeCommands())
+        })
+    }
+
+    /**
+     * Sets the new A value.  A direction is also provided so that if the
+     * intended value is bad, we can keep advancing until we find one
+     */
+    seta(a: number, direction: number): void {
+        let charset = this.getCharset()
+        if (a !== this.state.a) {
+
+            if (direction !== 0) {
+                while (a !== this.state.a && !this.iscoprime(a)) {
+                    a = (a + charset.length + direction) % charset.length
+                }
+            }
+            if (!this.iscoprime(a)) {
+                $('#err').text('A value of ' + a + ' is not coprime with ' + charset.length)
+            }
+            if (a > charset.length) {
+                $('#err').text('A value of ' + a + ' must be smaller than ' + (charset.length + 1))
+
+            }
+        }
+        this.state.a = a
+    }
+    setb(b: number): void {
+        let charset = this.getCharset()
+        b = (b + charset.length) % charset.length
+        this.state.b = b
+    }
+    /**
+     *
+     */
+    load(): void {
+        this.state.cipherString = this.cleanString(<string>$('#toencode').val())
+        console.log('a=' + this.state.a + ' b=' + this.state.b + ' encode=' + this.state.cipherString)
+        let res = this.buildAffine(this.state.cipherString, this.state.a, this.state.b)
+        $("#answer").empty().append(res)
+        this.attachHandlers()
     }
 }

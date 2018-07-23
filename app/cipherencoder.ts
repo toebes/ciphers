@@ -64,11 +64,11 @@ export class CipherEncoder extends CipherHandler {
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
+        super.attachHandlers()
         $('input[type=radio][name=enctype]').off('change').on('change', () => {
             this.setkvalinputs()
         })
         this.setkvalinputs()
-        super.attachHandlers()
     }
     /**
      * Set chunking size for input data string befre encoding.

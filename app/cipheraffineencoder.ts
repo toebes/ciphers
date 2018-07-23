@@ -76,8 +76,6 @@ export class CipherAffineEncoder extends CipherEncoder {
     save(): IState {
         // We need a deep copy of the save state
         let savestate = { ...this.state }
-        // And the replacements hash also has to have a deep copy
-        savestate.replacements = { ...this.state.replacements }
         return savestate
     }
     /*

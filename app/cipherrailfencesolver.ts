@@ -1,6 +1,6 @@
 import { IState } from "./cipherhandler"
 import { CipherSolver } from "./ciphersolver"
-import { CipherTypeInfo, ICipherType } from "./ciphertypes"
+import { CypherTypeButtonItem, ICipherType } from "./ciphertypes"
 import { JTButtonItem } from "./jtbuttongroup"
 import { JTFIncButton } from "./jtfIncButton"
 import { JTRadioButton } from "./jtradiobutton"
@@ -218,8 +218,8 @@ export class CipherRailfenceSolver extends CipherSolver {
         // let operationChoice = $('<div/>', { class: "row column medium-5 align-center" })
 
         let radiobuttons = [
-            CipherTypeInfo.RadioButtonItem(ICipherType.Railfence),
-            CipherTypeInfo.RadioButtonItem(ICipherType.Redefence),
+            CypherTypeButtonItem(ICipherType.Railfence),
+            CypherTypeButtonItem(ICipherType.Redefence),
         ]
         return JTRadioButton(6, 'railtype', radiobuttons, this.state.cipherType)
         // operationChoice.append(JTRadioButton(6, 'railtype', radiobuttons, this.state.cipherType))
@@ -240,7 +240,7 @@ export class CipherRailfenceSolver extends CipherSolver {
      * Analyze the cipher string and show any data for the user to make decisions.
      * @param encoded Encoded string to analyze
      */
-    analyze(encoded: string): JQuery<HTMLElement> {
+    analyze(): JQuery<HTMLElement> {
         return null
     }
 
@@ -249,7 +249,7 @@ export class CipherRailfenceSolver extends CipherSolver {
      * @param {string} repchar character slot to map against (This is a character and an offset)
      * @param {string} newchar New char to assign as decoding for the character
      */
-    setChar(repchar: string, newchar: string): void {
+    setChar(): void {
     }
 
     /**
@@ -265,7 +265,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         let outlines: string[][] = []
         for (let rail = 0; rail < this.state.rails; rail++) {
             let line: Array<string> = []
-            for (let c of str) {
+            for (let {} of str) {
                 line.push(" ")
             }
             outlines.push(line)
@@ -355,7 +355,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     buildRailPre(outlines: string[][], offs: number[], isZigZag: boolean, str: string): JQuery<HTMLElement> {
         let ans: string[] = []
         if (isZigZag) {
-            for (let c of str) {
+            for (let {} of str) {
                 ans.push(" ")
             }
         }

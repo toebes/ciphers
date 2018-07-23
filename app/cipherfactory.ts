@@ -5,6 +5,7 @@ import { CipherEncoder } from "./cipherencoder"
 import { CipherHandler } from "./cipherhandler"
 
 import { CipherCheckerboardSolver } from "./ciphercheckerboardsolver"
+import { CipherCounter } from "./ciphercounter"
 import { CryptarithmSolver } from "./ciphercryptarithmsolver"
 import { CipherFractionatedMorseSolver } from "./cipherfractionatedmorsesolver"
 import { CipherGromarkSolver } from "./ciphergromarksolver"
@@ -71,6 +72,10 @@ export function CipherFactory(ciphertype: string, lang: string): CipherHandler {
 
         case 'RailfenceSolver':
             cipherTool = new CipherRailfenceSolver()
+            break
+
+        case 'Counter':
+            cipherTool = new CipherCounter()
             break
 
         case 'Standard':

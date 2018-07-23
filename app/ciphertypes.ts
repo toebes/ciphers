@@ -17,6 +17,7 @@ export const enum ICipherType {
     Morbit = "morbit",
     Ragbaby = "ragbaby",
     Affine = "affine",
+    Counter = "counter",
 }
 
 // interface JTRBL {
@@ -34,57 +35,59 @@ export const enum ICipherType {
 //     Morbit: { value: ICipherType.Morbit, title: "Morbit", id: "morbit" },
 // }
 
-export class CipherTypeInfo {
-    static RadioButtonItem(cipherType: ICipherType): JTRadioButtonItem {
-        let res: JTRadioButtonItem
+export function CypherTypeButtonItem(cipherType: ICipherType): JTRadioButtonItem {
+    let res: JTRadioButtonItem
 
-        switch (cipherType) {
-            case ICipherType.Railfence:
-                res = { value: cipherType, title: "Railfence", id: "railfence" }
-                break
+    switch (cipherType) {
+        case ICipherType.Railfence:
+            res = { value: cipherType, title: "Railfence", id: "railfence" }
+            break
 
-            case ICipherType.Redefence:
-                res = { value: cipherType, title: "Redefence", id: "redefence" }
-                break
+        case ICipherType.Redefence:
+            res = { value: cipherType, title: "Redefence", id: "redefence" }
+            break
 
-            case ICipherType.Vigenere:
-                res = { value: cipherType, title: "Vigen&egrave;re", id: "vigenere" }
-                break
+        case ICipherType.Vigenere:
+            res = { value: cipherType, title: "Vigen&egrave;re", id: "vigenere" }
+            break
 
-            case ICipherType.Variant:
-                res = { value: cipherType, title: "Variant", id: "variant" }
-                break
+        case ICipherType.Variant:
+            res = { value: cipherType, title: "Variant", id: "variant" }
+            break
 
-            case ICipherType.Beaufort:
-                res = { value: cipherType, title: "Beaufort", id: "beaufort" }
-                break
+        case ICipherType.Beaufort:
+            res = { value: cipherType, title: "Beaufort", id: "beaufort" }
+            break
 
-            case ICipherType.Gronsfeld:
-                res = { value: cipherType, title: "Gronsfeld", id: "gronsfeld" }
-                break
+        case ICipherType.Gronsfeld:
+            res = { value: cipherType, title: "Gronsfeld", id: "gronsfeld" }
+            break
 
-            case ICipherType.Porta:
-                res = { value: cipherType, title: "Porta", id: "porta" }
-                break
+        case ICipherType.Porta:
+            res = { value: cipherType, title: "Porta", id: "porta" }
+            break
 
-            case ICipherType.FractionatedMorse:
-                res = { value: cipherType, title: "Fractionated Morse", id: "fractionatedmorse" }
-                break
+        case ICipherType.FractionatedMorse:
+            res = { value: cipherType, title: "Fractionated Morse", id: "fractionatedmorse" }
+            break
 
-            case ICipherType.Ragbaby:
-                res = { value: cipherType, title: "Ragbaby", id: "ragbaby" }
-                break
+        case ICipherType.Ragbaby:
+            res = { value: cipherType, title: "Ragbaby", id: "ragbaby" }
+            break
 
-            case ICipherType.Affine:
-                res = { value: cipherType, title: "Affine", id: "affine" }
-                break
+        case ICipherType.Affine:
+            res = { value: cipherType, title: "Affine", id: "affine" }
+            break
 
-            default:
-            case ICipherType.Morbit:
-                res = { value: cipherType, title: "Morbit", id: "morbit" }
-                break
+        case ICipherType.Counter:
+            res = { value: cipherType, title: "Counter", id: "counter" }
+            break
 
-        }
-        return res
+        default:
+        case ICipherType.Morbit:
+            res = { value: cipherType, title: "Morbit", id: "morbit" }
+            break
+
     }
+    return res
 }

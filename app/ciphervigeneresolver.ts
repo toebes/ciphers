@@ -2,7 +2,7 @@
 
 import { IState } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver"
-import { CipherTypeInfo, ICipherType } from "./ciphertypes"
+import { CypherTypeButtonItem, ICipherType } from "./ciphertypes"
 import { JTRadioButton } from "./jtradiobutton"
 import { JTTable } from "./jttable"
 import Mapper from "./mapper"
@@ -71,11 +71,11 @@ export class CipherVigenereSolver extends CipherSolver {
         let operationChoice = $('<div>')
 
         let radiobuttons = [
-            CipherTypeInfo.RadioButtonItem(ICipherType.Vigenere),
-            CipherTypeInfo.RadioButtonItem(ICipherType.Variant),
-            CipherTypeInfo.RadioButtonItem(ICipherType.Beaufort),
-            CipherTypeInfo.RadioButtonItem(ICipherType.Gronsfeld),
-            CipherTypeInfo.RadioButtonItem(ICipherType.Porta),
+            CypherTypeButtonItem(ICipherType.Vigenere),
+            CypherTypeButtonItem(ICipherType.Variant),
+            CypherTypeButtonItem(ICipherType.Beaufort),
+            CypherTypeButtonItem(ICipherType.Gronsfeld),
+            CypherTypeButtonItem(ICipherType.Porta),
         ]
         operationChoice.append(JTRadioButton(8, 'codevariant', radiobuttons, this.state.cipherType))
         return operationChoice

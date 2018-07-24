@@ -364,6 +364,15 @@ testStrings: string[] = [
     Frequent: { [key: string]: { [key: string]: patelem[] } } = {}
     freq: { [key: string]: number } = {}
     /**
+     * Copies one state interface to another preserving fields that are already
+     * in the destination
+     */
+    copyState(dest: IState, source: IState): void {
+        for (let elem of Object.keys(source)) {
+            dest[elem] = source[elem]
+        }
+    }
+    /**
      * Initializes the encoder/decoder.
      * We don't want to show the reverse replacement since we are doing an encode
      * @param {string} lang Language to select (EN is the default)
@@ -566,7 +575,8 @@ testStrings: string[] = [
     }
 
     /**
-     * Propagate any default settings to the UI
+     * Cleans up any settings, range checking and normalizing any values.
+     * Generally you will call updateOutput() after calling setUIDefaults()
      */
     setUIDefaults(): void {
     }

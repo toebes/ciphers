@@ -51,11 +51,6 @@ export class CipherEncoder extends CipherHandler {
     ]
     groupingSize: number = 0
 
-    copyState(dest: IState, source: IState): void {
-        for (let elem of Object.keys(source)) {
-            dest[elem] = source[elem]
-        }
-    }
     restore(data: IEncoderState): void {
         let curlang = this.state.curlang
         this.state = { ...this.defaultstate }

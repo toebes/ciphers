@@ -43,32 +43,20 @@ export class CipherAffineEncoder extends CipherEncoder {
     completeSolution: boolean = false
     /** The direction of the last advance */
     advancedir: number = 0
-    affinechar(a: number, b: number, chr: string): string {
-        let charset = this.getCharset()
-        let x = charset.indexOf(chr.toUpperCase())
-        if (x < 0) { return chr }
-        let y = ((a * x) + b) % charset.length
-        let res = charset.substr(y, 1)
-        console.log('char=' + chr + ' x=' + x + ' a=' + a + ' b=' + b + ' y=' + y + ' res=' + res)
-        return res
+    restore(data: IAffineState): void {
+        this.state = { ...this.defaultstate }
+        this.copyState(this.state, data)
+        this.setUIDefaults()
+        this.updateOutput()
     }
-    restore(data: SaveSet): void {
-        this.state = this.defaultstate
-        if (data.a !== undefined) {
-            this.state.a = data.a
-        }
-        if (data.a !== undefined) {
-            this.state.b = data.b
-        }
-        if (data.cipherString !== undefined) {
-            this.state.cipherString = data.cipherString
-        }
+    setUIDefaults(): void {
         this.seta(this.state.a, 0)
         this.setb(this.state.b)
+    }
+    updateOutput(): void {
+        super.updateOutput()
         $("#a").val(this.state.a)
         $("#b").val(this.state.b)
-        $("#toencode").val(this.state.cipherString)
-        this.setUIDefaults()
     }
     /**
      * Make a copy of the current state
@@ -77,6 +65,15 @@ export class CipherAffineEncoder extends CipherEncoder {
         // We need a deep copy of the save state
         let savestate = { ...this.state }
         return savestate
+    }
+    affinechar(a: number, b: number, chr: string): string {
+        let charset = this.getCharset()
+        let x = charset.indexOf(chr.toUpperCase())
+        if (x < 0) { return chr }
+        let y = ((a * x) + b) % charset.length
+        let res = charset.substr(y, 1)
+        console.log('char=' + chr + ' x=' + x + ' a=' + a + ' b=' + b + ' y=' + y + ' res=' + res)
+        return res
     }
     /*
     * Creates an HTML table to display the frequency of characters
@@ -597,13 +594,18 @@ export class CipherAffineEncoder extends CipherEncoder {
             }
         })
     }
-    genPostCommands(): JQuery<HTMLElement> {
-        let result = $("<div>")
+    genPreCommands(): JQuery<HTMLElement> {
+        let result = $("<div/>")
+        result.append(this.genQuestionFields())
+        result.append($("<label/>").text("Text to encode").append($("<textarea/>", { id: "toencode", cols: 20, rows: 5 })))
         let inputbox = $("<div/>", { class: "grid-x grid-margin-x" })
         inputbox.append(JTFIncButton("A", "a", this.state.a, "small-12 medium-4 large-4"))
         inputbox.append(JTFIncButton("B", "b", this.state.b, "small-12 medium-4 large-4"))
         result.append(inputbox)
         return result
+    }
+    genPostCommands(): JQuery<HTMLElement> {
+        return null
     }
     /**
      *

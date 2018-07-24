@@ -1,7 +1,7 @@
 /// <reference types="ciphertypes" />
 import { ICipherType } from "./ciphertypes"
 import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
-import { jtCreateMenu, menuItem } from "./jtmenu"
+import { JTCreateMenu, menuItem } from "./jtmenu"
 import { parseQueryString } from "./parsequerystring"
 
 export interface IState {
@@ -19,7 +19,9 @@ export interface IState {
     /** Any additional save state data */
     undotype?: string,
     /** Any quotation text to associate with the cipher */
-    qtext?: string,
+    question?: string,
+    /** Current language */
+    curlang? : string,
     any?: any
 }
 
@@ -318,7 +320,9 @@ export class CipherHandler {
         /** The current string we are looking for */
         findString: "",
         /** Replacement characters */
-        replacements: {}
+        replacements: {},
+        /** Current language */
+        curlang: ""
     }
     state: IState = { ...this.defaultstate }
     undocmdButton: JTButtonItem = {title: "Undo", id: "undo", color: "primary", class: "undo", disabled: true }
@@ -337,7 +341,6 @@ testStrings: string[] = [
     sourcecharset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     unasigned: string = ""
     replacement: StringMap = {}
-    curlang: string = ""
     holdupdates: boolean = false
     /** Stack of current Undo/Redo operations */
     undoStack: IState[] = []
@@ -366,7 +369,7 @@ testStrings: string[] = [
      * @param {string} lang Language to select (EN is the default)
      */
     init(lang: string): void {
-        this.curlang = lang
+        this.state.curlang = lang
     }
     /**
      * Generates an HTML representation of a string for display
@@ -438,10 +441,22 @@ testStrings: string[] = [
         buttons.append($("<input/>", { type: "button", id: "redo", class: "button primary redo", value: "Redo", disabled: true }))
         return buttons.children()
     }
+    genPreCommands(): JQElement {
+        return null
+    }
+    genPostCommands(): JQElement {
+        return null
+    }
     /**
      * Initializes any layout of the handler.  This is when the solver should initialize any UI globals
      */
     buildCustomUI(): void {
+        $('.precmds').each((i, elem) => {
+             $(elem).replaceWith(this.genPreCommands())
+        })
+        $('.postcmds').each((i, elem) => {
+            $(elem).replaceWith(this.genPostCommands())
+        })
         $('.cmdbuttons').each((i, elem) => {
             $(elem).replaceWith(this.genCmdButtons())
         })
@@ -533,7 +548,7 @@ testStrings: string[] = [
     layout(): void {
         // process the "cipher-type" class
         $(".cipher-type").each((i: number, elem: HTMLElement) => { this.setCipherType($(elem).attr('id')) })
-        $(".lang").each((i: number, elem: HTMLElement) => { this.setLangDropdown($(elem)) })
+        $(".langsel").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.getLangDropdown()) })
         $(".MenuBar").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.createMainMenu()) })
         this.buildCustomUI()
         this.UpdateFreqEditTable()
@@ -772,7 +787,7 @@ testStrings: string[] = [
         let chiSquare = 0.0
         for (let i = 0; i < len; i++) {
             let c = charset.substr(i, 1)
-            let expected = this.langfreq[this.curlang][c]
+            let expected = this.langfreq[this.state.curlang][c]
             if (expected !== undefined && expected !== 0) {
                 chiSquare += Math.pow(counts[i] - total * expected, 2) / (total * expected)
             }
@@ -968,6 +983,9 @@ testStrings: string[] = [
             let toupdate = $(e.target).attr("data-char")
             this.updateSel(toupdate, (e.target as HTMLInputElement).value)
         })
+        $(".lang").off("change").on("change", (e) => {
+            this.loadLanguage($(e.target).val() as string)
+        })
         $(".spin").spinner({
             spin: (event, ui) => {
                 this.markUndo();
@@ -1119,23 +1137,25 @@ testStrings: string[] = [
      * Fills in the language choices on an HTML Select
      * @param lselect HTML Element to populate
      */
-    setLangDropdown(lselect: JQElement): void {
-        lselect.empty().append($('<option />', { value: "" }).text("--Select a language--"))
+    getLangDropdown(): JQElement {
+        let result = $("<div/>", {class: "cell input-group"})
+        result.append($("<span/>", {class: "input-group-label"}).text("Language"))
+        let select = $("<select/>", {class: "lang input-group-field"})
+        select.append($('<option />', { value: "" }).text("--Select a language--"))
         for (let lang in this.langmap) {
             if (this.langmap.hasOwnProperty(lang)) {
-                $("<option />", { value: lang }).text(this.langmap[lang]).appendTo(lselect)
+                select.append($("<option />", { value: lang }).text(this.langmap[lang]))
             }
         }
-        lselect.change((e) => {
-            this.loadLanguage($(e.target).val() as string)
-        })
+        result.append(select)
+        return result
     }
     /**
      * Loads a language in response to a dropdown event
      * @param lang Language to load
      */
     loadLanguage(lang: string): void {
-        this.curlang = lang
+        this.state.curlang = lang
         this.setCharset(this.langcharset[lang])
         $(".langstatus").text("Attempting to load " + this.langmap[lang] + "...")
         $.getScript("Languages/" + lang + ".js", (data, textStatus, jqxhr) => {
@@ -1156,7 +1176,7 @@ testStrings: string[] = [
             // empty out all the frequent words
             $(".langstatus").text("Processing " + this.langmap[lang] + "...")
             this.Frequent[lang] = {}
-            this.curlang = lang
+            this.state.curlang = lang
             let charset = this.langcharset[lang]
             let langreplace = this.langreplace[lang]
             this.setCharset(charset)
@@ -1297,6 +1317,6 @@ testStrings: string[] = [
                 ]
             },
         ]
-        return jtCreateMenu(menu, "example-menu", "Cipher Tools")
+        return JTCreateMenu(menu, "example-menu", "Cipher Tools")
     }
 }

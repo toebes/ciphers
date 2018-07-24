@@ -14,7 +14,7 @@ export interface menuItem {
 /**
  * Creates a submenu from a menuitem array
  */
-export function jtAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]): void {
+export function JTAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]): void {
     for (let item of submenu) {
         let li = $("<li/>")
         let href = "#"
@@ -37,14 +37,14 @@ export function jtAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]
         li.append(a)
         if (item.menu !== undefined) {
             let ul = $("<ul/>", { class: "menu vertical" })
-            jtAppendSubMenu(ul, item.menu)
+            JTAppendSubMenu(ul, item.menu)
             li.append(ul)
         }
         parent.append(li)
     }
 }
 
-export function jtCreateMenu(menu: menuItem[], id: string, menutext: string): JQuery<HTMLElement> {
+export function JTCreateMenu(menu: menuItem[], id: string, menutext: string): JQuery<HTMLElement> {
     let result = $("<div/>")
     let titlebar = $("<div/>", { class: "title-bar", 'data-responsive-toggle': id, 'data-hide-for': "medium" })
     $("<button/>", { class: "menu-icon", type: "button", 'data-toggle': id }).appendTo(titlebar)
@@ -58,7 +58,7 @@ export function jtCreateMenu(menu: menuItem[], id: string, menutext: string): JQ
     let topbarleft = $("<div/>", { class: "top-bar-left" })
     let dropdownmenu = $("<ul/>", { class: "dropdown menu", 'data-dropdown-menu': "" })
     dropdownmenu.append($("<li/>", { class: "menu-text" }).text(menutext))
-    jtAppendSubMenu(dropdownmenu, menu)
+    JTAppendSubMenu(dropdownmenu, menu)
     topbarleft.append(dropdownmenu)
     topbar.append(topbarleft)
 

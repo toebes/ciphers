@@ -597,7 +597,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             }
         })
     }
-    makeCommands(): JQuery<HTMLElement> {
+    genPostCommands(): JQuery<HTMLElement> {
         let result = $("<div>")
         let inputbox = $("<div/>", { class: "grid-x grid-margin-x" })
         inputbox.append(JTFIncButton("A", "a", this.state.a, "small-12 medium-4 large-4"))
@@ -610,12 +610,6 @@ export class CipherAffineEncoder extends CipherEncoder {
      */
     buildCustomUI(): void {
         super.buildCustomUI()
-        // $('.precmds').each((i, elem) => {
-        //     $(elem).replaceWith(this.makeChoices())
-        // })
-        $('.postcmds').each((i, elem) => {
-            $(elem).replaceWith(this.makeCommands())
-        })
     }
 
     /**

@@ -45,7 +45,7 @@ export class CipherSolver extends CipherHandler {
             this.state.findString = data.findString
         }
         if (data.qtext !== undefined) {
-            this.state.qtext = data.qtext
+            this.state.question = data.qtext
         }
 
         if (data.replacements !== undefined) {
@@ -65,7 +65,7 @@ export class CipherSolver extends CipherHandler {
         this.findPossible(this.state.findString)
     }
     setUIDefaults(): void {
-        $("#qtext").text(this.state.qtext)
+        $("#qtext").text(this.state.question)
         $('#encoded').val(this.state.cipherString);
         $('#find').val(this.state.findString);
         $("#analysis").each((i, elem) => {
@@ -563,14 +563,14 @@ export class CipherSolver extends CipherHandler {
      * @returns {string} Html for a select
      */
     generateMatchDropdown(str: string): JQuery<HTMLElement> {
-        if (this.curlang === '' || !this.Frequent.hasOwnProperty(this.curlang)) {
+        if (this.state.curlang === '' || !this.Frequent.hasOwnProperty(this.state.curlang)) {
             return $('');
         }
         let pat = this.makeUniquePattern(str, 1);
         let repl = this.genReplPattern(str);
         let mselect = $('<select/>').addClass('match');
-        if (typeof this.Frequent[this.curlang][pat] !== 'undefined') {
-            let matches = this.Frequent[this.curlang][pat];
+        if (typeof this.Frequent[this.state.curlang][pat] !== 'undefined') {
+            let matches = this.Frequent[this.state.curlang][pat];
             let selectclass = '';
             let matched = false;
             let added = 0;

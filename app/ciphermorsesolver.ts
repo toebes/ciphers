@@ -247,7 +247,7 @@ export
         super.attachHandlers()
     }
     reset(): void {
-        this.init(this.curlang)
+        this.init(this.state.curlang)
         super.reset()
         this.locked = {}
     }

@@ -18,7 +18,11 @@ interface RadioButtonOptions {
 
 export function JTRadioButton(width: number, name: string, buttons: JTRadioButtonSet, selected: any): JQuery<HTMLElement> {
     let result = $("<div/>", {class: "grid-x"})
-    let cell = $("<div/>", {class: "cell medium-" + width + " medium-offset-2"})
+    let cellclass = "cell medium-" + width + " medium-offset-2"
+    if (width === 0) {
+        cellclass = "cell"
+    }
+    let cell = $("<div/>", {class: cellclass})
     let appmenu = $("<div/>", {class: "mobile-app-toggle", 'data-mobile-app-toggle': ''})
     for (let choice of buttons) {
         let options: RadioButtonOptions = {

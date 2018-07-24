@@ -43,7 +43,7 @@ export class CipherCounter extends CipherEncoder {
     attachHandlers(): void {
         super.attachHandlers()
     }
-    makeCommands(): JQuery<HTMLElement> {
+    genPostCommands(): JQuery<HTMLElement> {
         return null
     }
     /**

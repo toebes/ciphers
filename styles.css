@@ -1,11 +1,14 @@
 ﻿/* textarea, input, */ 
- .ibox, .ui-spinner, .note-editor, .ui-sel, .note {
+ .ibox, .ui-spinner, /* .note-editor, */ .ui-sel /*, .note */{
     display: block;
     margin-left: 160px;
     margin-bottom: 10px;
     width: 600px;
 }
 
+.note-editor {
+    width: 100%;
+}
 input.cb {
     margin:auto;
     width: auto;

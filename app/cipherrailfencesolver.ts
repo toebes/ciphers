@@ -3,8 +3,8 @@ import { CipherSolver } from "./ciphersolver"
 import { CypherTypeButtonItem, ICipherType } from "./ciphertypes"
 import { JTButtonItem } from "./jtbuttongroup"
 import { JTFIncButton } from "./jtfIncButton"
+import { JTFLabeledInput } from "./jtflabeledinput"
 import { JTRadioButton } from "./jtradiobutton"
-
 interface IRailState extends IState {
     /** The number of rails currently being tested */
     rails: number
@@ -187,7 +187,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     /**
      * Set up the UI elements for the commands for this cipher assistant
      */
-    makeCommands(): JQuery<HTMLElement> {
+    genPostCommands(): JQuery<HTMLElement> {
         let result = $("<div>")
 
         let radiobuttons = [
@@ -201,20 +201,15 @@ export class CipherRailfenceSolver extends CipherSolver {
         let inputbox = $("<div/>", { class: "grid-x grid-margin-x"})
         inputbox.append(JTFIncButton("Number of Rails", "rails", this.state.rails, "small-12 medium-6 large-4"))
         inputbox.append(JTFIncButton("Starting Offset", "offset", this.state.railOffset, "small-12 medium-6 large-4"))
-        let inputgroup = $("<div/>", { class: "input-group rede cell small-12 medium-12 large-4" })
-        $("<span/>", { class: "input-group-label" }).text("Rail Order").appendTo(inputgroup)
-        $('<input/>', {
-            id: 'rorder', class: 'input-group-field',
-            type: 'text', value: this.state.railOrder.substr(0, this.state.rails)
-        }).appendTo(inputgroup)
-        inputbox.append(inputgroup)
+        inputbox.append(JTFLabeledInput("Rail Order", 'text', 'rorder',
+                                        this.state.railOrder.substr(0, this.state.rails), "rede small-12 medium-12 large-4"))
         result.append(inputbox)
         return result
     }
     /**
      * Sets up the radio button to choose the variant of the cipher
      */
-    makeChoices(): JQuery<HTMLElement> {
+    genPreCommands(): JQuery<HTMLElement> {
         // let operationChoice = $('<div/>', { class: "row column medium-5 align-center" })
 
         let radiobuttons = [
@@ -412,18 +407,6 @@ export class CipherRailfenceSolver extends CipherSolver {
         $(".rede").toggle((this.state.cipherType === ICipherType.Redefence))
     }
 
-    /**
-     *
-     */
-    buildCustomUI(): void {
-        super.buildCustomUI()
-        $('.precmds').each((i, elem) => {
-            $(elem).replaceWith(this.makeChoices())
-        })
-        $('.postcmds').each((i, elem) => {
-            $(elem).replaceWith(this.makeCommands())
-        })
-    }
     /**
      * Creates an HTML table to display the frequency of characters
      * @returns {JQuery<HTMLElement} HTML to put into a DOM element

@@ -254,7 +254,7 @@ export class CipherGromarkSolver extends CipherSolver {
      * @returns {string} Html for a select
      */
     generateGromarkDropdown(str: string): JQuery<HTMLElement> {
-        if (this.curlang === '') {
+        if (this.state.curlang === '') {
             return $('')
         }
         let matchstr = ''
@@ -283,9 +283,9 @@ export class CipherGromarkSolver extends CipherSolver {
         //  console.log('Searching for ' + pat + ' len=' + patlen + ' based on ' + matchstr + ' slen=' + slen)
         //  console.log(repl)
 
-        for (let tpat in this.Frequent[this.curlang]) {
-            if (this.Frequent[this.curlang].hasOwnProperty(tpat) && tpat.length === slen && tpat.substr(0, patlen) === pat) {
-                let tmatches = this.Frequent[this.curlang][tpat]
+        for (let tpat in this.Frequent[this.state.curlang]) {
+            if (this.Frequent[this.state.curlang].hasOwnProperty(tpat) && tpat.length === slen && tpat.substr(0, patlen) === pat) {
+                let tmatches = this.Frequent[this.state.curlang][tpat]
                 let added = 0
                 for (let i = 0, len = tmatches.length; i < len; i++) {
                     let entry = tmatches[i]

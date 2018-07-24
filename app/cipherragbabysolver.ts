@@ -325,7 +325,7 @@ export class CipherRagbabySolver extends CipherSolver {
     /**
      * Sets up the radio button to choose the variant
      */
-    makeChoices(): JQuery<HTMLElement> {
+    genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div>")
 
         let radiobuttons = [
@@ -582,9 +582,6 @@ export class CipherRagbabySolver extends CipherSolver {
      */
     buildCustomUI(): void {
         super.buildCustomUI()
-        $('.precmds').each((i, elem) => {
-            $(elem).empty().append(this.makeChoices())
-        })
         this.setAlphabetSize(Number($("input[name='alphasize']:checked").val()))
     }
     /**

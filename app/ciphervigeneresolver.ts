@@ -67,7 +67,7 @@ export class CipherVigenereSolver extends CipherSolver {
     /**
      * Sets up the radio button to choose the variant
      */
-    makeChoices(): JQuery<HTMLElement> {
+    genPreCommands(): JQuery<HTMLElement> {
         let operationChoice = $('<div>')
 
         let radiobuttons = [
@@ -352,13 +352,6 @@ export class CipherVigenereSolver extends CipherSolver {
         }
         res += '<div class="ssum">' + combinedtext + '</div>'
         return $(res)
-    }
-
-    buildCustomUI(): void {
-        super.buildCustomUI()
-        $('.precmds').each((i, elem) => {
-            $(elem).empty().append(this.makeChoices())
-        })
     }
     /**
      * Creates an HTML table to display the frequency of characters

@@ -1,3 +1,6 @@
+/**
+ * Creates a labeled number field with increment/decrement buttons
+ */
 export function JTFIncButton(title: string, id: string, val: number, sizeClass: string): JQuery<HTMLElement> {
     let inputgroup = $("<div/>", { class: "input-group cell " + sizeClass })
 

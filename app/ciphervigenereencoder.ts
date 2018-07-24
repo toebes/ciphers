@@ -21,7 +21,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
         radioBox.append($('<input>', { id: 'decode', type: 'radio', name: 'operation', value: 'decode' }))
         radioBox.append($('<label>', { for: 'decode', class: 'rlab' }).text('Decode'))
 
-
         operationChoice.append(radioBox)
 
         return operationChoice
@@ -98,8 +97,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 // in the decode case.  Thanks JavaScript!
                 cipher += charset.substr(c, 1)
                 keyIndex++
-            }
-            else {
+            } else {
                 message += messageChar
                 cipher += messageChar
                 lastSplit = cipher.length
@@ -112,8 +110,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     message = ''
                     cipher = ''
                     lastSplit = -1
-                }
-                else {
+                } else {
                     let messagePart = message.substr(0, lastSplit)
                     let cipherPart = cipher.substr(0, lastSplit)
                     message = message.substr(lastSplit)
@@ -129,11 +126,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
             result.append($('<div>', { class: "TOANSWER" }).text(cipher))
         }
 
-
         return result
     }
     /**
-     * Loads up the values for vigenere 
+     * Loads up the values for vigenere
      */
     load(): void {
         let encoded = this.cleanString(<string>$('#inputdata').val())
@@ -141,7 +137,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         * If it is characteristic of the cipher type (e.g. patristocrat),
         * rebuild the string to be encoded in to five character sized chunks.
         */
-        let blockSize = parseInt((<string>$('input[id=blocksize').val()))
+        let blockSize = Number((<string>$('input[id=blocksize').val()))
         if (blockSize > 0 && blockSize < this.maxEncodeWidth) {
             encoded = this.chunk(encoded, blockSize)
         }
@@ -163,8 +159,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
-        //Argument of type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to parameter of type '"editor.unlink" | "unlink"'.
-        // Type '{ fontNames: string[]; toolbar: TypeOrArray<string>[][]; }' is not assignable to type '"unlink"'.
         $('input[type=radio][name=enctype]').off('change').on('change', (e) => {
             this.setkvalinputs()
         })

@@ -83,7 +83,7 @@ export class CipherEncoder extends CipherHandler {
         $("#offset2").val(this.state.offset2)
         $('[name="enctype"]').removeClass('is-active')
         $('[name="enctype"][value="' + this.state.encodeType + '"]').addClass('is-active')
-        $("asdasf")
+        $(".lang").val(this.state.curlang)
     }
     save(): IEncoderState {
         let result: IEncoderState = { ...this.state }
@@ -619,9 +619,6 @@ export class CipherEncoder extends CipherHandler {
         result.append(this.getLangDropdown())
         result.append($("<label/>").text("Text to encode").append($("<textarea/>", { id: "toencode", cols: 20, rows: 5 })))
         result.append(this.createAlphabetType())
-
-        // <div class="alphabet"></div>
-
         return result
     }
 }

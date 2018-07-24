@@ -554,6 +554,7 @@ testStrings: string[] = [
         this.UpdateFreqEditTable()
         this.attachHandlers()
         this.setUIDefaults()
+        this.updateOutput()
         let parms = parseQueryString(window.location.search.substring(1))
         let saveSet = this.save()
         for (let v in parms) {
@@ -568,6 +569,11 @@ testStrings: string[] = [
      * Propagate any default settings to the UI
      */
     setUIDefaults(): void {
+    }
+    /**
+     * Update the output based on current state settings
+     */
+    updateOutput(): void {
     }
     /**
      * Builds ??

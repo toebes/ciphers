@@ -4,7 +4,7 @@ import { CypherTypeButtonItem, ICipherType } from "./ciphertypes"
 import { JTButtonItem } from "./jtbuttongroup"
 import { JTFIncButton } from "./jtfIncButton"
 import { JTFLabeledInput } from "./jtflabeledinput"
-import { JTRadioButton } from "./jtradiobutton"
+import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton"
 interface IRailState extends IState {
     /** The number of rails currently being tested */
     rails: number
@@ -398,10 +398,8 @@ export class CipherRailfenceSolver extends CipherSolver {
     private updateUI(): void {
         $("#rails").val(this.state.rails)
         $("#offset").val(this.state.railOffset)
-        $('[name="rlayout"]').removeClass('is-active')
-        $('[name="rlayout"][value=' + this.state.railLayout + "]").addClass('is-active')
-        $('[name="railtype"]').removeClass('is-active')
-        $('[name="railtype"][value=' + this.state.cipherType + "]").addClass('is-active')
+        JTRadioButtonSet("rlayout", this.state.railLayout)
+        JTRadioButtonSet("railtype", this.state.cipherType)
         $(".rorder").val(this.state.railOffset)
         $(".rail").toggle((this.state.cipherType === ICipherType.Railfence))
         $(".rede").toggle((this.state.cipherType === ICipherType.Redefence))

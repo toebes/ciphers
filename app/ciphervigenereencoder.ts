@@ -1,54 +1,121 @@
 /// <reference types="ciphertypes" />
 
 import { CipherEncoder } from "./cipherencoder"
+import { IState } from "./cipherhandler";
+import { ICipherType } from "./ciphertypes";
+import { JTFIncButton } from "./jtfIncButton";
+import { JTFLabeledInput } from "./jtflabeledinput";
+import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 
+type operationType = "encode" | "decode"
+interface IVigenereState extends IState {
+    /** The type of operation */
+    operation: operationType
+    /** The size of the chunking blocks for output - 0 means respect the spaces */
+    blocksize: number
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *
+ * Vigenere Encoder
+ *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 export class CipherVigenereEncoder extends CipherEncoder {
-    doEncoding: boolean = true
+    defaultstate: IVigenereState = {
+        /** The current cipher type we are working on */
+        cipherType: ICipherType.Vigenere,
+        /** Currently selected keyword */
+        keyword: "",
+        /** The current cipher we are working on */
+        cipherString: "",
+        /** The current string we are looking for */
+        findString: "",
+        operation: "encode",
+        blocksize: 0,
+    }
+    state: IVigenereState = { ...this.defaultstate }
 
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     *
-     * Vigenere Encoder
-     *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    layoutVigenere(): JQuery<HTMLElement> {
-        let operationChoice = $('<div>')
-        let label = $('<label>', { for: 'ops' }).text('Operation')
-        operationChoice.append(label)
+    restore(data: IState): void {
+        this.state = { ... this.defaultstate }
+        this.copyState(this.state, data)
+        this.setUIDefaults()
+        this.updateOutput()
+    }
+    /**
+     * Make a copy of the current state
+     */
+    save(): IState {
+        // We need a deep copy of the save state
+        let savestate = { ...this.state }
+        // And the replacements hash also has to have a deep copy
+        savestate.replacements = { ...this.state.replacements }
+        return savestate
+    }
+    /**
+     * Cleans up any settings, range checking and normalizing any values.
+     * This doesn't actually update the UI directly but ensures that all the
+     * values are legitimate for the cipher handler
+     * Generally you will call updateOutput() after calling setUIDefaults()
+     */
+    setUIDefaults(): void {
+        this.setOperation(this.state.operation)
+        this.setBlocksize(this.state.blocksize)
+    }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
+    updateOutput(): void {
+        this.updateQuestionsOutput()
+        if (this.state.operation === 'encode') {
+            $('.blocksize').show()
+            // Change the button label to 'Encode'
+            $('#load').val('Encode')
 
-        let radioBox = $('<div>', { id: 'ops', class: 'ibox' })
-        radioBox.append($('<input>', { id: 'encode', type: 'radio', name: 'operation', value: 'encode', checked: 'checked' }))
-        radioBox.append($('<label>', { for: 'encode', class: 'rlab' }).text('Encode'))
-        radioBox.append($('<input>', { id: 'decode', type: 'radio', name: 'operation', value: 'decode' }))
-        radioBox.append($('<label>', { for: 'decode', class: 'rlab' }).text('Decode'))
+        } else {
+            // During decode, message format will not be changed.
+            $('.blocksize').hide()
+            // Change button label to 'Decode'
+            $('#load').val('Decode')
+        }
+        $("#load").prop('disabled', (this.state.keyword === ''))
+        JTRadioButtonSet("operation", this.state.operation)
+        $("#toencode").val(this.state.cipherString)
+        $("#blocksize").val(this.state.blocksize)
+        $("#keyword").val(this.state.keyword)
+    }
 
-        operationChoice.append(radioBox)
+    genPreCommands(): JQuery<HTMLElement> {
 
-        return operationChoice
+        let result = $("<div/>")
+        let radiobuttons = [
+            { id: 'wrow', value: "encode", title: 'Encode' },
+            { id: 'mrow', value: "decode", title: 'Decode' },
+        ]
+        result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation))
+        result.append(this.genQuestionFields())
+
+        result.append(JTFLabeledInput("Message", 'text', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
+        result.append(JTFLabeledInput("Key", 'text', 'keyword', this.state.keyword, "small-12 medium-12 large-12"))
+
+        let inputbox = $("<div/>", { class: "grid-x grid-margin-x blocksize" })
+        inputbox.append(JTFIncButton("Block Size", "blocksize", this.state.blocksize, ""))
+        result.append(inputbox)
+
+        return result
+
     }
     /**
      * Set vigenere encode or decode mode
      */
-    setVigenereInputs(): void {
-        let operation = $('input[name=operation]:checked').val()
-        if (operation === 'encode') {
-            // zero the blocksize spinner and show it
-            $(':input[id=blocksize]').spinner('value', 0)
-            $('div[id=blocksize]').val('')
-            $('div[id=blocksize]').show()
-            // Change the button label to 'Encode'
-            $(':button').button('option', 'label', 'Encode')
-            this.doEncoding = true
-
-        } else {
-            // During decode, message format will not be changed.
-            $('div[id=blocksize]').hide()
-            // Change button label to 'Decode'
-            $(':button').button('option', 'label', 'Decode')
-            this.doEncoding = false
-        }
-        // Clear message and answer, leave key alone--for re-use.
-        $('textarea[id=inputdata]').val('')
-        $(".ans").text('')
+    setOperation(operation: operationType): void {
+        this.state.operation = operation
+    }
+    setBlocksize(blocksize: number): void {
+        this.state.blocksize = blocksize
+    }
+    setKeyword(keyword: string): void {
+        this.state.keyword = keyword
     }
 
     buildVigenere(msg: string, key: string): JQuery<HTMLElement> {
@@ -86,7 +153,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
                 message += messageChar
                 // For vigenere...this is the meat.
-                if (this.doEncoding) {
+                if (this.state.operation === "encode") {
                     // use this to encode.
                     c = (m + k) % 26
                 } else {
@@ -132,17 +199,16 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Loads up the values for vigenere
      */
     load(): void {
-        let encoded = this.cleanString(<string>$('#inputdata').val())
+        let encoded = this.cleanString(this.state.cipherString)
         /*
         * If it is characteristic of the cipher type (e.g. patristocrat),
         * rebuild the string to be encoded in to five character sized chunks.
         */
-        let blockSize = Number((<string>$('input[id=blocksize').val()))
-        if (blockSize > 0 && blockSize < this.maxEncodeWidth) {
-            encoded = this.chunk(encoded, blockSize)
+        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
+            encoded = this.chunk(encoded, this.state.blocksize)
         }
 
-        let key = this.cleanString(<string>$('#keystring').val())
+        let key = this.cleanString(this.state.keyword)
         $('#err').text('')
         let res = this.buildVigenere(encoded, key)
         $('#answer').empty().append(res)
@@ -151,21 +217,37 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
     buildCustomUI(): void {
         super.buildCustomUI()
-        $('.precmds').each((i, elem) => {
-            $(elem).empty().append(this.layoutVigenere())
-        })
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
-        $('input[type=radio][name=enctype]').off('change').on('change', (e) => {
-            this.setkvalinputs()
-        })
-        $('input[type=radio][name=operation]').off('change').on('change', (e) => {
-            this.setVigenereInputs()
-        })
-        this.setkvalinputs()
         super.attachHandlers()
+        $('[name="operation"]').off('click').on('click', (e) => {
+            $(e.target).siblings().removeClass('is-active');
+            $(e.target).addClass('is-active');
+            this.markUndo()
+            this.setOperation($(e.target).val() as operationType)
+            this.updateOutput()
+        });
+        $("#blocksize").off('input').on('input', (e) => {
+            let blocksize = Number($(e.target).val())
+            if (blocksize !== this.state.blocksize) {
+                this.markUndo()
+                this.setBlocksize(blocksize)
+                if (blocksize !== this.state.blocksize) {
+                    $(e.target).val(this.state.blocksize)
+                }
+            }
+        })
+        $('#keyword').off('input').on('input', (e) => {
+            let newkeyword = $(e.target).val() as string
+            if (newkeyword !== this.state.keyword) {
+                this.markUndo("keyword")
+                this.setKeyword(newkeyword)
+                this.updateOutput()
+            }
+        })
+
     }
 }

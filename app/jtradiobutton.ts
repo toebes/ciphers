@@ -47,3 +47,8 @@ export function JTRadioButton(width: number, name: string, buttons: JTRadioButto
     result.append(cell)
     return result
 }
+
+export function JTRadioButtonSet(name: string, selected: any): void {
+    $('[name="' + name + '"]').removeClass('is-active')
+    $('[name="' + name + '"][value="' + selected + '"]').addClass('is-active')
+}

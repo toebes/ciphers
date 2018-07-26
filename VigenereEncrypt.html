@@ -5,32 +5,17 @@
     <script type="text/javascript" src="dist/ciphers.js"></script>
     <title>Vigen&egrave;re Encoder</title>
 </head>
-<body>
-    <a href="index.html">Back to Cipher Tools</a>
-    <h1>
-        Vigen&egrave;re Encoder
-    </h1>
-    <hr />
-    <div class="precmds"></div>
-    <label for="inputdata">
-        Message
-    </label>
-    <textarea id="inputdata" cols="20" rows="2"></textarea>
 
-    <label for="keystring">
-        Key
-    </label>
-    <textarea id="keystring" cols="20" rows="2"></textarea>
-    
-    <div id="blocksize">
-        <label for="blocksize">Block size</label>
-        <input id="blocksize" class="inp spin" type="text" value="0" />
-    </div>
-    
+
+<body>
+    <div class="MenuBar" data-cipher="Vigenere"></div>
+    <h2>Vigen&egrave;re Encoder</h2>
+    <div class="precmds"></div>
+    <div class="postcmds"></div>
     <div class="err" id="err"></div>
-    <div class="cmds" data-cipher="Vigenere">
-        <input id="load" type="button" value="Encode" />
-    </div>
-    <div class="ans" id="answer"></div>     
+    <div class="cmdbuttons" ></div>
+    <div id="chi"></div>
+    <div class="ans" id="answer"></div>
 </body>
+
 </html>

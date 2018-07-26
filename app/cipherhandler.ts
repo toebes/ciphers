@@ -554,6 +554,10 @@ testStrings: string[] = [
             this.markUndoUI(false, (this.undoPosition >= (this.undoStack.length - 1)))
         }
     }
+    /**
+     * Updates the initial user interface for the cipher handler.  This is a one
+     * time operation.
+     */
     layout(): void {
         // process the "cipher-type" class
         $(".cipher-type").each((i: number, elem: HTMLElement) => { this.setCipherType($(elem).attr('id')) })
@@ -573,15 +577,17 @@ testStrings: string[] = [
         }
         this.restore(saveSet)
     }
-
     /**
      * Cleans up any settings, range checking and normalizing any values.
+     * This doesn't actually update the UI directly but ensures that all the
+     * values are legitimate for the cipher handler
      * Generally you will call updateOutput() after calling setUIDefaults()
      */
     setUIDefaults(): void {
     }
     /**
-     * Update the output based on current state settings
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
      */
     updateOutput(): void {
     }
@@ -1326,7 +1332,6 @@ testStrings: string[] = [
                     { title: "Spanish Aristocrat Encoder", href: "AristocratSpanishEncrypt.html", },
                     { title: "Xenocrypt Encoder", href: "XenocryptEncrypt.html", },
                     { title: "Patristocrat Encoder", href: "PatristocratEncrypt.html", },
-                    { title: "Dancing Men Encoder", href: "DancingMenEncrypt.html", },
                     { title: "Hill Encoder (2x2 and 3x3)", href: "HillEncrypt.html", },
                     { title: "Vigen&egrave;re Encoder", href: "VigenereEncrypt.html", },
                     { title: "Language Template Processor", href: "GenLanguage.html", },

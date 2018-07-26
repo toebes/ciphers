@@ -282,17 +282,6 @@ table.mfind {
     vertical-align: top;
 }
 
-@font-face {
-    font-family: 'DancingMen';
-    src: url('./Dancingm.ttf') format('truetype');
-}
-
-.DancingMen {
-    font-family: "DancingMen Font", Verdana, Tahoma;
-    font-size: 24pt;
-    font-weight: bold;
-}
-
 input[type="radio"] {
     display:initial;
     width: auto;

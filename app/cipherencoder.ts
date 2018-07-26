@@ -5,7 +5,7 @@ import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
-import { JTRadioButton } from "./jtradiobutton";
+import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 
 interface IEncoderState extends IState {
     /** Number of points a question is worth */
@@ -68,18 +68,21 @@ export class CipherEncoder extends CipherHandler {
         this.setOffset2(this.state.offset2)
     }
     updateOutput(): void {
-        $("#points").val(this.state.points)
-        $("#qtext").summernote('code', this.state.question)
+        this.updateQuestionsOutput();
         $("#toencode").val(this.state.cipherString)
         $("#keyword").val(this.state.keyword)
         $("#offset").val(this.state.offset)
         $("#shift").val(this.state.shift)
         $("#keyword2").val(this.state.keyword2)
         $("#offset2").val(this.state.offset2)
-        $('[name="enctype"]').removeClass('is-active')
-        $('[name="enctype"][value="' + this.state.encodeType + '"]').addClass('is-active')
+        JTRadioButtonSet("enctype", this.state.encodeType)
         $(".lang").val(this.state.curlang)
     }
+    updateQuestionsOutput(): void {
+        $("#points").val(this.state.points);
+        $("#qtext").summernote('code', this.state.question);
+    }
+
     save(): IEncoderState {
         let result: IEncoderState = { ...this.state }
         return result

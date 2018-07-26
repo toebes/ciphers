@@ -5,27 +5,18 @@
     <script type="text/javascript" src="dist/ciphers.js"></script>
     <title>Xenocrypt Encrypt</title>
 </head>
+
+
 <body>
-    <a href="index.html">Back to Cipher Tools</a>
-    <h1>
-        Xenocrypt Encrypt
-    </h1>
-    <hr />
-    <label for="points">Points</label>
-    <input id="points" value="100"/>
-    <label for="qtext">Question Text</label>
-    <div id="qtext" class="richtext"></div>
-    <label for="language">Language</label>
-    <select class="lang ui-sel"></select>
-    <label for="toencode">Text to encode</label>
-    <textarea id="toencode" cols="20" rows="2"></textarea>
-    <div class="alphabet"></div>
+    <div class="MenuBar" data-cipher="Encoder"></div>
+    <h2>Xenocrypt Encrypt</h2>
+    <div class="precmds"></div>
+    <div class="postcmds"></div>
     <div class="err" id="err"></div>
-    <div class="cmds" data-cipher="Encoder">
-        <input id="load" type="button" value="Encrypt" />
-    </div>
+    <div class="cmdbuttons" ></div>
     <div id="chi"></div>
     <div class="ans" id="answer"></div>
     <div class="freq"></div>
 </body>
+
 </html>

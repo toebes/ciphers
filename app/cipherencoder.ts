@@ -7,7 +7,7 @@ import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 
-interface IEncoderState extends IState {
+export interface IEncoderState extends IState {
     /** Number of points a question is worth */
     points?: number
     /** Type of encoding */
@@ -38,19 +38,12 @@ export class CipherEncoder extends CipherHandler {
         keyword2: ""
     }
     state: IEncoderState = { ...this.defaultstate }
-    /**
-     * Size of chunks of text to format to.  0 Indicates that the original spacing
-     * is to be preserved.  Any other value indicates that spaces are to be removed
-     * and the cipher is grouped in clusters of this size
-     */
     cmdButtons: JTButtonItem[] = [
         { title: "Encode", color: "primary", id: "load", },
         this.undocmdButton,
         this.redocmdButton,
         { title: "Reset", color: "warning", id: "reset", },
     ]
-    groupingSize: number = 0
-
     restore(data: IEncoderState): void {
         let curlang = this.state.curlang
         this.state = { ...this.defaultstate }
@@ -238,16 +231,6 @@ export class CipherEncoder extends CipherHandler {
                 this.state.cipherString = cipherString
             }
         })
-    }
-    /**
-     * Set chunking size for input data string befre encoding.
-     * Primarily Used in Patristocrat, but could be used for other types to indicate the period
-     */
-    setCipherType(cipherType: string): void {
-        if (cipherType === 'patristocrat') {
-            this.groupingSize = 5
-        }
-        this.attachHandlers()
     }
     /**
      * Generate the maping from the source to the destination alphabet
@@ -549,8 +532,8 @@ export class CipherEncoder extends CipherHandler {
         * If it is characteristic of the cipher type (e.g. patristocrat),
         * rebuild the string to be encoded in to five character sized chunks.
         */
-        if (this.groupingSize) {
-            encoded = this.chunk(encoded, this.groupingSize)
+        if (this.state.cipherType === ICipherType.Patristocrat) {
+            encoded = this.chunk(encoded, 5)
         }
         $(".err").text('')
         this.genMap()

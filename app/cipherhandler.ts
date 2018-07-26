@@ -559,8 +559,6 @@ testStrings: string[] = [
      * time operation.
      */
     layout(): void {
-        // process the "cipher-type" class
-        $(".cipher-type").each((i: number, elem: HTMLElement) => { this.setCipherType($(elem).attr('id')) })
         $(".langsel").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.getLangDropdown()) })
         $(".MenuBar").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.createMainMenu()) })
         this.buildCustomUI()
@@ -971,6 +969,13 @@ testStrings: string[] = [
             $input.val(val + 1)
             $input.trigger('input')
         })
+        $('[name="ciphertype"]').off('click').on('click', (e) => {
+            $(e.target).siblings().removeClass('is-active');
+            $(e.target).addClass('is-active');
+            this.markUndo()
+            this.setCipherType($(e.target).val() as ICipherType)
+            this.updateOutput()
+        });
         $('.input-number-decrement').off('click').on('click', (e) => {
             let $input = $(e.target).parents('.input-group').find('.input-number');
             let val = Number($input.val())
@@ -1078,11 +1083,15 @@ testStrings: string[] = [
         }
         return true
     }
+    public setDefaultCipherType(ciphertype: ICipherType) : void {
+        this.state.cipherType = ciphertype
+        this.defaultstate.cipherType = ciphertype
+    }
     /**
      * Set flag to "chunk" input data string befre encoding.  Used in Patristocrat,
      */
-    public setCipherType(cipherType: string): void {
-        this.attachHandlers()
+    public setCipherType(ciphertype: ICipherType): void {
+        this.state.cipherType = ciphertype
     }
 
     /**
@@ -1328,13 +1337,15 @@ testStrings: string[] = [
                 menu: [
                     { title: "Affine", href: "AffineEncrypt.html", },
                     { title: "Cipher Counter", href: "CipherCounter.html", },
+                    { title: "Caesar Encoder", href: "Caesar.html", },
+                    { title: "Atbash Encoder", href: "Atbash.html", },
                     { title: "Aristocrat Encoder", href: "AristocratEncrypt.html", },
                     { title: "Spanish Aristocrat Encoder", href: "AristocratSpanishEncrypt.html", },
                     { title: "Xenocrypt Encoder", href: "XenocryptEncrypt.html", },
                     { title: "Patristocrat Encoder", href: "PatristocratEncrypt.html", },
                     { title: "Hill Encoder (2x2 and 3x3)", href: "HillEncrypt.html", },
                     { title: "Vigen&egrave;re Encoder", href: "VigenereEncrypt.html", },
-                    { title: "Language Template Processor", href: "GenLanguage.html", },
+                    // { title: "Language Template Processor", href: "GenLanguage.html", },
                 ]
             },
         ]

@@ -1,4 +1,4 @@
-import { JTRadioButton, JTRadioButtonItem } from "./jtradiobutton"
+import { JTRadioButtonItem } from "./jtradiobutton"
 
 /** Which type of cipher we are solving */
 export const enum ICipherType {
@@ -18,6 +18,12 @@ export const enum ICipherType {
     Ragbaby = "ragbaby",
     Affine = "affine",
     Counter = "counter",
+    Caesar = "caesar",
+    Atbash = "atbash",
+    Checkerboard = "checkerboard",
+    Gromark = "gromark",
+    Xenocrypt = "xenocrypt",
+    Standard = "standard",
 }
 
 // interface JTRBL {
@@ -81,6 +87,14 @@ export function CypherTypeButtonItem(cipherType: ICipherType): JTRadioButtonItem
 
         case ICipherType.Counter:
             res = { value: cipherType, title: "Counter", id: "counter" }
+            break
+
+        case ICipherType.Caesar:
+            res = { value: cipherType, title: "Caesar", id: "caesar" }
+            break
+
+        case ICipherType.Atbash:
+            res = { value: cipherType, title: "Atbash", id: "atbash" }
             break
 
         default:

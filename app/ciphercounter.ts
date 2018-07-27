@@ -2,6 +2,7 @@ import { CipherEncoder } from "./cipherencoder"
 import { IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes"
 import { JTButtonItem } from "./jtbuttongroup";
+import { JTFLabeledInput } from "./jtflabeledinput";
 
 export class CipherCounter extends CipherEncoder {
     defaultstate: IState = {
@@ -44,7 +45,10 @@ export class CipherCounter extends CipherEncoder {
         super.attachHandlers()
     }
     genPreCommands(): JQuery<HTMLElement> {
-        return null
+        let result = $("<div/>")
+        result.append(this.genQuestionFields())
+        result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
+        return result
     }
     genPostCommands(): JQuery<HTMLElement> {
         return null

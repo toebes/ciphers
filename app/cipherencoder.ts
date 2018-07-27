@@ -590,7 +590,7 @@ export class CipherEncoder extends CipherHandler {
     genQuestionFields(): JQuery<HTMLElement> {
         let result = $("<div/>")
         result.append(JTFLabeledInput("Points", 'number', 'points', this.state.points, "small-12 medium-12 large-12"))
-        result.append(JTFLabeledInput("Question Text", 'richtext', 'qtext', "" /*this.state.points*/, "small-12 medium-12 large-12"))
+        result.append(JTFLabeledInput("Question Text", 'richtext', 'qtext', this.state.question, "small-12 medium-12 large-12"))
         return result.children()
     }
 
@@ -598,7 +598,7 @@ export class CipherEncoder extends CipherHandler {
         let result = $("<div/>")
         result.append(this.genQuestionFields())
         result.append(this.getLangDropdown())
-        result.append($("<label/>").text("Text to encode").append($("<textarea/>", { id: "toencode", cols: 20, rows: 5 })))
+        result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
         result.append(this.createAlphabetType())
         return result
     }

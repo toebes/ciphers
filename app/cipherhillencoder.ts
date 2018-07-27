@@ -218,7 +218,7 @@ export class CipherHillEncoder extends CipherEncoder {
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>")
         result.append(this.genQuestionFields())
-        result.append(JTFLabeledInput("Text to encode", 'text', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
+        result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
         result.append(JTFLabeledInput("Keyword", 'text', 'keyword', this.state.keyword, ""))
         return result
     }

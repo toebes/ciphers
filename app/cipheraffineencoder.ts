@@ -5,6 +5,7 @@ import { IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes"
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
+import { JTFLabeledInput } from "./jtflabeledinput";
 interface IAffineState extends IState {
     /** a value */
     a: number
@@ -534,21 +535,6 @@ export class CipherAffineEncoder extends CipherEncoder {
             }
             this.advancedir = 0
         })
-        $('.input-number-increment').off('click').on('click', (e) => {
-            let $input = $(e.target).parents('.input-group').find('.input-number')
-            let val = Number($input.val())
-            this.advancedir = 1
-            $input.val(val + this.advancedir)
-            $input.trigger('input')
-        })
-        $('.input-number-decrement').off('click').on('click', (e) => {
-            let $input = $(e.target).parents('.input-group').find('.input-number');
-            let val = Number($input.val())
-            this.advancedir = -1
-            $input.val(val + this.advancedir)
-            $input.trigger('input')
-        })
-
         $("#solve").off('click').on('click', () => {
             let msg = <string>$('#toencode').val()
             this.setEncodingTable(Number($("#a").val()), Number($("#b").val()))
@@ -597,7 +583,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>")
         result.append(this.genQuestionFields())
-        result.append($("<label/>").text("Text to encode").append($("<textarea/>", { id: "toencode", cols: 20, rows: 5 })))
+        result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
         let inputbox = $("<div/>", { class: "grid-x grid-margin-x" })
         inputbox.append(JTFIncButton("A", "a", this.state.a, "small-12 medium-4 large-4"))
         inputbox.append(JTFIncButton("B", "b", this.state.b, "small-12 medium-4 large-4"))

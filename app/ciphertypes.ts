@@ -24,6 +24,7 @@ export const enum ICipherType {
     Gromark = "gromark",
     Xenocrypt = "xenocrypt",
     Standard = "standard",
+    Hill = "hill",
 }
 
 // interface JTRBL {
@@ -95,6 +96,10 @@ export function CypherTypeButtonItem(cipherType: ICipherType): JTRadioButtonItem
 
         case ICipherType.Atbash:
             res = { value: cipherType, title: "Atbash", id: "atbash" }
+            break
+
+        case ICipherType.Hill:
+            res = { value: cipherType, title: "Hill", id: "hill" }
             break
 
         default:

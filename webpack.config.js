@@ -34,6 +34,7 @@ module.exports = {
             "styles-css": path.join(__dirname, "styles.css"),
             "summernote-css": path.join(__dirname, "summernote-lite.css"),
             "foundation.css": path.join(__dirname, "node_modules", "foundation-sites", "dist", "css", "foundation.css"),
+            "mathjs": path.join(__dirname, "node_modules", "mathjs", "dist", "math.js"),
         },
         modules: [__dirname, path.join(__dirname, 'node_modules'),],
         extensions: ['.ts', '.js', '.css', '.ttf', '.eot','.woff','.woff2','.png']

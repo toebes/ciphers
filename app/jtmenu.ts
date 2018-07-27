@@ -27,7 +27,7 @@ export function JTAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]
                 li.addClass("active")
             }
         }
-        let a = $("<a/>", { href: href }).text(item.title)
+        let a = $("<a/>", { href: href }).html(item.title)
         if (item.action !== undefined) {
             a.attr('data-action', item.action)
         }

@@ -9,6 +9,7 @@ import { CipherCounter } from "./ciphercounter"
 import { CryptarithmSolver } from "./ciphercryptarithmsolver"
 import { CipherFractionatedMorseSolver } from "./cipherfractionatedmorsesolver"
 import { CipherGromarkSolver } from "./ciphergromarksolver"
+import { CipherHillEncoder } from "./cipherhillencoder"
 import { CipherMorbitSolver } from "./ciphermorbitsolver"
 import { CipherRagbabySolver } from "./cipherragbabysolver"
 import { CipherRailfenceSolver } from "./cipherrailfencesolver"
@@ -52,6 +53,11 @@ export function CipherFactory(ciphertypestr: string, lang: string): CipherHandle
         case 'Xenocrypt':
             ciphertype = ICipherType.Xenocrypt
             cipherTool = new CipherXenocryptSolver()
+            break
+
+        case 'Hill':
+            ciphertype = ICipherType.Hill
+            cipherTool = new CipherHillEncoder()
             break
 
         case 'Patristocrat':

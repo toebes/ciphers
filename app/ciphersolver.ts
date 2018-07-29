@@ -16,12 +16,6 @@ export class CipherSolver extends CipherHandler {
     state: IState = { ...this.defaultsolverstate }
 
     /**
-     * Indicates that a
-     * @type {Object.<string, bool>}
-     *
-     */
-    locked: { [key: string]: boolean } = {}
-    /**
      * Initializes the encoder/decoder.
      * @param {string} lang Language to select (EN is the default)
      */
@@ -113,7 +107,7 @@ export class CipherSolver extends CipherHandler {
      * Loads new data into a solver, resetting any solving matches made
      */
     reset(): void {
-        this.locked = {}
+        this.state.locked = {}
         for (let c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
                 $('#m' + c).val('')
@@ -137,7 +131,7 @@ export class CipherSolver extends CipherHandler {
         //     }
         // }
         let einput = $('<input/>', { type: "text", class: "sli", 'data-char': c, id: 'm' + c, value: this.replacement[c] })
-        if (this.locked[c]) {
+        if (this.state.locked[c]) {
             einput.prop("disabled", true)
         }
         return einput

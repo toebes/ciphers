@@ -202,7 +202,7 @@ export class CryptarithmSolver extends CipherSolver {
                         break
                     }
                 }
-                if (this.locked[oldrep]) {
+                if (this.state.locked[oldrep]) {
                     return
                 }
                 super.setChar(oldrep, oldchar)
@@ -243,7 +243,7 @@ export class CryptarithmSolver extends CipherSolver {
         this.cryptarithmType = CryptarithmType.Automatic
         this.usedletters = {}
         this.boxState = {}
-        this.locked = {}
+        this.state.locked = {}
         this.replacement = {}
         this.base = 0
         let lineitems: Array<lineitem> = []
@@ -791,7 +791,7 @@ export class CryptarithmSolver extends CipherSolver {
             this.makeFreqEditField(c).appendTo(td)
             td.appendTo(tr)
             td = $("<td>")
-            let ischecked = this.locked[c]
+            let ischecked = this.state.locked[c]
             $('<input />', {
                 type: 'checkbox',
                 class: 'cb',
@@ -825,8 +825,8 @@ export class CryptarithmSolver extends CipherSolver {
      * @param lock new state for the symbol
      */
     updateCheck(c: string, lock: boolean): void {
-        if (this.locked[c] !== lock) {
-            this.locked[c] = lock
+        if (this.state.locked[c] !== lock) {
+            this.state.locked[c] = lock
             let repl = this.replacement[c]
             $("input:text[data-char='" + c + "']").prop('disabled', lock)
             let charset = this.getCharset()

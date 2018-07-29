@@ -9,8 +9,15 @@ interface IMorseState extends IState {
     locked: { [key: string]: boolean }
 }
 
-export
-    class CipherMorseSolver extends CipherSolver {
+export class CipherMorseSolver extends CipherSolver {
+    defaultstate: IMorseState = {
+        cipherType: ICipherType.None,
+        morsemap: null,
+        cipherString: "",
+        locked: {},
+        findString: "",
+    }
+    state: IMorseState = { ... this.defaultstate}
     readonly tomorse: { [key: string]: string } = {
         ' ': '',
         'A': 'O-',
@@ -175,47 +182,30 @@ export
      * @param lock new state for the symbol
      */
     updateCheck(c: string, lock: boolean): void {
-        if (this.locked[c] !== lock) {
-            this.locked[c] = lock
+        if (this.state.locked[c] !== lock) {
+            this.state.locked[c] = lock
             this.UpdateFreqEditTable()
             this.load()
         }
     }
     restore(data: IMorseState): void {
-        if (data.morsemap !== undefined) {
-            for (let ent in data.morsemap) {
-                this.setMorseMapEntry(ent, data.morsemap[ent])
-            }
-        }
-        if (data.cipherString !== undefined) {
-            this.encodedString = data.cipherString
-        }
-        if (data.locked !== undefined) {
-            this.locked = { ...data.locked }
-        }
+        this.state = {... this.defaultstate}
+        this.copyState(this.state, data)
         this.UpdateFreqEditTable()
-        $('#encoded').val(this.encodedString)
+        $('#encoded').val(this.state.cipherString)
         this.load()
-        if (data.findString !== undefined) {
-            $("#find").val(data.findString)
-            this.findPossible(data.findString)
+        if (this.state.findString !== undefined) {
+            $("#find").val(this.state.findString)
+            this.findPossible(this.state.findString)
         }
     }
     /**
      * Make a copy of the current state
      */
     save(): IState {
-        let savestate: IMorseState = {
-            cipherType: this.cipherType,
-            morsemap: { ... this.getMorseMap() },
-            cipherString: this.encodedString,
-            locked: { ...this.locked },
-            findString: this.state.findString,
-        }
-        // // We need a deep copy of the save state
-        // let savestate = {...this.state}
-        // // And the replacements hash also has to have a deep copy
-        // savestate.replacements = {...this.state.replacements}
+        // We need a deep copy of the save state
+        let savestate = {... this.state}
+        savestate.locked = {... this.state.locked}
         return savestate
     }
     /**
@@ -239,17 +229,17 @@ export
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
+        super.attachHandlers()
         $(".cb").off('change').on('change', (e) => {
             let toupdate = $(e.target).attr('data-char')
             this.markUndo()
             this.updateCheck(toupdate, $(e.target).prop("checked"))
         })
-        super.attachHandlers()
     }
     reset(): void {
         this.init(this.state.curlang)
         super.reset()
-        this.locked = {}
+        this.state.locked = {}
     }
 
     analyze(str: string): JQuery<HTMLElement> {
@@ -346,7 +336,7 @@ export
             c = intext.substr(i, 1)
             let mpos, td
             td = $('<td>', { colspan: cipherwidth })
-            if (this.locked[c]) {
+            if (this.state.locked[c]) {
                 td.addClass("locked")
             }
             td.text(c)
@@ -483,7 +473,7 @@ export
             td.append(this.makeFreqEditField(c))
             replrow.append(td)
             td = $('<td/>')
-            let ischecked = this.locked[c]
+            let ischecked = this.state.locked[c]
             $('<input />', {
                 type: 'checkbox',
                 class: 'cb',

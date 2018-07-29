@@ -64,14 +64,14 @@ export class CipherFractionatedMorseSolver extends CipherMorseSolver {
      * Create an edit field for a dropdown
     */
     makeFreqEditField(c: string): JQuery<HTMLElement> {
-        if (this.locked[c]) {
+        if (this.state.locked[c]) {
             return $(this.normalizeHTML(this.fractionatedMorseMap[c]))
         }
         let mselect = $('<select class="msli" data-char="' + c + '" id="m' + c + '"/>')
         const locklist = {}
         /* Build a list of the locked strings we should skip */
-        for (let key in this.locked) {
-            if (this.locked.hasOwnProperty(key) && this.locked[key]) {
+        for (let key in this.state.locked) {
+            if (this.state.locked.hasOwnProperty(key) && this.state.locked[key]) {
                 locklist[this.fractionatedMorseMap[key]] = true
                 console.log('Recording locklist[' + key + ']=' + locklist[key])
             }

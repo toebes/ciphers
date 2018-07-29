@@ -30,6 +30,7 @@ input.cb {
     width: 200px;
 }
 
+
 .ans {
     /* width: 600px; */
     font-size: 16px;
@@ -632,6 +633,11 @@ table.found tr th:nth-child(odd) {
   
 .dropdown.menu a {
     background: none;
+}
+
+.dropdown.menu .disabled_menu {
+    color: #fefefe;
+    cursor: not-allowed
 }
 
 .menu .active > a {

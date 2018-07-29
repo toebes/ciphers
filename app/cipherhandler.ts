@@ -21,8 +21,10 @@ export interface IState {
     /** Any quotation text to associate with the cipher */
     question?: string,
     /** Current language */
-    curlang? : string,
+    curlang?: string,
     any?: any
+    /** Indicates that a character is locked     */
+    locked?: { [key: string]: boolean }
 }
 
 type patelem = [string, number, number, number]
@@ -325,8 +327,8 @@ export class CipherHandler {
         curlang: ""
     }
     state: IState = { ...this.defaultstate }
-    undocmdButton: JTButtonItem = {title: "Undo", id: "undo", color: "primary", class: "undo", disabled: true }
-    redocmdButton: JTButtonItem = {title: "Redo", id: "redo", color: "primary", class: "redo", disabled: true }
+    undocmdButton: JTButtonItem = { title: "Undo", id: "undo", color: "primary", class: "undo", disabled: true }
+    redocmdButton: JTButtonItem = { title: "Redo", id: "redo", color: "primary", class: "redo", disabled: true }
 
     cmdButtons: JTButtonItem[] = [
         { title: "Load", color: "primary", id: "load", },
@@ -334,7 +336,7 @@ export class CipherHandler {
         this.redocmdButton,
         { title: "Reset", color: "warning", id: "reset", },
     ]
-testStrings: string[] = [
+    testStrings: string[] = [
     ]
     cipherWidth: number = 1
     charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -461,7 +463,7 @@ testStrings: string[] = [
      */
     buildCustomUI(): void {
         $('.precmds').each((i, elem) => {
-             $(elem).replaceWith(this.genPreCommands())
+            $(elem).replaceWith(this.genPreCommands())
         })
         $('.postcmds').each((i, elem) => {
             $(elem).replaceWith(this.genPostCommands())
@@ -536,11 +538,16 @@ testStrings: string[] = [
     markUndoUI(undostate: boolean, redostate: boolean): void {
         $(".redo").prop("disabled", redostate)
         $(".undo").prop("disabled", undostate)
-        console.log($(".undo").length)
-        // $("button.redo").button("option", "disabled", redostate)
-        // $("button.undo").button("option", "disabled", undostate)
-        // $("button.redo").prop("disabled", redostate)
-        // $("button.undo").prop("disabled", undostate)
+        if (redostate) {
+            $(".redo").addClass("disabled_menu")
+        } else {
+            $(".redo").removeClass("disabled_menu")
+        }
+        if (undostate) {
+            $(".undo").addClass("disabled_menu")
+        } else {
+            $(".undo").removeClass("disabled_menu")
+        }
     }
 
     /**
@@ -997,7 +1004,11 @@ testStrings: string[] = [
             this.reset()
         })
         $("a[data-action]").off("click").on("click", (e) => {
-            this.doAction($(e.target).attr("data-action"))
+            if ($(e.target).hasClass("disabled_menu")) {
+                e.preventDefault()
+            } else {
+                this.doAction($(e.target).attr("data-action"))
+            }
         })
 
         $(".dragcol").each((i: number, elem: HTMLElement) => {
@@ -1034,7 +1045,7 @@ testStrings: string[] = [
             ],
         })
 
-        $('.sfind').off("input").on("input", (e) => {
+        $('#find').off("input").on("input", (e) => {
             this.markUndo("find")
             let findStr = $(e.target).val() as string
             this.findPossible(findStr)
@@ -1083,7 +1094,7 @@ testStrings: string[] = [
         }
         return true
     }
-    public setDefaultCipherType(ciphertype: ICipherType) : void {
+    public setDefaultCipherType(ciphertype: ICipherType): void {
         this.state.cipherType = ciphertype
         this.defaultstate.cipherType = ciphertype
     }
@@ -1169,9 +1180,9 @@ testStrings: string[] = [
      * @param lselect HTML Element to populate
      */
     getLangDropdown(): JQElement {
-        let result = $("<div/>", {class: "cell input-group"})
-        result.append($("<span/>", {class: "input-group-label"}).text("Language"))
-        let select = $("<select/>", {class: "lang input-group-field"})
+        let result = $("<div/>", { class: "cell input-group" })
+        result.append($("<span/>", { class: "input-group-label" }).text("Language"))
+        let select = $("<select/>", { class: "lang input-group-field" })
         select.append($('<option />', { value: "" }).text("--Select a language--"))
         for (let lang in this.langmap) {
             if (this.langmap.hasOwnProperty(lang)) {
@@ -1305,14 +1316,14 @@ testStrings: string[] = [
                     { title: "Open", action: "open" },
                     { title: "Save", action: "save", classname: "save" },
                     { title: "Save As...", action: "saveas", classname: "saveas" },
-                    { title: "Submit", action: "submit", classname: "submit" },
+                    { title: "Submit", action: "submit", classname: "submit disabled_menu" },
                 ]
             },
             {
                 title: "Edit",
                 menu: [
-                    { title: "Undo", action: "undo", classname: "undo" },
-                    { title: "Redo", action: "redo", classname: "redo" },
+                    { title: "Undo", action: "undo", classname: "undo disabled_menu" },
+                    { title: "Redo", action: "redo", classname: "redo disabled_menu" },
                     { title: "Copy", action: "copy" },
                 ]
             },

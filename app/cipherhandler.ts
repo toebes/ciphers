@@ -34,42 +34,6 @@ type JQElement = JQuery<HTMLElement>
  */
 export class CipherHandler {
     /**
-     * Open a cipher and load it in
-     */
-    openCipher(): void {
-        throw new Error("Method not implemented.");
-    }
-    /**
-     *  Save the current cipher to the current file
-     */
-    saveCipher(): void {
-        throw new Error("Method not implemented.");
-    }
-    /**
-     * Save the current cipher state to a new file
-     */
-    saveCipherAs(): void {
-        throw new Error("Method not implemented.");
-    }
-    /**
-     * Submit a cipher for checking
-     */
-    submit(): void {
-        throw new Error("Method not implemented.");
-    }
-    /**
-     * Copy the current completed cipher to the clipboard
-     */
-    copy(): void {
-        throw new Error("Method not implemented.");
-    }
-    /**
-     * Start a new cipher
-     */
-    newCipher(): void {
-        throw new Error("Method not implemented.");
-    }
-    /**
      * User visible mapping of names of the various languages supported
      * @type {StringMap} Mapping of language to visible name
      */
@@ -360,11 +324,158 @@ export class CipherHandler {
      */
     ShowRevReplace: boolean = true
     /**
-     * Input string cleaned up
+     * Input string cleaned up.  This does not need to be saved because it is
+     * rebuild by the build() function based in this.state.cipherString
      */
     encodedString: string = ""
     Frequent: { [key: string]: { [key: string]: patelem[] } } = {}
     freq: { [key: string]: number } = {}
+    savefileentry: number = -1
+    /**
+     * Get the total number of saved ciphers
+     */
+    getCipherCount(): number {
+        let result = 0
+        if (typeof (Storage) !== "undefined") {
+            // Cipher-Count [number] holds the number of currently saved questions.
+            // Cipher-Data.n [JSON] holds the data from question n. Note n is zero based.
+            result = Number(localStorage.getItem("Cipher-Count"))
+        }
+        return result
+
+    }
+    /**
+     * Get the save state associated with a numbered file entry
+     */
+    getFileEntry(entry: number): IState {
+        let result: IState = null
+        if (typeof (Storage) !== "undefined") {
+            // Cipher-Count [number] holds the number of currently saved questions.
+            // Cipher-Data.n [JSON] holds the data from question n. Note n is zero based.
+            let cipherCount = this.getCipherCount()
+            if (entry < cipherCount) {
+                let jsonString = localStorage.getItem(this.getEntryName(entry))
+                result = JSON.parse(jsonString)
+            }
+        }
+        return result
+    }
+    /**
+     * Populate the file list dialog to match all the entries of a given type
+     */
+    getFileList(ciphertype: ICipherType[]): JQElement {
+        let result = null
+        let cipherCount = this.getCipherCount()
+        $("#okopen").prop("disabled", true)
+        if (cipherCount === 0) {
+            result = $("<div/>", { class: "callout warning filelist", id: "files" }).text("No files found")
+        } else {
+            result = $("<select/>", { id: "files", class: "filelist", size: 10 })
+            for (let entry = 0; entry < cipherCount; entry++) {
+                let fileEntry = this.getFileEntry(entry)
+                result.append($("<option />", { value: entry }).text(fileEntry.question))
+            }
+        }
+        return result
+    }
+    /**
+     * Set the number of cipher entries stored in local storage
+     */
+    setCipherCount(count: number): string {
+        if (typeof (Storage) === "undefined") {
+            return "Unable to save, local storage not defined"
+        }
+        localStorage.setItem('Cipher-Count', String(count))
+        return ""
+    }
+    getEntryName(entry: number): string {
+        return 'Cipher-Data' + String(entry)
+    }
+    /**
+     * Save a state entry to local storage. If the entry number is higher
+     * than the total storage or is -1, it is appended to the end of all
+     * the existing storage entries and the number of entries is incremented
+     * by one to account for it
+     */
+    setFileEntry(entry: number, state: IState): number {
+        if (typeof (Storage) === "undefined") {
+            return -1
+        }
+        let cipherCount = this.getCipherCount()
+        if (entry > cipherCount || entry === -1) {
+            entry = cipherCount
+            this.setCipherCount(entry + 1)
+        }
+        localStorage.setItem(this.getEntryName(entry), JSON.stringify(state))
+        return entry
+    }
+    /**
+     * Removes a file entry, renumbering all the other entries after it
+     */
+    deleteFileEntry(entry: number): string {
+        if (typeof (Storage) === "undefined") {
+            return "Unable to delete, local storage not defined"
+        }
+        let cipherCount = this.getCipherCount()
+        if (entry < cipherCount && entry >= 0) {
+            for (let pos = entry + 1; pos < cipherCount; pos++) {
+                localStorage.setItem(this.getEntryName(pos - 1), localStorage.getItem(this.getEntryName(pos)))
+            }
+            localStorage.removeItem(this.getEntryName(cipherCount))
+            this.setCipherCount(cipherCount - 1)
+        }
+        // TODO: We also have to renumber all the tests
+        return ""
+    }
+    /**
+     * Put up a dialog to select a cipher to load
+     */
+    openCipher(): void {
+        // Populate the list of known files.
+        $("#files").replaceWith(this.getFileList([this.state.cipherType]))
+        $("#files").off('change').on('change', (e) => {
+            $("#okopen").removeAttr("disabled");
+        })
+        $("#okopen").prop("disabled", true)
+        $("#okopen").off("click").on("click", (e) => {
+            this.savefileentry = Number($("#files option:selected").val())
+            $("#OpenFile").foundation('close')
+            this.markUndo()
+            this.restore(this.getFileEntry(this.savefileentry))
+        })
+        $("#OpenFile").foundation('open')
+    }
+    /**
+     *  Save the current cipher to the current file
+     */
+    saveCipher(): void {
+        let state = this.save()
+        this.setFileEntry(this.savefileentry, state)
+    }
+    /**
+     * Save the current cipher state to a new file
+     */
+    saveCipherAs(): void {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Submit a cipher for checking
+     */
+    submit(): void {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Copy the current completed cipher to the clipboard
+     */
+    copy(): void {
+        throw new Error("Method not implemented.");
+    }
+    /**
+     * Start a new cipher
+     */
+    newCipher(): void {
+        throw new Error("Method not implemented.");
+    }
     /**
      * Copies one state interface to another preserving fields that are already
      * in the destination
@@ -512,7 +623,9 @@ export class CipherHandler {
             undotype = null
         }
         // See if we can merge this (such as a find operation) with the previous undo
-        if (undotype !== null && this.undoStack.length > 0 && this.undoStack[this.undoStack.length - 1].undotype === undotype) {
+        if (this.undoStack.length > 0 &&
+            ((undotype !== null && this.undoStack[this.undoStack.length - 1].undotype === undotype) ||
+            (undotype === null && this.undoStack[this.undoStack.length - 1].undotype !== null))) {
             this.undoStack[this.undoStack.length - 1] = undodata;
         } else {
             this.undoStack.push(undodata);
@@ -1308,6 +1421,7 @@ export class CipherHandler {
         return res
     }
     createMainMenu(): JQElement {
+        let result = $("<div/>")
         let menu: menuItem[] = [
             {
                 title: "File",
@@ -1315,7 +1429,7 @@ export class CipherHandler {
                     { title: "New", action: "new" },
                     { title: "Open", action: "open" },
                     { title: "Save", action: "save", classname: "save" },
-                    { title: "Save As...", action: "saveas", classname: "saveas" },
+                    { title: "Save As...", action: "saveas", classname: "saveas disabled_menu" },
                     { title: "Submit", action: "submit", classname: "submit disabled_menu" },
                 ]
             },
@@ -1324,7 +1438,7 @@ export class CipherHandler {
                 menu: [
                     { title: "Undo", action: "undo", classname: "undo disabled_menu" },
                     { title: "Redo", action: "redo", classname: "redo disabled_menu" },
-                    { title: "Copy", action: "copy" },
+                    { title: "Copy", action: "copy disabled_menu" },
                 ]
             },
             {
@@ -1360,6 +1474,19 @@ export class CipherHandler {
                 ]
             },
         ]
-        return JTCreateMenu(menu, "example-menu", "Cipher Tools")
+        result.append(JTCreateMenu(menu, "example-menu", "Cipher Tools"))
+        let modaldiv = $("<div/>", { class: "reveal", id: "OpenFile", 'data-reveal': '' })
+        modaldiv.append($("<div/>", { class: "top-bar Primary" })
+            .append($("<div/>", { class: "top-bar-left" })
+                .append($("<h3/>").text("Select File to Open"))))
+        modaldiv.append($("<select/>", { id: "files", class: "filelist", size: 10 }))
+        let buttongroup = $("<div/>", { class: "expanded button-group" })
+        buttongroup.append($("<a/>", { class: "secondary button", "data-close": "" }).text("Cancel"))
+        buttongroup.append($("<a/>", { class: "button", disabled: "true", id: "okopen" }).text("OK"))
+        modaldiv.append(buttongroup)
+        modaldiv.append($("<button/>", { class: "close-button", "data-close": "", "aria-label": "Close reveal", type: "button" })
+            .append($("<span/>", { "aria-hidden": true }).html("&times;")))
+        result.append(modaldiv)
+        return result
     }
 }

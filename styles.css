@@ -652,3 +652,10 @@ table.found tr th:nth-child(odd) {
 .fmwide select.msli {
     width: 3.9rem;
 }
+
+.filelist {
+    height: 20rem;
+  }
+  .reveal {
+    padding: 0rem;
+  }

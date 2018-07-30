@@ -518,7 +518,7 @@ export class CipherMorseSolver extends CipherSolver {
      *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
     findPossible(str: string): void {
-        let encoded = this.minimizeString(<string>$('#encoded').val())
+        let encoded = this.minimizeString(this.state.cipherString)
         this.state.findString = str
         let morse = ''
         let extra = ''
@@ -563,7 +563,7 @@ export class CipherMorseSolver extends CipherSolver {
     }
 
     load(): void {
-        this.encodedString = this.cleanString(<string>$('#encoded').val())
+        this.encodedString = this.cleanString(this.state.cipherString)
         let res = this.build(this.encodedString)
         $("#answer").empty().append(res)
         $("#analysis").each((i, elem) => {

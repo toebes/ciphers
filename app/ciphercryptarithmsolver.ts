@@ -22,7 +22,7 @@ export class CryptarithmSolver extends CipherSolver {
      * Loads new data into a solver, preserving all solving matches made
      */
     load(): void {
-        let encoded: string = this.cleanString(<string>$('#encoded').val())
+        let encoded: string = this.cleanString(this.state.cipherString)
         let res = this.build(encoded)
         this.UpdateFreqEditTable()
 

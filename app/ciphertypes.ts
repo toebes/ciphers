@@ -27,86 +27,217 @@ export const enum ICipherType {
     Hill = "hill",
 }
 
-// interface JTRBL {
-//     [index: ICipherType]: JTRadioButtonItem
-// }
-// export const foo: JTRBL = {
-//     Railfence: { value: ICipherType.Railfence, title: "Railfence", id: "railfence" },
-//     Redefence: { value: ICipherType.Redefence, title: "Redefence", id: "redefence" },
-//     Vigenere: { value: ICipherType.Vigenere, title: "Vigen&egrave;re", id: "vigenere" },
-//     Variant: { value: ICipherType.Variant, title: "Variant", id: "variant" },
-//     Beaufort: { value: ICipherType.Beaufort, title: "Beaufort", id: "beaufort" },
-//     Gronsfeld: { value: ICipherType.Gronsfeld, title: "Gronsfeld", id: "gronsfeld" },
-//     Porta: { value: ICipherType.Porta, title: "Porta", id: "porta" },
-//     FractionatedMorse: { value: ICipherType.FractionatedMorse, title: "Fractionated Morse", id: "fractionatedmorse" },
-//     Morbit: { value: ICipherType.Morbit, title: "Morbit", id: "morbit" },
-// }
+let cipherTypeConfig = new Map(<[ICipherType, any][]> [
+    [ICipherType.None, {
+        title: "None",
+        id: "none",
+        equiv: []
+    }],
+    [ICipherType.Aristocrat, {
+        title: "Aristocrat",
+        id: "aristocrat",
+        equiv: [
+            ICipherType.Aristocrat,
+            ICipherType.Patristocrat,
+            ICipherType.Xenocrypt,
+        ]
+    }],
+    [ICipherType.
+        Patristocrat, {
+        title: "Patristocrat",
+        id: "patristocrat",
+        equiv: [
+            ICipherType.Aristocrat,
+            ICipherType.Patristocrat,
+            ICipherType.Xenocrypt,
+        ]
+    }],
+    [ICipherType.
+        Cryptarithm, {
+        title: "Cryptarithm",
+        id: "cryptarithm",
+        equiv: [
+            ICipherType.Cryptarithm,
+        ]
+    }],
+    [ICipherType.
+        Railfence, {
+        title: "Railfence",
+        id: "railfence",
+        equiv: [
+            ICipherType.Railfence,
+            ICipherType.Redefence,
+        ]
+    }],
+    [ICipherType.
+        Redefence, {
+        title: "Redefence",
+        id: "redefence",
+        equiv: [
+            ICipherType.Railfence,
+            ICipherType.Redefence,
+        ]
+    }],
+    [ICipherType.
+        Vigenere, {
+        title: "Vigen&egrave;re",
+        id: "vigenere",
+        equiv: [
+            ICipherType.Vigenere,
+            ICipherType.Variant,
+            ICipherType.Beaufort,
+            ICipherType.Gronsfeld,
+            ICipherType.Porta,
+        ]
+    }],
+    [ICipherType.
+        Variant, {
+        title: "Variant",
+        id: "variant",
+        equiv: [
+            ICipherType.Vigenere,
+            ICipherType.Variant,
+            ICipherType.Beaufort,
+            ICipherType.Gronsfeld,
+            ICipherType.Porta,
+        ]
+    }],
+    [ICipherType.
+        Beaufort, {
+        title: "Beaufort",
+        id: "beaufort",
+        equiv: [
+            ICipherType.Vigenere,
+            ICipherType.Variant,
+            ICipherType.Beaufort,
+            ICipherType.Gronsfeld,
+            ICipherType.Porta,
+        ]
+    }],
+    [ICipherType.
+        Gronsfeld, {
+        title: "Gronsfeld",
+        id: "gronsfeld",
+        equiv: [
+            ICipherType.Vigenere,
+            ICipherType.Variant,
+            ICipherType.Beaufort,
+            ICipherType.Gronsfeld,
+            ICipherType.Porta,
+        ]
+    }],
+    [ICipherType.
+        Porta, {
+        title: "Porta",
+        id: "porta",
+        equiv: [
+            ICipherType.Vigenere,
+            ICipherType.Variant,
+            ICipherType.Beaufort,
+            ICipherType.Gronsfeld,
+            ICipherType.Porta,
+        ]
+    }],
+    [ICipherType.
+        FractionatedMorse, {
+        title: "Fractionated Morse",
+        id: "fractionatedmorse",
+        equiv: [
+            ICipherType.FractionatedMorse,
+        ]
+    }],
+    [ICipherType.
+        Morbit, {
+        title: "Morbit",
+        id: "morbit",
+        equiv: [
+            ICipherType.Morbit,
+        ]
+    }],
+    [ICipherType.Ragbaby, {
+        title: "Ragbaby",
+        id: "ragbaby",
+        equiv: [
+            ICipherType.Ragbaby,
+        ]
+    }],
+    [ICipherType.Affine, {
+        title: "Affine",
+        id: "affine",
+        equiv: [
+            ICipherType.Affine,
+        ]
+    }],
+    [ICipherType.Counter, {
+        title: "Counter",
+        id: "counter",
+        equiv: [
+            ICipherType.Counter,
+        ]
+    }],
+    [ICipherType.Caesar, {
+        title: "Caesar",
+        id: "caesar",
+        equiv: [
+            ICipherType.Atbash,
+            ICipherType.Caesar,
+        ]
+    }],
+    [ICipherType.Atbash, {
+        title: "Atbash",
+        id: "atbash",
+        equiv: [
+            ICipherType.Atbash,
+            ICipherType.Caesar,
+        ]
+    }],
+    [ICipherType.Checkerboard, {
+        title: "Checkerboard",
+        id: "checkerboard",
+        equiv: [
+            ICipherType.Checkerboard,
+        ]
+    }],
+    [ICipherType.Gromark, {
+        title: "Gromark",
+        id: "gromark",
+        equiv: [
+            ICipherType.Gromark,
+        ]
+    }],
+    [ICipherType.Xenocrypt, {
+        title: "Xenocrypt",
+        id: "xenocrypt",
+        equiv: [
+            ICipherType.Aristocrat,
+            ICipherType.Patristocrat,
+            ICipherType.Xenocrypt,
+        ]
+    }],
+    [ICipherType.Standard, {
+        title: "Standard",
+        id: "standard",
+        equiv: [
+            ICipherType.Aristocrat,
+            ICipherType.Patristocrat,
+            ICipherType.Xenocrypt,
+        ]
+    }],
+    [ICipherType.Hill, {
+        title: "Hill",
+        id: "hill",
+        equiv: [
+            ICipherType.Hill,
+        ]
+    }],
+])
 
 export function CypherTypeButtonItem(cipherType: ICipherType): JTRadioButtonItem {
-    let res: JTRadioButtonItem
-
-    switch (cipherType) {
-        case ICipherType.Railfence:
-            res = { value: cipherType, title: "Railfence", id: "railfence" }
-            break
-
-        case ICipherType.Redefence:
-            res = { value: cipherType, title: "Redefence", id: "redefence" }
-            break
-
-        case ICipherType.Vigenere:
-            res = { value: cipherType, title: "Vigen&egrave;re", id: "vigenere" }
-            break
-
-        case ICipherType.Variant:
-            res = { value: cipherType, title: "Variant", id: "variant" }
-            break
-
-        case ICipherType.Beaufort:
-            res = { value: cipherType, title: "Beaufort", id: "beaufort" }
-            break
-
-        case ICipherType.Gronsfeld:
-            res = { value: cipherType, title: "Gronsfeld", id: "gronsfeld" }
-            break
-
-        case ICipherType.Porta:
-            res = { value: cipherType, title: "Porta", id: "porta" }
-            break
-
-        case ICipherType.FractionatedMorse:
-            res = { value: cipherType, title: "Fractionated Morse", id: "fractionatedmorse" }
-            break
-
-        case ICipherType.Ragbaby:
-            res = { value: cipherType, title: "Ragbaby", id: "ragbaby" }
-            break
-
-        case ICipherType.Affine:
-            res = { value: cipherType, title: "Affine", id: "affine" }
-            break
-
-        case ICipherType.Counter:
-            res = { value: cipherType, title: "Counter", id: "counter" }
-            break
-
-        case ICipherType.Caesar:
-            res = { value: cipherType, title: "Caesar", id: "caesar" }
-            break
-
-        case ICipherType.Atbash:
-            res = { value: cipherType, title: "Atbash", id: "atbash" }
-            break
-
-        case ICipherType.Hill:
-            res = { value: cipherType, title: "Hill", id: "hill" }
-            break
-
-        default:
-        case ICipherType.Morbit:
-            res = { value: cipherType, title: "Morbit", id: "morbit" }
-            break
-
+    let config = cipherTypeConfig.get(cipherType)
+    let res: JTRadioButtonItem = {
+        value: cipherType,
+        title: config.title,
+        id: config.id
     }
     return res
 }

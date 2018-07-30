@@ -181,7 +181,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
         return topdiv
     }
     load(): void {
-        let encoded = this.cleanString(<string>$('#encoded').val())
+        let encoded = this.cleanString(this.state.cipherString)
         let res = this.build(encoded)
         $("#answer").empty().append(res)
         $("#analysis").each((i, elem) => {
@@ -195,7 +195,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
         this.attachHandlers()
     }
     findPossible(str: string): void {
-        let encoded = this.minimizeString(<string>$('#encoded').val())
+        let encoded = this.minimizeString(this.state.cipherString)
         let extra = ''
         let res = ''
         let i

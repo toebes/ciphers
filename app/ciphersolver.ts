@@ -88,7 +88,7 @@ export class CipherSolver extends CipherHandler {
      * Loads new data into a solver, preserving all solving matches made
      */
     load(): void {
-        let encoded: string = this.cleanString(<string>$('#encoded').val());
+        let encoded: string = this.cleanString(this.state.cipherString);
         this.state.cipherString = encoded
         console.log('LoadSolver');
         let res = this.build(encoded);
@@ -352,7 +352,7 @@ export class CipherSolver extends CipherHandler {
      * @param {string} str string to look for
      */
     findPossible(str: string): void {
-        let encoded = this.minimizeString(<string>$('#encoded').val())
+        let encoded = this.minimizeString(this.state.cipherString)
         this.state.findString = str
         if (str === "") {
             $(".findres").empty()

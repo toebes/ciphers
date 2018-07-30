@@ -22,8 +22,10 @@
     "webpack-cli": "^2.1.5"
   },
   "dependencies": {
+    "@types/core-js": "^2.5.0",
     "@types/datatables.net": "^1.10.12",
     "@types/datatables.net-colreorder": "^1.4.0",
+    "@types/es6-shim": "^0.31.37",
     "@types/jquery": "^3.3.4",
     "@types/jqueryui": "^1.12.2",
     "@types/mathjax": "0.0.34",
@@ -36,6 +38,8 @@
     "datatables.net-responsive-zf": "^2.2.3",
     "datatables.net-zf": "^1.10.19",
     "deep-extend": "^0.5.1",
+    "es5-shim": "^4.5.10",
+    "es6-shim": "^0.35.3",
     "foundation-sites": "^6.5.0-rc.2",
     "jquery": "^3.3.1",
     "mathjax": "^2.7.5",

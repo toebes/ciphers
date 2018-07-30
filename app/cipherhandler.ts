@@ -1470,6 +1470,7 @@ export class CipherHandler {
                     { title: "Patristocrat Encoder", href: "PatristocratEncrypt.html", },
                     { title: "Hill Encoder (2x2 and 3x3)", href: "HillEncrypt.html", },
                     { title: "Vigen&egrave;re Encoder", href: "VigenereEncrypt.html", },
+                    { title: "Test Generator", href: "TestGenerator.html", },
                     // { title: "Language Template Processor", href: "GenLanguage.html", },
                 ]
             },

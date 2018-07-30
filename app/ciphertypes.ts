@@ -25,6 +25,7 @@ export const enum ICipherType {
     Xenocrypt = "xenocrypt",
     Standard = "standard",
     Hill = "hill",
+    Test = "test",
 }
 
 let cipherTypeConfig = new Map(<[ICipherType, any][]> [

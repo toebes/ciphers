@@ -1,5 +1,6 @@
 import { CipherTest, ITestState } from "./ciphertest"
 import { ICipherType } from "./ciphertypes";
+import { JTButtonItem } from "./jtbuttongroup";
 
 /**
  * CipherTestAnswers
@@ -12,6 +13,8 @@ export class CipherTestAnswers extends CipherTest {
         test: 0,
     }
     state: ITestState = { ...this.defaultstate }
+    cmdButtons: JTButtonItem[] = [
+    ]
     restore(data: ITestState): void {
         this.state = { ...this.defaultstate }
         this.copyState(this.state, data)
@@ -37,6 +40,7 @@ export class CipherTestAnswers extends CipherTest {
         for (let qnum = 0; qnum < test.count; qnum++) {
             result.append(this.printTestAnswer(qnum + 1, test.questions[qnum]))
         }
+        return result
     }
     attachHandlers(): void {
         super.attachHandlers()

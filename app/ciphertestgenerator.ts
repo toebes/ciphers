@@ -57,7 +57,7 @@ export class CipherTestGenerator extends CipherTest {
             row.add({ celltype: "td", settings: { colspan: 5 }, content: "No Timed Question" })
         } else {
             let state = this.getFileEntry(qnum)
-            let buttonset = $("<div/>", { class: "button-group round cmds" })
+            let buttonset = $("<div/>", { class: "button-group round entrycmds" })
             for (let btninfo of buttons) {
                 buttonset.append($("<button/>", { 'data-entry': order, type: "button", class: btninfo.btnClass + " button" })
                     .text(btninfo.title))
@@ -95,7 +95,7 @@ export class CipherTestGenerator extends CipherTest {
         ]
         this.addQuestionRow(table, -1, test.timed, buttons)
         for (let entry = 0; entry < test.count; entry++) {
-            this.addQuestionRow(table, entry, test.questions[entry], buttons)
+            this.addQuestionRow(table, entry + 1, test.questions[entry], buttons)
         }
         result.append(table.generate())
         return result
@@ -137,9 +137,6 @@ export class CipherTestGenerator extends CipherTest {
         return result
     }
     exportTest(): void {
-    }
-    gotoEditCipher(entry: number): void {
-        //        location.assign("TestGenerator.html?test=" + String(test))
     }
     reloadPage(): void {
         $('.precmds').each((i, elem) => {

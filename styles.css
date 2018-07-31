@@ -659,3 +659,11 @@ table.found tr th:nth-child(odd) {
   .reveal {
     padding: 0rem;
   }
+
+  .entrycmds {
+      padding-right: 200px;
+  }
+
+  .points {
+      font-weight: bold;
+  }

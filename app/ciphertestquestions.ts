@@ -1,5 +1,6 @@
 import { CipherTest, ITestState } from "./ciphertest";
 import { ICipherType } from "./ciphertypes";
+import { JTButtonItem } from "./jtbuttongroup";
 
 /**
  * CipherTestQuestions - This class handles all of the actions associated with
@@ -15,13 +16,13 @@ export class CipherTestQuestions extends CipherTest {
         test: 0,
     }
     state: ITestState = { ...this.defaultstate }
+    cmdButtons: JTButtonItem[] = [
+    ]
     restore(data: ITestState): void {
         let curlang = this.state.curlang
         this.state = { ...this.defaultstate }
         this.state.curlang = curlang
         this.copyState(this.state, data)
-        this.setUIDefaults()
-        this.updateOutput()
     }
     genPreCommands(): JQuery<HTMLElement> {
         let testcount = this.getTestCount()
@@ -44,5 +45,6 @@ export class CipherTestQuestions extends CipherTest {
         for (let qnum = 0; qnum < test.count; qnum++) {
             result.append(this.printTestQuestion(qnum + 1, test.questions[qnum]))
         }
+        return result
     }
 }

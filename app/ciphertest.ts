@@ -88,38 +88,48 @@ export class CipherTest extends CipherHandler {
     }
     attachHandlers(): void {
         super.attachHandlers()
+        $("#printtest").off("click").on("click", (e) => {
+            this.gotoPrintTest(this.state.test)
+        })
+        $("#printans").off("click").on("click", (e) => {
+            this.gotoPrintTestAnswers(this.state.test)
+        })
     }
+    gotoEditCipher(entry: number): void {
+        //        location.assign("TestGenerator.html?test=" + String(test))
+    }
+
     printTestAnswer(qnum: number, question: number): JQuery<HTMLElement> {
         let state = this.getFileEntry(question)
-        let result = $("<div>", {class: "question"});
+        let result = $("<div>", { class: "question" });
         if (qnum === -1) {
             result.append($("<span/>", { class: "timed" }).text("Timed Question"))
         } else {
-            result.append($("<span>", {class: "qnum"}).text(String(qnum) + ")"))
+            result.append($("<span>", { class: "qnum" }).text(String(qnum) + ")"))
         }
-        result.append($("<span>", {class: "points"}).text(" [" + String(state.points) + "] "))
-        result.append($(state.question))
-        let cipherans = $("<div/>", {class: "cipher" + state.cipherType})
-        cipherans.append($("<p/>", {class: "debug"}).text(state.cipherType))
-        cipherans.append($("<p/>", {class: "ciphertext"}).text(state.cipherString))
-        cipherans.append($("<p/>", {class: "debug"}).text("Answer Goes Here"))
+        result.append($("<span>", { class: "points" }).text(" [" + String(state.points) + "points ] "))
+        result.append($("<span/>").html(state.question))
+        let cipherans = $("<div/>", { class: "cipher" + state.cipherType })
+        cipherans.append($("<p/>", { class: "debug" }).text(state.cipherType))
+        cipherans.append($("<p/>", { class: "ciphertext" }).text(state.cipherString))
+        cipherans.append($("<p/>", { class: "debug" }).text("Answer Goes Here"))
         result.append(cipherans)
         return (result)
     }
     printTestQuestion(qnum: number, question: number): JQuery<HTMLElement> {
         let state = this.getFileEntry(question)
-        let result = $("<div>", {class: "question"});
+        let result = $("<div>", { class: "question" });
         if (qnum === -1) {
             result.append($("<span/>", { class: "timed" }).text("Timed Question"))
         } else {
-            result.append($("<span>", {class: "qnum"}).text(String(qnum) + ")"))
+            result.append($("<span>", { class: "qnum" }).text(String(qnum) + ")"))
         }
-        result.append($("<span>", {class: "points"}).text(" [" + String(state.points) + "] "))
-        result.append($(state.question))
-        let cipherans = $("<div/>", {class: "cipher" + state.cipherType})
-        cipherans.append($("<p/>", {class: "debug"}).text(state.cipherType))
-        cipherans.append($("<p/>", {class: "ciphertext"}).text(state.cipherString))
-        cipherans.append($("<p/>", {class: "debug"}).text("Question Goes Here"))
+        result.append($("<span>", { class: "points" }).text(" [" + String(state.points) + "] "))
+        result.append($("<span/>").html(state.question))
+        let cipherans = $("<div/>", { class: "cipher" + state.cipherType })
+        cipherans.append($("<p/>", { class: "debug" }).text(state.cipherType))
+        cipherans.append($("<p/>", { class: "ciphertext" }).text(state.cipherString))
+        cipherans.append($("<p/>", { class: "debug" }).text("Question Goes Here"))
         result.append(cipherans)
         return (result)
     }

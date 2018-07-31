@@ -8,8 +8,6 @@ import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 
 export interface IEncoderState extends IState {
-    /** Number of points a question is worth */
-    points?: number
     /** Type of encoding */
     encodeType?: string
     /** K1/K2/K3/K4 Keyword */

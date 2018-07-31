@@ -18,6 +18,8 @@ export interface IState {
     replacements?: StringMap
     /** Any additional save state data */
     undotype?: string,
+    /** Number of points a question is worth */
+    points?: number
     /** Any quotation text to associate with the cipher */
     question?: string,
     /** Current language */
@@ -25,6 +27,18 @@ export interface IState {
     any?: any
     /** Indicates that a character is locked     */
     locked?: { [key: string]: boolean }
+}
+interface ITest {
+    /** Title of the test */
+    title: string
+    /** Which Cipher-Data.n element corresponds to the timed question.
+     * If the value is blank, there is no timed question.
+     */
+    timed: number
+    /** The number of questions on the test */
+    count: number
+    /** Array of which corresponding test elements to use. */
+    questions: number[]
 }
 
 type patelem = [string, number, number, number]
@@ -332,6 +346,89 @@ export class CipherHandler {
     freq: { [key: string]: number } = {}
     savefileentry: number = -1
     /**
+     * Gets the total number of saved tests
+     * Cipher-Test-Count [number] holds the number of tests in the system.
+     * Cipher-Test.n [JSON] holds the data for the test n.
+     */
+    getTestCount(): number {
+        let result = 0
+        if (typeof (Storage) !== "undefined") {
+            // Cipher-Count [number] holds the number of currently saved questions.
+            // Cipher-Data.n [JSON] holds the data from question n. Note n is zero based.
+            result = Number(localStorage.getItem("Cipher-Test-Count"))
+        }
+        return result
+    }
+    /**
+     * Set the number of cipher tests stored in local storage
+     */
+    setTestCount(count: number): string {
+        if (typeof (Storage) === "undefined") {
+            return "Unable to save, local storage not defined"
+        }
+        localStorage.setItem('Cipher-Test-Count', String(count))
+        return ""
+    }
+
+    /**
+     * Gets the string that corresponds to a test in local storage
+     */
+    getTestName(entry: number): string {
+        return 'Cipher-Test' + String(entry)
+    }
+    /**
+     * Retrieves a test entry from local storage
+     */
+    getTestEntry(entry: number): ITest {
+        let result: ITest = {timed: -1, title: "Invalid Test", count: 0, questions: []}
+        if (typeof (Storage) !== "undefined") {
+            // Cipher-Count [number] holds the number of currently saved questions.
+            // Cipher-Data.n [JSON] holds the data from question n. Note n is zero based.
+            let cipherCount = this.getTestCount()
+            if (entry < cipherCount) {
+                let jsonString = localStorage.getItem(this.getTestName(entry))
+                result = JSON.parse(jsonString)
+            }
+        }
+        if (result.timed === undefined) {
+            result.timed = -1
+        }
+        return result
+    }
+    /**
+     * Writes a test entry to local storage.  An entry of -1 or
+     * greater than the number of entries just writes as a new entry
+     */
+    setTestEntry(entry: number, state: ITest): number {
+        if (typeof (Storage) === "undefined") {
+            return -1
+        }
+        let testCount = this.getTestCount()
+        if (entry > testCount || entry === -1) {
+            entry = testCount
+            this.setTestCount(entry + 1)
+        }
+        localStorage.setItem(this.getTestName(entry), JSON.stringify(state))
+        return entry
+    }
+    /**
+     * Removes a file entry, renumbering all the other entries after it
+     */
+    deleteTestEntry(entry: number): string {
+        if (typeof (Storage) === "undefined") {
+            return "Unable to delete, local storage not defined"
+        }
+        let testCount = this.getTestCount()
+        if (entry < testCount && entry >= 0) {
+            for (let pos = entry + 1; pos < testCount; pos++) {
+                localStorage.setItem(this.getTestName(pos - 1), localStorage.getItem(this.getTestName(pos)))
+            }
+            localStorage.removeItem(this.getTestName(testCount))
+            this.setTestCount(testCount - 1)
+        }
+        return ""
+    }
+    /**
      * Get the total number of saved ciphers
      */
     getCipherCount(): number {
@@ -342,7 +439,12 @@ export class CipherHandler {
             result = Number(localStorage.getItem("Cipher-Count"))
         }
         return result
-
+    }
+    /**
+     * Gets the string that corresponds to an entry in local storage
+     */
+    getEntryName(entry: number): string {
+        return 'Cipher-Data' + String(entry)
     }
     /**
      * Get the save state associated with a numbered file entry
@@ -373,7 +475,7 @@ export class CipherHandler {
             result = $("<select/>", { id: "files", class: "filelist", size: 10 })
             for (let entry = 0; entry < cipherCount; entry++) {
                 let fileEntry = this.getFileEntry(entry)
-                result.append($("<option />", { value: entry }).text(fileEntry.question))
+                result.append($("<option />", { value: entry }).html(fileEntry.question))
             }
         }
         return result
@@ -387,9 +489,6 @@ export class CipherHandler {
         }
         localStorage.setItem('Cipher-Count', String(count))
         return ""
-    }
-    getEntryName(entry: number): string {
-        return 'Cipher-Data' + String(entry)
     }
     /**
      * Save a state entry to local storage. If the entry number is higher
@@ -424,7 +523,19 @@ export class CipherHandler {
             localStorage.removeItem(this.getEntryName(cipherCount))
             this.setCipherCount(cipherCount - 1)
         }
-        // TODO: We also have to renumber all the tests
+        let testCount = this.getTestCount()
+        for (let pos = 0; pos < testCount; pos++) {
+            let test = this.getTestEntry(pos)
+            if (test.timed > entry) {
+                test.timed--;
+            }
+            for (let i in test.questions) {
+                if (test.questions[i] > entry) {
+                    test.questions[i]--
+                }
+            }
+            this.setTestEntry(pos, test)
+        }
         return ""
     }
     /**
@@ -625,7 +736,7 @@ export class CipherHandler {
         // See if we can merge this (such as a find operation) with the previous undo
         if (this.undoStack.length > 0 &&
             ((undotype !== null && this.undoStack[this.undoStack.length - 1].undotype === undotype) ||
-            (undotype === null && this.undoStack[this.undoStack.length - 1].undotype !== null))) {
+                (undotype === null && this.undoStack[this.undoStack.length - 1].undotype !== null))) {
             this.undoStack[this.undoStack.length - 1] = undodata;
         } else {
             this.undoStack.push(undodata);
@@ -1470,7 +1581,8 @@ export class CipherHandler {
                     { title: "Patristocrat Encoder", href: "PatristocratEncrypt.html", },
                     { title: "Hill Encoder (2x2 and 3x3)", href: "HillEncrypt.html", },
                     { title: "Vigen&egrave;re Encoder", href: "VigenereEncrypt.html", },
-                    { title: "Test Generator", href: "TestGenerator.html", },
+                    { title: "Test Manager", href: "TestManage.html", },
+                    { title: "Question Manager", href: "TestQuestions.html", },
                     // { title: "Language Template Processor", href: "GenLanguage.html", },
                 ]
             },

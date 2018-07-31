@@ -14,7 +14,11 @@ import { CipherRagbabySolver } from "./cipherragbabysolver"
 import { CipherRailfenceSolver } from "./cipherrailfencesolver"
 import { CipherSolver } from "./ciphersolver"
 import { CipherTableEncoder } from "./ciphertableencoder"
-import { CipherTest } from "./ciphertest"
+import { CipherTestAnswers } from "./ciphertestanswers"
+import { CipherTestGenerator } from "./ciphertestgenerator"
+import { CipherTestManage } from "./ciphertestmanage"
+import { CipherTestPrint } from "./ciphertestprint"
+import { CipherTestQuestions } from "./ciphertestquestions"
 import { ICipherType } from "./ciphertypes"
 import { CipherVigenereEncoder } from "./ciphervigenereencoder"
 import { CipherVigenereSolver } from "./ciphervigeneresolver"
@@ -29,54 +33,54 @@ interface ICipherFactoryEntry {
  * This maps the arbitrary strings from the HTML files into the appropriate
  * CipherHandler class.
  */
-let cipherFactoryMap: {[index: string]: ICipherFactoryEntry} = {
-    Morbit: {
-        cipherType: ICipherType.Morbit,
-        cipherClass: CipherMorbitSolver,
+let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
+    Affine: {
+        cipherType: ICipherType.Affine,
+        cipherClass: CipherAffineEncoder,
     },
-    FractionatedMorse: {
-        cipherType: ICipherType.FractionatedMorse,
-        cipherClass: CipherFractionatedMorseSolver,
+    Atbash: {
+        cipherType: ICipherType.Atbash,
+        cipherClass: CipherTableEncoder,
+    },
+    Caesar: {
+        cipherType: ICipherType.Caesar,
+        cipherClass: CipherTableEncoder,
     },
     Checkerboard: {
         cipherType: ICipherType.Checkerboard,
         cipherClass: CipherCheckerboardSolver,
     },
-    Gromark: {
-        cipherType: ICipherType.Gromark,
-        cipherClass: CipherGromarkSolver,
+    Counter: {
+        cipherType: ICipherType.Counter,
+        cipherClass: CipherCounter,
     },
-    Xenocrypt: {
-        cipherType: ICipherType.Xenocrypt,
-        cipherClass: CipherXenocryptSolver,
-    },
-    Hill: {
-        cipherType: ICipherType.Hill,
-        cipherClass: CipherHillEncoder,
-    },
-    Patristocrat: {
-        cipherType: ICipherType.Patristocrat,
-        cipherClass: CipherEncoder,
+    Cryptarithm: {
+        cipherType: ICipherType.Cryptarithm,
+        cipherClass: CryptarithmSolver,
     },
     Encoder: {
         cipherType: ICipherType.Aristocrat,
         cipherClass: CipherEncoder,
     },
-    Vigenere: {
-        cipherType: ICipherType.Vigenere,
-        cipherClass: CipherVigenereEncoder,
+    FractionatedMorse: {
+        cipherType: ICipherType.FractionatedMorse,
+        cipherClass: CipherFractionatedMorseSolver,
     },
-    VigenereSolver: {
-        cipherType: ICipherType.Vigenere,
-        cipherClass: CipherVigenereSolver,
+    Gromark: {
+        cipherType: ICipherType.Gromark,
+        cipherClass: CipherGromarkSolver,
     },
-    Affine: {
-        cipherType: ICipherType.Affine,
-        cipherClass: CipherAffineEncoder,
+    Hill: {
+        cipherType: ICipherType.Hill,
+        cipherClass: CipherHillEncoder,
     },
-    Cryptarithm: {
-        cipherType: ICipherType.Cryptarithm,
-        cipherClass: CryptarithmSolver,
+    Morbit: {
+        cipherType: ICipherType.Morbit,
+        cipherClass: CipherMorbitSolver,
+    },
+    Patristocrat: {
+        cipherType: ICipherType.Patristocrat,
+        cipherClass: CipherEncoder,
     },
     RagbabySolver: {
         cipherType: ICipherType.Ragbaby,
@@ -86,40 +90,56 @@ let cipherFactoryMap: {[index: string]: ICipherFactoryEntry} = {
         cipherType: ICipherType.Railfence,
         cipherClass: CipherRailfenceSolver,
     },
-    Counter: {
-        cipherType: ICipherType.Counter,
-        cipherClass: CipherCounter,
-    },
-    Caesar: {
-        cipherType: ICipherType.Caesar,
-        cipherClass: CipherTableEncoder,
-    },
-    Atbash: {
-        cipherType: ICipherType.Atbash,
-        cipherClass: CipherTableEncoder,
-    },
-    Test: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherTest,
-    },
     Standard: {
         cipherType: ICipherType.Standard,
         cipherClass: CipherSolver
     },
+    TestAnswers: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestAnswers,
+    },
+    TestGenerator: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestGenerator,
+    },
+    TestManage: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestManage,
+    },
+    TestPrint: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestPrint,
+    },
+    TestQuestions: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestQuestions,
+    },
+    Vigenere: {
+        cipherType: ICipherType.Vigenere,
+        cipherClass: CipherVigenereEncoder,
+    },
+    VigenereSolver: {
+        cipherType: ICipherType.Vigenere,
+        cipherClass: CipherVigenereSolver,
+    },
+    Xenocrypt: {
+        cipherType: ICipherType.Xenocrypt,
+        cipherClass: CipherXenocryptSolver,
+    },
 }
 
-export function CipherFactory(ciphertypestr: string, lang: string): CipherHandler {
+export function CipherFactory(ciphertypestr: string, reqlang: string): CipherHandler {
+    let lang = "en"
     console.log('Selecting:' + ciphertypestr + " lang=" + lang)
-    if (typeof lang === 'undefined') {
-        lang = "en"
+    if (typeof reqlang !== 'undefined') {
+        lang = reqlang.toLowerCase()
     }
-    lang = lang.toLowerCase()
 
     let entry: ICipherFactoryEntry = {
         cipherType: ICipherType.None,
         cipherClass: CipherSolver
     }
-    if (typeof(cipherFactoryMap[ciphertypestr]) !== 'undefined') {
+    if (typeof (cipherFactoryMap[ciphertypestr]) !== 'undefined') {
         entry = cipherFactoryMap[ciphertypestr]
     }
     let cipherTool: CipherHandler = new entry.cipherClass()

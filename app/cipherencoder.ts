@@ -6,6 +6,7 @@ import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
+import { JTTable } from "./jttable";
 
 export interface IEncoderState extends IState {
     /** Type of encoding */
@@ -409,76 +410,30 @@ export class CipherEncoder extends CipherHandler {
         this.setReplacement(this.getSourceCharset(), replacement)
     }
     /**
-     * Using the currently selected replacement set, encodes a string
-     * This breaks it up into lines of maxEncodeWidth characters or less so that
-     * it can be output properly.
-     * This returns the strings as an array of pairs of strings with
-     * the encode and decode parts delivered together.  As a side effect
-     * it also updates the frequency table
+     * Generate the HTML to display the answer for a cipher
      */
-
-    makeReplacement(str: string, maxEncodeWidth: number): string[][] {
-        let charset = this.getCharset()
-        let sourcecharset = this.getSourceCharset()
-        let revRepl = []
-        let langreplace = this.langreplace[this.state.curlang]
-        let encodeline = ""
-        let decodeline = ""
-        let lastsplit = -1
-        let result: string[][] = []
-
-        // Build a reverse replacement map so that we can encode the string
-        for (let repc in this.replacement) {
-            if (this.replacement.hasOwnProperty(repc)) {
-                revRepl[this.replacement[repc]] = repc
-            }
+    genAnswer(): JQuery<HTMLElement> {
+        let result = $("<div>")
+        this.genMap()
+        let strings = this.makeReplacement(this.state.cipherString, 40)
+        for (let strset of strings) {
+            result.append($('<div>', { class: "TOSOLVE" }).text(strset[0]))
+            result.append($('<div>', { class: "TOANSWER" }).text(strset[1]))
         }
-        // Zero out the frequency table
-        this.freq = {}
-        for (let i = 0, len = sourcecharset.length; i < len; i++) {
-            this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0
+        result.append(this.genFreqTable(true, this.state.encodeType))
+        return result
+    }
+    /**
+     * Generate the HTML to display the question for a cipher
+     */
+    genQuestion(): JQuery<HTMLElement> {
+        let result = $("<div>")
+        this.genMap()
+        let strings = this.makeReplacement(this.state.cipherString, 40)
+        for (let strset of strings) {
+            result.append($('<div>', { class: "TOSOLVEQ" }).text(strset[0]))
         }
-        // Now go through the string to encode and compute the character
-        // to map to as well as update the frequency of the match
-        for (let t of str.toUpperCase()) {
-            // See if the character needs to be mapped.
-            if (typeof langreplace[t] !== 'undefined') {
-                t = langreplace[t]
-            }
-            decodeline += t
-            // Make sure that this is a valid character to map from
-            let pos = charset.indexOf(t)
-            if (pos >= 0) {
-                t = revRepl[t]
-                if (isNaN(this.freq[t])) {
-                    this.freq[t] = 0
-                }
-                this.freq[t]++
-            } else {
-                // This is a potential split position, so remember it
-                lastsplit = decodeline.length
-            }
-            encodeline += t
-            // See if we have to split the line now
-            if (encodeline.length >= maxEncodeWidth) {
-                if (lastsplit === -1) {
-                    result.push([encodeline, decodeline])
-                    encodeline = ""
-                    decodeline = ""
-                    lastsplit = -1
-                } else {
-                    let encodepart = encodeline.substr(0, lastsplit)
-                    let decodepart = decodeline.substr(0, lastsplit)
-                    encodeline = encodeline.substr(lastsplit)
-                    decodeline = decodeline.substr(lastsplit)
-                    result.push([encodepart, decodepart])
-                }
-            }
-        }
-        // And put together any residual parts
-        if (encodeline.length > 0) {
-            result.push([encodeline, decodeline])
-        }
+        result.append(this.genFreqTable(false, this.state.encodeType))
         return result
     }
     /**

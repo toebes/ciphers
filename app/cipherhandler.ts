@@ -618,38 +618,80 @@ export class CipherHandler {
      * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
     createFreqEditTable(): JQElement {
-        let table = $('<table/>').addClass("tfreq dragcol")
-        let thead = $('<thead/>')
-        let tbody = $('<tbody/>')
-        let headrow = $('<tr/>')
-        let freqrow = $('<tr/>')
-        let replrow = $('<tr/>')
-        let altreprow = $('<tr/>')
+        let table = new JTTable({ class: "tfreq dragcol" })
+
+        let headrow = table.addHeaderRow()
+        let freqrow = table.addBodyRow()
+        let replrow = table.addBodyRow()
+        let altreprow
+        if (this.ShowRevReplace) {
+            altreprow = table.addBodyRow()
+        }
         let charset = this.getSourceCharset()
 
-        headrow.append($('<th/>').addClass("topleft"))
-        freqrow.append($('<th/>').text("Frequency"))
-        replrow.append($('<th/>').text("Replacement"))
-        altreprow.append($('<th/>').text("Rev Replace"))
+        headrow.add({ settings: { class: "topleft" }, content: "" })
+        freqrow.add({ celltype: "th", content: "Frequency" })
+        replrow.add({ celltype: "th", content: "Replacement" })
+
+        if (this.ShowRevReplace) {
+            altreprow.add({ celltype: "th", content: "Rev Replace" })
+        }
         for (let i = 0, len = charset.length; i < len; i++) {
             let c = charset.substr(i, 1).toUpperCase()
-            headrow.append($('<th/>').text(c))
-            freqrow.append($('<td id="f' + c + '"/>'))
-            let td = $('<td/>')
-            td.append(this.makeFreqEditField(c))
-            replrow.append(td)
-            altreprow.append($('<td id="rf' + c + '"/>'))
+            headrow.add(c)
+            freqrow.add({ settings: { id: "f" + c }, content: "" })
+            replrow.add(this.makeFreqEditField(c))
+            if (this.ShowRevReplace) {
+                altreprow.add({ settings: { id: "rf" + c }, content: "" })
+            }
         }
-        thead.append(headrow)
-        tbody.append(freqrow)
-        tbody.append(replrow)
-        if (this.ShowRevReplace) {
-            tbody.append(altreprow)
+        return table.generate()
+    }
+    /**
+     * Creates an HTML table to display the frequency of characters for printing
+     * on the test and answer key
+     * showanswers controls whether we display the answers or just the key
+     * encodeType tells the type of encoding to print.  If it is 'random' then
+     * we leave it blank.
+     */
+    genFreqTable(showanswers: boolean, encodeType: string): JQElement {
+        let table = new JTTable({ class: "prfreq shrink cell unstriped" })
+        if (encodeType === 'random') {
+            encodeType = ''
         }
-        table.append(thead)
-        table.append(tbody)
+        // For a K2 cipher, the replacement row goes above the header row
+        let replrow
+        if (encodeType === 'k2') {
+            replrow = table.addHeaderRow()
+        }
+        let headrow = table.addHeaderRow()
+        let freqrow = table.addBodyRow()
+        // For all other cipher types, the replacement row is below the frequency
+        if (encodeType !== 'k2') {
+           replrow = table.addBodyRow()
+        }
 
-        return table
+        let charset = this.getSourceCharset()
+        let revRepl = this.getReverseReplacement()
+
+        headrow.add({ settings: { class: "topleft " + encodeType }, content: encodeType.toUpperCase() })
+        freqrow.add({ celltype: "th", content: "Frequency" })
+        replrow.add({ celltype: "th", content: "Replacement" })
+
+        for (let c of charset.toUpperCase()) {
+            let repl = ''
+            if (showanswers) {
+                repl = revRepl[c]
+            }
+            headrow.add(c)
+            let freq = String(this.freq[c])
+            if (freq === "0") {
+                freq = ""
+            }
+            freqrow.add(freq)
+            replrow.add(repl)
+        }
+        return table.generate()
     }
     /**
      * Loads new data into a solver, preserving all solving matches made
@@ -890,11 +932,11 @@ export class CipherHandler {
                 aclass = "a v"
             }
             if (overline !== undefined) {
-                rowover.add({settings: { class: "o v" }, content: overline.substr(i, 1) })
+                rowover.add({ settings: { class: "o v" }, content: overline.substr(i, 1) })
             }
             if (this.isValidChar(c)) {
-                rowcipher.add({settings: { class: "q v" }, content: c })
-                rowanswer.add({settings: { class: aclass }, content: a })
+                rowcipher.add({ settings: { class: "q v" }, content: c })
+                rowanswer.add({ settings: { class: aclass }, content: a })
             } else {
                 if (answerline === undefined) {
                     a = c
@@ -1067,6 +1109,83 @@ export class CipherHandler {
             $(elem).empty().append(this.createFreqEditTable())
         })
         this.attachHandlers()
+    }
+    getReverseReplacement(): StringMap {
+        let revRepl: StringMap = {}
+        // Build a reverse replacement map so that we can encode the string
+        for (let repc in this.replacement) {
+            if (this.replacement.hasOwnProperty(repc)) {
+                revRepl[this.replacement[repc]] = repc
+            }
+        }
+        return revRepl
+    }
+
+    /**
+     * Using the currently selected replacement set, encodes a string
+     * This breaks it up into lines of maxEncodeWidth characters or less so that
+     * it can be output properly.
+     * This returns the strings as an array of pairs of strings with
+     * the encode and decode parts delivered together.  As a side effect
+     * it also updates the frequency table
+     */
+    makeReplacement(str: string, maxEncodeWidth: number): string[][] {
+        let charset = this.getCharset()
+        let sourcecharset = this.getSourceCharset()
+        let revRepl = this.getReverseReplacement()
+        let langreplace = this.langreplace[this.state.curlang]
+        let encodeline = ""
+        let decodeline = ""
+        let lastsplit = -1
+        let result: string[][] = []
+
+        // Zero out the frequency table
+        this.freq = {}
+        for (let i = 0, len = sourcecharset.length; i < len; i++) {
+            this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0
+        }
+        // Now go through the string to encode and compute the character
+        // to map to as well as update the frequency of the match
+        for (let t of str.toUpperCase()) {
+            // See if the character needs to be mapped.
+            if (typeof langreplace[t] !== 'undefined') {
+                t = langreplace[t]
+            }
+            decodeline += t
+            // Make sure that this is a valid character to map from
+            let pos = charset.indexOf(t)
+            if (pos >= 0) {
+                t = revRepl[t]
+                if (isNaN(this.freq[t])) {
+                    this.freq[t] = 0
+                }
+                this.freq[t]++
+            } else {
+                // This is a potential split position, so remember it
+                lastsplit = decodeline.length
+            }
+            encodeline += t
+            // See if we have to split the line now
+            if (encodeline.length >= maxEncodeWidth) {
+                if (lastsplit === -1) {
+                    result.push([encodeline, decodeline])
+                    encodeline = ""
+                    decodeline = ""
+                    lastsplit = -1
+                } else {
+                    let encodepart = encodeline.substr(0, lastsplit)
+                    let decodepart = decodeline.substr(0, lastsplit)
+                    encodeline = encodeline.substr(lastsplit)
+                    decodeline = decodeline.substr(lastsplit)
+                    result.push([encodepart, decodepart])
+                }
+            }
+        }
+        // And put together any residual parts
+        if (encodeline.length > 0) {
+            result.push([encodeline, decodeline])
+        }
+        return result
     }
     /**
      * Make multiple copies of a string concatenated

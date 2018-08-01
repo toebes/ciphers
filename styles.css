@@ -236,7 +236,7 @@ table.ckfreq {
 table.tfreq th {
     padding: 0.1rem 0.3rem 0.1rem;
 }
-.ckfreq td, .ckfreq th, .tfreq td, table.mfind td {
+.prfreq td, .prfreq th, .ckfreq td, .ckfreq th, .tfreq td, table.mfind td {
     border: 1px solid black;
     margin: 0px;
     padding: 0.1rem 0.3rem 0.1rem;
@@ -252,16 +252,21 @@ table.mfind {
         padding: 0.1rem; 
     }
 
+    .prfreq th,
     .ckfreq th,
     .tfreq thead th,
     .satable thead th,
     table.mfind th {
         background-color: #D3D3D3;
     }
+.prfreq th {
+    width: 2rem;
+}
 .tfreq thead th {
     width: 20px;
 }
 
+.prfreq thead .topleft,
 .ckfreq thead .topleft,
 .tfreq thead .topleft {
     border-left: none;
@@ -296,13 +301,17 @@ input[type="radio"] {
     float:none;
 }
 
-.TOSOLVE,.TOANSWER {
+.TOSOLVE,.TOSOLVEQ,.TOANSWER {
     font-family: Courier New, Courier, monospace;    
-    font-size: 16px;
+    font-size: 22px;
     font-weight: bold;
     margin-bottom: 0pt;
     line-height: 100%;
 }
+.TOSOLVEQ {
+    margin-bottom: 6rem;
+}
+
 .TOANSWER {
     background-color: #ffff00;
     margin-bottom: 16pt;
@@ -679,10 +688,15 @@ table.found tr th:nth-child(odd) {
       display:inline;
   }
 
-.ansblock {
+.prfreq, .ansblock {
       border-collapse: collapse;
       font-family: 'Courier New', Courier, monospace;
-  }
+      width: auto;
+}
+
+.prfreq td, .ansblock td {
+    text-align: center;
+}
 
   .ansblock td.v {
       border: 1px solid black;
@@ -694,3 +708,4 @@ table.found tr th:nth-child(odd) {
   .ansblock td.e {
       height: 3rem;
   }
+

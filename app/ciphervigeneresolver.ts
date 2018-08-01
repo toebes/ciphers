@@ -5,8 +5,8 @@ import { CipherSolver } from "./ciphersolver"
 import { CypherTypeButtonItem, ICipherType } from "./ciphertypes"
 import { JTRadioButton } from "./jtradiobutton"
 import { JTTable } from "./jttable"
-import Mapper from "./mapper"
-import mapperFactory from "./mapperfactory"
+import { Mapper } from "./mapper"
+import { mapperFactory } from "./mapperfactory"
 
 export class CipherVigenereSolver extends CipherSolver {
     defaultvigenerestate: IState = {

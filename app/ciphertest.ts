@@ -86,19 +86,19 @@ export class CipherTest extends CipherHandler {
     gotoPrintTestAnswers(test: number): void {
         location.assign("TestAnswers.html?test=" + String(test))
     }
-    attachHandlers(): void {
-        super.attachHandlers()
-        $("#printtest").off("click").on("click", (e) => {
-            this.gotoPrintTest(this.state.test)
-        })
-        $("#printans").off("click").on("click", (e) => {
-            this.gotoPrintTestAnswers(this.state.test)
-        })
-    }
     gotoEditCipher(entry: number): void {
+        let state = this.getFileEntry(entry)
+        let editURL = this.getEditURL(state)
+        if (editURL !== "") {
+            if (editURL.indexOf('?') > -1) {
+                editURL += "&editEntry=" + entry
+            } else {
+                editURL += "?editEntry=" + entry
+            }
+            location.assign(editURL)
+        }
         //        location.assign("TestGenerator.html?test=" + String(test))
     }
-
     printTestAnswer(qnum: number, question: number): JQuery<HTMLElement> {
         let state = this.getFileEntry(question)
         let result = $("<div>", { class: "question" });
@@ -132,5 +132,17 @@ export class CipherTest extends CipherHandler {
         cipherans.append($("<p/>", { class: "debug" }).text("Question Goes Here"))
         result.append(cipherans)
         return (result)
+    }
+    attachHandlers(): void {
+        super.attachHandlers()
+        $("#printtest").off("click").on("click", (e) => {
+            this.gotoPrintTest(this.state.test)
+        })
+        $("#printans").off("click").on("click", (e) => {
+            this.gotoPrintTestAnswers(this.state.test)
+        })
+        $(".entryedit").off("click").on("click", (e) => {
+            this.gotoEditCipher(Number($(e.target).attr('data-entry')))
+        })
     }
 }

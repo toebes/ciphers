@@ -1,3 +1,6 @@
+import { ICipherType } from "./ciphertypes";
+import { parseQueryString } from "./parsequerystring";
+
 export interface menuItem {
     /** Text to appear for the menu item */
     title: string,
@@ -9,6 +12,8 @@ export interface menuItem {
     href?: string
     /** Optional additional class to add to the item */
     classname?: string
+    /** Optional Cipher Type to add */
+    cipherType?: ICipherType
 }
 
 /**
@@ -20,6 +25,9 @@ export function JTAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]
         let href = "#"
         if (item.href !== undefined) {
             href = item.href
+            if (item.cipherType !== undefined) {
+                href += "?cipherType=" + item.cipherType
+            }
             let match = '/' + href
             let tocheck = '/' + window.location.pathname
             // See if we are at the location of the href and mark it as such
@@ -45,15 +53,15 @@ export function JTAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]
 }
 
 export function JTCreateMenu(menu: menuItem[], id: string, menutext: string): JQuery<HTMLElement> {
+    // let parms = parseQueryString(window.location.search.substring(1))
+    // let ciphertype: ICipherType = parms['cipherType'] as ICipherType
+
     let result = $("<div/>")
     let titlebar = $("<div/>", { class: "title-bar", 'data-responsive-toggle': id, 'data-hide-for': "medium" })
     $("<button/>", { class: "menu-icon", type: "button", 'data-toggle': id }).appendTo(titlebar)
     $("<div/>", { class: "title-bar-title" }).text("Menu").appendTo(titlebar)
     result.append(titlebar)
-    // <div class="title-bar" data-responsive-toggle="example-menu" data-hide-for="medium">
-    //   <button class="menu-icon" type="button" data-toggle="example-menu"></button>
-    //   <div class="title-bar-title">Menu</div>
-    // </div>
+
     let topbar = $("<div/>", { class: "top-bar", id: id })
     let topbarleft = $("<div/>", { class: "top-bar-left" })
     let dropdownmenu = $("<ul/>", { class: "dropdown menu", 'data-dropdown-menu': "" })
@@ -70,142 +78,22 @@ export function JTCreateMenu(menu: menuItem[], id: string, menutext: string): JQ
     topbar.append(topbarright)
     result.append(topbar)
 
-    //     <div class="top-bar-right">
-    //         <ul class="menu">
-    //             <li>
-    //                 <input type="search" placeholder="Search">
-    //             </li>
-    //             <li>
-    //                 <button type="button" class="button">Search</button>
-    //             </li>
-    //         </ul>
-    //     </div>
-    // </div>
     return result.children()
 }
 
-// let topbarleft = $("<div/>", { class: "top-bar-left" })
-// let dropdownmenu = $("<ul/>", { class: "dropdown menu", 'data-dropdown-menu': "" })
-// $("<li/>", { class: "menu-text" }).text("Cipher Tools").appendTo(dropdownmenu)
-// let filemenu = $("<li>")
-// filemenu.append($("<a>", { href: "#" }).text("File"))
-// let fileelems = $("<ul/>", { class: "menu vertical" })
-// $("<li/>").append($("<a/>", { href: "#" }).text("New")).appendTo(fileelems)
-// $("<li/>").append($("<a/>", { href: "#" }).text("Open...")).appendTo(fileelems)
-// $("<li/>").append($("<a/>", { href: "#" }).text("Save")).appendTo(fileelems)
-// $("<li/>").append($("<a/>", { href: "#" }).text("Save As...")).appendTo(fileelems)
-// $("<li/>").append($("<a/>", { href: "#" }).text("Submit")).appendTo(fileelems)
-// filemenu.append(fileelems)
-// dropdownmenu.append(filemenu)
-// topbarleft.append(dropdownmenu)
-// return topbarleft;
-
-// <div class="title-bar" data-responsive-toggle="example-menu" data-hide-for="medium">
-//   <button class="menu-icon" type="button" data-toggle="example-menu"></button>
-//   <div class="title-bar-title">Menu</div>
-// </div>
-
-// <div class="top-bar" id="example-menu">
-// <div class="top-bar-left">
-//     <ul class="dropdown menu" data-dropdown-menu>
-//         <li class="menu-text">Cipher Tools</li>
-//         <li><a href="#">File</a>
-//             <ul class="menu vertical">
-//                 <li><a href="#">New</a></li>
-//                 <li><a href="#">Open</a></li>
-//                 <li><a href="#">Save</a></li>
-//                 <li><a href="#">Save As...</a></li>
-//                 <li><a href="#">Submit</a></li>
-//             </ul>
-//         </li>
-//             <li>
-//                 <a href="#">Edit</a>
-//                 <ul class="menu vertical">
-//                     <li>
-//                         <a href="#">Undo</a>
-//                     </li>
-//                     <li>
-//                         <a href="#">Redo</a>
-//                     </li>
-//                     <li>
-//                         <a href="#">Copy</a>
-//                     </li>
-//                 </ul>
-//             </li>
-//             <li>
-//                 <a href="#">Other Assistants</a>
-//                 <ul class="menu vertical">
-//                     <li>
-//                         <a href="Solver.html">Aristocrat/Patristocrat Solving Assistant</a>
-//                     </li>
-//                     <!-- <li>
-//                         <a href="MorbitSolver.html">Morbit Solving Assistant</a>
-//                     </li>
-//                     <li>
-//                         <a href="FractionatedMorseSolver.html">Fractionated Morse Solving Assistant</a>
-//                     </li>
-//                     <li>
-//                         <a href="CheckerboardSolver.html">Checkerboard Solving Assistant</a>
-//                     </li> -->
-//                     <li>
-//                         <a href="XenocryptSolver.html">Xenocrypt Solving Assistant</a>
-//                     </li>
-//                     <!-- <li>
-//                         <a href="VigenereSolver.html">Vigen&egrave;re Solving Assistant</a>
-//                     </li>
-//                     <li>
-//                         <a href="GromarkSolver.html">Gromark Solving Assistant</a>
-//                     </li> -->
-//                     <li>
-//                         <a href="CryptarithmSolver.html">Cryptarithm Solving Assistant</a>
-//                     </li>
-//                 </ul>
-//             </li>
-//             <li>
-//                 <a href="#">Encryption Tools</a>
-//                 <ul class="menu vertical">
-//                     <li>
-//                         <a href="AffineEncrypt.html">Affine</a>
-//                     </li>
-//                     <li>
-//                         <a href="CipherCounter.html">Cipher Counter</a>
-//                     </li>
-//                     <li>
-//                         <a href="AristocratEncrypt.html">Aristocrat Encoder</a>
-//                     </li>
-//                     <li>
-//                         <a href="AristocratSpanishEncrypt.html">Spanish Aristocrat Encoder</a>
-//                     </li>
-//                     <li>
-//                         <a href="XenocryptEncrypt.html">Xenocrypt Encoder</a>
-//                     </li>
-//                     <li>
-//                         <a href="PatristocratEncrypt.html">Patristocrat Encoder</a>
-//                     </li>
-//                     <li>
-//                         <a href="DancingMenEncrypt.html">Dancing Men Encoder</a>
-//                     </li>
-//                     <li>
-//                         <a href="HillEncrypt.html">Hill Encoder (2x2 and 3x3)</a>
-//                     </li>
-//                     <li>
-//                         <a href="VigenereEncrypt.html">Vigen&egrave;re Encoder</a>
-//                     </li>
-//                     <li>
-//                         <a href="GenLanguage.html">Language Template Processor</a>
-//                     </li>
-//                 </ul>
-//             </li>
-//         </ul>
-//     </div>
-//     <div class="top-bar-right">
-//         <ul class="menu">
-//             <li>
-//                 <input type="search" placeholder="Search">
-//             </li>
-//             <li>
-//                 <button type="button" class="button">Search</button>
-//             </li>
-//         </ul>
-//     </div>
-// </div>
+export function JTGetURL(menu: menuItem[], ciphertype: ICipherType): string {
+    let url = ""
+    for (let item of menu) {
+        if (item.cipherType !== undefined && item.cipherType === ciphertype) {
+            url = item.href + "?cipherType=" + String(ciphertype)
+            return url
+        }
+        if (item.menu !== undefined) {
+            url = JTGetURL(item.menu, ciphertype)
+            if (url !== "") {
+                return url
+            }
+        }
+    }
+    return ""
+}

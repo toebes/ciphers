@@ -3,8 +3,8 @@
 const Aval = "A".charCodeAt(0)
 const zeroval = "0".charCodeAt(0)
 
-import Mapper from "./mapper"
-export default class mapGronsfeld extends Mapper {
+import { Mapper } from "./mapper"
+export class mapGronsfeld extends Mapper {
     /**
      * Map two unencoded characters using the Gronsfeld mapping table
      * @param cpt Plaintext unencoded character

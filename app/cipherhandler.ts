@@ -1,7 +1,8 @@
 /// <reference types="ciphertypes" />
+import { CipherMenu } from "./ciphermenu"
 import { ICipherType } from "./ciphertypes"
 import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
-import { JTCreateMenu, menuItem } from "./jtmenu"
+import { JTCreateMenu, JTGetURL } from "./jtmenu"
 import { parseQueryString } from "./parsequerystring"
 
 export interface IState {
@@ -380,7 +381,7 @@ export class CipherHandler {
      * Retrieves a test entry from local storage
      */
     getTestEntry(entry: number): ITest {
-        let result: ITest = {timed: -1, title: "Invalid Test", count: 0, questions: []}
+        let result: ITest = { timed: -1, title: "Invalid Test", count: 0, questions: [] }
         if (typeof (Storage) !== "undefined") {
             // Cipher-Count [number] holds the number of currently saved questions.
             // Cipher-Data.n [JSON] holds the data from question n. Note n is zero based.
@@ -561,7 +562,7 @@ export class CipherHandler {
      */
     saveCipher(): void {
         let state = this.save()
-        this.setFileEntry(this.savefileentry, state)
+        this.savefileentry = this.setFileEntry(this.savefileentry, state)
     }
     /**
      * Save the current cipher state to a new file
@@ -787,7 +788,10 @@ export class CipherHandler {
     }
     /**
      * Updates the initial user interface for the cipher handler.  This is a one
-     * time operation.
+     * time operation.  If the editEntry paramter is passed on the URL, then that
+     * entry is loaded and the cipher is initialized with it as if it were loaded
+     * from the menu.  Any additional URL parameters are parsed and passed in as
+     * the initial state values.
      */
     layout(): void {
         $(".langsel").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.getLangDropdown()) })
@@ -799,6 +803,13 @@ export class CipherHandler {
         this.updateOutput()
         let parms = parseQueryString(window.location.search.substring(1))
         let saveSet = this.save()
+        this.savefileentry = -1
+        if (parms.editEntry !== undefined) {
+            // They gave us an entry to load, so start out with it
+            this.savefileentry = Number(parms.editEntry)
+            saveSet = this.getFileEntry(this.savefileentry)
+        }
+        // Copy over any additional parameters they might have given
         for (let v in parms) {
             if (parms.hasOwnProperty(v)) {
                 saveSet[v] = parms[v]
@@ -1531,63 +1542,16 @@ export class CipherHandler {
         }
         return res
     }
+    getEditURL(state: IState): string {
+        if (state.cipherType === undefined) {
+            return ""
+        }
+        return JTGetURL(CipherMenu, state.cipherType)
+    }
+
     createMainMenu(): JQElement {
         let result = $("<div/>")
-        let menu: menuItem[] = [
-            {
-                title: "File",
-                menu: [
-                    { title: "New", action: "new" },
-                    { title: "Open", action: "open" },
-                    { title: "Save", action: "save", classname: "save" },
-                    { title: "Save As...", action: "saveas", classname: "saveas disabled_menu" },
-                    { title: "Submit", action: "submit", classname: "submit disabled_menu" },
-                ]
-            },
-            {
-                title: "Edit",
-                menu: [
-                    { title: "Undo", action: "undo", classname: "undo disabled_menu" },
-                    { title: "Redo", action: "redo", classname: "redo disabled_menu" },
-                    { title: "Copy", action: "copy disabled_menu" },
-                ]
-            },
-            {
-                title: "Other Assistants",
-                menu: [
-                    { title: "Aristocrat/Patristocrat Solving Assistant", href: "Solver.html" },
-                    { title: "Morbit Solving Assistant", href: "MorbitSolver.html", },
-                    { title: "Fractionated Morse Solving Assistant", href: "FractionatedMorseSolver.html", },
-                    { title: "Checkerboard Solving Assistant", href: "CheckerboardSolver.html", },
-                    { title: "Xenocrypt Solving Assistant", href: "XenocryptSolver.html", },
-                    { title: "Vigen&egrave;re Family Solving Assistant", href: "VigenereSolver.html", },
-                    { title: "Gromark Solving Assistant", href: "GromarkSolver.html", },
-                    { title: "Cryptarithm Solving Assistant", href: "CryptarithmSolver.html", },
-                    { title: "Checkerboard Solving Assistant", href: "CheckerboardSolver.html", },
-                    { title: "Ragbaby Solving Assistant", href: "RagbabySolver.html", },
-                    { title: "Railfence/Redefence Solving Assistant", href: "RailfenceSolver.html", },
-                ]
-            },
-            {
-                title: "Encryption Tools",
-                menu: [
-                    { title: "Affine", href: "AffineEncrypt.html", },
-                    { title: "Cipher Counter", href: "CipherCounter.html", },
-                    { title: "Caesar Encoder", href: "Caesar.html", },
-                    { title: "Atbash Encoder", href: "Atbash.html", },
-                    { title: "Aristocrat Encoder", href: "AristocratEncrypt.html", },
-                    { title: "Spanish Aristocrat Encoder", href: "AristocratSpanishEncrypt.html", },
-                    { title: "Xenocrypt Encoder", href: "XenocryptEncrypt.html", },
-                    { title: "Patristocrat Encoder", href: "PatristocratEncrypt.html", },
-                    { title: "Hill Encoder (2x2 and 3x3)", href: "HillEncrypt.html", },
-                    { title: "Vigen&egrave;re Encoder", href: "VigenereEncrypt.html", },
-                    { title: "Test Manager", href: "TestManage.html", },
-                    { title: "Question Manager", href: "TestQuestions.html", },
-                    // { title: "Language Template Processor", href: "GenLanguage.html", },
-                ]
-            },
-        ]
-        result.append(JTCreateMenu(menu, "example-menu", "Cipher Tools"))
+        result.append(JTCreateMenu(CipherMenu, "example-menu", "Cipher Tools"))
         let modaldiv = $("<div/>", { class: "reveal", id: "OpenFile", 'data-reveal': '' })
         modaldiv.append($("<div/>", { class: "top-bar Primary" })
             .append($("<div/>", { class: "top-bar-left" })

@@ -123,7 +123,7 @@ export class CipherTestGenerator extends CipherTest {
             .add("Cipher Text")
 
         let buttons: buttonInfo[] = [
-            { title: "Edit", btnClass: "quesedit", },
+            { title: "Edit", btnClass: "entryedit", },
             { title: "Add", btnClass: "quesadd", },
             { title: "Set Timed", btnClass: "questime", },
         ]
@@ -160,6 +160,21 @@ export class CipherTestGenerator extends CipherTest {
         this.setTestEntry(this.state.test, test)
         this.reloadPage()
     }
+    gotoEditTestCipher(entry: number): void {
+        let test = this.getTestEntry(this.state.test)
+        let editEntry = -1
+        if (entry === -1) {
+            editEntry = test.timed
+        } else {
+            entry--
+            if (entry < test.count) {
+                editEntry = test.questions[entry]
+            }
+        }
+        if (editEntry !== -1) {
+            this.gotoEditCipher(editEntry)
+        }
+    }
     gotoRemoveCipher(entry: number): void {
         let test = this.getTestEntry(this.state.test)
         if (entry === -1) {
@@ -179,18 +194,18 @@ export class CipherTestGenerator extends CipherTest {
         // While there remain elements to shuffle...
         while (currentIndex !== 0) {
 
-          // Pick a remaining element...
-          let randomIndex = Math.floor(Math.random() * currentIndex);
-          currentIndex -= 1;
+            // Pick a remaining element...
+            let randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex -= 1;
 
-          // And swap it with the current element.
-          let temporaryValue = array[currentIndex];
-          array[currentIndex] = array[randomIndex];
-          array[randomIndex] = temporaryValue;
+            // And swap it with the current element.
+            let temporaryValue = array[currentIndex];
+            array[currentIndex] = array[randomIndex];
+            array[randomIndex] = temporaryValue;
         }
 
         return array;
-      }
+    }
     gotoRandomizeTest(): void {
         let test = this.getTestEntry(this.state.test)
         test.questions = this.shuffle(test.questions)
@@ -206,7 +221,7 @@ export class CipherTestGenerator extends CipherTest {
             this.gotoRandomizeTest()
         })
         $(".quesedit").off("click").on("click", (e) => {
-            this.gotoEditCipher(Number($(e.target).attr('data-entry')))
+            this.gotoEditTestCipher(Number($(e.target).attr('data-entry')))
         })
         $(".quesadd").off("click").on("click", (e) => {
             this.gotoAddCipher(Number($(e.target).attr('data-entry')))

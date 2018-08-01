@@ -2,8 +2,8 @@
 
 const Aval = "A".charCodeAt(0)
 
-import Mapper from "./mapper"
-export default class mapVariant extends Mapper {
+import { Mapper } from "./mapper"
+export class mapVariant extends Mapper {
     /**
      * Map two unencoded characters using the Variant mapping table
      * @param cpt Plaintext unencoded character

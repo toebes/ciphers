@@ -1,6 +1,6 @@
 const Aval = "A".charCodeAt(0)
 
-export default class Mapper {
+export class Mapper {
     /**
      * Converts a character (mod 26) to the correct character in the alphabet
      * @param val Code to be mapped to a character

@@ -2,8 +2,8 @@
 
 const Aval = "A".charCodeAt(0)
 
-import Mapper from "./mapper"
-export default class mapBeaufort extends Mapper {
+import { Mapper } from "./mapper"
+export class mapBeaufort extends Mapper {
     /**
      * Map two unencoded characters using the Beaufort mapping table
      *  Formula CT = KEY - pt
@@ -66,5 +66,4 @@ export default class mapBeaufort extends Mapper {
     //     'decKeyBeaufort-Zz=Y': this.decKeyBeaufort("Z","z"), // OK
     //     'decKeyBeaufort-Yb=Z': this.decKeyBeaufort("Y","b"), // OK
     // }
-
 }

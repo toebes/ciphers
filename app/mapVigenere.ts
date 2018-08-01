@@ -2,8 +2,8 @@
 
 const Aval = "A".charCodeAt(0)
 
-import Mapper from "./mapper"
-export default class mapVigenere extends Mapper {
+import {Mapper} from "./mapper"
+export class mapVigenere extends Mapper {
     /**
      * Map two unencoded characters using the Vigenere mapping table
      * @param cpt Plaintext unencoded character
@@ -57,5 +57,4 @@ export default class mapVigenere extends Mapper {
     //     'decVigenere-lo=X': this.decVigenere("l","o"), // OK
     //     'decVigenere-Zz=A': this.decVigenere("Z","z"), // OK
     //     'decVigenere-Yb=X': this.decVigenere("Y","b"), // OK
-
 }

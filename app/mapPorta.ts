@@ -2,8 +2,8 @@
 
 const Aval = "A".charCodeAt(0)
 
-import Mapper from "./mapper"
-export default class mapPorta extends Mapper {
+import { Mapper } from "./mapper"
+export class mapPorta extends Mapper {
     /**
      * Map two unencoded characters using the Porta mapping table
      * @param cpt Plaintext unencoded character
@@ -21,7 +21,7 @@ export default class mapPorta extends Mapper {
         let ptval = cpt.charCodeAt(0) - Aval
         let ctval = 0
         if (ptval < 13) {
-            ctval = 13 + (Math.floor(keyval / 2) + ptval) % 13
+            ctval = ((Math.floor(keyval / 2) + ptval) % 13) + 13
         } else {
             ctval = ((13 - Math.floor(keyval / 2)) + ptval) % 13
         }
@@ -57,7 +57,7 @@ export default class mapPorta extends Mapper {
         if ((ctval < 13 && ptval < 13) || (ctval >= 13 && ptval >= 13)) {
             return '?'
         }
-        let keyval = 2 * (Math.abs((ct.charCodeAt(0) - Aval) - (cpt.charCodeAt(0) - Aval)) % 13)
+        let keyval = (Math.abs((ct.charCodeAt(0) - Aval) - (cpt.charCodeAt(0) - Aval)) % 13) * 2
         return this.getCharCode(keyval)
     }
 }

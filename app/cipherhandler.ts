@@ -897,7 +897,7 @@ export class CipherHandler {
                 rowanswer.add({settings: { class: aclass }, content: a })
             } else {
                 if (answerline === undefined) {
-                    c = a
+                    a = c
                 }
                 rowcipher.add(c)
                 rowanswer.add(a)

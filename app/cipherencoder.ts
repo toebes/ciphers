@@ -488,71 +488,13 @@ export class CipherEncoder extends CipherHandler {
      * as the HTML to be displayed
      */
     build(str: string): JQuery<HTMLElement> {
-        let res = $('<div>')
-        let charset = this.getCharset()
-        let sourcecharset = this.getSourceCharset()
-        let revRepl = []
-        let encodeline = ""
-        let decodeline = ""
-        let lastsplit = -1
-        let langreplace = this.langreplace[this.state.curlang]
-        // Build a reverse replacement map so that we can encode the string
-        for (let repc in this.replacement) {
-            if (this.replacement.hasOwnProperty(repc)) {
-                revRepl[this.replacement[repc]] = repc
-            }
+        let result = $('<div>')
+        let strings = this.makeReplacement(str, this.maxEncodeWidth)
+        for (let strset of strings) {
+            result.append($('<div>', { class: "TOSOLVE" }).text(strset[0]))
+            result.append($('<div>', { class: "TOANSWER" }).text(strset[1]))
         }
-        // Zero out the frequency table
-        this.freq = {}
-        for (let i = 0, len = sourcecharset.length; i < len; i++) {
-            this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0
-        }
-        // Now go through the string to encode and compute the character
-        // to map to as well as update the frequency of the match
-        for (let i = 0, len = str.length; i < len; i++) {
-            let t = str.substr(i, 1).toUpperCase()
-            // See if the character needs to be mapped.
-            if (typeof langreplace[t] !== 'undefined') {
-                t = langreplace[t]
-            }
-            decodeline += t
-            // Make sure that this is a valid character to map from
-            let pos = charset.indexOf(t)
-            if (pos >= 0) {
-                t = revRepl[t]
-                if (isNaN(this.freq[t])) {
-                    this.freq[t] = 0
-                }
-                this.freq[t]++
-            } else {
-                // This is a potential split position, so remember it
-                lastsplit = decodeline.length
-            }
-            encodeline += t
-            // See if we have to split the line now
-            if (encodeline.length >= this.maxEncodeWidth) {
-                if (lastsplit === -1) {
-                    res.append($('<div>', { class: "TOSOLVE" }).text(encodeline))
-                    res.append($('<div>', { class: "TOANSWER" }).text(decodeline))
-                    encodeline = ""
-                    decodeline = ""
-                    lastsplit = -1
-                } else {
-                    let encodepart = encodeline.substr(0, lastsplit)
-                    let decodepart = decodeline.substr(0, lastsplit)
-                    encodeline = encodeline.substr(lastsplit)
-                    decodeline = decodeline.substr(lastsplit)
-                    res.append($('<div>', { class: "TOSOLVE" }).text(encodepart))
-                    res.append($('<div>', { class: "TOANSWER" }).text(decodepart))
-                }
-            }
-        }
-        // And put together any residual parts
-        if (encodeline.length > 0) {
-            res.append($('<div>', { class: "TOSOLVE" }).text(encodeline))
-            res.append($('<div>', { class: "TOANSWER" }).text(decodeline))
-        }
-        return res
+        return result
     }
     /**
      * Generates the HTML code for allowing an encoder to select the alphabet type

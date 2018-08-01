@@ -180,6 +180,7 @@ export class CipherTestGenerator extends CipherTest {
         if (entry === -1) {
             test.timed = -1
         } else {
+            entry--
             if (entry < test.count) {
                 test.questions.splice(entry, 1)
                 test.count--

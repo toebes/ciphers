@@ -6,6 +6,7 @@ import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
+import { JTTable } from "./jttable";
 
 /**
  * CipherTableEncoder - This class handles all of the actions associated with encoding
@@ -100,6 +101,34 @@ export class CipherTableEncoder extends CipherEncoder {
         result.append(this.genQuestionFields())
         result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
         result.append(JTFIncButton("Offset", "offset", this.state.offset, "offset small-12 medium-6 large-6"))
+        return result
+    }
+    /**
+     * Generate the HTML to display the answer for a cipher
+     */
+    genAnswer(): JQuery<HTMLElement> {
+        let result = $("<div>", {class: "grid-x"})
+        this.genMap()
+        let strings = this.makeReplacement(this.state.cipherString, 40)
+        let table = new JTTable({class: "ansblock shrink cell unstriped"})
+        for (let strset of strings) {
+            this.addCipherTableRows(table, undefined, strset[0], strset[1], true)
+        }
+        result.append(table.generate())
+        return result
+    }
+    /**
+     * Generate the HTML to display the question for a cipher
+     */
+    genQuestion(): JQuery<HTMLElement> {
+        let result = $("<div>", {class: "grid-x"})
+        this.genMap()
+        let strings = this.makeReplacement(this.state.cipherString, 40)
+        let table = new JTTable({class: "ansblock shrink cell unstriped"})
+        for (let strset of strings) {
+            this.addCipherTableRows(table, undefined, strset[0], undefined, true)
+        }
+        result.append(table.generate())
         return result
     }
 }

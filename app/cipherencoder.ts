@@ -408,13 +408,84 @@ export class CipherEncoder extends CipherHandler {
         }
         this.setReplacement(this.getSourceCharset(), replacement)
     }
-
     /**
      * Using the currently selected replacement set, encodes a string
      * This breaks it up into lines of maxEncodeWidth characters or less so that
-     * it can be easily pasted into the text.
-     * @param {string} str String to be encoded
-     * @returns {string} HTML of encoded string to display
+     * it can be output properly.
+     * This returns the strings as an array of pairs of strings with
+     * the encode and decode parts delivered together.  As a side effect
+     * it also updates the frequency table
+     */
+
+    makeReplacement(str: string, maxEncodeWidth: number): string[][] {
+        let charset = this.getCharset()
+        let sourcecharset = this.getSourceCharset()
+        let revRepl = []
+        let langreplace = this.langreplace[this.state.curlang]
+        let encodeline = ""
+        let decodeline = ""
+        let lastsplit = -1
+        let result: string[][] = []
+
+        // Build a reverse replacement map so that we can encode the string
+        for (let repc in this.replacement) {
+            if (this.replacement.hasOwnProperty(repc)) {
+                revRepl[this.replacement[repc]] = repc
+            }
+        }
+        // Zero out the frequency table
+        this.freq = {}
+        for (let i = 0, len = sourcecharset.length; i < len; i++) {
+            this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0
+        }
+        // Now go through the string to encode and compute the character
+        // to map to as well as update the frequency of the match
+        for (let t of str.toUpperCase()) {
+            // See if the character needs to be mapped.
+            if (typeof langreplace[t] !== 'undefined') {
+                t = langreplace[t]
+            }
+            decodeline += t
+            // Make sure that this is a valid character to map from
+            let pos = charset.indexOf(t)
+            if (pos >= 0) {
+                t = revRepl[t]
+                if (isNaN(this.freq[t])) {
+                    this.freq[t] = 0
+                }
+                this.freq[t]++
+            } else {
+                // This is a potential split position, so remember it
+                lastsplit = decodeline.length
+            }
+            encodeline += t
+            // See if we have to split the line now
+            if (encodeline.length >= maxEncodeWidth) {
+                if (lastsplit === -1) {
+                    result.push([encodeline, decodeline])
+                    encodeline = ""
+                    decodeline = ""
+                    lastsplit = -1
+                } else {
+                    let encodepart = encodeline.substr(0, lastsplit)
+                    let decodepart = decodeline.substr(0, lastsplit)
+                    encodeline = encodeline.substr(lastsplit)
+                    decodeline = decodeline.substr(lastsplit)
+                    result.push([encodepart, decodepart])
+                }
+            }
+        }
+        // And put together any residual parts
+        if (encodeline.length > 0) {
+            result.push([encodeline, decodeline])
+        }
+        return result
+    }
+    /**
+     * Using the currently selected replacement set, encodes a string
+     * This breaks it up into lines of maxEncodeWidth characters or less so that
+     * it can be easily pasted into the text.  This returns the result
+     * as the HTML to be displayed
      */
     build(str: string): JQuery<HTMLElement> {
         let res = $('<div>')

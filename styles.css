@@ -664,6 +664,33 @@ table.found tr th:nth-child(odd) {
       padding-right: 200px;
   }
 
-  .points {
-      font-weight: bold;
+
+  .qtext {
+      border-top: 1px solid grey;
+      margin-bottom: 20px;
+  }
+  .qtext .points {
+    font-weight: bold;
+}
+.qtext .qnum {
+    padding-left: 10px;
+}
+.qtext .qbody p {
+      display:inline;
+  }
+
+.ansblock {
+      border-collapse: collapse;
+      font-family: 'Courier New', Courier, monospace;
+  }
+
+  .ansblock td.v {
+      border: 1px solid black;
+  }
+  .ansblock td.a {
+      background: yellow;
+      height: 3rem;
+  }
+  .ansblock td.e {
+      height: 3rem;
   }

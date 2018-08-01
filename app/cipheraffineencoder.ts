@@ -177,6 +177,18 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         return table
     }
+    /**
+     * Generate the HTML to display the answer for a cipher
+     */
+    genAnswer(): JQuery<HTMLElement> {
+        return $("<h3>").text("This affine cipher does not support printing the Answer yet")
+    }
+    /**
+     * Generate the HTML to display the question for a cipher
+     */
+    genQuestion(): JQuery<HTMLElement> {
+        return $("<h3>").text("This affine cipher does not support printing the Question yet")
+    }
 
     solveIt(m1: number, c1: number, m2: number, c2: number): string {
         let answer = 'Can\'t solve.'

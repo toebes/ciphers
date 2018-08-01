@@ -33,7 +33,7 @@ export class CipherTestPrint extends CipherTest {
         }
         let test = this.getTestEntry(this.state.test)
         let result = $("<div>")
-        result.append($("<h1>").text("Test Answer key for goes here"))
+        result.append($("<h1>").text("Test Aids go here"))
         result.append($("<h2>").text(test.title))
         result.append($("<h3>").text("Test #" + Number(this.state.test)))
         if (test.timed === -1) {

@@ -3,6 +3,7 @@ import { CipherMenu } from "./ciphermenu"
 import { ICipherType } from "./ciphertypes"
 import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
 import { JTCreateMenu, JTGetURL } from "./jtmenu"
+import { JTTable } from "./jttable";
 import { parseQueryString } from "./parsequerystring"
 
 export interface IState {
@@ -862,6 +863,60 @@ export class CipherHandler {
      */
     getMorseMap(): any {
         return null
+    }
+    /**
+     * Adds a set of answer rows to a table.
+     *   overline specifies answer characters (typically from a vigenere or running key)
+     *    that someone would use to compute the answer.  undefined indicates not to use it
+     *   cipher line is the line that they are being asked to encode/decode
+     *   answerline is the answer (if any).  undefined to leave it blank
+     *   blankline chooses to add an extra line to the table or not.
+     */
+    addCipherTableRows(table: JTTable, overline: string, cipherline: string, answerline: string, blankline: boolean): void {
+        let rowover
+        if (overline !== undefined) {
+            rowover = table.addBodyRow()
+        }
+        let rowcipher = table.addBodyRow()
+        let rowanswer = table.addBodyRow()
+        let rowblank = table.addBodyRow()
+
+        for (let i = 0; i < cipherline.length; i++) {
+            let c = cipherline.substr(i, 1)
+            let aclass = "e v"
+            let a = " "
+            if (answerline !== undefined) {
+                a = answerline.substr(i, 1)
+                aclass = "a v"
+            }
+            if (overline !== undefined) {
+                rowover.add({settings: { class: "o v" }, content: overline.substr(i, 1) })
+            }
+            if (this.isValidChar(c)) {
+                rowcipher.add({settings: { class: "q v" }, content: c })
+                rowanswer.add({settings: { class: aclass }, content: a })
+            } else {
+                if (answerline === undefined) {
+                    c = a
+                }
+                rowcipher.add(c)
+                rowanswer.add(a)
+            }
+            rowblank.add("")
+        }
+        return
+    }
+    /**
+     * Generate the HTML to display the answer for a cipher
+     */
+    genAnswer(): JQElement {
+        return $("<h3>").text("This cipher does not support printing the Answer yet")
+    }
+    /**
+     * Generate the HTML to display the question for a cipher
+     */
+    genQuestion(): JQElement {
+        return $("<h3>").text("This cipher does not support printing the Question yet")
     }
     /**
      * Assign a new value for an entry

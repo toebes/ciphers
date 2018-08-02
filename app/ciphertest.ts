@@ -100,16 +100,18 @@ export class CipherTest extends CipherHandler {
         }
         //        location.assign("TestGenerator.html?test=" + String(test))
     }
-    printTestAnswer(qnum: number, question: number): JQuery<HTMLElement> {
+    printTestAnswer(qnum: number, question: number, extraclass: string): JQuery<HTMLElement> {
         let state = this.getFileEntry(question)
-        let result = $("<div>", { class: "question" });
+        let result = $("<div>", { class: "question " + extraclass });
+        let qtext = $("<div>", { class: "qtext" })
         if (qnum === -1) {
-            result.append($("<span/>", { class: "timed" }).text("Timed Question"))
+            qtext.append($("<span/>", { class: "timed" }).text("Timed Question"))
         } else {
-            result.append($("<span>", { class: "qnum" }).text(String(qnum) + ")"))
+            qtext.append($("<span>", { class: "qnum" }).text(String(qnum) + ")"))
         }
-        result.append($("<span>", { class: "points" }).text(" [" + String(state.points) + " points] "))
-        result.append($("<span/>", { class: "qbody" }).html(state.question))
+        qtext.append($("<span>", { class: "points" }).text(" [" + String(state.points) + " points] "))
+        qtext.append($("<span/>", { class: "qbody" }).html(state.question))
+        result.append(qtext)
         let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang)
         cipherhandler.restore(state)
         let cipherans = cipherhandler.genAnswer()
@@ -120,9 +122,9 @@ export class CipherTest extends CipherHandler {
         result.append(cipherans)
         return (result)
     }
-    printTestQuestion(qnum: number, question: number): JQuery<HTMLElement> {
+    printTestQuestion(qnum: number, question: number, extraclass: string): JQuery<HTMLElement> {
         let state = this.getFileEntry(question)
-        let result = $("<div>", { class: "question" });
+        let result = $("<div>", { class: "question " + extraclass });
         let qtext = $("<div>", { class: "qtext" })
         if (qnum === -1) {
             qtext.append($("<span/>", { class: "timed" }).text("Timed Question"))

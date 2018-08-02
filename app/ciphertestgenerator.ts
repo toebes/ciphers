@@ -33,7 +33,7 @@ export class CipherTestGenerator extends CipherTest {
         { title: "Randomize Order", color: "primary", id: "randomize", },
         { title: "Print Test", color: "primary", id: "printtest", },
         { title: "Print Answers", color: "primary", id: "printans", },
-        { title: "Export Test", color: "primary", id: "export", disabled: true, },
+        { title: "Export Test", color: "primary", id: "export", download: true, },
         { title: "Import Test", color: "primary", id: "import", disabled: true, },
     ]
     restore(data: ITestState): void {
@@ -136,7 +136,22 @@ export class CipherTestGenerator extends CipherTest {
         result.append(table.generate())
         return result
     }
-    exportTest(): void {
+    exportTest(link: JQuery<HTMLElement>): void {
+        let result = {}
+        let test = this.getTestEntry(this.state.test)
+        result['TEST.0'] = test
+
+        if (test.timed !== -1) {
+            result['CIPHER.' + String(test.timed)] = this.getFileEntry(test.timed)
+        }
+        for (let entry of test.questions) {
+            result['CIPHER.' + String(entry)] = this.getFileEntry(entry)
+        }
+        let blob = new Blob([JSON.stringify(result)], { type: "text/json" });
+        let url = URL.createObjectURL(blob);
+
+        link.attr('download', "cipher_test.json")
+        link.attr('href', url)
     }
     reloadPage(): void {
         $('.precmds').each((i, elem) => {
@@ -216,7 +231,7 @@ export class CipherTestGenerator extends CipherTest {
     attachHandlers(): void {
         super.attachHandlers()
         $("#export").off("click").on("click", (e) => {
-            this.exportTest()
+            this.exportTest($(e.target))
         })
         $("#randomize").off("click").on("click", (e) => {
             this.gotoRandomizeTest()

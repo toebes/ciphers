@@ -39,10 +39,14 @@ export class CipherTestPrint extends CipherTest {
         if (test.timed === -1) {
             result.append($("<p>").text("No timed question"))
         } else {
-            result.append(this.printTestQuestion(-1, test.timed))
+            result.append(this.printTestQuestion(-1, test.timed, "pagebreak"))
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
-            result.append(this.printTestQuestion(qnum + 1, test.questions[qnum]))
+            let breakclass = ""
+            if (qnum % 2 === 0) {
+                breakclass = "pagebreak"
+            }
+            result.append(this.printTestQuestion(qnum + 1, test.questions[qnum], breakclass))
         }
         return result
     }

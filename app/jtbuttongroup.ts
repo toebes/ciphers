@@ -9,6 +9,7 @@ export interface JTButtonItem {
     disabled?: boolean
     /** Optional additional class to add to the item */
     class?: string
+    download?: boolean
 }
 
 /** Options passed when creating the button with JQuery */
@@ -18,6 +19,7 @@ interface JQbtnOptions {
     value: string
     id?: string
     disabled?: boolean
+    download?: string
 
 }
 /**
@@ -42,7 +44,10 @@ export function JTButtonGroup(submenu: JTButtonItem[]): JQuery<HTMLElement> {
         if (item.disabled !== undefined) {
             options.disabled = item.disabled
         }
-        buttons.append($("<input/>", options))
+        if (item.download) {
+            options.download = ""
+        }
+        buttons.append($("<a/>", options).text(item.title))
     }
     return buttons
 }

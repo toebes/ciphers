@@ -21,7 +21,7 @@ export class CipherTestManage extends CipherTest {
     state: ITestState = { ...this.defaultstate }
     cmdButtons: JTButtonItem[] = [
         { title: "New Test", color: "primary", id: "newtest", },
-        { title: "Export Tests", color: "primary", id: "export", disabled: true, },
+        { title: "Export Tests", color: "primary", id: "export", download: true, },
         { title: "Import Tests", color: "primary", id: "import", disabled: true, },
     ]
     restore(data: ITestState): void {
@@ -51,10 +51,10 @@ export class CipherTestManage extends CipherTest {
                 questioncount++
             }
             let buttons = $("<div/>")
-            buttons.append($("<button/>", { 'data-entry': entry, type: "button", class: "testedit button" }).text("Edit"))
-            buttons.append($("<button/>", { 'data-entry': entry, type: "button", class: "testdel alert button" }).text("Delete"))
-            buttons.append($("<button/>", { 'data-entry': entry, type: "button", class: "testprt button" }).text("Print Test"))
-            buttons.append($("<button/>", { 'data-entry': entry, type: "button", class: "testans button" }).text("Print Answers"))
+            buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testedit button" }).text("Edit"))
+            buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testdel alert button" }).text("Delete"))
+            buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testprt button" }).text("Print Test"))
+            buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testans button" }).text("Print Answers"))
             row.add(buttons)
                 .add(test.title)
                 .add(String(questioncount))
@@ -65,7 +65,23 @@ export class CipherTestManage extends CipherTest {
         this.setTestEntry(-1, { timed: -1, count: 0, questions: [], title: "New Test" })
         location.reload()
     }
-    exportTests(): void {
+    exportAllTests(link: JQuery<HTMLElement>): void {
+        let result = {}
+        // Go through all of the questions and build a structure holding them
+        let ciphercount = this.getCipherCount()
+        for (let entry = 0; entry < ciphercount; entry++) {
+            result['CIPHER.' + String(entry)] = this.getFileEntry(entry)
+        }
+        // Go through all the tests and build a structure holding them that we will convert to JSON
+        let testcount = this.getTestCount()
+        for (let testnum = 0; testnum < testcount; testnum++) {
+            result['TEST.' + String(testnum)] = this.getTestEntry(testnum)
+        }
+        let blob = new Blob([JSON.stringify(result)], { type: "text/json" });
+        let url = URL.createObjectURL(blob);
+
+        link.attr('download', "cipher_tests.json")
+        link.attr('href', url)
     }
     importTests(): void {
     }
@@ -79,7 +95,7 @@ export class CipherTestManage extends CipherTest {
             this.newTest()
         })
         $("#export").off("click").on("click", (e) => {
-            this.exportTests()
+            this.exportAllTests($(e.target))
         })
         $("#import").off("click").on("click", (e) => {
             this.importTests()

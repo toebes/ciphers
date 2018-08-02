@@ -709,3 +709,44 @@ table.found tr th:nth-child(odd) {
       height: 3rem;
   }
 
+  table.times {
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table.times td {
+    padding: 0rem 1rem;
+}
+table.times td.t {
+    border-left: 1px solid black;
+    border-bottom: 1px solid black;
+    border-top: 1px solid black;
+    border-right: 1px dashed black;
+}
+
+table.times td.a {
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    border-top: 1px solid black;
+    border-left: 1px dashed black;
+    text-align: right;
+}
+
+div.instructions {
+    display: none;
+}
+@media print
+{    
+    .title-bar, .top-bar, .noprint
+    {
+        display: none !important;
+    }
+    div.instructions
+    {
+        display:block;
+    }
+    .pagebreak {
+        page-break-before: always;
+    }
+}

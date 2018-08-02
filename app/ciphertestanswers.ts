@@ -29,16 +29,18 @@ export class CipherTestAnswers extends CipherTest {
         }
         let test = this.getTestEntry(this.state.test)
         let result = $("<div>")
-        result.append($("<h1>").text("Test Answer key for goes here"))
-        result.append($("<h2>").text(test.title))
-        result.append($("<h3>").text("Test #" + Number(this.state.test)))
+        $("#testname").text(test.title)
         if (test.timed === -1) {
-            result.append($("<p>").text("No timed question"))
+            result.append($("<p>", {class: "noprint"}).text("No timed question"))
         } else {
-            result.append(this.printTestAnswer(-1, test.timed))
+            result.append(this.printTestAnswer(-1, test.timed, "pagebreak"))
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
-            result.append(this.printTestAnswer(qnum + 1, test.questions[qnum]))
+            let breakclass = ""
+            if (qnum % 2 === 0) {
+                breakclass = "pagebreak"
+            }
+            result.append(this.printTestAnswer(qnum + 1, test.questions[qnum], breakclass))
         }
         return result
     }

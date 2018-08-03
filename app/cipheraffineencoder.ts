@@ -190,8 +190,8 @@ export class CipherAffineEncoder extends CipherEncoder {
             let toprow = table.addBodyRow()
             let bottomrow = table.addBodyRow()
             for (let i = 0; i < strset[0].length; i++) {
-                let plainchar = strset[0].substr(i, 1)
-                let cipherchar = strset[1].substr(i, 1)
+                let plainchar = strset[1].substr(i, 1)
+                let cipherchar = strset[0].substr(i, 1)
 
                 if (this.isValidChar(plainchar)) {
                     if (this.state.operation === "encode") {
@@ -199,7 +199,7 @@ export class CipherAffineEncoder extends CipherEncoder {
                         bottomrow.add({ settings: { class: "TOANSWER" }, content: cipherchar })
                     } else {
                         toprow.add({ settings: { class: "TOSOLVE", id: "m" + i }, content: cipherchar })
-                        bottomrow.add({ settings: { class: "TOANSWER" }, content: plainchar })
+                        bottomrow.add({ settings: { class: "TOANSWER", id: "p" + i }, content: plainchar })
                     }
                 }
             }
@@ -211,7 +211,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     genAnswer(): JQuery<HTMLElement> {
-        let result = $("<div>", {class: "grid-x"})
+        let result = $("<div>", { class: "grid-x" })
         let plainindex = 0
         let cipherindex = 1
         if (this.state.operation === 'encode') {
@@ -220,7 +220,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         }
         this.genMap()
         let strings = this.buildReplacement(this.state.cipherString, 40)
-        let table = new JTTable({class: "ansblock shrink cell unstriped"})
+        let table = new JTTable({ class: "ansblock shrink cell unstriped" })
         for (let strset of strings) {
             this.addCipherTableRows(table, undefined, strset[plainindex], strset[cipherindex], true)
         }
@@ -231,7 +231,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      * Generate the HTML to display the question for a cipher
      */
     genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div>", {class: "grid-x"})
+        let result = $("<div>", { class: "grid-x" })
         let plainindex = 0
         if (this.state.operation === 'encode') {
             plainindex = 1
@@ -239,7 +239,7 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         this.genMap()
         let strings = this.buildReplacement(this.state.cipherString, 40)
-        let table = new JTTable({class: "ansblock shrink cell unstriped"})
+        let table = new JTTable({ class: "ansblock shrink cell unstriped" })
         for (let strset of strings) {
             this.addCipherTableRows(table, undefined, strset[plainindex], undefined, true)
         }
@@ -481,64 +481,53 @@ export class CipherAffineEncoder extends CipherEncoder {
         let outdiv = $("#sol")
         outdiv.empty().append($("<p>", { id: "solution" }).html(solution))
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'solution'])
-
         let l = m1 + m2
         outdiv.append(this.showOutput(theMessage, l))
-        if (!this.completeSolution) {
-            // encode ETAOIN
-            let found = this.encodeString('ETAOIN')
-            solution = '<p>The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.</p>  ' +
-                this.encodeLetters(a, b, 'ETAOIN') +
-                '<p>Filling in the letter we found ($' + found + '$) we get a bit more of the answer.</p>'
-            outdiv.append($("<div>", { id: "ETAOIN" }).html(solution))
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'ETAOIN'])
-            l += 'ETAOIN'
-            outdiv.append(this.showOutput(theMessage, l))
-        }
 
-        if (!this.completeSolution) {
-            // encode SRHLD
-            let found = this.encodeString('SRHLD')
-            solution = '<p>Next, encode the next 5 common letters <b>SRHLD</b>.' +
-                this.encodeLetters(a, b, 'SRHLD') +
-                '<p>We know the reverse mapping of 5 more letters ($' + found + '$) which we can fill in.</p>'
-            outdiv.append($("<div>", { id: "SRHLD" }).html(solution))
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'SRHLD'])
-            l += 'SRHLD'
-            outdiv.append(this.showOutput(theMessage, l))
-        }
+        let outData = [
+            {
+                letters: 'ETAOIN',
+                prefix: 'The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.',
+                suffix1: 'Filling in the letter we found',
+                suffix2: ', we get a bit more of the answer.',
+            },
+            {
+                letters: 'SRHLD',
+                prefix: 'Next, encode the next 5 common letters <b>SRHLD</b>.',
+                suffix1: 'We know the reverse mapping of 5 more letters',
+                suffix2: ', which we can fill in.'
+            },
+            {
+                letters: 'CUMFP',
+                prefix: 'We will convert the next 5 most frequent letters <b>CUMFP</b>.',
+                suffix1: 'The next 5 letters we know are',
+                suffix2: ', so we will fill those in.',
+            },
+            {
+                letters: 'GWYBV',
+                prefix: 'Next, encode the next 5 common letters <b>GWYBV</b>.',
+                suffix1: 'We know the reverse mapping of 5 more letters',
+                suffix2: ', which we can fill in.',
+            },
+            {
+                letters: 'KXJQZ',
+                prefix: 'We will convert the remaining 5 letters <b>KXJQZ</b>.',
+                suffix1: 'The remaining 5 letters we know are',
+                suffix2: ', so we will fill those in.',
+            },
+        ]
 
-        if (!this.completeSolution) {
-            // encode CUMFP
-            let found = this.encodeString('CUMFP')
-            solution = '<p>We will convert the next 5 most frequent letters <b>CUMFP</b>.' +
-                this.encodeLetters(a, b, 'CUMFP') + '<p>The next 5 letters we know are ($' + found + '$), so we will fill those in.</p>'
-            outdiv.append($("<div>", { id: "CUMFP" }).html(solution))
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'CUMFP'])
-            l += 'CUMFP'
-            outdiv.append(this.showOutput(theMessage, l))
-        }
-
-        if (!this.completeSolution) {
-            // encode GWYBV
-            let found = this.encodeString('GWYBV')
-            solution = '<p>Next, encode the next 5 common letters <b>GWYBV</b>.' +
-                this.encodeLetters(a, b, 'GWYBV') +
-                '<p>We know the reverse mapping of 5 more letters ($' + found + '$) which we can fill in.</p>'
-            outdiv.append($("<div>", { id: "GWYBV" }).html(solution))
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'GWYBV'])
-            l += 'GWYBV'
-            outdiv.append(this.showOutput(theMessage, l))
-        }
-
-        if (!this.completeSolution) {
-            // encode KXJQZ
-            let found = this.encodeString('KXJQZ')
-            solution = '<p>We will convert the remaining 5 letters <b>KXJQZ</b>.' +
-                this.encodeLetters(a, b, 'KXJQZ') + '<p>The next 5 letters we know are ($' + found + '$), so we will fill those in.</p>'
-            outdiv.append($("<div>", { id: "KXJQZ" }).html(solution))
-            l += 'KXJQZ'
-            outdiv.append(this.showOutput(theMessage, l))
+        for (let entry of outData) {
+            if (!this.completeSolution) {
+                let found = this.encodeString(entry.letters)
+                solution = '<p>' + entry.prefix + '</p> ' +
+                    this.encodeLetters(a, b, entry.letters) +
+                    '<p>' + entry.suffix1 + ' ($' + found + '$)' + entry.suffix2 + '</p>'
+                outdiv.append($("<div>", { id: entry.letters }).html(solution))
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub, entry.letters])
+                l += entry.letters
+                outdiv.append(this.showOutput(theMessage, l))
+            }
         }
 
         outdiv.append($("<p>").text("The solution is now complete!"))
@@ -582,23 +571,26 @@ export class CipherAffineEncoder extends CipherEncoder {
         $("#solve").off('click').on('click', () => {
             let msg = this.state.cipherString
             this.genMap()
-            let plain1 = $('#m' + this.state.solclick1).text()
-            let plain2 = $('#m' + this.state.solclick2).text()
+            let plain1 = $('#p' + this.state.solclick1).text()
+            let plain2 = $('#p' + this.state.solclick2).text()
             this.printSolution(msg, plain1, plain2)
         })
         $("td").off('click').on('click', (e) => {
             let id = $(e.target).attr('id')
             if (this.state.operation === 'decode' && id !== "") {
+                this.markUndo("solclick")
                 // change the style to indicate what they clicked
                 if (this.state.solclick1 !== -1) {
                     // Remove the old click highlighting
                     $('td#m' + this.state.solclick1 + '.TOSOLVECLICK').removeClass("TOSOLVECLICK")
+                    $('td#p' + this.state.solclick1 + '.TOSOLVECLICK').removeClass("TOSOLVECLICK")
                 }
-                // And highlight the current one
-                $(e.target).addClass("TOSOLVECLICK")
                 // Now shuffle this click in to replace the previous one
                 this.state.solclick1 = this.state.solclick2
                 this.state.solclick2 = Number(id.substr(1))
+                // And highlight the current one
+                $('td#m' + this.state.solclick2).addClass("TOSOLVECLICK")
+                $('td#p' + this.state.solclick2).addClass("TOSOLVECLICK")
 
                 if (this.state.solclick1 !== -1 && this.state.solclick1 !== -1) {
                     //solve it

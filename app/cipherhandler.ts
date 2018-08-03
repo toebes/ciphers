@@ -932,7 +932,11 @@ export class CipherHandler {
                 aclass = "a v"
             }
             if (overline !== undefined) {
-                rowover.add({ settings: { class: "o v" }, content: overline.substr(i, 1) })
+                if (this.isValidChar(c)) {
+                    rowover.add({ settings: { class: "o v" }, content: overline.substr(i, 1) })
+                } else {
+                    rowover.add(overline.substr(i, 1))
+                }
             }
             if (this.isValidChar(c)) {
                 rowcipher.add({ settings: { class: "q v" }, content: c })
@@ -1385,6 +1389,12 @@ export class CipherHandler {
             $input.val(val + 1)
             $input.trigger('input')
         })
+        $('.input-number-decrement').off('click').on('click', (e) => {
+            let $input = $(e.target).parents('.input-group').find('.input-number');
+            let val = Number($input.val())
+            $input.val(val - 1)
+            $input.trigger('input')
+        })
         $('[name="ciphertype"]').off('click').on('click', (e) => {
             $(e.target).siblings().removeClass('is-active');
             $(e.target).addClass('is-active');
@@ -1392,12 +1402,6 @@ export class CipherHandler {
             this.setCipherType($(e.target).val() as ICipherType)
             this.updateOutput()
         });
-        $('.input-number-decrement').off('click').on('click', (e) => {
-            let $input = $(e.target).parents('.input-group').find('.input-number');
-            let val = Number($input.val())
-            $input.val(val - 1)
-            $input.trigger('input')
-        })
         $("#load").off("click").on("click", () => {
             this.markUndo()
             this.load()

@@ -5,8 +5,8 @@ import { CipherEncoder } from "./cipherencoder"
 import { IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes"
 import { JTButtonItem } from "./jtbuttongroup";
-import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
+import { isCoPrime } from './mathsupport';
 
 export class CipherHillEncoder extends CipherEncoder {
     defaultstate: IState = {
@@ -180,36 +180,6 @@ export class CipherHillEncoder extends CipherEncoder {
         return 'A = ' + A + '; B = ' + B
     }
     /**
-     * Compute the greatest common denominator between two numbers
-     * @param a First number
-     * @param b Second Number
-     */
-    gcd(a: number, b: number): number {
-        if (isNaN(a)) { return a }
-        if (isNaN(b)) { return b }
-        if (a < 0) { a = -a }
-        if (b < 0) { b = -b }
-
-        if (b > a) { let temp = a; a = b; b = temp; }
-        while (true) {
-            console.log('gcd a=' + a + ' b=' + b)
-            if (b === 0) { return a }
-            a %= b
-            if (a === 0) { return b }
-            b %= a
-        }
-    }
-    iscoprime(a: number): boolean {
-        let charset = this.getCharset()
-        console.log('iscoprime a=' + a + ' len=' + charset.length)
-        let gcdval = this.gcd(a, charset.length)
-        console.log('gcd(' + a + ',' + charset.length + ')=' + gcdval)
-        if (gcdval !== 1) {
-            return false
-        }
-        return true
-    }
-    /**
      *
      */
     attachHandlers(): void {
@@ -305,7 +275,7 @@ export class CipherHillEncoder extends CipherEncoder {
             $('#err').text('Matrix is not invertable');
             return null;
         }
-        if (!this.iscoprime(determinant)) {
+        if (!isCoPrime(determinant, charset.length)) {
             $('#err').text('Matrix is not invertable.  Determinant ' + determinant + ' is not coprime with ' + charset.length);
             return null;
         }

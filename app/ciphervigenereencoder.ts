@@ -221,7 +221,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     attachHandlers(): void {
         super.attachHandlers()
-        $('[name="operation"]').off('click').on('click', (e) => {
+        $('#operation').off('click').on('click', (e) => {
             $(e.target).siblings().removeClass('is-active');
             $(e.target).addClass('is-active');
             this.markUndo()
@@ -252,12 +252,22 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     genAnswer(): JQuery<HTMLElement> {
+        let keypos = 0
         let result = $("<div>", {class: "grid-x"})
         this.genMap()
         let strings = this.buildReplacementVigenere(this.state.cipherString, this.state.keyword, 40)
         let table = new JTTable({class: "ansblock shrink cell unstriped"})
         for (let strset of strings) {
-            this.addCipherTableRows(table, undefined, strset[0], strset[1], true)
+            let keystring = ""
+            for (let c of strset[0]) {
+                if (this.isValidChar(c)) {
+                    keystring += this.state.keyword.substr(keypos, 1)
+                    keypos = (keypos + 1) % this.state.keyword.length
+                } else {
+                    keystring += c
+                }
+            }
+            this.addCipherTableRows(table, keystring, strset[0], strset[1], true)
         }
         result.append(table.generate())
         return result

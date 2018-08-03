@@ -6,6 +6,7 @@ import { ICipherType } from "./ciphertypes";
 import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
+import { JTTable } from "./jttable";
 
 type operationType = "encode" | "decode"
 interface IVigenereState extends IState {
@@ -117,32 +118,24 @@ export class CipherVigenereEncoder extends CipherEncoder {
     setKeyword(keyword: string): void {
         this.state.keyword = keyword
     }
-
-    buildVigenere(msg: string, key: string): JQuery<HTMLElement> {
-        let i
+    buildReplacementVigenere(msg: string, key: string, maxEncodeWidth: number): string[][] {
+        let result: string[][] = []
         let charset = this.getCharset()
         let message = ''
         let keyIndex = 0
         let keyString = ''
         let cipher = ''
-        let result = $('<div>')
         let msgLength = msg.length
         let keyLength = key.length
         let lastSplit = -1
-        let c = 0
 
-        //        if (msgLength > keyLength) {
-        let factor = (msgLength / keyLength).toFixed(0)
-        for (i = 0; i < factor; i++) {
-            keyString = keyString.concat(key)
-        }
-        keyString += key.substr(0, msgLength % keyLength)
-        //        }
-        for (i = 0; i < msgLength; i++) {
+        let factor = (msgLength / keyLength)
+        keyString = this.repeatStr(key.toUpperCase(), factor + 1)
+        for (let i = 0; i < msgLength; i++) {
             let messageChar = msg.substr(i, 1).toUpperCase()
             let m = charset.indexOf(messageChar)
             if (m >= 0) {
-
+                let c
                 let keyChar = keyString.substr(keyIndex, 1).toUpperCase()
                 let k = charset.indexOf(keyChar)
                 while (k < 0) {
@@ -170,10 +163,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 lastSplit = cipher.length
                 continue
             }
-            if (message.length >= this.maxEncodeWidth) {
+            if (message.length >= maxEncodeWidth) {
                 if (lastSplit === -1) {
-                    result.append($('<div>', { class: "TOSOLVE" }).text(message))
-                    result.append($('<div>', { class: "TOANSWER" }).text(cipher))
+                    result.push([cipher, message])
                     message = ''
                     cipher = ''
                     lastSplit = -1
@@ -182,17 +174,23 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     let cipherPart = cipher.substr(0, lastSplit)
                     message = message.substr(lastSplit)
                     cipher = cipher.substr(lastSplit)
-                    result.append($('<div>', { class: "TOSOLVE" }).text(messagePart))
-                    result.append($('<div>', { class: "TOANSWER" }).text(cipherPart))
-
+                    result.push([cipherPart, messagePart])
                 }
             }
         }
         if (message.length > 0) {
-            result.append($('<div>', { class: "TOSOLVE" }).text(message))
-            result.append($('<div>', { class: "TOANSWER" }).text(cipher))
+            result.push([cipher, message])
         }
+        return result
+    }
 
+    buildVigenere(msg: string, key: string): JQuery<HTMLElement> {
+        let result = $('<div>')
+        let strings = this.buildReplacementVigenere(msg, key, this.maxEncodeWidth)
+        for (let stringset of strings) {
+            result.append($('<div>', { class: "TOSOLVE" }).text(stringset[0]))
+            result.append($('<div>', { class: "TOANSWER" }).text(stringset[1]))
+        }
         return result
     }
     /**
@@ -249,5 +247,33 @@ export class CipherVigenereEncoder extends CipherEncoder {
             }
         })
 
+    }
+    /**
+     * Generate the HTML to display the answer for a cipher
+     */
+    genAnswer(): JQuery<HTMLElement> {
+        let result = $("<div>", {class: "grid-x"})
+        this.genMap()
+        let strings = this.buildReplacementVigenere(this.state.cipherString, this.state.keyword, 40)
+        let table = new JTTable({class: "ansblock shrink cell unstriped"})
+        for (let strset of strings) {
+            this.addCipherTableRows(table, undefined, strset[0], strset[1], true)
+        }
+        result.append(table.generate())
+        return result
+    }
+    /**
+     * Generate the HTML to display the question for a cipher
+     */
+    genQuestion(): JQuery<HTMLElement> {
+        let result = $("<div>", {class: "grid-x"})
+        this.genMap()
+        let strings = this.buildReplacementVigenere(this.state.cipherString, this.state.keyword, 40)
+        let table = new JTTable({class: "ansblock shrink cell unstriped"})
+        for (let strset of strings) {
+            this.addCipherTableRows(table, undefined, strset[0], undefined, true)
+        }
+        result.append(table.generate())
+        return result
     }
 }

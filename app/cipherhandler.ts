@@ -318,6 +318,8 @@ export class CipherHandler {
     ]
     testStrings: string[] = [
     ]
+    /** The direction of the last advance */
+    advancedir: number = 0
     cipherWidth: number = 1
     charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     sourcecharset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -333,10 +335,12 @@ export class CipherHandler {
     /**
      * The maximum number of characters to
      * be shown on an encoded line so that it can be readily pasted into a test
+     * This is a global config that no ciphers actually set
      */
     maxEncodeWidth: number = 53
     /**
-     * Output the reverse replacement row in the frequency table
+     * Output the reverse replacement row in the frequency table.  This is set
+     * by the individual cipher types on initialization
      */
     ShowRevReplace: boolean = true
     /**
@@ -1386,13 +1390,15 @@ export class CipherHandler {
         $('.input-number-increment').off('click').on('click', (e) => {
             let $input = $(e.target).parents('.input-group').find('.input-number')
             let val = Number($input.val())
-            $input.val(val + 1)
+            this.advancedir = 1
+            $input.val(val + this.advancedir)
             $input.trigger('input')
         })
         $('.input-number-decrement').off('click').on('click', (e) => {
             let $input = $(e.target).parents('.input-group').find('.input-number');
             let val = Number($input.val())
-            $input.val(val - 1)
+            this.advancedir = -1
+            $input.val(val + this.advancedir)
             $input.trigger('input')
         })
         $('[name="ciphertype"]').off('click').on('click', (e) => {

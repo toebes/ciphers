@@ -25,8 +25,6 @@ export class CipherHillEncoder extends CipherEncoder {
     padval: string = "ZZZZZZZ";
     encodeTable: StringMap = {}
     completeSolution: boolean = false
-    /** The direction of the last advance */
-    advancedir: number = 0
     restore(data: IState): void {
         this.state = { ...this.defaultstate }
         this.copyState(this.state, data)

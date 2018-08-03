@@ -15,11 +15,14 @@ type operationType = "encode" | "decode"
 interface IAffineState extends IState {
     /** The type of operation */
     operation: operationType
-
     /** a value */
     a: number
     /** b value */
     b: number
+    /** The first clicked number in the solution */
+    solclick1: number
+    /** The second clicked number  */
+    solclick2: number
 }
 
 export class CipherAffineEncoder extends CipherEncoder {
@@ -33,6 +36,10 @@ export class CipherAffineEncoder extends CipherEncoder {
         cipherString: "",
         /** The type of cipher we are doing */
         cipherType: ICipherType.Affine,
+        /** The first clicked number in the solution */
+        solclick1: -1,
+        /** The second clicked number  */
+        solclick2: -1,
     }
     state: IAffineState = { ...this.defaultstate }
     cmdButtons: JTButtonItem[] = [
@@ -41,23 +48,17 @@ export class CipherAffineEncoder extends CipherEncoder {
         this.redocmdButton,
         { title: "Print Solution", color: "primary", id: "solve", disabled: true },
     ]
-    affineCheck: { [key: string]: number } = {
-        'p': -1,
-        'q': -1,
-        'r': -1,
-        's': -1,
-        'oldId': -1,
-        'olderId': -1
-    }
-
-    charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    encodeTable: StringMap = {}
+    /* We have identified a complete solution */
     completeSolution: boolean = false
-    /** The direction of the last advance */
-    advancedir: number = 0
     restore(data: IAffineState): void {
         this.state = { ...this.defaultstate }
         this.copyState(this.state, data)
+        if (isNaN(this.state.solclick1)) {
+            this.state.solclick1 = -1
+        }
+        if (isNaN(this.state.solclick2)) {
+            this.state.solclick2 = -1
+        }
         this.setUIDefaults()
         this.updateOutput()
     }
@@ -80,15 +81,48 @@ export class CipherAffineEncoder extends CipherEncoder {
         let savestate = { ...this.state }
         return savestate
     }
-    affinechar(a: number, b: number, chr: string): string {
+    /**
+     * Sets the new A value.  A direction is also provided so that if the
+     * intended value is bad, we can keep advancing until we find one
+     */
+    seta(a: number, direction: number): void {
         let charset = this.getCharset()
-        let x = charset.indexOf(chr.toUpperCase())
-        if (x < 0) {
-            return chr
+        if (a !== this.state.a) {
+
+            if (direction !== 0) {
+                while (a !== this.state.a && !isCoPrime(a, charset.length)) {
+                    a = (a + charset.length + direction) % charset.length
+                }
+            }
+            if (!isCoPrime(a, charset.length)) {
+                $('#err').text('A value of ' + a + ' is not coprime with ' + charset.length)
+            }
+            if (a > charset.length) {
+                $('#err').text('A value of ' + a + ' must be smaller than ' + (charset.length + 1))
+
+            }
         }
-        let y = ((a * x) + b) % charset.length
+        this.state.a = a
+    }
+    setb(b: number): void {
+        let charset = this.getCharset()
+        b = (b + charset.length) % charset.length
+        this.state.b = b
+    }
+    /**
+     * Set vigenere encode or decode mode
+     */
+    setOperation(operation: operationType): void {
+        this.state.operation = operation
+    }
+    affinechar(c: string): string {
+        let charset = this.getCharset()
+        let x = charset.indexOf(c.toUpperCase())
+        if (x < 0) {
+            return c
+        }
+        let y = ((this.state.a * x) + this.state.b) % charset.length
         let res = charset.substr(y, 1)
-        console.log('char=' + chr + ' x=' + x + ' a=' + a + ' b=' + b + ' y=' + y + ' res=' + res)
         return res
     }
     /**
@@ -98,14 +132,8 @@ export class CipherAffineEncoder extends CipherEncoder {
     init(): void {
         this.state = { ...this.defaultstate }
         this.ShowRevReplace = false
-        this.affineCheck = {}
-        this.affineCheck['p'] = -1
-        this.affineCheck['q'] = -1
-        this.affineCheck['r'] = -1
-        this.affineCheck['s'] = -1
         $("#solve").prop('disabled', true)
         $("#solve").text('Select 2 hint letters')
-        console.log('Init...' + this.affineCheck['p'])
     }
     buildReplacement(msg: string, maxEncodeWidth: number): string[][] {
         let result: string[][] = []
@@ -120,7 +148,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             let cipherChar = ''
             if (this.isValidChar(messageChar)) {
                 message += messageChar
-                cipherChar = this.affinechar(this.state.a, this.state.b, messageChar)
+                cipherChar = this.affinechar(messageChar)
                 cipher += cipherChar
             } else {
                 message += messageChar
@@ -148,6 +176,12 @@ export class CipherAffineEncoder extends CipherEncoder {
         }
         return result
     }
+    /**
+     * Using the currently selected replacement set, encodes a string
+     * This breaks it up into lines of maxEncodeWidth characters or less so that
+     * it can be easily pasted into the text.  This returns the result
+     * as the HTML to be displayed
+     */
     build(msg: string): JQuery<HTMLElement> {
         let strings = this.buildReplacement(msg, this.maxEncodeWidth)
         let result = $("<div/>")
@@ -173,7 +207,6 @@ export class CipherAffineEncoder extends CipherEncoder {
         }
         return result
     }
-
     /**
      * Generate the HTML to display the answer for a cipher
      */
@@ -213,19 +246,24 @@ export class CipherAffineEncoder extends CipherEncoder {
         result.append(table.generate())
         return result
     }
-    solveIt(m1: number, c1: number, m2: number, c2: number): string {
+    solveIt(m1: string, m2: string): string {
         let answer = 'Can\'t solve.'
+        let charset = this.getCharset()
+        let c1 = this.affinechar(m1)
+        let c2 = this.affinechar(m2)
+        let c1val = charset.indexOf(c1)
+        let c2val = charset.indexOf(c2)
+        let m1val = charset.indexOf(m1)
+        let m2val = charset.indexOf(m2)
 
-        let c = c1 - c2
-        let m = m1 - m2
+        let c = c1val - c2val
+        let m = m1val - m2val
 
         while (m < 0) {
             m += 26
         }
-
         // The reality is that A can only be one of: 1, 3, 5, 7, 9, 11,
         // 15, 17, 19, 21, 23, 25.  B will be between 0 and 25.
-
         while (((c < 0) || (c % m !== 0)) && c < 626) {
             c += 26
         }
@@ -236,7 +274,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             return answer
         }
 
-        let B = (c1 - (A * m1)) % 26
+        let B = (c1val - (A * m1val)) % 26
         while (B < 0) {
             B += 26
         }
@@ -270,25 +308,23 @@ export class CipherAffineEncoder extends CipherEncoder {
     encodeString(s: string): string {
         let encoded = ''
         for (let i = 0; i < s.length; i++) {
-            encoded += this.encodeTable[s.substr(i, 1)]
+            encoded += this.replacement[s.substr(i, 1)]
         }
         return encoded
     }
     /**
      *
-     * @param a
-     * @param b
      */
-    setEncodingTable(a: number, b: number): void {
+    genMap(): void {
         let charset = this.getCharset()
         for (let i = 0; i < charset.length; i++) {
             let c = -1
             let letter = charset.substr(i, 1)
-            c = (a * i) + b
+            c = (this.state.a * i) + this.state.b
             while (c >= 26) {
                 c -= 26
             }
-            this.encodeTable[letter] = charset.substr(c, 1)
+            this.replacement[letter] = charset.substr(c, 1)
         }
     }
     /**
@@ -302,8 +338,6 @@ export class CipherAffineEncoder extends CipherEncoder {
         let cipher = ''
         let result = $('<div>')
         let msgLength = msg.length
-        let lastSplit = -1
-        let c = ''
         let charset = this.getCharset()
 
         let table = $('<table/>').addClass("tfreq")
@@ -317,16 +351,13 @@ export class CipherAffineEncoder extends CipherEncoder {
         for (i = 0; i < msgLength; i++) {
             let messageChar = msg.substr(i, 1).toUpperCase()
             let cipherChar = ''
-            let m = charset.indexOf(messageChar)
-            if (m >= 0) {
-
+            if (this.isValidChar(messageChar)) {
                 message += messageChar
-                cipherChar = this.encodeTable[messageChar]
+                cipherChar = this.replacement[messageChar]
                 cipher += cipherChar
             } else {
                 message += messageChar
                 cipher += messageChar
-                lastSplit = cipher.length
                 continue
             }
 
@@ -345,12 +376,15 @@ export class CipherAffineEncoder extends CipherEncoder {
         }
         table.append(tableBody)
 
-        //return result.html()
         return table
     }
 
-    printSolution(theMessage: string, m1: string, c1: string, m2: string, c2: string): void {
+    printSolution(theMessage: string, m1: string, m2: string): void {
         let charset = this.getCharset()
+
+        let c1 = this.affinechar(m1)
+        let c2 = this.affinechar(m2)
+
         let m1Val = charset.indexOf(m1)
         let c1Val = charset.indexOf(c1)
         let m2Val = charset.indexOf(m2)
@@ -448,7 +482,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         outdiv.empty().append($("<p>", { id: "solution" }).html(solution))
         MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'solution'])
 
-        let l = charset.substr(this.affineCheck['p'], 1) + charset.substr(this.affineCheck['q'], 1)
+        let l = m1 + m2
         outdiv.append(this.showOutput(theMessage, l))
         if (!this.completeSolution) {
             // encode ETAOIN
@@ -538,20 +572,6 @@ export class CipherAffineEncoder extends CipherEncoder {
             }
             this.advancedir = 0
         })
-        $('.input-number-increment').off('click').on('click', (e) => {
-            let $input = $(e.target).parents('.input-group').find('.input-number')
-            let val = Number($input.val())
-            this.advancedir = 1
-            $input.val(val + this.advancedir)
-            $input.trigger('input')
-        })
-        $('.input-number-decrement').off('click').on('click', (e) => {
-            let $input = $(e.target).parents('.input-group').find('.input-number');
-            let val = Number($input.val())
-            this.advancedir = -1
-            $input.val(val + this.advancedir)
-            $input.trigger('input')
-        })
         $('[name="operation"]').off('click').on('click', (e) => {
             $(e.target).siblings().removeClass('is-active');
             $(e.target).addClass('is-active');
@@ -560,45 +580,38 @@ export class CipherAffineEncoder extends CipherEncoder {
             this.updateOutput()
         });
         $("#solve").off('click').on('click', () => {
-            let msg = <string>$('#toencode').val()
-            this.setEncodingTable(Number($("#a").val()), Number($("#b").val()))
-            this.printSolution(msg,
-                               this.charset.substr(this.affineCheck['p'], 1),
-                               this.charset.substr(this.affineCheck['r'], 1),
-                               this.charset.substr(this.affineCheck['q'], 1),
-                               this.charset.substr(this.affineCheck['s'], 1))
+            let msg = this.state.cipherString
+            this.genMap()
+            let plain1 = $('#m' + this.state.solclick1).text()
+            let plain2 = $('#m' + this.state.solclick2).text()
+            this.printSolution(msg, plain1, plain2)
         })
         $("td").off('click').on('click', (e) => {
-            if (this.state.operation === 'decode') {
-                let charset = this.getCharset()
-                let id = $(e.target).attr('id')
-                // change the style
-                let clickedId = this.affineCheck['olderId']
-                if (clickedId !== -1) {
-                    // turn new click blue, reset old click for TOSOLVE
-                    $('td#' + clickedId + '.TOSOLVECLICK').removeClass("TOSOLVECLICK").addClass("TOSOLVE")
+            let id = $(e.target).attr('id')
+            if (this.state.operation === 'decode' && id !== "") {
+                // change the style to indicate what they clicked
+                if (this.state.solclick1 !== -1) {
+                    // Remove the old click highlighting
+                    $('td#m' + this.state.solclick1 + '.TOSOLVECLICK').removeClass("TOSOLVECLICK")
                 }
-                $('td#' + id + '.TOSOLVE').removeClass("TOSOLVE").addClass("TOSOLVECLICK")
-                // turn
-                this.affineCheck.q = this.affineCheck['p']
-                this.affineCheck['s'] = this.affineCheck['r']
-                this.affineCheck['p'] = charset.indexOf($('td#m' + id + '.TOANSWER').text())
-                this.affineCheck['r'] = charset.indexOf($('td#' + id + '.TOSOLVECLICK').text())
-                this.affineCheck['olderId'] = this.affineCheck['oldId']
-                this.affineCheck['oldId'] = parseInt(id, 10)
+                // And highlight the current one
+                $(e.target).addClass("TOSOLVECLICK")
+                // Now shuffle this click in to replace the previous one
+                this.state.solclick1 = this.state.solclick2
+                this.state.solclick2 = Number(id.substr(1))
 
-                if (this.affineCheck.p !== -1 && this.affineCheck.q !== -1) {
+                if (this.state.solclick1 !== -1 && this.state.solclick1 !== -1) {
                     //solve it
+                    // Get the letters that correspond to the slots
+                    let plain1 = $('#m' + this.state.solclick1).text()
+                    let plain2 = $('#m' + this.state.solclick2).text()
                     console.log('solve: ')
-                    let sol = this.solveIt(this.affineCheck['p'], this.affineCheck['r'],
-                                           this.affineCheck.q, this.affineCheck.s)
-                    let expected = 'A = ' + $("#a").val() + '; B = ' + $("#b").val()
+                    let sol = this.solveIt(plain1, plain2)
+                    let expected = 'A = ' + this.state.a + '; B = ' + this.state.b
                     if (sol === expected) {
-                        console.log('showing button')
                         $("#solve").removeAttr('disabled')
                         $("#solve").text('Display Solution')
                     } else {
-                        console.log('hiding button')
                         $("#solve").prop('disabled', true)
                         $("#solve").text('Indeterminate Solution')
                     }
@@ -626,44 +639,10 @@ export class CipherAffineEncoder extends CipherEncoder {
         return null
     }
     /**
-     * Set vigenere encode or decode mode
-     */
-    setOperation(operation: operationType): void {
-        this.state.operation = operation
-    }
-    /**
      *
      */
     buildCustomUI(): void {
         super.buildCustomUI()
-    }
-    /**
-     * Sets the new A value.  A direction is also provided so that if the
-     * intended value is bad, we can keep advancing until we find one
-     */
-    seta(a: number, direction: number): void {
-        let charset = this.getCharset()
-        if (a !== this.state.a) {
-
-            if (direction !== 0) {
-                while (a !== this.state.a && !isCoPrime(a, charset.length)) {
-                    a = (a + charset.length + direction) % charset.length
-                }
-            }
-            if (!isCoPrime(a, charset.length)) {
-                $('#err').text('A value of ' + a + ' is not coprime with ' + charset.length)
-            }
-            if (a > charset.length) {
-                $('#err').text('A value of ' + a + ' must be smaller than ' + (charset.length + 1))
-
-            }
-        }
-        this.state.a = a
-    }
-    setb(b: number): void {
-        let charset = this.getCharset()
-        b = (b + charset.length) % charset.length
-        this.state.b = b
     }
     /**
      *

@@ -1,5 +1,3 @@
-/// <reference types="ciphertypes" />
-
 const Aval = "A".charCodeAt(0)
 
 import { Mapper } from "./mapper"

@@ -1,3 +1,4 @@
+import { cloneObject } from "./ciphercommon";
 import { CipherTest, ITestState } from "./ciphertest"
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
@@ -28,7 +29,7 @@ export class CipherTestGenerator extends CipherTest {
         cipherType: ICipherType.None,
         test: 0,
     }
-    state: ITestState = { ...this.defaultstate }
+    state: ITestState = cloneObject(this.defaultstate) as ITestState
     cmdButtons: JTButtonItem[] = [
         { title: "Randomize Order", color: "primary", id: "randomize", },
         { title: "Print Test", color: "primary", id: "printtest", },
@@ -38,7 +39,7 @@ export class CipherTestGenerator extends CipherTest {
     ]
     restore(data: ITestState): void {
         let curlang = this.state.curlang
-        this.state = { ...this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as ITestState
         this.state.curlang = curlang
         this.copyState(this.state, data)
         this.setUIDefaults()

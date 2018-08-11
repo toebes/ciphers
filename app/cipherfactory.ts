@@ -1,5 +1,3 @@
-/// <reference types="ciphertypes" />
-
 import { CipherAffineEncoder } from "./cipheraffineencoder"
 import { CipherCheckerboardSolver } from "./ciphercheckerboardsolver"
 import { CipherCounter } from "./ciphercounter"

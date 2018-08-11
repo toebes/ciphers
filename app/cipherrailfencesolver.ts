@@ -1,3 +1,4 @@
+import { cloneObject } from "./ciphercommon";
 import { IState } from "./cipherhandler"
 import { CipherSolver } from "./ciphersolver"
 import { CypherTypeButtonItem, ICipherType } from "./ciphertypes"
@@ -45,7 +46,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         /** The order string for a Redefence */
         railOrder: "123456789"
     }
-    state: IRailState = { ...this.defaultstate }
+    state: IRailState = cloneObject(this.defaultstate) as IRailState
     cmdButtons: JTButtonItem[] = [
         { title: "Load", id: "load", },
         this.undocmdButton,
@@ -58,9 +59,9 @@ export class CipherRailfenceSolver extends CipherSolver {
      */
     init(lang: string): void {
         super.init(lang)
-        this.state = { ...this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as IRailState
     }
-    restore(data: SaveSet): void {
+    restore(data: IRailState): void {
         this.state = this.defaultstate
         if (data.cipherString !== undefined) {
             this.state.cipherString = data.cipherString
@@ -89,7 +90,7 @@ export class CipherRailfenceSolver extends CipherSolver {
      * Make a copy of the current state
      */
     save(): IRailState {
-        return { ...this.state }
+        return cloneObject(this.state) as IRailState
     }
     /**
      * Set the number of rails
@@ -252,9 +253,8 @@ export class CipherRailfenceSolver extends CipherSolver {
      * @param {string} str String to decode
      * @returns {string} HTML of solver structure
      */
-    build(str: string): JQuery<HTMLElement> {
-        this.state.cipherString = str
-        str = this.minimizeString(str)
+    build(): JQuery<HTMLElement> {
+        let str = this.minimizeString(this.state.cipherString)
         // Generate the empty outlines array that we will output later.  This way
         // we don't have to check if a spot is empty, we can just write to it
         let outlines: string[][] = []
@@ -391,7 +391,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         this.updateUI();
 
         // Compute the answer and populate that
-        let res = this.build(this.state.cipherString);
+        let res = this.build();
         $("#answer").empty().append(res);
 
     }

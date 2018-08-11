@@ -1,5 +1,4 @@
-/// <reference types="ciphertypes" />
-
+import { cloneObject, NumberMap } from "./ciphercommon";
 import { IState } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver"
 import { CypherTypeButtonItem, ICipherType } from "./ciphertypes"
@@ -9,7 +8,7 @@ import { Mapper } from "./mapper"
 import { mapperFactory } from "./mapperfactory"
 
 export class CipherVigenereSolver extends CipherSolver {
-    defaultvigenerestate: IState = {
+    defaultstate: IState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.Vigenere,
         /** Currently selected keyword */
@@ -21,14 +20,14 @@ export class CipherVigenereSolver extends CipherSolver {
         /** Replacement characters */
         replacements: {}
     }
-    state: IState = { ...this.defaultvigenerestate }
+    state: IState = cloneObject(this.defaultstate) as IState
 
     /** Map of indexes into which character of the string is at that index */
     cipherOffsets: Array<number> = []
     /** Implements the mapping for the various cipher types */
     ciphermap: Mapper = null
-    restore(data: SaveSet): void {
-        this.state = this.defaultvigenerestate
+    restore(data: IState): void {
+        this.state = this.defaultstate
         if (data.cipherType !== undefined) {
             this.state.cipherType = data.cipherType
         }
@@ -58,9 +57,7 @@ export class CipherVigenereSolver extends CipherSolver {
      */
     save(): IState {
         // We need a deep copy of the save state
-        let savestate = { ...this.state }
-        // And the replacements hash also has to have a deep copy
-        savestate.replacements = { ...this.state.replacements }
+        let savestate = cloneObject(this.state) as IState
         return savestate
     }
 
@@ -85,7 +82,7 @@ export class CipherVigenereSolver extends CipherSolver {
         $('#encoded').val(this.state.cipherString)
         $('#keyword').val(this.state.keyword)
         $("#find").val(this.state.findString)
-        $("#answer").empty().append(this.build(this.state.cipherString))
+        $("#answer").empty().append(this.build())
         $('[name="codevariant"]').removeAttr('checked');
         $("input[name=codevariant][value=" + this.state.cipherType + "]").prop('checked', true);
     }
@@ -301,11 +298,10 @@ export class CipherVigenereSolver extends CipherSolver {
 
     /**
      * Builds the GUI for the solver
-     * @param {string} str String to decode
      * @returns {string} HTML of solver structure
      */
-    build(str: string): JQuery<HTMLElement> {
-        this.state.cipherString = str
+    build(): JQuery<HTMLElement> {
+        let str = this.state.cipherString
         this.cipherOffsets = []
         let res = ""
         let combinedtext = ""

@@ -1,5 +1,5 @@
-import { CipherHandler, IState } from "./cipherhandler"
-import { CipherSolver } from "./ciphersolver";
+import { cloneObject } from "./ciphercommon";
+import { IState } from "./cipherhandler"
 import { CipherTest, ITestState } from "./ciphertest"
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
@@ -18,7 +18,7 @@ export class CipherTestManage extends CipherTest {
         cipherString: "",
         cipherType: ICipherType.Test,
     }
-    state: ITestState = { ...this.defaultstate }
+    state: ITestState = cloneObject(this.defaultstate) as IState
     cmdButtons: JTButtonItem[] = [
         { title: "New Test", color: "primary", id: "newtest", },
         { title: "Export Tests", color: "primary", id: "export", download: true, },
@@ -26,13 +26,19 @@ export class CipherTestManage extends CipherTest {
     ]
     restore(data: ITestState): void {
         let curlang = this.state.curlang
-        this.state = { ...this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as IState
         this.state.curlang = curlang
         this.copyState(this.state, data)
         this.setUIDefaults()
         this.updateOutput()
     }
-    genPreCommands(): JQuery<HTMLElement> {
+    updateOutput(): void {
+        $('.ans').each((i, elem) => {
+            $(elem).replaceWith(this.genTestList())
+        })
+        this.attachHandlers()
+    }
+    genTestList(): JQuery<HTMLElement> {
         let testcount = this.getTestCount()
         if (testcount === 0) {
             return $("<h3>").text("No Tests Created Yet")

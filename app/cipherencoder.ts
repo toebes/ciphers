@@ -1,5 +1,4 @@
-/// <reference types="ciphertypes" />
-
+import { cloneObject } from "./ciphercommon";
 import { CipherHandler, IState } from "./cipherhandler"
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
@@ -36,7 +35,7 @@ export class CipherEncoder extends CipherHandler {
         keyword: "",
         keyword2: ""
     }
-    state: IEncoderState = { ...this.defaultstate }
+    state: IEncoderState = cloneObject(this.defaultstate) as IState
     cmdButtons: JTButtonItem[] = [
         { title: "Encode", color: "primary", id: "load", },
         this.undocmdButton,
@@ -45,7 +44,7 @@ export class CipherEncoder extends CipherHandler {
     ]
     restore(data: IEncoderState): void {
         let curlang = this.state.curlang
-        this.state = { ...this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as IState
         this.state.curlang = curlang
         this.copyState(this.state, data)
         this.setCharset(this.acalangcharset[this.state.curlang])
@@ -76,7 +75,7 @@ export class CipherEncoder extends CipherHandler {
     }
 
     save(): IEncoderState {
-        let result: IEncoderState = { ...this.state }
+        let result: IEncoderState = cloneObject(this.state) as IState
         return result
     }
     /**
@@ -86,7 +85,7 @@ export class CipherEncoder extends CipherHandler {
      */
     init(lang: string): void {
         //this.ShowRevReplace = false
-        this.state = { ...this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as IState
         this.state.curlang = lang
         this.setCharset(this.acalangcharset[this.state.curlang])
         this.setSourceCharset(this.encodingcharset[this.state.curlang])
@@ -116,6 +115,9 @@ export class CipherEncoder extends CipherHandler {
     setEncType(encodeType: string): void {
         this.state.encodeType = encodeType;
         this.setkvalinputs();
+    }
+    setKeyword(keyword: string): void {
+        this.state.keyword = keyword
     }
     setOffset(offset: number): void {
         let charset = this.getCharset()
@@ -192,7 +194,7 @@ export class CipherEncoder extends CipherHandler {
             let keyword = $(e.target).val() as string
             if (keyword !== this.state.keyword) {
                 this.markUndo("keyword")
-                this.state.keyword = keyword
+                this.setKeyword(keyword)
             }
         })
         $("#keyword2").off('input').on('input', (e) => {
@@ -442,7 +444,17 @@ export class CipherEncoder extends CipherHandler {
      * it can be easily pasted into the text.  This returns the result
      * as the HTML to be displayed
      */
-    build(str: string): JQuery<HTMLElement> {
+    build(): JQuery<HTMLElement> {
+        let str = this.cleanString(this.state.cipherString)
+
+        /*
+         * If it is characteristic of the cipher type (e.g. patristocrat),
+         * rebuild the string to be encoded in to five character sized chunks.
+         */
+        if (this.state.cipherType === ICipherType.Patristocrat) {
+            str = this.chunk(str, 5)
+        }
+
         let result = $('<div>')
         let strings = this.makeReplacement(str, this.maxEncodeWidth)
         for (let strset of strings) {
@@ -493,17 +505,10 @@ export class CipherEncoder extends CipherHandler {
      */
     load(): void {
         // this.hideRevReplace = true
-        let encoded = this.cleanString(<string>$('#toencode').val())
-        /*
-        * If it is characteristic of the cipher type (e.g. patristocrat),
-        * rebuild the string to be encoded in to five character sized chunks.
-        */
-        if (this.state.cipherType === ICipherType.Patristocrat) {
-            encoded = this.chunk(encoded, 5)
-        }
+        let encoded = this.cleanString(this.state.cipherString)
         $(".err").text('')
         this.genMap()
-        let res = this.build(encoded)
+        let res = this.build()
         $("#answer").empty().append(res)
 
         /* testStrings */

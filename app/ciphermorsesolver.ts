@@ -1,5 +1,4 @@
-/// <reference types="ciphertypes" />
-
+import { cloneObject, StringMap } from "./ciphercommon";
 import { IState } from "./cipherhandler"
 import { CipherSolver } from "./ciphersolver"
 import { ICipherType } from "./ciphertypes";
@@ -17,7 +16,7 @@ export class CipherMorseSolver extends CipherSolver {
         locked: {},
         findString: "",
     }
-    state: IMorseState = { ... this.defaultstate}
+    state: IMorseState = cloneObject(this.defaultstate) as IMorseState
     readonly tomorse: { [key: string]: string } = {
         ' ': '',
         'A': 'O-',
@@ -284,7 +283,8 @@ export class CipherMorseSolver extends CipherSolver {
      * @param {string} str String to decode
      * @returns {string} HTML of solver structure
      */
-    build(str: string): JQuery<HTMLElement> {
+    build(): JQuery<HTMLElement> {
+        let str = this.cleanString(this.state.cipherString)
         let topdiv = $('<div/>').addClass("sword")
         let table = $('<table/>').addClass("mword")
         let tbody = $('<tbody/>')
@@ -564,7 +564,7 @@ export class CipherMorseSolver extends CipherSolver {
 
     load(): void {
         this.encodedString = this.cleanString(this.state.cipherString)
-        let res = this.build(this.encodedString)
+        let res = this.build()
         $("#answer").empty().append(res)
         $("#analysis").each((i, elem) => {
             $(elem).empty().append(this.analyze(this.encodedString))

@@ -1,5 +1,4 @@
-/// <reference types="ciphertypes" />
-
+import { cloneObject, StringMap } from "./ciphercommon";
 import {CipherMorseSolver} from "./ciphermorsesolver"
 import { ICipherType } from "./ciphertypes";
 export class CipherFractionatedMorseSolver extends CipherMorseSolver {
@@ -47,7 +46,7 @@ export class CipherFractionatedMorseSolver extends CipherMorseSolver {
     init(): void {
         this.cipherType = ICipherType.FractionatedMorse
         this.cipherWidth = 3
-        this.fractionatedMorseMap = { ...this.defaultfractionatedMorseMap }
+        this.fractionatedMorseMap = cloneObject(this.defaultfractionatedMorseMap) as StringMap
         this.setCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
     }
     getMorseMap(): StringMap {

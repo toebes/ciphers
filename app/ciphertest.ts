@@ -1,3 +1,4 @@
+import { cloneObject } from "./ciphercommon";
 import { CipherPrintFactory } from "./cipherfactory";
 import { CipherHandler, IState } from "./cipherhandler"
 import { ICipherType } from "./ciphertypes";
@@ -52,7 +53,7 @@ export class CipherTest extends CipherHandler {
         cipherString: "",
         cipherType: ICipherType.None,
     }
-    state: ITestState = { ...this.defaultstate }
+    state: ITestState = cloneObject(this.defaultstate) as IState
     cmdButtons: JTButtonItem[] = [
         { title: "New Test", color: "primary", id: "newtest", },
         { title: "Export Tests", color: "primary", id: "export", disabled: true, },
@@ -60,7 +61,7 @@ export class CipherTest extends CipherHandler {
     ]
     restore(data: ITestState): void {
         let curlang = this.state.curlang
-        this.state = { ...this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as IState
         this.state.curlang = curlang
         this.copyState(this.state, data)
         this.setUIDefaults()

@@ -1,5 +1,4 @@
-/// <reference types="ciphertypes" />
-
+import { cloneObject, StringMap } from "./ciphercommon";
 import { CipherMorseSolver } from "./ciphermorsesolver"
 import { ICipherType } from "./ciphertypes";
 
@@ -27,7 +26,7 @@ export class CipherMorbitSolver extends CipherMorseSolver {
     init(): void {
         this.cipherType = ICipherType.Morbit
         this.cipherWidth = 2
-        this.morbitMap = { ...this.defaultmorbitMap }
+        this.morbitMap = cloneObject(this.defaultmorbitMap) as StringMap
         this.setCharset('123456789')
     }
     load(): void {

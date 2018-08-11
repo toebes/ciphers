@@ -1,10 +1,15 @@
-/// <reference types="ciphertypes" />
+// tslint:disable-next-line:no-reference
+/// <reference path="../node_modules/summernote-typescript/summernote/summernote.d.ts"/>
+
+import { BoolMap, cloneObject, StringMap } from "./ciphercommon"
 import { CipherMenu } from "./ciphermenu"
 import { ICipherType } from "./ciphertypes"
 import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
 import { JTCreateMenu, JTGetURL } from "./jtmenu"
 import { JTTable } from "./jttable";
 import { parseQueryString } from "./parsequerystring"
+
+export type IOperationType = "encode" | "decode" | "compute"
 
 export interface IState {
 
@@ -20,6 +25,8 @@ export interface IState {
     replacements?: StringMap
     /** Any additional save state data */
     undotype?: string,
+    /** The type of operation */
+    operation?: IOperationType
     /** Number of points a question is worth */
     points?: number
     /** Any quotation text to associate with the cipher */
@@ -306,7 +313,7 @@ export class CipherHandler {
         /** Current language */
         curlang: ""
     }
-    state: IState = { ...this.defaultstate }
+    state: IState = cloneObject(this.defaultstate) as IState
     undocmdButton: JTButtonItem = { title: "Undo", id: "undo", color: "primary", class: "undo", disabled: true }
     redocmdButton: JTButtonItem = { title: "Redo", id: "redo", color: "primary", class: "redo", disabled: true }
 
@@ -599,8 +606,18 @@ export class CipherHandler {
      */
     copyState(dest: IState, source: IState): void {
         for (let elem of Object.keys(source)) {
-            dest[elem] = source[elem]
+            if (typeof (source[elem]) === "object") {
+                dest[elem] = cloneObject(source[elem])
+            } else {
+                dest[elem] = source[elem]
+            }
         }
+    }
+    /**
+     * Set cipher encoder encode or decode mode
+     */
+    setOperation(operation: IOperationType): void {
+        this.state.operation = operation
     }
     /**
      * Initializes the encoder/decoder.
@@ -672,7 +689,7 @@ export class CipherHandler {
         let freqrow = table.addBodyRow()
         // For all other cipher types, the replacement row is below the frequency
         if (encodeType !== 'k2') {
-           replrow = table.addBodyRow()
+            replrow = table.addBodyRow()
         }
 
         let charset = this.getSourceCharset()
@@ -729,7 +746,7 @@ export class CipherHandler {
         return null
     }
     /**
-     * Initializes any layout of the handler.  This is when the solver should initialize any UI globals
+     * Initializes any layout of the handler.
      */
     buildCustomUI(): void {
         $('.precmds').each((i, elem) => {
@@ -844,10 +861,6 @@ export class CipherHandler {
         $(".langsel").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.getLangDropdown()) })
         $(".MenuBar").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.createMainMenu()) })
         this.buildCustomUI()
-        this.UpdateFreqEditTable()
-        this.attachHandlers()
-        this.setUIDefaults()
-        this.updateOutput()
         let parms = parseQueryString(window.location.search.substring(1))
         let saveSet = this.save()
         this.savefileentry = -1
@@ -863,6 +876,7 @@ export class CipherHandler {
             }
         }
         this.restore(saveSet)
+        this.attachHandlers()
     }
     /**
      * Cleans up any settings, range checking and normalizing any values.
@@ -879,11 +893,9 @@ export class CipherHandler {
     updateOutput(): void {
     }
     /**
-     * Builds ??
-     * @param {string} str String to decode
-     * @returns {string} HTML of solver structure
+     * Builds the output for the current state data.
      */
-    build(str: string): JQElement {
+    build(): JQElement {
         return null
     }
 
@@ -1387,6 +1399,13 @@ export class CipherHandler {
             }
             $(e.target).addClass("focus")
         })
+        $('[name="operation"]').off('click').on('click', (e) => {
+            $(e.target).siblings().removeClass('is-active');
+            $(e.target).addClass('is-active');
+            this.markUndo()
+            this.setOperation($(e.target).val() as IOperationType)
+            this.updateOutput()
+        });
         $('.input-number-increment').off('click').on('click', (e) => {
             let $input = $(e.target).parents('.input-group').find('.input-number')
             let val = Number($input.val())
@@ -1443,27 +1462,14 @@ export class CipherHandler {
         $(".lang").off("change").on("change", (e) => {
             this.loadLanguage($(e.target).val() as string)
         })
-        $(".spin").spinner({
-            spin: (event, ui) => {
-                this.markUndo();
-                if (ui.value >= this.getCharset().length) {
-                    $(event.target).spinner("value", 0)
-                    return false
-                } else if (ui.value < 0) {
-                    $(event.target).spinner("value", this.getCharset().length - 1)
-                    return false
-                }
-            },
-        })
         $(".richtext").summernote({
             fontNames: ["Arial", "Courier New"],
             toolbar: [
-                ["style", ["bold", "italic", "underline", "clear"]],
-                ["font", ["fontname", "superscript", "subscript"]],
-                ["fontsize", ["fontsize"]],
-            ],
+                ['style', ['bold', 'italic', 'underline', 'clear']],
+                ['font', ['subscript', 'subscript']],
+                ['fontsize', ['fontsize']]
+            ]
         })
-
         $('#find').off("input").on("input", (e) => {
             this.markUndo("find")
             let findStr = $(e.target).val() as string

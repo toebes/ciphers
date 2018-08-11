@@ -1,7 +1,6 @@
-/// <reference types="ciphertypes" />
-
+import { cloneObject } from "./ciphercommon";
 import { CipherEncoder } from "./cipherencoder"
-import { IState } from "./cipherhandler";
+import { IOperationType, IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes"
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
@@ -10,11 +9,7 @@ import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 import { JTTable } from "./jttable";
 import { isCoPrime } from "./mathsupport"
 
-type operationType = "encode" | "decode"
-
 interface IAffineState extends IState {
-    /** The type of operation */
-    operation: operationType
     /** a value */
     a: number
     /** b value */
@@ -41,7 +36,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         /** The second clicked number  */
         solclick2: -1,
     }
-    state: IAffineState = { ...this.defaultstate }
+    state: IAffineState = cloneObject(this.defaultstate) as IAffineState
     cmdButtons: JTButtonItem[] = [
         { title: "Encrypt", color: "primary", id: "load", },
         this.undocmdButton,
@@ -51,7 +46,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     /* We have identified a complete solution */
     completeSolution: boolean = false
     restore(data: IAffineState): void {
-        this.state = { ...this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as IAffineState
         this.copyState(this.state, data)
         if (isNaN(this.state.solclick1)) {
             this.state.solclick1 = -1
@@ -78,7 +73,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      */
     save(): IState {
         // We need a deep copy of the save state
-        let savestate = { ...this.state }
+        let savestate = cloneObject(this.state) as IState
         return savestate
     }
     /**
@@ -109,12 +104,6 @@ export class CipherAffineEncoder extends CipherEncoder {
         b = (b + charset.length) % charset.length
         this.state.b = b
     }
-    /**
-     * Set vigenere encode or decode mode
-     */
-    setOperation(operation: operationType): void {
-        this.state.operation = operation
-    }
     affinechar(c: string): string {
         let charset = this.getCharset()
         let x = charset.indexOf(c.toUpperCase())
@@ -130,7 +119,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      * We don't want to show the reverse replacement since we are doing an encode
      */
     init(): void {
-        this.state = { ...this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as IAffineState
         this.ShowRevReplace = false
         $("#solve").prop('disabled', true)
         $("#solve").text('Select 2 hint letters')
@@ -182,7 +171,8 @@ export class CipherAffineEncoder extends CipherEncoder {
      * it can be easily pasted into the text.  This returns the result
      * as the HTML to be displayed
      */
-    build(msg: string): JQuery<HTMLElement> {
+    build(): JQuery<HTMLElement> {
+        let msg = this.state.cipherString
         let strings = this.buildReplacement(msg, this.maxEncodeWidth)
         let result = $("<div/>")
         for (let strset of strings) {
@@ -561,13 +551,6 @@ export class CipherAffineEncoder extends CipherEncoder {
             }
             this.advancedir = 0
         })
-        $('[name="operation"]').off('click').on('click', (e) => {
-            $(e.target).siblings().removeClass('is-active');
-            $(e.target).addClass('is-active');
-            this.markUndo()
-            this.setOperation($(e.target).val() as operationType)
-            this.updateOutput()
-        });
         $("#solve").off('click').on('click', () => {
             let msg = this.state.cipherString
             this.genMap()
@@ -633,16 +616,10 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      *
      */
-    buildCustomUI(): void {
-        super.buildCustomUI()
-    }
-    /**
-     *
-     */
     load(): void {
         this.state.cipherString = this.cleanString(<string>$('#toencode').val())
         console.log('a=' + this.state.a + ' b=' + this.state.b + ' encode=' + this.state.cipherString)
-        let res = this.build(this.state.cipherString)
+        let res = this.build()
         $("#answer").empty().append(res)
         this.attachHandlers()
     }

@@ -1,5 +1,3 @@
-/// <reference types="ciphertypes" />
-
 import { CipherSolver } from "./ciphersolver"
 export class CipherCheckerboardSolver extends CipherSolver {
 
@@ -66,7 +64,8 @@ export class CipherCheckerboardSolver extends CipherSolver {
             this.load()
         }
     }
-    build(str: string): JQuery<HTMLElement> {
+    build(): JQuery<HTMLElement> {
+        let str = this.cleanString(this.state.cipherString)
         let res = ""
         let combinedtext = ""
         let prehead = '<div class="sword"><table class="tword"><tbody><tr>'
@@ -182,7 +181,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
     }
     load(): void {
         let encoded = this.cleanString(this.state.cipherString)
-        let res = this.build(encoded)
+        let res = this.build()
         $("#answer").empty().append(res)
         $("#analysis").each((i, elem) => {
             $(elem).empty().append(this.analyze(encoded))
@@ -196,7 +195,6 @@ export class CipherCheckerboardSolver extends CipherSolver {
     }
     findPossible(str: string): void {
         let encoded = this.minimizeString(this.state.cipherString)
-        let extra = ''
         let res = ''
         let i
         str = str.toUpperCase()

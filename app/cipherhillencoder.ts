@@ -1,12 +1,13 @@
-/// <reference types="ciphertypes" />
-
+import * as katex from 'katex'
 import * as math from 'mathjs';
+import { cloneObject, StringMap } from './ciphercommon';
 import { CipherEncoder } from "./cipherencoder"
-import { IState } from "./cipherhandler";
+import { IOperationType, IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes"
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFLabeledInput } from "./jtflabeledinput";
-import { isCoPrime } from './mathsupport';
+import { JTRadioButton, JTRadioButtonSet } from './jtradiobutton';
+import { isCoPrime, mod26, mod26Inverse2x2 } from './mathsupport';
 
 export class CipherHillEncoder extends CipherEncoder {
     defaultstate: IState = {
@@ -14,10 +15,11 @@ export class CipherHillEncoder extends CipherEncoder {
         keyword: "",
         /** The type of cipher we are doing */
         cipherType: ICipherType.Hill,
+        operation: "encode",
     }
-    state: IState = { ...this.defaultstate }
+    state: IState = cloneObject(this.defaultstate) as IState
     cmdButtons: JTButtonItem[] = [
-        { title: "Encrypt", color: "primary", id: "load", },
+        { title: "Generate", color: "primary", id: "load", },
         this.undocmdButton,
         this.redocmdButton,
     ]
@@ -26,33 +28,45 @@ export class CipherHillEncoder extends CipherEncoder {
     encodeTable: StringMap = {}
     completeSolution: boolean = false
     restore(data: IState): void {
-        this.state = { ...this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as IState
         this.copyState(this.state, data)
         this.setUIDefaults()
         this.updateOutput()
     }
     setUIDefaults(): void {
+        super.setUIDefaults()
+        this.setOperation(this.state.operation)
     }
     updateOutput(): void {
         super.updateOutput()
+        JTRadioButtonSet("operation", this.state.operation)
     }
     /**
      * Make a copy of the current state
      */
     save(): IState {
         // We need a deep copy of the save state
-        let savestate = { ...this.state }
+        let savestate = cloneObject(this.state) as IState
         return savestate
     }
-    Hillchar(a: number, b: number, chr: string): string {
-        let charset = this.getCharset()
-        let x = charset.indexOf(chr.toUpperCase())
-        if (x < 0) { return chr }
-        let y = ((a * x) + b) % charset.length
-        let res = charset.substr(y, 1)
-        console.log('char=' + chr + ' x=' + x + ' a=' + a + ' b=' + b + ' y=' + y + ' res=' + res)
-        return res
+    /**
+     * Set cipher encoder encode or decode mode
+     */
+    setOperation(operation: IOperationType): void {
+        super.setOperation(operation)
+        if (this.state.operation === "compute") {
+            $(".encbox").hide()
+        } else {
+            $(".encbox").show()
+        }
     }
+    setKeyword(keyword: string): void {
+        super.setKeyword(keyword)
+        if (this.isvalidkey(this.state.keyword)) {
+            $('#err').text('')
+        }
+    }
+
     /*
     * Creates an HTML table to display the frequency of characters
     */
@@ -94,57 +108,13 @@ export class CipherHillEncoder extends CipherEncoder {
      * We don't want to show the reverse replacement since we are doing an encode
      */
     init(): void {
-        this.state = { ...this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as IState
         this.ShowRevReplace = false
     }
 
-    build(msg: string): JQuery<HTMLElement> {
+    build(): JQuery<HTMLElement> {
         console.log('Incorrect Build called for Hill')
         return null
-    }
-
-    buildHill(msg: string, a: number, b: number): JQuery<HTMLElement> {
-        let i
-        let charset = this.getCharset()
-        let message = ''
-        let cipher = ''
-        let result = $('<div>')
-        let msgLength = msg.length
-        let lastSplit = -1
-        let c = ''
-
-        let table = $('<table/>').addClass("tfreq")
-        let tableBody = $('<tbody/>')
-        let messageRow = $('<tr/>')
-        let cipherRow = $('<tr/>')
-
-        for (i = 0; i < msgLength; i++) {
-            let messageChar = msg.substr(i, 1).toUpperCase()
-            let cipherChar = ''
-            let m = charset.indexOf(messageChar)
-            if (m >= 0) {
-
-                message += messageChar
-                cipherChar = this.Hillchar(a, b, messageChar)
-                cipher += cipherChar
-            } else {
-                message += messageChar
-                cipher += messageChar
-                lastSplit = cipher.length
-                continue
-            }
-
-            messageRow.append($('<td id="m' + i + '"/>').addClass("TOANSWER").text(messageChar))
-            cipherRow.append($('<td id="' + i + '"/>').addClass("TOSOLVE").text(cipherChar))
-
-        }
-        if (message.length > 0) {
-            tableBody.append(cipherRow)
-            tableBody.append(messageRow)
-        }
-        table.append(tableBody)
-
-        return table
     }
 
     solveIt(m1: number, c1: number, m2: number, c2: number): string {
@@ -185,8 +155,16 @@ export class CipherHillEncoder extends CipherEncoder {
     }
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>")
+        let radiobuttons = [
+            { id: 'wrow', value: "encode", title: 'Encode' },
+            { id: 'wrow', value: "compute", title: 'Compute Decryption' },
+            { id: 'mrow', value: "decode", title: 'Decode' },
+        ]
+        result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation))
+
         result.append(this.genQuestionFields())
-        result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
+        result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode',
+                                      this.state.cipherString, "encbox small-12 medium-12 large-12"))
         result.append(JTFLabeledInput("Keyword", 'text', 'keyword', this.state.keyword, ""))
         return result
     }
@@ -196,18 +174,17 @@ export class CipherHillEncoder extends CipherEncoder {
     /**
      *
      */
-    buildCustomUI(): void {
-        super.buildCustomUI()
-    }
-
-    /**
-     *
-     */
     load(): void {
-        let key = this.state.keyword
+        let key = this.state.keyword.toUpperCase()
         let toencode = this.state.cipherString
-        console.log('key=' + key + ' encode=' + toencode)
-        let res = this.hill(key, toencode)
+        $('#err').text('')
+        let res
+
+        if (this.state.operation === "compute") {
+            res = this.computeInverse(key)
+        } else {
+            res = this.hill(key, toencode)
+        }
         // Only do the hardcore stuff when the button is clicked.
         // Set it to 'zoom' the equation on hover.
         MathJax.Hub.Config({
@@ -240,13 +217,13 @@ export class CipherHillEncoder extends CipherEncoder {
         return res
     }
 
-    isvalidkey(key: string): number[] {
+    isvalidkey(key: string): number[][] {
         let vals = [];
         let charset = this.getCharset()
         let groupsize;
         if (key.length !== 4 && key.length !== 9) {
-            $('#err').text('Invalid key.  It must be either 4 or 9 characters long');
-            return null;
+            $('#err').text('Invalid key.  It must be either 4 or 9 characters long')
+            return null
         }
         // Figure out how big our array for encoding is
         groupsize = Math.sqrt(key.length);
@@ -254,11 +231,11 @@ export class CipherHillEncoder extends CipherEncoder {
         // Parse out the key and create the matrix to multiply by
         for (let i = 0, len = key.length; i < len; i++) {
             let row;
-            let t = key.substr(i, 1).toUpperCase();
-            let x = charset.indexOf(t);
+            let t = key.substr(i, 1).toUpperCase()
+            let x = charset.indexOf(t)
             if (x < 0) {
                 console.log('Invalid character:' + t);
-                $('#err').text('Invalid key character:' + t);
+                $('#err').text('Invalid key character:' + t)
                 return null;
             }
             row = Math.floor(i / groupsize);
@@ -270,14 +247,31 @@ export class CipherHillEncoder extends CipherEncoder {
 
         let determinant = math.det(vals);
         if (determinant === 0) {
-            $('#err').text('Matrix is not invertable');
+            $('#err').text('Matrix is not invertable')
             return null;
         }
         if (!isCoPrime(determinant, charset.length)) {
-            $('#err').text('Matrix is not invertable.  Determinant ' + determinant + ' is not coprime with ' + charset.length);
+            $('#err').text('Matrix is not invertable.  Determinant ' + mod26(determinant) + ' is not coprime with ' + charset.length);
             return null;
         }
         return vals
+    }
+    computeInverse(key: string): JQuery<HTMLElement> {
+        let vals = this.isvalidkey(key);
+        if (vals === null) {
+            return null
+        }
+        let modinv = mod26Inverse2x2(vals)
+        let kmath = "\\begin{pmatrix}" +
+                        key.substr(0, 1) + "&" + key.substr(1, 1) + "\\\\" +
+                        key.substr(2, 1) + "&" + key.substr(3, 1) +
+                    "\\end{pmatrix}" +
+                    "\\equiv" +
+                    "\\begin{pmatrix}" +
+                        String(modinv[0][0]) + "&" + String(modinv[0][1]) + "\\\\" +
+                        String(modinv[1][0]) + "&" + String(modinv[1][1]) +
+                    "\\end{pmatrix}"
+        return $(katex.renderToString(kmath))
     }
 
     hill(key: string, str: string): string {
@@ -332,7 +326,6 @@ export class CipherHillEncoder extends CipherEncoder {
         $('#equations').hide();
         return res;
     }
-
     /**
      * This function builds an equation for a single 'row'
      *

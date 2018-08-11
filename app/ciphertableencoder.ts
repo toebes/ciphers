@@ -1,8 +1,6 @@
-/// <reference types="ciphertypes" />
-
+import { cloneObject } from "./ciphercommon";
 import { CipherEncoder, IEncoderState } from "./cipherencoder"
 import { CypherTypeButtonItem, ICipherType } from "./ciphertypes";
-import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
@@ -18,7 +16,7 @@ export class CipherTableEncoder extends CipherEncoder {
         cipherType: ICipherType.Caesar,
         offset: 0,
     }
-    state: IEncoderState = { ...this.defaultstate }
+    state: IEncoderState = cloneObject(this.defaultstate) as IEncoderState
     /** Save and Restore are done on the CipherEncoder Class */
     save(): IEncoderState {
         return super.save()
@@ -73,11 +71,9 @@ export class CipherTableEncoder extends CipherEncoder {
      * Loads up the values for the encoder
      */
     load(): void {
-        let encoded = this.cleanString(this.state.cipherString)
-
         $(".err").text('')
         this.genMap()
-        let res = this.build(encoded)
+        let res = this.build()
         $("#answer").empty().append(res)
 
         // Show the update frequency values

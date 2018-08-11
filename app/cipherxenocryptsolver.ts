@@ -1,5 +1,3 @@
-/// <reference types="ciphertypes" />
-
 import { CipherSolver } from "./ciphersolver"
 export class CipherXenocryptSolver extends CipherSolver {
 }

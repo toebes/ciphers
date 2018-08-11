@@ -1,5 +1,4 @@
-/// <reference types="ciphertypes" />
-
+import { BoolMap, StringMap } from "./ciphercommon";
 import { CipherSolver } from "./ciphersolver"
 export class CipherGromarkSolver extends CipherSolver {
     gromarkRepl: StringMap

@@ -1,8 +1,6 @@
-/// <reference types="ciphertypes" />
+import {Mapper} from "./mapper"
 
 const Aval = "A".charCodeAt(0)
-
-import {Mapper} from "./mapper"
 export class mapVigenere extends Mapper {
     /**
      * Map two unencoded characters using the Vigenere mapping table

@@ -44,6 +44,7 @@ export function JTAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]
         }
         li.append(a)
         if (item.menu !== undefined) {
+            a.addClass("is-dropdown-submenu-parent")
             let ul = $("<ul/>", { class: "menu vertical" })
             JTAppendSubMenu(ul, item.menu)
             li.append(ul)
@@ -62,7 +63,7 @@ export function JTCreateMenu(menu: menuItem[], id: string, menutext: string): JQ
     $("<div/>", { class: "title-bar-title" }).text("Menu").appendTo(titlebar)
     result.append(titlebar)
 
-    let topbar = $("<div/>", { class: "top-bar", id: id })
+    let topbar = $("<div/>", { class: "top-bar stacked-for-medium", id: id })
     let topbarleft = $("<div/>", { class: "top-bar-left" })
     let dropdownmenu = $("<ul/>", { class: "dropdown menu", 'data-dropdown-menu': "" })
     dropdownmenu.append($("<li/>", { class: "menu-text" }).text(menutext))

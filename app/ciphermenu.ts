@@ -40,8 +40,10 @@ export const CipherMenu: menuItem[] = [
         ]
     },
     {
-        title: "Encryption Tools",
+        title: "Codebusters Test Tools",
         menu: [
+            { title: "Test Manager", href: "TestManage.html", },
+            { title: "Question Manager", href: "TestQuestions.html", },
             { title: "Affine", href: "AffineEncrypt.html", cipherType: ICipherType.Affine, },
             { title: "Cipher Counter", href: "CipherCounter.html", },
             { title: "Caesar Encoder", href: "Caesar.html", cipherType: ICipherType.Caesar, },
@@ -52,8 +54,6 @@ export const CipherMenu: menuItem[] = [
             { title: "Patristocrat Encoder", href: "PatristocratEncrypt.html", cipherType: ICipherType.Patristocrat, },
             { title: "Hill Encoder (2x2 and 3x3)", href: "HillEncrypt.html", cipherType: ICipherType.Hill, },
             { title: "Vigen&egrave;re Encoder", href: "VigenereEncrypt.html", cipherType: ICipherType.Vigenere, },
-            { title: "Test Manager", href: "TestManage.html", },
-            { title: "Question Manager", href: "TestQuestions.html", },
             // { title: "Language Template Processor", href: "GenLanguage.html", },
         ]
     },

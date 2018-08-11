@@ -1,3 +1,4 @@
+import { cloneObject } from "./ciphercommon";
 import { CipherTest, ITestState } from "./ciphertest"
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
@@ -12,11 +13,11 @@ export class CipherTestAnswers extends CipherTest {
         cipherType: ICipherType.Test,
         test: 0,
     }
-    state: ITestState = { ...this.defaultstate }
+    state: ITestState = cloneObject(this.defaultstate) as ITestState
     cmdButtons: JTButtonItem[] = [
     ]
     restore(data: ITestState): void {
-        this.state = { ...this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as ITestState
         this.copyState(this.state, data)
     }
     genPreCommands(): JQuery<HTMLElement> {

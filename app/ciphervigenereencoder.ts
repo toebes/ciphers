@@ -1,17 +1,15 @@
-/// <reference types="ciphertypes" />
-
+import { cloneObject } from "./ciphercommon";
 import { CipherEncoder } from "./cipherencoder"
-import { IState } from "./cipherhandler";
+import { IOperationType, IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 import { JTTable } from "./jttable";
 
-type operationType = "encode" | "decode"
 interface IVigenereState extends IState {
     /** The type of operation */
-    operation: operationType
+    operation: IOperationType
     /** The size of the chunking blocks for output - 0 means respect the spaces */
     blocksize: number
 }
@@ -34,10 +32,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
         operation: "encode",
         blocksize: 0,
     }
-    state: IVigenereState = { ...this.defaultstate }
+    state: IVigenereState = cloneObject(this.defaultstate) as IVigenereState
 
     restore(data: IState): void {
-        this.state = { ... this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as IVigenereState
         this.copyState(this.state, data)
         this.setUIDefaults()
         this.updateOutput()
@@ -47,9 +45,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     save(): IState {
         // We need a deep copy of the save state
-        let savestate = { ...this.state }
-        // And the replacements hash also has to have a deep copy
-        savestate.replacements = { ...this.state.replacements }
+        let savestate = cloneObject(this.state) as IState
         return savestate
     }
     /**
@@ -106,17 +102,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
         return result
 
     }
-    /**
-     * Set vigenere encode or decode mode
-     */
-    setOperation(operation: operationType): void {
-        this.state.operation = operation
-    }
     setBlocksize(blocksize: number): void {
         this.state.blocksize = blocksize
-    }
-    setKeyword(keyword: string): void {
-        this.state.keyword = keyword
     }
     buildReplacementVigenere(msg: string, key: string, maxEncodeWidth: number): string[][] {
         let result: string[][] = []
@@ -212,10 +199,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
         $('#answer').empty().append(res)
         this.attachHandlers()
     }
-
-    buildCustomUI(): void {
-        super.buildCustomUI()
-    }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
@@ -225,7 +208,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             $(e.target).siblings().removeClass('is-active');
             $(e.target).addClass('is-active');
             this.markUndo()
-            this.setOperation($(e.target).val() as operationType)
+            this.setOperation($(e.target).val() as IOperationType)
             this.updateOutput()
         });
         $("#blocksize").off('input').on('input', (e) => {

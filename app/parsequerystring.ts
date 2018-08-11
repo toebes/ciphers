@@ -1,3 +1,5 @@
+import { StringMap } from "./ciphercommon"
+
 /** parses the query string
  *  From https://www.malcontentboffin.com/2016/11/TypeScript-Function-Decodes-URL-Parameters.html
  *  If no string is passed, it uses the default query string associated with the current window

@@ -1,5 +1,4 @@
-/// <reference types="ciphertypes" />
-
+import { BoolMap, cloneObject, NumberMap } from "./ciphercommon";
 import { IState } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver"
 import { ICipherType } from "./ciphertypes";
@@ -46,7 +45,7 @@ export class CipherRagbabySolver extends CipherSolver {
         cipherString: "",
         ctmap: [],
     }
-    state: IRagbabyState = { ...this.defaultstate }
+    state: IRagbabyState = cloneObject(this.defaultstate) as IRagbabyState
     /** List of all CT:Offset mappings */
     ctoffsets: BoolMap = {}
 
@@ -93,7 +92,7 @@ export class CipherRagbabySolver extends CipherSolver {
      */
     save(): IState {
         // We need a deep copy of the save state
-        let savestate = { ...this.state }
+        let savestate = cloneObject(this.state) as IRagbabyState
         // And the ctmap hash also has to have a deep copy
         savestate.ctmap = this.state.ctmap.slice()
         return savestate
@@ -432,8 +431,8 @@ export class CipherRagbabySolver extends CipherSolver {
      * @param {string} str String to decode
      * @returns {string} HTML of solver structure
      */
-    build(str: string): JQuery<HTMLElement> {
-        this.state.cipherString = str
+    build(): JQuery<HTMLElement> {
+        let str = this.state.cipherString
         this.ctoffsets = {}
         this.replmap = [{ line: this.emptyRagline(), notes: "" }, { line: this.emptyRagline(), notes: "" }]
         let res = ""

@@ -1,3 +1,4 @@
+import { cloneObject } from "./ciphercommon";
 import { CipherEncoder } from "./cipherencoder"
 import { IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes"
@@ -10,11 +11,11 @@ export class CipherCounter extends CipherEncoder {
         /** The type of cipher we are doing */
         cipherType: ICipherType.Counter,
     }
-    state: IState = { ...this.defaultstate }
+    state: IState = cloneObject(this.defaultstate) as IState
     cmdButtons: JTButtonItem[] = [
         { title: "Count", color: "primary", id: "load", },
     ]
-    restore(data: SaveSet): void {
+    restore(data: IState): void {
         this.state = this.defaultstate
         if (data.cipherString !== undefined) {
             this.state.cipherString = data.cipherString
@@ -27,7 +28,7 @@ export class CipherCounter extends CipherEncoder {
      */
     save(): IState {
         // We need a deep copy of the save state
-        let savestate = { ...this.state }
+        let savestate = cloneObject(this.state) as IState
         return savestate
     }
     /**
@@ -35,7 +36,7 @@ export class CipherCounter extends CipherEncoder {
      * We don't want to show the reverse replacement since we are doing an encode
      */
     init(): void {
-        this.state = { ...this.defaultstate }
+        this.state = cloneObject(this.defaultstate) as IState
         this.ShowRevReplace = false
     }
     /**
@@ -53,16 +54,9 @@ export class CipherCounter extends CipherEncoder {
     genPostCommands(): JQuery<HTMLElement> {
         return null
     }
-    /**
-     *
-     */
-    buildCustomUI(): void {
-        super.buildCustomUI()
-    }
-
     load(): void {
         this.state.cipherString = this.cleanString(<string>$('#toencode').val())
-        let res = this.build(this.state.cipherString)
+        let res = this.build()
         $("#answer").empty().append(res)
         // Show the update frequency values
         this.displayFreq()
@@ -74,10 +68,9 @@ export class CipherCounter extends CipherEncoder {
      * Using the currently selected replacement set, encodes a string
      * This breaks it up into lines of maxEncodeWidth characters or less so that
      * it can be easily pasted into the text.
-     * @param {string} str String to be encoded
-     * @returns {string} HTML of encoded string to display
      */
-    build(str: string): JQuery<HTMLElement> {
+    build(): JQuery<HTMLElement> {
+        let str = this.state.cipherString
         let charset = this.getCharset()
         let sourcecharset = this.getSourceCharset()
         // Zero out the frequency table

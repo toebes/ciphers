@@ -1,8 +1,7 @@
-/// <reference types="ciphertypes" />
+import { Mapper } from "./mapper"
 
 const Aval = "A".charCodeAt(0)
 
-import { Mapper } from "./mapper"
 export class mapPorta extends Mapper {
     /**
      * Map two unencoded characters using the Porta mapping table

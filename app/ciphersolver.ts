@@ -1,19 +1,19 @@
-/// <reference types="ciphertypes" />
-
+import { BoolMap, cloneObject, NumberMap, StringMap } from "./ciphercommon";
 import { CipherHandler, IState } from "./cipherhandler"
 import { ICipherType } from "./ciphertypes";
 import { JTTable } from "./jttable";
 
 export class CipherSolver extends CipherHandler {
-    defaultsolverstate: IState = {
+    defaultstate: IState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.Aristocrat,
         /** The current cipher we are working on */
         cipherString: "",
         /** The current string we are looking for */
         findString: "",
+        locked: {},
     }
-    state: IState = { ...this.defaultsolverstate }
+    state: IState = cloneObject(this.defaultstate) as IState
 
     /**
      * Initializes the encoder/decoder.
@@ -21,30 +21,16 @@ export class CipherSolver extends CipherHandler {
      */
     init(lang: string): void {
         super.init(lang)
-        this.state = { ...this.defaultsolverstate }
+        this.state = cloneObject(this.defaultstate) as IState
     }
-    restore(data: SaveSet): void {
+    restore(data: IState): void {
         let rebuild = false
-        this.state = this.defaultsolverstate
-        if (data.cipherType !== undefined) {
-            this.state.cipherType = data.cipherType
-        }
-        if (data.cipherString !== undefined) {
-            if (this.state.cipherString !== data.cipherString) {
-                this.state.cipherString = data.cipherString
+        if (data.cipherString !== undefined &&
+            this.state.cipherString !== data.cipherString) {
                 rebuild = true
-            }
         }
-        if (data.findString !== undefined) {
-            this.state.findString = data.findString
-        }
-        if (data.qtext !== undefined) {
-            this.state.question = data.qtext
-        }
-
-        if (data.replacements !== undefined) {
-            this.replacement = { ...data.replacements }
-        }
+        this.state = cloneObject(this.defaultstate) as IState
+        this.copyState(this.state, data)
 
         this.setUIDefaults();
         if (rebuild) {
@@ -72,9 +58,7 @@ export class CipherSolver extends CipherHandler {
      */
     save(): IState {
         // We need a deep copy of the save state
-        let savestate = { ...this.state }
-        // And the replacement array also has to have a deep copy
-        savestate.replacements = { ...this.replacement }
+        let savestate = cloneObject(this.state) as IState
         return savestate
     }
     /**
@@ -88,10 +72,9 @@ export class CipherSolver extends CipherHandler {
      * Loads new data into a solver, preserving all solving matches made
      */
     load(): void {
-        let encoded: string = this.cleanString(this.state.cipherString);
-        this.state.cipherString = encoded
+        let encoded = this.cleanString(this.state.cipherString);
         console.log('LoadSolver');
-        let res = this.build(encoded);
+        let res = this.build();
 
         $("#answer").empty().append(res);
         $("#analysis").each((i, elem) => {
@@ -107,7 +90,6 @@ export class CipherSolver extends CipherHandler {
      * Loads new data into a solver, resetting any solving matches made
      */
     reset(): void {
-        this.state.locked = {}
         for (let c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
                 $('#m' + c).val('')
@@ -481,11 +463,10 @@ export class CipherSolver extends CipherHandler {
 
     /**
      * Builds the GUI for the solver
-     * @param {string} str String to decode
-     * @returns {string} HTML of solver structure
      */
-    build(str: string): JQuery<HTMLElement> {
-        let res = "";
+    build(): JQuery<HTMLElement> {
+        let str = this.cleanString(this.state.cipherString)
+        let res = ""
         let combinedtext = "";
         let prehead = '<div class="sword"><table class="tword"><tbody><tr>';
         let posthead1 = '</tr></tbody></table><div class="repl" data-chars="';

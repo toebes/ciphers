@@ -31,11 +31,11 @@ import 'dataTables-zf'
 import 'foundation-sites'
 import 'foundation.css'
 import * as $ from "jquery"
-import 'jquery-ui'
+import 'katex.css'
 import 'summernote'
-import '../jquery-ui.min.css'
+import 'summernote-lite.css'
+import 'summernote-lite.js'
 import '../styles.css'
-import '../summernote-lite.css'
 
 import { CipherFactory } from "./cipherfactory"
 import { CipherHandler } from "./cipherhandler"
@@ -49,12 +49,14 @@ $(function (): void {
     $(window).on('changed.zf.mediaquery', () => {
         $('.is-dropdown-submenu.invisible').removeClass('invisible');
     });
-    cipherTool = CipherFactory(undefined, undefined)
+    let data_lang
+    let data_cipher
     // First figure out what type of solver we are building
     $("[data-cipher]").each((i, elem) => {
-        cipherTool = CipherFactory($(elem).attr('data-cipher'), $(elem).attr('data-lang'))
+        data_cipher = $(elem).attr('data-cipher')
+        data_lang = $(elem).attr('data-lang')
     })
-    window.cipherTool = cipherTool
+    window.cipherTool = cipherTool = CipherFactory(data_cipher, data_lang)
     cipherTool.layout();
     $(document).foundation()
 })

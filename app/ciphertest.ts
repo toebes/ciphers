@@ -3,6 +3,12 @@ import { CipherPrintFactory } from "./cipherfactory";
 import { CipherHandler, IState } from "./cipherhandler"
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
+import { JTTable } from "./jttable";
+
+export interface buttonInfo {
+    title: string,
+    btnClass: string,
+}
 
 export interface ITestState extends IState {
     /** Number of points a question is worth */
@@ -100,6 +106,35 @@ export class CipherTest extends CipherHandler {
             location.assign(editURL)
         }
         //        location.assign("TestGenerator.html?test=" + String(test))
+    }
+    addQuestionRow(table: JTTable, order: number, qnum: number, buttons: buttonInfo[], prevuse: any): void {
+        let ordertext = "Timed"
+        let extratext = ""
+        if (order === -1) {
+            extratext = "  When you have solved it, raise your hand so that the time can be recorded and the solution checked."
+        } else {
+            ordertext = String(order)
+        }
+        let row = table.addBodyRow().add(ordertext)
+        if (order === -1 && qnum === -1) {
+            row.add({ celltype: "td", settings: { colspan: 5 }, content: "No Timed Question" })
+        } else {
+            let state = this.getFileEntry(qnum)
+            let buttonset = $("<div/>", { class: "button-group round entrycmds" })
+            for (let btninfo of buttons) {
+                buttonset.append($("<button/>", { 'data-entry': order, type: "button", class: btninfo.btnClass + " button" })
+                    .text(btninfo.title))
+            }
+            row.add(buttonset)
+                .add(state.cipherType)
+            if (prevuse !== undefined) {
+                row.add(prevuse)
+            }
+            row.add(String(state.points))
+                .add($("<span/>").html(state.question + extratext))
+                .add(state.cipherString)
+        }
+        return
     }
     printTestAnswer(qnum: number, question: number, extraclass: string): JQuery<HTMLElement> {
         let state = this.getFileEntry(question)

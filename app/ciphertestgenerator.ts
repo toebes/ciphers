@@ -1,13 +1,10 @@
 import { cloneObject } from "./ciphercommon";
-import { CipherTest, ITestState } from "./ciphertest"
+import { buttonInfo, CipherTest, ITestState } from "./ciphertest"
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
+import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTTable } from "./jttable";
 
-interface buttonInfo {
-    title: string,
-    btnClass: string,
-}
 /**
  * TestGenerator.html?test=<n>
  *    This edits a specific test.  It requires a test number.  If none
@@ -45,32 +42,7 @@ export class CipherTestGenerator extends CipherTest {
         this.setUIDefaults()
         this.updateOutput()
     }
-    addQuestionRow(table: JTTable, order: number, qnum: number, buttons: buttonInfo[]): void {
-        let ordertext = "Timed"
-        let extratext = ""
-        if (order === -1) {
-            extratext = "  When you have solved it, raise your hand so that the time can be recorded and the solution checked."
-        } else {
-            ordertext = String(order)
-        }
-        let row = table.addBodyRow().add(ordertext)
-        if (order === -1 && qnum === -1) {
-            row.add({ celltype: "td", settings: { colspan: 5 }, content: "No Timed Question" })
-        } else {
-            let state = this.getFileEntry(qnum)
-            let buttonset = $("<div/>", { class: "button-group round entrycmds" })
-            for (let btninfo of buttons) {
-                buttonset.append($("<button/>", { 'data-entry': order, type: "button", class: btninfo.btnClass + " button" })
-                    .text(btninfo.title))
-            }
-            row.add(buttonset)
-                .add(state.cipherType)
-                .add(String(state.points))
-                .add($("<span/>").html(state.question + extratext))
-                .add(state.cipherString)
-        }
-        return
-    }
+
     genPreCommands(): JQuery<HTMLElement> {
         let testcount = this.getTestCount()
         if (testcount === 0) {
@@ -81,6 +53,8 @@ export class CipherTestGenerator extends CipherTest {
         }
         let test = this.getTestEntry(this.state.test)
         let result = $("<div>", { class: "precmds" })
+
+        result.append(JTFLabeledInput("Title", 'text', 'title', test.title, "small-12 medium-12 large-12"))
 
         let table = new JTTable({ class: 'cell stack queslist' })
         let row = table.addHeaderRow()
@@ -94,9 +68,9 @@ export class CipherTestGenerator extends CipherTest {
             { title: "Edit", btnClass: "quesedit", },
             { title: "Remove", btnClass: "quesremove alert", },
         ]
-        this.addQuestionRow(table, -1, test.timed, buttons)
+        this.addQuestionRow(table, -1, test.timed, buttons, undefined)
         for (let entry = 0; entry < test.count; entry++) {
-            this.addQuestionRow(table, entry + 1, test.questions[entry], buttons)
+            this.addQuestionRow(table, entry + 1, test.questions[entry], buttons, undefined)
         }
         result.append(table.generate())
         return result
@@ -131,7 +105,7 @@ export class CipherTestGenerator extends CipherTest {
 
         for (let entry = 0; entry < cipherCount; entry++) {
             if (!useditems[entry]) {
-                this.addQuestionRow(table, entry, entry, buttons)
+                this.addQuestionRow(table, entry, entry, buttons, undefined)
             }
         }
         result.append(table.generate())
@@ -162,6 +136,11 @@ export class CipherTestGenerator extends CipherTest {
             $(elem).replaceWith(this.genPostCommands())
         })
         this.attachHandlers()
+    }
+    setTitle(title: string): void {
+        let test = this.getTestEntry(this.state.test)
+        test.title = title
+        this.setTestEntry(this.state.test, test)
     }
     gotoAddCipher(entry: number): void {
         let test = this.getTestEntry(this.state.test)
@@ -249,6 +228,9 @@ export class CipherTestGenerator extends CipherTest {
         $(".quesremove").off("click").on("click", (e) => {
             this.gotoRemoveCipher(Number($(e.target).attr('data-entry')))
         })
+        $("#title").off('input').on('input', (e) => {
+            let title = $(e.target).val() as string
+            this.setTitle(title)
+        })
     }
-
 }

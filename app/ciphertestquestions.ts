@@ -20,7 +20,7 @@ export class CipherTestQuestions extends CipherTest {
     state: ITestState = cloneObject(this.defaultstate) as ITestState
     cmdButtons: JTButtonItem[] = [
         { title: "Export Problems", color: "primary", id: "export", download: true, },
-        { title: "Import Problems", color: "primary", id: "import", disabled: true, },
+        { title: "Import Problems", color: "primary", id: "import", },
     ]
     restore(data: ITestState): void {
         let curlang = this.state.curlang
@@ -123,10 +123,25 @@ export class CipherTestQuestions extends CipherTest {
         this.deleteFileEntry(entry)
         this.updateOutput()
     }
+    importQuestions(): void {
+        this.openXMLImport()
+    }
+    /**
+     * Process imported XML
+     */
+    importXML(data: any): void {
+        console.log("Importing XML")
+        console.log(data)
+        this.processTestXML(data)
+        this.updateOutput()
+    }
     attachHandlers(): void {
         super.attachHandlers()
         $("#export").off("click").on("click", (e) => {
             this.exportQuestions($(e.target))
+        })
+        $("#import").off("click").on("click", (e) => {
+            this.importQuestions()
         })
         $(".entrydel").off("click").on("click", (e) => {
             this.gotoDeleteCipher(Number($(e.target).attr('data-entry')))

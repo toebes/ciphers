@@ -32,7 +32,7 @@ export class CipherTestGenerator extends CipherTest {
         { title: "Print Test", color: "primary", id: "printtest", },
         { title: "Print Answers", color: "primary", id: "printans", },
         { title: "Export Test", color: "primary", id: "export", download: true, },
-        { title: "Import Test", color: "primary", id: "import", disabled: true, },
+        { title: "Import Test", color: "primary", id: "import", },
     ]
     restore(data: ITestState): void {
         let curlang = this.state.curlang
@@ -208,10 +208,23 @@ export class CipherTestGenerator extends CipherTest {
         this.setTestEntry(this.state.test, test)
         this.reloadPage()
     }
+    importQuestions(): void {
+        this.openXMLImport()
+    }
+    /**
+     * Process imported XML
+     */
+    importXML(data: any): void {
+        this.processTestXML(data)
+        this.updateOutput()
+    }
     attachHandlers(): void {
         super.attachHandlers()
         $("#export").off("click").on("click", (e) => {
             this.exportTest($(e.target))
+        })
+        $("#import").off("click").on("click", (e) => {
+            this.importQuestions()
         })
         $("#randomize").off("click").on("click", (e) => {
             this.gotoRandomizeTest()

@@ -48,7 +48,7 @@ export interface IState {
     /** Indicates that a character is locked     */
     locked?: { [key: string]: boolean }
 }
-interface ITest {
+export interface ITest {
     /** Title of the test */
     title: string
     /** Which Cipher-Data.n element corresponds to the timed question.
@@ -557,10 +557,14 @@ export class CipherHandler {
             let test = this.getTestEntry(pos)
             if (test.timed > entry) {
                 test.timed--;
+            } else if (test.timed === entry) {
+                test.timed = -1
             }
-            for (let i in test.questions) {
+            for (let i = test.questions.length; i >= 0; i--) {
                 if (test.questions[i] > entry) {
                     test.questions[i]--
+                } else if (test.questions[i] === entry) {
+                    test.questions.splice(i, 1)
                 }
             }
             this.setTestEntry(pos, test)
@@ -585,6 +589,42 @@ export class CipherHandler {
         })
         $("#OpenFile").foundation('open')
     }
+    /**
+     * Process imported XML
+     */
+    importXML(data: any): void {
+    }
+    /**
+     * Put up a dialog to select an XML file to import
+     */
+    openXMLImport(): void {
+        $("#okimport").prop("disabled", false)
+        $("#okimport").off("click").on("click", (e) => {
+            let fileinput: HTMLInputElement = $("#xmlFile")[0] as HTMLInputElement
+            let files = fileinput.files
+            if (files.length && (typeof FileReader !== undefined)) {
+                let reader = new FileReader()
+                reader.readAsText(files[0])
+                reader.onload = (e1) => {
+                    try {
+                        let result = JSON.parse(reader.result)
+                        $("#ImportFile").foundation('close')
+                        this.importXML(result)
+                    } catch (e) {
+                        $("#xmlerr").text("Not a valid import file")
+                    }
+                }
+            }
+        })
+        // $("#okimport").off("click").on("click", (e) => {
+        //     this.savefileentry = Number($("#files option:selected").val())
+        //     $("#ImportFile").foundation('close')
+        //     this.markUndo()
+        //     this.restore(this.getFileEntry(this.savefileentry))
+        // })
+        $("#ImportFile").foundation('open')
+    }
+
     /**
      *  Save the current cipher to the current file
      */
@@ -1774,28 +1814,53 @@ export class CipherHandler {
         }
         return res
     }
-    getEditURL(state: IState): string {
+    public getEditURL(state: IState): string {
         if (state.cipherType === undefined) {
             return ""
         }
         return JTGetURL(CipherMenu, state.cipherType)
     }
-
-    createMainMenu(): JQElement {
-        let result = $("<div/>")
-        result.append(JTCreateMenu(CipherMenu, "example-menu", "Cipher Tools"))
-        let modaldiv = $("<div/>", { class: "reveal", id: "OpenFile", 'data-reveal': '' })
-        modaldiv.append($("<div/>", { class: "top-bar Primary" })
+    /**
+     * Create the hidden dialog for selecting a cipher to open
+     */
+    private createOpenFileDlg(): JQElement {
+        let openFileDiv = $("<div/>", { class: "reveal", id: "OpenFile", 'data-reveal': '' })
+        openFileDiv.append($("<div/>", { class: "top-bar Primary" })
             .append($("<div/>", { class: "top-bar-left" })
                 .append($("<h3/>").text("Select File to Open"))))
-        modaldiv.append($("<select/>", { id: "files", class: "filelist", size: 10 }))
+        openFileDiv.append($("<select/>", { id: "files", class: "filelist", size: 10 }))
         let buttongroup = $("<div/>", { class: "expanded button-group" })
         buttongroup.append($("<a/>", { class: "secondary button", "data-close": "" }).text("Cancel"))
         buttongroup.append($("<a/>", { class: "button", disabled: "true", id: "okopen" }).text("OK"))
-        modaldiv.append(buttongroup)
-        modaldiv.append($("<button/>", { class: "close-button", "data-close": "", "aria-label": "Close reveal", type: "button" })
+        openFileDiv.append(buttongroup)
+        openFileDiv.append($("<button/>", { class: "close-button", "data-close": "", "aria-label": "Close reveal", type: "button" })
             .append($("<span/>", { "aria-hidden": true }).html("&times;")))
-        result.append(modaldiv)
+        return openFileDiv
+    }
+    /**
+     * Creates the hidden dialog for selecting an XML file to import
+     */
+    private createImportFileDlg(): JQElement {
+        let importFileDiv = $("<div/>", { class: "reveal", id: "ImportFile", 'data-reveal': '' })
+        importFileDiv.append($("<div/>", { class: "top-bar Primary" })
+            .append($("<div/>", { class: "top-bar-left" })
+                .append($("<h3/>").text("Select File to Import"))))
+        importFileDiv.append($("<label/>", { for: "xmlFile", class: "button"}).text("Select XML File"))
+        importFileDiv.append($("<input/>", {type: "file", id: "xmlFile", class: "show-for-sr"}))
+        let buttongroup = $("<div/>", { class: "expanded button-group" })
+        buttongroup.append($("<a/>", { class: "secondary button", "data-close": "" }).text("Cancel"))
+        buttongroup.append($("<input/>", { class: "button", type: "submit", val: "Import", id: "okimport" }))
+        importFileDiv.append(buttongroup)
+        importFileDiv.append($("<button/>", { class: "close-button", "data-close": "", "aria-label": "Close reveal", type: "button" })
+            .append($("<span/>", { "aria-hidden": true }).html("&times;")))
+        return importFileDiv
+    }
+    public createMainMenu(): JQElement {
+        let result = $("<div/>")
+        result.append(JTCreateMenu(CipherMenu, "example-menu", "Cipher Tools"))
+        // Create the dialog for selecting which cipher to load
+        result.append(this.createOpenFileDlg())
+        result.append(this.createImportFileDlg())
         return result
     }
 }

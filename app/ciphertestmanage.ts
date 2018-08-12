@@ -22,7 +22,7 @@ export class CipherTestManage extends CipherTest {
     cmdButtons: JTButtonItem[] = [
         { title: "New Test", color: "primary", id: "newtest", },
         { title: "Export Tests", color: "primary", id: "export", download: true, },
-        { title: "Import Tests", color: "primary", id: "import", disabled: true, },
+        { title: "Import Tests", color: "primary", id: "import", },
     ]
     restore(data: ITestState): void {
         let curlang = this.state.curlang
@@ -33,16 +33,20 @@ export class CipherTestManage extends CipherTest {
         this.updateOutput()
     }
     updateOutput(): void {
-        $('.ans').each((i, elem) => {
-            $(elem).replaceWith(this.genTestList())
+        $('.precmds').each((i, elem) => {
+            $(elem).replaceWith(this.genPreCommands())
+        })
+        $('.postcmds').each((i, elem) => {
+            $(elem).replaceWith(this.genPostCommands())
         })
         this.attachHandlers()
     }
-    genTestList(): JQuery<HTMLElement> {
+    genPreCommands(): JQuery<HTMLElement> {
         let testcount = this.getTestCount()
         if (testcount === 0) {
             return $("<h3>").text("No Tests Created Yet")
         }
+        let result = $("<div/>", {class: "precmds"})
         let table = new JTTable({ class: 'cell shrink testlist' })
         let row = table.addHeaderRow()
         row.add("Action")
@@ -65,11 +69,16 @@ export class CipherTestManage extends CipherTest {
                 .add(test.title)
                 .add(String(questioncount))
         }
-        return table.generate()
+        result.append(table.generate())
+        return result
+    }
+    genPostCommands(): JQuery<HTMLElement> {
+        let result = $("<div>", { class: "postcmds" })
+        return result
     }
     newTest(): void {
         this.setTestEntry(-1, { timed: -1, count: 0, questions: [], title: "New Test" })
-        location.reload()
+        this.updateOutput()
     }
     exportAllTests(link: JQuery<HTMLElement>): void {
         let result = {}
@@ -89,11 +98,19 @@ export class CipherTestManage extends CipherTest {
         link.attr('download', "cipher_tests.json")
         link.attr('href', url)
     }
+    /**
+     * Process imported XML
+     */
+    importXML(data: any): void {
+        this.processTestXML(data)
+        this.updateOutput()
+    }
     importTests(): void {
+        this.openXMLImport()
     }
     deleteTest(test: number): void {
         this.deleteTestEntry(test)
-        location.reload()
+        this.updateOutput()
     }
     attachHandlers(): void {
         super.attachHandlers()

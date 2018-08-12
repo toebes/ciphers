@@ -17,7 +17,8 @@ export class CipherGromarkSolver extends CipherSolver {
      *
      * @param {string} str Input string to parse and generate the solver
      */
-    build(str: string): JQuery<HTMLElement> {
+    build(): JQuery<HTMLElement> {
+        let str = this.state.cipherString
         let res = ""
         let combinedtext = ""
         let prehead = '<div class="sword"><table class="tword"><tbody><tr>'

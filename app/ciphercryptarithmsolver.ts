@@ -22,7 +22,7 @@ export class CryptarithmSolver extends CipherSolver {
      */
     load(): void {
         let encoded: string = this.cleanString(this.state.cipherString)
-        let res = this.build(encoded)
+        let res = this.build()
         this.UpdateFreqEditTable()
 
         $("#answer").empty().append(res)
@@ -218,7 +218,8 @@ export class CryptarithmSolver extends CipherSolver {
      * @returns {string} HTML of solver structure
      */
     // tslint:disable-next-line:cyclomatic-complexity
-    build(str: string): JQuery<HTMLElement> {
+    build(): JQuery<HTMLElement> {
+        let str: string = this.cleanString(this.state.cipherString)
         enum buildState {
             Initial = "Initial",
             WantRoot = "Want Root value",

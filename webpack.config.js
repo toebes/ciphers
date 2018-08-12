@@ -29,7 +29,7 @@ module.exports = {
             "katex.css": path.join(__dirname, "node_modules", "katex", "dist", "katex.css"),
         },
         modules: [__dirname, path.join(__dirname, 'node_modules'),],
-        extensions: ['.ts', '.js', '.css', '.ttf', '.eot', '.woff', '.woff2', '.png']
+        extensions: ['.ts', '.js', '.css', '.ttf', '.eot', '.woff', '.woff2', '.png', '.svg']
     },
     module: {
         rules: [
@@ -55,6 +55,17 @@ module.exports = {
                     loader: "url-loader",
                     options: {
                         limit: 8192,
+                    },
+                }
+            },
+            // All small .svg files (mostly the icons for the editor) are inlined
+            // with the URL loader
+            {
+                test: /\.(svg)$/,
+                use: {
+                    loader: "url-loader",
+                    options: {
+                        limit: 20000,
                     },
                 }
             },

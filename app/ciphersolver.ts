@@ -45,7 +45,11 @@ export class CipherSolver extends CipherHandler {
         this.findPossible(this.state.findString)
     }
     setUIDefaults(): void {
-        $("#qtext").text(this.state.question)
+        if ("qtext" in this.editor) {
+            this.editor["qtext"].setData(this.state.question)
+        } else {
+            $("#qtext").val(this.state.question)
+        }
         $('#encoded').val(this.state.cipherString);
         $('#find').val(this.state.findString);
         $("#analysis").each((i, elem) => {

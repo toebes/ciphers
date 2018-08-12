@@ -32,9 +32,6 @@ import 'foundation-sites'
 import 'foundation.css'
 import * as $ from "jquery"
 import 'katex.css'
-import 'summernote'
-import 'summernote-lite.css'
-import 'summernote-lite.js'
 import '../styles.css'
 
 import { CipherFactory } from "./cipherfactory"

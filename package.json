@@ -24,6 +24,8 @@
     "webpack-cli": "^2.1.5"
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-build-inline": "^11.0.1",
+    "@ckeditor/ckeditor5-font": "^10.0.2",
     "@types/core-js": "^2.5.0",
     "@types/datatables.net": "^1.10.13",
     "@types/datatables.net-colreorder": "^1.4.0",

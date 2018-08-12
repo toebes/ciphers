@@ -366,10 +366,11 @@ div.sols .sol {
     font-family: 'Courier New', Courier, monospace;
 }
 
-#qtext {
-    font-size: 24px;
+ #qtext {
+     border: 1px solid #cacaca;
+    /* font-size: 24px;
     background: rgb(200, 241, 177);
-    font-weight: bold;
+    font-weight: bold; */
 }
 
 table.contact,

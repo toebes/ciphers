@@ -1,6 +1,5 @@
-// tslint:disable-next-line:no-reference
-/// <reference path="../node_modules/summernote-typescript/summernote/summernote.d.ts"/>
-
+import * as InlineEditor from '@ckeditor/ckeditor5-build-inline';
+// import { Font } from "@ckeditor/ckeditor5-font/src/font"
 import { BoolMap, cloneObject, StringMap } from "./ciphercommon"
 import { CipherMenu } from "./ciphermenu"
 import { ICipherType } from "./ciphertypes"
@@ -9,6 +8,18 @@ import { JTCreateMenu, JTGetURL } from "./jtmenu"
 import { JTTable } from "./jttable";
 import { parseQueryString } from "./parsequerystring"
 
+// From https://github.com/ckeditor/ckeditor5/issues/139#issuecomment-276876222
+// import Typing from '@ckeditor/ckeditor5-typing/src/typing';
+// import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
+// import Undo from '@ckeditor/ckeditor5-undo/src/undo';
+// import Bold from '@ckeditor/ckeditor5-basic-styles/src/bold';
+// import Italic from '@ckeditor/ckeditor5-basic-styles/src/italic';
+// import Image from '@ckeditor/ckeditor5-image/src/image';
+
+// ClassicEditor.create(document.getElementById("editor"), {
+//     plugins: [ Enter, Typing, Paragraph, Undo, Bold, Italic, Image ],
+//     toolbar: [ 'bold', 'italic', 'undo', 'redo' ]
+// });
 export type IOperationType = "encode" | "decode" | "compute"
 
 export interface IState {
@@ -339,6 +350,11 @@ export class CipherHandler {
     undoPosition: number = 0
     /** Indicates that we need to queue an undo item before executing an Undo */
     undoNeeded: string = undefined
+    /**
+     * This is a cache of all active editors on the page.
+     * It is indexed by the id of the HTML element
+     */
+    editor: { [key: string]: InlineEditor } = {}
     /**
      * The maximum number of characters to
      * be shown on an encoded line so that it can be readily pasted into a test
@@ -1330,6 +1346,18 @@ export class CipherHandler {
         this.updateMatchDropdowns("")
     }
     /**
+     * Set the value of a rich text element.  Note that some editors may not
+     * be fully initialized, so we may have to stash it for when it does get
+     * initialized
+     */
+    public setRichText(id: string, val: string): void {
+        if (id in this.editor) {
+            this.editor[id].setData(val)
+        } else {
+            $("#" + id).val(val)
+        }
+    }
+    /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
@@ -1462,13 +1490,27 @@ export class CipherHandler {
         $(".lang").off("change").on("change", (e) => {
             this.loadLanguage($(e.target).val() as string)
         })
-        $(".richtext").summernote({
-            fontNames: ["Arial", "Courier New"],
-            toolbar: [
-                ['style', ['bold', 'italic', 'underline', 'clear']],
-                ['font', ['subscript', 'subscript']],
-                ['fontsize', ['fontsize']]
-            ]
+        $(".richtext").each((i: number, elem: HTMLElement) => {
+            let id = $(elem).prop('id') as string
+            if (id !== '' && (!(id in this.editor))) {
+                InlineEditor.create(elem,
+                                    {
+                                        // plugins: [Font],
+                                        // plugins: [Enter, Typing, Paragraph, Undo, Bold, Italic, Image],
+                                        toolbar: ["bold", "italic", "blockQuote", "heading",  "link", ],
+                                    })
+                    .then(editor => {
+                        let initialtext = $(elem).val()
+                        this.editor[id] = editor
+                        if (initialtext !== '') {
+                            editor.setData(initialtext)
+                        }
+                        editor.model.document.on('change:data', () => {
+                            $(elem).trigger("richchange", editor.getData())
+                        })
+                    })
+                    .catch(error => { console.error(error) })
+            }
         })
         $('#find').off("input").on("input", (e) => {
             this.markUndo("find")

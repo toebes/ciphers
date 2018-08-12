@@ -71,7 +71,7 @@ export class CipherEncoder extends CipherHandler {
     }
     updateQuestionsOutput(): void {
         $("#points").val(this.state.points);
-        $("#qtext").summernote('code', this.state.question);
+        this.setRichText("qtext", this.state.question)
     }
 
     save(): IEncoderState {
@@ -211,20 +211,14 @@ export class CipherEncoder extends CipherHandler {
                 this.state.points = points
             }
         })
-        $("#qtext").off('summernote.change').on('summernote.change', (we, contents, $editable) => {
-            let question = contents
+        $("#qtext").off('richchange').on('richchange', (e, newtext) => {
+            let question = newtext
             if (question !== this.state.question) {
                 this.markUndo("question")
                 this.state.question = question
+                console.log('Qtext=' + question)
             }
         })
-        // $("#qtext").off('input').on('input', (e) => {
-        //     let question = $(e.target).val() as string
-        //     if (question !== this.state.question) {
-        //         this.markUndo("question")
-        //         this.state.question = question
-        //     }
-        // })
         $("#toencode").off('input').on('input', (e) => {
             let cipherString = $(e.target).val() as string
             if (cipherString !== this.state.cipherString) {

@@ -33,15 +33,12 @@ export class CipherTestManage extends CipherTest {
         this.updateOutput()
     }
     updateOutput(): void {
-        $('.precmds').each((i, elem) => {
-            $(elem).replaceWith(this.genPreCommands())
-        })
-        $('.postcmds').each((i, elem) => {
-            $(elem).replaceWith(this.genPostCommands())
+        $('.testlist').each((i, elem) => {
+            $(elem).replaceWith(this.genTestList())
         })
         this.attachHandlers()
     }
-    genPreCommands(): JQuery<HTMLElement> {
+    genTestList(): JQuery<HTMLElement> {
         let testcount = this.getTestCount()
         if (testcount === 0) {
             return $("<h3>").text("No Tests Created Yet")
@@ -70,10 +67,6 @@ export class CipherTestManage extends CipherTest {
                 .add(String(questioncount))
         }
         result.append(table.generate())
-        return result
-    }
-    genPostCommands(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "postcmds" })
         return result
     }
     newTest(): void {

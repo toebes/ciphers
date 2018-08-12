@@ -19,8 +19,15 @@ export class CipherTestAnswers extends CipherTest {
     restore(data: ITestState): void {
         this.state = cloneObject(this.defaultstate) as ITestState
         this.copyState(this.state, data)
+        this.updateOutput()
     }
-    genPreCommands(): JQuery<HTMLElement> {
+    updateOutput(): void {
+        $('.testcontent').each((i, elem) => {
+            $(elem).replaceWith(this.genTestAnswers())
+        })
+        this.attachHandlers()
+    }
+    genTestAnswers(): JQuery<HTMLElement> {
         let testcount = this.getTestCount()
         if (testcount === 0) {
             return $("<h3>").text("No Tests Created Yet")

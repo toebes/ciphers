@@ -42,8 +42,7 @@ export class CipherTestGenerator extends CipherTest {
         this.setUIDefaults()
         this.updateOutput()
     }
-
-    genPreCommands(): JQuery<HTMLElement> {
+    genTestQuestions(): JQuery<HTMLElement> {
         let testcount = this.getTestCount()
         if (testcount === 0) {
             return $("<h3>").text("No Tests Created Yet")
@@ -75,7 +74,7 @@ export class CipherTestGenerator extends CipherTest {
         result.append(table.generate())
         return result
     }
-    genPostCommands(): JQuery<HTMLElement> {
+    genQuestionPool(): JQuery<HTMLElement> {
         let useditems: { [index: string]: boolean } = {}
         let test = this.getTestEntry(this.state.test)
         if (test.timed !== -1) {
@@ -128,12 +127,12 @@ export class CipherTestGenerator extends CipherTest {
         link.attr('download', "cipher_test.json")
         link.attr('href', url)
     }
-    reloadPage(): void {
-        $('.precmds').each((i, elem) => {
-            $(elem).replaceWith(this.genPreCommands())
+    updateOutput(): void {
+        $('.testdata').each((i, elem) => {
+            $(elem).replaceWith(this.genTestQuestions())
         })
-        $('.postcmds').each((i, elem) => {
-            $(elem).replaceWith(this.genPostCommands())
+        $('.questionpool').each((i, elem) => {
+            $(elem).replaceWith(this.genQuestionPool())
         })
         this.attachHandlers()
     }
@@ -147,13 +146,13 @@ export class CipherTestGenerator extends CipherTest {
         test.count++
         test.questions.push(entry)
         this.setTestEntry(this.state.test, test)
-        this.reloadPage()
+        this.updateOutput()
     }
     gotoSetTimedCipher(entry: number): void {
         let test = this.getTestEntry(this.state.test)
         test.timed = entry
         this.setTestEntry(this.state.test, test)
-        this.reloadPage()
+        this.updateOutput()
     }
     gotoEditTestCipher(entry: number): void {
         let test = this.getTestEntry(this.state.test)
@@ -182,7 +181,7 @@ export class CipherTestGenerator extends CipherTest {
             }
         }
         this.setTestEntry(this.state.test, test)
-        this.reloadPage()
+        this.updateOutput()
     }
     /** From https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array */
     shuffle(array: any[]): any[] {
@@ -206,7 +205,7 @@ export class CipherTestGenerator extends CipherTest {
         let test = this.getTestEntry(this.state.test)
         test.questions = this.shuffle(test.questions)
         this.setTestEntry(this.state.test, test)
-        this.reloadPage()
+        this.updateOutput()
     }
     importQuestions(): void {
         this.openXMLImport()

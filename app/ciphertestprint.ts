@@ -23,8 +23,15 @@ export class CipherTestPrint extends CipherTest {
         this.state = cloneObject(this.defaultstate) as ITestState
         this.state.curlang = curlang
         this.copyState(this.state, data)
+        this.updateOutput()
     }
-    genPreCommands(): JQuery<HTMLElement> {
+    updateOutput(): void {
+        $('.testcontent').each((i, elem) => {
+            $(elem).replaceWith(this.genTestQuestions())
+        })
+        this.attachHandlers()
+    }
+    genTestQuestions(): JQuery<HTMLElement> {
         let testcount = this.getTestCount()
         if (testcount === 0) {
             return $("<h3>").text("No Tests Created Yet")

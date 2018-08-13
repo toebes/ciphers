@@ -739,6 +739,13 @@ table.hillans {
     margin-top: 2rem;
     border: none;
 }
+table.hillblock {
+    margin-top: 2rem;
+    margin-bottom: 10rem;
+}
+table.hillblock td {
+    min-width: 2rem;
+}
 
 table.hillans td.v {
     margin: 0;

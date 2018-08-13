@@ -426,21 +426,43 @@ export class CipherHillEncoder extends CipherEncoder {
         // Done!
         return equation;
     }
+    makeMatrix(str: string): any[][] {
+        if (str.length === 4) {
+            return [[str.substr(0, 1), str.substr(1, 1)],
+            [str.substr(2, 1), str.substr(3, 1)]]
+        }
+        if (str.length === 9) {
+            return [[str.substr(0, 1), str.substr(1, 1), str.substr(2, 1)],
+            [str.substr(3, 1), str.substr(4, 1), str.substr(5, 1)],
+            [str.substr(6, 1), str.substr(7, 1), str.substr(8, 1)]]
+        }
+        // We don't understand the length, so they get nothing
+        return [[]]
+    }
+    getKmathMatrix(matrix: any[][]): string {
+        let extra = ''
+        let result = "\\begin{pmatrix}";
+        for (let row of matrix) {
+            result += extra
+            let rowextra = ""
+            for (let c of row) {
+                result += rowextra + c
+                rowextra = "&"
+            }
+            extra = "\\\\"
+        }
+        result += "\\end{pmatrix}"
+        return result
+    }
     genQuestionMath(): JQuery<HTMLElement> {
         let key = this.state.keyword.toUpperCase()
         let vals = this.isvalidkey(key)
         if (vals === null) {
             return $("<h2/>").text("Invalid key: " + this.state.keyword)
         }
-        let kmath = "\\begin{pmatrix}" +
-                        key.substr(0, 1) + "&" + key.substr(1, 1) + "\\\\" +
-                        key.substr(2, 1) + "&" + key.substr(3, 1) +
-                    "\\end{pmatrix}" +
+        let kmath = this.getKmathMatrix(this.makeMatrix(key)) +
                     "\\equiv" +
-                    "\\begin{pmatrix}" +
-                        String(vals[0][0]) + "&" + String(vals[0][1]) + "\\\\" +
-                        String(vals[1][0]) + "&" + String(vals[1][1]) +
-                    "\\end{pmatrix}"
+                    this.getKmathMatrix(vals)
         return $(katex.renderToString(kmath))
     }
     genAnswerMathMatrix(matrix: any[][]): JQuery<HTMLElement> {
@@ -464,32 +486,40 @@ export class CipherHillEncoder extends CipherEncoder {
             first = false
         }
         return table.generate()
-        // let kmath = "\\begin{pmatrix}"
-        // let extra = ""
-        // for (let row of matrix) {
-        //     let colextra = ""
-        //     kmath += extra
-        //     for (let col of row) {
-        //         kmath += colextra + "\\boxed{\\LARGE{" + col + "}}"
-        //         colextra = "&"
-        //     }
-        //     extra = "\\\\"
-        // }
-        // kmath += "\\end{pmatrix}"
-        // return $(katex.renderToString(kmath))
     }
-    makeMatrix(str: string): any[][] {
-        if (str.length === 4) {
-            return [[str.substr(0, 1), str.substr(1, 1)],
-            [str.substr(2, 1), str.substr(3, 1)]]
+    computeHill(): string {
+        let result = ""
+        let key = this.state.keyword
+        let str = this.state.cipherString
+        let charset = this.getCharset()
+        let vals = this.isvalidkey(key);
+        if (vals === null) {
+            return "Invalid keyword:" + key
         }
-        if (str.length === 9) {
-            return [[str.substr(0, 1), str.substr(1, 1), str.substr(2, 1)],
-            [str.substr(3, 1), str.substr(4, 1), str.substr(5, 1)],
-            [str.substr(6, 1), str.substr(7, 1), str.substr(8, 1)]]
+
+        // Figure out how big our array for encoding is
+        let groupsize = Math.sqrt(key.length);
+
+        // pad out the string to contain full groups of the group size
+        str = this.padstr(str, groupsize);
+
+        // Go through the string in the group size and perform the math on it
+        for (let i = 0, len = str.length; i < len; i += groupsize) {
+            let cluster = [];
+            for (let j = i; j < i + groupsize; j++) {
+                let c = str.substr(j, 1);
+                let val = charset.indexOf(c);
+                if (val < 0) {
+                    return ('Invalid Cipher:' + c + ' invalid character');
+                }
+                cluster.push(val);
+            }
+            let clustervals = math.multiply(vals, cluster);
+            for (let j = 0; j < groupsize; j++) {
+                result += charset.substr(clustervals[j] % charset.length, 1);
+            }
         }
-        // We don't understand the length, so they get nothing
-        return [[]]
+        return result
     }
     /**
      * Generate the HTML to display the answer for a cipher
@@ -506,6 +536,16 @@ export class CipherHillEncoder extends CipherEncoder {
                 result.append($("<div/>").append(this.genAnswerMathMatrix(modinv)))
             }
         } else {
+            let encoded = this.computeHill()
+            let charset = this.getCharset()
+            this.setCharset(charset + " ")
+            let plaintext = this.state.cipherString
+            plaintext += this.repeatStr(" ", encoded.length - plaintext.length)
+
+            let table = new JTTable({class: "hillblock ansblock shrink cell unstriped"})
+            this.addCipherTableRows(table, undefined, plaintext, encoded, false)
+            result.append(table.generate())
+            this.setCharset(charset)
         }
         return result
     }
@@ -520,6 +560,16 @@ export class CipherHillEncoder extends CipherEncoder {
         if (this.state.operation === "compute") {
             result.append($("<div/>").append(this.genAnswerMathMatrix(outMatrix)))
         } else {
+            let encoded = this.computeHill()
+            let plaintext = this.state.cipherString
+            let charset = this.getCharset()
+            this.setCharset(charset + " ")
+            plaintext += this.repeatStr(" ", encoded.length - plaintext.length)
+            encoded = this.repeatStr(" ", encoded.length)
+            let table = new JTTable({class: "hillblock ansblock shrink cell unstriped"})
+            this.addCipherTableRows(table, undefined, plaintext, undefined, false)
+            result.append(table.generate())
+            this.setCharset(charset)
         }
 
         return result

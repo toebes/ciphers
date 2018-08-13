@@ -700,6 +700,7 @@ table.found tr th:nth-child(odd) {
   .ansblock td.a {
       background: yellow;
       height: 3rem;
+      font-weight: bold;
   }
   .ansblock td.e {
       height: 3rem;
@@ -732,6 +733,25 @@ table.times td.a {
 div.instructions {
     display: none;
 }
+
+table.hillans {
+    margin-left: 10rem;
+    margin-top: 2rem;
+    border: none;
+}
+
+table.hillans td.v {
+    margin: 0;
+    min-width: 3rem;
+    min-height: 3rem;
+}
+
+table.hillans .big2 {
+    font-size: 100px;
+    padding: 0;
+    margin: -30px;
+}
+
 @media print
 {    
     .title-bar, .top-bar, .noprint
@@ -746,3 +766,4 @@ div.instructions {
         page-break-before: always;
     }
 }
+

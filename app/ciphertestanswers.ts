@@ -15,6 +15,9 @@ export class CipherTestAnswers extends CipherTest {
     }
     state: ITestState = cloneObject(this.defaultstate) as ITestState
     cmdButtons: JTButtonItem[] = [
+        { title: "Edit Test", color: "primary", id: "edittest", },
+        { title: "Print Test", color: "primary", id: "printtest", },
+        // { title: "Print Answers", color: "primary", id: "printans", },
     ]
     restore(data: ITestState): void {
         this.state = cloneObject(this.defaultstate) as ITestState

@@ -7,6 +7,7 @@ import { ICipherType } from "./ciphertypes"
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from './jtradiobutton';
+import { JTTable } from './jttable';
 import { isCoPrime, mod26, mod26Inverse2x2 } from './mathsupport';
 
 export class CipherHillEncoder extends CipherEncoder {
@@ -424,5 +425,103 @@ export class CipherHillEncoder extends CipherEncoder {
 
         // Done!
         return equation;
+    }
+    genQuestionMath(): JQuery<HTMLElement> {
+        let key = this.state.keyword.toUpperCase()
+        let vals = this.isvalidkey(key)
+        if (vals === null) {
+            return $("<h2/>").text("Invalid key: " + this.state.keyword)
+        }
+        let kmath = "\\begin{pmatrix}" +
+                        key.substr(0, 1) + "&" + key.substr(1, 1) + "\\\\" +
+                        key.substr(2, 1) + "&" + key.substr(3, 1) +
+                    "\\end{pmatrix}" +
+                    "\\equiv" +
+                    "\\begin{pmatrix}" +
+                        String(vals[0][0]) + "&" + String(vals[0][1]) + "\\\\" +
+                        String(vals[1][0]) + "&" + String(vals[1][1]) +
+                    "\\end{pmatrix}"
+        return $(katex.renderToString(kmath))
+    }
+    genAnswerMathMatrix(matrix: any[][]): JQuery<HTMLElement> {
+        let table = new JTTable({ class: 'hillans ansblock shrink cell unstriped'})
+        let first = true
+        for (let row of matrix) {
+            let tabrow = table.addBodyRow()
+            if (first) {
+                tabrow.add({ settings: { rowspan: row.length, class: "big" + row.length}, content: "(" })
+            }
+            for (let c of row) {
+                let cclass = "a"
+                if (c === ' ') {
+                    cclass = "q"
+                }
+                tabrow.add({settings: {class: cclass + " v"}, content: c})
+            }
+            if (first) {
+                tabrow.add({ settings: { rowspan: row.length, class: "big" + row.length}, content: ")" })
+            }
+            first = false
+        }
+        return table.generate()
+        // let kmath = "\\begin{pmatrix}"
+        // let extra = ""
+        // for (let row of matrix) {
+        //     let colextra = ""
+        //     kmath += extra
+        //     for (let col of row) {
+        //         kmath += colextra + "\\boxed{\\LARGE{" + col + "}}"
+        //         colextra = "&"
+        //     }
+        //     extra = "\\\\"
+        // }
+        // kmath += "\\end{pmatrix}"
+        // return $(katex.renderToString(kmath))
+    }
+    makeMatrix(str: string): any[][] {
+        if (str.length === 4) {
+            return [[str.substr(0, 1), str.substr(1, 1)],
+            [str.substr(2, 1), str.substr(3, 1)]]
+        }
+        if (str.length === 9) {
+            return [[str.substr(0, 1), str.substr(1, 1), str.substr(2, 1)],
+            [str.substr(3, 1), str.substr(4, 1), str.substr(5, 1)],
+            [str.substr(6, 1), str.substr(7, 1), str.substr(8, 1)]]
+        }
+        // We don't understand the length, so they get nothing
+        return [[]]
+    }
+    /**
+     * Generate the HTML to display the answer for a cipher
+     */
+    genAnswer(): JQuery<HTMLElement> {
+        let result = $("<div>")
+
+        let outMatrix: string[][] = this.makeMatrix(this.state.keyword)
+        result.append(this.genQuestionMath())
+        if (this.state.operation === "compute") {
+            let vals = this.isvalidkey(this.state.keyword);
+            if (vals !== null) {
+                let modinv = mod26Inverse2x2(vals)
+                result.append($("<div/>").append(this.genAnswerMathMatrix(modinv)))
+            }
+        } else {
+        }
+        return result
+    }
+    /**
+     * Generate the HTML to display the question for a cipher
+     */
+    genQuestion(): JQuery<HTMLElement> {
+        let result = $("<div>")
+        let outMatrix: string[][] = this.makeMatrix(this.repeatStr(" ", this.state.keyword.length))
+        result.append(this.genQuestionMath())
+
+        if (this.state.operation === "compute") {
+            result.append($("<div/>").append(this.genAnswerMathMatrix(outMatrix)))
+        } else {
+        }
+
+        return result
     }
 }

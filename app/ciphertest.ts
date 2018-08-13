@@ -307,6 +307,9 @@ export class CipherTest extends CipherHandler {
         $("#printans").off("click").on("click", (e) => {
             this.gotoPrintTestAnswers(this.state.test)
         })
+        $("#edittest").off("click").on("click", (e) => {
+            this.gotoEditTest(this.state.test)
+        })
         $(".entryedit").off("click").on("click", (e) => {
             this.gotoEditCipher(Number($(e.target).attr('data-entry')))
         })

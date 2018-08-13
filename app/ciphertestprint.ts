@@ -16,7 +16,10 @@ export class CipherTestPrint extends CipherTest {
     }
     state: ITestState = cloneObject(this.defaultstate) as ITestState
     cmdButtons: JTButtonItem[] = [
-    ]
+            { title: "Edit Test", color: "primary", id: "edittest", },
+            // { title: "Print Test", color: "primary", id: "printtest", },
+            { title: "Print Answers", color: "primary", id: "printans", },
+        ]
 
     restore(data: ITestState): void {
         let curlang = this.state.curlang
@@ -43,7 +46,6 @@ export class CipherTestPrint extends CipherTest {
         let result = $("<div>")
         result.append($("<h1>").text("Test Aids go here"))
         result.append($("<h2>").text(test.title))
-        result.append($("<h3>").text("Test #" + Number(this.state.test)))
         if (test.timed === -1) {
             result.append($("<p>").text("No timed question"))
         } else {

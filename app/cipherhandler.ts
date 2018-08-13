@@ -61,6 +61,12 @@ export interface ITest {
     questions: number[]
 }
 
+export interface IRunningKey {
+    /** The title of the key */
+    title: string
+    /** The text of the key */
+    text: string
+}
 type patelem = [string, number, number, number]
 type JQElement = JQuery<HTMLElement>
 /**
@@ -336,6 +342,37 @@ export class CipherHandler {
     ]
     testStrings: string[] = [
     ]
+    defaultRunningKeys: IRunningKey[] = [
+        {
+            title: "Gettysburg address",
+            text: "FOUR SCORE AND SEVEN YEARS AGO OUR FATHERS BROUGHT FORTH ON THIS CONTINENT, " +
+                "A NEW NATION, CONCEIVED IN LIBERTY, AND DEDICATED TO THE " +
+                "PROPOSITION THAT ALL MEN ARE CREATED EQUAL."
+        },
+        {
+            title: "Declaration of Independence",
+            text: "WHEN IN THE COURSE OF HUMAN EVENTS IT BECOMES NECESSARY FOR ONE PEOPLE TO " +
+                "DISSOLVE THE POLITICAL BANDS WHICH HAVE CONNECTED THEM WITH ANOTHER AND TO ASSUME " +
+                "AMONG THE POWERS OF THE EARTH, THE SEPARATE AND EQUAL STATION TO WHICH THE LAWS " +
+                "OF NATURE AND OF NATURE'S GOD ENTITLE THEM, A DECENT RESPECT TO THE OPINIONS OF " +
+                "MANKIND REQUIRES THAT THEY SHOULD DECLARE THE CAUSES WHICH IMPEL THEM TO THE SEPARATION."
+        },
+        {
+            title: "Constitution of United States of America",
+            text: "WE THE PEOPLE OF THE UNITED STATES, IN ORDER TO FORM A MORE PERFECT UNION, " +
+                "ESTABLISH JUSTICE, INSURE DOMESTIC TRANQUILITY, PROVIDE FOR THE COMMON DEFENSE, " +
+                "PROMOTE THE GENERAL WELFARE, AND SECURE THE BLESSINGS OF LIBERTY TO OURSELVES AND " +
+                "OUR POSTERITY, DO ORDAIN AND ESTABLISH THIS CONSTITUTION FOR THE " +
+                "UNITED STATES OF AMERICA.",
+        },
+        {
+            title: "MAGNA CARTA (In Latin)",
+            text: "JOHANNES DEI GRACIA REX ANGLIE, DOMINUS HIBERNIE, DUX NORMANNIE, " +
+                "AQUITANNIE ET COMES ANDEGAVIE, ARCHIEPISCOPIS, EPISCOPIS, ABBATIBUS, COMITIBUS, " +
+                "BARONIBUS, JUSTICIARIIS, FORESTARIIS, VICECOMITIBUS, PREPOSITIS, " +
+                "MINISTRIS ET OMNIBUS BALLIVIS ET FIDELIBUS SUIS SALUTEM."
+        }
+    ]
     /** The direction of the last advance */
     advancedir: number = 0
     cipherWidth: number = 1
@@ -398,7 +435,6 @@ export class CipherHandler {
         localStorage.setItem('Cipher-Test-Count', String(count))
         return ""
     }
-
     /**
      * Gets the string that corresponds to a test in local storage
      */
@@ -570,6 +606,56 @@ export class CipherHandler {
             this.setTestEntry(pos, test)
         }
         return ""
+    }
+    /**
+     * Gets the string that corresponds to a running key entry in local storage
+     */
+    getRunningKeyName(entry: number): string {
+        return 'Running-Key.' + String(entry)
+    }
+    /**
+     * Retrieves a test entry from local storage
+     */
+    getRunningKey(entry: number): IRunningKey {
+        let result: IRunningKey
+        if (typeof (Storage) !== "undefined") {
+            let jsonString = localStorage.getItem(this.getRunningKeyName(entry))
+            if (jsonString !== null) {
+                result = JSON.parse(jsonString)
+            }
+        }
+        // Fill in a default if they haven't gotten one or what came in was bad
+        if ((result === undefined || result.text === "") &&
+            entry < this.defaultRunningKeys.length) {
+            result = this.defaultRunningKeys[entry]
+        }
+        return result
+    }
+    deleteRunningKey(entry: number) : void {
+        localStorage.removeItem(this.getRunningKeyName(entry))
+    }
+    setRunningKey(entry: number, data: IRunningKey): void {
+        if (typeof (Storage) === "undefined") {
+            return
+        }
+        localStorage.setItem(this.getRunningKeyName(entry), JSON.stringify(data))
+    }
+    /**
+     * Return all the available running keys
+     * This includes defaults if none have been defined.
+     * Note that we will never return more than 10 running keys and ideally
+     * We only want to have 4 for space on the test
+     */
+    public getRunningKeyStrings(): IRunningKey[] {
+        let result: IRunningKey[] = []
+        for (let entry = 0; entry < 10; entry++) {
+            let ikey = this.getRunningKey(entry)
+            if (ikey === undefined) {
+                break
+            }
+            result.push(ikey)
+        }
+        return result
     }
     /**
      * Put up a dialog to select a cipher to load
@@ -1529,12 +1615,7 @@ export class CipherHandler {
             let id = $(elem).prop('id') as string
             if (id !== '' && (!(id in this.editor))) {
                 this.editor[id] = null
-                InlineEditor.create(elem,
-                                    {
-                        // plugins: [Font],
-                        // plugins: [Enter, Typing, Paragraph, Undo, Bold, Italic, Image],
-                        // toolbar: ["bold", "italic", "blockQuote", "heading",  "link", ],
-                    })
+                InlineEditor.create(elem)
                     .then(editor => {
                         let initialtext = $(elem).val()
                         this.editor[id] = editor

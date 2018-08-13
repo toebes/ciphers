@@ -10,6 +10,7 @@ import { CipherHillEncoder } from "./cipherhillencoder"
 import { CipherMorbitSolver } from "./ciphermorbitsolver"
 import { CipherRagbabySolver } from "./cipherragbabysolver"
 import { CipherRailfenceSolver } from "./cipherrailfencesolver"
+import { CipherRunningKeyEdit } from "./cipherrunningkeyedit"
 import { CipherSolver } from "./ciphersolver"
 import { CipherTableEncoder } from "./ciphertableencoder"
 import { CipherTestAnswers } from "./ciphertestanswers"
@@ -101,6 +102,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     RailfenceSolver: {
         cipherType: ICipherType.Railfence,
         cipherClass: CipherRailfenceSolver,
+        canPrint: false,
+    },
+    RunningKeyEdit : {
+        cipherType: ICipherType.None,
+        cipherClass: CipherRunningKeyEdit,
         canPrint: false,
     },
     Standard: {

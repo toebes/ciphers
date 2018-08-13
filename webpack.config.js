@@ -166,6 +166,13 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'EditRunningKeys.html',
+            template: path.join(__dirname, 'app', 'pages', 'EditRunningKeys.html'),
+            cipher: 'RunningKeyEdit',
+            title: 'Edit Running Key Values',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'FractionatedMorseSolver.html',
             template: path.join(__dirname, 'app', 'pages', 'FractionatedMorseSolver.html'),
             cipher: 'FractionatedMorse',

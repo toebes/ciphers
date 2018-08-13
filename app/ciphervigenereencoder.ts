@@ -65,13 +65,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
     updateOutput(): void {
         this.updateQuestionsOutput()
         if (this.state.operation === 'encode') {
-            $('.blocksize').show()
             // Change the button label to 'Encode'
             $('#load').val('Encode')
-
         } else {
-            // During decode, message format will not be changed.
-            $('.blocksize').hide()
             // Change button label to 'Decode'
             $('#load').val('Decode')
         }
@@ -106,20 +102,24 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.state.blocksize = blocksize
     }
     buildReplacementVigenere(msg: string, key: string, maxEncodeWidth: number): string[][] {
+        let encoded = msg
+        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
+            encoded = this.chunk(encoded, this.state.blocksize)
+        }
         let result: string[][] = []
         let charset = this.getCharset()
         let message = ''
         let keyIndex = 0
         let keyString = ''
         let cipher = ''
-        let msgLength = msg.length
+        let msgLength = encoded.length
         let keyLength = key.length
         let lastSplit = -1
 
         let factor = (msgLength / keyLength)
         keyString = this.repeatStr(key.toUpperCase(), factor + 1)
         for (let i = 0; i < msgLength; i++) {
-            let messageChar = msg.substr(i, 1).toUpperCase()
+            let messageChar = encoded.substr(i, 1).toUpperCase()
             let m = charset.indexOf(messageChar)
             if (m >= 0) {
                 let c
@@ -238,6 +238,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         let keypos = 0
         let result = $("<div>", {class: "grid-x"})
         this.genMap()
+
         let strings = this.buildReplacementVigenere(this.state.cipherString, this.state.keyword, 40)
         let table = new JTTable({class: "ansblock shrink cell unstriped"})
         for (let strset of strings) {

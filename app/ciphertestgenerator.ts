@@ -51,7 +51,7 @@ export class CipherTestGenerator extends CipherTest {
             return ($("<h3>").text("Test not found"))
         }
         let test = this.getTestEntry(this.state.test)
-        let result = $("<div>", { class: "precmds" })
+        let result = $("<div>", { class: "testdata" })
 
         result.append(JTFLabeledInput("Title", 'text', 'title', test.title, "small-12 medium-12 large-12"))
 
@@ -84,7 +84,7 @@ export class CipherTestGenerator extends CipherTest {
             useditems[entry] = true
         }
 
-        let result = $("<div>", { class: "postcmds" })
+        let result = $("<div>", { class: "questionpool" })
 
         let cipherCount = this.getCipherCount()
         let table = new JTTable({ class: 'cell stack queslist' })

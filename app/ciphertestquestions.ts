@@ -34,16 +34,12 @@ export class CipherTestQuestions extends CipherTest {
         $('.precmds').each((i, elem) => {
             $(elem).replaceWith(this.genPreCommands())
         })
-        $('.postcmds').each((i, elem) => {
-            $(elem).replaceWith(this.genPostCommands())
+        $('.questions').each((i, elem) => {
+            $(elem).replaceWith(this.genQuestions())
         })
         this.attachHandlers()
     }
-    genPreCommands(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "precmds" })
-        return result
-    }
-    genPostCommands(): JQuery<HTMLElement> {
+    genQuestions(): JQuery<HTMLElement> {
         let testcount = this.getTestCount()
         let testuse: { [index: string] : JQuery<HTMLElement>} = {}
         let testNames: NumberMap = {}
@@ -79,7 +75,7 @@ export class CipherTestQuestions extends CipherTest {
             }
         }
 
-        let result = $("<div>", { class: "postcmds" })
+        let result = $("<div>", { class: "questions" })
 
         let cipherCount = this.getCipherCount()
         let table = new JTTable({ class: 'cell stack queslist' })

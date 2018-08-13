@@ -169,7 +169,7 @@ export class CipherHillEncoder extends CipherEncoder {
         result.append(JTFLabeledInput("Keyword", 'text', 'keyword', this.state.keyword, ""))
         return result
     }
-    genPostCommands(): JQuery<HTMLElement> {
+    genQuestions(): JQuery<HTMLElement> {
         return null
     }
     /**

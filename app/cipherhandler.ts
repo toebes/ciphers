@@ -798,7 +798,7 @@ export class CipherHandler {
     genPreCommands(): JQElement {
         return null
     }
-    genPostCommands(): JQElement {
+    genQuestions(): JQElement {
         return null
     }
     /**
@@ -809,7 +809,7 @@ export class CipherHandler {
             $(elem).replaceWith(this.genPreCommands())
         })
         $('.postcmds').each((i, elem) => {
-            $(elem).replaceWith(this.genPostCommands())
+            $(elem).replaceWith(this.genQuestions())
         })
         $('.cmdbuttons').each((i, elem) => {
             $(elem).replaceWith(this.genCmdButtons())
@@ -1537,7 +1537,7 @@ export class CipherHandler {
                                     {
                                         // plugins: [Font],
                                         // plugins: [Enter, Typing, Paragraph, Undo, Bold, Italic, Image],
-                                        toolbar: ["bold", "italic", "blockQuote", "heading",  "link", ],
+                                        // toolbar: ["bold", "italic", "blockQuote", "heading",  "link", ],
                                     })
                     .then(editor => {
                         let initialtext = $(elem).val()

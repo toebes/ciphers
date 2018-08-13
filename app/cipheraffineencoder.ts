@@ -610,7 +610,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         result.append(inputbox)
         return result
     }
-    genPostCommands(): JQuery<HTMLElement> {
+    genQuestions(): JQuery<HTMLElement> {
         return null
     }
     /**

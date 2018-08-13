@@ -43,7 +43,7 @@ export class CipherTestManage extends CipherTest {
         if (testcount === 0) {
             return $("<h3>").text("No Tests Created Yet")
         }
-        let result = $("<div/>", {class: "precmds"})
+        let result = $("<div/>", {class: "testlist"})
         let table = new JTTable({ class: 'cell shrink testlist' })
         let row = table.addHeaderRow()
         row.add("Action")

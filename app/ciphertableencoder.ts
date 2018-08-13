@@ -56,7 +56,7 @@ export class CipherTableEncoder extends CipherEncoder {
     /**
      *  Generates the replacement map based on the type of cipher
      */
-    genMap(): void {
+    genAlphabet(): void {
         let charset = this.getSourceCharset()
         let replacement = charset
 
@@ -72,7 +72,7 @@ export class CipherTableEncoder extends CipherEncoder {
      */
     load(): void {
         $(".err").text('')
-        this.genMap()
+        this.genAlphabet()
         let res = this.build()
         $("#answer").empty().append(res)
 
@@ -104,7 +104,7 @@ export class CipherTableEncoder extends CipherEncoder {
      */
     genAnswer(): JQuery<HTMLElement> {
         let result = $("<div>", {class: "grid-x"})
-        this.genMap()
+        this.genAlphabet()
         let strings = this.makeReplacement(this.state.cipherString, 40)
         let table = new JTTable({class: "ansblock shrink cell unstriped"})
         for (let strset of strings) {
@@ -118,7 +118,7 @@ export class CipherTableEncoder extends CipherEncoder {
      */
     genQuestion(): JQuery<HTMLElement> {
         let result = $("<div>", {class: "grid-x"})
-        this.genMap()
+        this.genAlphabet()
         let strings = this.makeReplacement(this.state.cipherString, 40)
         let table = new JTTable({class: "ansblock shrink cell unstriped"})
         for (let strset of strings) {

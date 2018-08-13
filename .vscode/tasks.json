@@ -31,7 +31,10 @@
             "args": [
                 "-p"
             ],
-            "group": "build"
+            "group": "build",
+            "problemMatcher": [
+                "$jshint"
+            ]
         }
     ]
 }

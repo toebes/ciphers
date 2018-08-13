@@ -18,6 +18,10 @@ export interface IEncoderState extends IState {
     shift?: number
     /** K4 Offset */
     offset2?: number
+    /** The source character map */
+    alphabetSource?: string
+    /** The restination character map */
+    alphabetDest?: string
 }
 
 /**
@@ -33,11 +37,13 @@ export class CipherEncoder extends CipherHandler {
         shift: 1,
         offset2: 1,
         keyword: "",
-        keyword2: ""
+        keyword2: "",
+        alphabetSource: "",
+        alphabetDest: "",
     }
     state: IEncoderState = cloneObject(this.defaultstate) as IState
     cmdButtons: JTButtonItem[] = [
-        { title: "Encode", color: "primary", id: "load", },
+        { title: "Randomize", color: "primary", id: "randomize", disabled: true },
         this.undocmdButton,
         this.redocmdButton,
         { title: "Reset", color: "warning", id: "reset", },
@@ -68,6 +74,8 @@ export class CipherEncoder extends CipherHandler {
         $("#offset2").val(this.state.offset2)
         JTRadioButtonSet("enctype", this.state.encodeType)
         $(".lang").val(this.state.curlang)
+        this.setkvalinputs()
+        this.load()
     }
     updateQuestionsOutput(): void {
         $("#points").val(this.state.points);
@@ -97,8 +105,10 @@ export class CipherEncoder extends CipherHandler {
     setkvalinputs(): void {
         let val = this.state.encodeType
         if (val === 'random') {
+            $("#randomize").removeAttr("disabled")
             $(".kval").hide()
         } else {
+            $("#randomize").prop("disabled", true)
             $(".kval").show()
         }
         if (val === 'k3') {
@@ -112,27 +122,74 @@ export class CipherEncoder extends CipherHandler {
             $(".k4val").hide()
         }
     }
-    setEncType(encodeType: string): void {
-        this.state.encodeType = encodeType;
-        this.setkvalinputs();
+    setEncType(encodeType: string): boolean {
+        let changed = false
+        if (this.state.encodeType !== encodeType) {
+            this.state.encodeType = encodeType
+            this.resetAlphabet()
+            changed = true
+        }
+        return changed
     }
-    setKeyword(keyword: string): void {
-        this.state.keyword = keyword
+    setCipherString(cipherString: string): boolean {
+        let changed = false
+        if (this.state.cipherString !== cipherString) {
+            this.state.cipherString = cipherString
+            this.resetAlphabet()
+            changed = true
+        }
+        return changed
     }
-    setOffset(offset: number): void {
+    setKeyword(keyword: string): boolean {
+        let changed = false
+        if (this.state.keyword !== keyword) {
+            this.state.keyword = keyword
+            this.resetAlphabet()
+            changed = true
+        }
+        return changed
+    }
+    setKeyword2(keyword2: string): boolean {
+        let changed = false
+        if (this.state.keyword2 !== keyword2) {
+            this.state.keyword2 = keyword2
+            this.resetAlphabet()
+            changed = true
+        }
+        return changed
+    }
+    setOffset(offset: number): boolean {
+        let changed = false
         let charset = this.getCharset()
         offset = (offset + charset.length) % charset.length
-        this.state.offset = offset
+        if (this.state.offset !== offset) {
+            this.state.offset = offset
+            this.resetAlphabet()
+            changed = true
+        }
+        return changed
     }
-    setOffset2(offset2: number): void {
+    setOffset2(offset2: number): boolean {
+        let changed = false
         let charset = this.getCharset()
         offset2 = (offset2 + charset.length) % charset.length
-        this.state.offset2 = offset2
+        if (this.state.offset2 !== offset2) {
+            this.state.offset2 = offset2
+            this.resetAlphabet()
+            changed = true
+        }
+        return changed
     }
-    setShift(shift: number): void {
+    setShift(shift: number): boolean {
+        let changed = false
         let charset = this.getCharset()
         shift = (shift + charset.length) % charset.length
-        this.state.shift = shift
+        if (this.state.shift !== shift) {
+            this.state.shift = shift
+            this.resetAlphabet()
+            changed = true
+        }
+        return changed
     }
     /**
      * Loads a language in response to a dropdown event
@@ -157,16 +214,16 @@ export class CipherEncoder extends CipherHandler {
             $(e.target).siblings().removeClass('is-active');
             $(e.target).addClass('is-active');
             this.markUndo()
-            this.setEncType($(e.target).val() as string)
-            // this.setRailLayout(Number($(e.target).val()) as RailLayout)
+            if (this.setEncType($(e.target).val() as string)) {
+                this.updateOutput()
+            }
         });
         $("#offset").off('input').on('input', (e) => {
             let offset = Number($(e.target).val())
             if (offset !== this.state.offset) {
                 this.markUndo()
-                this.setOffset(offset)
-                if (offset !== this.state.offset) {
-                    $(e.target).val(this.state.offset)
+                if (this.setOffset(offset)) {
+                    this.updateOutput()
                 }
             }
         })
@@ -174,9 +231,8 @@ export class CipherEncoder extends CipherHandler {
             let shift = Number($(e.target).val())
             if (shift !== this.state.shift) {
                 this.markUndo()
-                this.setShift(shift)
-                if (shift !== this.state.shift) {
-                    $(e.target).val(this.state.shift)
+                if (this.setShift(shift)) {
+                    this.updateOutput()
                 }
             }
         })
@@ -184,9 +240,8 @@ export class CipherEncoder extends CipherHandler {
             let offset2 = Number($(e.target).val())
             if (offset2 !== this.state.offset2) {
                 this.markUndo()
-                this.setOffset2(offset2)
-                if (offset2 !== this.state.offset2) {
-                    $(e.target).val(this.state.offset2)
+                if (this.setOffset2(offset2)) {
+                    this.updateOutput()
                 }
             }
         })
@@ -194,14 +249,18 @@ export class CipherEncoder extends CipherHandler {
             let keyword = $(e.target).val() as string
             if (keyword !== this.state.keyword) {
                 this.markUndo("keyword")
-                this.setKeyword(keyword)
+                if (this.setKeyword(keyword)) {
+                    this.updateOutput()
+                }
             }
         })
         $("#keyword2").off('input').on('input', (e) => {
             let keyword2 = $(e.target).val() as string
             if (keyword2 !== this.state.keyword2) {
                 this.markUndo("keyword2")
-                this.state.keyword2 = keyword2
+                if (this.setKeyword2(keyword2)) {
+                    this.updateOutput()
+                }
             }
         })
         $("#points").off('input').on('input', (e) => {
@@ -216,21 +275,41 @@ export class CipherEncoder extends CipherHandler {
             if (question !== this.state.question) {
                 this.markUndo("question")
                 this.state.question = question
-                console.log('Qtext=' + question)
             }
         })
         $("#toencode").off('input').on('input', (e) => {
             let cipherString = $(e.target).val() as string
             if (cipherString !== this.state.cipherString) {
                 this.markUndo("cipherString")
-                this.state.cipherString = cipherString
+                if (this.setCipherString(cipherString)) {
+                    this.updateOutput()
+                }
             }
         })
+        $("#randomize").off("click").on("click", () => {
+            this.markUndo()
+            this.resetAlphabet()
+            this.updateOutput()
+        })
+
+    }
+    /**
+     * Reset the alphabet mapping so that we generate a new one
+     */
+    resetAlphabet(): void {
+        this.state.alphabetSource = ""
+        this.state.alphabetDest = ""
     }
     /**
      * Generate the maping from the source to the destination alphabet
      */
-    genMap(): void {
+    genAlphabet(): void {
+        // If we already have a mapping, then we stay with it
+        if ((this.state.alphabetSource !== "") && (this.state.alphabetSource !== undefined) &&
+            (this.state.alphabetDest !== "") && (this.state.alphabetDest !== undefined)) {
+            this.setReplacement(this.state.alphabetSource, this.state.alphabetDest)
+            return
+        }
         if (this.state.encodeType === 'k1') {
             this.genAlphabetK1(this.state.keyword, this.state.offset)
         } else if (this.state.encodeType === 'k2') {
@@ -253,6 +332,8 @@ export class CipherEncoder extends CipherHandler {
      */
     setReplacement(cset: string, repl: string): void {
         let errors = ''
+        this.state.alphabetSource = cset
+        this.state.alphabetDest = repl
         console.log('Set Replacement cset=' + cset + ' repl=' + repl)
         // Figure out what letters map to the destination letters.  Note that
         // the input chracterset alphabet may not be in the same order as the
@@ -410,7 +491,7 @@ export class CipherEncoder extends CipherHandler {
      */
     genAnswer(): JQuery<HTMLElement> {
         let result = $("<div>")
-        this.genMap()
+        this.genAlphabet()
         let strings = this.makeReplacement(this.state.cipherString, 40)
         for (let strset of strings) {
             result.append($('<div>', { class: "TOSOLVE" }).text(strset[0]))
@@ -424,7 +505,7 @@ export class CipherEncoder extends CipherHandler {
      */
     genQuestion(): JQuery<HTMLElement> {
         let result = $("<div>")
-        this.genMap()
+        this.genAlphabet()
         let strings = this.makeReplacement(this.state.cipherString, 40)
         for (let strset of strings) {
             result.append($('<div>', { class: "TOSOLVEQ" }).text(strset[0]))
@@ -455,6 +536,8 @@ export class CipherEncoder extends CipherHandler {
             result.append($('<div>', { class: "TOSOLVE" }).text(strset[0]))
             result.append($('<div>', { class: "TOANSWER" }).text(strset[1]))
         }
+        this.UpdateFreqEditTable()
+        this.displayFreq()
         return result
     }
     /**
@@ -482,18 +565,6 @@ export class CipherEncoder extends CipherHandler {
         result.append(JTFIncButton("Offset 2", "offset2", this.state.offset2, "k4val small-12 medium-6 large-4"))
         return result
     }
-
-    /**
-     * Update the frequency table on the page.  This is done after loaading
-     * a new cipher to encode or decode
-     */
-    UpdateFreqEditTable(): void {
-        $(".alphabet").each((i, elem) => {
-            $(elem).empty().append(this.createAlphabetType())
-        })
-        super.UpdateFreqEditTable()
-    }
-
     /**
      * Loads up the values for the encoder
      */
@@ -501,7 +572,7 @@ export class CipherEncoder extends CipherHandler {
         // this.hideRevReplace = true
         let encoded = this.cleanString(this.state.cipherString)
         $(".err").text('')
-        this.genMap()
+        this.genAlphabet()
         let res = this.build()
         $("#answer").empty().append(res)
 

@@ -27,23 +27,10 @@ export class CipherVigenereSolver extends CipherSolver {
     /** Implements the mapping for the various cipher types */
     ciphermap: Mapper = null
     restore(data: IState): void {
-        this.state = this.defaultstate
-        if (data.cipherType !== undefined) {
-            this.state.cipherType = data.cipherType
-        }
-        if (data.keyword !== undefined) {
-            this.state.keyword = data.keyword
-        }
-        if (data.cipherString !== undefined) {
-            this.state.cipherString = data.cipherString
-        }
-        if (data.findString !== undefined) {
-            this.state.findString = data.findString
-        }
-        if (data.replacements !== undefined) {
-            this.state.replacements = data.replacements
-        }
-
+        let curlang = this.state.curlang
+        this.state = cloneObject(this.defaultstate) as IState
+        this.state.curlang = curlang
+        this.copyState(this.state, data)
         this.updateUI()
         this.setCipherVariant(this.state.cipherType)
         this.setUIDefaults()

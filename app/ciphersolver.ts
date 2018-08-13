@@ -45,7 +45,7 @@ export class CipherSolver extends CipherHandler {
         this.findPossible(this.state.findString)
     }
     setUIDefaults(): void {
-        if ("qtext" in this.editor) {
+        if ("qtext" in this.editor && this.editor["qtext"] !== null) {
             this.editor["qtext"].setData(this.state.question)
         } else {
             $("#qtext").val(this.state.question)

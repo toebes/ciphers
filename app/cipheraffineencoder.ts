@@ -208,7 +208,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             plainindex = 1
             cipherindex = 0
         }
-        this.genMap()
+        this.genAlphabet()
         let strings = this.buildReplacement(this.state.cipherString, 40)
         let table = new JTTable({ class: "ansblock shrink cell unstriped" })
         for (let strset of strings) {
@@ -227,7 +227,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             plainindex = 1
         }
 
-        this.genMap()
+        this.genAlphabet()
         let strings = this.buildReplacement(this.state.cipherString, 40)
         let table = new JTTable({ class: "ansblock shrink cell unstriped" })
         for (let strset of strings) {
@@ -305,7 +305,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      *
      */
-    genMap(): void {
+    genAlphabet(): void {
         let charset = this.getCharset()
         for (let i = 0; i < charset.length; i++) {
             let c = -1
@@ -470,7 +470,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         solution += findingB
         let outdiv = $("#sol")
         outdiv.empty().append($("<p>", { id: "solution" }).html(solution))
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'solution'])
+        // MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'solution'])
         let l = m1 + m2
         outdiv.append(this.showOutput(theMessage, l))
 
@@ -514,7 +514,7 @@ export class CipherAffineEncoder extends CipherEncoder {
                     this.encodeLetters(a, b, entry.letters) +
                     '<p>' + entry.suffix1 + ' ($' + found + '$)' + entry.suffix2 + '</p>'
                 outdiv.append($("<div>", { id: entry.letters }).html(solution))
-                MathJax.Hub.Queue(["Typeset", MathJax.Hub, entry.letters])
+                // MathJax.Hub.Queue(["Typeset", MathJax.Hub, entry.letters])
                 l += entry.letters
                 outdiv.append(this.showOutput(theMessage, l))
             }
@@ -553,7 +553,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         })
         $("#solve").off('click').on('click', () => {
             let msg = this.state.cipherString
-            this.genMap()
+            this.genAlphabet()
             let plain1 = $('#p' + this.state.solclick1).text()
             let plain2 = $('#p' + this.state.solclick2).text()
             this.printSolution(msg, plain1, plain2)
@@ -617,8 +617,6 @@ export class CipherAffineEncoder extends CipherEncoder {
      *
      */
     load(): void {
-        this.state.cipherString = this.cleanString(<string>$('#toencode').val())
-        console.log('a=' + this.state.a + ' b=' + this.state.b + ' encode=' + this.state.cipherString)
         let res = this.build()
         $("#answer").empty().append(res)
         this.attachHandlers()

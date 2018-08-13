@@ -61,11 +61,12 @@ export class CipherHillEncoder extends CipherEncoder {
             $(".encbox").show()
         }
     }
-    setKeyword(keyword: string): void {
-        super.setKeyword(keyword)
+    setKeyword(keyword: string): boolean {
+        let changed = super.setKeyword(keyword)
         if (this.isvalidkey(this.state.keyword)) {
             $('#err').text('')
         }
+        return changed
     }
 
     /*
@@ -186,16 +187,16 @@ export class CipherHillEncoder extends CipherEncoder {
         } else {
             res = this.hill(key, toencode)
         }
-        // Only do the hardcore stuff when the button is clicked.
-        // Set it to 'zoom' the equation on hover.
-        MathJax.Hub.Config({
-            menuSettings: {
-                zoom: "Hover"
-            }
-        });
+        // // Only do the hardcore stuff when the button is clicked.
+        // // Set it to 'zoom' the equation on hover.
+        // MathJax.Hub.Config({
+        //     menuSettings: {
+        //         zoom: "Hover"
+        //     }
+        // });
         // Now that the calculations have been done,
         // asynchronously typeset them.
-        MathJax.Hub.Queue(['Typeset', MathJax.Hub, 'equations']);
+        // MathJax.Hub.Queue(['Typeset', MathJax.Hub, 'equations']);
         // Show equations
         $('#equations').show();
         $("#answer").replaceWith(res)

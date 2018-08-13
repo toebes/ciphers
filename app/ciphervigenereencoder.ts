@@ -237,8 +237,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
     genAnswer(): JQuery<HTMLElement> {
         let keypos = 0
         let result = $("<div>", {class: "grid-x"})
-        this.genMap()
-
         let strings = this.buildReplacementVigenere(this.state.cipherString, this.state.keyword, 40)
         let table = new JTTable({class: "ansblock shrink cell unstriped"})
         for (let strset of strings) {
@@ -261,7 +259,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     genQuestion(): JQuery<HTMLElement> {
         let result = $("<div>", {class: "grid-x"})
-        this.genMap()
         let strings = this.buildReplacementVigenere(this.state.cipherString, this.state.keyword, 40)
         let table = new JTTable({class: "ansblock shrink cell unstriped"})
         for (let strset of strings) {

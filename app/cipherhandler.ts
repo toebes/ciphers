@@ -881,17 +881,19 @@ export class CipherHandler {
         }
     }
     markUndoUI(undostate: boolean, redostate: boolean): void {
-        $(".redo").prop("disabled", redostate)
-        $(".undo").prop("disabled", undostate)
         if (redostate) {
             $(".redo").addClass("disabled_menu")
+            $(".redo").attr("disabled", "disabled")
         } else {
             $(".redo").removeClass("disabled_menu")
+            $(".redo").removeAttr("disabled")
         }
         if (undostate) {
             $(".undo").addClass("disabled_menu")
+            $(".undo").attr("disabled", "disabled")
         } else {
             $(".undo").removeClass("disabled_menu")
+            $(".undo").removeAttr("disabled")
         }
     }
 
@@ -1370,18 +1372,11 @@ export class CipherHandler {
                 $('#f' + c).text(subval)
             }
         }
-        // replicate all of the previously set values.  This is done when
-        // you change the spacing in the encoded text and then do a reload.
-        if (this.ShowRevReplace) {
-            for (let c of charset) {
-                let repl: string = $('#m' + c).val() as string
-                if (repl === "") {
-                    repl = $('#m' + c).html()
-                }
-                this.setChar(c, repl)
-            }
+        for (let c in this.replacement) {
+            let r = this.replacement[c]
+            $('#m' + c).text(r)
+            $('#rf' + r).text(c)
         }
-
         this.holdupdates = false
         this.updateMatchDropdowns("")
     }
@@ -1391,7 +1386,7 @@ export class CipherHandler {
      * initialized
      */
     public setRichText(id: string, val: string): void {
-        if (id in this.editor) {
+        if (id in this.editor && this.editor[id] !== null) {
             this.editor[id].setData(val)
         } else {
             $("#" + id).val(val)
@@ -1533,12 +1528,13 @@ export class CipherHandler {
         $(".richtext").each((i: number, elem: HTMLElement) => {
             let id = $(elem).prop('id') as string
             if (id !== '' && (!(id in this.editor))) {
+                this.editor[id] = null
                 InlineEditor.create(elem,
                                     {
-                                        // plugins: [Font],
-                                        // plugins: [Enter, Typing, Paragraph, Undo, Bold, Italic, Image],
-                                        // toolbar: ["bold", "italic", "blockQuote", "heading",  "link", ],
-                                    })
+                        // plugins: [Font],
+                        // plugins: [Enter, Typing, Paragraph, Undo, Bold, Italic, Image],
+                        // toolbar: ["bold", "italic", "blockQuote", "heading",  "link", ],
+                    })
                     .then(editor => {
                         let initialtext = $(elem).val()
                         this.editor[id] = editor
@@ -1549,7 +1545,11 @@ export class CipherHandler {
                             $(elem).trigger("richchange", editor.getData())
                         })
                     })
-                    .catch(error => { console.error(error) })
+                    .catch(error => {
+                        console.error(error)
+                        delete this.editor[id]
+                    }
+                    )
             }
         })
         $('#find').off("input").on("input", (e) => {
@@ -1845,8 +1845,8 @@ export class CipherHandler {
         importFileDiv.append($("<div/>", { class: "top-bar Primary" })
             .append($("<div/>", { class: "top-bar-left" })
                 .append($("<h3/>").text("Select File to Import"))))
-        importFileDiv.append($("<label/>", { for: "xmlFile", class: "button"}).text("Select XML File"))
-        importFileDiv.append($("<input/>", {type: "file", id: "xmlFile", class: "show-for-sr"}))
+        importFileDiv.append($("<label/>", { for: "xmlFile", class: "button" }).text("Select XML File"))
+        importFileDiv.append($("<input/>", { type: "file", id: "xmlFile", class: "show-for-sr" }))
         let buttongroup = $("<div/>", { class: "expanded button-group" })
         buttongroup.append($("<a/>", { class: "secondary button", "data-close": "" }).text("Cancel"))
         buttongroup.append($("<input/>", { class: "button", type: "submit", val: "Import", id: "okimport" }))

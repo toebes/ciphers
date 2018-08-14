@@ -2,6 +2,7 @@ import { cloneObject } from "./ciphercommon";
 import { CipherEncoder } from "./cipherencoder"
 import { IOperationType, IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
+import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
@@ -33,6 +34,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
         blocksize: 0,
     }
     state: IVigenereState = cloneObject(this.defaultstate) as IVigenereState
+    cmdButtons: JTButtonItem[] = [
+        { title: "Save", color: "primary", id: "save", class: "save" },
+        this.undocmdButton,
+        this.redocmdButton,
+    ]
 
     restore(data: IState): void {
         this.state = cloneObject(this.defaultstate) as IVigenereState
@@ -76,10 +82,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
         $("#toencode").val(this.state.cipherString)
         $("#blocksize").val(this.state.blocksize)
         $("#keyword").val(this.state.keyword)
+        this.load()
     }
 
     genPreCommands(): JQuery<HTMLElement> {
-
         let result = $("<div/>")
         let radiobuttons = [
             { id: 'wrow', value: "encode", title: 'Encode' },
@@ -96,13 +102,21 @@ export class CipherVigenereEncoder extends CipherEncoder {
         result.append(inputbox)
 
         return result
-
     }
-    setBlocksize(blocksize: number): void {
-        this.state.blocksize = blocksize
+    setBlocksize(blocksize: number): boolean {
+        let changed = false
+        if (this.state.blocksize !== blocksize) {
+            this.state.blocksize = blocksize
+            changed = true
+        }
+        return changed
     }
-    buildReplacementVigenere(msg: string, key: string, maxEncodeWidth: number): string[][] {
+    buildReplacementVigenere(msg: string, keystring: string, maxEncodeWidth: number): string[][] {
         let encoded = msg
+        let key = keystring
+        if (key === '') {
+            key = "A"
+        }
         if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
             encoded = this.chunk(encoded, this.state.blocksize)
         }
@@ -215,9 +229,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
             let blocksize = Number($(e.target).val())
             if (blocksize !== this.state.blocksize) {
                 this.markUndo()
-                this.setBlocksize(blocksize)
-                if (blocksize !== this.state.blocksize) {
-                    $(e.target).val(this.state.blocksize)
+                if (this.setBlocksize(blocksize)) {
+                    this.updateOutput()
                 }
             }
         })
@@ -225,8 +238,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
             let newkeyword = $(e.target).val() as string
             if (newkeyword !== this.state.keyword) {
                 this.markUndo("keyword")
-                this.setKeyword(newkeyword)
-                this.updateOutput()
+                if (this.setKeyword(newkeyword)) {
+                    this.updateOutput()
+                }
             }
         })
 
@@ -236,15 +250,22 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     genAnswer(): JQuery<HTMLElement> {
         let keypos = 0
-        let result = $("<div>", {class: "grid-x"})
+        let result = $("<div>", { class: "grid-x" })
         let strings = this.buildReplacementVigenere(this.state.cipherString, this.state.keyword, 40)
-        let table = new JTTable({class: "ansblock shrink cell unstriped"})
+        let keyword = ""
+        for (let c of this.state.keyword) {
+            if (this.isValidChar(c)) {
+                keyword += c
+            }
+        }
+
+        let table = new JTTable({ class: "ansblock shrink cell unstriped" })
         for (let strset of strings) {
             let keystring = ""
             for (let c of strset[0]) {
                 if (this.isValidChar(c)) {
-                    keystring += this.state.keyword.substr(keypos, 1)
-                    keypos = (keypos + 1) % this.state.keyword.length
+                    keystring += keyword.substr(keypos, 1)
+                    keypos = (keypos + 1) % keyword.length
                 } else {
                     keystring += c
                 }
@@ -258,9 +279,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Generate the HTML to display the question for a cipher
      */
     genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div>", {class: "grid-x"})
+        let result = $("<div>", { class: "grid-x" })
         let strings = this.buildReplacementVigenere(this.state.cipherString, this.state.keyword, 40)
-        let table = new JTTable({class: "ansblock shrink cell unstriped"})
+        let table = new JTTable({ class: "ansblock shrink cell unstriped" })
         for (let strset of strings) {
             this.addCipherTableRows(table, undefined, strset[0], undefined, true)
         }

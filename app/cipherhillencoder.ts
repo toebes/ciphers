@@ -40,6 +40,11 @@ export class CipherHillEncoder extends CipherEncoder {
     }
     updateOutput(): void {
         super.updateOutput()
+        if (this.state.operation === "compute") {
+            $(".encbox").hide()
+        } else {
+            $(".encbox").show()
+        }
         JTRadioButtonSet("operation", this.state.operation)
     }
     /**
@@ -49,17 +54,6 @@ export class CipherHillEncoder extends CipherEncoder {
         // We need a deep copy of the save state
         let savestate = cloneObject(this.state) as IState
         return savestate
-    }
-    /**
-     * Set cipher encoder encode or decode mode
-     */
-    setOperation(operation: IOperationType): void {
-        super.setOperation(operation)
-        if (this.state.operation === "compute") {
-            $(".encbox").hide()
-        } else {
-            $(".encbox").show()
-        }
     }
     setKeyword(keyword: string): boolean {
         let changed = super.setKeyword(keyword)

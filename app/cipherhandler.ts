@@ -631,7 +631,7 @@ export class CipherHandler {
         }
         return result
     }
-    deleteRunningKey(entry: number) : void {
+    deleteRunningKey(entry: number): void {
         localStorage.removeItem(this.getRunningKeyName(entry))
     }
     setRunningKey(entry: number, data: IRunningKey): void {
@@ -758,8 +758,13 @@ export class CipherHandler {
     /**
      * Set cipher encoder encode or decode mode
      */
-    setOperation(operation: IOperationType): void {
-        this.state.operation = operation
+    setOperation(operation: IOperationType): boolean {
+        let changed = false
+        if (this.state.operation !== operation) {
+            this.state.operation = operation
+            changed = true
+        }
+        return changed
     }
     /**
      * Initializes the encoder/decoder.

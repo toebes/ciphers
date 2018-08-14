@@ -26,9 +26,10 @@ export const enum ICipherType {
     Standard = "standard",
     Hill = "hill",
     Test = "test",
+    RunningKey = "runningkey",
 }
 
-let cipherTypeConfig = new Map(<[ICipherType, any][]> [
+let cipherTypeConfig = new Map(<[ICipherType, any][]>[
     [ICipherType.None, {
         title: "None",
         id: "none",
@@ -43,8 +44,7 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]> [
             ICipherType.Xenocrypt,
         ]
     }],
-    [ICipherType.
-        Patristocrat, {
+    [ICipherType.Patristocrat, {
         title: "Patristocrat",
         id: "patristocrat",
         equiv: [
@@ -53,16 +53,14 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]> [
             ICipherType.Xenocrypt,
         ]
     }],
-    [ICipherType.
-        Cryptarithm, {
+    [ICipherType.Cryptarithm, {
         title: "Cryptarithm",
         id: "cryptarithm",
         equiv: [
             ICipherType.Cryptarithm,
         ]
     }],
-    [ICipherType.
-        Railfence, {
+    [ICipherType.Railfence, {
         title: "Railfence",
         id: "railfence",
         equiv: [
@@ -70,8 +68,7 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]> [
             ICipherType.Redefence,
         ]
     }],
-    [ICipherType.
-        Redefence, {
+    [ICipherType.Redefence, {
         title: "Redefence",
         id: "redefence",
         equiv: [
@@ -79,8 +76,7 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]> [
             ICipherType.Redefence,
         ]
     }],
-    [ICipherType.
-        Vigenere, {
+    [ICipherType.Vigenere, {
         title: "Vigen&egrave;re",
         id: "vigenere",
         equiv: [
@@ -91,8 +87,7 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]> [
             ICipherType.Porta,
         ]
     }],
-    [ICipherType.
-        Variant, {
+    [ICipherType.Variant, {
         title: "Variant",
         id: "variant",
         equiv: [
@@ -103,8 +98,7 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]> [
             ICipherType.Porta,
         ]
     }],
-    [ICipherType.
-        Beaufort, {
+    [ICipherType.Beaufort, {
         title: "Beaufort",
         id: "beaufort",
         equiv: [
@@ -115,8 +109,7 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]> [
             ICipherType.Porta,
         ]
     }],
-    [ICipherType.
-        Gronsfeld, {
+    [ICipherType.Gronsfeld, {
         title: "Gronsfeld",
         id: "gronsfeld",
         equiv: [
@@ -127,8 +120,7 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]> [
             ICipherType.Porta,
         ]
     }],
-    [ICipherType.
-        Porta, {
+    [ICipherType.Porta, {
         title: "Porta",
         id: "porta",
         equiv: [
@@ -139,16 +131,14 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]> [
             ICipherType.Porta,
         ]
     }],
-    [ICipherType.
-        FractionatedMorse, {
+    [ICipherType.FractionatedMorse, {
         title: "Fractionated Morse",
         id: "fractionatedmorse",
         equiv: [
             ICipherType.FractionatedMorse,
         ]
     }],
-    [ICipherType.
-        Morbit, {
+    [ICipherType.Morbit, {
         title: "Morbit",
         id: "morbit",
         equiv: [
@@ -229,6 +219,14 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]> [
         id: "hill",
         equiv: [
             ICipherType.Hill,
+        ]
+    }],
+    [ICipherType.RunningKey, {
+        title: "Running Key",
+        id: "runningkey",
+        equiv: [
+            ICipherType.RunningKey,
+            ICipherType.Vigenere,
         ]
     }],
 ])

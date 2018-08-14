@@ -11,6 +11,7 @@ import { CipherMorbitSolver } from "./ciphermorbitsolver"
 import { CipherRagbabySolver } from "./cipherragbabysolver"
 import { CipherRailfenceSolver } from "./cipherrailfencesolver"
 import { CipherRunningKeyEdit } from "./cipherrunningkeyedit"
+import { CipherRunningKeyEncoder } from "./cipherrunningkeyencoder"
 import { CipherSolver } from "./ciphersolver"
 import { CipherTableEncoder } from "./ciphertableencoder"
 import { CipherTestAnswers } from "./ciphertestanswers"
@@ -108,6 +109,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherType: ICipherType.None,
         cipherClass: CipherRunningKeyEdit,
         canPrint: false,
+    },
+    RunningKey : {
+        cipherType: ICipherType.RunningKey,
+        cipherClass: CipherRunningKeyEncoder,
+        canPrint: true,
     },
     Standard: {
         cipherType: ICipherType.Standard,

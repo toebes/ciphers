@@ -492,7 +492,7 @@ export class CipherEncoder extends CipherHandler {
     genAnswer(): JQuery<HTMLElement> {
         let result = $("<div>")
         this.genAlphabet()
-        let strings = this.makeReplacement(this.state.cipherString, 40)
+        let strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth)
         for (let strset of strings) {
             result.append($('<div>', { class: "TOSOLVE" }).text(strset[0]))
             result.append($('<div>', { class: "TOANSWER" }).text(strset[1]))
@@ -506,7 +506,7 @@ export class CipherEncoder extends CipherHandler {
     genQuestion(): JQuery<HTMLElement> {
         let result = $("<div>")
         this.genAlphabet()
-        let strings = this.makeReplacement(this.state.cipherString, 40)
+        let strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth)
         for (let strset of strings) {
             result.append($('<div>', { class: "TOSOLVEQ" }).text(strset[0]))
         }

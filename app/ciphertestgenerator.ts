@@ -43,15 +43,17 @@ export class CipherTestGenerator extends CipherTest {
         this.updateOutput()
     }
     genTestQuestions(): JQuery<HTMLElement> {
+        let result = $("<div>", { class: "testdata" })
         let testcount = this.getTestCount()
         if (testcount === 0) {
-            return $("<h3>").text("No Tests Created Yet")
+            result.append($("<h3>").text("No Tests Created Yet"))
+            return result
         }
         if (this.state.test > testcount) {
-            return ($("<h3>").text("Test not found"))
+            result.append($("<h3>").text("Test not found"))
+            return result
         }
         let test = this.getTestEntry(this.state.test)
-        let result = $("<div>", { class: "testdata" })
 
         result.append(JTFLabeledInput("Title", 'text', 'title', test.title, "small-12 medium-12 large-12"))
 

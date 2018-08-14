@@ -39,11 +39,12 @@ export class CipherTestManage extends CipherTest {
         this.attachHandlers()
     }
     genTestList(): JQuery<HTMLElement> {
+        let result = $("<div/>", {class: "testlist"})
         let testcount = this.getTestCount()
         if (testcount === 0) {
-            return $("<h3>").text("No Tests Created Yet")
+            result.append($("<h3>").text("No Tests Created Yet"))
+            return result
         }
-        let result = $("<div/>", {class: "testlist"})
         let table = new JTTable({ class: 'cell shrink testlist' })
         let row = table.addHeaderRow()
         row.add("Action")

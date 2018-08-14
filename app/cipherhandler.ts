@@ -373,6 +373,10 @@ export class CipherHandler {
                 "MINISTRIS ET OMNIBUS BALLIVIS ET FIDELIBUS SUIS SALUTEM."
         }
     ]
+    /** Any special running key not in the default set used by this cipher */
+    extraRunningKey: string
+    /** Indicates that the cipher uses a running key */
+    usesRunningKey: boolean = false
     /** The direction of the last advance */
     advancedir: number = 0
     cipherWidth: number = 1

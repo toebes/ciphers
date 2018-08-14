@@ -9,15 +9,19 @@ import { JTRadioButton } from "./jtradiobutton";
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
-    /**
-     * Cleans up any settings, range checking and normalizing any values.
-     * This doesn't actually update the UI directly but ensures that all the
-     * values are legitimate for the cipher handler
-     * Generally you will call updateOutput() after calling setUIDefaults()
-     */
-    setUIDefaults(): void {
-        super.setUIDefaults()
-        // Update the dialog
+    init(lang: string): void {
+        this.usesRunningKey = true
+        super.init(lang)
+    }
+    getRunningKeyIndex(): number {
+        // See if the current keyword is one of the valid options
+        let runningKeys = this.getRunningKeyStrings()
+        for (let entry in runningKeys) {
+            if (runningKeys[entry].text === this.state.keyword) {
+                return Number(entry)
+            }
+        }
+        return -1
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -26,19 +30,11 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
     updateOutput(): void {
         super.updateOutput()
         // See if the current keyword is one of the valid options
-        let runningKeys = this.getRunningKeyStrings()
-        let selopt = -1
-        for (let entry in runningKeys) {
-            if (runningKeys[entry].text === this.state.keyword) {
-                selopt = Number(entry)
-                break
-            }
-        }
+        let selopt = this.getRunningKeyIndex()
         if (selopt === -1) {
             // The current string isn't one of the options,
             // so we need to add it to the list of possibilities
-            let optcount = $('#runningkey option').length
-            selopt = optcount
+            selopt = $('#runningkey option').length
             $("#select").append($('<option />', { value: selopt }).text(this.state.keyword))
         }
         $('#select option[value=' + selopt + ']').attr('selected', 'selected');
@@ -89,5 +85,20 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
                 }
             }
         })
+    }
+    genAnswer(): JQuery<HTMLElement> {
+        if (this.getRunningKeyIndex() === -1) {
+            this.extraRunningKey = this.state.keyword
+        }
+        return super.genAnswer()
+    }
+    /**
+     * Generate the HTML to display the question for a cipher
+     */
+    genQuestion(): JQuery<HTMLElement> {
+        if (this.getRunningKeyIndex() === -1) {
+            this.extraRunningKey = this.state.keyword
+        }
+        return super.genQuestion()
     }
 }

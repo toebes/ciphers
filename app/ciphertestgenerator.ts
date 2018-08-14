@@ -29,8 +29,8 @@ export class CipherTestGenerator extends CipherTest {
     state: ITestState = cloneObject(this.defaultstate) as ITestState
     cmdButtons: JTButtonItem[] = [
         { title: "Randomize Order", color: "primary", id: "randomize", },
-        { title: "Print Test", color: "primary", id: "printtest", },
-        { title: "Print Answers", color: "primary", id: "printans", },
+        { title: "Test Packet", color: "primary", id: "printtest", },
+        { title: "Answer Key", color: "primary", id: "printans", },
         { title: "Export Test", color: "primary", id: "export", download: true, },
         { title: "Import Test", color: "primary", id: "import", },
     ]

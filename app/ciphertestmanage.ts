@@ -9,7 +9,7 @@ import { JTTable } from "./jttable";
  * CipherTestManage
  *    This shows a list of all tests.
  *    Each line has a line with buttons at the start
- *       <EDIT> <DELETE> <PRINT TEST> <PRINT ANSWERS> Test Title  #questions
+ *       <EDIT> <DELETE> <Test Packet> <Answer Key> Test Title  #questions
  *  The command buttons availableare
  *       <New Test><EXPORT><IMPORT>
  */
@@ -60,8 +60,8 @@ export class CipherTestManage extends CipherTest {
             let buttons = $("<div/>")
             buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testedit button" }).text("Edit"))
             buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testdel alert button" }).text("Delete"))
-            buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testprt button" }).text("Print Test"))
-            buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testans button" }).text("Print Answers"))
+            buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testprt button" }).text("Test Packet"))
+            buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testans button" }).text("Answer Key"))
             row.add(buttons)
                 .add(test.title)
                 .add(String(questioncount))

@@ -2,6 +2,7 @@ import { cloneObject } from "./ciphercommon";
 import { CipherTest, ITestState } from "./ciphertest"
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
+import { JTTable } from "./jttable";
 
 /**
  * CipherTestAnswers
@@ -16,8 +17,8 @@ export class CipherTestAnswers extends CipherTest {
     state: ITestState = cloneObject(this.defaultstate) as ITestState
     cmdButtons: JTButtonItem[] = [
         { title: "Edit Test", color: "primary", id: "edittest", },
-        { title: "Print Test", color: "primary", id: "printtest", },
-        // { title: "Print Answers", color: "primary", id: "printans", },
+        { title: "Test Packet", color: "primary", id: "printtest", },
+        // { title: "Answer Key", color: "primary", id: "printans", },
     ]
     restore(data: ITestState): void {
         this.state = cloneObject(this.defaultstate) as ITestState
@@ -30,6 +31,21 @@ export class CipherTestAnswers extends CipherTest {
         })
         this.attachHandlers()
     }
+    /*
+     * Sorter to break ties
+     */
+    tiebreakersort(a: any, b: any): number {
+        if (a.points > b.points) {
+            return -1
+        } else if (a.points < b.points) {
+            return 1
+        } else if (a.qnum > b.qnum) {
+            return -1
+        } else if (a.qnum < b.qnum) {
+            return 1
+        }
+        return 0
+    }
     genTestAnswers(): JQuery<HTMLElement> {
         let testcount = this.getTestCount()
         if (testcount === 0) {
@@ -38,9 +54,13 @@ export class CipherTestAnswers extends CipherTest {
         if (this.state.test > testcount) {
             return ($("<h3>").text("Test not found"))
         }
+        this.qdata = []
+
         let test = this.getTestEntry(this.state.test)
         let result = $("<div>")
-        $("#testname").text(test.title)
+        $(".testtitle").text(test.title)
+        let dt = new Date()
+        $(".testyear").text(dt.getFullYear())
         if (test.timed === -1) {
             result.append($("<p>", {class: "noprint"}).text("No timed question"))
         } else {
@@ -53,6 +73,31 @@ export class CipherTestAnswers extends CipherTest {
             }
             result.append(this.printTestAnswer(qnum + 1, test.questions[qnum], breakclass))
         }
+        //
+        // Generate the tie breaker order
+        //
+        let table = new JTTable({ class: 'cell shrink tiebreak' })
+        let hastimed = false
+        table.addHeaderRow()
+            .add("Tie Breaker Order")
+            .add("Question #")
+
+        // We have stacked all of the found matches.  Now we need to sort them
+        this.qdata.sort(this.tiebreakersort)
+        let order = 1
+        for (let qitem of this.qdata) {
+            let qtitle = ""
+            if (qitem.qnum === -1) {
+                qtitle = "Timed"
+            } else {
+                qtitle = String(qitem.qnum)
+            }
+            table.addBodyRow()
+            .add(String(order))
+            .add(qtitle)
+        }
+        $("#tietable").append(table.generate())
+
         return result
     }
     attachHandlers(): void {

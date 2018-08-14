@@ -6,6 +6,15 @@
     width: 600px;
 }
 
+.instructions tbody th, .instructions tbody td {
+    padding: 0;
+}
+
+.instructions table, .instructions tbody, .instructions tbody tr,
+.instructions table.unstriped tbody tr {
+    border: none;
+    border-color: transparent;
+}
 .note-editor {
     width: 100%;
 }
@@ -368,9 +377,6 @@ div.sols .sol {
 
  #qtext {
      border: 1px solid #cacaca;
-    /* font-size: 24px;
-    background: rgb(200, 241, 177);
-    font-weight: bold; */
 }
 
 table.contact,
@@ -630,11 +636,6 @@ table.found tr th:nth-child(odd) {
   .input-group .input-number-increment {
     margin-left: 0.1rem;
   }
-
-
-
-
-  
   
 .dropdown.menu a {
     background: none;
@@ -698,7 +699,7 @@ table.found tr th:nth-child(odd) {
       border: 1px solid black;
   }
   .ansblock td.a {
-      background: yellow;
+      background-color: yellow;
       height: 3rem;
       font-weight: bold;
   }
@@ -759,9 +760,112 @@ table.hillans .big2 {
     margin: -30px;
 }
 
+table.instlook,
+table.instbac {
+        font-family: "Courier New", Courier, monospace;
+        text-align:center;
+        border-collapse: collapse;
+        margin: 1rem auto;
+        padding: 0;
+        border: none;
+        }
+    table.instlook th {
+    width: 1.5rem;
+    border: 1px solid black;
+    background-color: lightgrey !important;
+}
+table.instlook td {
+    border: 1px solid black;
+    width: 1.5rem;
+    text-align: center;
+
+}
+table.instvig tr:nth-child(5n+1) {
+    border-bottom: 2px solid black;
+}
+table.instvig tr th:nth-child(5n+1),
+table.instvig tr td:nth-child(5n+1) {
+    border-right: 2px solid black;
+}
+table.instbac td.bv {
+    font-weight: bold;
+    border: 1px solid black;
+    width: 5rem;;
+}
+table.instbac td.bl {
+    border: 1px solid black;
+    width: 2rem;
+}
+table.instlfreq {
+        font-family: "Courier New", Courier, monospace;
+        border-collapse: collapse;
+        padding: 0;
+        border: none;
+        }
+
+table.testscores {
+    border: 1px solid black;
+    width: 110 rem;
+}
+table.testscores th,
+table.testscores td {
+    border: 1px solid black;
+    width: 20rem;
+}
+table.testscores th {
+    text-align: center;
+}
+table.testscores td.v {
+    text-align: right;
+    padding:  .5rem 4rem .5rem .5rem;
+}
+table.testscores td.t {
+    text-align: left;
+    padding: .5rem .5rem .5rem 4rem;
+}
+table.testscores td.grey {
+    background-color: grey;
+}
+table.tiebreak {
+    text-align: center;
+    margin: 1rem auto;
+}
+table.instlfreq td.l {
+    text-align: right;
+    width: 5rem;
+    padding-right:.5rem;
+}
+table.instlfreq td.v {
+    text-align: right;
+    width: 3rem;
+}
+table.instlfreq td.l::after { 
+    content: " - ";
+}
+table.nameline {
+    width: 50rem;
+    padding: 0;
+}
+table.nameline td {
+    white-space: nowrap;
+}
+table.nameline td.u {
+    border-bottom: 1px solid black;
+    width:100%;
+    height: 2rem;
+}
+.runtitle {
+    margin-top: 1rem;
+    font-style: italic;
+}
+.runtext {
+    margin-left: 5rem;
+    font-family: "Courier New", Courier, monospace;
+}
+
 @media print
 {    
-    .title-bar, .top-bar, .noprint
+    .title-bar, .top-bar, .noprint, .button-group
     {
         display: none !important;
     }
@@ -773,4 +877,3 @@ table.hillans .big2 {
         page-break-before: always;
     }
 }
-

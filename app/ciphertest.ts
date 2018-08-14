@@ -1,6 +1,6 @@
 import { cloneObject, NumberMap } from "./ciphercommon";
 import { CipherPrintFactory } from "./cipherfactory";
-import { CipherHandler, IState, ITest } from "./cipherhandler"
+import { CipherHandler, IRunningKey, IState, ITest } from "./cipherhandler"
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTTable } from "./jttable";
@@ -16,6 +16,12 @@ export interface ITestState extends IState {
     /** Which test the handler is working on */
     test?: number
 }
+interface IQuestionData {
+    /** Which question this is associated with.  -1 indicates timed */
+    qnum: number
+    /** The number of points for the question */
+    points: number
+}
 
 /**
  * Base support for all the test generation handlers
@@ -23,7 +29,7 @@ export interface ITestState extends IState {
  * TestManage.html
  *    This shows a list of all tests.
  *    Each line has a line with buttons at the start
- *       <EDIT> <DELETE> <PRINT TEST> <PRINT ANSWERS> Test Title  #questions
+ *       <EDIT> <DELETE> <Test Packet> <Answer Key> Test Title  #questions
  *  The command buttons availableare
  *       <New Test><EXPORT><IMPORT>
  *
@@ -65,6 +71,14 @@ export class CipherTest extends CipherHandler {
         { title: "Export Tests", color: "primary", id: "export", disabled: true, },
         { title: "Import Tests", color: "primary", id: "import", },
     ]
+    /**
+     * Stash of the current questions
+     */
+    qdata: IQuestionData[]
+    /**
+     * Any running keys used for the test
+     */
+    runningKeys: IRunningKey[]
     restore(data: ITestState): void {
         let curlang = this.state.curlang
         this.state = cloneObject(this.defaultstate) as IState
@@ -140,6 +154,10 @@ export class CipherTest extends CipherHandler {
         }
         return
     }
+    /**
+     * Generate a printable answer for a test entry.
+     * An entry value of -1 is for the timed question
+     */
     printTestAnswer(qnum: number, question: number, extraclass: string): JQuery<HTMLElement> {
         let state = this.getFileEntry(question)
         let result = $("<div>", { class: "question " + extraclass });
@@ -154,14 +172,15 @@ export class CipherTest extends CipherHandler {
         result.append(qtext)
         let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang)
         cipherhandler.restore(state)
-        let cipherans = cipherhandler.genAnswer()
-        // let cipherans = $("<div/>", { class: "cipher" + state.cipherType })
-        // cipherans.append($("<p/>", { class: "debug" }).text(state.cipherType))
-        // cipherans.append($("<p/>", { class: "ciphertext" }).text(state.cipherString))
-        // cipherans.append($("<p/>", { class: "debug" }).text("Answer Goes Here"))
-        result.append(cipherans)
+        // Remember this question points so we can generate the tiebreaker order
+        this.qdata.push({qnum: qnum, points: state.points})
+        result.append(cipherhandler.genAnswer())
         return (result)
     }
+    /**
+     * Generate a printable answer key for a test entry.
+     * An entry value of -1 is for the timed question.
+     */
     printTestQuestion(qnum: number, question: number, extraclass: string): JQuery<HTMLElement> {
         let state = this.getFileEntry(question)
         let result = $("<div>", { class: "question " + extraclass });
@@ -176,12 +195,23 @@ export class CipherTest extends CipherHandler {
         result.append(qtext)
         let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang)
         cipherhandler.restore(state)
-        let cipherans = cipherhandler.genQuestion()
-        // let cipherans = $("<div/>", { class: "cipher" + state.cipherType })
-        // cipherans.append($("<p/>", { class: "debug" }).text(state.cipherType))
-        // cipherans.append($("<p/>", { class: "ciphertext" }).text(state.cipherString))
-        // cipherans.append($("<p/>", { class: "debug" }).text("Question Goes Here"))
-        result.append(cipherans)
+        // Did the handler use a running key
+        if (cipherhandler.usesRunningKey) {
+            // If we haven't gotten any running keys then get the defaults
+            if (this.runningKeys === undefined) {
+                this.runningKeys = this.getRunningKeyStrings()
+            }
+            // Add this one to the list of running keys used.  Note that we don't
+            // have a title, so we have to just make it up.  In theory this shouldn't
+            // happen because we would expect that all the running keys were defined before
+            // creating the test.
+            if (cipherhandler.extraRunningKey !== undefined) {
+                this.runningKeys.push({title: "Unknown", text: cipherhandler.extraRunningKey})
+            }
+        }
+        // Remember this question points so we can generate the score sheet
+        this.qdata.push({qnum: qnum, points: state.points})
+        result.append(cipherhandler.genQuestion())
         return (result)
     }
     /**

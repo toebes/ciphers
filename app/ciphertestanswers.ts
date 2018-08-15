@@ -95,6 +95,7 @@ export class CipherTestAnswers extends CipherTest {
             table.addBodyRow()
             .add(String(order))
             .add(qtitle)
+            order++
         }
         $("#tietable").append(table.generate())
 

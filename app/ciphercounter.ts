@@ -51,7 +51,7 @@ export class CipherCounter extends CipherEncoder {
         result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
         return result
     }
-    genQuestions(): JQuery<HTMLElement> {
+    genPostCommands(): JQuery<HTMLElement> {
         return null
     }
     load(): void {

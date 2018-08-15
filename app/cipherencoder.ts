@@ -5,7 +5,6 @@ import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
-import { JTTable } from "./jttable";
 
 export interface IEncoderState extends IState {
     /** Type of encoding */

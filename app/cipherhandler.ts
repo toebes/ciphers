@@ -893,7 +893,7 @@ export class CipherHandler {
     genPreCommands(): JQElement {
         return null
     }
-    genQuestions(): JQElement {
+    genPostCommands(): JQElement {
         return null
     }
     /**
@@ -904,7 +904,7 @@ export class CipherHandler {
             $(elem).replaceWith(this.genPreCommands())
         })
         $('.postcmds').each((i, elem) => {
-            $(elem).replaceWith(this.genQuestions())
+            $(elem).replaceWith(this.genPostCommands())
         })
         $('.cmdbuttons').each((i, elem) => {
             $(elem).replaceWith(this.genCmdButtons())

@@ -188,7 +188,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     /**
      * Set up the UI elements for the commands for this cipher assistant
      */
-    genQuestions(): JQuery<HTMLElement> {
+    genPostCommands(): JQuery<HTMLElement> {
         let result = $("<div>")
 
         let radiobuttons = [

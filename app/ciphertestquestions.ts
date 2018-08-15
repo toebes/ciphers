@@ -35,11 +35,11 @@ export class CipherTestQuestions extends CipherTest {
             $(elem).replaceWith(this.genPreCommands())
         })
         $('.questions').each((i, elem) => {
-            $(elem).replaceWith(this.genQuestions())
+            $(elem).replaceWith(this.genPostCommands())
         })
         this.attachHandlers()
     }
-    genQuestions(): JQuery<HTMLElement> {
+    genPostCommands(): JQuery<HTMLElement> {
         let testcount = this.getTestCount()
         let testuse: { [index: string] : JQuery<HTMLElement>} = {}
         let testNames: NumberMap = {}

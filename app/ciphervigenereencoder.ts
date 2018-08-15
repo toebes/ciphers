@@ -146,14 +146,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 }
 
                 message += messageChar
-                // For vigenere...this is the meat.
-                if (this.state.operation === "encode") {
-                    // use this to encode.
-                    c = (m + k) % 26
-                } else {
-                    // use this to decode.
-                    c = (m - k)
-                }
+                c = (m + k) % 26
                 // The substr() basically does modulus with the negative offset
                 // in the decode case.  Thanks JavaScript!
                 cipher += charset.substr(c, 1)
@@ -187,10 +180,16 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
     buildVigenere(msg: string, key: string): JQuery<HTMLElement> {
         let result = $('<div>')
+        let source = 1
+        let dest = 0
+        if (this.state.operation === "decode") {
+            source = 0
+            dest = 1
+        }
         let strings = this.buildReplacementVigenere(msg, key, this.maxEncodeWidth)
         for (let stringset of strings) {
-            result.append($('<div>', { class: "TOSOLVE" }).text(stringset[0]))
-            result.append($('<div>', { class: "TOANSWER" }).text(stringset[1]))
+            result.append($('<div>', { class: "TOSOLVE" }).text(stringset[source]))
+            result.append($('<div>', { class: "TOANSWER" }).text(stringset[dest]))
         }
         return result
     }
@@ -218,13 +217,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     attachHandlers(): void {
         super.attachHandlers()
-        $('#operation').off('click').on('click', (e) => {
-            $(e.target).siblings().removeClass('is-active');
-            $(e.target).addClass('is-active');
-            this.markUndo()
-            this.setOperation($(e.target).val() as IOperationType)
-            this.updateOutput()
-        });
         $("#blocksize").off('input').on('input', (e) => {
             let blocksize = Number($(e.target).val())
             if (blocksize !== this.state.blocksize) {
@@ -270,7 +262,13 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     keystring += c
                 }
             }
-            this.addCipherTableRows(table, keystring, strset[0], strset[1], true)
+            let source = 0
+            let dest = 1
+            if (this.state.operation === "encode") {
+                source = 1
+                dest = 0
+            }
+            this.addCipherTableRows(table, keystring, strset[source], strset[dest], true)
         }
         result.append(table.generate())
         return result
@@ -282,8 +280,12 @@ export class CipherVigenereEncoder extends CipherEncoder {
         let result = $("<div>", { class: "grid-x" })
         let strings = this.buildReplacementVigenere(this.state.cipherString, this.state.keyword, 40)
         let table = new JTTable({ class: "ansblock shrink cell unstriped" })
+        let source = 0
+        if (this.state.operation === "encode") {
+            source = 1
+        }
         for (let strset of strings) {
-            this.addCipherTableRows(table, undefined, strset[0], undefined, true)
+            this.addCipherTableRows(table, undefined, strset[source], undefined, true)
         }
         result.append(table.generate())
         return result

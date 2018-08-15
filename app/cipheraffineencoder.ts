@@ -1,6 +1,6 @@
 import { cloneObject } from "./ciphercommon";
 import { CipherEncoder } from "./cipherencoder"
-import { IOperationType, IState } from "./cipherhandler";
+import { IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes"
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
@@ -325,10 +325,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     showOutput(msg: string, letters: string): JQuery<HTMLElement> {
         let i
         let message = ''
-        let cipher = ''
-        let result = $('<div>')
         let msgLength = msg.length
-        let charset = this.getCharset()
 
         let table = $('<table/>').addClass("tfreq")
         let tableBody = $('<tbody/>')
@@ -344,10 +341,8 @@ export class CipherAffineEncoder extends CipherEncoder {
             if (this.isValidChar(messageChar)) {
                 message += messageChar
                 cipherChar = this.replacement[messageChar]
-                cipher += cipherChar
             } else {
                 message += messageChar
-                cipher += messageChar
                 continue
             }
 

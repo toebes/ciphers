@@ -66,12 +66,18 @@ export class CipherTestGenerator extends CipherTest {
             .add("Question")
             .add("Cipher Text")
         let buttons: buttonInfo[] = [
-            { title: "Edit", btnClass: "quesedit", },
-            { title: "Remove", btnClass: "quesremove alert", },
-        ]
+                { title: "Edit", btnClass: "quesedit", },
+                { title: "Remove", btnClass: "quesremove alert", },
+            ]
         this.addQuestionRow(table, -1, test.timed, buttons, undefined)
         for (let entry = 0; entry < test.count; entry++) {
-            this.addQuestionRow(table, entry + 1, test.questions[entry], buttons, undefined)
+            let buttons2: buttonInfo[] = [
+                { title: "&uarr;", btnClass: "quesup", disabled: (entry === 0)},
+                { title: "&darr;", btnClass: "quesdown", disabled: (entry === (test.count - 1))},
+                { title: "Edit", btnClass: "quesedit", },
+                { title: "Remove", btnClass: "quesremove alert", },
+            ]
+            this.addQuestionRow(table, entry + 1, test.questions[entry], buttons2, undefined)
         }
         result.append(table.generate())
         return result
@@ -171,6 +177,19 @@ export class CipherTestGenerator extends CipherTest {
             this.gotoEditCipher(editEntry)
         }
     }
+    gotoMoveTestCipher(entry: number, dist: number): void {
+        let test = this.getTestEntry(this.state.test)
+        let sourceent = entry - 1
+        let toswap = sourceent + dist
+        if (sourceent < 0 || toswap < 0 || sourceent >= test.count || toswap >= test.count) {
+            return
+        }
+        let save = test.questions[sourceent]
+        test.questions[sourceent] = test.questions[toswap]
+        test.questions[toswap] = save
+        this.setTestEntry(this.state.test, test)
+        this.updateOutput()
+    }
     gotoRemoveCipher(entry: number): void {
         let test = this.getTestEntry(this.state.test)
         if (entry === -1) {
@@ -229,6 +248,12 @@ export class CipherTestGenerator extends CipherTest {
         })
         $("#randomize").off("click").on("click", (e) => {
             this.gotoRandomizeTest()
+        })
+        $(".quesup").off("click").on("click", (e) => {
+            this.gotoMoveTestCipher(Number($(e.target).attr('data-entry')), -1)
+        })
+        $(".quesdown").off("click").on("click", (e) => {
+            this.gotoMoveTestCipher(Number($(e.target).attr('data-entry')), 1)
         })
         $(".quesedit").off("click").on("click", (e) => {
             this.gotoEditTestCipher(Number($(e.target).attr('data-entry')))

@@ -8,6 +8,7 @@ import { JTTable } from "./jttable";
 export interface buttonInfo {
     title: string,
     btnClass: string,
+    disabled?: boolean
 }
 
 export interface ITestState extends IState {
@@ -140,8 +141,12 @@ export class CipherTest extends CipherHandler {
             }
             let buttonset = $("<div/>", { class: "button-group round entrycmds" })
             for (let btninfo of buttons) {
-                buttonset.append($("<button/>", { 'data-entry': order, type: "button", class: btninfo.btnClass + " button" })
-                    .text(btninfo.title))
+                let button = $("<button/>",  { 'data-entry': order, type: "button", class: btninfo.btnClass + " button" })
+                    .html(btninfo.title)
+                if (btninfo.disabled === true) {
+                    button.attr('disabled', 'disabled')
+                }
+                buttonset.append(button)
             }
             row.add(buttonset)
                 .add(state.cipherType)

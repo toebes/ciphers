@@ -6,7 +6,6 @@
 </head>
 <body>
 <% for (var chunk in htmlWebpackPlugin.files.chunks) { %><script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script><% } %>
-<!-- <script type="text/javascript" async src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML'></script> -->
 <%= require('html-loader!./analytics.html') %>
 
 <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
@@ -17,6 +16,5 @@
     <div class="err" id="err"></div>
     <div class="cmdbuttons" ></div>
     <div class="ans" id="answer"></div>
-    <p class="equations" id="equations"></p>
 </body>
 </html>

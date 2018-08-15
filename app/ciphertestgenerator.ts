@@ -132,7 +132,7 @@ export class CipherTestGenerator extends CipherTest {
         let blob = new Blob([JSON.stringify(result)], { type: "text/json" });
         let url = URL.createObjectURL(blob);
 
-        link.attr('download', "cipher_test.json")
+        link.attr('download', test.title + ".json")
         link.attr('href', url)
     }
     updateOutput(): void {

@@ -165,15 +165,18 @@ export class CipherTest extends CipherHandler {
      */
     printTestAnswer(qnum: number, question: number, extraclass: string): JQuery<HTMLElement> {
         let state = this.getFileEntry(question)
+        let extratext = ''
         let result = $("<div>", { class: "question " + extraclass });
         let qtext = $("<div>", { class: "qtext" })
         if (qnum === -1) {
             qtext.append($("<span/>", { class: "timed" }).text("Timed Question"))
+            extratext = "  When you have solved it, raise your hand so that the time can be recorded and the solution checked."
         } else {
             qtext.append($("<span>", { class: "qnum" }).text(String(qnum) + ")"))
         }
         qtext.append($("<span>", { class: "points" }).text(" [" + String(state.points) + " points] "))
-        qtext.append($("<span/>", { class: "qbody" }).html(state.question))
+        qtext.append($("<span/>", { class: "qbody" }).html(state.question + extratext))
+
         result.append(qtext)
         let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang)
         cipherhandler.restore(state)
@@ -188,15 +191,17 @@ export class CipherTest extends CipherHandler {
      */
     printTestQuestion(qnum: number, question: number, extraclass: string): JQuery<HTMLElement> {
         let state = this.getFileEntry(question)
+        let extratext = ''
         let result = $("<div>", { class: "question " + extraclass });
         let qtext = $("<div>", { class: "qtext" })
         if (qnum === -1) {
             qtext.append($("<span/>", { class: "timed" }).text("Timed Question"))
+            extratext = "  When you have solved it, raise your hand so that the time can be recorded and the solution checked."
         } else {
             qtext.append($("<span>", { class: "qnum" }).text(String(qnum) + ")"))
         }
         qtext.append($("<span>", { class: "points" }).text(" [" + String(state.points) + " points] "))
-        qtext.append($("<span/>", { class: "qbody" }).html(state.question))
+        qtext.append($("<span/>", { class: "qbody" }).html(state.question + extratext))
         result.append(qtext)
         let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang)
         cipherhandler.restore(state)

@@ -266,6 +266,7 @@ table.mfind {
     .tfreq thead th,
     .satable thead th,
     table.mfind th {
+        text-align: center;
         background-color: #D3D3D3;
     }
 .prfreq th {
@@ -283,6 +284,14 @@ table.mfind {
     background-color: white;
 }
 
+thead .topleft.k1,
+thead .topleft.k2 {
+    text-align: center;
+    font-weight: bold;
+    font-size: large;
+    background-color: #d3d3d3;
+    border: 1px solid black;
+}
 .sanalysis {
     float: left;
     margin-right: 10px;

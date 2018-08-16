@@ -867,7 +867,7 @@ export class CipherHandler {
                 freq = ""
             }
             freqrow.add(freq)
-            replrow.add(repl)
+            replrow.add({celltype: "td", content: repl})
         }
         return table.generate()
     }

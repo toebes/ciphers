@@ -1,3 +1,4 @@
+import * as katex from 'katex'
 import { cloneObject } from "./ciphercommon";
 import { CipherEncoder } from "./cipherencoder"
 import { IState } from "./cipherhandler";
@@ -38,7 +39,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     }
     state: IAffineState = cloneObject(this.defaultstate) as IAffineState
     cmdButtons: JTButtonItem[] = [
-        { title: "Encrypt", color: "primary", id: "load", },
+        { title: "Save", color: "primary", id: "save", },
         this.undocmdButton,
         this.redocmdButton,
         { title: "Print Solution", color: "primary", id: "solve", disabled: true },
@@ -67,6 +68,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         $("#a").val(this.state.a)
         $("#b").val(this.state.b)
         JTRadioButtonSet("operation", this.state.operation)
+        this.load()
     }
     /**
      * Make a copy of the current state
@@ -80,7 +82,8 @@ export class CipherAffineEncoder extends CipherEncoder {
      * Sets the new A value.  A direction is also provided so that if the
      * intended value is bad, we can keep advancing until we find one
      */
-    seta(a: number, direction: number): void {
+    seta(a: number, direction: number): boolean {
+        let changed = false
         let charset = this.getCharset()
         if (a !== this.state.a) {
 
@@ -97,12 +100,21 @@ export class CipherAffineEncoder extends CipherEncoder {
 
             }
         }
-        this.state.a = a
+        if (this.state.a !== a) {
+            this.state.a = a
+            changed = true
+        }
+        return changed
     }
-    setb(b: number): void {
+    setb(b: number): boolean {
+        let changed = false
         let charset = this.getCharset()
         b = (b + charset.length) % charset.length
-        this.state.b = b
+        if (this.state.b !== b) {
+            this.state.b = b
+            changed = true
+        }
+        return changed
     }
     affinechar(c: string): string {
         let charset = this.getCharset()
@@ -375,26 +387,29 @@ export class CipherAffineEncoder extends CipherEncoder {
         let m2Val = charset.indexOf(m2)
         let c2Val = charset.indexOf(c2)
 
-        let solution = '<p>Here is how we get the answer.  Since we are given that:</p>'
+        let result = $("<div>", { id: "solution" })
 
-        let given = '\\begin{align} ' + m1 + '(' + m1Val + ') & \\to ' + c1 + '(' + c1Val + ') \\\\ ' +
-            m2 + '(' + m2Val + ') & \\to ' + c2 + '(' + c2Val + ') \\end{align}'
-        solution += given
-        solution += '<p>From this we know:</p>'
+        result.append($("<p/>").text('Here is how we get the answer.  Since we are given that:'))
+
+        let given = '\\begin{aligned} ' + m1 + '(' + m1Val + ') & \\to ' + c1 + '(' + c1Val + ') \\\\ ' +
+            m2 + '(' + m2Val + ') & \\to ' + c2 + '(' + c2Val + ') \\end{aligned}'
+        result.append($(katex.renderToString(given)))
+
+        result.append($("<p/>").text('From this we know:'))
 
         let equation1 = '\\left(a * ' + m1Val + ' + b\\right)\\;\\text{mod 26} & = ' + c1Val + ' \\\\'
         let equation2 = '\\left(a * ' + m2Val + ' + b\\right)\\;\\text{mod 26} & = ' + c2Val + ' \\\\'
 
+        let solution = '\\begin{aligned}'
         if (m1Val > m2Val) {
-            solution += ('\\begin{align}' + equation1)
-            solution += (equation2 + '\\end{align}')
+            solution += equation1 + equation2
         } else {
-            solution += ('\\begin{align}' + equation2)
-            solution += (equation1 + '\\end{align}')
+            solution += equation2 + equation1
         }
-        solution += '<p>Next, subtract the formulas:</p>'
+        solution += '\\end{aligned}'
+        result.append($(katex.renderToString(solution)))
+        result.append($("<p/>").text('Next, subtract the formulas:'))
 
-        //            let subtract = '\\begin{align} & '+equation1+' - & '+equation2+' \\end{align}'
         let subtract1 = ''
         let subtract2 = ''
         let mVal = 0
@@ -406,33 +421,36 @@ export class CipherAffineEncoder extends CipherEncoder {
         if (m1Val > m2Val) {
             mVal = m1Val - m2Val
             cVal = c1Val - c2Val
-            subtract1 = '\\begin{align}' + equation1 + ' - ' + equation2 + ' \\hline a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' '
+            subtract1 = '\\begin{aligned}' + equation1 + ' - ' + equation2 + ' \\hline a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' '
             mSubstitute = m2Val
             cSubstitute = c2Val
         } else {
             mVal = m2Val - m1Val
             cVal = c2Val - c1Val
-            subtract1 = '\\begin{align}' + equation2 + ' - ' + equation1 + ' \\hline a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' '
+            subtract1 = '\\begin{aligned}' + equation2 + ' - ' + equation1 + ' \\hline a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' '
             mSubstitute = m1Val
             cSubstitute = c1Val
         }
 
-        solution += subtract1
+        solution = subtract1
         if (cVal < 0) {
             cVal += 26
             subtract2 = ' \\\\ a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' '
             solution += subtract2
         }
-        solution += ' \\end{align}'
+        solution += ' \\end{aligned}'
+        result.append($(katex.renderToString(solution)))
 
-        // solution for a
+        // solution for A
         let message = ''
         let a = cVal / mVal
         let aRemainder = cVal % mVal
         if (a !== 0) {
             let cValOriginal = cVal
             if (aRemainder !== 0) {
-                message = 'Since $' + cVal + ' \\div ' + mVal + ' = ' + (cVal / mVal).toPrecision(5) + '$ we have to find another value.'
+                let p1 = $("<p/>").text("Since ")
+                p1.append($(katex.renderToString(cVal + ' \\div ' + mVal + ' = ' + (cVal / mVal).toPrecision(5))))
+                p1.append(' we have to find another value. ')
                 let count = 0
 
                 while (aRemainder !== 0) {
@@ -441,31 +459,42 @@ export class CipherAffineEncoder extends CipherEncoder {
                     aRemainder = cVal % mVal
                 }
                 a = cVal / mVal
-                message += '  $' + cValOriginal + ' + (26 * ' + count + ') = ' + cVal + '$.  $' + cVal + ' \\div ' + mVal + ' = ' + a + '$'
+                p1.append($(katex.renderToString(cValOriginal + ' + (26 * ' + count + ') = ' +
+                    cVal + '.  ' + cVal + ' \\div ' + mVal + ' = ' + a)))
+                result.append(p1)
             }
         }
-        solution += (message + '<p>So we now know that $\\bbox[yellow,5px]{a = ' + a + '}$.</p>')
+        result.append($(katex.renderToString(message)))
+        message = "\\colorbox{yellow}{a =" + a + "}"
+        result.append($("<p/>").text('So we now know that ').append($(katex.renderToString(message))))
 
         // solution for b
-        let findingB = 'To find $b$, substitute that back into the equation with the lowest multiplier.  '
-        findingB += '\\begin{align}(' + a + ' * ' + mSubstitute + ' + b)\\;\\text{mod 26} & = ' +
-            cSubstitute + '\\\\(' + (a * mSubstitute) + ' + b)\\;\\text{mod 26} & = ' + cSubstitute + '\\end{align}'
-        findingB += 'Subtract $' + (a * mSubstitute) + '$ from both sides: \\begin{align}(' +
+        result.append($("<p/>").text('To find b, substitute that back into the equation with the lowest multiplier. '))
+        let findingB = '\\begin{aligned}(' + a + ' * ' + mSubstitute + ' + b)\\;\\text{mod 26} & = ' +
+            cSubstitute + '\\\\(' + (a * mSubstitute) + ' + b)\\;\\text{mod 26} & = ' + cSubstitute + '\\end{aligned}'
+        result.append($(katex.renderToString(findingB)))
+        let p = $("<p>").text('Subtract ')
+        p.append($(katex.renderToString(String(a * mSubstitute))))
+        p.append(' from both sides: ')
+        findingB = '\\begin{aligned}(' +
             (a * mSubstitute) + ' +b)\\;\\text{mod 26} - ' + (a * mSubstitute) + ' & = (' +
-            cSubstitute + ' - ' + (a * mSubstitute) + ')\\;\\text{mod 26}\\\\'
-        findingB += 'b\\;\\text{mod 26} & = ' + (cSubstitute - (a * mSubstitute)) + '\\;\\text{mod 26}\\\\'
+            cSubstitute + ' - ' + (a * mSubstitute) + ')\\;\\text{mod 26}\\\\' +
+            'b\\;\\text{mod 26} & = ' + (cSubstitute - (a * mSubstitute)) + '\\;\\text{mod 26}\\\\'
 
         let b = cSubstitute - (a * mSubstitute)
         while (b < 0) {
             b += 26
         }
-        findingB += 'b\\;\\text{mod 26} & = ' + b + '\\;\\text{mod 26}\\end{align}'
-        findingB += 'And we see that $\\bbox[yellow,5px]{b = ' + b + '}$.  However, we only know a few of the letters in the cipher.'
+        findingB += 'b\\;\\text{mod 26} & = ' + b + '\\;\\text{mod 26}\\end{aligned}'
+        result.append($(katex.renderToString(findingB)))
+        p = $("<p/>").text('And we see that ')
+        p.append($(katex.renderToString("\\colorbox{yellow}{b =" + b + "}")))
+        result.append(p)
 
-        solution += findingB
-        let outdiv = $("#sol")
-        outdiv.empty().append($("<p>", { id: "solution" }).html(solution))
-        // MathJax.Hub.Queue(["Typeset", MathJax.Hub, 'solution'])
+        result.append($("<p/>").text('However, we only know a few of the letters in the cipher.'))
+
+        let outdiv = $("#sol").empty().append(result)
+
         let l = m1 + m2
         outdiv.append(this.showOutput(theMessage, l))
 
@@ -505,11 +534,9 @@ export class CipherAffineEncoder extends CipherEncoder {
         for (let entry of outData) {
             if (!this.completeSolution) {
                 let found = this.encodeString(entry.letters)
-                solution = '<p>' + entry.prefix + '</p> ' +
-                    this.encodeLetters(a, b, entry.letters) +
-                    '<p>' + entry.suffix1 + ' ($' + found + '$)' + entry.suffix2 + '</p>'
-                outdiv.append($("<div>", { id: entry.letters }).html(solution))
-                // MathJax.Hub.Queue(["Typeset", MathJax.Hub, entry.letters])
+                outdiv.append($("<p/>").html(entry.prefix))
+                outdiv.append($(katex.renderToString(this.encodeLetters(a, b, entry.letters))))
+                outdiv.append($("<p/>").text(entry.suffix1 + ' (' + found + ')' + entry.suffix2))
                 l += entry.letters
                 outdiv.append(this.showOutput(theMessage, l))
             }
@@ -526,10 +553,8 @@ export class CipherAffineEncoder extends CipherEncoder {
             let newa: number = Number($(e.target).val())
             if (newa !== this.state.a) {
                 this.markUndo()
-                this.seta(newa, this.advancedir)
-                if (newa !== this.state.a) {
-                    $(e.target).val(this.state.a)
-                    return false
+                if (this.seta(newa, this.advancedir)) {
+                    this.updateOutput()
                 }
             }
             this.advancedir = 0
@@ -538,10 +563,8 @@ export class CipherAffineEncoder extends CipherEncoder {
             let newb: number = Number($(e.target).val())
             if (newb !== this.state.b) {
                 this.markUndo()
-                this.setb(newb)
-                if (newb !== this.state.b) {
-                    $(e.target).val(this.state.b)
-                    return false
+                if (this.setb(newb)) {
+                    this.updateOutput()
                 }
             }
             this.advancedir = 0

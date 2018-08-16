@@ -1,6 +1,6 @@
 import * as katex from 'katex'
 import * as math from 'mathjs';
-import { cloneObject, StringMap } from './ciphercommon';
+import { cloneObject } from './ciphercommon';
 import { CipherEncoder } from "./cipherencoder"
 import { IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes"

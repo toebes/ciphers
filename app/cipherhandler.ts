@@ -721,6 +721,9 @@ export class CipherHandler {
     saveCipher(): void {
         let state = this.save()
         this.savefileentry = this.setFileEntry(this.savefileentry, state)
+        // We need to update the URL to indicate which entry they saved
+        let url = window.location.href.split('?')[0];
+        window.history.replaceState({}, $("title").text(), url + "?editEntry=" + this.savefileentry);
     }
     /**
      * Save the current cipher state to a new file
@@ -1594,6 +1597,9 @@ export class CipherHandler {
         })
         $("#redo").off("click").on("click", () => {
             this.reDo()
+        })
+        $("#save").off("click").on("click", () => {
+            this.saveCipher()
         })
         $("#reset").off("click").on("click", () => {
             this.markUndo()

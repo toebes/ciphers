@@ -492,10 +492,13 @@ export class CipherEncoder extends CipherHandler {
     genAnswer(): JQuery<HTMLElement> {
         let result = $("<div>")
         this.genAlphabet()
-        let strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth)
+        let strings = this.makeReplacement(this.getEncodingString(), this.maxEncodeWidth)
         for (let strset of strings) {
             result.append($('<div>', { class: "TOSOLVE" }).text(strset[0]))
             result.append($('<div>', { class: "TOANSWER" }).text(strset[1]))
+        }
+        if (this.state.cipherType === ICipherType.Patristocrat) {
+            result.append($('<div>', { class: "origtext"}).text(this.state.cipherString))
         }
         result.append(this.genFreqTable(true, this.state.encodeType))
         return result
@@ -506,7 +509,7 @@ export class CipherEncoder extends CipherHandler {
     genQuestion(): JQuery<HTMLElement> {
         let result = $("<div>")
         this.genAlphabet()
-        let strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth)
+        let strings = this.makeReplacement(this.getEncodingString(), this.maxEncodeWidth)
         for (let strset of strings) {
             result.append($('<div>', { class: "TOSOLVEQ" }).text(strset[0]))
         }
@@ -520,15 +523,7 @@ export class CipherEncoder extends CipherHandler {
      * as the HTML to be displayed
      */
     build(): JQuery<HTMLElement> {
-        let str = this.cleanString(this.state.cipherString)
-
-        /*
-         * If it is characteristic of the cipher type (e.g. patristocrat),
-         * rebuild the string to be encoded in to five character sized chunks.
-         */
-        if (this.state.cipherType === ICipherType.Patristocrat) {
-            str = this.chunk(str, 5)
-        }
+        let str = this.getEncodingString();
 
         let result = $('<div>')
         let strings = this.makeReplacement(str, this.maxEncodeWidth)
@@ -546,6 +541,18 @@ export class CipherEncoder extends CipherHandler {
         this.displayFreq()
         return result
     }
+    public getEncodingString(): string {
+        let str = this.cleanString(this.state.cipherString);
+        /*
+         * If it is characteristic of the cipher type (e.g. patristocrat),
+         * rebuild the string to be encoded in to five character sized chunks.
+         */
+        if (this.state.cipherType === ICipherType.Patristocrat) {
+            str = this.chunk(str, 5);
+        }
+        return str;
+    }
+
     /**
      * Generates the HTML code for allowing an encoder to select the alphabet type
      * along with specifying the parameters for that alphabet

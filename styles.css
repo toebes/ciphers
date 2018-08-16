@@ -276,6 +276,10 @@ table.mfind {
     width: 20px;
 }
 
+.origtext {
+    font-style: italic;
+}
+
 .prfreq thead .topleft,
 .ckfreq thead .topleft,
 .tfreq thead .topleft {

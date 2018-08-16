@@ -59,7 +59,6 @@ export class CipherRailfenceSolver extends CipherSolver {
      */
     init(lang: string): void {
         super.init(lang)
-        this.state = cloneObject(this.defaultstate) as IRailState
     }
     restore(data: IRailState): void {
         this.state = this.defaultstate

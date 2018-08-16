@@ -39,9 +39,11 @@ export class CipherEncoder extends CipherHandler {
         keyword2: "",
         alphabetSource: "",
         alphabetDest: "",
+        curlang: "en",
     }
     state: IEncoderState = cloneObject(this.defaultstate) as IState
     cmdButtons: JTButtonItem[] = [
+        { title: "Save", color: "primary", id: "save", },
         { title: "Randomize", color: "primary", id: "randomize", disabled: true },
         this.undocmdButton,
         this.redocmdButton,
@@ -58,6 +60,9 @@ export class CipherEncoder extends CipherHandler {
         this.updateOutput()
     }
     setUIDefaults(): void {
+        super.setUIDefaults()
+        this.setCipherType(this.state.cipherType)
+        this.setCipherString(this.state.cipherString)
         this.setEncType(this.state.encodeType)
         this.setOffset(this.state.offset)
         this.setShift(this.state.shift)
@@ -91,11 +96,7 @@ export class CipherEncoder extends CipherHandler {
      * @param {string} lang Language to select (EN is the default)
      */
     init(lang: string): void {
-        //this.ShowRevReplace = false
-        this.state = cloneObject(this.defaultstate) as IState
-        this.state.curlang = lang
-        this.setCharset(this.acalangcharset[this.state.curlang])
-        this.setSourceCharset(this.encodingcharset[this.state.curlang])
+        super.init(lang)
     }
 
     /**
@@ -531,9 +532,15 @@ export class CipherEncoder extends CipherHandler {
 
         let result = $('<div>')
         let strings = this.makeReplacement(str, this.maxEncodeWidth)
+        let tosolve = 0
+        let toanswer = 1
+        if (this.state.operation === "encode") {
+            tosolve = 1
+            toanswer = 0
+        }
         for (let strset of strings) {
-            result.append($('<div>', { class: "TOSOLVE" }).text(strset[0]))
-            result.append($('<div>', { class: "TOANSWER" }).text(strset[1]))
+            result.append($('<div>', { class: "TOSOLVE" }).text(strset[tosolve]))
+            result.append($('<div>', { class: "TOANSWER" }).text(strset[toanswer]))
         }
         this.UpdateFreqEditTable()
         this.displayFreq()

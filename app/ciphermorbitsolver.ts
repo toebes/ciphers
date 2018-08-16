@@ -23,7 +23,8 @@ export class CipherMorbitSolver extends CipherMorseSolver {
      * Morbit Solver
      *
      * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    init(): void {
+    init(lang: string): void {
+        super.init(lang)
         this.cipherType = ICipherType.Morbit
         this.cipherWidth = 2
         this.morbitMap = cloneObject(this.defaultmorbitMap) as StringMap

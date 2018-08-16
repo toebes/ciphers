@@ -43,7 +43,8 @@ export class CipherFractionatedMorseSolver extends CipherMorseSolver {
          * Fractionated Morse Solver
          *
          * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    init(): void {
+    init(lang: string): void {
+        super.init(lang)
         this.cipherType = ICipherType.FractionatedMorse
         this.cipherWidth = 3
         this.fractionatedMorseMap = cloneObject(this.defaultfractionatedMorseMap) as StringMap

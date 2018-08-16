@@ -21,7 +21,6 @@ export class CipherSolver extends CipherHandler {
      */
     init(lang: string): void {
         super.init(lang)
-        this.state = cloneObject(this.defaultstate) as IState
     }
     restore(data: IState): void {
         let rebuild = false

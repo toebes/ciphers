@@ -10,7 +10,8 @@ export class CipherGromarkSolver extends CipherSolver {
     /**
      *
      */
-    init(): void {
+    init(lang: string): void {
+        super.init(lang)
         this.cipherWidth = 2
     }
     /**

@@ -42,7 +42,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         { title: "Save", color: "primary", id: "save", },
         this.undocmdButton,
         this.redocmdButton,
-        { title: "Print Solution", color: "primary", id: "solve", disabled: true },
+        { title: "Display Solution", color: "primary", id: "solve", disabled: true },
     ]
     /* We have identified a complete solution */
     completeSolution: boolean = false
@@ -59,7 +59,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         this.updateOutput()
     }
     setUIDefaults(): void {
-        this.seta(this.state.a, 0)
+        this.seta(this.state.a)
         this.setb(this.state.b)
         this.setOperation(this.state.operation)
     }
@@ -68,6 +68,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         $("#a").val(this.state.a)
         $("#b").val(this.state.b)
         JTRadioButtonSet("operation", this.state.operation)
+        // $("#solve").text('Select 2 hint letters')
         this.load()
     }
     /**
@@ -79,17 +80,17 @@ export class CipherAffineEncoder extends CipherEncoder {
         return savestate
     }
     /**
-     * Sets the new A value.  A direction is also provided so that if the
+     * Sets the new A value.  A direction is also provided in the state so that if the
      * intended value is bad, we can keep advancing until we find one
      */
-    seta(a: number, direction: number): boolean {
+    seta(a: number): boolean {
         let changed = false
         let charset = this.getCharset()
         if (a !== this.state.a) {
 
-            if (direction !== 0) {
+            if (this.advancedir !== 0) {
                 while (a !== this.state.a && !isCoPrime(a, charset.length)) {
-                    a = (a + charset.length + direction) % charset.length
+                    a = (a + charset.length + this.advancedir) % charset.length
                 }
             }
             if (!isCoPrime(a, charset.length)) {
@@ -130,11 +131,9 @@ export class CipherAffineEncoder extends CipherEncoder {
      * Initializes the encoder.
      * We don't want to show the reverse replacement since we are doing an encode
      */
-    init(): void {
-        this.state = cloneObject(this.defaultstate) as IAffineState
+    init(lang: string): void {
+        super.init(lang)
         this.ShowRevReplace = false
-        $("#solve").prop('disabled', true)
-        $("#solve").text('Select 2 hint letters')
     }
     buildReplacement(msg: string, maxEncodeWidth: number): string[][] {
         let result: string[][] = []
@@ -553,7 +552,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             let newa: number = Number($(e.target).val())
             if (newa !== this.state.a) {
                 this.markUndo()
-                if (this.seta(newa, this.advancedir)) {
+                if (this.seta(newa)) {
                     this.updateOutput()
                 }
             }

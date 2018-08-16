@@ -775,11 +775,14 @@ export class CipherHandler {
     }
     /**
      * Initializes the encoder/decoder.
-     * We don't want to show the reverse replacement since we are doing an encode
-     * @param {string} lang Language to select (EN is the default)
+     * Select the character sets based on the language and initialize the
+     * current state
      */
     init(lang: string): void {
-        this.state.curlang = lang
+        this.defaultstate.curlang = lang
+        this.state = cloneObject(this.defaultstate) as IState
+        this.setCharset(this.acalangcharset[this.state.curlang])
+        this.setSourceCharset(this.encodingcharset[this.state.curlang])
     }
     /**
      * Generates an HTML representation of a string for display
@@ -1702,10 +1705,15 @@ export class CipherHandler {
         this.defaultstate.cipherType = ciphertype
     }
     /**
-     * Set flag to "chunk" input data string befre encoding.  Used in Patristocrat,
+     * set the cipher type
      */
-    public setCipherType(ciphertype: ICipherType): void {
-        this.state.cipherType = ciphertype
+    public setCipherType(ciphertype: ICipherType): boolean {
+        let changed = false
+        if (this.state.cipherType !== ciphertype) {
+            this.state.cipherType = ciphertype
+            changed = true
+        }
+        return changed
     }
 
     /**

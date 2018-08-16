@@ -58,9 +58,8 @@ export class CipherRagbabySolver extends CipherSolver {
         }
         return rslt
     }
-    init(): void {
-        this.state = {...this.defaultstate}
-        this.state.ctmap = this.defaultstate.ctmap.slice()
+    init(lang: string): void {
+        super.init(lang)
     }
     restore(data: IRagbabyState): void {
         if (data.cipherString !== undefined) {

@@ -10,19 +10,12 @@ export class CipherCounter extends CipherEncoder {
         cipherString: "",
         /** The type of cipher we are doing */
         cipherType: ICipherType.Counter,
+        curlang: "en",
     }
     state: IState = cloneObject(this.defaultstate) as IState
     cmdButtons: JTButtonItem[] = [
-        { title: "Count", color: "primary", id: "load", },
+        // { title: "Save", color: "primary", id: "save", },
     ]
-    restore(data: IState): void {
-        this.state = this.defaultstate
-        if (data.cipherString !== undefined) {
-            this.state.cipherString = data.cipherString
-        }
-        $("#toencode").val(this.state.cipherString)
-        this.setUIDefaults()
-    }
     /**
      * Make a copy of the current state
      */
@@ -35,35 +28,29 @@ export class CipherCounter extends CipherEncoder {
      * Initializes the encoder.
      * We don't want to show the reverse replacement since we are doing an encode
      */
-    init(): void {
-        this.state = cloneObject(this.defaultstate) as IState
+    init(lang: string): void {
+        super.init(lang)
         this.ShowRevReplace = false
-    }
-    /**
-     *
-     */
-    attachHandlers(): void {
-        super.attachHandlers()
     }
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>")
-        result.append(this.genQuestionFields())
-        result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
+        result.append(JTFLabeledInput("Text to count", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
         return result
     }
     genPostCommands(): JQuery<HTMLElement> {
         return null
     }
     load(): void {
-        this.state.cipherString = this.cleanString(<string>$('#toencode').val())
         let res = this.build()
         $("#answer").empty().append(res)
+        this.UpdateFreqEditTable()
         // Show the update frequency values
         this.displayFreq()
         // We need to attach handlers for any newly created input fields
         this.attachHandlers()
     }
-
+    setUIDefaults(): void {
+    }
     /**
      * Using the currently selected replacement set, encodes a string
      * This breaks it up into lines of maxEncodeWidth characters or less so that
@@ -91,14 +78,6 @@ export class CipherCounter extends CipherEncoder {
                 this.freq[t]++
             }
         }
-        return null
-    }
-    /**
-     * Create an view/edit field for a dropdown
-     * @param {string} str character to generate dropdown for
-     * @returns {string} HTML of field
-     */
-    makeFreqEditField(c: string): JQuery<HTMLElement> {
         return null
     }
 }

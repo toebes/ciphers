@@ -6,10 +6,13 @@
     width: 600px;
 }
 
+tbody td, tbody th {
+    padding: .5rem .6rem .6rem;
+}
+
 .instructions tbody th, .instructions tbody td {
     padding: 0;
 }
-
 .instructions table, .instructions tbody, .instructions tbody tr,
 .instructions table.unstriped tbody tr {
     border: none;
@@ -644,7 +647,7 @@ table.found tr th:nth-child(odd) {
     text-align: center;
     font-weight: bold;
     cursor: pointer;
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 400;
   }
   
@@ -832,7 +835,7 @@ table.testscores {
 table.testscores th,
 table.testscores td {
     border: 1px solid black;
-    width: 20rem;
+    width: 12rem;
 }
 table.testscores th {
     text-align: center;

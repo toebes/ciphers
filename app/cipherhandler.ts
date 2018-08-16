@@ -1339,7 +1339,7 @@ export class CipherHandler {
                     this.freq[t] = 0
                 }
                 this.freq[t]++
-            } else {
+            } else if (t !== '\'') {
                 // This is a potential split position, so remember it
                 lastsplit = decodeline.length
             }

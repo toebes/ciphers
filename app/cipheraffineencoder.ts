@@ -87,7 +87,6 @@ export class CipherAffineEncoder extends CipherEncoder {
         let changed = false
         let charset = this.getCharset()
         if (a !== this.state.a) {
-
             if (this.advancedir !== 0) {
                 while (a !== this.state.a && !isCoPrime(a, charset.length)) {
                     a = (a + charset.length + this.advancedir) % charset.length

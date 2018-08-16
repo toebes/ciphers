@@ -45,6 +45,7 @@ export const CipherMenu: menuItem[] = [
             { title: "Test Manager", href: "TestManage.html", },
             { title: "Question Manager", href: "TestQuestions.html", },
             { title: "Affine", href: "AffineEncrypt.html", cipherType: ICipherType.Affine, },
+            { title: "Baconian", href: "Baconian.html", cipherType: ICipherType.Baconian, },
             // { title: "Cipher Counter", href: "CipherCounter.html", },
             { title: "Caesar", href: "Caesar.html", cipherType: ICipherType.Caesar, },
             { title: "Atbash", href: "Atbash.html", cipherType: ICipherType.Atbash, },

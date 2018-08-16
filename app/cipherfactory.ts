@@ -1,4 +1,5 @@
 import { CipherAffineEncoder } from "./cipheraffineencoder"
+import { CipherBaconianEncoder} from "./cipherbaconianencoder"
 import { CipherCheckerboardSolver } from "./ciphercheckerboardsolver"
 import { CipherCounter } from "./ciphercounter"
 import { CryptarithmSolver } from "./ciphercryptarithmsolver"
@@ -43,6 +44,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Atbash: {
         cipherType: ICipherType.Atbash,
         cipherClass: CipherTableEncoder,
+        canPrint: true,
+    },
+    Baconian: {
+        cipherType: ICipherType.Baconian,
+        cipherClass: CipherBaconianEncoder,
         canPrint: true,
     },
     Caesar: {

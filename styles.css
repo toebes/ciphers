@@ -323,13 +323,19 @@ input[type="radio"] {
     float:none;
 }
 
-.TOSOLVE,.TOSOLVEQ,.TOANSWER {
+.TOSOLVE,.TOSOLVE2,.TOSOLVEQ,.TOANSWER {
     font-family: Courier New, Courier, monospace;    
     font-size: 22px;
     font-weight: bold;
     margin-bottom: 0pt;
     line-height: 100%;
+    white-space: pre-wrap;
 }
+
+.BACON.TOSOLVE,.BACON.TOSOLVE2,.BACON.TOSOLVEQ,.BACON.TOANSWER {
+    font-size:24px;
+}
+
 .TOSOLVEQ {
     margin-bottom: 6rem;
 }

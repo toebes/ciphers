@@ -20,7 +20,12 @@ import { parseQueryString } from "./parsequerystring"
 //     plugins: [ Enter, Typing, Paragraph, Undo, Bold, Italic, Image ],
 //     toolbar: [ 'bold', 'italic', 'undo', 'redo' ]
 // });
-export type IOperationType = "encode" | "decode" | "compute"
+export type IOperationType = "encode" |
+                             "decode" |
+                             "compute"|
+                             "let4let" |
+                             "sequence" |
+                             "words"
 
 export interface IState {
 

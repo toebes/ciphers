@@ -542,7 +542,7 @@ export class CipherEncoder extends CipherHandler {
         return result
     }
     public getEncodingString(): string {
-        let str = this.cleanString(this.state.cipherString);
+        let str = this.cleanString(this.state.cipherString.toUpperCase());
         /*
          * If it is characteristic of the cipher type (e.g. patristocrat),
          * rebuild the string to be encoded in to five character sized chunks.

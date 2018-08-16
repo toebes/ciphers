@@ -125,14 +125,21 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'Atbash.html',
-            template: path.join(__dirname, 'app', 'pages', 'Atbash.html'),
+            template: path.join(__dirname, 'app', 'pages', 'StdEncoder.html'),
             cipher: 'Atbash',
             title: 'Atbash/Caesar Encoder',
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'Baconian.html',
+            template: path.join(__dirname, 'app', 'pages', 'StdEncoder.html'),
+            cipher: 'Baconian',
+            title: 'Baconian Cipher',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'Caesar.html',
-            template: path.join(__dirname, 'app', 'pages', 'Caesar.html'),
+            template: path.join(__dirname, 'app', 'pages', 'StdEncoder.html'),
             cipher: 'Caesar',
             title: 'Caesar/Atbash Encoder',
         }),

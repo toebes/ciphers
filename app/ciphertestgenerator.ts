@@ -1,4 +1,5 @@
 import { cloneObject } from "./ciphercommon";
+import { IState } from "./cipherhandler";
 import { buttonInfo, CipherTest, ITestState } from "./ciphertest"
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
@@ -55,7 +56,9 @@ export class CipherTestGenerator extends CipherTest {
         }
         let test = this.getTestEntry(this.state.test)
 
-        result.append(JTFLabeledInput("Title", 'text', 'title', test.title, "small-12 medium-12 large-12"))
+        let testdiv = $("<div/>", {class: "callout primary"})
+
+        testdiv.append(JTFLabeledInput("Title", 'text', 'title', test.title, "small-12 medium-12 large-12"))
 
         let table = new JTTable({ class: 'cell stack queslist' })
         let row = table.addHeaderRow()
@@ -79,30 +82,21 @@ export class CipherTestGenerator extends CipherTest {
             ]
             this.addQuestionRow(table, entry + 1, test.questions[entry], buttons2, undefined)
         }
-        result.append(table.generate())
+        if (test.count === 0) {
+            let callout = $("<div/>", {class: "callout warning"}).text("No Questions!  Add from below")
+            table.addBodyRow().add({ celltype: "td", settings: { colspan: 6 }, content: callout})
+        }
+        let dropdown = this.genNewCipherDropdown("addnewques", "New Question")
+        table.addBodyRow().add({ celltype: "td", settings: { colspan: 6 }, content: dropdown})
+
+        testdiv.append(table.generate())
+        // Put in buttons for adding blank tests of various types..
+        result.append(testdiv)
         return result
     }
     genQuestionPool(): JQuery<HTMLElement> {
-        let useditems: { [index: string]: boolean } = {}
-        let test = this.getTestEntry(this.state.test)
-        if (test.timed !== -1) {
-            useditems[test.timed] = true
-        }
-        for (let entry of test.questions) {
-            useditems[entry] = true
-        }
-
-        let result = $("<div>", { class: "questionpool" })
-
-        let cipherCount = this.getCipherCount()
-        let table = new JTTable({ class: 'cell stack queslist' })
-        let row = table.addHeaderRow()
-        row.add("Question")
-            .add("Action")
-            .add("Type")
-            .add("Points")
-            .add("Question")
-            .add("Cipher Text")
+        let result = $("<div>", { class: "questionpool callout secondary" })
+        result.append($("<h2>").text("Existing questions that can be added"))
 
         let buttons: buttonInfo[] = [
             { title: "Edit", btnClass: "entryedit", },
@@ -110,12 +104,7 @@ export class CipherTestGenerator extends CipherTest {
             { title: "Set Timed", btnClass: "questime", },
         ]
 
-        for (let entry = 0; entry < cipherCount; entry++) {
-            if (!useditems[entry]) {
-                this.addQuestionRow(table, entry, entry, buttons, undefined)
-            }
-        }
-        result.append(table.generate())
+        result.append(this.genQuestionTable(this.state.test, buttons))
         return result
     }
     exportTest(link: JQuery<HTMLElement>): void {
@@ -134,6 +123,19 @@ export class CipherTestGenerator extends CipherTest {
 
         link.attr('download', test.title + ".json")
         link.attr('href', url)
+    }
+    createEmptyQuestion(ciphertype: ICipherType, reqlang: string, fortimed: boolean): void {
+        let lang = reqlang
+        if (lang === undefined || lang === '') {
+            lang = "en"
+        }
+        let state: IState = {cipherType: ciphertype, points: 0, question: "Solve This", cipherString: "", curlang: lang }
+        let entry = this.setFileEntry(-1, state)
+        if (fortimed) {
+            this.gotoSetTimedCipher(entry)
+        } else {
+            this.gotoAddCipher(entry)
+        }
     }
     updateOutput(): void {
         $('.testdata').each((i, elem) => {
@@ -243,11 +245,11 @@ export class CipherTestGenerator extends CipherTest {
         $("#export").off("click").on("click", (e) => {
             this.exportTest($(e.target))
         })
-        $("#import").off("click").on("click", (e) => {
-            this.importQuestions()
+        $("#import").off("click").on("click", () => {
+            this.importQuestions();
         })
-        $("#randomize").off("click").on("click", (e) => {
-            this.gotoRandomizeTest()
+        $("#randomize").off("click").on("click", () => {
+            this.gotoRandomizeTest();
         })
         $(".quesup").off("click").on("click", (e) => {
             this.gotoMoveTestCipher(Number($(e.target).attr('data-entry')), -1)
@@ -266,6 +268,16 @@ export class CipherTestGenerator extends CipherTest {
         })
         $(".quesremove").off("click").on("click", (e) => {
             this.gotoRemoveCipher(Number($(e.target).attr('data-entry')))
+        })
+        $("#addnewtimed").off("change").on("change", (e) => {
+            let cipherType = $(e.target).val() as ICipherType
+            let lang = $(e.target).attr("data-lang")
+            this.createEmptyQuestion(cipherType, lang, true)
+        })
+        $("#addnewques").off("change").on("change", (e) => {
+            let cipherType = $(e.target).val() as ICipherType
+            let lang = $(e.target).attr("data-lang")
+            this.createEmptyQuestion(cipherType, lang, false)
         })
         $("#title").off('input').on('input', (e) => {
             let title = $(e.target).val() as string

@@ -1,7 +1,7 @@
 import { cloneObject, NumberMap } from "./ciphercommon";
 import { CipherPrintFactory } from "./cipherfactory";
 import { CipherHandler, IRunningKey, IState, ITest } from "./cipherhandler"
-import { ICipherType } from "./ciphertypes";
+import { getCipherTitle, ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTTable } from "./jttable";
 
@@ -22,6 +22,13 @@ interface IQuestionData {
     qnum: number
     /** The number of points for the question */
     points: number
+}
+interface INewCipherEntry {
+    cipherType: ICipherType,
+    /** Optional language string */
+    lang?: string,
+    /** Optional title to override the default title */
+    title?: string,
 }
 
 /**
@@ -71,6 +78,19 @@ export class CipherTest extends CipherHandler {
         { title: "New Test", color: "primary", id: "newtest", },
         { title: "Export Tests", color: "primary", id: "export", disabled: true, },
         { title: "Import Tests", color: "primary", id: "import", },
+    ]
+    cipherChoices: INewCipherEntry[] = [
+        { cipherType: ICipherType.Affine, },
+        { cipherType: ICipherType.Caesar, },
+        { cipherType: ICipherType.Atbash, },
+        { cipherType: ICipherType.Aristocrat, },
+        { cipherType: ICipherType.Aristocrat, lang: "es", title: "Spanish Aristocrat"},
+        { cipherType: ICipherType.Patristocrat, },
+        { cipherType: ICipherType.Hill, },
+        { cipherType: ICipherType.Vigenere, },
+        { cipherType: ICipherType.RunningKey, },
+        { cipherType: ICipherType.Baconian, },
+        { cipherType: ICipherType.RSA, },
     ]
     /**
      * Stash of the current questions
@@ -123,6 +143,100 @@ export class CipherTest extends CipherHandler {
         }
         //        location.assign("TestGenerator.html?test=" + String(test))
     }
+    genQuestionTable(filter: number, buttons: buttonInfo[]): JQuery<HTMLElement> {
+        // Figure out what items we will not display if they gave us a filter
+        let useditems: { [index: string]: boolean } = {}
+        if (filter !== undefined) {
+            let test = this.getTestEntry(this.state.test)
+            if (test.timed !== -1) {
+                useditems[test.timed] = true
+            }
+            for (let entry of test.questions) {
+                useditems[entry] = true
+            }
+        }
+
+        let testcount = this.getTestCount()
+        let testuse: { [index: string] : JQuery<HTMLElement>} = {}
+        let testNames: NumberMap = {}
+
+        // Figure out what tests each entry is used with
+        for (let testent = 0; testent < testcount; testent++) {
+            let test = this.getTestEntry(testent)
+            // Make sure we have a unique title for the test
+            let title = test.title
+            if (title === '') {
+                title = "No Title"
+            }
+            if (testNames[title] !== undefined) {
+                title += "." + testent
+            }
+            testNames[title] = testent
+            // If we have a timed question, just put it in front of all the other questions
+            // that we will process since we don't actually care about the order of the
+            // questions, just which test it is used in
+            if (test.timed !== -1) {
+                test.questions.unshift(test.timed)
+            }
+            // Generate a clickable URL for each entry in the test
+            for (let entry of test.questions) {
+                if (entry in testuse) {
+                    // If this is a subsequent entry, separate them with a comma
+                    testuse[entry].append(", ")
+                } else {
+                    // For the first entry, we need a <div> to contain it all
+                    testuse[entry] = $("<div/>")
+                }
+                testuse[entry].append($("<a>", {href: "TestGenerator.html?test=" + testent}).text(title))
+            }
+        }
+
+        let result = $("<div>", { class: "questions" })
+
+        let cipherCount = this.getCipherCount()
+        let table = new JTTable({ class: 'cell stack queslist' })
+        let row = table.addHeaderRow()
+        row.add("Question")
+            .add("Action")
+            .add("Type")
+            .add("Use")
+            .add("Points")
+            .add("Question")
+            .add("Cipher Text")
+
+        for (let entry = 0; entry < cipherCount; entry++) {
+            if (!useditems[entry]) {
+                if (entry in testuse) {
+                    this.addQuestionRow(table, entry, entry, buttons, testuse[entry])
+                } else {
+                    this.addQuestionRow(table, entry, entry, buttons, "")
+                }
+            }
+        }
+        result.append(table.generate())
+        return result
+    }
+    genNewCipherDropdown(id: string, title: string): JQuery<HTMLElement> {
+        let inputgroup = $("<div/>", { class: "input-group cell small-12 medium-12 large-12" })
+        $("<span/>", { class: "input-group-label" }).text(title)
+            .appendTo(inputgroup)
+        let select = $("<select/>", { id: id, class: "input-group-field" })
+        select.append($('<option />', { value: "" }).text("--Select a Cipher Type to add--"))
+        for (let entry of this.cipherChoices) {
+            let option = $("<option />", { value: entry.cipherType })
+            if (entry.lang !== undefined) {
+                option.attr('data-lang', entry.lang)
+            }
+            let cipherTitle = getCipherTitle(entry.cipherType)
+            if (entry.title !== undefined) {
+                cipherTitle = entry.title
+            }
+            option.html(cipherTitle)
+            select.append(option)
+        }
+        inputgroup.append(select)
+        return inputgroup
+    }
     addQuestionRow(table: JTTable, order: number, qnum: number, buttons: buttonInfo[], prevuse: any): void {
         let ordertext = "Timed"
         let extratext = ""
@@ -131,10 +245,13 @@ export class CipherTest extends CipherHandler {
         } else {
             ordertext = String(order)
         }
-        let row = table.addBodyRow().add(ordertext)
+        let row = table.addBodyRow()
         if (order === -1 && qnum === -1) {
-            row.add({ celltype: "td", settings: { colspan: 5 }, content: "No Timed Question" })
+            let callout = $("<div/>", {class: "callout warning"}).text("No Timed Question!  Add one from below")
+            callout.append(this.genNewCipherDropdown("addnewtimed", "New Timed Question"))
+            row.add({ celltype: "td", settings: { colspan: 6 }, content: callout })
         } else {
+            row.add(ordertext)
             let state = this.getFileEntry(qnum)
             if (state === null) {
                 state = { cipherType: ICipherType.None, points: 0, cipherString: "" }
@@ -154,7 +271,7 @@ export class CipherTest extends CipherHandler {
                 row.add(prevuse)
             }
             row.add(String(state.points))
-                .add($("<span/>").html(state.question + extratext))
+                .add($("<span/>", {class: "qtextentry"}).html(state.question + extratext))
                 .add(state.cipherString)
         }
         return

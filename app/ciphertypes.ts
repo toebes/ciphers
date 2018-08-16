@@ -27,6 +27,8 @@ export const enum ICipherType {
     Hill = "hill",
     Test = "test",
     RunningKey = "runningkey",
+    Baconian = "baconian",
+    RSA = "rsa",
 }
 
 let cipherTypeConfig = new Map(<[ICipherType, any][]>[
@@ -229,8 +231,30 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
             ICipherType.Vigenere,
         ]
     }],
+    [ICipherType.Baconian, {
+        title: "Baconian",
+        id: "baconian",
+        equiv: [
+            ICipherType.Baconian,
+        ]
+    }],
+    [ICipherType.RSA, {
+        title: "RSA",
+        id: "rsa",
+        equiv: [
+            ICipherType.RSA,
+        ]
+    }],
 ])
 
+export function getCipherTitle(ciphertype: ICipherType): string {
+    let config = cipherTypeConfig.get(ciphertype)
+    let title = 'NOT_FOUND'
+    if (config !== undefined && config.title !== undefined) {
+        title = config.title
+    }
+    return title
+}
 export function CypherTypeButtonItem(cipherType: ICipherType): JTRadioButtonItem {
     let config = cipherTypeConfig.get(cipherType)
     let res: JTRadioButtonItem = {

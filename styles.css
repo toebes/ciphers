@@ -694,6 +694,9 @@ table.found tr th:nth-child(odd) {
 .qtext .qnum {
     padding-left: 10px;
 }
+.qtextentry p {
+    display: inline;
+}
 .qtext .qbody p {
       display:inline;
   }

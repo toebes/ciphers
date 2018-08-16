@@ -40,67 +40,13 @@ export class CipherTestQuestions extends CipherTest {
         this.attachHandlers()
     }
     genPostCommands(): JQuery<HTMLElement> {
-        let testcount = this.getTestCount()
-        let testuse: { [index: string] : JQuery<HTMLElement>} = {}
-        let testNames: NumberMap = {}
-
-        // Figure out what tests each entry is used with
-        for (let testent = 0; testent < testcount; testent++) {
-            let test = this.getTestEntry(testent)
-            // Make sure we have a unique title for the test
-            let title = test.title
-            if (title === '') {
-                title = "No Title"
-            }
-            if (testNames[title] !== undefined) {
-                title += "." + testent
-            }
-            testNames[title] = testent
-            // If we have a timed question, just put it in front of all the other questions
-            // that we will process since we don't actually care about the order of the
-            // questions, just which test it is used in
-            if (test.timed !== -1) {
-                test.questions.unshift(test.timed)
-            }
-            // Generate a clickable URL for each entry in the test
-            for (let entry of test.questions) {
-                if (entry in testuse) {
-                    // If this is a subsequent entry, separate them with a comma
-                    testuse[entry].append(", ")
-                } else {
-                    // For the first entry, we need a <div> to contain it all
-                    testuse[entry] = $("<div/>")
-                }
-                testuse[entry].append($("<a>", {href: "TestGenerator.html?test=" + testent}).text(title))
-            }
-        }
-
         let result = $("<div>", { class: "questions" })
-
-        let cipherCount = this.getCipherCount()
-        let table = new JTTable({ class: 'cell stack queslist' })
-        let row = table.addHeaderRow()
-        row.add("Question")
-            .add("Action")
-            .add("Type")
-            .add("Use")
-            .add("Points")
-            .add("Question")
-            .add("Cipher Text")
 
         let buttons: buttonInfo[] = [
             { title: "Edit", btnClass: "entryedit", },
             { title: "Delete", btnClass: "entrydel", },
         ]
-
-        for (let entry = 0; entry < cipherCount; entry++) {
-            if (entry in testuse) {
-                this.addQuestionRow(table, entry, entry, buttons, testuse[entry])
-            } else {
-                this.addQuestionRow(table, entry, entry, buttons, "")
-            }
-        }
-        result.append(table.generate())
+        result.append(this.genQuestionTable(undefined, buttons))
         return result
     }
     exportQuestions(link: JQuery<HTMLElement>): void {

@@ -854,11 +854,11 @@ table.testscores th {
 }
 table.testscores td.v {
     text-align: right;
-    padding:  .5rem 4rem .5rem .5rem;
+    padding:  .3rem 4rem .3rem .5rem;
 }
 table.testscores td.t {
     text-align: left;
-    padding: .5rem .5rem .5rem 4rem;
+    padding: .3rem .5rem .3rem 4rem;
 }
 table.testscores td.grey {
     background-color: grey;

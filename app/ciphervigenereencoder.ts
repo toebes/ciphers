@@ -286,7 +286,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             source = 1
         }
         for (let strset of strings) {
-            this.addCipherTableRows(table, undefined, strset[source], undefined, true)
+            this.addCipherTableRows(table, "", strset[source], undefined, true)
         }
         result.append(table.generate())
         return result

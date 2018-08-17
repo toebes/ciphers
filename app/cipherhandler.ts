@@ -1244,8 +1244,7 @@ export class CipherHandler {
     cleanString(str: string): string {
         let pattern: string = "[\r\n ]+"
         let re = new RegExp(pattern, "g")
-        str.replace(re, " ")
-        return str
+        return str.replace(re, " ")
     }
     /**
      * Eliminate all characters which are not in the charset

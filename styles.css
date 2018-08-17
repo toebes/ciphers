@@ -7,14 +7,20 @@
 }
 
 tbody td, tbody th {
-    padding: .5rem .6rem .6rem;
+    padding: .5rem;
 }
 
 .instructions tbody th, .instructions tbody td {
     padding: 0;
 }
-.instructions table, .instructions tbody, .instructions tbody tr,
-.instructions table.unstriped tbody tr {
+.instructions table,
+.instructions tbody,
+.instructions tbody tr,
+.instructions table.unstriped tbody tr,
+.question table,
+.question tbody,
+.question tbody tr,
+.question table.unstriped tbody tr {
     border: none;
     border-color: transparent;
 }
@@ -337,6 +343,9 @@ input[type="radio"] {
 
 .BACON.TOSOLVE,.BACON.TOSOLVE2,.BACON.TOSOLVEQ,.BACON.TOANSWER {
     font-size:24px;
+}
+.BACON.TOSOLVEQ {
+    margin-bottom: 4rem;
 }
 
 .TOSOLVEQ {
@@ -720,6 +729,10 @@ table.found tr th:nth-child(odd) {
     text-align: center;
 }
 
+  .ansblock td.o.v {
+      border: none;
+      height: 2rem;
+  }
   .ansblock td.v {
       border: 1px solid black;
   }
@@ -767,7 +780,6 @@ table.hillans {
 }
 table.hillblock {
     margin-top: 2rem;
-    margin-bottom: 10rem;
 }
 table.hillblock td {
     min-width: 2rem;
@@ -904,4 +916,14 @@ table.nameline td.u {
     .pagebreak {
         page-break-before: always;
     }
+    .question {
+        page-break-inside: avoid;
+    }
+    div.affinework {
+        height: 12rem;
+    }
+    table.hillblock, table.hillans {
+        margin-bottom: 12rem;
+    }
+    @page { margin: .5in}
 }

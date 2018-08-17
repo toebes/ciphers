@@ -244,6 +244,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             this.addCipherTableRows(table, undefined, strset[plainindex], undefined, true)
         }
         result.append(table.generate())
+        result.append($("<div>", { class: "cell affinework"}))
         return result
     }
     solveIt(m1: string, m2: string): string {
@@ -373,7 +374,6 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         return table
     }
-
     printSolution(theMessage: string, m1: string, m2: string): void {
         let charset = this.getCharset()
 

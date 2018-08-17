@@ -326,6 +326,9 @@ input[type="radio"] {
     margin-bottom: 0px;
 }
 
+.center {
+    text-align: center;
+}
 .rlab {
     display: initial;
     width: auto;
@@ -341,6 +344,9 @@ input[type="radio"] {
     white-space: pre-wrap;
 }
 
+.ul {
+    text-decoration: underline;
+}
 .BACON.TOSOLVE,.BACON.TOSOLVE2,.BACON.TOSOLVEQ,.BACON.TOANSWER {
     font-size:24px;
 }
@@ -851,14 +857,15 @@ table.testscores td {
 }
 table.testscores th {
     text-align: center;
+    padding: .1rem .5rem .1rem .5rem;
 }
 table.testscores td.v {
     text-align: right;
-    padding:  .3rem 4rem .3rem .5rem;
+    padding:  .1rem 4rem .1rem .5rem;
 }
 table.testscores td.t {
     text-align: left;
-    padding: .3rem .5rem .3rem 4rem;
+    padding: .1rem .5rem .1rem 4rem;
 }
 table.testscores td.grey {
     background-color: grey;

@@ -693,7 +693,16 @@ export class CipherHandler {
      * Put up a dialog to select an XML file to import
      */
     openXMLImport(): void {
-        $("#okimport").prop("disabled", false)
+        $("#okimport").prop("disabled", true)
+        $("#importstatus").removeClass("success").addClass("secondary")
+        $("#xmltoimport").text("No File Selected")
+        $("#xmlFile").off("change").on("change", (e) => {
+            $("#okimport").removeAttr("disabled")
+            $("#importstatus").removeClass("secondary").addClass("success")
+            let fileinput: HTMLInputElement = $("#xmlFile")[0] as HTMLInputElement
+            let files = fileinput.files
+            $("#xmltoimport").text(files[0].name + " selected")
+        })
         $("#okimport").off("click").on("click", (e) => {
             let fileinput: HTMLInputElement = $("#xmlFile")[0] as HTMLInputElement
             let files = fileinput.files
@@ -1953,9 +1962,12 @@ export class CipherHandler {
         let importFileDiv = $("<div/>", { class: "reveal", id: "ImportFile", 'data-reveal': '' })
         importFileDiv.append($("<div/>", { class: "top-bar Primary" })
             .append($("<div/>", { class: "top-bar-left" })
-                .append($("<h3/>").text("Select File to Import"))))
-        importFileDiv.append($("<label/>", { for: "xmlFile", class: "button" }).text("Select XML File"))
-        importFileDiv.append($("<input/>", { type: "file", id: "xmlFile", class: "show-for-sr" }))
+                .append($("<h3/>").text("Import Test Data"))))
+        let importDiv = ($("<div/>", {id: "importstatus", class: "callout secondary"}))
+        importDiv.append($("<label/>", { for: "xmlFile", class: "button" }).text("Select XML File"))
+        importDiv.append($("<input/>", { type: "file", id: "xmlFile", class: "show-for-sr" }))
+        importDiv.append($("<span/>", {id : "xmltoimport"}).text("No File Selected"))
+        importFileDiv.append(importDiv)
         let buttongroup = $("<div/>", { class: "expanded button-group" })
         buttongroup.append($("<a/>", { class: "secondary button", "data-close": "" }).text("Cancel"))
         buttongroup.append($("<input/>", { class: "button", type: "submit", val: "Import", id: "okimport" }))

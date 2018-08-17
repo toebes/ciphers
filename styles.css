@@ -887,6 +887,9 @@ table.nameline td.u {
     margin-left: 5rem;
     font-family: "Courier New", Courier, monospace;
 }
+#xmltoimport {
+    margin-left: 1rem;
+}
 
 @media print
 {    

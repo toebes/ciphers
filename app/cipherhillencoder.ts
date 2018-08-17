@@ -80,6 +80,8 @@ export class CipherHillEncoder extends CipherEncoder {
 
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>")
+        result.append(this.genTestUsage())
+
         let radiobuttons = [
             { id: 'wrow', value: "encode", title: 'Encode' },
             { id: 'wrow', value: "compute", title: 'Compute Decryption' },

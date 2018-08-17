@@ -885,6 +885,33 @@ export class CipherHandler {
         }
         return table.generate()
     }
+    genTestUsage(): JQuery<HTMLElement> {
+        let result = $("<div>", {class: "testuse"})
+        let prefix = "Used on test(s): "
+        if (this.savefileentry !== -1) {
+            // Find out what tests this is a part of
+            let testCount = this.getTestCount()
+            for (let entry = 0; entry < testCount; entry++) {
+                let test = this.getTestEntry(entry)
+                let use
+                if (test.timed === this.savefileentry) {
+                    use = "Timed Question"
+                } else {
+                    let qnum = test.questions.indexOf(this.savefileentry)
+                    if (qnum !== -1) {
+                        use = "Question #" + String(qnum)
+                    }
+                }
+                if (use !== undefined) {
+                    let link = $("<a>", {href: "TestGenerator.html?test=" + String(entry)}).text(test.title + " " + use)
+                    result.addClass("callout primary")
+                    result.append(prefix).append(link)
+                    prefix = ", "
+                }
+            }
+        }
+        return result
+    }
     /**
      * Loads new data into a solver, preserving all solving matches made
      */
@@ -1031,9 +1058,6 @@ export class CipherHandler {
      * the initial state values.
      */
     layout(): void {
-        $(".langsel").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.getLangDropdown()) })
-        $(".MenuBar").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.createMainMenu()) })
-        this.buildCustomUI()
         let parms = parseQueryString(window.location.search.substring(1))
         let saveSet = this.save()
         this.savefileentry = -1
@@ -1048,6 +1072,9 @@ export class CipherHandler {
                 saveSet[v] = parms[v]
             }
         }
+        $(".langsel").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.getLangDropdown()) })
+        $(".MenuBar").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.createMainMenu()) })
+        this.buildCustomUI()
         this.restore(saveSet)
         this.attachHandlers()
     }
@@ -1265,14 +1292,12 @@ export class CipherHandler {
         }
         return chunkedString
     }
-
     /** @description Sets the character set used by the Decoder.
      * @param {string} charset the set of characters to be used.
      */
     setCharset(charset: string): void {
         this.charset = charset
     }
-
     isValidChar(char: string): boolean {
         return this.charset.indexOf(char) >= 0
     }
@@ -1313,7 +1338,6 @@ export class CipherHandler {
         }
         return revRepl
     }
-
     /**
      * Using the currently selected replacement set, encodes a string
      * This breaks it up into lines of maxEncodeWidth characters or less so that
@@ -1671,7 +1695,6 @@ export class CipherHandler {
             this.findPossible(findStr)
         })
     }
-
     /**
      * Generate a replacement pattern string.  Any unknown characters are represented as a space
      * otherwise they are given as the character it replaces as.
@@ -1691,7 +1714,6 @@ export class CipherHandler {
         }
         return res
     }
-
     /**
      * @param {string} str String to check
      * @param {Array.<string>} repl Replacement characters which are pre-known
@@ -1729,7 +1751,6 @@ export class CipherHandler {
         }
         return changed
     }
-
     /**
      * Quote a string, escaping any quotes with \.  This is used for generating Javascript
      * that can be safely loaded.
@@ -1772,7 +1793,6 @@ export class CipherHandler {
         }
         return res
     }
-
     /**
      * @param {string} lang 2 character Language to dump language template for
      */
@@ -1900,7 +1920,6 @@ export class CipherHandler {
         })
         $(".langstatus").text("Loading " + this.langmap[lang] + "...")
     }
-
     /**
      * Retrieve all of the replacement characters that have been selected so far
      */
@@ -1910,27 +1929,6 @@ export class CipherHandler {
         for (let c of charset) {
             $('#rf' + this.replacement[c]).text(c)
         }
-    }
-    /**
-     * Apply any fixed replacement characters to a given unique string. For example, if the input
-     * string was "01232" and the repl string was " HE E" then the output would be "0HE3E"
-     * NOTE: Is this used anymore?
-     * @param {string} str Input string to apply the replacement characters to
-     * @param {string} repl Replacement characters.  Any non blank character replaces the
-     *                      corresponding character in the input string
-     * @returns {string} Comparable replacement string
-     */
-    applyReplPattern(str: string, repl: string): string {
-        let res = ""
-        let len = str.length
-        for (let i = 0; i < len; i++) {
-            let c = repl.substr(i, 1)
-            if (c === " ") {
-                c = str.substr(i, 1)
-            }
-            res += c
-        }
-        return res
     }
     public getEditURL(state: IState): string {
         if (state.cipherType === undefined) {

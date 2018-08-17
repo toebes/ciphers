@@ -240,6 +240,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     }
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>")
+        result.append(this.genTestUsage())
 
         let radiobuttons = [
             { id: 'wrow', value: "let4let", title: 'Letter for letter' },

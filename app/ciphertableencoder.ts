@@ -114,6 +114,7 @@ export class CipherTableEncoder extends CipherEncoder {
     }
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>")
+        result.append(this.genTestUsage())
 
         let radiobuttons = [
             CypherTypeButtonItem(ICipherType.Caesar),

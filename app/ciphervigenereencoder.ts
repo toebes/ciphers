@@ -87,6 +87,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>")
+        result.append(this.genTestUsage())
         let radiobuttons = [
             { id: 'wrow', value: "encode", title: 'Encode' },
             { id: 'mrow', value: "decode", title: 'Decode' },

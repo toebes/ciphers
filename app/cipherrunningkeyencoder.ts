@@ -42,6 +42,7 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
 
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>")
+        result.append(this.genTestUsage())
         let runningKeys = this.getRunningKeyStrings()
         let radiobuttons = [
             { id: 'wrow', value: "encode", title: 'Encode' },

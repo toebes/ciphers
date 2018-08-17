@@ -50,7 +50,7 @@ export const CipherMenu: menuItem[] = [
             { title: "Caesar", href: "Caesar.html", cipherType: ICipherType.Caesar, },
             { title: "Atbash", href: "Atbash.html", cipherType: ICipherType.Atbash, },
             { title: "Aristocrat", href: "AristocratEncrypt.html", cipherType: ICipherType.Aristocrat, },
-            { title: "Spanish Aristocrat", href: "AristocratSpanishEncrypt.html", },
+            { title: "Spanish Aristocrat", href: "AristocratSpanishEncrypt.html", cipherType: ICipherType.Aristocrat, lang: "es"},
             { title: "Xenocrypt", href: "XenocryptEncrypt.html", cipherType: ICipherType.Xenocrypt, },
             { title: "Patristocrat", href: "PatristocratEncrypt.html", cipherType: ICipherType.Patristocrat, },
             { title: "Hill (2x2 and 3x3)", href: "HillEncrypt.html", cipherType: ICipherType.Hill, },

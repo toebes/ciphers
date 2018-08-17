@@ -1931,10 +1931,14 @@ export class CipherHandler {
         }
     }
     public getEditURL(state: IState): string {
+        let lang
         if (state.cipherType === undefined) {
             return ""
         }
-        return JTGetURL(CipherMenu, state.cipherType)
+        if (state.curlang !== undefined && state.curlang !== 'en') {
+            lang = state.curlang
+        }
+        return JTGetURL(CipherMenu, state.cipherType, lang)
     }
     /**
      * Create the hidden dialog for selecting a cipher to open

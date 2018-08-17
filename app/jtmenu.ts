@@ -1,5 +1,4 @@
 import { ICipherType } from "./ciphertypes";
-import { parseQueryString } from "./parsequerystring";
 
 export interface menuItem {
     /** Text to appear for the menu item */
@@ -14,6 +13,8 @@ export interface menuItem {
     classname?: string
     /** Optional Cipher Type to add */
     cipherType?: ICipherType
+    /** Optional Language */
+    lang?: string
 }
 
 /**
@@ -82,15 +83,15 @@ export function JTCreateMenu(menu: menuItem[], id: string, menutext: string): JQ
     return result.children()
 }
 
-export function JTGetURL(menu: menuItem[], ciphertype: ICipherType): string {
+export function JTGetURL(menu: menuItem[], ciphertype: ICipherType, lang: string): string {
     let url = ""
     for (let item of menu) {
-        if (item.cipherType !== undefined && item.cipherType === ciphertype) {
+        if (item.cipherType !== undefined && item.cipherType === ciphertype && item.lang === lang) {
             url = item.href + "?cipherType=" + String(ciphertype)
             return url
         }
         if (item.menu !== undefined) {
-            url = JTGetURL(item.menu, ciphertype)
+            url = JTGetURL(item.menu, ciphertype, lang)
             if (url !== "") {
                 return url
             }

@@ -63,6 +63,8 @@ export class CipherTestManage extends CipherTest {
             buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testdel alert button" }).text("Delete"))
             buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testprt button" }).text("Test Packet"))
             buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testans button" }).text("Answer Key"))
+            buttons.append($("<a/>", { 'data-entry': entry, type: "button", class: "testsols button" }).text("Answers and Solutions"))
+
             row.add(buttons)
                 .add(test.title)
                 .add(String(questioncount))
@@ -128,6 +130,9 @@ export class CipherTestManage extends CipherTest {
         })
         $(".testans").off("click").on("click", (e) => {
             this.gotoPrintTestAnswers(Number($(e.target).attr('data-entry')))
+        })
+        $(".testsols").off("click").on("click", (e) => {
+            this.gotoPrintTestSols(Number($(e.target).attr('data-entry')))
         })
     }
 }

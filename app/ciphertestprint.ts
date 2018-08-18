@@ -20,6 +20,7 @@ export class CipherTestPrint extends CipherTest {
         { title: "Edit Test", color: "primary", id: "edittest", },
         // { title: "Test Packet", color: "primary", id: "printtest", },
         { title: "Answer Key", color: "primary", id: "printans", },
+        { title: "Answers and Solutions", color: "primary", id: "printsols", },
     ]
 
     restore(data: ITestState): void {

@@ -1235,7 +1235,12 @@ export class CipherHandler {
      */
     findPossible(str: string): void {
     }
-
+    /**
+     * Generate a solving aid for a cipher
+     */
+    genSolution(): JQElement {
+        return null
+    }
     /**
      * Eliminate the non displayable characters and replace them with a space
      * @param {string} str String to clean up

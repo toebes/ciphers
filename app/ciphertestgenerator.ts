@@ -32,6 +32,7 @@ export class CipherTestGenerator extends CipherTest {
         { title: "Randomize Order", color: "primary", id: "randomize", },
         { title: "Test Packet", color: "primary", id: "printtest", },
         { title: "Answer Key", color: "primary", id: "printans", },
+        { title: "Answers and Solutions", color: "primary", id: "printsols", },
         { title: "Export Test", color: "primary", id: "export", download: true, },
         { title: "Import Test", color: "primary", id: "import", },
     ]

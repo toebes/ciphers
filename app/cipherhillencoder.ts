@@ -8,8 +8,9 @@ import { JTButtonItem } from "./jtbuttongroup";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from './jtradiobutton';
 import { JTTable } from './jttable';
-import { isCoPrime, mod26, mod26Inverse2x2 } from './mathsupport';
+import { isCoPrime, mod26, mod26Inverse2x2, modInverse26 } from './mathsupport';
 
+const kmathEquiv = "\\equiv"
 // Configure how we want the multiplication to appear - either as a * or a dot
 const kmathMult = "*"
 // const kmathMult = ' \\cdot '
@@ -74,8 +75,38 @@ export class CipherHillEncoder extends CipherEncoder {
         return changed
     }
     build(): JQuery<HTMLElement> {
-        console.log('Incorrect Build called for Hill')
-        return null
+        let result = $("<div>")
+        let key = this.state.keyword.toUpperCase()
+        let toencode = this.state.cipherString.toUpperCase()
+        let vals = this.getValidKey(key)
+        if (vals === undefined) {
+            result.append($("<p>").text("Invalid Key"))
+            return result
+        }
+
+        // Always give them the formula
+        result.append(this.genQuestionMath(vals))
+
+        if (this.state.operation === "compute") {
+            result.append(this.genInverseFormula(vals))
+        } else {
+            let encoded = this.computeHill(vals)
+            if (this.state.operation === "decode") {
+                // For decode, we only allow the 2x2 matrix
+                if (vals.length !== 2) {
+                    result.append($("<h3>").text("Decode only supported for 2x2 matrix"))
+                } else {
+                    result.append(this.genInverseFormula(vals))
+                    toencode += this.repeatStr(this.padval, encoded.length - toencode.length)
+                    result.append($('<div>', { class: "TOSOLVE" }).text(encoded))
+                    result.append($('<div>', { class: "TOANSWER" }).text(toencode))
+                }
+            } else {
+                result.append($('<div>', { class: "TOSOLVE" }).text(toencode))
+                result.append($('<div>', { class: "TOANSWER" }).text(encoded))
+            }
+        }
+        return result
     }
 
     genPreCommands(): JQuery<HTMLElement> {
@@ -102,20 +133,22 @@ export class CipherHillEncoder extends CipherEncoder {
      *
      */
     load(): void {
+        $('#err').text('')
+        $("#answer").empty().append(this.build())
+        $("#sol").empty().append(this.genSolution())
+    }
+    genSolution(): JQuery<HTMLElement> {
+        let result = $("<div>")
         let key = this.state.keyword.toUpperCase()
         let toencode = this.state.cipherString.toUpperCase()
-        $('#err').text('')
         let vals = this.getValidKey(key)
         if (vals === undefined) {
-            return
+            return result
         }
 
-        let result = $("<div>")
-        // Always give them the formula
-        result.append(this.genQuestionMath(vals))
-
+        result.append($("<h3/>").text("How to solve"))
         if (this.state.operation === "compute") {
-            result.append(this.genInverseFormula(vals))
+            result.append(this.genInverseMath(vals))
         } else {
             let encoded = this.computeHill(vals)
             if (this.state.operation === "decode") {
@@ -123,22 +156,15 @@ export class CipherHillEncoder extends CipherEncoder {
                 if (vals.length !== 2) {
                     result.append($("<h3>").text("Decode only supported for 2x2 matrix"))
                 } else {
-                    result.append(this.genInverseFormula(vals))
-                    toencode += this.repeatStr(this.padval, encoded.length - toencode.length)
-                    result.append($('<div>', { class: "TOSOLVE" }).text(encoded))
-                    result.append($('<div>', { class: "TOANSWER" }).text(toencode))
                     let modinv = mod26Inverse2x2(vals)
                     result.append(this.genEncodeMath(modinv, encoded))
                 }
             } else {
-                result.append($('<div>', { class: "TOSOLVE" }).text(toencode))
-                result.append($('<div>', { class: "TOANSWER" }).text(encoded))
                 result.append(this.genEncodeMath(vals, toencode))
             }
         }
-        $("#answer").empty().append(result)
+        return result
     }
-
     /**
      * Pad a string with the padding character based on the grouping size
      */
@@ -209,6 +235,77 @@ export class CipherHillEncoder extends CipherEncoder {
             this.getKmathMatrix(modinv)
         return $(katex.renderToString(kmath))
     }
+    /**
+     * Show the math for generating the inverse
+     */
+    genInverseMath(vals: number[][]): JQuery<HTMLElement> {
+        // let result: number[][] = []
+        let a = vals[0][0]
+        let b = vals[0][1]
+        let c = vals[1][0]
+        let d = vals[1][1]
+        let modinv = mod26Inverse2x2(vals)
+        let det = (a * d) - (b * c)
+        let detmod26 = mod26(det)
+        if (typeof modInverse26[detmod26] === undefined) {
+            return ($("<p/>").text("Matrix invalid - not invertable"))
+        }
+        let detinv = modInverse26[detmod26]
+        // Since we use this matrix a few times, cache creating it
+        let matinv = this.getKmathMatrix([[d, -b], [-c, a]])
+
+        let result = $("<div/>")
+        result.append($("<p/>").text("The inverse of the matrix can be computed using the formula:"))
+        let equation = "{\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}}^{{-1}}=(ad-bc)^{{-1}}{\\begin{pmatrix}d&-b\\\\-c&a\\end{pmatrix}}"
+        result.append($(katex.renderToString(equation)))
+        let p = $("<p/>").text("In this case we have to compute ")
+        equation = "(ad-bc)^{{-1}}"
+        p.append($(katex.renderToString(equation))).append(" Using ")
+        p.append($("<a/>", {href: "https://en.wikipedia.org/wiki/Modular_multiplicative_inverse"}).text("modular multiplicative inverse"))
+        p.append(" math")
+        result.append(p)
+
+        equation = this.getKmathMatrix(vals) + "^{-1}=" +
+            "(" + a + kmathMult + d + "-" + b + kmathMult + c + ")^{-1}" + matinv
+        result.append($(katex.renderToString(equation)))
+
+        result.append($("<p/>").text("We start by finding the modulo 26 value of the determinent:"))
+        equation = "(" + a + kmathMult + d + "-" + b + kmathMult + c + ")\\mod{26}=" +
+                det + "\\mod{26}=" + detmod26
+        result.append($(katex.renderToString(equation)))
+
+        p = $("<p/>").text("Looking up " + detmod26 + " in the table supplied with the test (or by computing it with the ")
+        p.append($("<a/>", {href: "https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm"}).text("Extended Euclidean algorithm"))
+        p.append(") we find that it is " +
+             detinv + " which we substitute into the formula to compute the matrix:")
+        result.append(p)
+        equation = "(" + a + kmathMult + d + "-" + b + kmathMult + c + ")^{-1}" +
+             matinv + kmathEquiv +
+             detinv + matinv + "\\mod{26}" + kmathEquiv +
+             this.getKmathMatrix([[detinv + kmathMult + d, detinv + kmathMult + "-" + b],
+             [detinv + kmathMult + "-" + c, detinv + kmathMult + a]]) + "\\mod{26}" + kmathEquiv +
+             this.getKmathMatrix([[detinv * d, -detinv * b], [-detinv * c, detinv * a]]) + "\\mod{26}" + kmathEquiv +
+             this.getKmathMatrix([[(detinv * d) + "\\mod{26}" , (-detinv * b) + "\\mod{26}" ],
+              [(-detinv * c) + "\\mod{26}" , (detinv * a) + "\\mod{26}" ]]) + kmathEquiv +
+                         this.getKmathMatrix(modinv)
+        result.append($(katex.renderToString(equation)))
+
+        // let equation = this.getKmathMatrixChars(keyArray) + kmathMult +
+        // this.getKmathMatrixChars(msgArray) +
+        // kmathEquiv +
+        // this.getKmathMatrix(keyArray) + kmathMult +
+        // this.getKmathMatrix(msgArray) +
+        // kmathEquiv +
+        // this.getKmathMatrix(aMultiplying) +
+        // kmathEquiv +
+        // this.getKmathMatrix(aResultValues) +
+        // kmathEquiv +
+        // this.getKmathMatrix(aResultMod26) + '\\text{(mod 26)}' +
+        // kmathEquiv +
+        // this.getKmathMatrixChars(aResultMod26)
+        return result
+    }
+
     /**
      * Show the math for doing a matrix encode/decoode of a 2x2 or 3x3 matrix
      * For a decode, pass in the inverted matrix
@@ -319,16 +416,16 @@ export class CipherHillEncoder extends CipherEncoder {
         // Build the complete equation string using operators and
         let equation = this.getKmathMatrixChars(keyArray) + kmathMult +
             this.getKmathMatrixChars(msgArray) +
-            '\\equiv' +
+            kmathEquiv +
             this.getKmathMatrix(keyArray) + kmathMult +
             this.getKmathMatrix(msgArray) +
-            '\\equiv' +
+            kmathEquiv +
             this.getKmathMatrix(aMultiplying) +
-            '\\equiv' +
+            kmathEquiv +
             this.getKmathMatrix(aResultValues) +
-            '\\equiv' +
-            this.getKmathMatrix(aResultMod26) + '\\text{(mod 26)}' +
-            '\\equiv' +
+            kmathEquiv +
+            this.getKmathMatrix(aResultMod26) + '\\mod{26}' +
+            kmathEquiv +
             this.getKmathMatrixChars(aResultMod26)
 
         // Done!
@@ -357,7 +454,7 @@ export class CipherHillEncoder extends CipherEncoder {
      */
     genQuestionMath(vals: number[][]): JQuery<HTMLElement> {
         let kmath = this.getKmathMatrixChars(vals) +
-            "\\equiv" +
+            kmathEquiv +
             this.getKmathMatrix(vals)
         return $(katex.renderToString(kmath))
     }

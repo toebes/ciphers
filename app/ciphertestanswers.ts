@@ -13,17 +13,24 @@ export class CipherTestAnswers extends CipherTest {
         cipherString: "",
         cipherType: ICipherType.Test,
         test: 0,
+        sols: "n",
     }
     state: ITestState = cloneObject(this.defaultstate) as ITestState
     cmdButtons: JTButtonItem[] = [
         { title: "Edit Test", color: "primary", id: "edittest", },
         { title: "Test Packet", color: "primary", id: "printtest", },
         // { title: "Answer Key", color: "primary", id: "printans", },
+        { title: "Answers and Solutions", color: "primary", id: "printsols", },
     ]
     restore(data: ITestState): void {
         this.state = cloneObject(this.defaultstate) as ITestState
         this.copyState(this.state, data)
         this.updateOutput()
+        if (this.state.sols !== undefined && this.state.sols.substr(0, 1) === "y") {
+            this.state.sols = "y"
+        } else {
+            this.state.sols = "n"
+        }
     }
     updateOutput(): void {
         $('.testcontent').each((i, elem) => {
@@ -47,6 +54,12 @@ export class CipherTestAnswers extends CipherTest {
         return 0
     }
     genTestAnswers(): JQuery<HTMLElement> {
+        let printSolution = false
+        if (this.state.sols === "y") {
+            printSolution = true
+            // Empty the instructions so that they don't print
+            $(".instructions").empty()
+        }
         let testcount = this.getTestCount()
         if (testcount === 0) {
             return $("<h3>").text("No Tests Created Yet")
@@ -64,14 +77,14 @@ export class CipherTestAnswers extends CipherTest {
         if (test.timed === -1) {
             result.append($("<p>", {class: "noprint"}).text("No timed question"))
         } else {
-            result.append(this.printTestAnswer(-1, test.timed, "pagebreak"))
+            result.append(this.printTestAnswer(-1, test.timed, "pagebreak", printSolution))
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
             let breakclass = ""
             if (qnum % 2 === 0) {
                 breakclass = "pagebreak"
             }
-            result.append(this.printTestAnswer(qnum + 1, test.questions[qnum], breakclass))
+            result.append(this.printTestAnswer(qnum + 1, test.questions[qnum], breakclass, printSolution))
         }
         //
         // Generate the tie breaker order

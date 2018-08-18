@@ -16,6 +16,7 @@ export interface ITestState extends IState {
     points?: number
     /** Which test the handler is working on */
     test?: number
+    sols?: string
 }
 interface IQuestionData {
     /** Which question this is associated with.  -1 indicates timed */
@@ -129,6 +130,9 @@ export class CipherTest extends CipherHandler {
     }
     gotoPrintTestAnswers(test: number): void {
         location.assign("TestAnswers.html?test=" + String(test))
+    }
+    gotoPrintTestSols(test: number): void {
+        location.assign("TestAnswers.html?test=" + String(test) + "&sols=y")
     }
     gotoEditCipher(entry: number): void {
         let state = this.getFileEntry(entry)
@@ -280,7 +284,7 @@ export class CipherTest extends CipherHandler {
      * Generate a printable answer for a test entry.
      * An entry value of -1 is for the timed question
      */
-    printTestAnswer(qnum: number, question: number, extraclass: string): JQuery<HTMLElement> {
+    printTestAnswer(qnum: number, question: number, extraclass: string, printSolution: boolean): JQuery<HTMLElement> {
         let state = this.getFileEntry(question)
         let extratext = ''
         let result = $("<div>", { class: "question " + extraclass });
@@ -300,6 +304,9 @@ export class CipherTest extends CipherHandler {
         // Remember this question points so we can generate the tiebreaker order
         this.qdata.push({qnum: qnum, points: state.points})
         result.append(cipherhandler.genAnswer())
+        if (printSolution) {
+            result.append(cipherhandler.genSolution())
+        }
         return (result)
     }
     /**
@@ -463,6 +470,9 @@ export class CipherTest extends CipherHandler {
         })
         $("#printans").off("click").on("click", (e) => {
             this.gotoPrintTestAnswers(this.state.test)
+        })
+        $("#printsols").off("click").on("click", (e) => {
+            this.gotoPrintTestSols(this.state.test)
         })
         $("#edittest").off("click").on("click", (e) => {
             this.gotoEditTest(this.state.test)

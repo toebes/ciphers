@@ -31,7 +31,7 @@ export function isCoPrime(a: number, r: number): boolean {
 export function mod26(v: number): number {
     return ((v % 26) + 26) % 26
 }
-const modInverse26 = {
+export const modInverse26 = {
     1: 1, 3: 9, 5: 21, 7: 15, 9: 3, 11: 19, 15: 7, 17: 23, 19: 11, 21: 5, 23: 17
 }
 export function mod26Inverse2x2(matrix: number[][]): number[][] {

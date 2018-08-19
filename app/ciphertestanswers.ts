@@ -36,6 +36,11 @@ export class CipherTestAnswers extends CipherTest {
         $('.testcontent').each((i, elem) => {
             $(elem).replaceWith(this.genTestAnswers())
         })
+        if (this.state.sols === "y") {
+            $("#printsols").attr('id', 'printans').text('Answer Key')
+        } else {
+            $("#printans").attr('id', 'printsols').text('Answers and Solutions')
+        }
         this.attachHandlers()
     }
     /*

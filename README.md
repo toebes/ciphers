@@ -3,6 +3,8 @@ This set of TypeScript routines and web pages meets two separate needs:
 1. Test generation for Science Olympiad Code Busters
 1. Solvers for various American Cryptogram Association Ciphers
 
+You can see the current version of the application at https://toebes.com/RCiphers/
+
 The application is built using a combination of:
 *	TypeScript  (http://www.typescriptlang.org/) – All of the code for processing the page
 *	JQuery (https://jquery.com/) - For general HTML traversal

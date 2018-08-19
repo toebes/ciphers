@@ -406,7 +406,7 @@ export class CipherAffineEncoder extends CipherEncoder {
                     formula = "\\colorbox{yellow}{b =" + this.state.b + "}"
                     p.append($(katex.renderToString(formula)))
                     p.append(" we can calcuate using the formula ")
-                    formula = "{a" + kmathMult + "x + b}\mod{26}"
+                    formula = "{a" + kmathMult + "x + b}\\mod{26}"
                     p.append($(katex.renderToString(formula)))
                     result.append(p)
                 }

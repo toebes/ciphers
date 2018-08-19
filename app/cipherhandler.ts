@@ -5,6 +5,7 @@ import { CipherMenu } from "./ciphermenu"
 import { ICipherType } from "./ciphertypes"
 import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
 import { JTCreateMenu, JTGetURL } from "./jtmenu"
+import { InitStorage, JTStorage } from "./jtstore"
 import { JTTable } from "./jttable";
 import { parseQueryString } from "./parsequerystring"
 
@@ -420,6 +421,10 @@ export class CipherHandler {
     Frequent: { [key: string]: { [key: string]: patelem[] } } = {}
     freq: { [key: string]: number } = {}
     savefileentry: number = -1
+    storage: JTStorage
+    constructor() {
+        this.storage = InitStorage()
+    }
     /**
      * Gets the total number of saved tests
      * Cipher-Test-Count [number] holds the number of tests in the system.
@@ -427,10 +432,11 @@ export class CipherHandler {
      */
     getTestCount(): number {
         let result = 0
-        if (typeof (Storage) !== "undefined") {
-            // Cipher-Count [number] holds the number of currently saved questions.
-            // Cipher-Data.n [JSON] holds the data from question n. Note n is zero based.
-            result = Number(localStorage.getItem("Cipher-Test-Count"))
+        if (this.storage.isAvailable()) {
+            let val = Number(this.storage.get("Cipher-Test-Count"))
+            if (!isNaN(val)) {
+                result = val
+            }
         }
         return result
     }
@@ -438,10 +444,10 @@ export class CipherHandler {
      * Set the number of cipher tests stored in local storage
      */
     setTestCount(count: number): string {
-        if (typeof (Storage) === "undefined") {
+        if (!this.storage.isAvailable()) {
             return "Unable to save, local storage not defined"
         }
-        localStorage.setItem('Cipher-Test-Count', String(count))
+        this.storage.set('Cipher-Test-Count', String(count))
         return ""
     }
     /**
@@ -455,13 +461,12 @@ export class CipherHandler {
      */
     getTestEntry(entry: number): ITest {
         let result: ITest = { timed: -1, title: "Invalid Test", count: 0, questions: [] }
-        if (typeof (Storage) !== "undefined") {
+        if (this.storage.isAvailable()) {
             // Cipher-Count [number] holds the number of currently saved questions.
             // Cipher-Data.n [JSON] holds the data from question n. Note n is zero based.
             let cipherCount = this.getTestCount()
             if (entry < cipherCount) {
-                let jsonString = localStorage.getItem(this.getTestName(entry))
-                result = JSON.parse(jsonString)
+                result = this.storage.getJSON(this.getTestName(entry))
             }
         }
         if (result.timed === undefined) {
@@ -474,7 +479,7 @@ export class CipherHandler {
      * greater than the number of entries just writes as a new entry
      */
     setTestEntry(entry: number, state: ITest): number {
-        if (typeof (Storage) === "undefined") {
+        if (!this.storage.isAvailable()) {
             return -1
         }
         let testCount = this.getTestCount()
@@ -482,22 +487,22 @@ export class CipherHandler {
             entry = testCount
             this.setTestCount(entry + 1)
         }
-        localStorage.setItem(this.getTestName(entry), JSON.stringify(state))
+        this.storage.set(this.getTestName(entry), state)
         return entry
     }
     /**
      * Removes a file entry, renumbering all the other entries after it
      */
     deleteTestEntry(entry: number): string {
-        if (typeof (Storage) === "undefined") {
+        if (!this.storage.isAvailable()) {
             return "Unable to delete, local storage not defined"
         }
         let testCount = this.getTestCount()
         if (entry < testCount && entry >= 0) {
             for (let pos = entry + 1; pos < testCount; pos++) {
-                localStorage.setItem(this.getTestName(pos - 1), localStorage.getItem(this.getTestName(pos)))
+                this.storage.set(this.getTestName(pos - 1), this.storage.getJSON(this.getTestName(pos)))
             }
-            localStorage.removeItem(this.getTestName(testCount))
+            this.storage.remove(this.getTestName(testCount))
             this.setTestCount(testCount - 1)
         }
         return ""
@@ -507,10 +512,14 @@ export class CipherHandler {
      */
     getCipherCount(): number {
         let result = 0
-        if (typeof (Storage) !== "undefined") {
+        if (this.storage.isAvailable()) {
             // Cipher-Count [number] holds the number of currently saved questions.
             // Cipher-Data.n [JSON] holds the data from question n. Note n is zero based.
-            result = Number(localStorage.getItem("Cipher-Count"))
+            let val = Number(this.storage.get("Cipher-Count"))
+            if (!isNaN(val)) {
+                result = val
+            }
+
         }
         return result
     }
@@ -525,13 +534,12 @@ export class CipherHandler {
      */
     getFileEntry(entry: number): IState {
         let result: IState = null
-        if (typeof (Storage) !== "undefined") {
+        if (this.storage.isAvailable()) {
             // Cipher-Count [number] holds the number of currently saved questions.
             // Cipher-Data.n [JSON] holds the data from question n. Note n is zero based.
             let cipherCount = this.getCipherCount()
             if (entry < cipherCount) {
-                let jsonString = localStorage.getItem(this.getEntryName(entry))
-                result = JSON.parse(jsonString)
+                result = this.storage.getJSON(this.getEntryName(entry))
             }
         }
         return result
@@ -558,10 +566,10 @@ export class CipherHandler {
      * Set the number of cipher entries stored in local storage
      */
     setCipherCount(count: number): string {
-        if (typeof (Storage) === "undefined") {
+        if (!this.storage.isAvailable()) {
             return "Unable to save, local storage not defined"
         }
-        localStorage.setItem('Cipher-Count', String(count))
+        this.storage.set('Cipher-Count', String(count))
         return ""
     }
     /**
@@ -571,7 +579,7 @@ export class CipherHandler {
      * by one to account for it
      */
     setFileEntry(entry: number, state: IState): number {
-        if (typeof (Storage) === "undefined") {
+        if (!this.storage.isAvailable()) {
             return -1
         }
         let cipherCount = this.getCipherCount()
@@ -579,22 +587,22 @@ export class CipherHandler {
             entry = cipherCount
             this.setCipherCount(entry + 1)
         }
-        localStorage.setItem(this.getEntryName(entry), JSON.stringify(state))
+        this.storage.set(this.getEntryName(entry), state)
         return entry
     }
     /**
      * Removes a file entry, renumbering all the other entries after it
      */
     deleteFileEntry(entry: number): string {
-        if (typeof (Storage) === "undefined") {
+        if (!this.storage.isAvailable()) {
             return "Unable to delete, local storage not defined"
         }
         let cipherCount = this.getCipherCount()
         if (entry < cipherCount && entry >= 0) {
             for (let pos = entry + 1; pos < cipherCount; pos++) {
-                localStorage.setItem(this.getEntryName(pos - 1), localStorage.getItem(this.getEntryName(pos)))
+                this.storage.set(this.getEntryName(pos - 1), this.storage.getJSON(this.getEntryName(pos)))
             }
-            localStorage.removeItem(this.getEntryName(cipherCount))
+            this.storage.remove(this.getEntryName(cipherCount))
             this.setCipherCount(cipherCount - 1)
         }
         let testCount = this.getTestCount()
@@ -627,11 +635,11 @@ export class CipherHandler {
      */
     getRunningKey(entry: number): IRunningKey {
         let result: IRunningKey
-        if (typeof (Storage) !== "undefined") {
-            let jsonString = localStorage.getItem(this.getRunningKeyName(entry))
-            if (jsonString !== null) {
-                result = JSON.parse(jsonString)
-            }
+        if (this.storage.isAvailable()) {
+            result = this.storage.getJSON(this.getRunningKeyName(entry))
+        }
+        if (result === null) {
+            result = undefined
         }
         // Fill in a default if they haven't gotten one or what came in was bad
         if ((result === undefined || result.text === "") &&
@@ -641,13 +649,13 @@ export class CipherHandler {
         return result
     }
     deleteRunningKey(entry: number): void {
-        localStorage.removeItem(this.getRunningKeyName(entry))
+        this.storage.remove(this.getRunningKeyName(entry))
     }
     setRunningKey(entry: number, data: IRunningKey): void {
-        if (typeof (Storage) === "undefined") {
+        if (!this.storage.isAvailable()) {
             return
         }
-        localStorage.setItem(this.getRunningKeyName(entry), JSON.stringify(data))
+        this.storage.set(this.getRunningKeyName(entry), data)
     }
     /**
      * Return all the available running keys
@@ -1929,7 +1937,7 @@ export class CipherHandler {
      */
     UpdateReverseReplacements(): void {
         let charset = this.getSourceCharset().toUpperCase()
-        $("[id^=rf").text('')
+        $("[id^=rf]").text('')
         for (let c of charset) {
             $('#rf' + this.replacement[c]).text(c)
         }

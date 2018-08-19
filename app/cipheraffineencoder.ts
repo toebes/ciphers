@@ -1,5 +1,5 @@
 import * as katex from 'katex'
-import { cloneObject } from "./ciphercommon";
+import { cloneObject, StringMap } from "./ciphercommon";
 import { CipherEncoder } from "./cipherencoder"
 import { IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes"
@@ -9,6 +9,10 @@ import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 import { JTTable } from "./jttable";
 import { isCoPrime } from "./mathsupport"
+
+// Configure how we want the multiplication to appear - either as a * or a dot
+const kmathMult = "*"
+// const kmathMult = ' \\cdot '
 
 interface IAffineState extends IState {
     /** a value */
@@ -286,24 +290,21 @@ export class CipherAffineEncoder extends CipherEncoder {
         return ((a === this.state.a) && (b === this.state.b))
     }
     /**
-     *
-     * @param a
-     * @param b
-     * @param letterString
+     * Show the encoding of a set of letters using a and b values
      */
-    encodeLetters(a: number, b: number, letterString: string): string {
-        let encoding = '\\begin{array}{lccrcl}'
+    encodeLetters(a: number, b: number, letterString: string): JQuery<HTMLElement> {
+        let encoding = '\\begin{array}{lcccrcl}'
         let charset = this.getCharset()
         for (let m of letterString) {
             let mVal = charset.indexOf(m)
             let cVal = ((a * mVal) + b)
             let c = charset.substr(cVal % 26, 1)
             encoding += m + '(' + mVal + ') & \\to & ' + mVal + ' * ' + a + ' + ' +
-                b + ' & ' + cVal + ' & \\to & ' + c + '(' + cVal % 26 + ')\\\\'
+                b + ' & \\to & ' + cVal + ' \\mod{26} & \\to & ' + c + '(' + cVal % 26 + ')\\\\'
 
         }
         encoding += '\\end{array}'
-        return encoding
+        return $("<div/>").append($(katex.renderToString(encoding)))
     }
     /**
      *
@@ -378,15 +379,55 @@ export class CipherAffineEncoder extends CipherEncoder {
         return table
     }
     genSolution(): JQuery<HTMLElement> {
+        if (this.state.operation === "decode") {
+            return this.genDecodeSolution()
+        }
+        return this.genEncodeSolution()
+    }
+    genEncodeSolution(): JQuery<HTMLElement> {
+        let msg = this.minimizeString(this.state.cipherString)
+        let mapping: StringMap = {}
+        let result = $("<div>", { id: "solution" })
+        result.append($("<h3/>").text("How to solve"))
+
+        let showencmsg = true
+
+        for (let m of msg) {
+            let c = this.affinechar(m)
+            if (mapping[m] !== undefined) {
+                result.append($("<p>").text("We already computed for " + m + " and know that it is " + c))
+            } else {
+                if (showencmsg) {
+                    showencmsg = false // Don't show it again
+                    let p = $("<p/>").text("Using the  given value of ")
+                    let formula = "\\colorbox{yellow}{a =" + this.state.a + "}"
+                    p.append($(katex.renderToString(formula)))
+                    p.append(" and ")
+                    formula = "\\colorbox{yellow}{b =" + this.state.b + "}"
+                    p.append($(katex.renderToString(formula)))
+                    p.append(" we can calcuate using the formula ")
+                    formula = "{a" + kmathMult + "x + b}\mod{26}"
+                    p.append($(katex.renderToString(formula)))
+                    result.append(p)
+                }
+                result.append(this.encodeLetters(this.state.a, this.state.b, m))
+                mapping[m] = c
+            }
+        }
+        return result
+    }
+
+    genDecodeSolution(): JQuery<HTMLElement> {
         let msg = this.minimizeString(this.state.cipherString)
         let m1 = msg.substr(this.state.solclick1, 1)
         let m2 = msg.substr(this.state.solclick2, 1)
+        let result = $("<div>", { id: "solution" })
+        result.append($("<h3/>").text("How to solve"))
 
         if (!this.canSolve(m1, m2)) {
-            return $("<p/>").text("Indeterminate Solution! Please choose other letters.")
+            result.append($("<p/>").text("Indeterminate Solution! Please choose other letters."))
+            return result
         }
-
-        let result = $("<div>", { id: "solution" })
 
         let charset = this.getCharset()
 
@@ -542,7 +583,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             if (!this.completeSolution) {
                 let found = this.encodeString(entry.letters)
                 result.append($("<p/>").html(entry.prefix))
-                result.append($(katex.renderToString(this.encodeLetters(a, b, entry.letters))))
+                result.append(this.encodeLetters(a, b, entry.letters))
                 result.append($("<p/>").text(entry.suffix1 + ' (' + found + ')' + entry.suffix2))
                 l += entry.letters
                 result.append(this.showOutput(msg, l))

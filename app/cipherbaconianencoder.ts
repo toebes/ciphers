@@ -293,6 +293,16 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         return result
     }
+    genSolution(): JQuery<HTMLElement> {
+        let result = $("<div/>")
+        if (this.state.operation === 'words') {
+            result.append($("<h3/>").text("Baconian Words Not yet implemented"))
+        } else {
+            result.append($("<p/>").text("The A letters are represented by '" + this.state.texta +
+                           "' and the B letters by '" + this.state.textb + "'"))
+        }
+        return result
+    }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */

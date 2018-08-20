@@ -657,7 +657,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         } else {
             res = $("<p/>").text("Click on any two columns to choose the decode problem")
         }
-        $("#sol").empty().append(res)
+        $("#sol").empty().append("<hr/>").append(res)
 
         this.attachHandlers()
     }

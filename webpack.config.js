@@ -111,7 +111,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'AffineEncrypt.html',
-            template: path.join(__dirname, 'app', 'pages', 'AffineEncrypt.html'),
+            template: path.join(__dirname, 'app', 'pages', 'StdEncoder.html'),
             cipher: 'Affine',
             title: 'Affine Encrypt',
         }),
@@ -180,6 +180,13 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'RSAEncrypt.html',
+            template: path.join(__dirname, 'app', 'pages', 'StdEncoder.html'),
+            cipher: 'RSA',
+            title: 'RSA Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'EditRunningKeys.html',
             template: path.join(__dirname, 'app', 'pages', 'EditRunningKeys.html'),
             cipher: 'RunningKeyEdit',
@@ -188,7 +195,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'RunningKeyEncoder.html',
-            template: path.join(__dirname, 'app', 'pages', 'RunningKeyEncoder.html'),
+            template: path.join(__dirname, 'app', 'pages', 'StdEncoder.html'),
             cipher: 'RunningKey',
             title: 'Running Key Encoder',
         }),
@@ -223,7 +230,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'HillEncrypt.html',
-            template: path.join(__dirname, 'app', 'pages', 'HillEncrypt.html'),
+            template: path.join(__dirname, 'app', 'pages', 'StdEncoder.html'),
             cipher: 'Hill',
             title: 'Hill Encrypt (2x2 and 3x3)',
         }),
@@ -314,7 +321,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'VigenereEncrypt.html',
-            template: path.join(__dirname, 'app', 'pages', 'VigenereEncrypt.html'),
+            template: path.join(__dirname, 'app', 'pages', 'StdEncoder.html'),
             cipher: 'Vigenere',
             title: 'Vigen&egrave;re Encoder',
         }),

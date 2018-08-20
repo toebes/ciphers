@@ -55,6 +55,7 @@ export const CipherMenu: menuItem[] = [
             { title: "Spanish Aristocrat", href: "AristocratSpanishEncrypt.html", cipherType: ICipherType.Aristocrat, lang: "es"},
             { title: "Xenocrypt", href: "XenocryptEncrypt.html", cipherType: ICipherType.Xenocrypt, },
             { title: "Patristocrat", href: "PatristocratEncrypt.html", cipherType: ICipherType.Patristocrat, },
+            { title: "RSA", href: "RSAEncrypt.html", cipherType: ICipherType.RSA, },
             { title: "Hill (2x2 and 3x3)", href: "HillEncrypt.html", cipherType: ICipherType.Hill, },
             { title: "Vigen&egrave;re", href: "VigenereEncrypt.html", cipherType: ICipherType.Vigenere, },
             { title: "Running Key", href: "RunningKeyEncoder.html", cipherType: ICipherType.RunningKey, },

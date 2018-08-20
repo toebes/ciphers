@@ -35,9 +35,9 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
             // The current string isn't one of the options,
             // so we need to add it to the list of possibilities
             selopt = $('#runningkey option').length
-            $("#select").append($('<option />', { value: selopt }).text(this.state.keyword))
+            $("#runningkey").append($('<option />', { value: selopt }).text(this.state.keyword))
         }
-        $('#select option[value=' + selopt + ']').attr('selected', 'selected');
+        $('#runningkey option[value=' + selopt + ']').attr('selected', 'selected');
     }
 
     genPreCommands(): JQuery<HTMLElement> {

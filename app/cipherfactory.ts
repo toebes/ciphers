@@ -11,6 +11,7 @@ import { CipherHillEncoder } from "./cipherhillencoder"
 import { CipherMorbitSolver } from "./ciphermorbitsolver"
 import { CipherRagbabySolver } from "./cipherragbabysolver"
 import { CipherRailfenceSolver } from "./cipherrailfencesolver"
+import { CipherRSAEncoder } from "./cipherrsaencoder"
 import { CipherRunningKeyEdit } from "./cipherrunningkeyedit"
 import { CipherRunningKeyEncoder } from "./cipherrunningkeyencoder"
 import { CipherSolver } from "./ciphersolver"
@@ -119,6 +120,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     RunningKey : {
         cipherType: ICipherType.RunningKey,
         cipherClass: CipherRunningKeyEncoder,
+        canPrint: true,
+    },
+    RSA: {
+        cipherType: ICipherType.RSA,
+        cipherClass: CipherRSAEncoder,
         canPrint: true,
     },
     Standard: {

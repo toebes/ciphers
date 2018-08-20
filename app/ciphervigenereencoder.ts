@@ -70,6 +70,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     updateOutput(): void {
         this.updateQuestionsOutput()
+        this.enableFilemenu()
         if (this.state.operation === 'encode') {
             // Change the button label to 'Encode'
             $('#load').val('Encode')

@@ -735,7 +735,7 @@ export class CipherHandler {
                     reader.readAsText(files[0])
                     reader.onload = (e1) => {
                         try {
-                            let result = JSON.parse(reader.result)
+                            let result = JSON.parse(reader.result as string)
                             $("#ImportFile").foundation('close')
                             this.importXML(result)
                         } catch (e) {

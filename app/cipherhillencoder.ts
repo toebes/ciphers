@@ -111,6 +111,8 @@ export class CipherHillEncoder extends CipherEncoder {
 
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>")
+        result.append($("<div/>", {class: "callout primary"})
+            .append($("<a/>", {href: "HillKeys.html", target: "new"}).text("Known Valid Keys")))
         result.append(this.genTestUsage())
 
         let radiobuttons = [
@@ -135,7 +137,7 @@ export class CipherHillEncoder extends CipherEncoder {
     load(): void {
         $('#err').text('')
         $("#answer").empty().append(this.build())
-        $("#sol").empty().append(this.genSolution())
+        $("#sol").empty().append("<hr/>").append(this.genSolution())
     }
     genSolution(): JQuery<HTMLElement> {
         let result = $("<div>")

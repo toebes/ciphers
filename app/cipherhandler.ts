@@ -4,6 +4,7 @@ import { BoolMap, cloneObject, StringMap } from "./ciphercommon"
 import { CipherMenu } from "./ciphermenu"
 import { ICipherType } from "./ciphertypes"
 import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
+import { JTFLabeledInput } from './jtflabeledinput';
 import { JTCreateMenu, JTGetURL } from "./jtmenu"
 import { InitStorage, JTStorage } from "./jtstore"
 import { JTTable } from "./jttable";
@@ -22,11 +23,11 @@ import { parseQueryString } from "./parsequerystring"
 //     toolbar: [ 'bold', 'italic', 'undo', 'redo' ]
 // });
 export type IOperationType = "encode" |
-                             "decode" |
-                             "compute"|
-                             "let4let" |
-                             "sequence" |
-                             "words"
+    "decode" |
+    "compute" |
+    "let4let" |
+    "sequence" |
+    "words"
 
 export interface IState {
 
@@ -700,7 +701,7 @@ export class CipherHandler {
     /**
      * Put up a dialog to select an XML file to import
      */
-    openXMLImport(): void {
+    openXMLImport(useLocalData: boolean): void {
         $("#okimport").prop("disabled", true)
         $("#importstatus").removeClass("success").addClass("secondary")
         $("#xmltoimport").text("No File Selected")
@@ -711,21 +712,40 @@ export class CipherHandler {
             let files = fileinput.files
             $("#xmltoimport").text(files[0].name + " selected")
         })
+        $("#xmlurl").off("input").on("input", (e) => {
+            let url = $(e.target).val() as string
+            if (url !== "") {
+                $("#okimport").removeAttr("disabled")
+            } else {
+                $("#okimport").prop("disabled", true)
+            }
+        })
         $("#okimport").off("click").on("click", (e) => {
-            let fileinput: HTMLInputElement = $("#xmlFile")[0] as HTMLInputElement
-            let files = fileinput.files
-            if (files.length && (typeof FileReader !== undefined)) {
-                let reader = new FileReader()
-                reader.readAsText(files[0])
-                reader.onload = (e1) => {
-                    try {
-                        let result = JSON.parse(reader.result)
-                        $("#ImportFile").foundation('close')
-                        this.importXML(result)
-                    } catch (e) {
-                        $("#xmlerr").text("Not a valid import file")
+            if (useLocalData) {
+                let fileinput: HTMLInputElement = $("#xmlFile")[0] as HTMLInputElement
+                let files = fileinput.files
+                if (files.length && (typeof FileReader !== undefined)) {
+                    let reader = new FileReader()
+                    reader.readAsText(files[0])
+                    reader.onload = (e1) => {
+                        try {
+                            let result = JSON.parse(reader.result)
+                            $("#ImportFile").foundation('close')
+                            this.importXML(result)
+                        } catch (e) {
+                            $("#xmlerr").text("Not a valid import file")
+                        }
                     }
                 }
+            } else {
+                // They gave us a URL so let's do an AJAX call to pull it in
+                let url = $("#xmlurl").val() as string
+                $.getJSON(url, (data) => {
+                    $("#ImportFile").foundation('close')
+                    this.importXML(data)
+                }).fail((jqxhr, settings, exception) => {
+                    alert("Unable to load file " + url)
+                })
             }
         })
         // $("#okimport").off("click").on("click", (e) => {
@@ -734,6 +754,13 @@ export class CipherHandler {
         //     this.markUndo()
         //     this.restore(this.getFileEntry(this.savefileentry))
         // })
+        if (useLocalData) {
+            $(".impurl").hide()
+            $(".impfile").show()
+        } else {
+            $(".impurl").show()
+            $(".impfile").hide()
+        }
         $("#ImportFile").foundation('open')
     }
 
@@ -889,12 +916,12 @@ export class CipherHandler {
                 freq = ""
             }
             freqrow.add(freq)
-            replrow.add({celltype: "td", content: repl})
+            replrow.add({ celltype: "td", content: repl })
         }
         return table.generate()
     }
     genTestUsage(): JQuery<HTMLElement> {
-        let result = $("<div>", {class: "testuse"})
+        let result = $("<div>", { class: "testuse" })
         let prefix = "Used on test(s): "
         if (this.savefileentry !== -1) {
             // Find out what tests this is a part of
@@ -911,7 +938,7 @@ export class CipherHandler {
                     }
                 }
                 if (use !== undefined) {
-                    let link = $("<a>", {href: "TestGenerator.html?test=" + String(entry)}).text(test.title + " " + use)
+                    let link = $("<a>", { href: "TestGenerator.html?test=" + String(entry) }).text(test.title + " " + use)
                     result.addClass("callout primary")
                     result.append(prefix).append(link)
                     prefix = ", "
@@ -1977,10 +2004,11 @@ export class CipherHandler {
         importFileDiv.append($("<div/>", { class: "top-bar Primary" })
             .append($("<div/>", { class: "top-bar-left" })
                 .append($("<h3/>").text("Import Test Data"))))
-        let importDiv = ($("<div/>", {id: "importstatus", class: "callout secondary"}))
-        importDiv.append($("<label/>", { for: "xmlFile", class: "button" }).text("Select XML File"))
-        importDiv.append($("<input/>", { type: "file", id: "xmlFile", class: "show-for-sr" }))
-        importDiv.append($("<span/>", {id : "xmltoimport"}).text("No File Selected"))
+        let importDiv = ($("<div/>", { id: "importstatus", class: "callout secondary" }))
+        importDiv.append($("<label/>", { for: "xmlFile", class: "impfile button" }).text("Select File"))
+        importDiv.append($("<input/>", { type: "file", id: "xmlFile", accept: ".json", class: "impfile show-for-sr" }))
+        importDiv.append($("<span/>", { id: "xmltoimport", class: "impfile" }).text("No File Selected"))
+        importDiv.append(JTFLabeledInput("URL", "text", "xmlurl", "", "impurl small-12 medium-6 large-6"))
         importFileDiv.append(importDiv)
         let buttongroup = $("<div/>", { class: "expanded button-group" })
         buttongroup.append($("<a/>", { class: "secondary button", "data-close": "" }).text("Cancel"))

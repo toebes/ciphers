@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
+var TypedocWebpackPlugin = require('typedoc-webpack-plugin');
 
 module.exports = {
     //    mode: "development", // "production" | "development" | "none"
@@ -101,6 +102,12 @@ module.exports = {
     },
     plugins: [
         new HardSourceWebpackPlugin(),
+        new TypedocWebpackPlugin(
+            {
+                target: "es5",
+                ignoreCompilerErrors: true,
+                includeDeclarations: true,
+            }),
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'AffineEncrypt.html',

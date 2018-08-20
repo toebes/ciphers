@@ -34,13 +34,17 @@ export class CipherTestGenerator extends CipherTest {
         { title: "Answer Key", color: "primary", id: "printans", },
         { title: "Answers and Solutions", color: "primary", id: "printsols", },
         { title: "Export Test", color: "primary", id: "export", download: true, },
-        { title: "Import Test", color: "primary", id: "import", },
+        { title: "Import Tests from File", color: "primary", id: "import", },
+        { title: "Import Tests from URL", color: "primary", id: "importurl", },
+
     ]
     restore(data: ITestState): void {
         let curlang = this.state.curlang
         this.state = cloneObject(this.defaultstate) as ITestState
         this.state.curlang = curlang
         this.copyState(this.state, data)
+        /** See if we have to import an XML file */
+        this.checkXMLImport()
         this.setUIDefaults()
         this.updateOutput()
     }
@@ -231,8 +235,8 @@ export class CipherTestGenerator extends CipherTest {
         this.setTestEntry(this.state.test, test)
         this.updateOutput()
     }
-    importQuestions(): void {
-        this.openXMLImport()
+    importQuestions(useLocalData: boolean): void {
+        this.openXMLImport(useLocalData)
     }
     /**
      * Process imported XML
@@ -247,7 +251,10 @@ export class CipherTestGenerator extends CipherTest {
             this.exportTest($(e.target))
         })
         $("#import").off("click").on("click", () => {
-            this.importQuestions();
+            this.importQuestions(true);
+        })
+        $("#importurl").off("click").on("click", () => {
+            this.importQuestions(false);
         })
         $("#randomize").off("click").on("click", () => {
             this.gotoRandomizeTest();

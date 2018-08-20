@@ -17,15 +17,6 @@ export class CipherRunningKeyEdit extends CipherHandler {
         this.setUIDefaults()
         this.updateOutput()
     }
-    newTest(): void {
-        this.setTestEntry(-1, { timed: -1, count: 0, questions: [], title: "New Test" })
-        location.reload()
-    }
-    exportTests(): void {
-    }
-    importTests(): void {
-        this.openXMLImport()
-    }
     genKeyData(runningKeys: IRunningKey[]): JQuery<HTMLElement> {
         let result = $("<div/>", {class: "precmds"})
         let working = runningKeys.slice()

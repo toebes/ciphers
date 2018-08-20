@@ -16,7 +16,10 @@ export interface ITestState extends IState {
     points?: number
     /** Which test the handler is working on */
     test?: number
+    /** Show the solutions on the answers */
     sols?: string
+    /** A URL to to import test date from on load */
+    importURL? : string
 }
 interface IQuestionData {
     /** Which question this is associated with.  -1 indicates timed */
@@ -78,7 +81,8 @@ export class CipherTest extends CipherHandler {
     cmdButtons: JTButtonItem[] = [
         { title: "New Test", color: "primary", id: "newtest", },
         { title: "Export Tests", color: "primary", id: "export", disabled: true, },
-        { title: "Import Tests", color: "primary", id: "import", },
+        { title: "Import Tests from File", color: "primary", id: "import", },
+        { title: "Import Tests from URL", color: "primary", id: "importurl", },
     ]
     cipherChoices: INewCipherEntry[] = [
         { cipherType: ICipherType.Affine, },
@@ -109,14 +113,26 @@ export class CipherTest extends CipherHandler {
         this.setUIDefaults()
         this.updateOutput()
     }
+    checkXMLImport(): void {
+        if (this.state.importURL !== undefined) {
+            if (this.state.importURL !== "") {
+                let url = this.state.importURL
+                $.getJSON(url, (data) => {
+                    this.importXML(data)
+                }).fail((jqxhr, settings, exception) => {
+                    alert("Unable to load file " + url)
+                })
+            }
+        }
+    }
     newTest(): void {
         this.setTestEntry(-1, { timed: -1, count: 0, questions: [], title: "New Test" })
         location.reload()
     }
     exportTests(): void {
     }
-    importTests(): void {
-        this.openXMLImport()
+    importTests(useLocalData: boolean): void {
+        this.openXMLImport(useLocalData)
     }
     gotoEditTest(test: number): void {
         location.assign("TestGenerator.html?test=" + String(test))
@@ -355,7 +371,7 @@ export class CipherTest extends CipherHandler {
         // If the left side is blank or undefined then we assume that the
         // right side will be equivalent.  (This allows for objects which have
         // been extended with new attributes)
-        if (a === '' || a === undefined) {
+        if (a === '' || a === undefined || a === null) {
             return true
         }
         // If we have an object on the left, the right better be an object too

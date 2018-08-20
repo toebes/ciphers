@@ -22,13 +22,16 @@ export class CipherTestManage extends CipherTest {
     cmdButtons: JTButtonItem[] = [
         { title: "New Test", color: "primary", id: "newtest", },
         { title: "Export Tests", color: "primary", id: "export", download: true, },
-        { title: "Import Tests", color: "primary", id: "import", },
+        { title: "Import Tests from File", color: "primary", id: "import", },
+        { title: "Import Tests from URL", color: "primary", id: "importurl", },
     ]
     restore(data: ITestState): void {
         let curlang = this.state.curlang
         this.state = cloneObject(this.defaultstate) as IState
         this.state.curlang = curlang
         this.copyState(this.state, data)
+        /** See if we have to import an XML file */
+        this.checkXMLImport()
         this.setUIDefaults()
         this.updateOutput()
     }
@@ -101,8 +104,8 @@ export class CipherTestManage extends CipherTest {
         this.processTestXML(data)
         this.updateOutput()
     }
-    importTests(): void {
-        this.openXMLImport()
+    importTests(useLocalData: boolean): void {
+        this.openXMLImport(useLocalData)
     }
     deleteTest(test: number): void {
         this.deleteTestEntry(test)
@@ -117,7 +120,10 @@ export class CipherTestManage extends CipherTest {
             this.exportAllTests($(e.target))
         })
         $("#import").off("click").on("click", (e) => {
-            this.importTests()
+            this.importTests(true)
+        })
+        $("#importurl").off("click").on("click", (e) => {
+            this.importTests(false)
         })
         $(".testedit").off("click").on("click", (e) => {
             this.gotoEditTest(Number($(e.target).attr('data-entry')))

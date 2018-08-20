@@ -1,6 +1,6 @@
 import { BoolMap, cloneObject, StringMap } from "./ciphercommon";
 import { CipherEncoder, IEncoderState } from "./cipherencoder"
-import { CypherTypeButtonItem, ICipherType } from "./ciphertypes";
+import { CipherTypeButtonItem, ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
@@ -120,8 +120,8 @@ export class CipherTableEncoder extends CipherEncoder {
         result.append(this.genTestUsage())
 
         let radiobuttons = [
-            CypherTypeButtonItem(ICipherType.Caesar),
-            CypherTypeButtonItem(ICipherType.Atbash),
+            CipherTypeButtonItem(ICipherType.Caesar),
+            CipherTypeButtonItem(ICipherType.Atbash),
         ]
         result.append(JTRadioButton(8, 'ciphertype', radiobuttons, this.state.cipherType))
 

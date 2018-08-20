@@ -1,7 +1,7 @@
 import * as InlineEditor from '@ckeditor/ckeditor5-build-inline';
 import { BoolMap, cloneObject, StringMap } from "./ciphercommon"
 import { CipherMenu } from "./ciphermenu"
-import { ICipherType } from "./ciphertypes"
+import { getCipherEquivalents, getCipherTitle, ICipherType } from "./ciphertypes"
 import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
 import { JTFDialog } from "./jtfdialog"
 import { JTFLabeledInput } from './jtflabeledinput';
@@ -541,17 +541,30 @@ export class CipherHandler {
     /**
      * Populate the file list dialog to match all the entries of a given type
      */
-    getFileList(ciphertype: ICipherType[]): JQElement {
+    getFileList(ciphertype: ICipherType): JQElement {
         let result = null
         let cipherCount = this.getCipherCount()
         $("#okopen").prop("disabled", true)
         if (cipherCount === 0) {
             result = $("<div/>", { class: "callout warning filelist", id: "files" }).text("No files found")
         } else {
+            // Generate a list of the types of ciphers that we allow
+            let allowed = getCipherEquivalents(ciphertype)
             result = $("<select/>", { id: "files", class: "filelist", size: 10 })
             for (let entry = 0; entry < cipherCount; entry++) {
                 let fileEntry = this.getFileEntry(entry)
-                result.append($("<option />", { value: entry }).html(fileEntry.question))
+                if (allowed.indexOf(fileEntry.cipherType) !== -1) {
+                    let entryText = "[" + String(entry) + "]:"
+                    if (allowed.length !== 1) {
+                        entryText += "(" + getCipherTitle(fileEntry.cipherType) + ") "
+                    }
+                    if (fileEntry.cipherString !== "") {
+                        entryText += fileEntry.cipherString;
+                    } else {
+                        entryText += fileEntry.question;
+                    }
+                    result.append($("<option />", { value: entry }).html(entryText))
+                }
             }
         }
         return result
@@ -673,7 +686,7 @@ export class CipherHandler {
      */
     openCipher(): void {
         // Populate the list of known files.
-        $("#files").replaceWith(this.getFileList([this.state.cipherType]))
+        $("#files").replaceWith(this.getFileList(this.state.cipherType))
         $("#files").off('change').on('change', (e) => {
             $("#okopen").removeAttr("disabled");
         })

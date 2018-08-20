@@ -1,7 +1,7 @@
 import { cloneObject } from "./ciphercommon";
 import { IState } from "./cipherhandler"
 import { CipherSolver } from "./ciphersolver"
-import { CypherTypeButtonItem, ICipherType } from "./ciphertypes"
+import { CipherTypeButtonItem, ICipherType } from "./ciphertypes"
 import { JTButtonItem } from "./jtbuttongroup"
 import { JTFIncButton } from "./jtfIncButton"
 import { JTFLabeledInput } from "./jtflabeledinput"
@@ -212,8 +212,8 @@ export class CipherRailfenceSolver extends CipherSolver {
         // let operationChoice = $('<div/>', { class: "row column medium-5 align-center" })
 
         let radiobuttons = [
-            CypherTypeButtonItem(ICipherType.Railfence),
-            CypherTypeButtonItem(ICipherType.Redefence),
+            CipherTypeButtonItem(ICipherType.Railfence),
+            CipherTypeButtonItem(ICipherType.Redefence),
         ]
         return JTRadioButton(6, 'railtype', radiobuttons, this.state.cipherType)
         // operationChoice.append(JTRadioButton(6, 'railtype', radiobuttons, this.state.cipherType))

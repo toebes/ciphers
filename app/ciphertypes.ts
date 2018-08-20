@@ -246,7 +246,9 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
         ]
     }],
 ])
-
+/**
+ * Gets the default title for a cipher type
+ */
 export function getCipherTitle(ciphertype: ICipherType): string {
     let config = cipherTypeConfig.get(ciphertype)
     let title = 'NOT_FOUND'
@@ -255,7 +257,25 @@ export function getCipherTitle(ciphertype: ICipherType): string {
     }
     return title
 }
-export function CypherTypeButtonItem(cipherType: ICipherType): JTRadioButtonItem {
+/**
+ * Gets all ciphers which are considered equivalent for this cipher type
+ * Used by the editors to determine what they can load
+ */
+export function getCipherEquivalents(cipherType: ICipherType): ICipherType[] {
+    let config = cipherTypeConfig.get(cipherType);
+    let result = [];
+    if (config !== undefined && config.equiv !== undefined) {
+        result = config.equiv;
+    }
+    if (result.indexOf(cipherType) === -1) {
+        result.push(cipherType);
+    }
+    return result;
+}
+/**
+ * Generates a radio button to be used for selecting the type of Cipher
+ */
+export function CipherTypeButtonItem(cipherType: ICipherType): JTRadioButtonItem {
     let config = cipherTypeConfig.get(cipherType)
     let res: JTRadioButtonItem = {
         value: cipherType,

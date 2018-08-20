@@ -109,29 +109,25 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="_mapper_.mapper.html">Mapper</a>.<a href="_mapper_.mapper.html#decode">decode</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/34b99bd/app/mapPorta.ts#L36">mapPorta.ts:36</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/f5114ed/app/mapPorta.ts#L36">mapPorta.ts:36</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
 									<p>Recover the plain text character using the encode text and a key character
 										using the Porta mapping table.  Note that for Porta, the table is
-									symetric, so this function is the same as encode</p>
+										symetric, so this function is the same as encode
+										ct Encoded character
+									ckey Unencoded character</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>ct: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Encoded character</p>
-									</div>
 								</li>
 								<li>
 									<h5>ckey: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Unencoded character</p>
-									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -149,28 +145,24 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="_mapper_.mapper.html">Mapper</a>.<a href="_mapper_.mapper.html#decodekey">decodeKey</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/34b99bd/app/mapPorta.ts#L45">mapPorta.ts:45</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/f5114ed/app/mapPorta.ts#L45">mapPorta.ts:45</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
 									<p>Recover the key character using the encode text and a plain text character
-									using the Porta mapping table.</p>
+										using the Porta mapping table.
+										ct Encoded character
+									cpt Unencoded character</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>ct: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Encoded character</p>
-									</div>
 								</li>
 								<li>
 									<h5>cpt: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Unencoded character</p>
-									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -188,27 +180,23 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="_mapper_.mapper.html">Mapper</a>.<a href="_mapper_.mapper.html#encode">encode</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/34b99bd/app/mapPorta.ts#L12">mapPorta.ts:12</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/f5114ed/app/mapPorta.ts#L12">mapPorta.ts:12</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Map two unencoded characters using the Porta mapping table</p>
+									<p>Map two unencoded characters using the Porta mapping table
+										cpt Plaintext unencoded character
+									ckey Key Unencoded character</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>cpt: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Plaintext unencoded character</p>
-									</div>
 								</li>
 								<li>
 									<h5>ckey: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Key Unencoded character</p>
-									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -227,21 +215,19 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="_mapper_.mapper.html">Mapper</a>.<a href="_mapper_.mapper.html#getcharcode">getCharCode</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/34b99bd/app/mapper.ts#L8">mapper.ts:8</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/f5114ed/app/mapper.ts#L8">mapper.ts:8</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Converts a character (mod 26) to the correct character in the alphabet</p>
+									<p>Converts a character (mod 26) to the correct character in the alphabet
+									val Code to be mapped to a character</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>val: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Code to be mapped to a character</p>
-									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>

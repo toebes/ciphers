@@ -120,28 +120,24 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/34b99bd/app/mapper.ts#L26">mapper.ts:26</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/f5114ed/app/mapper.ts#L26">mapper.ts:26</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
 									<p>Recover the plain text character using the encode text and a key character
-									using the Vigenere mapping table</p>
+										using the Vigenere mapping table
+										ct Encoded character
+									ckey Unencoded character</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>ct: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Encoded character</p>
-									</div>
 								</li>
 								<li>
 									<h5>ckey: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Unencoded character</p>
-									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -158,29 +154,25 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/34b99bd/app/mapper.ts#L36">mapper.ts:36</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/f5114ed/app/mapper.ts#L36">mapper.ts:36</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
 									<p>Recover the key character using the encode text and a plain text character
 										using the Vigenere mapping table.  Note that for Vigenere, the table is
-									symetric, so this function is the same as decVigenere</p>
+										symetric, so this function is the same as decVigenere
+										ct Encoded character
+									cpt Unencoded character</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>ct: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Encoded character</p>
-									</div>
 								</li>
 								<li>
 									<h5>cpt: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Unencoded character</p>
-									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -197,27 +189,23 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/34b99bd/app/mapper.ts#L17">mapper.ts:17</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/f5114ed/app/mapper.ts#L17">mapper.ts:17</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Map two unencoded characters using the Vigenere mapping table</p>
+									<p>Map two unencoded characters using the Vigenere mapping table
+										cpt Plaintext unencoded character
+									ckey Key Unencoded character</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>cpt: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Plaintext unencoded character</p>
-									</div>
 								</li>
 								<li>
 									<h5>ckey: <span class="tsd-signature-type">string</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Key Unencoded character</p>
-									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -235,21 +223,19 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/34b99bd/app/mapper.ts#L8">mapper.ts:8</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/f5114ed/app/mapper.ts#L8">mapper.ts:8</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Converts a character (mod 26) to the correct character in the alphabet</p>
+									<p>Converts a character (mod 26) to the correct character in the alphabet
+									val Code to be mapped to a character</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>val: <span class="tsd-signature-type">number</span></h5>
-									<div class="tsd-comment tsd-typography">
-										<p>Code to be mapped to a character</p>
-									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>

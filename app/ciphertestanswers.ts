@@ -91,6 +91,8 @@ export class CipherTestAnswers extends CipherTest {
             }
             result.append(this.printTestAnswer(qnum + 1, test.questions[qnum], breakclass, printSolution))
         }
+        // Since the handlers turn on the file menus sometimes, we need to turn them back off
+        this.disableFilemenu()
         //
         // Generate the tie breaker order
         //

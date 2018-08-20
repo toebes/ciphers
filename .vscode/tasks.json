@@ -19,7 +19,11 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            }
+            },
+            "problemMatcher": [
+                "$tsc",
+                "$jshint"
+            ]
         },
         {
             "label": "webpack dist",
@@ -33,6 +37,7 @@
             ],
             "group": "build",
             "problemMatcher": [
+                "$tsc",
                 "$jshint"
             ]
         }

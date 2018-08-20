@@ -1071,6 +1071,18 @@ export class CipherHandler {
         }
     }
     /**
+     * Enables the file and edit menus
+     */
+    enableFilemenu(): void {
+        $(".filemenu").show()
+    }
+    /**
+     * Disables the file and edit menus
+     */
+    disableFilemenu(): void {
+        $(".filemenu").hide()
+    }
+    /**
      * Updates the initial user interface for the cipher handler.  This is a one
      * time operation.  If the editEntry paramter is passed on the URL, then that
      * entry is loaded and the cipher is initialized with it as if it were loaded
@@ -1094,6 +1106,7 @@ export class CipherHandler {
         }
         $(".langsel").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.getLangDropdown()) })
         $(".MenuBar").each((i: number, elem: HTMLElement) => { $(elem).replaceWith(this.createMainMenu()) })
+        this.disableFilemenu()
         this.buildCustomUI()
         this.restore(saveSet)
         this.attachHandlers()

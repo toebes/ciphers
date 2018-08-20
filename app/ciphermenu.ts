@@ -7,20 +7,22 @@ import { menuItem } from "./jtmenu"
 export const CipherMenu: menuItem[] = [
     {
         title: "File",
+        classname: "filemenu",
         menu: [
             { title: "New", action: "new" },
             { title: "Open", action: "open" },
             { title: "Save", action: "save", classname: "save" },
-            { title: "Save As...", action: "saveas", classname: "saveas disabled_menu" },
-            { title: "Submit", action: "submit", classname: "submit disabled_menu" },
+            // { title: "Save As...", action: "saveas", classname: "saveas disabled_menu" },
+            // { title: "Submit", action: "submit", classname: "submit disabled_menu" },
         ]
     },
     {
         title: "Edit",
+        classname: "filemenu",
         menu: [
             { title: "Undo", action: "undo", classname: "undo disabled_menu" },
             { title: "Redo", action: "redo", classname: "redo disabled_menu" },
-            { title: "Copy", action: "copy disabled_menu" },
+            // { title: "Copy", action: "copy disabled_menu" },
         ]
     },
     {

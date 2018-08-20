@@ -70,6 +70,7 @@ export class CipherEncoder extends CipherHandler {
     }
     updateOutput(): void {
         this.updateQuestionsOutput();
+        this.enableFilemenu()
         $("#toencode").val(this.state.cipherString)
         $("#keyword").val(this.state.keyword)
         $("#offset").val(this.state.offset)

@@ -63,6 +63,9 @@ export class CipherTestPrint extends CipherTest {
             }
             result.append(this.printTestQuestion(qnum + 1, test.questions[qnum], breakclass))
         }
+        // Since the handlers turn on the file menus sometimes, we need to turn them back off
+        this.disableFilemenu()
+
         /**
          * Now that we have generated the data for the test, output any running keys used
          */

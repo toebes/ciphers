@@ -92,8 +92,6 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      * Initializes the encoder.
-     * We don't want to show the reverse replacement since we are doing an encode
-     * @param {string} lang Language to select (EN is the default)
      */
     init(lang: string): void {
         super.init(lang)
@@ -193,7 +191,6 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      * Loads a language in response to a dropdown event
-     * @param lang Language to load
      */
     loadLanguage(lang: string): void {
         this.state.curlang = lang
@@ -327,8 +324,6 @@ export class CipherEncoder extends CipherHandler {
      * Compute the replacement set for the the characters on an encryption
      * Note that we actually have to reverse them because the ciphers class
      * is mostly built around decrypting
-     * @param {string} repl Replacement character set
-     * @param {string} cset Source character set
      */
     setReplacement(cset: string, repl: string): void {
         let errors = ''
@@ -356,8 +351,8 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      * Generate a K1 alphabet where the keyword is in the source alphabet
-     * @param keyword Keyword/keyphrase to map
-     * @param offset Offset from the start of the alphabet to place the keyword
+     * keyword Keyword/keyphrase to map
+     * offset Offset from the start of the alphabet to place the keyword
      */
     genAlphabetK1(keyword: string, offset: number): void {
         let repl = this.genKstring(keyword, offset, this.getCharset())
@@ -365,8 +360,8 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      * Generate a K2 alphabet where the keyword is in the destination alphabet
-     * @param keyword Keyword/Keyphrase to map
-     * @param offset Offset from the start of the alphabet to place the keyword
+     * keyword Keyword/Keyphrase to map
+     * offset Offset from the start of the alphabet to place the keyword
      */
     genAlphabetK2(keyword: string, offset: number): void {
         let repl = this.genKstring(keyword, offset, this.getSourceCharset())
@@ -378,9 +373,9 @@ export class CipherEncoder extends CipherHandler {
      * It is important to note that for a K3 alphabet you must have the same
      * alphabet for source and destination.  This means languages like Swedish
      * and Norwegian can not use a K3
-     * @param keyword Keyword/Keyphrase to map
-     * @param offset Offset from the start of the alphabet to place the keyword
-     * @param shift Shift of the destination alphabet from the source alphabet
+     * keyword Keyword/Keyphrase to map
+     * offset Offset from the start of the alphabet to place the keyword
+     * shift Shift of the destination alphabet from the source alphabet
      */
     genAlphabetK3(keyword: string, offset: number, shift: number): void {
         if (this.getCharset() !== this.getSourceCharset()) {
@@ -395,10 +390,10 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      * Generate a K4 alphabet where the keywords are different in each alphabet
-     * @param keyword Keyword for the source alphabet
-     * @param offset Offset for keyword in the source alphabet
-     * @param keyword2 Keyword for the destination alphabet
-     * @param offset2 Offset for the keyword in the destination alphabet
+     * keyword Keyword for the source alphabet
+     * offset Offset for keyword in the source alphabet
+     * keyword2 Keyword for the destination alphabet
+     * offset2 Offset for the keyword in the destination alphabet
      */
     genAlphabetK4(keyword: string, offset: number, keyword2: string, offset2: number): void {
         if (this.getCharset().length !== this.getSourceCharset().length) {
@@ -413,8 +408,8 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      * Map a keyword into an alphabet
-     * @param keyword Keyword to map into the alphabet
-     * @param offset Offset from the start of the alphabet to place the keyword
+     * keyword Keyword to map into the alphabet
+     * offset Offset from the start of the alphabet to place the keyword
      */
     genKstring(keyword: string, offset: number, alphabet: string): string {
         let unasigned = alphabet
@@ -441,7 +436,6 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Gets a random replacement character from the remaining set of unassigned
      * characters
-     * @returns {string} Single character replacement
      */
     getRepl(): string {
         let sel = Math.floor(Math.random() * this.unasigned.length)
@@ -451,7 +445,6 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      *  Generates a random replacement set of characters
-     * @returns {string} Replacement set of characters
      */
     genAlphabetRandom(): void {
         let charset = this.getCharset()
@@ -556,7 +549,6 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Generates the HTML code for allowing an encoder to select the alphabet type
      * along with specifying the parameters for that alphabet
-     * @returns HTML Elements for selecting the alphabet
      */
     createAlphabetType(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: "grid-x" })

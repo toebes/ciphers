@@ -1,37 +1,28 @@
 import * as InlineEditor from '@ckeditor/ckeditor5-build-inline';
-// import { Font } from "@ckeditor/ckeditor5-font/src/font"
 import { BoolMap, cloneObject, StringMap } from "./ciphercommon"
 import { CipherMenu } from "./ciphermenu"
 import { ICipherType } from "./ciphertypes"
 import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
+import { JTFDialog } from "./jtfdialog"
 import { JTFLabeledInput } from './jtflabeledinput';
 import { JTCreateMenu, JTGetURL } from "./jtmenu"
 import { InitStorage, JTStorage } from "./jtstore"
 import { JTTable } from "./jttable";
 import { parseQueryString } from "./parsequerystring"
-
-// From https://github.com/ckeditor/ckeditor5/issues/139#issuecomment-276876222
-// import Typing from '@ckeditor/ckeditor5-typing/src/typing';
-// import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
-// import Undo from '@ckeditor/ckeditor5-undo/src/undo';
-// import Bold from '@ckeditor/ckeditor5-basic-styles/src/bold';
-// import Italic from '@ckeditor/ckeditor5-basic-styles/src/italic';
-// import Image from '@ckeditor/ckeditor5-image/src/image';
-
-// ClassicEditor.create(document.getElementById("editor"), {
-//     plugins: [ Enter, Typing, Paragraph, Undo, Bold, Italic, Image ],
-//     toolbar: [ 'bold', 'italic', 'undo', 'redo' ]
-// });
-export type IOperationType = "encode" |
-    "decode" |
-    "compute" |
-    "let4let" |
-    "sequence" |
-    "words"
-
+/** The types of operations that an encoder will support */
+export type IOperationType = "encode" | // Test question involves encoding
+    "decode" | // Test question involves decoding
+    "compute" | // Test question involves computing a math result
+    "let4let" | // Baconian individual letter substitition
+    "sequence" | // Baconian sequence substitition
+    "words" // Baconian word substitution
+/**
+ * The saved state for all ciphers.  This is used for undo/redo as well as
+ * the save file format.
+ */
 export interface IState {
 
-    /** The current cipher typewe are working on */
+    /** The current cipher type we are working on */
     cipherType: ICipherType,
     /** The current cipher we are working on */
     cipherString: string,
@@ -51,10 +42,14 @@ export interface IState {
     question?: string,
     /** Current language */
     curlang?: string,
-    any?: any
     /** Indicates that a character is locked     */
     locked?: { [key: string]: boolean }
+    /** Any other extensions not yet thought of */
+  //  any?: any
 }
+/**
+ * The save file format of a test
+ */
 export interface ITest {
     /** Title of the test */
     title: string
@@ -82,7 +77,6 @@ type JQElement = JQuery<HTMLElement>
 export class CipherHandler {
     /**
      * User visible mapping of names of the various languages supported
-     * @type {StringMap} Mapping of language to visible name
      */
     readonly langmap: StringMap = {
         'en': 'English',
@@ -100,7 +94,6 @@ export class CipherHandler {
     }
     /**
      * This maps which characters are legal in a cipher for a given language
-     * @type {StringMap} Mapping of legal characters
      */
     readonly langcharset: StringMap = {
         'en': 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
@@ -748,12 +741,6 @@ export class CipherHandler {
                 })
             }
         })
-        // $("#okimport").off("click").on("click", (e) => {
-        //     this.savefileentry = Number($("#files option:selected").val())
-        //     $("#ImportFile").foundation('close')
-        //     this.markUndo()
-        //     this.restore(this.getFileEntry(this.savefileentry))
-        // })
         if (useLocalData) {
             $(".impurl").hide()
             $(".impfile").show()
@@ -835,14 +822,12 @@ export class CipherHandler {
     }
     /**
      * Generates an HTML representation of a string for display
-     * @param {string} str String to process
      */
     normalizeHTML(str: string): string {
         return str
     }
     /**
      * Creates an HTML table to display the frequency of characters
-     * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
     createFreqEditTable(): JQElement {
         let table = new JTTable({ class: "tfreq dragcol" })
@@ -1007,7 +992,7 @@ export class CipherHandler {
      * Saves the current state of the cipher work so that it can be undone
      * This code will attempt to merge named operations when pushing a second
      * to the top of the stack.  This is useful for operations such as search
-     * @param undotype Type of undo (for merging with previous entries)
+     * undotype Type of undo (for merging with previous entries)
      */
     markUndo(undotype?: string): void {
         if (this.undoPosition < this.undoStack.length - 1) {
@@ -1022,7 +1007,7 @@ export class CipherHandler {
     }
     /**
      * Pushes or merges an undo operation to the top of the stack
-     * @param undotype Type of undo (for merging with previous entries)
+     * undotype Type of undo (for merging with previous entries)
      */
     pushUndo(undotype: string): void {
         let undodata = this.save()
@@ -1136,8 +1121,6 @@ export class CipherHandler {
 
     /**
      * Create an edit field for a dropdown
-     * @param {string} str character to generate dropdown for
-     * @returns {string} HTML of dropdown
      */
     makeFreqEditField(c: string): JQElement {
         return null
@@ -1146,16 +1129,8 @@ export class CipherHandler {
      * Handle a dropdown event.  They are changing the mapping for a character.
      * Process the change, but first we need to swap around any other character which
      * is using what we are changing to.
-     * @param {string} item This is which character we are changing the mapping for
-     * @param {number} val This is which element we are changing it to.  This is an index into the morbitReplaces table
      */
     updateSel(item: string, val: string): void {
-    }
-    /**
-     * @returns {Object.<string, string>}
-     */
-    getMorseMap(): any {
-        return null
     }
     /**
      * Adds a set of answer rows to a table.
@@ -1216,22 +1191,7 @@ export class CipherHandler {
         return $("<h3>").text("This cipher does not support printing the Question yet")
     }
     /**
-     * Assign a new value for an entry
-     * @param {string} entry Character to be updated
-     * @param {string} val New value to associate with the character
-     */
-    setMorseMapEntry(entry: string, val: string): void {
-    }
-    /**
      * Change the encrypted character
-     * @param {string} repchar Encrypted character to map against
-     * @param {string} newchar New char to assign as decoding for the character
-     */
-
-    /**
-     * Change the encrypted character
-     * @param {string} repchar Encrypted character to map against
-     * @param {string} newchar New char to assign as decoding for the character
      */
     setChar(repchar: string, newchar: string): void {
         // console.log("handler setChar data-char=" + repchar + " newchar=" + newchar)
@@ -1254,19 +1214,16 @@ export class CipherHandler {
     }
     /**
      * Change multiple characters at once.
-     * @param {string} reqstr String of items to apply
      */
     setMultiChars(reqstr: string): void {
     }
     /**
-     *
-     * @param {string} reqstr String of items to apply
+     * Update all of the match dropdowns in response to a change in the cipher mapping
      */
     updateMatchDropdowns(reqstr: string): void {
     }
     /**
-     * Locate a string
-     * @param {string} str string to look for
+     * Locate a string and update the results
      */
     findPossible(str: string): void {
     }
@@ -1278,8 +1235,6 @@ export class CipherHandler {
     }
     /**
      * Eliminate the non displayable characters and replace them with a space
-     * @param {string} str String to clean up
-     * @returns {string} String with no spaces in it
      */
     cleanString(str: string): string {
         let pattern: string = "[\r\n ]+"
@@ -1288,8 +1243,6 @@ export class CipherHandler {
     }
     /**
      * Eliminate all characters which are not in the charset
-     * @param {string} str String to clean up
-     * @returns {string} Result string with only characters in the legal characterset
      */
     minimizeString(str: string): string {
         let res: string = ""
@@ -1305,7 +1258,6 @@ export class CipherHandler {
      * by a space.  Just keep characters that are in the character set and
      * remove all punctuation, etc.
      * Note: the string could be toUpperCase()'d here, but it is done later.
-     * @returns chunked input string
      */
     chunk(inputString: string, chunkSize: number): string {
         let chunkIndex = 1
@@ -1331,28 +1283,32 @@ export class CipherHandler {
         }
         return chunkedString
     }
-    /** @description Sets the character set used by the Decoder.
-     * @param {string} charset the set of characters to be used.
+    /**
+     * Sets the character set used by the Decoder.
      */
     setCharset(charset: string): void {
         this.charset = charset
     }
+    /**
+     * Determines if a character is part of the valid character set for the cipher
+     */
     isValidChar(char: string): boolean {
         return this.charset.indexOf(char) >= 0
     }
+    /**
+     * Gets the current character set used for output of the cipher
+     */
     getCharset(): string {
         return this.charset
     }
     /**
      * Gets the character set to be use for encoding.
-     * @param {string} charset the set of characters to be used.
      */
     getSourceCharset(): string {
         return this.sourcecharset
     }
     /**
      * Sets the character set to be use for encoding.
-     * @param {string} charset the set of characters to be used.
      */
     setSourceCharset(charset: string): void {
         this.sourcecharset = charset
@@ -1445,8 +1401,8 @@ export class CipherHandler {
     }
     /**
      * Make multiple copies of a string concatenated
-     * @param c Character (or string) to repeat
-     * @param count number of times to repeat the string
+     * c Character (or string) to repeat
+     * count number of times to repeat the string
      */
     repeatStr(c: string, count: number): string {
         let res = ""
@@ -1456,9 +1412,8 @@ export class CipherHandler {
         return res
     }
     /**
-     *
-     * @param {*string} string String to compute value for
-     * @returns {number} Value calculated
+     * Calculates the Chi Square value for a cipher string against the current
+     * language character frequency
      */
     CalculateChiSquare(str: string): number {
         let charset = this.getCharset()
@@ -1487,14 +1442,14 @@ export class CipherHandler {
         return chiSquare
     }
     /**
-     * Analyze the encoded text
-     * @param {string} encoded
-     * @param {number} width
-     * @param {number} num
+     * Analyze the encoded text and update the UI output
      */
     analyze(encoded: string): JQElement {
         return null
     }
+    /**
+     * Process a menu action string
+     */
     doAction(action: string): void {
         switch (action) {
             case "new":
@@ -1743,8 +1698,6 @@ export class CipherHandler {
      *        E             H
      *
      * And were given the input string of "RJCXC" then the result would be " HE E"
-     * @param {any} str String of encoded characters
-     * @returns {string} Replacement pattern string
      */
     genReplPattern(str: string): string[] {
         let res = []
@@ -1754,10 +1707,8 @@ export class CipherHandler {
         return res
     }
     /**
-     * @param {string} str String to check
-     * @param {Array.<string>} repl Replacement characters which are pre-known
-     * @param {BoolMap} used Array of flags whether a character is already known to be used
-     * @returns {bool} True/false if the string is a valid replacement
+     * Determines if a string is a valid match for the known matching characters
+     * This is used to generate the candidates in the dropdown dialog
      */
     isValidReplacement(str: string, repl: string[], used: BoolMap): boolean {
         //   console.log(str)
@@ -1793,8 +1744,6 @@ export class CipherHandler {
     /**
      * Quote a string, escaping any quotes with \.  This is used for generating Javascript
      * that can be safely loaded.
-     * @param {string} str String to be enqoted
-     * @return {string} Quoted string
      */
     quote(str: string): string {
         if (typeof str === "undefined") {
@@ -1810,9 +1759,6 @@ export class CipherHandler {
      * with  makeUniquePattern("..--X..X..X",2)
      *                          0 1 2 3 0 4   (note the hidden addition of the extra X)
      * This makes it easy to search for a pattern in any input cryptogram
-     * @param {string} str String to generate pattern from
-     * @param {number} width Width of a character in the pattern
-     * @returns {string} Numeric pattern string
      */
     makeUniquePattern(str: string, width: number): string {
         let cmap = {}
@@ -1833,7 +1779,7 @@ export class CipherHandler {
         return res
     }
     /**
-     * @param {string} lang 2 character Language to dump language template for
+     * Dump out the language template for a given language
      */
     dumpLang(lang: string): string {
         let extra = ""
@@ -1861,7 +1807,6 @@ export class CipherHandler {
     }
     /**
      * Fills in the language choices on an HTML Select
-     * @param lselect HTML Element to populate
      */
     getLangDropdown(): JQElement {
         let result = $("<div/>", { class: "cell input-group" })
@@ -1878,7 +1823,6 @@ export class CipherHandler {
     }
     /**
      * Loads a language in response to a dropdown event
-     * @param lang Language to load
      */
     loadLanguage(lang: string): void {
         this.state.curlang = lang
@@ -1894,7 +1838,7 @@ export class CipherHandler {
     }
     /**
      * Loads a raw language from the server
-     * @param lang Language to load (2 character abbreviation)
+     * lang Language to load (2 character abbreviation)
      */
     loadRawLanguage(lang: string): void {
         let jqxhr = $.get("Languages/" + lang + ".txt", () => {
@@ -1969,6 +1913,9 @@ export class CipherHandler {
             $('#rf' + this.replacement[c]).text(c)
         }
     }
+    /**
+     * Get a URL associated with an editor for a saved cipher
+     */
     public getEditURL(state: IState): string {
         let lang
         if (state.cipherType === undefined) {
@@ -1983,41 +1930,28 @@ export class CipherHandler {
      * Create the hidden dialog for selecting a cipher to open
      */
     private createOpenFileDlg(): JQElement {
-        let openFileDiv = $("<div/>", { class: "reveal", id: "OpenFile", 'data-reveal': '' })
-        openFileDiv.append($("<div/>", { class: "top-bar Primary" })
-            .append($("<div/>", { class: "top-bar-left" })
-                .append($("<h3/>").text("Select File to Open"))))
-        openFileDiv.append($("<select/>", { id: "files", class: "filelist", size: 10 }))
-        let buttongroup = $("<div/>", { class: "expanded button-group" })
-        buttongroup.append($("<a/>", { class: "secondary button", "data-close": "" }).text("Cancel"))
-        buttongroup.append($("<a/>", { class: "button", disabled: "true", id: "okopen" }).text("OK"))
-        openFileDiv.append(buttongroup)
-        openFileDiv.append($("<button/>", { class: "close-button", "data-close": "", "aria-label": "Close reveal", type: "button" })
-            .append($("<span/>", { "aria-hidden": true }).html("&times;")))
-        return openFileDiv
+        let dlgContents = $("<select/>", { id: "files", class: "filelist", size: 10 })
+        let openFileDlg = JTFDialog("OpenFile", "Select File to Open", dlgContents,
+                                    "okopen", "OK")
+        return openFileDlg
     }
     /**
      * Creates the hidden dialog for selecting an XML file to import
      */
     private createImportFileDlg(): JQElement {
-        let importFileDiv = $("<div/>", { class: "reveal", id: "ImportFile", 'data-reveal': '' })
-        importFileDiv.append($("<div/>", { class: "top-bar Primary" })
-            .append($("<div/>", { class: "top-bar-left" })
-                .append($("<h3/>").text("Import Test Data"))))
-        let importDiv = ($("<div/>", { id: "importstatus", class: "callout secondary" }))
-        importDiv.append($("<label/>", { for: "xmlFile", class: "impfile button" }).text("Select File"))
-        importDiv.append($("<input/>", { type: "file", id: "xmlFile", accept: ".json", class: "impfile show-for-sr" }))
-        importDiv.append($("<span/>", { id: "xmltoimport", class: "impfile" }).text("No File Selected"))
-        importDiv.append(JTFLabeledInput("URL", "text", "xmlurl", "", "impurl small-12 medium-6 large-6"))
-        importFileDiv.append(importDiv)
-        let buttongroup = $("<div/>", { class: "expanded button-group" })
-        buttongroup.append($("<a/>", { class: "secondary button", "data-close": "" }).text("Cancel"))
-        buttongroup.append($("<input/>", { class: "button", type: "submit", val: "Import", id: "okimport" }))
-        importFileDiv.append(buttongroup)
-        importFileDiv.append($("<button/>", { class: "close-button", "data-close": "", "aria-label": "Close reveal", type: "button" })
-            .append($("<span/>", { "aria-hidden": true }).html("&times;")))
-        return importFileDiv
+        let dlgContents = ($("<div/>", { id: "importstatus", class: "callout secondary" }))
+            .append($("<label/>", { for: "xmlFile", class: "impfile button" }).text("Select File"))
+            .append($("<input/>", { type: "file", id: "xmlFile", accept: ".json", class: "impfile show-for-sr" }))
+            .append($("<span/>", { id: "xmltoimport", class: "impfile" }).text("No File Selected"))
+            .append(JTFLabeledInput("URL", "text", "xmlurl", "", "impurl small-12 medium-6 large-6"))
+        let importDlg = JTFDialog("ImportFile", "Import Test Data", dlgContents,
+                                  "okimport", "Import")
+        return importDlg
     }
+    /**
+     * Create the main menu at the top of the page.
+     * This also creates the hidden dialogs used for opening and importing files
+     */
     public createMainMenu(): JQElement {
         let result = $("<div/>")
         result.append(JTCreateMenu(CipherMenu, "example-menu", "Cipher Tools"))

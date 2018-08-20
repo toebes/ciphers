@@ -76,7 +76,7 @@ export class CipherVigenereSolver extends CipherSolver {
 
     /**
      * Selects which variant table is to be used for mapping
-     * @param cipherType Name of code variant - one of vigenere, variant or beaufort
+     * cipherType Name of code variant - one of vigenere, variant or beaufort
      */
     setCipherVariant(cipherType: ICipherType): void {
         this.state.cipherType = cipherType
@@ -90,7 +90,7 @@ export class CipherVigenereSolver extends CipherSolver {
      * Changes the keyword to map against the table.  The length of the keyword is
      * the period of the cipher (after removing any spaces of course)
      * Any non-mapping characters (. - _ etc) are used as placeholders
-     * @param str New keyword mapping string
+     * str New keyword mapping string
      */
     setKeyword(str: string): void {
         if (str.length > 0) {
@@ -115,7 +115,6 @@ export class CipherVigenereSolver extends CipherSolver {
     /**
      * Locate a string.
      * Note that we assume that the period has been set
-     * @param {string} str string to look for
      */
     findPossible(str: string): void {
         this.state.findString = str
@@ -179,9 +178,6 @@ export class CipherVigenereSolver extends CipherSolver {
     }
     /**
      * Analyze the encoded text
-     * @param {string} encoded
-     * @param {number} width
-     * @param {number} num
      */
     analyze(encoded: string): JQuery<HTMLElement> {
         if (encoded === "") {
@@ -261,16 +257,12 @@ export class CipherVigenereSolver extends CipherSolver {
     }
     /**
      * Encapsulate two elements side by side in a table so that they stay lined up
-     * @param elem1 Left side element
-     * @param elem2 Right side element
      */
     sideBySide(elem1: JQuery<HTMLElement>, elem2: JQuery<HTMLElement>): JQuery<HTMLElement> {
         return new JTTable({ body: [[elem1, elem2]] }).generate()
     }
     /**
      * Change the encrypted character.  This primarily shows us what the key might be if we use it
-     * @param {string} repchar character slot to map against (this is basically an index into the string)
-     * @param {string} newchar New char to assign as decoding for the character
      */
     setChar(repchar: string, newchar: string): void {
         console.log("vigenere setChar data-char=" + repchar + ' newchar=' + newchar)
@@ -285,7 +277,6 @@ export class CipherVigenereSolver extends CipherSolver {
 
     /**
      * Builds the GUI for the solver
-     * @returns {string} HTML of solver structure
      */
     build(): JQuery<HTMLElement> {
         let str = this.state.cipherString
@@ -338,7 +329,6 @@ export class CipherVigenereSolver extends CipherSolver {
     }
     /**
      * Creates an HTML table to display the frequency of characters
-     * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
     createFreqEditTable(): JQuery<HTMLElement> {
         let topdiv = $("<div>")

@@ -55,7 +55,6 @@ export class CipherRailfenceSolver extends CipherSolver {
     railOrderOffs: Array<number>
     /**
      * Initializes the encoder/decoder.
-     * @param {string} lang Language to select (EN is the default)
      */
     init(lang: string): void {
         super.init(lang)
@@ -93,7 +92,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     }
     /**
      * Set the number of rails
-     * @param rails Number of rails requested
+     * rails Number of rails requested
      */
     private setRailCount(rails: number): void {
         /** Range limit the number of rails */
@@ -109,7 +108,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     }
     /**
      * Set rail offset
-     * @param railOffset New offset
+     * railOffset New offset
      */
     private setRailOffset(railOffset: number): void {
         if (railOffset < 0) {
@@ -121,7 +120,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     }
     /**
      * Set rail layout type (M/W and by row or zig zag)
-     * @param layout New raillayout type
+     * layout New raillayout type
      */
     private setRailLayout(layout: RailLayout): void {
         // We don't allow zig zag with Redefence, so switch to the matching by row type
@@ -136,7 +135,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     }
     /**
      * Set rail cipher type
-     * @param railtype Type of rail
+     * railtype Type of rail
      */
     private setRailType(railtype: ICipherType): void {
         this.state.cipherType = railtype
@@ -178,7 +177,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     }
     /**
      * Set the order of rails
-     * @param railorder New order string
+     * railorder New order string
      */
     private setRailOrder(railorder: string): void {
         this.state.railOrder = railorder
@@ -224,7 +223,6 @@ export class CipherRailfenceSolver extends CipherSolver {
     /**
      * Locate a string.
      * Note that we assume that the period has been set
-     * @param {string} str string to look for
      */
     findPossible(str: string): void {
         let res = $("<span>").text('Unable to find ' + str + ' as ' + this.normalizeHTML(str))
@@ -233,7 +231,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     }
     /**
      * Analyze the cipher string and show any data for the user to make decisions.
-     * @param encoded Encoded string to analyze
+     * encoded Encoded string to analyze
      */
     analyze(): JQuery<HTMLElement> {
         return null
@@ -241,16 +239,12 @@ export class CipherRailfenceSolver extends CipherSolver {
 
     /**
      * Change the encrypted character.  This primarily shows us what the key might be if we use it
-     * @param {string} repchar character slot to map against (This is a character and an offset)
-     * @param {string} newchar New char to assign as decoding for the character
      */
     setChar(): void {
     }
 
     /**
      * Builds the GUI for the solver
-     * @param {string} str String to decode
-     * @returns {string} HTML of solver structure
      */
     build(): JQuery<HTMLElement> {
         let str = this.minimizeString(this.state.cipherString)
@@ -341,10 +335,10 @@ export class CipherRailfenceSolver extends CipherSolver {
     }
     /**
      * build the output which shows the actual rails
-     * @param outlines Array representation of the computed rail positions
-     * @param offs Offsets for getting data from the string for a zigZag
-     * @param isZigZag This is a zigzag version of the rail
-     * @param str Original string for replacing from a zig zag
+     * outlines Array representation of the computed rail positions
+     * offs Offsets for getting data from the string for a zigZag
+     * isZigZag This is a zigzag version of the rail
+     * str Original string for replacing from a zig zag
      */
     buildRailPre(outlines: string[][], offs: number[], isZigZag: boolean, str: string): JQuery<HTMLElement> {
         let ans: string[] = []
@@ -406,7 +400,6 @@ export class CipherRailfenceSolver extends CipherSolver {
 
     /**
      * Creates an HTML table to display the frequency of characters
-     * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
     createFreqEditTable(): JQuery<HTMLElement> {
         let topdiv = $("<div>")

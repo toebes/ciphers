@@ -5,9 +5,9 @@ import { Mapper } from "./mapper"
 export class mapGronsfeld extends Mapper {
     /**
      * Map two unencoded characters using the Gronsfeld mapping table
-     * @param cpt Plaintext unencoded character
-     * @param ckey Key Unencoded character
-     * @returns cipher text (ct) encoded character
+     * cpt Plaintext unencoded character
+     * ckey Key Unencoded character
+     * returns cipher text (ct) encoded character
      */
     encode(cpt: string, ckey: string): string {
         cpt = cpt.toUpperCase()
@@ -23,8 +23,8 @@ export class mapGronsfeld extends Mapper {
      * Recover the plain text character using the encode text and a key character
      * using the Gronsfeld mapping table
      * Since the forula is the same as the encoding, we just use that routine
-     * @param ct Encoded character
-     * @param ckey Unencoded character
+     * ct Encoded character
+     * ckey Unencoded character
      */
     decode(ct: string, ckey: string): string {
         ckey = ckey.toUpperCase()
@@ -40,8 +40,8 @@ export class mapGronsfeld extends Mapper {
      * Recover the key character using the encode text and a plain text character
      * using the Beaufort mapping table.
      *  Formula KEY = CT+pt
-     * @param ct Encoded character
-     * @param cpt Unencoded character
+     * ct Encoded character
+     * cpt Unencoded character
      */
     decodeKey(ct: string, cpt: string): string {
         cpt = cpt.toUpperCase()

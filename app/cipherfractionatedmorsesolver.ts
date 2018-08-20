@@ -94,8 +94,6 @@ export class CipherFractionatedMorseSolver extends CipherMorseSolver {
      * Handle a dropdown event.  They are changing the mapping for a character.
      * Process the change, but first we need to swap around any other character which
      * is using what we are changing to.
-     * @param {string} item This is which character we are changing the mapping for
-     * @param {number} val This is which element we are changing it to.  This is an index into the fractionatedMorseReplaces table
      */
     public updateSel(item: string, val: string): void {
         console.log('updateFractionatedMorseSel item=' + item + ' val=' + val)

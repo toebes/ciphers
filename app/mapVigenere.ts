@@ -4,8 +4,8 @@ const Aval = "A".charCodeAt(0)
 export class mapVigenere extends Mapper {
     /**
      * Map two unencoded characters using the Vigenere mapping table
-     * @param cpt Plaintext unencoded character
-     * @param ckey Key Unencoded character
+     * cpt Plaintext unencoded character
+     * ckey Key Unencoded character
      * @returns cipher text (ct) encoded character
      */
     encode(cpt: string, ckey: string): string {
@@ -21,8 +21,8 @@ export class mapVigenere extends Mapper {
     /**
      * Recover the plain text character using the encode text and a key character
      * using the Vigenere mapping table
-     * @param ct Encoded character
-     * @param ckey Unencoded character
+     * ct Encoded character
+     * ckey Unencoded character
      */
     decode(ct: string, ckey: string): string {
         ckey = ckey.toUpperCase()
@@ -38,8 +38,8 @@ export class mapVigenere extends Mapper {
      * Recover the key character using the encode text and a plain text character
      * using the Vigenere mapping table.  Note that for Vigenere, the table is
      * symetric, so this function is the same as decVigenere
-     * @param ct Encoded character
-     * @param cpt Unencoded character
+     * ct Encoded character
+     * cpt Unencoded character
      */
     decodeKey(ct: string, cpt: string): string {
         return this.decode(ct, cpt);

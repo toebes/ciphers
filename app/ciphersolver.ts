@@ -16,8 +16,7 @@ export class CipherSolver extends CipherHandler {
     state: IState = cloneObject(this.defaultstate) as IState
 
     /**
-     * Initializes the encoder/decoder.
-     * @param {string} lang Language to select (EN is the default)
+     * Initializes the encoder/decoder. (EN is the default)
      */
     init(lang: string): void {
         super.init(lang)
@@ -66,7 +65,6 @@ export class CipherSolver extends CipherHandler {
     }
     /**
      * Generates an HTML representation of a string for display
-     * @param {string} str String to process
      */
     normalizeHTML(str: string): string {
         return str;
@@ -104,8 +102,6 @@ export class CipherSolver extends CipherHandler {
 
     /**
      * Create an edit field for a dropdown
-     * @param {string} str character to generate dropdown for
-     * @returns {string} HTML of dropdown
      */
     makeFreqEditField(c: string): JQuery<HTMLElement> {
         // let val = ''
@@ -141,9 +137,6 @@ export class CipherSolver extends CipherHandler {
     /**
      * Finds the top n strings of a given width and formats an HTML
      * unordered list of them.  Only strings which repeat 2 or more times are included
-     * @param {string} string
-     * @param {number} width
-     * @param {number} num
      */
     makeTopList(str: string, width: number, num: number): JQuery<HTMLElement> {
         let tfreq = {}
@@ -203,7 +196,7 @@ export class CipherSolver extends CipherHandler {
     }
     /**
      * Builds an HTML Representation of the contact table
-     * @param encoded String to make a contact table from
+     * encoded String to make a contact table from
      */
     // tslint:disable-next-line:cyclomatic-complexity
     makeContactTable(encoded: string): JQuery<HTMLElement> {
@@ -301,10 +294,7 @@ export class CipherSolver extends CipherHandler {
         return res.children()
     }
     /**
-     * Analyze the encoded text
-     * @param {string} encoded
-     * @param {number} width
-     * @param {number} num
+     * Analyze the encoded text and return an HTML represencation of the analysis
      */
     analyze(encoded: string): JQuery<HTMLElement> {
         let topdiv = $("<div>")
@@ -325,16 +315,13 @@ export class CipherSolver extends CipherHandler {
      * Handle a dropdown event.  They are changing the mapping for a character.
      * Process the change, but first we need to swap around any other character which
      * is using what we are changing to.
-     * @param {string} item This is which character we are changing the mapping for
-     * @param {number} val This is which element we are changing it to.  This is an index into the morbitReplaces table
      */
     updateSel(item: string, val: string): void {
         this.setChar(item, val);
     }
 
     /**
-     * Locate a string
-     * @param {string} str string to look for
+     * Locate a string and update the UI
      */
     findPossible(str: string): void {
         let encoded = this.minimizeString(this.state.cipherString)
@@ -368,10 +355,6 @@ export class CipherSolver extends CipherHandler {
 
     /**
      * Searches for a string (drags a crib through the crypt)
-     * @param {any} encoded
-     * @param {any} encodewidth
-     * @param {any} tofind
-     * @param {any} findwidth
      */
     // tslint:disable-next-line:cyclomatic-complexity
     searchPattern(encoded: string, encodewidth: number, tofind: string, findwidth: number): string {
@@ -520,7 +503,6 @@ export class CipherSolver extends CipherHandler {
     }
     /**
      * Change multiple characters at once.
-     * @param {string} reqstr String of items to apply
      */
     setMultiChars(reqstr: string): void {
         console.log('setStandardMultiChars ' + reqstr);
@@ -537,8 +519,6 @@ export class CipherSolver extends CipherHandler {
 
     /**
      * Generates the Match dropdown for a given string
-     * @param {string} str String to generate a match down for
-     * @returns {string} Html for a select
      */
     generateMatchDropdown(str: string): JQuery<HTMLElement> {
         if (this.state.curlang === '' || !this.Frequent.hasOwnProperty(this.state.curlang)) {
@@ -561,8 +541,6 @@ export class CipherSolver extends CipherHandler {
                 used[this.replacement[c]] = true;
             }
 
-            //     console.log(repl);
-            //     console.log(used);
             for (let i = 0, len = matches.length; i < len; i++) {
                 let entry = matches[i];
                 if (this.isValidReplacement(entry[0], repl, used)) {
@@ -593,8 +571,7 @@ export class CipherSolver extends CipherHandler {
         return mselect;
     }
     /**
-     *
-     * @param {string} reqstr String of items to apply
+     * Update all of the match dropdowns in response to a change in the cipher mapping
      */
     updateMatchDropdowns(reqstr: string): void {
         this.UpdateReverseReplacements();

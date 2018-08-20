@@ -5,8 +5,8 @@ const Aval = "A".charCodeAt(0)
 export class mapPorta extends Mapper {
     /**
      * Map two unencoded characters using the Porta mapping table
-     * @param cpt Plaintext unencoded character
-     * @param ckey Key Unencoded character
+     * cpt Plaintext unencoded character
+     * ckey Key Unencoded character
      * @returns cipher text (ct) encoded character
      */
     encode(cpt: string, ckey: string): string {
@@ -30,8 +30,8 @@ export class mapPorta extends Mapper {
      * Recover the plain text character using the encode text and a key character
      * using the Porta mapping table.  Note that for Porta, the table is
      * symetric, so this function is the same as encode
-     * @param ct Encoded character
-     * @param ckey Unencoded character
+     * ct Encoded character
+     * ckey Unencoded character
      */
     decode(ct: string, ckey: string): string {
         return this.encode(ct, ckey)
@@ -39,8 +39,8 @@ export class mapPorta extends Mapper {
     /**
      * Recover the key character using the encode text and a plain text character
      * using the Porta mapping table.
-     * @param ct Encoded character
-     * @param cpt Unencoded character
+     * ct Encoded character
+     * cpt Unencoded character
      */
     decodeKey(ct: string, cpt: string): string {
         ct = ct.toUpperCase()

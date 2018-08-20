@@ -1,7 +1,7 @@
 /**
  * Compute the greatest common denominator between two numbers
- * @param a First number
- * @param b Second Number
+ * a First number
+ * b Second Number
  */
 export function gcd(a: number, b: number): number {
     if (isNaN(a)) { return a }

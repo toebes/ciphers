@@ -21,7 +21,7 @@ export interface JTTableParms {
 }
 /**
  * Determines if a parameter is a plain string
- * @param x Item to test
+ * x Item to test
  */
 function isString(x: any): x is string {
     return typeof x === "string"
@@ -41,7 +41,7 @@ export interface JTRowParms {
  * Determines the type of a parameter for a new row so that you
  * don't have to pass in the class or other attributes if you only
  * want to create a simple row
- * @param parms
+ * parms
  */
 function isRowParms(parms: JTRowParms | JTRowItems): parms is JTRowParms {
     return true;
@@ -81,7 +81,7 @@ export class JTRow {
     }
     /**
      * Adds a new element to the row.  This returns the row so you can chain
-     * @param elem Element to be added (string | JQuery<HTMLElement>)
+     * elem Element to be added (string | JQuery<HTMLElement>)
      */
     add(elem: JTElem): JTRow {
         if (elem !== null && elem !== undefined) {
@@ -155,7 +155,7 @@ export class JTTable {
 
     /**
      * Adds a new header row and returns it so you can add elements to it
-     * @param parms Header row items to add
+     * parms Header row items to add
      */
     addHeaderRow(parms?: JTRowParms | JTRowItems): JTRow {
         let newRow = new JTRow(parms).setCellType("th")
@@ -165,7 +165,7 @@ export class JTTable {
 
     /**
      * Adds a new body row and returns it so you can add elements to it
-     * @param parms Body row items to add
+     * parms Body row items to add
      */
     addBodyRow(parms?: JTRowParms | JTRowItems): JTRow {
         let newRow = new JTRow(parms)
@@ -175,7 +175,7 @@ export class JTTable {
 
     /**
      * Adds a new Footer row and returns it so you can add elements to it
-     * @param parms Footer row items to add
+     * parms Footer row items to add
      */
     addFooterRow(parms?: JTRowParms | JTRowItems): JTRow {
         let newRow = new JTRow(parms)

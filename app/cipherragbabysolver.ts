@@ -99,8 +99,8 @@ export class CipherRagbabySolver extends CipherSolver {
 
     /**
      * This rotates all entries in a line by the specified amount.
-     * @param r Which map to shift
-     * @param dist Distance to shift by
+     * r Which map to shift
+     * dist Distance to shift by
      */
     rotateSet(s: RagLine, dist: number): RagLine {
         if (dist === 0) {
@@ -246,8 +246,8 @@ export class CipherRagbabySolver extends CipherSolver {
     }
     /**
      * Merge any potential strips
-     * @param lines Computed line strips
-     * @param mergeslot slot to attempt to merge
+     * lines Computed line strips
+     * mergeslot slot to attempt to merge
      */
     mergeMappings(lines: mapLine[], mergeslot: number): void {
         while (mergeslot !== -1) {
@@ -297,8 +297,8 @@ export class CipherRagbabySolver extends CipherSolver {
     }
     /**
      * Line up all lines and put them in the the replacement map
-     * @param lines Computed lines
-     * @param prevslot Previous positions of letters to attempt to line up against
+     * lines Computed lines
+     * prevslot Previous positions of letters to attempt to line up against
      */
     lineUpMappings(lines: mapLine[], prevslot: NumberMap): void {
         for (let testline of lines) {
@@ -337,7 +337,7 @@ export class CipherRagbabySolver extends CipherSolver {
     }
     /**
      * Selects which form of a ragbaby we are doing
-     * @param alphalen Number of characters in the alphabet (24, 26, 36)
+     * alphalen Number of characters in the alphabet (24, 26, 36)
      */
     setAlphabetSize(alphalen: number): void {
         this.state.alphalen = Number(alphalen)
@@ -359,7 +359,6 @@ export class CipherRagbabySolver extends CipherSolver {
     /**
      * Locate a string.
      * Note that we assume that the period has been set
-     * @param {string} str string to look for
      */
     findPossible(str: string): void {
         let res = $("<span>").text('Unable to find ' + str + ' as ' + this.normalizeHTML(str) + ' - Not yet implemented')
@@ -375,17 +374,12 @@ export class CipherRagbabySolver extends CipherSolver {
     }
     /**
      * Analyze the encoded text
-     * @param {string} encoded
-     * @param {number} width
-     * @param {number} num
      */
     analyze(encoded: string): JQuery<HTMLElement> {
         return null
     }
     /**
      * Change the encrypted character.  This primarily shows us what the key might be if we use it
-     * @param {string} repchar character slot to map against (This is a character and an offset)
-     * @param {string} newchar New char to assign as decoding for the character
      */
     setChar(repchar: string, newchar: string): void {
         console.log("Ragbaby setChar data-char=" + repchar + ' newchar=' + newchar)
@@ -427,8 +421,6 @@ export class CipherRagbabySolver extends CipherSolver {
 
     /**
      * Builds the GUI for the solver
-     * @param {string} str String to decode
-     * @returns {string} HTML of solver structure
      */
     build(): JQuery<HTMLElement> {
         let str = this.state.cipherString
@@ -584,7 +576,6 @@ export class CipherRagbabySolver extends CipherSolver {
     }
     /**
      * Creates an HTML table to display the frequency of characters
-     * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
     createFreqEditTable(): JQuery<HTMLElement> {
         let topdiv = $("<div>")
@@ -593,8 +584,8 @@ export class CipherRagbabySolver extends CipherSolver {
     }
     /**
      * This rotates all entries in a map entry by the specified amount.
-     * @param r Which map to shift
-     * @param dist Distance to shift by
+     * r Which map to shift
+     * dist Distance to shift by
      */
     rotateMap(r: number, dist: number): void {
         if (r < this.replmap.length) {
@@ -613,7 +604,7 @@ export class CipherRagbabySolver extends CipherSolver {
     }
     /**
      * Rotate left all the letters in a slot by 1
-     * @param r Which slot (-1 for all) to shift
+     * r Which slot (-1 for all) to shift
      */
     leftRotate(r: number): void {
         if (r === -1) {
@@ -627,7 +618,7 @@ export class CipherRagbabySolver extends CipherSolver {
     }
     /**
      * Rotate right all the letters in a slot by 1
-     * @param r Which slot (-1 for all) to shift
+     * r Which slot (-1 for all) to shift
      */
     rightRotate(r: number): void {
         if (r === -1) {

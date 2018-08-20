@@ -49,16 +49,12 @@ export class CryptarithmSolver extends CipherSolver {
     }
     /**
      * Analyze the encoded text
-     * @param {string} encoded
-     * @param {number} width
-     * @param {number} num
      */
     analyze(encoded: string): JQuery<HTMLElement> {
         return null
     }
     /**
      * Substitutes all the current mappings in a string to evaluate
-     * @param str String to replace with math values
      */
     subFormula(str: string): string {
         let result = ''
@@ -101,14 +97,12 @@ export class CryptarithmSolver extends CipherSolver {
     }
     /**
      * Formats a number in the current base and returns a normalized version of it
-     * @param val Number in current base
      */
     basedStr(val: number): string {
         return val.toString(this.base).toUpperCase()
     }
     /**
      * Safe version of eval to compute a generated formula
-     * @param str Math formula to evaluate
      */
     compute(str: string): string {
         try {
@@ -120,8 +114,6 @@ export class CryptarithmSolver extends CipherSolver {
     }
     /**
      * Check a formula to make sure it is correct
-     * @param formula Formula to calculate
-     * @param expected Expected result from the formula
      */
     checkFormula(formula: string, expected: string): JQuery<HTMLElement> {
         let eformula = this.subFormula(formula)
@@ -155,8 +147,7 @@ export class CryptarithmSolver extends CipherSolver {
         return result
     }
     /**
-     *
-     * @param {string} reqstr String of items to apply
+     * Update the match dropdowns in response to a change in the cipher mapping
      */
     updateMatchDropdowns(reqstr: string): void {
         this.UpdateReverseReplacements()
@@ -184,8 +175,6 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Change the encrypted character.  Note that when we change one, we have
      * to swap it with the one which we are replacing
-     * @param {string} repchar Encrypted character to map against
-     * @param {string} newchar New char to assign as decoding for the character
      */
     setChar(repchar: string, newchar: string): void {
         console.log("setChar data-char=" + repchar + ' newchar=' + newchar)
@@ -214,8 +203,6 @@ export class CryptarithmSolver extends CipherSolver {
     }
     /**
      * Builds the GUI for the solver
-     * @param {string} str String to decode
-     * @returns {string} HTML of solver structure
      */
     // tslint:disable-next-line:cyclomatic-complexity
     build(): JQuery<HTMLElement> {
@@ -744,7 +731,6 @@ export class CryptarithmSolver extends CipherSolver {
     }
     /**
      * Creates an HTML table to display the mapping table
-     * @returns {JQuery<HTMLElement} HTML to put into a DOM element
      */
     createFreqEditTable(): JQuery<HTMLElement> {
         if (this.base === undefined || this.base < 1) {
@@ -821,8 +807,6 @@ export class CryptarithmSolver extends CipherSolver {
     }
     /**
      * Marks a symbol as locked and prevents it from being changed in the interactive solver
-     * @param c Symbol to be marked as locked/unlocked
-     * @param lock new state for the symbol
      */
     updateCheck(c: string, lock: boolean): void {
         if (this.state.locked[c] !== lock) {

@@ -66,7 +66,6 @@ export class CipherMorseSolver extends CipherSolver {
     }
     /**
      * Table of classes to be associated with morse code dots/dashes/spaces
-     * @type {Object.<string, string>}
      */
     readonly morsedigitClass: { [key: string]: string } = {
         'O': 'dot',
@@ -76,7 +75,6 @@ export class CipherMorseSolver extends CipherSolver {
     }
     /**
      * Table of classes to be associated with any particular morse code decoded character
-     * @type {Object.<string, string>}
      */
     readonly morseClass: { [key: string]: string } = {
         'A': '',
@@ -126,7 +124,6 @@ export class CipherMorseSolver extends CipherSolver {
     }
     /**
      * Table to map from a morse code string to the corresponding character
-     * @type {Object.<string, string>}
      */
     readonly frommorse: { [key: string]: string } = {
         'O-': 'A',
@@ -177,8 +174,8 @@ export class CipherMorseSolver extends CipherSolver {
     cipherType: ICipherType
     /**
      * Marks a symbol as locked and prevents it from being changed in the interactive solver
-     * @param c Symbol to be marked as locked/unlocked
-     * @param lock new state for the symbol
+     * c Symbol to be marked as locked/unlocked
+     * lock new state for the symbol
      */
     updateCheck(c: string, lock: boolean): void {
         if (this.state.locked[c] !== lock) {
@@ -208,18 +205,19 @@ export class CipherMorseSolver extends CipherSolver {
         return savestate
     }
     /**
-     * @returns {Object.<string, string>}
+     * Get the Morse mapping table
      */
     getMorseMap(): any {
         return null;
     }
+    /**
+     * Update an entry in the morse mapping table
+     */
     unmapMorse(entry: string): number {
         return 0
     }
     /**
      * Assign a new value for an entry
-     * @param {string} entry Character to be updated
-     * @param {string} val New value to associate with the character
      */
     setMorseMapEntry(entry: string, val: string): void {
     }
@@ -280,8 +278,6 @@ export class CipherMorseSolver extends CipherSolver {
      *    or a bad morse code
      *    then we output a cell with a class of "error"
      * 4- Otherwise it is a valid morse code string and we output the cell with the class from the morseClass
-     * @param {string} str String to decode
-     * @returns {string} HTML of solver structure
      */
     build(): JQuery<HTMLElement> {
         let str = this.cleanString(this.state.cipherString)
@@ -494,7 +490,7 @@ export class CipherMorseSolver extends CipherSolver {
         return table
     }
     /**
-     * @param {string} reqstr Template string to set mappings
+     * Set multiple characters
      */
     setMultiChars(reqstr: string): void {
         console.log('setMorseMultiChars ' + reqstr)
@@ -556,7 +552,7 @@ export class CipherMorseSolver extends CipherSolver {
     /**
      * Generates an HTML representation of a string for display.  Replaces the X, O and -
      * with more visible HTML equivalents
-     * @param str String to normalize (with - X and O representing morese characters)
+     * str String to normalize (with - X and O representing morese characters)
      */
     normalizeHTML(str: string): string {
         return str.replace(/O/g, '&#9679;').replace(/-/g, "&ndash;").replace(/X/g, "&times;")

@@ -307,8 +307,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         return $("<div/>").append($(katex.renderToString(encoding)))
     }
     /**
-     *
-     * @param s
+     * Encode a string using the current replacement alphabet
      */
     encodeString(s: string): string {
         let encoded = ''
@@ -333,11 +332,9 @@ export class CipherAffineEncoder extends CipherEncoder {
         }
     }
     /**
-     *
-     * @param msg
-     * @param letters
+     * Generate HTML showing the current decoding progress
      */
-    showOutput(msg: string, letters: string): JQuery<HTMLElement> {
+    genDecodeProgress(msg: string, letters: string): JQuery<HTMLElement> {
         let i
         let message = ''
         let msgLength = msg.length
@@ -544,7 +541,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         result.append($("<p/>").text('However, we only know a few of the letters in the cipher.'))
 
         let l = m1 + m2
-        result.append(this.showOutput(msg, l))
+        result.append(this.genDecodeProgress(msg, l))
 
         let outData = [
             {
@@ -586,7 +583,7 @@ export class CipherAffineEncoder extends CipherEncoder {
                 result.append(this.encodeLetters(a, b, entry.letters))
                 result.append($("<p/>").text(entry.suffix1 + ' (' + found + ')' + entry.suffix2))
                 l += entry.letters
-                result.append(this.showOutput(msg, l))
+                result.append(this.genDecodeProgress(msg, l))
             }
         }
 

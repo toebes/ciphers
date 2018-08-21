@@ -641,7 +641,7 @@ export class CipherEncoder extends CipherHandler {
         result.append(this.genTestUsage())
         result.append(this.genQuestionFields())
         result.append(this.getLangDropdown())
-        result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
+        result.append(JTFLabeledInput("Plain Text", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
         result.append(this.createAlphabetType())
         return result
     }

@@ -134,7 +134,7 @@ module.exports = {
             filename: 'Atbash.html',
             template: path.join(__dirname, 'app', 'pages', 'StdEncoder.html'),
             cipher: 'Atbash',
-            title: 'Atbash/Caesar Encoder',
+            title: 'Caesar/Atbash Encoder',
         }),
         new HtmlWebpackPlugin({
             inject: false,

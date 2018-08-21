@@ -132,7 +132,7 @@ export class CipherTableEncoder extends CipherEncoder {
         result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation))
 
         result.append(this.genQuestionFields())
-        result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
+        result.append(JTFLabeledInput("Plain Text", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
         result.append(JTFIncButton("Caesar Offset", "offset", this.state.offset, "offset small-12 medium-6 large-6"))
         return result
     }

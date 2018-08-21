@@ -505,7 +505,7 @@ export class CipherAffineEncoder extends CipherEncoder {
                     aRemainder = cVal % mVal
                 }
                 a = cVal / mVal
-                p1.append(renderMath(cValOriginal + ' + (26 * ' + count + ') = ' + cVal + '.\\space\\space'+
+                p1.append(renderMath(cValOriginal + ' + (26 * ' + count + ') = ' + cVal + '.\\space\\space' +
                     cVal + ' \\div ' + mVal + ' = ' + a))
                 result.append(p1)
             }
@@ -634,7 +634,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation))
 
         result.append(this.genQuestionFields())
-        result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
+        result.append(JTFLabeledInput("Plain Text", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
         let inputbox = $("<div/>", { class: "grid-x grid-margin-x" })
         inputbox.append(JTFIncButton("A", "a", this.state.a, "small-12 medium-4 large-4"))
         inputbox.append(JTFIncButton("B", "b", this.state.b, "small-12 medium-4 large-4"))

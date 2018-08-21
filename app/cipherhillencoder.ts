@@ -122,7 +122,7 @@ export class CipherHillEncoder extends CipherEncoder {
         result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation))
 
         result.append(this.genQuestionFields())
-        result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode',
+        result.append(JTFLabeledInput("Plain Text", 'textarea', 'toencode',
                                       this.state.cipherString, "encbox small-12 medium-12 large-12"))
         result.append(JTFLabeledInput("Keyword", 'text', 'keyword', this.state.keyword, ""))
         return result

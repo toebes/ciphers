@@ -36,5 +36,5 @@ export function setCharAt(str: string, index: number, chr: string): string {
     return str.substr(0, index) + chr + str.substr(index + 1);
 }
 export function renderMath(str: string): JQuery<HTMLElement> {
-    return $(katex.renderToString("\\bold{" + str + "}"))
+    return $(katex.renderToString(str))
 }

@@ -1,11 +1,41 @@
 import { cloneObject, NumberMap, setCharAt, StringMap } from "./ciphercommon";
 import { CipherEncoder, IEncoderState } from "./cipherencoder"
 import { ICipherType } from "./ciphertypes";
+import { fiveletterwords } from "./fiveletterwords"
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 import { JTTable } from "./jttable";
+
+const baconMap: StringMap = {
+    A: "AAAAA",
+    B: "AAAAB",
+    C: "AAABA",
+    D: "AAABB",
+    E: "AABAA",
+    F: "AABAB",
+    G: "AABBA",
+    H: "AABBB",
+    I: "ABAAA",
+    J: "ABAAA",
+    K: "ABAAB",
+    L: "ABABA",
+    M: "ABABB",
+    N: "ABBAA",
+    O: "ABBAB",
+    P: "ABBBA",
+    Q: "ABBBB",
+    R: "BAAAA",
+    S: "BAAAB",
+    T: "BAABA",
+    U: "BAABB",
+    V: "BAABB",
+    W: "BABAA",
+    X: "BABAB",
+    Y: "BABBA",
+    Z: "BABBB",
+};
 
 interface IBaconianState extends IEncoderState {
     /** Characters to use to represent the A value */
@@ -15,6 +45,8 @@ interface IBaconianState extends IEncoderState {
     abMapping: string,
     /** How wide a line can be before wrapping */
     linewidth: number,
+    /** List of words for the encoded string */
+    words: string[]
 }
 /**
  * CipherBaconianEncoder - This class handles all of the actions associated with encoding
@@ -31,41 +63,15 @@ export class CipherBaconianEncoder extends CipherEncoder {
         textb: "B",
         abMapping: "ABABABABABABABABABABABABAB",
         linewidth: this.maxEncodeWidth,
+        words: []
     }
+    wordlookup: { [index: string]: string[] }
     state: IBaconianState = cloneObject(this.defaultstate) as IBaconianState
     cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save", },
         this.undocmdButton,
         this.redocmdButton,
     ]
-    baconMap: StringMap = {
-        A: "AAAAA",
-        B: "AAAAB",
-        C: "AAABA",
-        D: "AAABB",
-        E: "AABAA",
-        F: "AABAB",
-        G: "AABBA",
-        H: "AABBB",
-        I: "ABAAA",
-        J: "ABAAA",
-        K: "ABAAB",
-        L: "ABABA",
-        M: "ABABB",
-        N: "ABBAA",
-        O: "ABBAB",
-        P: "ABBBA",
-        Q: "ABBBB",
-        R: "BAAAA",
-        S: "BAAAB",
-        T: "BAABA",
-        U: "BAABB",
-        V: "BAABB",
-        W: "BABAA",
-        X: "BABAB",
-        Y: "BABBA",
-        Z: "BABBB",
-    };
     setUIDefaults(): void {
         super.setUIDefaults()
         this.setTexta(this.state.texta)
@@ -123,6 +129,27 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         return ablookup
     }
+    buildWordMap(): void {
+        this.wordlookup = {}
+        if (this.state.operation === "words") {
+            let ablookup = this.getABMap()
+            for (let word of fiveletterwords) {
+                // Figure out what letter this word will map to
+                let mapping = ""
+                for (let c of word) {
+                    if (ablookup[c] !== undefined) {
+                        mapping += ablookup[c]
+                    }
+                }
+                if (mapping.length === 5) {
+                    if (this.wordlookup[mapping] === undefined) {
+                        this.wordlookup[mapping] = []
+                    }
+                    this.wordlookup[mapping].push(word)
+                }
+            }
+        }
+    }
     updateOutput(): void {
         $(".opfield").hide()
         $("." + this.state.operation).show()
@@ -148,7 +175,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let baconline = ""
         let encodeline = ""
         let result: string[][] = []
-        let letpos: NumberMap = {'A' : 0, 'B' : 0}
+        let letpos: NumberMap = { 'A': 0, 'B': 0 }
         let sharedpos = 0
         if (this.state.operation === 'words') {
             return [["", "", "Baconian Words Not yet implemented"]]
@@ -158,7 +185,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             if (typeof langreplace[t] !== 'undefined') {
                 t = langreplace[t]
             }
-            let bacontext = this.baconMap[t]
+            let bacontext = baconMap[t]
             // Make sure that this is a valid character to map from
             if (bacontext !== undefined) {
                 sourceline += "  " + t + "  "
@@ -218,7 +245,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
         return linewidth
     }
     build(): JQuery<HTMLElement> {
-        return this.genAnswer()
+        let result = $("<div/>")
+        result.append($("<button/>", { id: "fixwords", type: "button", class: "button" }).text("Change Word Mapping"))
+        result.append(this.genAnswer())
+        return result
     }
     /**
      * Loads up the values for the encoder
@@ -250,7 +280,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation))
 
         result.append(this.genQuestionFields())
-        result.append(JTFLabeledInput("Text to encode", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
+        result.append(JTFLabeledInput("Plain Text", 'textarea', 'toencode', this.state.cipherString, "small-12 medium-12 large-12"))
         // Build a table so that they can click on letters to make A or B
         let table = new JTTable({ class: 'cell shrink tfreq opfield words' })
         let hrow = table.addHeaderRow()
@@ -274,11 +304,47 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     genAnswer(): JQuery<HTMLElement> {
         let result = $("<div>")
-        let strings = this.makeReplacement(this.getEncodingString(), this.getEncodeWidth())
-        for (let strset of strings) {
-            result.append($('<div>', { class: "BACON TOSOLVE" }).text(strset[2]))
-            result.append($('<div>', { class: "BACON TOSOLVE2" }).text(strset[1]))
-            result.append($('<div>', { class: "BACON TOANSWER" }).text(strset[0]))
+        let cipherString = this.getEncodingString()
+        if (this.state.operation === 'words') {
+            this.buildWordMap()
+            let wordindex = 0
+            // Iterate through each letter and look it up in the map
+            for (let c of cipherString) {
+                let resword = ""
+                if (this.isValidChar(c)) {
+                    let baconian = baconMap[c]
+                    if (this.wordlookup[baconian] === undefined) {
+                        // There were no words matching this
+                        $("#err").text("Unable to find any words for " + baconian);
+                        resword = "[" + baconian + "]"
+                    } else {
+                        if (wordindex < this.state.words.length) {
+                            let tryword = this.state.words[wordindex];
+                            if (this.wordlookup[baconian].indexOf(tryword) >= 0) {
+                                resword = tryword
+                            } else {
+                                resword = this.wordlookup[baconian][0]
+                            }
+                        } else {
+                            resword = this.wordlookup[baconian][0]
+                        }
+                    }
+                    result.append(resword + " ");
+                    if (wordindex > this.state.words.length) {
+                        this.state.words.push(resword)
+                    } else {
+                        this.state.words[wordindex] = resword
+                    }
+                    wordindex++
+                }
+            }
+        } else {
+            let strings = this.makeReplacement(cipherString, this.getEncodeWidth())
+            for (let strset of strings) {
+                result.append($('<div>', { class: "BACON TOSOLVE" }).text(strset[2]))
+                result.append($('<div>', { class: "BACON TOSOLVE2" }).text(strset[1]))
+                result.append($('<div>', { class: "BACON TOANSWER" }).text(strset[0]))
+            }
         }
         return result
     }
@@ -299,7 +365,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             result.append($("<h3/>").text("Baconian Words Not yet implemented"))
         } else {
             result.append($("<p/>").text("The A letters are represented by '" + this.state.texta +
-                           "' and the B letters by '" + this.state.textb + "'"))
+                "' and the B letters by '" + this.state.textb + "'"))
         }
         return result
     }

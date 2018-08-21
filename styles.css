@@ -6,6 +6,9 @@
     width: 600px;
 }
 
+div.input-group-field, textarea.input-group-field {
+    white-space: normal;
+}
 tbody td, tbody th {
     padding: .5rem;
 }

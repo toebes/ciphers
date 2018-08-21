@@ -72,7 +72,7 @@ export class CipherTestGenerator extends CipherTest {
             .add("Type")
             .add("Points")
             .add("Question")
-            .add("Cipher Text")
+            .add("Plain Text")
         let buttons: buttonInfo[] = [
                 { title: "Edit", btnClass: "quesedit", },
                 { title: "Remove", btnClass: "quesremove alert", },

@@ -919,31 +919,31 @@ export class CipherHandler {
         return table.generate()
     }
     genTestUsage(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "testuse" })
-        let prefix = "Used on test(s): "
+        let result = $("<div>", { class: "testuse" });
+        let prefix = "Used on test(s): ";
         if (this.savefileentry !== -1) {
             // Find out what tests this is a part of
-            let testCount = this.getTestCount()
+            let testCount = this.getTestCount();
             for (let entry = 0; entry < testCount; entry++) {
-                let test = this.getTestEntry(entry)
-                let use
+                let test = this.getTestEntry(entry);
+                let use;
                 if (test.timed === this.savefileentry) {
-                    use = "Timed Question"
+                    use = "Timed Question";
                 } else {
-                    let qnum = test.questions.indexOf(this.savefileentry)
+                    let qnum = test.questions.indexOf(this.savefileentry);
                     if (qnum !== -1) {
-                        use = "Question #" + String(qnum)
+                        use = "Question #" + String(qnum + 1);
                     }
                 }
                 if (use !== undefined) {
-                    let link = $("<a>", { href: "TestGenerator.html?test=" + String(entry) }).text(test.title + " " + use)
-                    result.addClass("callout primary")
-                    result.append(prefix).append(link)
-                    prefix = ", "
+                    let link = $("<a>", { href: "TestGenerator.html?test=" + String(entry) }).text(test.title + " " + use);
+                    result.addClass("callout primary");
+                    result.append(prefix).append(link);
+                    prefix = ", ";
                 }
             }
         }
-        return result
+        return result;
     }
     /**
      * Loads new data into a solver, preserving all solving matches made

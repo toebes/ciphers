@@ -522,6 +522,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         let p = $("<p>").text('Subtract ')
         p.append(renderMath(String(a * mSubstitute)))
         p.append(' from both sides: ')
+        result.append(p)
         findingB = '\\begin{aligned}(' +
             (a * mSubstitute) + ' +b)\\;\\text{mod 26} - ' + (a * mSubstitute) + ' & = (' +
             cSubstitute + ' - ' + (a * mSubstitute) + ')\\;\\text{mod 26}\\\\' +
@@ -533,6 +534,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         }
         findingB += 'b\\;\\text{mod 26} & = ' + b + '\\;\\text{mod 26}\\end{aligned}'
         result.append(renderMath(findingB))
+        result.append(p)
         p = $("<p/>").text('And we see that ')
         p.append(renderMath("\\colorbox{yellow}{b =" + b + "}"))
         result.append(p)

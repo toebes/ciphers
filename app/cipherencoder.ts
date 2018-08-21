@@ -487,9 +487,15 @@ export class CipherEncoder extends CipherHandler {
         let result = $("<div>")
         this.genAlphabet()
         let strings = this.makeReplacement(this.getEncodingString(), this.maxEncodeWidth)
+        let tosolve = 0
+        let toanswer = 1
+        if (this.state.operation === "encode") {
+            tosolve = 1
+            toanswer = 0
+        }
         for (let strset of strings) {
-            result.append($('<div>', { class: "TOSOLVE" }).text(strset[0]))
-            result.append($('<div>', { class: "TOANSWER" }).text(strset[1]))
+            result.append($('<div>', { class: "TOSOLVE" }).text(strset[tosolve]))
+            result.append($('<div>', { class: "TOANSWER" }).text(strset[toanswer]))
         }
         if (this.state.cipherType === ICipherType.Patristocrat) {
             result.append($('<div>', { class: "origtext"}).text(this.state.cipherString))
@@ -517,22 +523,12 @@ export class CipherEncoder extends CipherHandler {
      * as the HTML to be displayed
      */
     build(): JQuery<HTMLElement> {
-        let str = this.getEncodingString();
-
-        let result = $('<div>')
-        let strings = this.makeReplacement(str, this.maxEncodeWidth)
-        let tosolve = 0
-        let toanswer = 1
-        if (this.state.operation === "encode") {
-            tosolve = 1
-            toanswer = 0
-        }
-        for (let strset of strings) {
-            result.append($('<div>', { class: "TOSOLVE" }).text(strset[tosolve]))
-            result.append($('<div>', { class: "TOANSWER" }).text(strset[toanswer]))
-        }
-        this.UpdateFreqEditTable()
-        this.displayFreq()
+        let result = $("<div/>");
+        result.append($("<div>", {class: "callout small success"}).text("Note: Plain Text is on ")
+            .append($("<span/>", {class: "TOSOLVE"}).text("top line"))
+            .append(", Cipher Text is ")
+            .append($("<span>", {class: "TOANSWER"}).text("highlighted")));
+        result.append(this.genAnswer());
         return result
     }
     public getEncodingString(): string {

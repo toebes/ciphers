@@ -222,7 +222,7 @@ export class CipherTest extends CipherHandler {
             .add("Use")
             .add("Points")
             .add("Question")
-            .add("Cipher Text")
+            .add("Plain Text")
 
         for (let entry = 0; entry < cipherCount; entry++) {
             if (!useditems[entry]) {

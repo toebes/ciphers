@@ -1,6 +1,5 @@
-import * as katex from 'katex'
 import * as math from 'mathjs';
-import { cloneObject } from './ciphercommon';
+import { cloneObject, renderMath } from './ciphercommon';
 import { CipherEncoder } from "./cipherencoder"
 import { IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes"
@@ -235,7 +234,7 @@ export class CipherHillEncoder extends CipherEncoder {
         let kmath = this.getKmathMatrix(vals) +
             "^{-1}=" +
             this.getKmathMatrix(modinv)
-        return $(katex.renderToString(kmath))
+        return renderMath(kmath)
     }
     /**
      * Show the math for generating the inverse
@@ -259,22 +258,22 @@ export class CipherHillEncoder extends CipherEncoder {
         let result = $("<div/>")
         result.append($("<p/>").text("The inverse of the matrix can be computed using the formula:"))
         let equation = "{\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}}^{{-1}}=(ad-bc)^{{-1}}{\\begin{pmatrix}d&-b\\\\-c&a\\end{pmatrix}}"
-        result.append($(katex.renderToString(equation)))
+        result.append(renderMath(equation))
         let p = $("<p/>").text("In this case we have to compute ")
         equation = "(ad-bc)^{{-1}}"
-        p.append($(katex.renderToString(equation))).append(" Using ")
+        p.append(renderMath(equation)).append(" Using ")
         p.append($("<a/>", {href: "https://en.wikipedia.org/wiki/Modular_multiplicative_inverse"}).text("modular multiplicative inverse"))
         p.append(" math")
         result.append(p)
 
         equation = this.getKmathMatrix(vals) + "^{-1}=" +
             "(" + a + kmathMult + d + "-" + b + kmathMult + c + ")^{-1}" + matinv
-        result.append($(katex.renderToString(equation)))
+        result.append(renderMath(equation))
 
         result.append($("<p/>").text("We start by finding the modulo 26 value of the determinent:"))
         equation = "(" + a + kmathMult + d + "-" + b + kmathMult + c + ")\\mod{26}=" +
                 det + "\\mod{26}=" + detmod26
-        result.append($(katex.renderToString(equation)))
+        result.append(renderMath(equation))
 
         p = $("<p/>").text("Looking up " + detmod26 + " in the table supplied with the test (or by computing it with the ")
         p.append($("<a/>", {href: "https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm"}).text("Extended Euclidean algorithm"))
@@ -290,7 +289,7 @@ export class CipherHillEncoder extends CipherEncoder {
              this.getKmathMatrix([[(detinv * d) + "\\mod{26}" , (-detinv * b) + "\\mod{26}" ],
               [(-detinv * c) + "\\mod{26}" , (detinv * a) + "\\mod{26}" ]]) + kmathEquiv +
                          this.getKmathMatrix(modinv)
-        result.append($(katex.renderToString(equation)))
+        result.append(renderMath(equation))
 
         // let equation = this.getKmathMatrixChars(keyArray) + kmathMult +
         // this.getKmathMatrixChars(msgArray) +
@@ -338,7 +337,7 @@ export class CipherHillEncoder extends CipherEncoder {
             }
             // Generate the math formula showing the encoding
             let line = this.genEncodeEquation(vals, cluster)
-            let div = $("<div>", { class: "lineeq" }).append($(katex.renderToString(line)))
+            let div = $("<div>", { class: "lineeq" }).append(renderMath(line))
             equations.append(div)
         }
         result.append(equations)
@@ -458,7 +457,7 @@ export class CipherHillEncoder extends CipherEncoder {
         let kmath = this.getKmathMatrixChars(vals) +
             kmathEquiv +
             this.getKmathMatrix(vals)
-        return $(katex.renderToString(kmath))
+        return renderMath(kmath)
     }
     genAnswerMathMatrix(matrix: any[][]): JQuery<HTMLElement> {
         let table = new JTTable({ class: 'hillans ansblock shrink cell unstriped' })

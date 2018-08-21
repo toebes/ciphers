@@ -1,3 +1,5 @@
+import * as katex from 'katex'
+
 export interface StringMap {
     [index: string]: string
 }
@@ -32,4 +34,7 @@ export function setCharAt(str: string, index: number, chr: string): string {
         return str;
     }
     return str.substr(0, index) + chr + str.substr(index + 1);
+}
+export function renderMath(str: string): JQuery<HTMLElement> {
+    return $(katex.renderToString("\\bold{" + str + "}"))
 }

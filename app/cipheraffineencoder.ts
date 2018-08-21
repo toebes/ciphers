@@ -1,5 +1,4 @@
-import * as katex from 'katex'
-import { cloneObject, StringMap } from "./ciphercommon";
+import { cloneObject, renderMath, StringMap } from "./ciphercommon";
 import { CipherEncoder } from "./cipherencoder"
 import { IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes"
@@ -304,7 +303,7 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         }
         encoding += '\\end{array}'
-        return $("<div/>").append($(katex.renderToString(encoding)))
+        return $("<div/>").append(renderMath(encoding))
     }
     /**
      * Encode a string using the current replacement alphabet
@@ -398,13 +397,13 @@ export class CipherAffineEncoder extends CipherEncoder {
                     showencmsg = false // Don't show it again
                     let p = $("<p/>").text("Using the  given value of ")
                     let formula = "\\colorbox{yellow}{a =" + this.state.a + "}"
-                    p.append($(katex.renderToString(formula)))
+                    p.append(renderMath(formula))
                     p.append(" and ")
                     formula = "\\colorbox{yellow}{b =" + this.state.b + "}"
-                    p.append($(katex.renderToString(formula)))
+                    p.append(renderMath(formula))
                     p.append(" we can calcuate using the formula ")
                     formula = "{a" + kmathMult + "x + b}\\mod{26}"
-                    p.append($(katex.renderToString(formula)))
+                    p.append(renderMath(formula))
                     result.append(p)
                 }
                 result.append(this.encodeLetters(this.state.a, this.state.b, m))
@@ -440,7 +439,7 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         let given = '\\begin{aligned} ' + m1 + '(' + m1Val + ') & \\to ' + c1 + '(' + c1Val + ') \\\\ ' +
             m2 + '(' + m2Val + ') & \\to ' + c2 + '(' + c2Val + ') \\end{aligned}'
-        result.append($(katex.renderToString(given)))
+        result.append(renderMath(given))
 
         result.append($("<p/>").text('From this we know:'))
 
@@ -454,7 +453,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             solution += equation2 + equation1
         }
         solution += '\\end{aligned}'
-        result.append($(katex.renderToString(solution)))
+        result.append(renderMath(solution))
         result.append($("<p/>").text('Next, subtract the formulas:'))
 
         let subtract1 = ''
@@ -486,7 +485,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             solution += subtract2
         }
         solution += ' \\end{aligned}'
-        result.append($(katex.renderToString(solution)))
+        result.append(renderMath(solution))
 
         // solution for A
         let message = ''
@@ -496,7 +495,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             let cValOriginal = cVal
             if (aRemainder !== 0) {
                 let p1 = $("<p/>").text("Since ")
-                p1.append($(katex.renderToString(cVal + ' \\div ' + mVal + ' = ' + (cVal / mVal).toPrecision(5))))
+                p1.append(renderMath(cVal + ' \\div ' + mVal + ' = ' + (cVal / mVal).toPrecision(5)))
                 p1.append(' we have to find another value. ')
                 let count = 0
 
@@ -506,22 +505,22 @@ export class CipherAffineEncoder extends CipherEncoder {
                     aRemainder = cVal % mVal
                 }
                 a = cVal / mVal
-                p1.append($(katex.renderToString(cValOriginal + ' + (26 * ' + count + ') = ' +
-                    cVal + '.  ' + cVal + ' \\div ' + mVal + ' = ' + a)))
+                p1.append(renderMath(cValOriginal + ' + (26 * ' + count + ') = ' + cVal + '.  '))
+                p1.append(renderMath(cVal + ' \\div ' + mVal + ' = ' + a))
                 result.append(p1)
             }
         }
-        result.append($(katex.renderToString(message)))
+        result.append(renderMath(message))
         message = "\\colorbox{yellow}{a =" + a + "}"
-        result.append($("<p/>").text('So we now know that ').append($(katex.renderToString(message))))
+        result.append($("<p/>").text('So we now know that ').append(renderMath(message)))
 
         // solution for b
         result.append($("<p/>").text('To find b, substitute that back into the equation with the lowest multiplier. '))
         let findingB = '\\begin{aligned}(' + a + ' * ' + mSubstitute + ' + b)\\;\\text{mod 26} & = ' +
             cSubstitute + '\\\\(' + (a * mSubstitute) + ' + b)\\;\\text{mod 26} & = ' + cSubstitute + '\\end{aligned}'
-        result.append($(katex.renderToString(findingB)))
+        result.append(renderMath(findingB))
         let p = $("<p>").text('Subtract ')
-        p.append($(katex.renderToString(String(a * mSubstitute))))
+        p.append(renderMath(String(a * mSubstitute)))
         p.append(' from both sides: ')
         findingB = '\\begin{aligned}(' +
             (a * mSubstitute) + ' +b)\\;\\text{mod 26} - ' + (a * mSubstitute) + ' & = (' +
@@ -533,9 +532,9 @@ export class CipherAffineEncoder extends CipherEncoder {
             b += 26
         }
         findingB += 'b\\;\\text{mod 26} & = ' + b + '\\;\\text{mod 26}\\end{aligned}'
-        result.append($(katex.renderToString(findingB)))
+        result.append(renderMath(findingB))
         p = $("<p/>").text('And we see that ')
-        p.append($(katex.renderToString("\\colorbox{yellow}{b =" + b + "}")))
+        p.append(renderMath("\\colorbox{yellow}{b =" + b + "}"))
         result.append(p)
 
         result.append($("<p/>").text('However, we only know a few of the letters in the cipher.'))

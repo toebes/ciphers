@@ -505,8 +505,8 @@ export class CipherAffineEncoder extends CipherEncoder {
                     aRemainder = cVal % mVal
                 }
                 a = cVal / mVal
-                p1.append(renderMath(cValOriginal + ' + (26 * ' + count + ') = ' + cVal + '.  '))
-                p1.append(renderMath(cVal + ' \\div ' + mVal + ' = ' + a))
+                p1.append(renderMath(cValOriginal + ' + (26 * ' + count + ') = ' + cVal + '.\\space\\space'+
+                    cVal + ' \\div ' + mVal + ' = ' + a))
                 result.append(p1)
             }
         }

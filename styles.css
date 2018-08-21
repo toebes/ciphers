@@ -1,8 +1,35 @@
-﻿input, textarea, .ibox, .ui-spinner {
+﻿/* textarea, input, */ 
+ .ibox, .ui-spinner, /* .note-editor, */ .ui-sel /*, .note */{
     display: block;
     margin-left: 160px;
     margin-bottom: 10px;
     width: 600px;
+}
+
+tbody td, tbody th {
+    padding: .5rem;
+}
+
+.instructions tbody th, .instructions tbody td {
+    padding: 0;
+}
+.instructions table,
+.instructions tbody,
+.instructions tbody tr,
+.instructions table.unstriped tbody tr,
+.question table,
+.question tbody,
+.question tbody tr,
+.question table.unstriped tbody tr {
+    border: none;
+    border-color: transparent;
+}
+.note-editor {
+    width: 100%;
+}
+input.cb {
+    margin:auto;
+    width: auto;
 }
 
 .ui-spinner {
@@ -21,8 +48,9 @@
     width: 200px;
 }
 
+
 .ans {
-    width: 600px;
+    /* width: 600px; */
     font-size: 16px;
     font-family: "Courier New", Courier, monospace;
     margin-bottom: 24px;
@@ -30,18 +58,29 @@
     line-height: 200%;
 }
 
+.rail {
+    line-height: 100%;
+}
+
 .err {
     height: 18px;
 }
 
-.cmds {
+.xxxxcmds {
+    clear:both;
     display: block;
     border-bottom: 1px solid grey;
     margin-top: 10px;
     margin-bottom: 5px;
 }
 
-.sword {
+#chi {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-style: italic;
+}
+.sword, .sword tbody {
     float: left;
     background-color: #eaeaea;
     margin: 3px 5px;
@@ -57,6 +96,7 @@
 .sli {
     margin: 0;
     width: 15px;
+    padding: 0;
     text-align: center;
     border: 1px black dotted;
     height: 25px;
@@ -74,10 +114,14 @@
     margin: 5px;
 }
 
+.off {
+    font-size: 11px;
+    text-align: center;
+}
 .sitem {
     display: inline;
 }
-
+/*
 label {
     clear: both;
     color: #B4886B;
@@ -87,7 +131,7 @@ label {
     float: left;
     text-align: right;
 }
-
+*/
     label.slil:after {
         content: none;
     }
@@ -99,11 +143,46 @@ label {
 .focus {
     border: 1px solid black !important;
 }
-
-label:after {
+/*
+label:not(.rlab):after {
     content: ": ";
 }
+label.rlab {
+    padding-right:5px;
+}*/
 
+table.cmath td.solv {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: white;
+    margin-left: 10px;
+    border-left: 1px dashed grey;
+}
+table.cmath td.math {
+    font-size: 40px;
+}
+table.cmath td {
+    background-color: #eaeaea;
+}
+table.cmath td.ovl {
+    border-top: 2px solid black
+}
+
+table.rithm, table.cmath {
+    border-collapse: collapse;
+}
+table.rithm td.l, table.rithm td.m {
+    padding-right:20px;
+}
+table.rithm td.m, table.rithm td.r {
+    padding-left:20px;
+}
+
+table.rithm td.l {
+    border-right:1px dashed black;
+}
+table.rithm td.m {
+    border-right:2px solid black;
+}
 table.mword {
     border: 1px solid black;
     border-collapse: collapse;
@@ -120,7 +199,7 @@ table.mword {
         background-color: red;
     }
 
-    table.mword .null {
+    table.mword .cnull {
         background-color: #f6f6f6;
     }
 
@@ -139,7 +218,9 @@ table.mword {
     table.mword .sym {
         background-color: lightcoral;
     }
-
+    table.mword .locked {
+        background-color: cyan;
+    }
 
 .tword {
     height: 55px;
@@ -147,7 +228,14 @@ table.mword {
     border: 0;
     border-spacing: 0;
 }
-
+.tword thead th, .tword tbody td {
+    margin: 0;
+    padding: 0.05rem;
+}
+.tword .vans {
+    color: green;
+    text-align:center;
+}
 .idiv {
     float: left;
 }
@@ -155,6 +243,7 @@ table.mword {
 table.tfreq, table.satable {
     clear: both;
     border-collapse: collapse;
+    width: auto;
 }
 
 table.ckfreq {
@@ -162,25 +251,45 @@ table.ckfreq {
     margin-left: 20px;
 }
 
-.ckfreq td, .ckfreq th, .tfreq td, table.mfind td {
+table.tfreq th {
+    padding: 0.1rem 0.3rem 0.1rem;
+}
+.prfreq td, .prfreq th, .ckfreq td, .ckfreq th, .tfreq td, table.mfind td {
     border: 1px solid black;
+    margin: 0px;
+    padding: 0.1rem 0.3rem 0.1rem;
 }
 
 table.mfind {
     border-collapse: collapse;
+    width: auto
 }
 
     table.mfind td {
         font-family: Courier New, Courier, monospace;
+        padding: 0.1rem; 
     }
 
+    .prfreq th,
     .ckfreq th,
     .tfreq thead th,
     .satable thead th,
     table.mfind th {
+        text-align: center;
         background-color: #D3D3D3;
     }
+.prfreq th {
+    width: 2rem;
+}
+.tfreq thead th {
+    width: 20px;
+}
 
+.origtext {
+    font-style: italic;
+}
+
+.prfreq thead .topleft,
 .ckfreq thead .topleft,
 .tfreq thead .topleft {
     border-left: none;
@@ -188,13 +297,20 @@ table.mfind {
     background-color: white;
 }
 
+thead .topleft.k1,
+thead .topleft.k2 {
+    text-align: center;
+    font-weight: bold;
+    font-size: large;
+    background-color: #d3d3d3;
+    border: 1px solid black;
+}
 .sanalysis {
     float: left;
     margin-right: 10px;
 }
 
 .ckfreq td, .tfreq td {
-    width: 20px;
     text-align: center;
 }
 
@@ -203,47 +319,618 @@ table.mfind {
     vertical-align: top;
 }
 
-@font-face {
-    font-family: 'DancingMen';
-    src: url('Dancingm.ttf?') format('truetype');
-}
-
-.DancingMen {
-    font-family: "DancingMen Font", Verdana, Tahoma;
-    font-size: 24pt;
-    font-weight: bold;
-}
-
 input[type="radio"] {
-    display: inline;
+    display:initial;
     width: auto;
     margin-left: 0px;
     margin-bottom: 0px;
 }
 
+.center {
+    text-align: center;
+}
 .rlab {
-    display: inline;
+    display: initial;
     width: auto;
     float:none;
 }
 
-.TOSOLVE,.TOANSWER {
+.TOSOLVE,.TOSOLVE2,.TOSOLVEQ,.TOANSWER {
     font-family: Courier New, Courier, monospace;    
-    font-size: 16px;
+    font-size: 22px;
     font-weight: bold;
     margin-bottom: 0pt;
     line-height: 100%;
+    white-space: pre-wrap;
 }
+
+.ul {
+    text-decoration: underline;
+}
+.BACON.TOSOLVE,.BACON.TOSOLVE2,.BACON.TOSOLVEQ,.BACON.TOANSWER {
+    font-size:24px;
+}
+.BACON.TOSOLVEQ {
+    margin-bottom: 4rem;
+}
+
+.TOSOLVEQ {
+    margin-bottom: 6rem;
+}
+
 .TOANSWER {
     background-color: #ffff00;
     margin-bottom: 16pt;
 }
 
 .TOSOLVECLICK,.TOANSWERCLICK {
-    font-family: Courier New, Courier, monospace;    
-    font-size: 16px;
-    font-weight: bold;
     background-color: #74a4eb;
-    margin-bottom: 0pt;
-    line-height: 100%;
+}
+
+.mismatch {
+    font-weight: normal
+}
+.mismatch .b {
+    font-weight: bold;
+    color: darkred;
+}
+.mismatch .g {
+    color: green;
+}
+.mismatch .formula {
+    margin-left: 10px;
+    font-style:italic;
+    color: darkslategray;
+    background-color: lightyellow;
+}
+.match {
+    font-weight: bold;
+    color: green;
+}
+
+.rtoggle-0 {
+    background-color: transparent;
+}
+.rtoggle-1 {
+    background-color: grey;
+}
+.rtoggle-2 {
+    background-color: black;
+}
+.rtoggle-3 {
+    background-color: green;
+}
+
+div.sols {
+    margin-bottom: 10px;
+}
+div.sols .h {
+    font-weight: bold;
+    margin-right:10px;
+}
+div.sols .sol {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+ #qtext {
+     border: 1px solid #cacaca;
+}
+
+table.contact,
+table.consonantline {
+    margin-left:auto;
+    margin-right:auto;
+    border-collapse: collapse;
+}
+table.contact th {
+    border-bottom: 1px solid black;
+    text-align:center;
+}
+table.consonantline th {
+    text-align:center;
+    padding: .1rem;
+}
+table.consonantline th.c {
+    border-bottom: 1px solid black;
+    font-family: 'Courier New', Courier, monospace;
+    text-align:center;
+}
+
+table.contact td,
+table.consonantline td {
+    font-family: 'Courier New', Courier, monospace;
+    padding: .1rem;
+}
+table.contact td.prev {
+    text-align: right;
+}
+
+table.consonantline td.prev {
+    text-align: right;
+    border-right: 1px solid black;
+}
+table.contact td.tlet {
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+}
+
+.references a,
+.references a:visited {
+    text-decoration: none;
+}
+
+.references a {
+    color: #b54b23;
+}
+
+.references h2 {
+    clear:both;
+    color: #b54b23;
+    font: 700 35px/1em "Roboto", sans-serif;
+    padding-bottom: 10px;
+    text-transform: uppercase;
+}
+
+
+        /* Style Definitions */
+
+        .references * {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .references a,
+        .references a:visited {
+            text-decoration: none;
+        }
+
+        .references a[href] {
+            color: #b54b23;
+        }
+
+
+        .references h3 {
+            color: #b54b23;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: "Roboto", sans-serif;
+            padding-bottom: 5px;
+            padding-top: 10px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .references .a {
+            font-family: Arial, Helvetica, sans-serif;
+            margin-left: 30px;
+        }
+        .references .c {
+            font-family: Arial, Helvetica, sans-serif;
+            margin-left: 60px;
+        }
+        .references .i {
+            color: #b54b23;
+            font-size: 25px;
+            font-weight: 700;
+            font-family: "Roboto", sans-serif;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            margin: 10px;
+        }
+        .references .n {
+            color: black;
+            font-style: italic;
+            margin-left: 5px;
+        }
+        .references .r {
+            margin-left:5px;
+        }
+        .references .h {
+            font-style:italic;
+            color: #b54b23;
+            font-size: 15px;
+            padding-left: 10px;
+        }
+        .references .w {
+            font-weight: bold;
+            padding-left: 10px;
+        }
+        .references .u {
+            text-decoration: overline;
+       }
+
+
+table.vfact,
+table.found,
+table.vdist {
+    font-family: 'Courier New', Courier, monospace;   
+    border-collapse: collapse;
+    margin-right:10px;
+    border:1px solid black;  
+}
+
+table.combine td{
+    vertical-align: top;
+}
+
+table.vdist th,
+table.vfact th,
+table.found th {
+    text-align: center;
+    background-color: #eaeaea;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+table.vdist td,
+table.vfact td {
+    border:1px solid grey;
+    text-align: right;
+}
+
+table.found tr td:nth-child(even),
+table.found tr th:nth-child(even) {
+    border-right: 1px solid grey;
+    text-align: left;
+    border-bottom: 1px solid grey;
+    padding-right:10px;
+}
+
+table.found tr td:nth-child(odd),
+table.found tr th:nth-child(odd) {
+    border-left: 1px solid grey;
+    border-right: 1px dotted grey;
+    text-align: right;
+    border-bottom: 1px solid grey;
+}
+
+.mobile-app-toggle {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    width: 100%;
+    border: 1px solid #1779ba;
+    border-radius: 0.625rem;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  
+  .mobile-app-toggle .button {
+    background: transparent;
+    color: #1779ba;
+    margin-bottom: 0;
+    -webkit-flex: 1 0 0;
+        -ms-flex: 1 0 0px;
+            flex: 1 0 0;
+  }
+  
+  .mobile-app-toggle .button:nth-child(n+1) {
+    border-left: 1px solid #1779ba;
+  }
+  
+  .mobile-app-toggle .button.is-active {
+    background: #1779ba;
+    color: #fefefe;
+  }
+  
+.input-group {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-justify-content: center;
+        -ms-flex-pack: start;
+            justify-content: start;
+  }
+  
+  .input-group input[type=number]::-webkit-inner-spin-button,
+  .input-group input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+            appearance: none;
+  }
+  
+  .input-number-group .input-group-button {
+    line-height: calc(80px/2 - 5px);
+  }
+  
+  .input-group .input-number {
+    width: 80px;
+    padding: 0 12px;
+    vertical-align: top;
+    text-align: center;
+    outline: none;
+    display: block;
+    margin: 0;
+  }
+  
+  .input-group .input-number,
+  .input-group .input-number-decrement,
+  .input-group .input-number-increment {
+    border: 1px solid #cacaca;
+    height: 40px;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        -ms-user-select: none;
+            user-select: none;
+    border-radius: 0;
+  }
+  
+  .input-group .input-number-decrement,
+  .input-group .input-number-increment {
+    display: inline-block;
+    width: 40px;
+    background: #e6e6e6;
+    color: #0a0a0a;
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1.5rem;
+    font-weight: 400;
+  }
+  
+  .input-group .input-number-decrement {
+    margin-right: 0.1rem;
+  }
+  
+  .input-group .input-number-increment {
+    margin-left: 0.1rem;
+  }
+  
+.dropdown.menu a {
+    background: none;
+}
+
+.dropdown.menu .disabled_menu {
+    color: #fefefe;
+    cursor: not-allowed
+}
+
+.menu .active > a {
+        background: #1779ba !important;
+        color: #fefefe;
+    }
+
+.mwide select.msli {
+    width: 3.5rem;
+}
+
+.fmwide select.msli {
+    width: 3.9rem;
+}
+
+.filelist {
+    height: 20rem;
+  }
+  .reveal {
+    padding: 0rem;
+  }
+
+  .entrycmds {
+      padding-right: 200px;
+  }
+
+
+  .qtext {
+      border-top: 1px solid grey;
+      margin-bottom: 20px;
+  }
+  .qtext .points {
+    font-weight: bold;
+}
+.qtext .qnum {
+    padding-left: 10px;
+}
+.qtextentry p {
+    display: inline;
+}
+.qtext .qbody p {
+      display:inline;
+  }
+
+.prfreq, .ansblock {
+      border-collapse: collapse;
+      font-family: 'Courier New', Courier, monospace;
+      width: auto;
+}
+
+.prfreq td, .ansblock td {
+    text-align: center;
+}
+
+  .ansblock td.o.v {
+      border: none;
+      height: 2rem;
+  }
+  .ansblock td.v {
+      border: 1px solid black;
+  }
+  .ansblock td.a {
+      background-color: yellow;
+      height: 3rem;
+      font-weight: bold;
+  }
+  .ansblock td.e {
+      height: 3rem;
+  }
+
+  table.times {
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table.times td {
+    padding: 0rem 1rem;
+}
+table.times td.t {
+    border-left: 1px solid black;
+    border-bottom: 1px solid black;
+    border-top: 1px solid black;
+    border-right: 1px dashed black;
+}
+
+table.times td.a {
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    border-top: 1px solid black;
+    border-left: 1px dashed black;
+    text-align: right;
+}
+
+div.instructions {
+    display: none;
+}
+
+table.hillans {
+    margin-left: 10rem;
+    margin-top: 2rem;
+    border: none;
+}
+table.hillblock {
+    margin-top: 2rem;
+}
+table.hillblock td {
+    min-width: 2rem;
+}
+
+table.hillans td.v {
+    margin: 0;
+    min-width: 3rem;
+    min-height: 3rem;
+}
+
+table.hillans .big2 {
+    font-size: 100px;
+    padding: 0;
+    margin: -30px;
+}
+
+table.instlook,
+table.instbac {
+        font-family: "Courier New", Courier, monospace;
+        text-align:center;
+        border-collapse: collapse;
+        margin: 1rem auto;
+        padding: 0;
+        border: none;
+        }
+    table.instlook th {
+    width: 1.5rem;
+    border: 1px solid black;
+    background-color: lightgrey !important;
+}
+table.instlook td {
+    border: 1px solid black;
+    width: 1.5rem;
+    text-align: center;
+
+}
+table.instvig tr:nth-child(5n+1) {
+    border-bottom: 2px solid black;
+}
+table.instvig tr th:nth-child(5n+1),
+table.instvig tr td:nth-child(5n+1) {
+    border-right: 2px solid black;
+}
+table.instbac td.bv {
+    font-weight: bold;
+    border: 1px solid black;
+    width: 5rem;;
+}
+table.instbac td.bl {
+    border: 1px solid black;
+    width: 2rem;
+}
+table.instlfreq {
+        font-family: "Courier New", Courier, monospace;
+        border-collapse: collapse;
+        padding: 0;
+        border: none;
+        }
+
+table.testscores {
+    border: 1px solid black;
+    width: 110 rem;
+}
+table.testscores th,
+table.testscores td {
+    border: 1px solid black;
+    width: 12rem;
+}
+table.testscores th {
+    text-align: center;
+    padding: .1rem .5rem .1rem .5rem;
+}
+table.testscores td.v {
+    text-align: right;
+    padding:  .1rem 4rem .1rem .5rem;
+}
+table.testscores td.t {
+    text-align: left;
+    padding: .1rem .5rem .1rem 4rem;
+}
+table.testscores td.grey {
+    background-color: grey;
+}
+table.tiebreak {
+    text-align: center;
+    margin: 1rem auto;
+}
+table.instlfreq td.l {
+    text-align: right;
+    width: 5rem;
+    padding-right:.5rem;
+}
+table.instlfreq td.v {
+    text-align: right;
+    width: 3rem;
+}
+table.instlfreq td.l::after { 
+    content: " - ";
+}
+table.nameline {
+    width: 50rem;
+    padding: 0;
+}
+table.nameline td {
+    white-space: nowrap;
+}
+table.nameline td.u {
+    border-bottom: 1px solid black;
+    width:100%;
+    height: 2rem;
+}
+.runtitle {
+    margin-top: 1rem;
+    font-style: italic;
+}
+.runtext {
+    margin-left: 5rem;
+    font-family: "Courier New", Courier, monospace;
+}
+#xmltoimport {
+    margin-left: 1rem;
+}
+
+@media print
+{    
+    .title-bar, .top-bar, .noprint, .button-group
+    {
+        display: none !important;
+    }
+    div.instructions
+    {
+        display:block;
+    }
+    .pagebreak {
+        page-break-before: always;
+    }
+    .question {
+        page-break-inside: avoid;
+    }
+    div.affinework {
+        height: 12rem;
+    }
+    table.hillblock, table.hillans {
+        margin-bottom: 12rem;
+    }
+    @page { margin: .5in}
 }

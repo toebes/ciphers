@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Railfence and Redefence Assistant</title>
+</head>
+<body>
+<script src="ciphers-f1c6e056124192da2a7f.js"></script>
+ 
+
+<div class="MenuBar" data-cipher="RailfenceSolver"></div>
+    <h2>Railfence and Redefence Assistant</h2>
+    <div class="precmds"></div>
+    <label for="encoded">
+        Encoded Text
+        <textarea id="encoded" cols="20" rows="5"></textarea>
+    </label>
+    <div class="cmdbuttons" ></div>
+    <div class="postcmds"></div>
+    <div class="ans" id="answer"></div>
+    <div class="freq"></div>
+    <div class="sanalysis" id="analysis"></div>
+    <div class="slookup cell small-12 large-6" id="lookup">
+        <div class="input-group">
+            <span class="input-group-label">Find spot for</span>
+            <input id="find" class="input-group-field" type="text" />
+        </div>
+        <div class="findres cell"></div>
+    </div>
+
+    <div class="references">
+        <h2>Cipher Descriptions</h2>
+        <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Railfence.pdf">RAILFENCE (3-7 rows, 10-15 times number of rows)</a>
+        &nbsp;|&nbsp;
+        <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Redefence.pdf">REDEFENCE (3-7 rows, 10-15 times the number of rows)</a>
+        <h2>References</h2>
+        <ul>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1951_1955.pdf#page=221">Calculus of the Rail Fence,
+                    <b>FIDDLE</b>, Apr-May 1952, p.41</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1956_1960.pdf#page=271">Sidelights of the Rail Fence,
+                    <b>RIG R. MORTIS</b>, Jul-Aug 1959, p.128</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1961_1965.pdf#page=27">A Method of Solving,
+                    <b>MACHIAVELLI</b>, Mar-Apr 1961, p.75</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1961_1965.pdf#page=679">Redefence Cipher,
+                    <b>FRINKUS</b>, Jul-Aug 1965, p.123</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1966_1970.pdf#page=32">Solving a Normal Railfence,
+                    <b>TEEPEE</b>, Mar-Apr 1966, p.80</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1966_1970.pdf#page=432">Redefence Solving,
+                    <b>MACHIAVELLI</b>, May-Jun 1970, p.48</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1971_1975.pdf#page=584">Rail Fence (Novice Notes),
+                    <b>LEDGE</b>, Nov-Dec 1974, p.116</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1976_1980.pdf#page=649">The Railfence and Redefence as Special Cases of the Myszkowsky,
+                    <b>CROTALUS</b>, Jul-Aug 1980, p.73</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1981_1985.pdf#page=293">Simplified Rail Fence & Redefence Construction & Solving,
+                    <b>SI SI</b>, Jan-Feb 1983, p.4</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1981_1985.pdf#page=462">Simplifying the Solution of the Rail Fence Cipher,
+                    <b>SNAIL PACE</b>, Mar-Apr 1984, p.1</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1981_1985.pdf#page=510">More Simplification in Solving the Rail Fence Cipher,
+                    <b>SNAIL PACE</b>, Jul-Aug 1984, p.1</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1991_1995.pdf#page=199">Redefence, a la Myszkowski,
+                    <b>QUINCE</b>, Jan-Feb 1992, p.7</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1991_1995.pdf#page=678">The Railfence Cipher,
+                    <b>JOT</b>, Jul-Aug 1994, p.6</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1991_1995.pdf#page=933">Redefence Solution,
+                    <b>MICROPOD</b>, Nov-Dec 1995, p.5</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/1996_2000.pdf#page=744">Rail Fence Template,
+                    <b>LIONEL</b>, Nov-Dec 1999, p.8</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/2001_2005.pdf#page=102">Railfence Offsets,
+                    <b>SCRYER</b>, Jul-Aug 2001, p.6</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/2001_2005.pdf#page=460">Computer Column: Railfence and Redefence,
+                    <b>ANCHISES</b>, May-Jun 2003, p.12</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/2001_2005.pdf#page=693">Rail Fence (Tyro Grams),
+                    <b>LIONEL</b>, Jul-Aug 2004, p.21</a>
+            </li>
+            <li>
+                <a href="http://www.cryptogram.org/members/Cm_PDFs/2011-2015.pdf#page=869">Rail Fence, (Tyro Grams),
+                    <b>LIONEL</b>, Sep-Oct 2015, p.17</a>
+            </li>
+        </ul>
+    </div>
+</body>
+
+</html>

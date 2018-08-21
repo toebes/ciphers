@@ -1,0 +1,45 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"args": [
+	],
+	"echoCommand": true,
+    "tasks": [
+        {
+            "label": "webpack dev",
+            "type": "shell",
+            "command": "${workspaceRoot}/node_modules/.bin/webpack",
+            "windows": {
+                "command": "${workspaceRoot}/node_modules/.bin/webpack"
+            },
+            "args": [
+                "-d"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$tsc",
+                "$jshint"
+            ]
+        },
+        {
+            "label": "webpack dist",
+            "type": "shell",
+            "command": "${workspaceRoot}/node_modules/.bin/webpack",
+            "windows": {
+                "command": "${workspaceRoot}/node_modules/.bin/webpack"
+            },
+            "args": [
+                "-p"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$tsc",
+                "$jshint"
+            ]
+        }
+    ]
+}

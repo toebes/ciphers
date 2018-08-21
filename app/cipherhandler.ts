@@ -906,7 +906,7 @@ export class CipherHandler {
         for (let c of charset.toUpperCase()) {
             let repl = ''
             if (showanswers) {
-                repl = revRepl[c]
+                repl = this.replacement[c]
             }
             headrow.add(c)
             let freq = String(this.freq[c])

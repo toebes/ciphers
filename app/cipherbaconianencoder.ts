@@ -490,6 +490,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
         return result;
     }
     public updateWordSelects(): void {
+        if (this.state.operation !== "words") {
+            return;
+        }
         let maxwords = this.baconianWords.length;
         if (this.wordpos < 0) {
             this.wordpos = 0;

@@ -278,7 +278,7 @@
              "single"
          ],
         "semicolon": [
-             false,  // Was true
+             true,  // Was true
              "always"
          ],
         "space-within-parens": true,

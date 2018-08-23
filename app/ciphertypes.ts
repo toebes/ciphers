@@ -1,4 +1,4 @@
-import { JTRadioButtonItem } from "./jtradiobutton"
+import { JTRadioButtonItem } from "./jtradiobutton";
 
 /** Which type of cipher we are solving */
 export const enum ICipherType {
@@ -28,234 +28,275 @@ export const enum ICipherType {
     Test = "test",
     RunningKey = "runningkey",
     Baconian = "baconian",
-    RSA = "rsa",
+    RSA = "rsa"
 }
 
 let cipherTypeConfig = new Map(<[ICipherType, any][]>[
-    [ICipherType.None, {
-        title: "None",
-        id: "none",
-        equiv: []
-    }],
-    [ICipherType.Aristocrat, {
-        title: "Aristocrat",
-        id: "aristocrat",
-        equiv: [
-            ICipherType.Aristocrat,
-            ICipherType.Patristocrat,
-            ICipherType.Xenocrypt,
-        ]
-    }],
-    [ICipherType.Patristocrat, {
-        title: "Patristocrat",
-        id: "patristocrat",
-        equiv: [
-            ICipherType.Aristocrat,
-            ICipherType.Patristocrat,
-            ICipherType.Xenocrypt,
-        ]
-    }],
-    [ICipherType.Cryptarithm, {
-        title: "Cryptarithm",
-        id: "cryptarithm",
-        equiv: [
-            ICipherType.Cryptarithm,
-        ]
-    }],
-    [ICipherType.Railfence, {
-        title: "Railfence",
-        id: "railfence",
-        equiv: [
-            ICipherType.Railfence,
-            ICipherType.Redefence,
-        ]
-    }],
-    [ICipherType.Redefence, {
-        title: "Redefence",
-        id: "redefence",
-        equiv: [
-            ICipherType.Railfence,
-            ICipherType.Redefence,
-        ]
-    }],
-    [ICipherType.Vigenere, {
-        title: "Vigen&egrave;re",
-        id: "vigenere",
-        equiv: [
-            ICipherType.Vigenere,
-            ICipherType.Variant,
-            ICipherType.Beaufort,
-            ICipherType.Gronsfeld,
-            ICipherType.Porta,
-        ]
-    }],
-    [ICipherType.Variant, {
-        title: "Variant",
-        id: "variant",
-        equiv: [
-            ICipherType.Vigenere,
-            ICipherType.Variant,
-            ICipherType.Beaufort,
-            ICipherType.Gronsfeld,
-            ICipherType.Porta,
-        ]
-    }],
-    [ICipherType.Beaufort, {
-        title: "Beaufort",
-        id: "beaufort",
-        equiv: [
-            ICipherType.Vigenere,
-            ICipherType.Variant,
-            ICipherType.Beaufort,
-            ICipherType.Gronsfeld,
-            ICipherType.Porta,
-        ]
-    }],
-    [ICipherType.Gronsfeld, {
-        title: "Gronsfeld",
-        id: "gronsfeld",
-        equiv: [
-            ICipherType.Vigenere,
-            ICipherType.Variant,
-            ICipherType.Beaufort,
-            ICipherType.Gronsfeld,
-            ICipherType.Porta,
-        ]
-    }],
-    [ICipherType.Porta, {
-        title: "Porta",
-        id: "porta",
-        equiv: [
-            ICipherType.Vigenere,
-            ICipherType.Variant,
-            ICipherType.Beaufort,
-            ICipherType.Gronsfeld,
-            ICipherType.Porta,
-        ]
-    }],
-    [ICipherType.FractionatedMorse, {
-        title: "Fractionated Morse",
-        id: "fractionatedmorse",
-        equiv: [
-            ICipherType.FractionatedMorse,
-        ]
-    }],
-    [ICipherType.Morbit, {
-        title: "Morbit",
-        id: "morbit",
-        equiv: [
-            ICipherType.Morbit,
-        ]
-    }],
-    [ICipherType.Ragbaby, {
-        title: "Ragbaby",
-        id: "ragbaby",
-        equiv: [
-            ICipherType.Ragbaby,
-        ]
-    }],
-    [ICipherType.Affine, {
-        title: "Affine",
-        id: "affine",
-        equiv: [
-            ICipherType.Affine,
-        ]
-    }],
-    [ICipherType.Counter, {
-        title: "Counter",
-        id: "counter",
-        equiv: [
-            ICipherType.Counter,
-        ]
-    }],
-    [ICipherType.Caesar, {
-        title: "Caesar",
-        id: "caesar",
-        equiv: [
-            ICipherType.Atbash,
-            ICipherType.Caesar,
-        ]
-    }],
-    [ICipherType.Atbash, {
-        title: "Atbash",
-        id: "atbash",
-        equiv: [
-            ICipherType.Atbash,
-            ICipherType.Caesar,
-        ]
-    }],
-    [ICipherType.Checkerboard, {
-        title: "Checkerboard",
-        id: "checkerboard",
-        equiv: [
-            ICipherType.Checkerboard,
-        ]
-    }],
-    [ICipherType.Gromark, {
-        title: "Gromark",
-        id: "gromark",
-        equiv: [
-            ICipherType.Gromark,
-        ]
-    }],
-    [ICipherType.Xenocrypt, {
-        title: "Xenocrypt",
-        id: "xenocrypt",
-        equiv: [
-            ICipherType.Aristocrat,
-            ICipherType.Patristocrat,
-            ICipherType.Xenocrypt,
-        ]
-    }],
-    [ICipherType.Standard, {
-        title: "Standard",
-        id: "standard",
-        equiv: [
-            ICipherType.Aristocrat,
-            ICipherType.Patristocrat,
-            ICipherType.Xenocrypt,
-        ]
-    }],
-    [ICipherType.Hill, {
-        title: "Hill",
-        id: "hill",
-        equiv: [
-            ICipherType.Hill,
-        ]
-    }],
-    [ICipherType.RunningKey, {
-        title: "Running Key",
-        id: "runningkey",
-        equiv: [
-            ICipherType.RunningKey,
-            ICipherType.Vigenere,
-        ]
-    }],
-    [ICipherType.Baconian, {
-        title: "Baconian",
-        id: "baconian",
-        equiv: [
-            ICipherType.Baconian,
-        ]
-    }],
-    [ICipherType.RSA, {
-        title: "RSA",
-        id: "rsa",
-        equiv: [
-            ICipherType.RSA,
-        ]
-    }],
-])
+    [
+        ICipherType.None,
+        {
+            title: "None",
+            id: "none",
+            equiv: []
+        }
+    ],
+    [
+        ICipherType.Aristocrat,
+        {
+            title: "Aristocrat",
+            id: "aristocrat",
+            equiv: [
+                ICipherType.Aristocrat,
+                ICipherType.Patristocrat,
+                ICipherType.Xenocrypt
+            ]
+        }
+    ],
+    [
+        ICipherType.Patristocrat,
+        {
+            title: "Patristocrat",
+            id: "patristocrat",
+            equiv: [
+                ICipherType.Aristocrat,
+                ICipherType.Patristocrat,
+                ICipherType.Xenocrypt
+            ]
+        }
+    ],
+    [
+        ICipherType.Cryptarithm,
+        {
+            title: "Cryptarithm",
+            id: "cryptarithm",
+            equiv: [ICipherType.Cryptarithm]
+        }
+    ],
+    [
+        ICipherType.Railfence,
+        {
+            title: "Railfence",
+            id: "railfence",
+            equiv: [ICipherType.Railfence, ICipherType.Redefence]
+        }
+    ],
+    [
+        ICipherType.Redefence,
+        {
+            title: "Redefence",
+            id: "redefence",
+            equiv: [ICipherType.Railfence, ICipherType.Redefence]
+        }
+    ],
+    [
+        ICipherType.Vigenere,
+        {
+            title: "Vigen&egrave;re",
+            id: "vigenere",
+            equiv: [
+                ICipherType.Vigenere,
+                ICipherType.Variant,
+                ICipherType.Beaufort,
+                ICipherType.Gronsfeld,
+                ICipherType.Porta
+            ]
+        }
+    ],
+    [
+        ICipherType.Variant,
+        {
+            title: "Variant",
+            id: "variant",
+            equiv: [
+                ICipherType.Vigenere,
+                ICipherType.Variant,
+                ICipherType.Beaufort,
+                ICipherType.Gronsfeld,
+                ICipherType.Porta
+            ]
+        }
+    ],
+    [
+        ICipherType.Beaufort,
+        {
+            title: "Beaufort",
+            id: "beaufort",
+            equiv: [
+                ICipherType.Vigenere,
+                ICipherType.Variant,
+                ICipherType.Beaufort,
+                ICipherType.Gronsfeld,
+                ICipherType.Porta
+            ]
+        }
+    ],
+    [
+        ICipherType.Gronsfeld,
+        {
+            title: "Gronsfeld",
+            id: "gronsfeld",
+            equiv: [
+                ICipherType.Vigenere,
+                ICipherType.Variant,
+                ICipherType.Beaufort,
+                ICipherType.Gronsfeld,
+                ICipherType.Porta
+            ]
+        }
+    ],
+    [
+        ICipherType.Porta,
+        {
+            title: "Porta",
+            id: "porta",
+            equiv: [
+                ICipherType.Vigenere,
+                ICipherType.Variant,
+                ICipherType.Beaufort,
+                ICipherType.Gronsfeld,
+                ICipherType.Porta
+            ]
+        }
+    ],
+    [
+        ICipherType.FractionatedMorse,
+        {
+            title: "Fractionated Morse",
+            id: "fractionatedmorse",
+            equiv: [ICipherType.FractionatedMorse]
+        }
+    ],
+    [
+        ICipherType.Morbit,
+        {
+            title: "Morbit",
+            id: "morbit",
+            equiv: [ICipherType.Morbit]
+        }
+    ],
+    [
+        ICipherType.Ragbaby,
+        {
+            title: "Ragbaby",
+            id: "ragbaby",
+            equiv: [ICipherType.Ragbaby]
+        }
+    ],
+    [
+        ICipherType.Affine,
+        {
+            title: "Affine",
+            id: "affine",
+            equiv: [ICipherType.Affine]
+        }
+    ],
+    [
+        ICipherType.Counter,
+        {
+            title: "Counter",
+            id: "counter",
+            equiv: [ICipherType.Counter]
+        }
+    ],
+    [
+        ICipherType.Caesar,
+        {
+            title: "Caesar",
+            id: "caesar",
+            equiv: [ICipherType.Atbash, ICipherType.Caesar]
+        }
+    ],
+    [
+        ICipherType.Atbash,
+        {
+            title: "Atbash",
+            id: "atbash",
+            equiv: [ICipherType.Atbash, ICipherType.Caesar]
+        }
+    ],
+    [
+        ICipherType.Checkerboard,
+        {
+            title: "Checkerboard",
+            id: "checkerboard",
+            equiv: [ICipherType.Checkerboard]
+        }
+    ],
+    [
+        ICipherType.Gromark,
+        {
+            title: "Gromark",
+            id: "gromark",
+            equiv: [ICipherType.Gromark]
+        }
+    ],
+    [
+        ICipherType.Xenocrypt,
+        {
+            title: "Xenocrypt",
+            id: "xenocrypt",
+            equiv: [
+                ICipherType.Aristocrat,
+                ICipherType.Patristocrat,
+                ICipherType.Xenocrypt
+            ]
+        }
+    ],
+    [
+        ICipherType.Standard,
+        {
+            title: "Standard",
+            id: "standard",
+            equiv: [
+                ICipherType.Aristocrat,
+                ICipherType.Patristocrat,
+                ICipherType.Xenocrypt
+            ]
+        }
+    ],
+    [
+        ICipherType.Hill,
+        {
+            title: "Hill",
+            id: "hill",
+            equiv: [ICipherType.Hill]
+        }
+    ],
+    [
+        ICipherType.RunningKey,
+        {
+            title: "Running Key",
+            id: "runningkey",
+            equiv: [ICipherType.RunningKey, ICipherType.Vigenere]
+        }
+    ],
+    [
+        ICipherType.Baconian,
+        {
+            title: "Baconian",
+            id: "baconian",
+            equiv: [ICipherType.Baconian]
+        }
+    ],
+    [
+        ICipherType.RSA,
+        {
+            title: "RSA",
+            id: "rsa",
+            equiv: [ICipherType.RSA]
+        }
+    ]
+]);
 /**
  * Gets the default title for a cipher type
  */
 export function getCipherTitle(ciphertype: ICipherType): string {
-    let config = cipherTypeConfig.get(ciphertype)
-    let title = 'NOT_FOUND'
+    let config = cipherTypeConfig.get(ciphertype);
+    let title = "NOT_FOUND";
     if (config !== undefined && config.title !== undefined) {
-        title = config.title
+        title = config.title;
     }
-    return title
+    return title;
 }
 /**
  * Gets all ciphers which are considered equivalent for this cipher type
@@ -275,12 +316,14 @@ export function getCipherEquivalents(cipherType: ICipherType): ICipherType[] {
 /**
  * Generates a radio button to be used for selecting the type of Cipher
  */
-export function CipherTypeButtonItem(cipherType: ICipherType): JTRadioButtonItem {
-    let config = cipherTypeConfig.get(cipherType)
+export function CipherTypeButtonItem(
+    cipherType: ICipherType
+): JTRadioButtonItem {
+    let config = cipherTypeConfig.get(cipherType);
     let res: JTRadioButtonItem = {
         value: cipherType,
         title: config.title,
         id: config.id
-    }
-    return res
+    };
+    return res;
 }

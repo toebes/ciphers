@@ -69,8 +69,7 @@ const revBaconMap: StringMap = {
     BABBA: "Y",
     BABBB: "Z"
 };
-const punctuationChars = [".", ",", ";", "-"];
-
+const punctuationChars = ".,;-";
 interface IBaconianState extends IEncoderState {
     /** Characters to use to represent the A value */
     texta: string;
@@ -474,9 +473,21 @@ export class CipherBaconianEncoder extends CipherEncoder {
         });
         result.append(
             $("<div/>", {
-                id: "v" + String(slot),
-                class: "flex-child-shrink callout small primary"
-            }).text("X")
+                class: "flex-child-shrink"
+            })
+                .append(
+                    $("<button/>", {
+                        id: "p" + String(slot),
+                        "data-slot": slot,
+                        class: "psel button secondary float-right"
+                    }).text(punctuationChars)
+                )
+                .append(
+                    $("<div/>", {
+                        id: "v" + String(slot),
+                        class: "wtitle"
+                    }).text("X")
+                )
         );
 
         result.append(
@@ -510,15 +521,29 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 setDisabled("#sel" + slot, false);
                 // Now go through and repopulate all of the elements
                 let sel = $("#sel" + slot).empty();
+                let punctbutton = $("#p" + slot);
                 let baconian = this.baconianWords[slotpos];
+                let [slotword, punctuation] = this.getSlotWord(slotpos);
                 $("#v" + slot).text(baconian);
                 if (this.wordlookup[baconian] === undefined) {
                     setDisabled("#sel" + slot, true);
+                    setDisabled("#p" + slot, true);
                 } else {
+                    if (punctuation !== "") {
+                        punctbutton
+                            .removeClass("secondary")
+                            .addClass("primary")
+                            .text(punctuation);
+                    } else {
+                        punctbutton
+                            .removeClass("primary")
+                            .addClass("secondary")
+                            .text(punctuationChars);
+                    }
                     for (let word of this.wordlookup[baconian]) {
                         let option;
 
-                        if (word === this.state.words[slotpos]) {
+                        if (word === slotword) {
                             option = $("<option/>", {
                                 val: word,
                                 selected: "selected"
@@ -539,6 +564,21 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
     }
+    private getSlotWord(slotpos: number): string[] {
+        let slotword = this.state.words[slotpos];
+        if (slotword === undefined) {
+            slotword = "";
+        }
+
+        let punctuation = slotword.substr(slotword.length - 1);
+        if (this.isValidChar(punctuation.toUpperCase())) {
+            punctuation = "";
+        } else {
+            slotword = slotword.substr(0, slotword.length - 1);
+        }
+        return [slotword, punctuation];
+    }
+
     /**
      * Generate the HTML to display the answer for a cipher
      */
@@ -586,19 +626,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let wordline = "";
         let baconline = "";
         let decodeline = "";
+        let prefix = "";
         // Iterate through each letter and look it up in the map
         for (let i = 0; i < this.baconianWords.length; i++) {
             let baconian = this.baconianWords[i];
-            let selword = this.state.words[i];
-            if (selword === undefined) {
-                selword = "";
-            }
-            let punctuation = selword.substr(selword.length - 1);
-            if (punctuationChars.indexOf(punctuation) !== -1) {
-                selword = selword.substr(0, selword.length - 1);
-            } else {
-                punctuation = "";
-            }
+            let [selword, punctuation] = this.getSlotWord(i);
             let resword = selword;
             // Make sure that the alphabet actually gives us a match
             if (this.wordlookup[baconian] === undefined) {
@@ -624,15 +656,28 @@ export class CipherBaconianEncoder extends CipherEncoder {
             } else {
                 decode = padToMatch(" " + decode, resword);
             }
-            if (wordline.length + resword.length > maxEncodeWidth) {
-                result.push([decodeline, baconline, wordline]);
+            if (
+                prefix === "." ||
+                wordline.length + resword.length + prefix.length >
+                    maxEncodeWidth
+            ) {
+                result.push([
+                    decodeline + padToMatch("", prefix),
+                    baconline + prefix,
+                    wordline + prefix
+                ]);
                 wordline = resword;
                 baconline = baconian;
                 decodeline = decode;
             } else {
-                wordline += " " + resword;
-                baconline += " " + baconian;
-                decodeline += " " + decode;
+                decodeline += padToMatch("", prefix) + decode;
+                baconline += prefix + baconian;
+                wordline += prefix + resword;
+            }
+            if (punctuation === "." || punctuation === "-") {
+                prefix = punctuation;
+            } else {
+                prefix = punctuation + " ";
             }
         }
         if (wordline !== "") {
@@ -759,6 +804,22 @@ export class CipherBaconianEncoder extends CipherEncoder {
                         this.state.words[wordslot] = newword;
                         this.updateOutput();
                     }
+                }
+            });
+        $(".psel")
+            .off("click")
+            .on("click", e => {
+                let slot = $(e.target).attr("data-slot");
+                if (slot !== "") {
+                    let wordslot = this.wordpos + Number(slot);
+                    let [slotword, punctuation] = this.getSlotWord(wordslot);
+                    let punctpos = punctuationChars.indexOf(punctuation) + 1;
+                    if (punctuation === "") {
+                        punctpos = 0;
+                    }
+                    punctuation = punctuationChars.substr(punctpos, 1);
+                    this.state.words[wordslot] = slotword + punctuation;
+                    this.updateOutput();
                 }
             });
     }

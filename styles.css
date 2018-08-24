@@ -71,14 +71,6 @@ input.cb {
     height: 18px;
 }
 
-.xxxxcmds {
-    clear: both;
-    display: block;
-    border-bottom: 1px solid grey;
-    margin-top: 10px;
-    margin-bottom: 5px;
-}
-
 #chi {
     display: block;
     margin-top: 10px;
@@ -677,7 +669,7 @@ table.found tr th:nth-child(odd) {
 .input-group .input-number {
     width: 80px;
     padding: 0 12px;
-    vertical-align: top;
+    /* vertical-align: top; */
     text-align: center;
     outline: none;
     display: block;
@@ -953,6 +945,27 @@ table.nameline td.u {
     margin-left: 1rem;
 }
 
+.psel {
+    margin: 0;
+    font-size: larger;
+    height: 2.5rem;
+    width: 2.5rem;
+    padding: 0 0.3rem 0.2rem 0.3rem;
+    border-radius: 0.2rem;
+}
+
+.wshift {
+    margin: 0.2rem;
+    border-radius: 1rem;
+}
+.wtitle {
+    background: #e6e6e6;
+    border: 1px solid #cacaca;
+    height: 2.5rem;
+    margin-right: 2.5rem;
+    text-align: center;
+    padding: 0.4rem 0rem 0rem 0rem;
+}
 @media print {
     .title-bar,
     .top-bar,

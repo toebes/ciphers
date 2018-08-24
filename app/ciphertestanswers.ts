@@ -1,5 +1,5 @@
 import { cloneObject } from "./ciphercommon";
-import { CipherTest, ITestState } from "./ciphertest"
+import { CipherTest, ITestState } from "./ciphertest";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTTable } from "./jttable";
@@ -13,116 +13,135 @@ export class CipherTestAnswers extends CipherTest {
         cipherString: "",
         cipherType: ICipherType.Test,
         test: 0,
-        sols: "n",
-    }
-    state: ITestState = cloneObject(this.defaultstate) as ITestState
+        sols: "n"
+    };
+    state: ITestState = cloneObject(this.defaultstate) as ITestState;
     cmdButtons: JTButtonItem[] = [
-        { title: "Edit Test", color: "primary", id: "edittest", },
-        { title: "Test Packet", color: "primary", id: "printtest", },
+        { title: "Edit Test", color: "primary", id: "edittest" },
+        { title: "Test Packet", color: "primary", id: "printtest" },
         // { title: "Answer Key", color: "primary", id: "printans", },
-        { title: "Answers and Solutions", color: "primary", id: "printsols", },
-    ]
+        { title: "Answers and Solutions", color: "primary", id: "printsols" }
+    ];
     restore(data: ITestState): void {
-        this.state = cloneObject(this.defaultstate) as ITestState
-        this.copyState(this.state, data)
-        this.updateOutput()
-        if (this.state.sols !== undefined && this.state.sols.substr(0, 1) === "y") {
-            this.state.sols = "y"
+        this.state = cloneObject(this.defaultstate) as ITestState;
+        this.copyState(this.state, data);
+        this.updateOutput();
+        if (
+            this.state.sols !== undefined &&
+            this.state.sols.substr(0, 1) === "y"
+        ) {
+            this.state.sols = "y";
         } else {
-            this.state.sols = "n"
+            this.state.sols = "n";
         }
     }
     updateOutput(): void {
-        $('.testcontent').each((i, elem) => {
-            $(elem).replaceWith(this.genTestAnswers())
-        })
+        $(".testcontent").each((i, elem) => {
+            $(elem).replaceWith(this.genTestAnswers());
+        });
         if (this.state.sols === "y") {
-            $("#printsols").attr('id', 'printans').text('Answer Key')
+            $("#printsols")
+                .attr("id", "printans")
+                .text("Answer Key");
         } else {
-            $("#printans").attr('id', 'printsols').text('Answers and Solutions')
+            $("#printans")
+                .attr("id", "printsols")
+                .text("Answers and Solutions");
         }
-        this.attachHandlers()
+        this.attachHandlers();
     }
     /*
      * Sorter to break ties
      */
     tiebreakersort(a: any, b: any): number {
         if (a.points > b.points) {
-            return -1
+            return -1;
         } else if (a.points < b.points) {
-            return 1
+            return 1;
         } else if (a.qnum > b.qnum) {
-            return -1
+            return -1;
         } else if (a.qnum < b.qnum) {
-            return 1
+            return 1;
         }
-        return 0
+        return 0;
     }
     genTestAnswers(): JQuery<HTMLElement> {
-        let printSolution = false
+        let printSolution = false;
         if (this.state.sols === "y") {
-            printSolution = true
+            printSolution = true;
             // Empty the instructions so that they don't print
-            $(".instructions").empty()
+            $(".instructions").empty();
         }
-        let testcount = this.getTestCount()
+        let testcount = this.getTestCount();
         if (testcount === 0) {
-            return $("<h3>").text("No Tests Created Yet")
+            return $("<h3>").text("No Tests Created Yet");
         }
         if (this.state.test > testcount) {
-            return ($("<h3>").text("Test not found"))
+            return $("<h3>").text("Test not found");
         }
-        this.qdata = []
+        this.qdata = [];
 
-        let test = this.getTestEntry(this.state.test)
-        let result = $("<div>")
-        $(".testtitle").text(test.title)
-        let dt = new Date()
-        $(".testyear").text(dt.getFullYear())
+        let test = this.getTestEntry(this.state.test);
+        let result = $("<div>");
+        $(".testtitle").text(test.title);
+        let dt = new Date();
+        $(".testyear").text(dt.getFullYear());
         if (test.timed === -1) {
-            result.append($("<p>", {class: "noprint"}).text("No timed question"))
+            result.append(
+                $("<p>", { class: "noprint" }).text("No timed question")
+            );
         } else {
-            result.append(this.printTestAnswer(-1, test.timed, "pagebreak", printSolution))
+            result.append(
+                this.printTestAnswer(-1, test.timed, "pagebreak", printSolution)
+            );
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
-            let breakclass = ""
+            let breakclass = "";
             if (qnum % 2 === 0) {
-                breakclass = "pagebreak"
+                breakclass = "pagebreak";
             }
-            result.append(this.printTestAnswer(qnum + 1, test.questions[qnum], breakclass, printSolution))
+            result.append(
+                this.printTestAnswer(
+                    qnum + 1,
+                    test.questions[qnum],
+                    breakclass,
+                    printSolution
+                )
+            );
         }
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
-        this.disableFilemenu()
+        this.disableFilemenu();
         //
         // Generate the tie breaker order
         //
-        let table = new JTTable({ class: 'cell shrink tiebreak' })
-        let hastimed = false
-        table.addHeaderRow()
+        let table = new JTTable({ class: "cell shrink tiebreak" });
+        let hastimed = false;
+        table
+            .addHeaderRow()
             .add("Tie Breaker Order")
-            .add("Question #")
+            .add("Question #");
 
         // We have stacked all of the found matches.  Now we need to sort them
-        this.qdata.sort(this.tiebreakersort)
-        let order = 1
+        this.qdata.sort(this.tiebreakersort);
+        let order = 1;
         for (let qitem of this.qdata) {
-            let qtitle = ""
+            let qtitle = "";
             if (qitem.qnum === -1) {
-                qtitle = "Timed"
+                qtitle = "Timed";
             } else {
-                qtitle = String(qitem.qnum)
+                qtitle = String(qitem.qnum);
             }
-            table.addBodyRow()
-            .add(String(order))
-            .add(qtitle)
-            order++
+            table
+                .addBodyRow()
+                .add(String(order))
+                .add(qtitle);
+            order++;
         }
-        $("#tietable").append(table.generate())
+        $("#tietable").append(table.generate());
 
-        return result
+        return result;
     }
     attachHandlers(): void {
-        super.attachHandlers()
+        super.attachHandlers();
     }
-
 }

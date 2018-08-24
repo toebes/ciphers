@@ -1,4 +1,4 @@
-import { StringMap } from "./ciphercommon"
+import { StringMap } from "./ciphercommon";
 
 /** parses the query string
  *  From https://www.malcontentboffin.com/2016/11/TypeScript-Function-Decodes-URL-Parameters.html
@@ -18,26 +18,28 @@ export function parseQueryString(queryString: string): StringMap {
         queryString = window.location.search.substring(1);
     }
 
-    let params = {}
+    let params = {};
 
-    let queries = queryString.split("&")
+    let queries = queryString.split("&");
 
     queries.forEach((indexQuery: string) => {
-        let indexPair = indexQuery.split("=")
+        let indexPair = indexQuery.split("=");
 
         let queryKey = decodeURIComponent(indexPair[0]);
-        let queryValue = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : "")
+        let queryValue = decodeURIComponent(
+            indexPair.length > 1 ? indexPair[1] : ""
+        );
 
         // If we want to handle the multi value case
         if (params[queryKey] !== undefined) {
             if (typeof params[queryKey] === "string") {
-                params[queryKey] = [params[queryKey]]
+                params[queryKey] = [params[queryKey]];
             }
-            params[queryKey].push(queryValue)
+            params[queryKey].push(queryValue);
         } else {
-            params[queryKey] = queryValue
+            params[queryKey] = queryValue;
         }
-    })
+    });
 
-    return params
+    return params;
 }

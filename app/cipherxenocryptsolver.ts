@@ -1,6 +1,5 @@
-import { CipherSolver } from "./ciphersolver"
-export class CipherXenocryptSolver extends CipherSolver {
-}
+import { CipherSolver } from "./ciphersolver";
+export class CipherXenocryptSolver extends CipherSolver {}
 
 // Xenocrypt: {
 //     init: 'init',

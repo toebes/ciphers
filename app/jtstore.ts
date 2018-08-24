@@ -1,4 +1,4 @@
-import * as Cookies from 'js-cookie';
+import * as Cookies from "js-cookie";
 
 /**
  * The base class simply says that storage isn't available and silently throws
@@ -12,7 +12,7 @@ export class JTStorage {
         return "";
     }
     getJSON(entry: string): any {
-        return JSON.parse(this.get(entry))
+        return JSON.parse(this.get(entry));
     }
     set(entry: string, content: any): void {
         return;
@@ -49,7 +49,7 @@ class JTStorageLocal extends JTStorage {
             if (/^[\{\[]/.test(result)) {
                 content = result;
             }
-        } catch (e) { }
+        } catch (e) {}
 
         try {
             localStorage.setItem(entry, content);
@@ -81,11 +81,11 @@ class JTStorageCookies extends JTStorage {
         return Cookies.getJSON(entry);
     }
     set(entry: string, content: any): void {
-        Cookies.set(entry, content)
+        Cookies.set(entry, content);
         return;
     }
     remove(entry: string): void {
-        Cookies.remove(entry)
+        Cookies.remove(entry);
         return;
     }
 }
@@ -96,47 +96,47 @@ class JTStorageCookies extends JTStorage {
  * If none of that works, we just have to tell them that it doesn't work on this browser
  */
 export function InitStorage(): JTStorage {
-    let canUse = false
-    let test = "test"
+    let canUse = false;
+    let test = "test";
     // Make sure the browser says we have local storage
-    if (typeof (Storage) !== "undefined") {
+    if (typeof Storage !== "undefined") {
         // Ok we will try a simple test (under try/catch) to write/read/remove
         // something from local storage and make sure it really works
         try {
-            localStorage.setItem(test, test)
-            let compare = localStorage.getItem(test)
-            localStorage.removeItem(test)
+            localStorage.setItem(test, test);
+            let compare = localStorage.getItem(test);
+            localStorage.removeItem(test);
             // We got here without failing, make sure what we read back was what
             // we expected
             if (compare === test) {
-               canUse = true
+                canUse = true;
             }
         } catch (e) {
             // Something failed, so we can't use local storage
         }
         // It looks good, so give them the local storage class
         if (canUse) {
-            return new JTStorageLocal()
+            return new JTStorageLocal();
         }
     }
     // Try to see if we can get any cookies
     try {
-        Cookies.set(test, test)
-        let compare = Cookies.get(test)
-        Cookies.remove(test)
+        Cookies.set(test, test);
+        let compare = Cookies.get(test);
+        Cookies.remove(test);
         // We got here without failing, make sure what we read back was what
         // we expected
         if (compare === test) {
-            canUse = true
+            canUse = true;
         }
     } catch (e) {
         // Something failed, so we can't use cookies
     }
     // It looks good, so give them the cookie class
     if (canUse) {
-        return new JTStorageCookies()
+        return new JTStorageCookies();
     }
     // Nothing worked, so use the default base class which tells you that storage
     // is not available.
-    return new JTStorage()
+    return new JTStorage();
 }

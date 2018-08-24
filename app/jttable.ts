@@ -5,36 +5,36 @@
  *
  */
 export interface JTTDParms {
-    celltype?: string
-    settings?: JQuery.PlainObject
-    content?: JQuery<HTMLElement> | string
+    celltype?: string;
+    settings?: JQuery.PlainObject;
+    content?: JQuery<HTMLElement> | string;
 }
-export type JTElem = JQuery<HTMLElement> | string | JQuery.PlainObject
-export type JTRowItems = Array<JTElem>
+export type JTElem = JQuery<HTMLElement> | string | JQuery.PlainObject;
+export type JTRowItems = Array<JTElem>;
 
 export interface JTTableParms {
-    class?: string
-    caption?: string
-    head?: Array<JTRowItems>
-    body?: Array<JTRowItems>
-    foot?: Array<JTRowItems>
+    class?: string;
+    caption?: string;
+    head?: Array<JTRowItems>;
+    body?: Array<JTRowItems>;
+    foot?: Array<JTRowItems>;
 }
 /**
  * Determines if a parameter is a plain string
  * x Item to test
  */
 function isString(x: any): x is string {
-    return typeof x === "string"
+    return typeof x === "string";
 }
 
 function isTDParms(x: any): x is JTTDParms {
-    return x.content !== undefined
+    return x.content !== undefined;
 }
 
 export interface JTRowParms {
-    class?: string
-    celltype?: string
-    row?: JTRowItems
+    class?: string;
+    celltype?: string;
+    row?: JTRowItems;
 }
 
 /**
@@ -48,36 +48,36 @@ function isRowParms(parms: JTRowParms | JTRowItems): parms is JTRowParms {
 }
 
 export class JTRow {
-    class: string
-    celltype: string
-    row: JTRowItems
+    class: string;
+    celltype: string;
+    row: JTRowItems;
     constructor(parms?: JTRowParms | JTRowItems) {
-        this.celltype = "td"
-        this.class = undefined
-        this.row = []
+        this.celltype = "td";
+        this.class = undefined;
+        this.row = [];
         if (parms !== null && parms !== undefined) {
             if (Array.isArray(parms)) {
-                this.row = <JTRowItems>parms
+                this.row = <JTRowItems>parms;
             } else {
                 if (parms.class !== undefined) {
-                    this.class = parms.class
+                    this.class = parms.class;
                 }
                 if (parms.celltype !== undefined) {
-                    this.celltype = parms.celltype
+                    this.celltype = parms.celltype;
                 }
                 if (parms.row !== undefined) {
-                    this.row = parms.row
+                    this.row = parms.row;
                 }
             }
         }
     }
     setClass(tclass: string): JTRow {
-        this.class = tclass
-        return this
+        this.class = tclass;
+        return this;
     }
     setCellType(celltype: string): JTRow {
-        this.celltype = celltype
-        return this
+        this.celltype = celltype;
+        return this;
     }
     /**
      * Adds a new element to the row.  This returns the row so you can chain
@@ -85,9 +85,9 @@ export class JTRow {
      */
     add(elem: JTElem): JTRow {
         if (elem !== null && elem !== undefined) {
-            this.row.push(elem)
+            this.row.push(elem);
         }
-        return this
+        return this;
     }
     /**
      * Generates the dom object from this Row.  Note that if the row is empty
@@ -96,30 +96,32 @@ export class JTRow {
     generate(): JQuery<HTMLElement> {
         // If the row is empty, we toss it out
         if (this.row.length === 0) {
-            return null
+            return null;
         }
-        let row = $("<tr>")
+        let row = $("<tr>");
         for (let item of this.row) {
-            let cell = null
-            let celltype = this.celltype
+            let cell = null;
+            let celltype = this.celltype;
             if (isTDParms(item)) {
                 if (item.celltype !== null && item.celltype !== undefined) {
-                    celltype = item.celltype
+                    celltype = item.celltype;
                 }
-                cell = $("<" + celltype + ">", item.settings).append(item.content)
+                cell = $("<" + celltype + ">", item.settings).append(
+                    item.content
+                );
             } else {
-                cell = $("<" + celltype + ">")
+                cell = $("<" + celltype + ">");
                 // For strings we want to set the text of the cell so that it doesn't
                 // attempt to interpret it as html
                 if (isString(item)) {
-                    cell.text(item)
+                    cell.text(item);
                 } else {
-                    cell.append(item)
+                    cell.append(item);
                 }
             }
-            row.append(cell)
+            row.append(cell);
         }
-        return row
+        return row;
     }
 }
 
@@ -127,28 +129,28 @@ export class JTRow {
  * Creates a new table object that can be used to generate an HTML Table
  */
 export class JTTable {
-    class: string = null
-    caption: string = null
-    header: Array<JTRow> = []
-    body: Array<JTRow> = []
-    footer: Array<JTRow> = []
+    class: string = null;
+    caption: string = null;
+    header: Array<JTRow> = [];
+    body: Array<JTRow> = [];
+    footer: Array<JTRow> = [];
 
     constructor(parms: JTTableParms) {
-        this.class = parms.class
-        this.caption = parms.caption
+        this.class = parms.class;
+        this.caption = parms.caption;
         if (parms.head !== undefined) {
             for (let rowdata of parms.head) {
-                this.addHeaderRow(rowdata)
+                this.addHeaderRow(rowdata);
             }
         }
         if (parms.body !== undefined) {
             for (let rowdata of parms.body) {
-                this.addBodyRow(rowdata)
+                this.addBodyRow(rowdata);
             }
         }
         if (parms.foot !== undefined) {
             for (let rowdata of parms.foot) {
-                this.addFooterRow(rowdata)
+                this.addFooterRow(rowdata);
             }
         }
     }
@@ -158,9 +160,9 @@ export class JTTable {
      * parms Header row items to add
      */
     addHeaderRow(parms?: JTRowParms | JTRowItems): JTRow {
-        let newRow = new JTRow(parms).setCellType("th")
-        this.header.push(newRow)
-        return newRow
+        let newRow = new JTRow(parms).setCellType("th");
+        this.header.push(newRow);
+        return newRow;
     }
 
     /**
@@ -168,9 +170,9 @@ export class JTTable {
      * parms Body row items to add
      */
     addBodyRow(parms?: JTRowParms | JTRowItems): JTRow {
-        let newRow = new JTRow(parms)
-        this.body.push(newRow)
-        return newRow
+        let newRow = new JTRow(parms);
+        this.body.push(newRow);
+        return newRow;
     }
 
     /**
@@ -178,36 +180,36 @@ export class JTTable {
      * parms Footer row items to add
      */
     addFooterRow(parms?: JTRowParms | JTRowItems): JTRow {
-        let newRow = new JTRow(parms)
-        this.footer.push(newRow)
-        return newRow
+        let newRow = new JTRow(parms);
+        this.footer.push(newRow);
+        return newRow;
     }
     /**
      * Generates the final table using everything that was gathered
      */
     generate(): JQuery<HTMLElement> {
-        let table = $("<table>", { class: this.class })
+        let table = $("<table>", { class: this.class });
         if (this.header.length) {
-            let thead = $("<thead>")
+            let thead = $("<thead>");
             for (let row of this.header) {
-                thead.append(row.generate())
+                thead.append(row.generate());
             }
-            table.append(thead)
+            table.append(thead);
         }
         if (this.body.length) {
-            let tbody = $("<tbody>")
+            let tbody = $("<tbody>");
             for (let row of this.body) {
-                tbody.append(row.generate())
+                tbody.append(row.generate());
             }
-            table.append(tbody)
+            table.append(tbody);
         }
         if (this.footer.length) {
-            let tfoot = $("<tfoot>")
+            let tfoot = $("<tfoot>");
             for (let row of this.footer) {
-                tfoot.append(row.generate())
+                tfoot.append(row.generate());
             }
-            table.append(tfoot)
+            table.append(tfoot);
         }
-        return table
+        return table;
     }
 }

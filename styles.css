@@ -404,7 +404,7 @@ input[type="radio"] {
 }
 
 .TOANSWER {
-    background-color: #ffff00;
+    background-color: yellow !important;
     margin-bottom: 16pt;
 }
 
@@ -787,7 +787,7 @@ table.found tr th:nth-child(odd) {
     border: 1px solid black;
 }
 .ansblock td.a {
-    background-color: yellow;
+    background-color: yellow !important;
     height: 3rem;
     font-weight: bold;
 }
@@ -978,5 +978,14 @@ table.nameline td.u {
     }
     @page {
         margin: 0.5in;
+    }
+    .TOANSWER {
+        background-color: yellow !important;
+    }
+    .ansblock td.a {
+        background-color: yellow !important;
+    }
+    body {
+        -webkit-print-color-adjust: exact;
     }
 }

@@ -102,14 +102,13 @@ export const CipherMenu: menuItem[] = [
                 title: "Aristocrat/Patristocrat Solving Assistant",
                 href: "Solver.html"
             },
-            { title: "Morbit Solving Assistant", href: "MorbitSolver.html" },
+            {
+                title: "Morbit Solving Assistant",
+                href: "MorbitSolver.html"
+            },
             {
                 title: "Fractionated Morse Solving Assistant",
                 href: "FractionatedMorseSolver.html"
-            },
-            {
-                title: "Checkerboard Solving Assistant",
-                href: "CheckerboardSolver.html"
             },
             {
                 title: "Xenocrypt Solving Assistant",
@@ -119,7 +118,10 @@ export const CipherMenu: menuItem[] = [
                 title: "Vigen&egrave;re Family Solving Assistant",
                 href: "VigenereSolver.html"
             },
-            { title: "Gromark Solving Assistant", href: "GromarkSolver.html" },
+            {
+                title: "Gromark Solving Assistant",
+                href: "GromarkSolver.html"
+            },
             {
                 title: "Cryptarithm Solving Assistant",
                 href: "CryptarithmSolver.html"
@@ -128,7 +130,10 @@ export const CipherMenu: menuItem[] = [
                 title: "Checkerboard Solving Assistant",
                 href: "CheckerboardSolver.html"
             },
-            { title: "Ragbaby Solving Assistant", href: "RagbabySolver.html" },
+            {
+                title: "Ragbaby Solving Assistant",
+                href: "RagbabySolver.html"
+            },
             {
                 title: "Railfence/Redefence Solving Assistant",
                 href: "RailfenceSolver.html"

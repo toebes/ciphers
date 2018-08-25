@@ -45,9 +45,6 @@ export class CipherCounter extends CipherEncoder {
         );
         return result;
     }
-    genPostCommands(): JQuery<HTMLElement> {
-        return null;
-    }
     load(): void {
         let res = this.build();
         $("#answer")

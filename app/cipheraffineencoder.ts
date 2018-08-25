@@ -844,9 +844,6 @@ export class CipherAffineEncoder extends CipherEncoder {
         result.append(inputbox);
         return result;
     }
-    genPostCommands(): JQuery<HTMLElement> {
-        return null;
-    }
     /**
      *
      */

@@ -49,7 +49,7 @@ export function JTRadioButton(
         if (choice.disabled !== undefined) {
             options.disabled = choice.disabled;
         }
-        appmenu.append($("<button/>", options).text(choice.title));
+        appmenu.append($("<button/>", options).html(choice.title));
     }
     cell.append(appmenu);
     result.append(cell);

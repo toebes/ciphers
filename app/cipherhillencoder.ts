@@ -176,9 +176,6 @@ export class CipherHillEncoder extends CipherEncoder {
         );
         return result;
     }
-    genPostCommands(): JQuery<HTMLElement> {
-        return null;
-    }
     /**
      *
      */

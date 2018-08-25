@@ -2,22 +2,22 @@ import { cloneObject, NumberMap } from "./ciphercommon";
 import { IState } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 import { CipherTypeButtonItem, ICipherType } from "./ciphertypes";
-import { JTRadioButton } from "./jtradiobutton";
+import { JTFLabeledInput } from "./jtflabeledinput";
+import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 import { JTTable } from "./jttable";
 import { Mapper } from "./mapper";
 import { mapperFactory } from "./mapperfactory";
-
+/**
+ * Solver for the Vigenere class of ciphers:
+ *    Vibenere, Variant, Beaufort, Gronsfeld and Porta
+ */
 export class CipherVigenereSolver extends CipherSolver {
     defaultstate: IState = {
         /** The current cipher type we are working on */
-        cipherType: ICipherType.Vigenere,
-        /** Currently selected keyword */
-        keyword: "",
-        /** The current cipher we are working on */
-        cipherString: "",
-        /** The current string we are looking for */
-        findString: "",
-        /** Replacement characters */
+        cipherType: ICipherType.Vigenere /** Currently selected keyword */,
+        keyword: "" /** The current cipher we are working on */,
+        cipherString: "" /** The current string we are looking for */,
+        findString: "" /** Replacement characters */,
         replacement: {}
     };
     state: IState = cloneObject(this.defaultstate) as IState;
@@ -27,19 +27,10 @@ export class CipherVigenereSolver extends CipherSolver {
     /** Implements the mapping for the various cipher types */
     ciphermap: Mapper = null;
     restore(data: IState): void {
-        let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;
-        this.state.curlang = curlang;
         this.copyState(this.state, data);
-        this.updateUI();
-        this.setCipherVariant(this.state.cipherType);
         this.setUIDefaults();
-        $("#analysis").each((i, elem) => {
-            $(elem)
-                .empty()
-                .append(this.genAnalysis(this.state.cipherString));
-        });
-        this.findPossible(this.state.findString);
+        this.updateOutput();
     }
     /**
      * Make a copy of the current state
@@ -49,12 +40,22 @@ export class CipherVigenereSolver extends CipherSolver {
         let savestate = cloneObject(this.state) as IState;
         return savestate;
     }
-
     /**
-     * Sets up the radio button to choose the variant
+     * Cleans up any settings, range checking and normalizing any values.
+     * This doesn't actually update the UI directly but ensures that all the
+     * values are legitimate for the cipher handler
+     * Generally you will call updateOutput() after calling setUIDefaults()
+     */
+    setUIDefaults(): void {
+        this.setCipherType(this.state.cipherType);
+        this.setKeyword(this.state.keyword);
+        super.setUIDefaults();
+    }
+    /**
+     * Sets up the radio button to choose the variant and creates the input area
      */
     genPreCommands(): JQuery<HTMLElement> {
-        let operationChoice = $("<div>");
+        let result = $("<div>");
 
         let radiobuttons = [
             CipherTypeButtonItem(ICipherType.Vigenere),
@@ -63,48 +64,134 @@ export class CipherVigenereSolver extends CipherSolver {
             CipherTypeButtonItem(ICipherType.Gronsfeld),
             CipherTypeButtonItem(ICipherType.Porta)
         ];
-        operationChoice.append(
-            JTRadioButton(8, "codevariant", radiobuttons, this.state.cipherType)
+        result.append(
+            JTRadioButton(8, "ciphertype", radiobuttons, this.state.cipherType)
         );
-        return operationChoice;
+        result.append(
+            JTFLabeledInput(
+                "Cipher Text",
+                "textarea",
+                "encoded",
+                this.state.cipherString,
+                "small-12 medium-12 large-12"
+            )
+        );
+        return result;
     }
-
-    private updateUI(): void {
-        $("#encoded").val(this.state.cipherString);
+    /**
+     * Set up the UI elements for the result fields
+     */
+    genPostCommands(): JQuery<HTMLElement> {
+        let result = $("<div/>");
+        let inputbox = $("<div/>", {
+            class: "grid-x grid-margin-x"
+        });
+        inputbox.append(
+            JTFLabeledInput(
+                "Keyword",
+                "text",
+                "keyword",
+                this.state.keyword,
+                "cell small-12 medium-6 large-6"
+            )
+        );
+        inputbox.append(
+            JTFLabeledInput(
+                "Find Spot For",
+                "text",
+                "find",
+                this.state.findString,
+                "cell small-12 medium-6 large-6"
+            )
+        );
+        result.append(inputbox);
+        result.append(
+            $("<div/>", {
+                class: "grid-x grid-margin-x"
+            })
+                .append(
+                    $("<div/>", {
+                        class:
+                            "sanalysis cell medium-order-2 large-order-1 medium-12 large-3",
+                        id: "analysis"
+                    })
+                )
+                .append(
+                    $("<div/>", {
+                        class:
+                            "findres cell medium-order-1 large-order-2 medium-12 large-9",
+                        id: "findres"
+                    })
+                )
+        );
+        return result;
+    }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
+    public updateOutput(): void {
+        JTRadioButtonSet("ciphertype", this.state.cipherType);
         $("#keyword").val(this.state.keyword);
-        $("#find").val(this.state.findString);
-        $("#answer")
-            .empty()
-            .append(this.build());
-        $('[name="codevariant"]').removeAttr("checked");
-        $("input[name=codevariant][value=" + this.state.cipherType + "]").prop(
-            "checked",
-            true
-        );
+        $("#encoded").val(this.state.cipherString);
+        // Force build to rebuild completely
+        this.lastencoded = undefined;
+        super.updateOutput();
     }
-
     /**
      * Selects which variant table is to be used for mapping
-     * cipherType Name of code variant - one of vigenere, variant or beaufort
+     * @param cipherType Name of code variant - one of vigenere, variant or beaufort
      */
-    setCipherVariant(cipherType: ICipherType): void {
-        this.state.cipherType = cipherType;
-        this.ciphermap = mapperFactory(cipherType);
-        this.setKeyword(this.state.keyword);
-        for (let repc in this.state.replacement) {
-            this.setChar(repc, this.state.replacement[repc]);
+    public setCipherType(cipherType: ICipherType): boolean {
+        let changed = false;
+        if (this.state.cipherType !== cipherType) {
+            changed = true;
+            this.state.cipherType = cipherType;
         }
+        this.ciphermap = mapperFactory(cipherType);
+        if (changed) {
+            this.setKeyword(this.state.keyword);
+        }
+        return changed;
     }
+    /**
+     * Sets the keyword (state.keyword)
+     * @param keyword New keyword
+     * @returns Boolean indicating if the value actually changed
+     */
+    setKeyword(keyword: string): boolean {
+        let changed = false;
+        if (this.state.keyword !== keyword) {
+            this.state.keyword = keyword;
+            changed = true;
+        }
+        return changed;
+    }
+    /**
+     * Loads new data into a solver, preserving all solving matches made
+     */
+    public load(): void {
+        // Force the entire UI to be rebuilt
+        this.lastencoded = undefined;
+        super.load();
+        this.updateKeywordMapping();
+    }
+    /**
+     * Fills in the frequency portion of the frequency table.  For the Vigenere
+     * we don't have the frequency table, so this doesn't need to do anything
+     */
+    displayFreq(): void {}
     /**
      * Changes the keyword to map against the table.  The length of the keyword is
      * the period of the cipher (after removing any spaces of course)
      * Any non-mapping characters (. - _ etc) are used as placeholders
      * str New keyword mapping string
      */
-    setKeyword(str: string): void {
-        if (str.length > 0) {
+    updateKeywordMapping(): void {
+        let str = this.state.keyword;
+        if (str !== undefined && str !== "") {
             console.log("Keyword is" + str);
-            this.state.keyword = str;
+
             str = str.replace(" ", "");
             let period = str.length;
             $("#period").text("Period = " + period);
@@ -121,16 +208,6 @@ export class CipherVigenereSolver extends CipherSolver {
                     this.state.cipherString.charAt(this.cipherOffsets[i]),
                     ckey
                 );
-                console.log(
-                    "Set:" +
-                        i +
-                        " for CT=" +
-                        this.cipherOffsets[i] +
-                        " Key=" +
-                        ckey +
-                        " to pt=" +
-                        pt
-                );
                 $("span[data-char='" + this.cipherOffsets[i] + "']").text(pt);
                 $("div[data-char='" + this.cipherOffsets[i] + "']").html(pt);
             }
@@ -139,6 +216,7 @@ export class CipherVigenereSolver extends CipherSolver {
     /**
      * Locate a string.
      * Note that we assume that the period has been set
+     * @param str String to look for
      */
     findPossible(str: string): void {
         this.state.findString = str;
@@ -146,10 +224,7 @@ export class CipherVigenereSolver extends CipherSolver {
             $(".findres").empty();
             return;
         }
-        let blankkey = "";
-        for (let c of this.state.keyword) {
-            blankkey += "-";
-        }
+        let blankkey = this.repeatStr("-", this.state.keyword.length);
         let res = null;
         let maxcols = 5;
         let tdcount = 0;
@@ -186,7 +261,10 @@ export class CipherVigenereSolver extends CipherSolver {
                 }
                 tdcount = tdcount + 1;
                 row.add(String(i)).add(
-                    $("<a>", { class: "vkey", href: "#" }).text(thiskey)
+                    $("<a>", {
+                        class: "vkey",
+                        href: "#"
+                    }).text(thiskey)
                 );
             }
         }
@@ -205,18 +283,21 @@ export class CipherVigenereSolver extends CipherSolver {
             .append(res);
         this.attachHandlers();
     }
-
-    /**
-     * Fills in the frequency portion of the frequency table.  For the Vigenere
-     * we don't have the frequency table, so this doesn't need to do anything
-     */
-    displayFreq(): void {}
     /**
      * Analyze the encoded text
+     * @param encoded String to analyze
      */
     genAnalysis(encoded: string): JQuery<HTMLElement> {
         if (encoded === "") {
             return null;
+        }
+        $("#err").empty();
+        if (this.state.keyword === undefined || this.state.keyword === "") {
+            $("#err").append(
+                $("<div/>", { class: "callout alert" }).text(
+                    "Enter a sample keyword to set the period"
+                )
+            );
         }
         let prevSpot: NumberMap = {};
         let factorSet: NumberMap = {};
@@ -301,16 +382,17 @@ export class CipherVigenereSolver extends CipherSolver {
         elem1: JQuery<HTMLElement>,
         elem2: JQuery<HTMLElement>
     ): JQuery<HTMLElement> {
-        return new JTTable({ body: [[elem1, elem2]] }).generate();
+        return new JTTable({
+            class: "talign",
+            body: [[elem1, elem2]]
+        }).generate();
     }
     /**
      * Change the encrypted character.  This primarily shows us what the key might be if we use it
+     * @param repchar Character that is being mapped
+     * @param newchar Character to map it to
      */
     setChar(repchar: string, newchar: string): void {
-        console.log(
-            "vigenere setChar data-char=" + repchar + " newchar=" + newchar
-        );
-
         this.state.replacement[repchar] = newchar;
         let index = Number(repchar);
         let ct = this.state.cipherString.charAt(index);
@@ -318,7 +400,6 @@ export class CipherVigenereSolver extends CipherSolver {
         let key = this.ciphermap.decodeKey(ct, newchar);
         $("div[data-schar='" + repchar + "']").html(key);
     }
-
     /**
      * Builds the GUI for the solver
      */
@@ -387,33 +468,19 @@ export class CipherVigenereSolver extends CipherSolver {
      * Creates an HTML table to display the frequency of characters
      */
     createFreqEditTable(): JQuery<HTMLElement> {
-        let topdiv = $("<div>");
-        $("<div>", { id: "period", class: "note" })
-            .text("Enter a sample keyword to set the period")
-            .appendTo(topdiv);
-        $("<label>", { for: "keyword" })
-            .text("Keyword")
-            .appendTo(topdiv);
-        $("<input/>", { class: "xxx", id: "keyword" }).appendTo(topdiv);
-
-        return topdiv;
+        return null;
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
         super.attachHandlers();
-        this.setCipherVariant($(
-            "input[name='codevariant']:checked"
-        ).val() as ICipherType);
-
-        $("input[type=radio][name=codevariant]")
-            .off("change")
-            .on("change", e => {
+        $('[name="ciphertype"]')
+            .off("click")
+            .on("click", e => {
                 this.markUndo();
-                this.setCipherVariant($(
-                    "input[name='codevariant']:checked"
-                ).val() as ICipherType);
+                this.setCipherType($(e.target).val() as ICipherType);
+                this.updateOutput();
             });
         $("#keyword")
             .off("input")
@@ -421,7 +488,9 @@ export class CipherVigenereSolver extends CipherSolver {
                 let newkeyword = $(e.target).val() as string;
                 if (newkeyword !== this.state.keyword) {
                     this.markUndo();
-                    this.setKeyword(newkeyword);
+                    if (this.setKeyword(newkeyword)) {
+                        this.updateOutput();
+                    }
                 }
             });
         $("a.vkey")
@@ -433,8 +502,9 @@ export class CipherVigenereSolver extends CipherSolver {
                 }
                 if (newkey !== this.state.keyword) {
                     this.markUndo();
-                    this.setKeyword(newkey);
-                    $("#keyword").val(newkey);
+                    if (this.setKeyword(newkey)) {
+                        this.updateOutput();
+                    }
                 }
             });
         $(".slvi")

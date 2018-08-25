@@ -67,10 +67,6 @@ input.cb {
     line-height: 100%;
 }
 
-.err {
-    height: 18px;
-}
-
 #chi {
     display: block;
     margin-top: 10px;
@@ -324,7 +320,9 @@ table.mfind th {
     border-top: none;
     background-color: white;
 }
-
+table.talign td {
+    vertical-align: top;
+}
 thead .topleft.k1,
 thead .topleft.k2 {
     text-align: center;
@@ -333,9 +331,13 @@ thead .topleft.k2 {
     background-color: #d3d3d3;
     border: 1px solid black;
 }
-.sanalysis {
-    float: left;
-    margin-right: 10px;
+
+.sanalysis table td,
+.sanalysis table th,
+.findres table td,
+.findres table th {
+    padding: 0.1rem;
+    white-space: nowrap;
 }
 
 .ckfreq td,

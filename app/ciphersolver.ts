@@ -43,19 +43,11 @@ export class CipherSolver extends CipherHandler {
      * @param data Saved state to restore
      */
     restore(data: IState): void {
-        let rebuild = false;
-        if (
-            data.cipherString !== undefined &&
-            this.state.cipherString !== data.cipherString
-        ) {
-            rebuild = true;
-        }
         this.state = cloneObject(this.defaultstate) as IState;
         this.copyState(this.state, data);
 
         this.setUIDefaults();
         this.updateOutput();
-        this.findPossible(this.state.findString);
     }
     /**
      * Cleans up any settings, range checking and normalizing any values.
@@ -64,6 +56,7 @@ export class CipherSolver extends CipherHandler {
      * Generally you will call updateOutput() after calling setUIDefaults()
      */
     setUIDefaults(): void {
+        super.setUIDefaults();
         this.setCipherString(this.state.cipherString);
     }
     /**
@@ -71,6 +64,7 @@ export class CipherSolver extends CipherHandler {
      * All values to the UI
      */
     updateOutput(): void {
+        super.updateOutput();
         this.enableFilemenu();
         this.setRichText("qtext", this.state.question);
         $("#encoded").val(this.state.cipherString);
@@ -78,21 +72,29 @@ export class CipherSolver extends CipherHandler {
         this.UpdateFreqEditTable();
         this.updateMatchDropdowns(undefined);
         // Populate all the matches
-        for (let c of this.getCharset()) {
-            this.setChar(c, this.state.replacement[c]);
-        }
+        this.propagateReplacements();
         // And restore any finds that may have been in progress
         $("#find").val(this.state.findString);
+        this.findPossible(this.state.findString);
     }
+    /**
+     * Propagate all of the replacement characters to the UI
+     */
+    public propagateReplacements(): void {
+        // for (let c of this.getCharset()) {
+        //     this.setChar(c, this.state.replacement[c]);
+        // }
+        for (let repc in this.state.replacement) {
+            this.setChar(repc, this.state.replacement[repc]);
+        }
+    }
+
     /**
      * Generates an HTML representation of a string for display
      * @param str String to normalize
      */
     normalizeHTML(str: string): string {
         return str;
-    }
-    newCipher(): void {
-        this.restore(this.defaultstate);
     }
     /**
      * Loads new data into a solver, preserving all solving matches made
@@ -127,7 +129,7 @@ export class CipherSolver extends CipherHandler {
     }
     /**
      * Create an edit field for a dropdown
-     * @package c Character to make the dropdown for
+     * @param c Character to make the dropdown for
      */
     makeFreqEditField(c: string): JQuery<HTMLElement> {
         let einput = $("<input/>", {

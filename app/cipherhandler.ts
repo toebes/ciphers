@@ -1126,7 +1126,7 @@ export class CipherHandler {
      * Start a new cipher
      */
     newCipher(): void {
-        throw new Error("Method not implemented.");
+        this.restore(this.defaultstate);
     }
     /**
      * Copies one state interface to another preserving fields that are already

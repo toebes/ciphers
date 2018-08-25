@@ -54,18 +54,33 @@ export class CipherEncoder extends CipherHandler {
         this.redocmdButton,
         { title: "Reset", color: "warning", id: "reset" }
     ];
+    /**
+     * Make a copy of the current state
+     */
+    save(): IEncoderState {
+        let result: IEncoderState = cloneObject(this.state) as IState;
+        return result;
+    }
+    /**
+     * Restore a saved state or undo state
+     * @param data Previous state to restore
+     */
     restore(data: IEncoderState): void {
-        let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;
-        this.state.curlang = curlang;
         this.copyState(this.state, data);
-        this.setCharset(this.acalangcharset[this.state.curlang]);
-        this.setSourceCharset(this.encodingcharset[this.state.curlang]);
         this.setUIDefaults();
         this.updateOutput();
     }
+    /**
+     * Cleans up any settings, range checking and normalizing any values.
+     * This doesn't actually update the UI directly but ensures that all the
+     * values are legitimate for the cipher handler
+     * Generally you will call updateOutput() after calling setUIDefaults()
+     */
     setUIDefaults(): void {
         super.setUIDefaults();
+        this.setCharset(this.acalangcharset[this.state.curlang]);
+        this.setSourceCharset(this.encodingcharset[this.state.curlang]);
         this.setCipherType(this.state.cipherType);
         this.setCipherString(this.state.cipherString);
         this.setEncType(this.state.encodeType);
@@ -73,6 +88,10 @@ export class CipherEncoder extends CipherHandler {
         this.setShift(this.state.shift);
         this.setOffset2(this.state.offset2);
     }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
     updateOutput(): void {
         this.updateQuestionsOutput();
         this.enableFilemenu();
@@ -91,18 +110,6 @@ export class CipherEncoder extends CipherHandler {
         $("#points").val(this.state.points);
         this.setRichText("qtext", this.state.question);
     }
-
-    save(): IEncoderState {
-        let result: IEncoderState = cloneObject(this.state) as IState;
-        return result;
-    }
-    /**
-     * Initializes the encoder.
-     */
-    init(lang: string): void {
-        super.init(lang);
-    }
-
     /**
      * Enable / Disable the HTML elements based on the alphabet selection
      */
@@ -146,6 +153,11 @@ export class CipherEncoder extends CipherHandler {
         }
         return changed;
     }
+    /**
+     * Sets the keyword (state.keyword)
+     * @param keyword New keyword
+     * @returns Boolean indicating if the value actually changed
+     */
     setKeyword(keyword: string): boolean {
         let changed = false;
         if (this.state.keyword !== keyword) {
@@ -155,6 +167,11 @@ export class CipherEncoder extends CipherHandler {
         }
         return changed;
     }
+    /**
+     * Sets the secondary keyword (state.keyword2)
+     * @param keyword2 new Secondary keyword
+     * @returns Boolean indicating if the value actually changed
+     */
     setKeyword2(keyword2: string): boolean {
         let changed = false;
         if (this.state.keyword2 !== keyword2) {
@@ -164,6 +181,11 @@ export class CipherEncoder extends CipherHandler {
         }
         return changed;
     }
+    /**
+     * Sets the offset value (state.offset)
+     * @param offset new offset value
+     * @returns Boolean indicating if the value actually changed
+     */
     setOffset(offset: number): boolean {
         let changed = false;
         let charset = this.getCharset();
@@ -175,6 +197,11 @@ export class CipherEncoder extends CipherHandler {
         }
         return changed;
     }
+    /**
+     * Sets the secondary offset value (state.offset2)
+     * @param offset2 new offset value
+     * @returns Boolean indicating if the value actually changed
+     */
     setOffset2(offset2: number): boolean {
         let changed = false;
         let charset = this.getCharset();
@@ -186,6 +213,11 @@ export class CipherEncoder extends CipherHandler {
         }
         return changed;
     }
+    /**
+     * Sets the shift value (state.shift)
+     * @param shift new shift value
+     * @returns Boolean indicating if the value actually changed
+     */
     setShift(shift: number): boolean {
         let changed = false;
         let charset = this.getCharset();
@@ -199,6 +231,7 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      * Loads a language in response to a dropdown event
+     * @param lang New language string
      */
     loadLanguage(lang: string): void {
         this.state.curlang = lang;
@@ -209,7 +242,6 @@ export class CipherEncoder extends CipherHandler {
         // case that we want to analyze the complexity of the phrase
         // super.loadLanguage(lang)
     }
-
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
@@ -364,7 +396,6 @@ export class CipherEncoder extends CipherHandler {
             this.genAlphabetRandom();
         }
     }
-
     /**
      * Compute the replacement set for the the characters on an encryption
      * Note that we actually have to reverse them because the ciphers class

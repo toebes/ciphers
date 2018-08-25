@@ -14,7 +14,8 @@ export class CipherMorseSolver extends CipherSolver {
         morsemap: null,
         cipherString: "",
         locked: {},
-        findString: ""
+        findString: "",
+        replacement: {}
     };
     state: IMorseState = cloneObject(this.defaultstate) as IMorseState;
     readonly tomorse: { [key: string]: string } = {
@@ -184,16 +185,23 @@ export class CipherMorseSolver extends CipherSolver {
             this.load();
         }
     }
+    /**
+     * Restore from an UNDO or saved state
+     * @param data Saved state to restore
+     */
     restore(data: IMorseState): void {
-        this.state = { ...this.defaultstate };
+        this.state = cloneObject(this.defaultstate) as IMorseState;
         this.copyState(this.state, data);
         this.UpdateFreqEditTable();
+
+        this.setUIDefaults();
+        this.updateOutput();
+    }
+    updateOutput(): void {
         $("#encoded").val(this.state.cipherString);
+        $("#find").val(this.state.findString);
         this.load();
-        if (this.state.findString !== undefined) {
-            $("#find").val(this.state.findString);
-            this.findPossible(this.state.findString);
-        }
+        this.findPossible(this.state.findString);
     }
     /**
      * Make a copy of the current state
@@ -300,7 +308,7 @@ export class CipherMorseSolver extends CipherSolver {
         let finaltext = "";
         let docwidth = $(document).width();
         //docwidth = 9 * 24 * cipherwidth
-        let width = cipherwidth * Math.floor(docwidth / (cipherwidth * 24));
+        let width = cipherwidth * Math.floor(docwidth / (cipherwidth * 36));
 
         //
         // Build up the input string and the corresponding morse code

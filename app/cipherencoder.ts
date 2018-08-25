@@ -135,12 +135,14 @@ export class CipherEncoder extends CipherHandler {
         }
         return changed;
     }
-    setCipherString(cipherString: string): boolean {
-        let changed = false;
-        if (this.state.cipherString !== cipherString) {
-            this.state.cipherString = cipherString;
+    /**
+     * Updates the stored state cipher string
+     * @param cipherString Cipher string to set
+     */
+    public setCipherString(cipherString: string): boolean {
+        let changed = super.setCipherString(cipherString);
+        if (changed) {
             this.resetAlphabet();
-            changed = true;
         }
         return changed;
     }
@@ -280,6 +282,17 @@ export class CipherEncoder extends CipherHandler {
                     }
                 }
             });
+        $("#toencode")
+            .off("input")
+            .on("input", e => {
+                let cipherString = $(e.target).val() as string;
+                if (cipherString !== this.state.cipherString) {
+                    this.markUndo("cipherString");
+                    if (this.setCipherString(cipherString)) {
+                        this.updateOutput();
+                    }
+                }
+            });
         $("#points")
             .off("input")
             .on("input", e => {
@@ -296,17 +309,6 @@ export class CipherEncoder extends CipherHandler {
                 if (question !== this.state.question) {
                     this.markUndo("question");
                     this.state.question = question;
-                }
-            });
-        $("#toencode")
-            .off("input")
-            .on("input", e => {
-                let cipherString = $(e.target).val() as string;
-                if (cipherString !== this.state.cipherString) {
-                    this.markUndo("cipherString");
-                    if (this.setCipherString(cipherString)) {
-                        this.updateOutput();
-                    }
                 }
             });
         $("#randomize")
@@ -555,15 +557,21 @@ export class CipherEncoder extends CipherHandler {
         }
         for (let strset of strings) {
             result.append(
-                $("<div>", { class: "TOSOLVE" }).text(strset[tosolve])
+                $("<div>", {
+                    class: "TOSOLVE"
+                }).text(strset[tosolve])
             );
             result.append(
-                $("<div>", { class: "TOANSWER" }).text(strset[toanswer])
+                $("<div>", {
+                    class: "TOANSWER"
+                }).text(strset[toanswer])
             );
         }
         if (this.state.cipherType === ICipherType.Patristocrat) {
             result.append(
-                $("<div>", { class: "origtext" }).text(this.state.cipherString)
+                $("<div>", {
+                    class: "origtext"
+                }).text(this.state.cipherString)
             );
         }
         result.append(this.genFreqTable(true, this.state.encodeType));
@@ -580,7 +588,11 @@ export class CipherEncoder extends CipherHandler {
             this.maxEncodeWidth
         );
         for (let strset of strings) {
-            result.append($("<div>", { class: "TOSOLVEQ" }).text(strset[0]));
+            result.append(
+                $("<div>", {
+                    class: "TOSOLVEQ"
+                }).text(strset[0])
+            );
         }
         result.append(this.genFreqTable(false, this.state.encodeType));
         return result;
@@ -594,11 +606,21 @@ export class CipherEncoder extends CipherHandler {
     build(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(
-            $("<div>", { class: "callout small success" })
+            $("<div>", {
+                class: "callout small success"
+            })
                 .text("Note: Plain Text is on ")
-                .append($("<span/>", { class: "TOSOLVE" }).text("top line"))
+                .append(
+                    $("<span/>", {
+                        class: "TOSOLVE"
+                    }).text("top line")
+                )
                 .append(", Cipher Text is ")
-                .append($("<span>", { class: "TOANSWER" }).text("highlighted"))
+                .append(
+                    $("<span>", {
+                        class: "TOANSWER"
+                    }).text("highlighted")
+                )
         );
         result.append(this.genAnswer());
         return result;
@@ -629,7 +651,11 @@ export class CipherEncoder extends CipherHandler {
             { id: "enck3", value: "k3", title: "K3" },
             { id: "enck4", value: "k4", title: "K4" }
         ];
-        result.append($("<div>", { class: "cell" }).text("Alphabet Type"));
+        result.append(
+            $("<div>", {
+                class: "cell"
+            }).text("Alphabet Type")
+        );
         result.append(
             JTRadioButton(12, "enctype", radiobuttons, this.state.encodeType)
         );

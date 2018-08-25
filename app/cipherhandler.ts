@@ -35,7 +35,7 @@ export interface IState {
     /** Currently selected keyword */
     keyword?: string;
     /** Replacement characters */
-    replacements?: StringMap;
+    replacement?: StringMap;
     /** Any additional save state data */
     undotype?: string;
     /** The type of operation */
@@ -597,7 +597,7 @@ export class CipherHandler {
         /** The current string we are looking for */
         findString: "",
         /** Replacement characters */
-        replacements: {},
+        replacement: {},
         /** Current language */
         curlang: ""
     };
@@ -669,7 +669,6 @@ export class CipherHandler {
     charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     sourcecharset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     unasigned: string = "";
-    replacement: StringMap = {};
     holdupdates: boolean = false;
     /** Stack of current Undo/Redo operations */
     undoStack: IState[] = [];
@@ -1228,7 +1227,6 @@ export class CipherHandler {
         }
 
         let charset = this.getSourceCharset();
-        let revRepl = this.getReverseReplacement();
 
         headrow.add({
             settings: { class: "topleft " + encodeType },
@@ -1240,7 +1238,7 @@ export class CipherHandler {
         for (let c of charset.toUpperCase()) {
             let repl = "";
             if (showanswers) {
-                repl = this.replacement[c];
+                repl = this.state.replacement[c];
             }
             headrow.add(c);
             let freq = String(this.freq[c]);
@@ -1378,6 +1376,7 @@ export class CipherHandler {
         } else {
             undotype = null;
         }
+        undodata.undotype = undotype;
         // See if we can merge this (such as a find operation) with the previous undo
         if (
             this.undoStack.length > 0 &&
@@ -1390,6 +1389,9 @@ export class CipherHandler {
         ) {
             this.undoStack[this.undoStack.length - 1] = undodata;
         } else {
+            if (this.undoStack.length === 0) {
+                undodata.undotype = null;
+            }
             this.undoStack.push(undodata);
         }
         this.undoPosition = this.undoStack.length - 1;
@@ -1595,13 +1597,13 @@ export class CipherHandler {
         // console.log("handler setChar data-char=" + repchar + " newchar=" + newchar)
         // See if any other slots have this character and reset it
         if (newchar !== "") {
-            for (let i in this.replacement) {
-                if (this.replacement[i] === newchar && i !== repchar) {
+            for (let i in this.state.replacement) {
+                if (this.state.replacement[i] === newchar && i !== repchar) {
                     this.setChar(i, "");
                 }
             }
         }
-        this.replacement[repchar] = newchar;
+        this.state.replacement[repchar] = newchar;
         $("input[data-char='" + repchar + "']").val(newchar);
         if (newchar === "") {
             newchar = "?";
@@ -1722,9 +1724,9 @@ export class CipherHandler {
     getReverseReplacement(): StringMap {
         let revRepl: StringMap = {};
         // Build a reverse replacement map so that we can encode the string
-        for (let repc in this.replacement) {
-            if (this.replacement.hasOwnProperty(repc)) {
-                revRepl[this.replacement[repc]] = repc;
+        for (let repc in this.state.replacement) {
+            if (this.state.replacement.hasOwnProperty(repc)) {
+                revRepl[this.state.replacement[repc]] = repc;
             }
         }
         return revRepl;
@@ -1842,7 +1844,7 @@ export class CipherHandler {
     /**
      * Analyze the encoded text and update the UI output
      */
-    analyze(encoded: string): JQElement {
+    genAnalysis(encoded: string): JQElement {
         return null;
     }
     /**
@@ -1903,8 +1905,8 @@ export class CipherHandler {
                 $("#f" + c).text(subval);
             }
         }
-        for (let c in this.replacement) {
-            let r = this.replacement[c];
+        for (let c in this.state.replacement) {
+            let r = this.state.replacement[c];
             $("#m" + c).text(r);
             $("#rf" + r).text(c);
         }
@@ -2155,7 +2157,7 @@ export class CipherHandler {
     genReplPattern(str: string): string[] {
         let res = [];
         for (let c of str) {
-            res.push(this.replacement[c]);
+            res.push(this.state.replacement[c]);
         }
         return res;
     }
@@ -2182,6 +2184,18 @@ export class CipherHandler {
     public setDefaultCipherType(ciphertype: ICipherType): void {
         this.state.cipherType = ciphertype;
         this.defaultstate.cipherType = ciphertype;
+    }
+    /**
+     * Updates the stored state cipher string
+     * @param cipherString Cipher string to set
+     */
+    public setCipherString(cipherString: string): boolean {
+        let changed = false;
+        if (this.state.cipherString !== cipherString) {
+            this.state.cipherString = cipherString;
+            changed = true;
+        }
+        return changed;
     }
     /**
      * set the cipher type
@@ -2386,7 +2400,7 @@ export class CipherHandler {
         let charset = this.getSourceCharset().toUpperCase();
         $("[id^=rf]").text("");
         for (let c of charset) {
-            $("#rf" + this.replacement[c]).text(c);
+            $("#rf" + this.state.replacement[c]).text(c);
         }
     }
     /**

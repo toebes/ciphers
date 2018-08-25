@@ -240,7 +240,7 @@ export class CipherMorseSolver extends CipherSolver {
         this.state.locked = {};
     }
 
-    analyze(str: string): JQuery<HTMLElement> {
+    genAnalysis(str: string): JQuery<HTMLElement> {
         return null;
     }
     /**
@@ -617,7 +617,7 @@ export class CipherMorseSolver extends CipherSolver {
         $("#analysis").each((i, elem) => {
             $(elem)
                 .empty()
-                .append(this.analyze(this.encodedString));
+                .append(this.genAnalysis(this.encodedString));
         });
         // Show the update frequency values
         this.displayFreq();

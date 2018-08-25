@@ -18,7 +18,7 @@ export class CipherVigenereSolver extends CipherSolver {
         /** The current string we are looking for */
         findString: "",
         /** Replacement characters */
-        replacements: {}
+        replacement: {}
     };
     state: IState = cloneObject(this.defaultstate) as IState;
 
@@ -37,7 +37,7 @@ export class CipherVigenereSolver extends CipherSolver {
         $("#analysis").each((i, elem) => {
             $(elem)
                 .empty()
-                .append(this.analyze(this.state.cipherString));
+                .append(this.genAnalysis(this.state.cipherString));
         });
         this.findPossible(this.state.findString);
     }
@@ -91,8 +91,8 @@ export class CipherVigenereSolver extends CipherSolver {
         this.state.cipherType = cipherType;
         this.ciphermap = mapperFactory(cipherType);
         this.setKeyword(this.state.keyword);
-        for (let repc in this.state.replacements) {
-            this.setChar(repc, this.state.replacements[repc]);
+        for (let repc in this.state.replacement) {
+            this.setChar(repc, this.state.replacement[repc]);
         }
     }
     /**
@@ -214,7 +214,7 @@ export class CipherVigenereSolver extends CipherSolver {
     /**
      * Analyze the encoded text
      */
-    analyze(encoded: string): JQuery<HTMLElement> {
+    genAnalysis(encoded: string): JQuery<HTMLElement> {
         if (encoded === "") {
             return null;
         }
@@ -311,7 +311,7 @@ export class CipherVigenereSolver extends CipherSolver {
             "vigenere setChar data-char=" + repchar + " newchar=" + newchar
         );
 
-        this.state.replacements[repchar] = newchar;
+        this.state.replacement[repchar] = newchar;
         let index = Number(repchar);
         let ct = this.state.cipherString.charAt(index);
         $("input[data-char='" + repchar + "']").val(newchar);

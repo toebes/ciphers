@@ -1,26 +1,47 @@
 import { BoolMap, cloneObject, NumberMap, StringMap } from "./ciphercommon";
 import { CipherHandler, IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
+import { JTButtonItem } from "./jtbuttongroup";
 import { JTTable } from "./jttable";
 
 export class CipherSolver extends CipherHandler {
     defaultstate: IState = {
         /** The current cipher type we are working on */
-        cipherType: ICipherType.Aristocrat,
-        /** The current cipher we are working on */
-        cipherString: "",
-        /** The current string we are looking for */
+        cipherType:
+            ICipherType.Aristocrat /** The current cipher we are working on */,
+        cipherString: "" /** The current string we are looking for */,
         findString: "",
-        locked: {}
+        locked: {},
+        replacement: {}
     };
     state: IState = cloneObject(this.defaultstate) as IState;
-
+    cmdButtons: JTButtonItem[] = [
+        { title: "Save", color: "primary", id: "save" },
+        this.undocmdButton,
+        this.redocmdButton,
+        { title: "Reset", color: "warning", id: "reset" }
+    ];
+    /** Cache the last encoded string to optimize updates */
+    lastencoded: string = undefined;
     /**
      * Initializes the encoder/decoder. (EN is the default)
+     * @param lang Language - default = "EN" for english
      */
     init(lang: string): void {
         super.init(lang);
     }
+    /**
+     * Make a copy of the current state
+     */
+    save(): IState {
+        // We need a deep copy of the save state
+        let savestate = cloneObject(this.state) as IState;
+        return savestate;
+    }
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     restore(data: IState): void {
         let rebuild = false;
         if (
@@ -33,108 +54,100 @@ export class CipherSolver extends CipherHandler {
         this.copyState(this.state, data);
 
         this.setUIDefaults();
-        if (rebuild) {
-            this.load();
-        }
-        let charset = this.getCharset();
-        for (let c of charset) {
-            this.setChar(c, this.replacement[c]);
-        }
-
-        this.setUIDefaults();
+        this.updateOutput();
         this.findPossible(this.state.findString);
     }
-    setUIDefaults(): void {
-        if ("qtext" in this.editor && this.editor["qtext"] !== null) {
-            this.editor["qtext"].setData(this.state.question);
-        } else {
-            $("#qtext").val(this.state.question);
-        }
-        $("#encoded").val(this.state.cipherString);
-        $("#find").val(this.state.findString);
-        $("#analysis").each((i, elem) => {
-            $(elem)
-                .empty()
-                .append(this.analyze(this.state.cipherString));
-        });
-    }
-
     /**
-     * Make a copy of the current state
+     * Cleans up any settings, range checking and normalizing any values.
+     * This doesn't actually update the UI directly but ensures that all the
+     * values are legitimate for the cipher handler
+     * Generally you will call updateOutput() after calling setUIDefaults()
      */
-    save(): IState {
-        // We need a deep copy of the save state
-        let savestate = cloneObject(this.state) as IState;
-        return savestate;
+    setUIDefaults(): void {
+        this.setCipherString(this.state.cipherString);
+    }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
+    updateOutput(): void {
+        this.enableFilemenu();
+        this.setRichText("qtext", this.state.question);
+        $("#encoded").val(this.state.cipherString);
+        this.load();
+        this.UpdateFreqEditTable();
+        this.updateMatchDropdowns(undefined);
+        // Populate all the matches
+        for (let c of this.getCharset()) {
+            this.setChar(c, this.state.replacement[c]);
+        }
+        // And restore any finds that may have been in progress
+        $("#find").val(this.state.findString);
     }
     /**
      * Generates an HTML representation of a string for display
+     * @param str String to normalize
      */
     normalizeHTML(str: string): string {
         return str;
+    }
+    newCipher(): void {
+        this.restore(this.defaultstate);
     }
     /**
      * Loads new data into a solver, preserving all solving matches made
      */
     load(): void {
         let encoded = this.cleanString(this.state.cipherString);
-        console.log("LoadSolver");
-        let res = this.build();
+        if (encoded !== this.lastencoded) {
+            this.lastencoded = encoded;
+            let res = this.build();
 
-        $("#answer")
-            .empty()
-            .append(res);
-        $("#analysis").each((i, elem) => {
-            $(elem)
+            $("#answer")
                 .empty()
-                .append(this.analyze(encoded));
-        });
+                .append(res);
+            $("#analysis").each((i, elem) => {
+                $(elem)
+                    .empty()
+                    .append(this.genAnalysis(encoded));
+            });
 
-        // Show the update frequency values
-        this.displayFreq();
-        // We need to attach handlers for any newly created input fields
-        this.attachHandlers();
+            // Show the update frequency values
+            this.displayFreq();
+            // We need to attach handlers for any newly created input fields
+            this.attachHandlers();
+        }
     }
     /**
-     * Loads new data into a solver, resetting any solving matches made
+     * Resetting any solving matches made
      */
     reset(): void {
-        for (let c in this.freq) {
-            if (this.freq.hasOwnProperty(c)) {
-                $("#m" + c).val("");
-                $("#rf" + c).text("");
-            }
-        }
-        this.load();
+        this.state.replacement = {};
+        this.updateOutput();
     }
-
     /**
      * Create an edit field for a dropdown
+     * @package c Character to make the dropdown for
      */
     makeFreqEditField(c: string): JQuery<HTMLElement> {
-        // let val = ''
-        // for (let repl in this.replacement) {
-        //     if (this.replacement[repl] === c) {
-        //         val = repl
-        //         break
-        //     }
-        // }
         let einput = $("<input/>", {
             type: "text",
             class: "sli",
             "data-char": c,
             id: "m" + c,
-            value: this.replacement[c]
+            value: this.state.replacement[c]
         });
         if (this.state.locked[c]) {
             einput.prop("disabled", true);
         }
         return einput;
     }
-    /*
+    /**
      * Sorter to compare two frequency objects
      * Objects must have a freq and a val portion
      * higher frequency sorts first with a standard alphabetical sort after
+     * @param a First item to compare
+     * @param b Second item to compare
      */
     isort(a: any, b: any): number {
         if (a.freq > b.freq) {
@@ -151,6 +164,9 @@ export class CipherSolver extends CipherHandler {
     /**
      * Finds the top n strings of a given width and formats an HTML
      * unordered list of them.  Only strings which repeat 2 or more times are included
+     * @param str Pattern string to look for
+     * @param width Width of the string
+     * @param num Maximun number of strings to find
      */
     makeTopList(str: string, width: number, num: number): JQuery<HTMLElement> {
         let tfreq = {};
@@ -220,10 +236,9 @@ export class CipherSolver extends CipherHandler {
     }
     /**
      * Builds an HTML Representation of the contact table
-     * encoded String to make a contact table from
+     * @param encoded String to make a contact table from
      */
-    // tslint:disable-next-line:cyclomatic-complexity
-    makeContactTable(encoded: string): JQuery<HTMLElement> {
+    genContactTable(encoded: string): JQuery<HTMLElement> {
         let prevs: StringMap = {};
         let posts: StringMap = {};
         for (let c of this.getCharset()) {
@@ -271,27 +286,65 @@ export class CipherSolver extends CipherHandler {
         table.addHeaderRow([
             {
                 celltype: "th",
-                settings: { colspan: 3 },
+                settings: {
+                    colspan: 3
+                },
                 content: "Contact Table"
             }
         ]);
         for (let item of tobjs) {
             let row = table.addBodyRow();
-            row.add({ settings: { class: "prev" }, content: item.prevs });
-            row.add({ settings: { class: "tlet" }, content: item.let });
-            row.add({ settings: { class: "post" }, content: item.posts });
+            row.add({
+                settings: {
+                    class: "prev"
+                },
+                content: item.prevs
+            });
+            row.add({
+                settings: {
+                    class: "tlet"
+                },
+                content: item.let
+            });
+            row.add({
+                settings: {
+                    class: "post"
+                },
+                content: item.posts
+            });
             freq[item.let] = item.freq;
             consonantline = item.let + consonantline;
         }
         let res = $("<div>");
         res.append(table.generate());
         // Now go through and generate the Consonant line
+        res.append(
+            this.genConsonantsTable(encoded, consonantline, tobjs, freq)
+        );
+        return res.children();
+    }
+    /**
+     * Generate the Consonants Line Table
+     * @param encoded Encoded string
+     * @param consonantline Computed consonantLine
+     * @param tobjs Computed contacts
+     * @param freq Computed frequency table
+     */
+    public genConsonantsTable(
+        encoded: string,
+        consonantline: string,
+        tobjs: any[],
+        freq: NumberMap
+    ): JQuery<HTMLElement> {
+        let prevs: StringMap = {};
+        let posts: StringMap = {};
+
         let minfreq = freq[consonantline.substr(12, 1)];
         for (let c of this.getCharset()) {
             prevs[c] = "";
             posts[c] = "";
         }
-        prevlet = " ";
+        let prevlet = " ";
         // Go though the encoded string looking for all the letters which
         // preceed and follow a letter
         for (let c of encoded) {
@@ -305,8 +358,9 @@ export class CipherSolver extends CipherHandler {
             }
             prevlet = c;
         }
-        // Now we need to build the table
-        table = new JTTable({ class: "cell shrink consonantline" });
+        let table = new JTTable({
+            class: "cell shrink consonantline"
+        });
         let consonants = "";
         let lastfreq = 0;
         for (let item of tobjs) {
@@ -320,32 +374,42 @@ export class CipherSolver extends CipherHandler {
             if (prevs[item.let] !== "" || posts[item.let] !== "") {
                 let row = table.addBodyRow();
                 row.add({
-                    settings: { class: "prev" },
+                    settings: {
+                        class: "prev"
+                    },
                     content: prevs[item.let]
                 });
                 row.add({
-                    settings: { class: "post" },
+                    settings: {
+                        class: "post"
+                    },
                     content: posts[item.let]
                 });
             }
         }
         table.addHeaderRow([
             {
-                celltype: "th",
-                settings: { colspan: 2 },
+                settings: {
+                    colspan: 2
+                },
                 content: "Consonant Line"
             }
         ]);
         table.addHeaderRow([
-            { celltype: "th", settings: { colspan: 2 }, content: consonants }
+            {
+                settings: {
+                    colspan: 2
+                },
+                content: consonants
+            }
         ]);
-        res.append(table.generate());
-        return res.children();
+        return table.generate();
     }
     /**
      * Analyze the encoded text and return an HTML represencation of the analysis
+     * @param encoded String to analyze
      */
-    analyze(encoded: string): JQuery<HTMLElement> {
+    genAnalysis(encoded: string): JQuery<HTMLElement> {
         let topdiv = $("<div>");
 
         let table = new JTTable({ class: "cell shrink satable" });
@@ -357,7 +421,7 @@ export class CipherSolver extends CipherHandler {
         }
 
         topdiv.append(table.generate());
-        topdiv.append(this.makeContactTable(encoded));
+        topdiv.append(this.genContactTable(encoded));
         return topdiv.children();
     }
     /**
@@ -407,6 +471,10 @@ export class CipherSolver extends CipherHandler {
 
     /**
      * Searches for a string (drags a crib through the crypt)
+     * @param encoded Encoded string
+     * @param encodewidth Width of characters in the string
+     * @param tofind Pattern string to find
+     * @param findwidth Width of characters in the pattern
      */
     // tslint:disable-next-line:cyclomatic-complexity
     searchPattern(
@@ -432,7 +500,7 @@ export class CipherSolver extends CipherHandler {
             used[c] = false;
         }
         for (let c of charset) {
-            used[this.replacement[c]] = true;
+            used[this.state.replacement[c]] = true;
         }
 
         for (i = 0; i + searchlen * encodewidth <= encrlen; i += encodewidth) {
@@ -530,7 +598,6 @@ export class CipherSolver extends CipherHandler {
         }
         return res;
     }
-
     /**
      * Builds the GUI for the solver
      */
@@ -543,7 +610,7 @@ export class CipherSolver extends CipherHandler {
         let posthead2 = '"></div></div>';
         let pre = prehead;
         let datachars = "";
-        let charset = this.getCharset().toUpperCase();
+        let charset = this.getCharset();
         this.freq = {};
         for (let c of charset.toUpperCase()) {
             this.freq[c] = 0;
@@ -595,6 +662,7 @@ export class CipherSolver extends CipherHandler {
     }
     /**
      * Change multiple characters at once.
+     * @param reqstr String of characters to set
      */
     setMultiChars(reqstr: string): void {
         console.log("setStandardMultiChars " + reqstr);
@@ -611,9 +679,9 @@ export class CipherSolver extends CipherHandler {
         this.holdupdates = false;
         this.updateMatchDropdowns("");
     }
-
     /**
      * Generates the Match dropdown for a given string
+     * @param str Pattern string to generate match dropdown
      */
     generateMatchDropdown(str: string): JQuery<HTMLElement> {
         if (
@@ -636,7 +704,7 @@ export class CipherSolver extends CipherHandler {
                 used[c] = false;
             }
             for (let c of charset) {
-                used[this.replacement[c]] = true;
+                used[this.state.replacement[c]] = true;
             }
 
             for (let i = 0, len = matches.length; i < len; i++) {
@@ -674,6 +742,7 @@ export class CipherSolver extends CipherHandler {
     }
     /**
      * Update all of the match dropdowns in response to a change in the cipher mapping
+     * @param reqstr String to optimize updates for (mostly ignored)
      */
     updateMatchDropdowns(reqstr: string): void {
         this.UpdateReverseReplacements();
@@ -683,9 +752,22 @@ export class CipherSolver extends CipherHandler {
                 .append(this.generateMatchDropdown($(elem).attr("data-chars")));
         });
     }
+    /**
+     * Attach handlers to any newly created DOM Elements
+     */
     attachHandlers(): void {
         super.attachHandlers();
-
+        $("#encoded")
+            .off("input")
+            .on("input", e => {
+                let cipherString = $(e.target).val() as string;
+                if (cipherString !== this.state.cipherString) {
+                    this.markUndo("cipherString");
+                    if (this.setCipherString(cipherString)) {
+                        this.updateOutput();
+                    }
+                }
+            });
         $("a.dapply")
             .off("click")
             .on("click", e => {

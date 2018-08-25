@@ -113,7 +113,7 @@ input.cb {
 }
 .sli {
     margin: 0;
-    width: 15px;
+    width: 1rem;
     padding: 0;
     text-align: center;
     border: 1px black dotted;
@@ -122,7 +122,7 @@ input.cb {
 
 .slil {
     display: block;
-    width: 15px;
+    width: 1rem;
     text-align: center;
 }
 
@@ -285,7 +285,7 @@ table.tfreq th {
 table.mfind td {
     border: 1px solid black;
     margin: 0px;
-    padding: 0.1rem 0.3rem 0.1rem;
+    padding: 0.1rem 0.15rem 0.1rem;
 }
 
 table.mfind {

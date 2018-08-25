@@ -359,7 +359,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     encodeString(s: string): string {
         let encoded = "";
         for (let i = 0; i < s.length; i++) {
-            encoded += this.replacement[s.substr(i, 1)];
+            encoded += this.state.replacement[s.substr(i, 1)];
         }
         return encoded;
     }
@@ -375,7 +375,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             while (c >= 26) {
                 c -= 26;
             }
-            this.replacement[letter] = charset.substr(c, 1);
+            this.state.replacement[letter] = charset.substr(c, 1);
         }
     }
     /**
@@ -399,7 +399,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             let cipherChar = "";
             if (this.isValidChar(messageChar)) {
                 message += messageChar;
-                cipherChar = this.replacement[messageChar];
+                cipherChar = this.state.replacement[messageChar];
             } else {
                 message += messageChar;
                 continue;

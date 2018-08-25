@@ -222,7 +222,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
         $("#analysis").each((i, elem) => {
             $(elem)
                 .empty()
-                .append(this.analyze(encoded));
+                .append(this.genAnalysis(encoded));
         });
 
         // Show the update frequency values

@@ -409,7 +409,7 @@ export class CipherRagbabySolver extends CipherSolver {
     /**
      * Analyze the encoded text
      */
-    analyze(encoded: string): JQuery<HTMLElement> {
+    genAnalysis(encoded: string): JQuery<HTMLElement> {
         return null;
     }
     /**

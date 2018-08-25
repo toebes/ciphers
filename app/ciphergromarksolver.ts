@@ -211,9 +211,9 @@ export class CipherGromarkSolver extends CipherSolver {
 
         if (dispchar === "") {
             dispchar = "?";
-            fillchar = this.replacement[repchar]; // the last character that was in this spot
+            fillchar = this.state.replacement[repchar]; // the last character that was in this spot
         }
-        this.replacement[repchar] = newchar;
+        this.state.replacement[repchar] = newchar;
         //console.log('Gromark setChar repchar=' + repchar + ' newchar=' + newchar + ' pos=' + pos + ' charset=' + charset)
         if (pos >= 0) {
             // Handle wrapping around by simply doubling the character set
@@ -384,7 +384,7 @@ export class CipherGromarkSolver extends CipherSolver {
         // Iterate through all of our characters
         for (i = 0; i < len; i++) {
             let c = charset.substr(i, 1);
-            let repl = this.replacement[c];
+            let repl = this.state.replacement[c];
             // See if we have a replacement for it.
             if (this.isValidChar(repl)) {
                 // if we do have a replacement, we want to figure out what the corresponding characters map

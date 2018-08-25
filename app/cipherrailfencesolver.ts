@@ -276,7 +276,7 @@ export class CipherRailfenceSolver extends CipherSolver {
      * Analyze the cipher string and show any data for the user to make decisions.
      * encoded Encoded string to analyze
      */
-    analyze(): JQuery<HTMLElement> {
+    genAnalysis(): JQuery<HTMLElement> {
         return null;
     }
 

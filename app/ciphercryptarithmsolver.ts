@@ -31,7 +31,7 @@ export class CryptarithmSolver extends CipherSolver {
         $("#analysis").each((i, elem) => {
             $(elem)
                 .empty()
-                .append(this.analyze(encoded));
+                .append(this.genAnalysis(encoded));
         });
         let pos = 0;
         let charset = this.getCharset();
@@ -54,7 +54,7 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Analyze the encoded text
      */
-    analyze(encoded: string): JQuery<HTMLElement> {
+    genAnalysis(encoded: string): JQuery<HTMLElement> {
         return null;
     }
     /**
@@ -64,13 +64,13 @@ export class CryptarithmSolver extends CipherSolver {
         let result = "";
         for (let c of str) {
             if (
-                typeof this.replacement[c] === "undefined" ||
-                this.replacement[c] === "" ||
-                this.replacement[c] === " "
+                typeof this.state.replacement[c] === "undefined" ||
+                this.state.replacement[c] === "" ||
+                this.state.replacement[c] === " "
             ) {
                 result += c;
             } else {
-                result += this.replacement[c];
+                result += this.state.replacement[c];
             }
         }
         // Now we need to convert everything to base 10 so we can
@@ -200,13 +200,13 @@ export class CryptarithmSolver extends CipherSolver {
     setChar(repchar: string, newchar: string): void {
         console.log("setChar data-char=" + repchar + " newchar=" + newchar);
         // See if we actually have to do anything at all
-        if (this.replacement[repchar] !== newchar) {
+        if (this.state.replacement[repchar] !== newchar) {
             // Ok we need to figure out what slot we are swapping with
-            let oldchar = this.replacement[repchar];
+            let oldchar = this.state.replacement[repchar];
             if (oldchar !== "" && oldchar !== " ") {
                 let oldrep = "";
-                for (let i in this.replacement) {
-                    if (this.replacement[i] === newchar) {
+                for (let i in this.state.replacement) {
+                    if (this.state.replacement[i] === newchar) {
                         oldrep = i;
                         break;
                     }
@@ -252,7 +252,7 @@ export class CryptarithmSolver extends CipherSolver {
         this.usedletters = {};
         this.boxState = {};
         this.state.locked = {};
-        this.replacement = {};
+        this.state.replacement = {};
         this.base = 0;
         let lineitems: Array<lineitem> = [];
         str = str.replace(new RegExp("gives root", "g"), "^");
@@ -1080,7 +1080,7 @@ export class CryptarithmSolver extends CipherSolver {
     updateCheck(c: string, lock: boolean): void {
         if (this.state.locked[c] !== lock) {
             this.state.locked[c] = lock;
-            let repl = this.replacement[c];
+            let repl = this.state.replacement[c];
             $("input:text[data-char='" + c + "']").prop("disabled", lock);
             let charset = this.getCharset();
             // First mark everything in the same row

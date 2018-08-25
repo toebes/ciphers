@@ -44,7 +44,6 @@ export class CipherRailfenceSolver extends CipherSolver {
     state: IRailState = cloneObject(this.defaultstate) as IRailState;
     cmdButtons: JTButtonItem[] = [
         { title: "Save", id: "save" },
-        { title: "Load", id: "load" },
         this.undocmdButton,
         this.redocmdButton
     ];

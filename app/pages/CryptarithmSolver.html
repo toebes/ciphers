@@ -1,36 +1,27 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title><%= htmlWebpackPlugin.options.title %></title>
-</head>
-<body>
-<% for (var chunk in htmlWebpackPlugin.files.chunks) { %><script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script><% } %>
-<%= require('html-loader!./analytics.html') %>
 
-<div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-    <h2><%= htmlWebpackPlugin.options.title %></h2>
-    <label for="encoded">
-        Cryptarithm
-    </label>
-    <textarea id="encoded" cols="20" rows="5"></textarea>
-    <div class="cmds" data-cipher="Cryptarithm">
-        <input id="load" type="button" value="Load" />
-    </div>
-    <div class="undocmds"></div>
-    <table>
-        <tbody>
-            <tr>
-                <td>
-                    <div class="ans" id="answer"></div>
-                </td>
-                <td>
-                    <div class="freq"></div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <div class="sanalysis" id="analysis"></div>
+<head>
+    <meta charset="utf-8">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body>
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+        <% } %>
+            <%= require('html-loader!./analytics.html') %>
+
+                <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+                <h2>
+                    <%= htmlWebpackPlugin.options.title %>
+                </h2>
+                <div class="precmds"></div>
+                <div class="err" id="err"></div>
+                <div class="cmdbuttons"></div>
+                <div class="postcmds"></div>
 </body>
 
 </html>

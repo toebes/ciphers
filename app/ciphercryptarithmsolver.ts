@@ -1,5 +1,6 @@
 import { BoolMap, StringMap } from "./ciphercommon";
 import { CipherSolver } from "./ciphersolver";
+import { JTFLabeledInput } from "./jtflabeledinput";
 
 enum CryptarithmType {
     Automatic,
@@ -50,6 +51,42 @@ export class CryptarithmSolver extends CipherSolver {
      */
     reset(): void {
         this.load();
+    }
+
+    genPreCommands(): JQuery<HTMLElement> {
+        let result = $("<div>");
+        result.append(
+            JTFLabeledInput(
+                "Cryptarithm",
+                "textarea",
+                "encoded",
+                this.state.cipherString,
+                "small-12 medium-12 large-12"
+            )
+        );
+        return result;
+    }
+    /**
+     * Set up the UI elements for the result fields
+     */
+    genPostCommands(): JQuery<HTMLElement> {
+        let result = $("<div/>");
+        result.append(
+            $("<div/>", { class: "grid-x grid-margin-x" })
+                .append(
+                    $("<div/>", {
+                        class: "ans cell small-12 medium-7 shrink",
+                        id: "answer"
+                    })
+                )
+                .append(
+                    $("<div/>", {
+                        class: "freq cell small-12 medium-5",
+                        id: "freq"
+                    })
+                )
+        );
+        return result;
     }
     /**
      * Analyze the encoded text

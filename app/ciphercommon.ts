@@ -20,7 +20,11 @@ export function cloneObject(source: object): object {
     let clone = {};
     if (source !== null) {
         for (let elem of Object.keys(source)) {
-            if (source[elem] != null && typeof source[elem] === "object") {
+            if (source[elem] === null) {
+                clone[elem] = null;
+            } else if (Array.isArray(source[elem])) {
+                clone[elem] = source[elem].slice();
+            } else if (typeof source[elem] === "object") {
                 clone[elem] = cloneObject(source[elem]);
             } else {
                 clone[elem] = source[elem];

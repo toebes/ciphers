@@ -171,6 +171,30 @@ export class CipherRailfenceSolver extends CipherSolver {
         return changed;
     }
     /**
+     * Sets up the radio button to choose the variant of the cipher
+     */
+    genPreCommands(): JQuery<HTMLElement> {
+        let result = $("<div/>");
+
+        let radiobuttons = [
+            CipherTypeButtonItem(ICipherType.Railfence),
+            CipherTypeButtonItem(ICipherType.Redefence)
+        ];
+        result.append(
+            JTRadioButton(6, "railtype", radiobuttons, this.state.cipherType)
+        );
+        result.append(
+            JTFLabeledInput(
+                "Cipher Text",
+                "textarea",
+                "encoded",
+                this.state.cipherString,
+                "small-12 medium-12 large-12"
+            )
+        );
+        return result;
+    }
+    /**
      * Set up the UI elements for the commands for this cipher assistant
      */
     genPostCommands(): JQuery<HTMLElement> {
@@ -225,30 +249,6 @@ export class CipherRailfenceSolver extends CipherSolver {
             )
         );
         result.append(inputbox);
-        return result;
-    }
-    /**
-     * Sets up the radio button to choose the variant of the cipher
-     */
-    genPreCommands(): JQuery<HTMLElement> {
-        let result = $("<div/>");
-
-        let radiobuttons = [
-            CipherTypeButtonItem(ICipherType.Railfence),
-            CipherTypeButtonItem(ICipherType.Redefence)
-        ];
-        result.append(
-            JTRadioButton(6, "railtype", radiobuttons, this.state.cipherType)
-        );
-        result.append(
-            JTFLabeledInput(
-                "Cipher Text",
-                "textarea",
-                "encoded",
-                this.state.cipherString,
-                "small-12 medium-12 large-12"
-            )
-        );
         return result;
     }
     /**
@@ -420,6 +420,20 @@ export class CipherRailfenceSolver extends CipherSolver {
         return result;
     }
     /**
+     * Cleans up any settings, range checking and normalizing any values.
+     * This doesn't actually update the UI directly but ensures that all the
+     * values are legitimate for the cipher handler
+     * Generally you will call updateOutput() after calling setUIDefaults()
+     */
+    setUIDefaults(): void {
+        super.setUIDefaults();
+        this.setRailType(this.state.cipherType);
+        this.setRailLayout(this.state.railLayout);
+        this.setRailCount(this.state.rails);
+        this.setRailOffset(this.state.railOffset);
+        this.setRailOrder(this.state.railOrder);
+    }
+    /**
      * Updates the output based on current settings
      */
     updateOutput(): void {
@@ -448,28 +462,7 @@ export class CipherRailfenceSolver extends CipherSolver {
      * Creates an HTML table to display the frequency of characters
      */
     createFreqEditTable(): JQuery<HTMLElement> {
-        let topdiv = $("<div>");
-        topdiv.append(
-            $("<div>", {
-                id: "ragwork",
-                class: "ragedit"
-            })
-        );
-        return topdiv;
-    }
-    /**
-     * Cleans up any settings, range checking and normalizing any values.
-     * This doesn't actually update the UI directly but ensures that all the
-     * values are legitimate for the cipher handler
-     * Generally you will call updateOutput() after calling setUIDefaults()
-     */
-    setUIDefaults(): void {
-        super.setUIDefaults();
-        this.setRailType(this.state.cipherType);
-        this.setRailLayout(this.state.railLayout);
-        this.setRailCount(this.state.rails);
-        this.setRailOffset(this.state.railOffset);
-        this.setRailOrder(this.state.railOrder);
+        return null;
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions

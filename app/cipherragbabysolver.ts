@@ -2,7 +2,8 @@ import { BoolMap, cloneObject, NumberMap } from "./ciphercommon";
 import { IState } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 import { ICipherType } from "./ciphertypes";
-import { JTRadioButton } from "./jtradiobutton";
+import { JTFLabeledInput } from "./jtflabeledinput";
+import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 import { JTTable } from "./jttable";
 interface mapSet {
     ct: string; // Cipher text
@@ -22,21 +23,18 @@ interface mappedLine {
     line: RagLine;
     notes: string;
 }
+type alphaNum = 24 | 26 | 36;
 
 interface IRagbabyState extends IState {
     /** length of the alphabet */
-    alphalen: number;
-    /** Maps the cipher text (Letter concatenated with a number) to a plaintext letter */
+    alphalen: alphaNum;
+    /** Maps the cipher text (Letter concatenated with a number) to a plaintext letter
+     * It keeps track of a list of letters that a user has entered (in order)
+     */
     ctmap: mapSet[];
 }
 /**
  * The CipherRagbabySolver class implements a solver for the Ragbaby Cipher
- * replmap is the map of letters.
- *   replmap[0] is the combined entries
- *   replmap[1] is editable entries from the user
- *   replmap[2..n] is the mappings derived from entries under the cipher text
- *   ctmap[] maps from a Cipher text (Letter:Number) to a plaintext letter
- * It keeps track of a list of letters that a user has entered (in order)
  */
 export class CipherRagbabySolver extends CipherSolver {
     defaultstate: IRagbabyState = {
@@ -48,7 +46,12 @@ export class CipherRagbabySolver extends CipherSolver {
     state: IRagbabyState = cloneObject(this.defaultstate) as IRagbabyState;
     /** List of all CT:Offset mappings */
     ctoffsets: BoolMap = {};
-
+    /**
+     * replmap is the map of letters.
+     * replmap[0] is the combined entries
+     * replmap[1] is editable entries from the user
+     * replmap[2..n] is the mappings derived from entries under the cipher text
+     */
     replmap: Array<mappedLine>;
 
     emptyRagline(): RagLine {
@@ -58,48 +61,61 @@ export class CipherRagbabySolver extends CipherSolver {
         }
         return rslt;
     }
-    init(lang: string): void {
-        super.init(lang);
+    /**
+     * Cleans up any settings, range checking and normalizing any values.
+     * This doesn't actually update the UI directly but ensures that all the
+     * values are legitimate for the cipher handler
+     * Generally you will call updateOutput() after calling setUIDefaults()
+     */
+    setUIDefaults(): void {
+        super.setUIDefaults();
+        this.setCipherType(this.state.cipherType);
+        this.setAlphabetSize(this.state.alphalen);
     }
-    restore(data: IRagbabyState): void {
-        if (data.cipherString !== undefined) {
-            this.state.cipherString = data.cipherString;
-        }
-        if (data.ctmap !== undefined) {
-            this.state.ctmap = data.ctmap.slice();
-        }
-        if (data.alphalen !== undefined) {
-            this.state.alphalen = data.alphalen;
-        }
+    /**
+     * Updates the output based on current settings
+     */
+    updateOutput(): void {
+        // Propagate the current settings to the UI
         $("#encoded").val(this.state.cipherString);
-        $('[name="alphasize"]').removeAttr("checked");
-        $("input[name=alphasize][value=" + this.state.alphalen + "]").prop(
-            "checked",
-            true
-        );
+        $("#find").val(this.state.findString);
+        JTRadioButtonSet("alphasize", this.state.alphalen);
         this.load();
         for (let entry of this.state.ctmap) {
             $("input[data-char='" + entry.ct + entry.ctoff + "']").val(
                 entry.pt
             );
         }
-        if (data.findString !== undefined) {
-            $("#find").val(data.findString);
-            this.findPossible(data.findString);
+        if (this.state.findString !== "") {
+            this.findPossible(this.state.findString);
         }
-
         this.applyMappings();
         this.buildMap();
     }
     /**
-     * Make a copy of the current state
+     * Selects which form of a ragbaby we are doing
+     * alphalen Number of characters in the alphabet (24, 26, 36)
      */
-    save(): IState {
-        // We need a deep copy of the save state
-        let savestate = cloneObject(this.state) as IRagbabyState;
-        // And the ctmap hash also has to have a deep copy
-        savestate.ctmap = this.state.ctmap.slice();
-        return savestate;
+    setAlphabetSize(alphalen: alphaNum): boolean {
+        let changed = false;
+        if (this.state.alphalen !== alphalen) {
+            changed = true;
+            this.state.alphalen = alphalen;
+        }
+        switch (this.state.alphalen) {
+            case 26:
+                this.setCharset("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+                break;
+
+            case 36:
+                this.setCharset("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+                break;
+
+            default:
+                this.setCharset("ABCDEFGHIKLMNOPQRSTUVWYZ");
+                break;
+        }
+        return changed;
     }
 
     /**
@@ -123,7 +139,6 @@ export class CipherRagbabySolver extends CipherSolver {
         }
         return newmap;
     }
-
     /**
      * Apply all of the mappings entered so far (in order)
      */
@@ -346,7 +361,7 @@ export class CipherRagbabySolver extends CipherSolver {
         }
     }
     /**
-     * Sets up the radio button to choose the variant
+     * Sets up the radio button to choose the variant as well as the input field for the cipher
      */
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div>");
@@ -359,29 +374,26 @@ export class CipherRagbabySolver extends CipherSolver {
         result.append(
             JTRadioButton(5, "alphasize", radiobuttons, this.state.alphalen)
         );
+        result.append(
+            JTFLabeledInput(
+                "Cipher Text",
+                "textarea",
+                "encoded",
+                this.state.cipherString,
+                "small-12 medium-12 large-12"
+            )
+        );
 
         return result;
     }
-    /**
-     * Selects which form of a ragbaby we are doing
-     * alphalen Number of characters in the alphabet (24, 26, 36)
-     */
-    setAlphabetSize(alphalen: number): void {
-        this.state.alphalen = Number(alphalen);
-        switch (this.state.alphalen) {
-            case 26:
-                this.setCharset("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-                break;
-
-            case 36:
-                this.setCharset("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
-                break;
-
-            default:
-                this.setCharset("ABCDEFGHIKLMNOPQRSTUVWYZ");
-                break;
-        }
-        this.buildMap();
+    genPostCommands(): JQuery<HTMLElement> {
+        this.UpdateFreqEditTable();
+        // <div class="slookup" id = "lookup" >
+        //     <label for= "find" > Find spot for</label>
+        //         < input id = "find" class= "sfind" type = "text" />
+        //             <div class="findres" > </div>
+        //                 < /div>
+        return null;
     }
     /**
      * Locate a string.
@@ -447,7 +459,11 @@ export class CipherRagbabySolver extends CipherSolver {
                     }
                 }
                 if (pt !== "") {
-                    this.state.ctmap.push({ ct: ct, pt: pt, ctoff: dist });
+                    this.state.ctmap.push({
+                        ct: ct,
+                        pt: pt,
+                        ctoff: dist
+                    });
                 }
                 this.applyMappings();
                 this.buildMap();
@@ -552,7 +568,11 @@ export class CipherRagbabySolver extends CipherSolver {
         if (this.state.cipherString === "") {
             $("#ragwork")
                 .empty()
-                .append($("Enter a cipher to get started"));
+                .append(
+                    $("<div/>", { class: "callout warning" }).text(
+                        "Enter a cipher to get started"
+                    )
+                );
             return;
         }
         let table = new JTTable({ class: "tfreq editmap" });
@@ -573,9 +593,11 @@ export class CipherRagbabySolver extends CipherSolver {
             }
 
             row = table.addBodyRow([
-                $("<button>", { href: "#", class: "ls", "data-vrow": r }).html(
-                    "&#8647;"
-                )
+                $("<button>", {
+                    href: "#",
+                    class: "ls",
+                    "data-vrow": r
+                }).html("&#8647;")
             ]);
             for (let i = 0; i < this.state.alphalen; i++) {
                 let repc = "";
@@ -602,29 +624,38 @@ export class CipherRagbabySolver extends CipherSolver {
                 }
             }
             row.add(
-                $("<button>", { href: "#", class: "rs", "data-vrow": r }).html(
-                    "&#8649;"
-                )
+                $("<button>", {
+                    href: "#",
+                    class: "rs",
+                    "data-vrow": r
+                }).html("&#8649;")
             );
             row.add(this.replmap[r].notes + extranote);
         }
         // Go back and put a header row showing all the letters we have picked up
         row = table.addHeaderRow([
-            $("<button>", { href: "#", class: "ls", "data-vrow": -1 }).html(
-                "&#8647;"
-            )
+            $("<button>", {
+                href: "#",
+                class: "ls",
+                "data-vrow": -1
+            }).html("&#8647;")
         ]);
         for (let i = 0; i < this.state.alphalen; i++) {
             let repc = "?";
             if (i < this.replmap[0].line.length) {
                 repc = this.replmap[0].line[i];
             }
-            row.add({ settings: { class: "off" }, content: repc });
+            row.add({
+                settings: { class: "off" },
+                content: repc
+            });
         }
         row.add(
-            $("<button>", { href: "#", class: "rs", "data-vrow": -1 }).html(
-                "&#8649;"
-            )
+            $("<button>", {
+                href: "#",
+                class: "rs",
+                "data-vrow": -1
+            }).html("&#8649;")
         );
         row.add("");
 
@@ -652,21 +683,17 @@ export class CipherRagbabySolver extends CipherSolver {
         this.attachHandlers();
     }
     /**
-     *
-     */
-    buildCustomUI(): void {
-        super.buildCustomUI();
-        this.setAlphabetSize(
-            Number($("input[name='alphasize']:checked").val())
-        );
-    }
-    /**
      * Creates an HTML table to display the frequency of characters
      */
     createFreqEditTable(): JQuery<HTMLElement> {
-        let topdiv = $("<div>");
-        topdiv.append($("<div>", { id: "ragwork", class: "ragedit" }));
-        return topdiv;
+        let result = $("<div>");
+        result.append(
+            $("<div>", {
+                id: "ragwork",
+                class: "ragedit"
+            })
+        );
+        return result;
     }
     /**
      * This rotates all entries in a map entry by the specified amount.
@@ -721,13 +748,14 @@ export class CipherRagbabySolver extends CipherSolver {
      */
     attachHandlers(): void {
         super.attachHandlers();
-        $("input[type=radio][name=alphasize]")
+        $("[name=alphasize]")
             .off("change")
             .on("change", () => {
                 this.markUndo();
-                this.setAlphabetSize(
-                    Number($("input[name='alphasize']:checked").val())
-                );
+                this.setAlphabetSize(Number(
+                    $("input[name='alphasize']:checked").val()
+                ) as alphaNum);
+                this.updateOutput();
             });
         $("button.ls")
             .off("click")

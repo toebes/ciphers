@@ -1134,7 +1134,9 @@ export class CipherHandler {
      */
     copyState(dest: IState, source: IState): void {
         for (let elem of Object.keys(source)) {
-            if (typeof source[elem] === "object") {
+            if (Array.isArray(source[elem])) {
+                dest[elem] = source[elem].slice();
+            } else if (typeof source[elem] === "object") {
                 dest[elem] = cloneObject(source[elem]);
             } else {
                 dest[elem] = source[elem];

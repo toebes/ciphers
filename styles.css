@@ -258,7 +258,9 @@ table.mword .locked {
 .idiv {
     float: left;
 }
-
+.fmwide {
+    clear: both;
+}
 table.tfreq,
 table.satable {
     border-collapse: collapse;

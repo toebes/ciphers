@@ -84,7 +84,6 @@ export class CipherFractionatedMorseSolver extends CipherMorseSolver {
     unmapMorse(entry: string): number {
         return this.fractionatedMorseReplaces.indexOf(entry);
     }
-
     /*
      * Create an edit field for a dropdown
     */
@@ -148,18 +147,3 @@ export class CipherFractionatedMorseSolver extends CipherMorseSolver {
         }
     }
 }
-
-// FractionatedMorse: {
-//     normalizeHTML: 'normalizeMorseHTML',
-//     load: 'loadMorseSolver',
-//     reset: 'resetSolver',
-//     build: 'buildMorseSolver',
-//     makeFreqEditField: 'makeFractionatedMorseEditField',
-//     updateSel: 'updateFractionatedMorseSel',
-//     getMorseMap: 'getFractionatedMorseMap',
-//     setMorseMapEntry: 'setFractionatedMorseMapEntry',
-//     setChar: 'setStandardChar',
-//     setMultiChars: 'setMorseMultiChars',
-//     updateMatchDropdowns: 'updateStandardMatchDropdowns',
-//     findPossible: 'findMorse'
-// },

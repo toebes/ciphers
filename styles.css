@@ -210,6 +210,7 @@ table.mword td {
     border-right: 1px dotted grey;
     border-bottom: 1px solid black;
     background-color: white;
+    padding: 0.1rem;
 }
 
 table.mword .error {
@@ -260,7 +261,6 @@ table.mword .locked {
 
 table.tfreq,
 table.satable {
-    clear: both;
     border-collapse: collapse;
     width: auto;
 }
@@ -272,6 +272,9 @@ table.ckfreq {
 
 table.tfreq th {
     padding: 0.1rem 0.3rem 0.1rem;
+}
+table.tfreq td.fq {
+    height: 1.8rem;
 }
 .prfreq td,
 .prfreq th,

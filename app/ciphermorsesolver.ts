@@ -2,6 +2,8 @@ import { cloneObject, StringMap } from "./ciphercommon";
 import { IState } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 import { ICipherType } from "./ciphertypes";
+import { JTFLabeledInput } from "./jtflabeledinput";
+import { JTTable } from "./jttable";
 
 interface IMorseState extends IState {
     morsemap: StringMap;
@@ -46,7 +48,6 @@ export class CipherMorseSolver extends CipherSolver {
         X: "-OO-",
         Y: "-O--",
         Z: "--OO",
-
         "1": "O----",
         "2": "OO---",
         "3": "OOO--",
@@ -57,7 +58,6 @@ export class CipherMorseSolver extends CipherSolver {
         "8": "---OO",
         "9": "----O",
         "0": "-----",
-
         ",": "--OO--",
         ".": "O-O-O-",
         "?": "OO--OO",
@@ -104,7 +104,6 @@ export class CipherMorseSolver extends CipherSolver {
         X: "",
         Y: "",
         Z: "",
-
         "1": "num",
         "2": "num",
         "3": "num",
@@ -115,7 +114,6 @@ export class CipherMorseSolver extends CipherSolver {
         "8": "num",
         "9": "num",
         "0": "num",
-
         ",": "sym",
         ".": "sym",
         "?": "sym",
@@ -153,7 +151,6 @@ export class CipherMorseSolver extends CipherSolver {
         "-OO-": "X",
         "-O--": "Y",
         "--OO": "Z",
-
         "O----": "1",
         "OO---": "2",
         "OOO--": "3",
@@ -164,7 +161,6 @@ export class CipherMorseSolver extends CipherSolver {
         "---OO": "8",
         "----O": "9",
         "-----": "0",
-
         "--OO--": ",",
         "O-O-O-": ".",
         "OO--OO": "?",
@@ -308,7 +304,7 @@ export class CipherMorseSolver extends CipherSolver {
         let finaltext = "";
         let docwidth = $(document).width();
         //docwidth = 9 * 24 * cipherwidth
-        let width = cipherwidth * Math.floor(docwidth / (cipherwidth * 36));
+        let width = cipherwidth * Math.floor(docwidth / (cipherwidth * 24));
 
         //
         // Build up the input string and the corresponding morse code
@@ -483,51 +479,67 @@ export class CipherMorseSolver extends CipherSolver {
         topdiv.append($("<hr/><div>" + finaltext + "</div>"));
         return topdiv;
     }
+    /**
+     * Generates the section above the command buttons
+     */
+    genPreCommands(): JQuery<HTMLElement> {
+        let result = $("<div>");
+        result.append(
+            JTFLabeledInput(
+                "Cipher Text",
+                "textarea",
+                "encoded",
+                this.state.cipherString,
+                "small-12 medium-12 large-12"
+            )
+        );
+        return result;
+    }
     /*
      * Creates an HTML table to display the frequency of characters
      */
     createFreqEditTable(): JQuery<HTMLElement> {
-        let table = $("<table/>").addClass("tfreq");
-        let thead = $("<thead/>");
-        let tbody = $("<tbody/>");
-        let headrow = $("<tr/>");
-        let freqrow = $("<tr/>");
-        let replrow = $("<tr/>");
-        let lockrow = $("<tr/>");
+        let result = $("<div/>", { class: "clearfix" });
+        let table = new JTTable({ class: "tfreq float-left" });
+
+        let headrow = table.addHeaderRow();
+        let freqrow = table.addBodyRow();
+        let replrow = table.addBodyRow();
+        let lockrow = table.addBodyRow();
         let charset = this.getCharset();
 
-        headrow.append($("<th/>").addClass("topleft"));
-        freqrow.append($("<th/>").text("Frequency"));
-        replrow.append($("<th/>").text("Replacement"));
-        lockrow.append($("<th/>").text("Locked"));
+        headrow.add({ settings: { class: "topleft" }, content: "" });
+        freqrow.add("Frequency");
+        replrow.add("Replacement");
+        lockrow.add("Locked");
         for (let i = 0, len = charset.length; i < len; i++) {
             let c = charset.substr(i, 1).toUpperCase();
-            headrow.append($("<th/>").text(c));
-            freqrow.append($('<td id="f' + c + '"/>'));
-            let td = $("<td/>");
-            td.append(this.makeFreqEditField(c));
-            replrow.append(td);
-            td = $("<td/>");
+            headrow.add(c);
+            freqrow.add({
+                settings: { id: "f" + c, class: "fq" },
+                content: ""
+            });
+            replrow.add(this.makeFreqEditField(c));
             let ischecked = this.state.locked[c];
-            $("<input />", {
-                type: "checkbox",
-                class: "cb",
-                "data-char": c,
-                id: "cb" + c,
-                value: name,
-                checked: ischecked
-            }).appendTo(td);
-
-            lockrow.append(td);
+            lockrow.add(
+                $("<input />", {
+                    type: "checkbox",
+                    class: "cb",
+                    "data-char": c,
+                    id: "cb" + c,
+                    value: name,
+                    checked: ischecked
+                })
+            );
+            result.append(table.generate());
+            table = new JTTable({ class: "tfreq float-left" });
+            headrow = table.addHeaderRow();
+            freqrow = table.addBodyRow();
+            replrow = table.addBodyRow();
+            lockrow = table.addBodyRow();
         }
-        thead.append(headrow);
-        tbody.append(freqrow);
-        tbody.append(replrow);
-        tbody.append(lockrow);
-        table.append(thead);
-        table.append(tbody);
-
-        return table;
+        result.append(table.generate());
+        return result;
     }
     /**
      * Set multiple characters
@@ -563,6 +575,10 @@ export class CipherMorseSolver extends CipherSolver {
     findPossible(str: string): void {
         let encoded = this.minimizeString(this.state.cipherString);
         this.state.findString = str;
+        if (str === "") {
+            $(".findres").empty();
+            return;
+        }
         let morse = "";
         let extra = "";
         let res = "";

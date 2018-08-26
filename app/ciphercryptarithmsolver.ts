@@ -52,7 +52,9 @@ export class CryptarithmSolver extends CipherSolver {
     reset(): void {
         this.load();
     }
-
+    /**
+     * Generates the section above the command buttons
+     */
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div>");
         result.append(
@@ -72,7 +74,9 @@ export class CryptarithmSolver extends CipherSolver {
     genPostCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(
-            $("<div/>", { class: "grid-x grid-margin-x" })
+            $("<div/>", {
+                class: "grid-x grid-margin-x"
+            })
                 .append(
                     $("<div/>", {
                         class: "ans cell small-12 medium-7 shrink",
@@ -165,7 +169,9 @@ export class CryptarithmSolver extends CipherSolver {
         let cexpected = this.compute(eexpected);
 
         if (cformula === cexpected) {
-            return $("<span>", { class: "match" }).text("Matches");
+            return $("<span>", {
+                class: "match"
+            }).text("Matches");
         }
         // They don't match so let's go through the digits and figure out which ones do and don't match.
         // Note that one might be longer than the other but we have to compare from the right hand side
@@ -931,7 +937,9 @@ export class CryptarithmSolver extends CipherSolver {
             let tr = $("<tr>");
             // Pad on the left with as many columns as we need
             if (item.content.length < maxwidth) {
-                $("<td>", { colspan: maxwidth - item.content.length })
+                $("<td>", {
+                    colspan: maxwidth - item.content.length
+                })
                     .html("&nbsp;")
                     .appendTo(tr);
             }
@@ -1094,7 +1102,10 @@ export class CryptarithmSolver extends CipherSolver {
             for (let index = 0; index < this.base; index++) {
                 let id = c + this.basedStr(index);
                 this.boxState[id] = "0";
-                $("<td>", { id: id, "data-val": this.boxState[id] })
+                $("<td>", {
+                    id: id,
+                    "data-val": this.boxState[id]
+                })
                     .addClass("rtoggle rtoggle-" + this.boxState[id])
                     .appendTo(tr);
             }

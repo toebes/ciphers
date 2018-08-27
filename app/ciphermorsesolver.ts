@@ -194,6 +194,7 @@ export class CipherMorseSolver extends CipherSolver {
         this.updateOutput();
     }
     updateOutput(): void {
+        this.enableFilemenu();
         $("#encoded").val(this.state.cipherString);
         $("#find").val(this.state.findString);
         this.load();
@@ -500,26 +501,38 @@ export class CipherMorseSolver extends CipherSolver {
      */
     createFreqEditTable(): JQuery<HTMLElement> {
         let result = $("<div/>", { class: "clearfix" });
-        let table = new JTTable({ class: "tfreq float-left" });
+        let list = $("<ul/>", { class: "clearfix no-bullet" });
+        let table = new JTTable({ class: "tfreq" });
 
         let headrow = table.addHeaderRow();
-        let freqrow = table.addBodyRow();
-        let replrow = table.addBodyRow();
-        let lockrow = table.addBodyRow();
+        let freqrow = table.addHeaderRow();
+        let replrow = table.addHeaderRow();
+        let lockrow = table.addHeaderRow();
         let charset = this.getCharset();
 
         headrow.add({ settings: { class: "topleft" }, content: "" });
         freqrow.add("Frequency");
-        replrow.add("Replacement");
+        replrow.add({ settings: { class: "rep" }, content: "Replacement" });
         lockrow.add("Locked");
+        list.append(
+            $("<li/>", { class: "float-left" }).append(table.generate())
+        );
         for (let i = 0, len = charset.length; i < len; i++) {
             let c = charset.substr(i, 1).toUpperCase();
+            table = new JTTable({ class: "tfreq float-left" });
+            headrow = table.addHeaderRow();
+            freqrow = table.addBodyRow();
+            replrow = table.addBodyRow();
+            lockrow = table.addBodyRow();
             headrow.add(c);
             freqrow.add({
                 settings: { id: "f" + c, class: "fq" },
                 content: ""
             });
-            replrow.add(this.makeFreqEditField(c));
+            replrow.add({
+                settings: { class: "rep" },
+                content: this.makeFreqEditField(c)
+            });
             let ischecked = this.state.locked[c];
             lockrow.add(
                 $("<input />", {
@@ -531,14 +544,11 @@ export class CipherMorseSolver extends CipherSolver {
                     checked: ischecked
                 })
             );
-            result.append(table.generate());
-            table = new JTTable({ class: "tfreq float-left" });
-            headrow = table.addHeaderRow();
-            freqrow = table.addBodyRow();
-            replrow = table.addBodyRow();
-            lockrow = table.addBodyRow();
+            list.append(
+                $("<li/>", { class: "float-left" }).append(table.generate())
+            );
         }
-        result.append(table.generate());
+        result.append(list);
         return result;
     }
     /**

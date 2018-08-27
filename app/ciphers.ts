@@ -26,8 +26,6 @@
  * Main CipherTool class object
  * @type {Object.<string, function>}
  */
-import "dataTables-colReorder-zf";
-import "dataTables-zf";
 import "foundation-sites";
 import "foundation.css";
 import * as $ from "jquery";

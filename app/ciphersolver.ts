@@ -1,7 +1,9 @@
+import * as sortable from "html5sortable";
 import { BoolMap, cloneObject, NumberMap, StringMap } from "./ciphercommon";
 import { CipherHandler, IState } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
+import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTTable } from "./jttable";
 
 export class CipherSolver extends CipherHandler {
@@ -12,14 +14,15 @@ export class CipherSolver extends CipherHandler {
         cipherString: "" /** The current string we are looking for */,
         findString: "",
         locked: {},
-        replacement: {}
+        replacement: {},
+        replOrder: "",
     };
     state: IState = cloneObject(this.defaultstate) as IState;
     cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
         this.redocmdButton,
-        { title: "Reset", color: "warning", id: "reset" }
+        { title: "Reset", color: "warning", id: "reset" },
     ];
     /** Cache the last encoded string to optimize updates */
     lastencoded: string = undefined;
@@ -69,7 +72,6 @@ export class CipherSolver extends CipherHandler {
         this.setRichText("qtext", this.state.question);
         $("#encoded").val(this.state.cipherString);
         this.load();
-        this.UpdateFreqEditTable();
         this.updateMatchDropdowns(undefined);
         // Populate all the matches
         this.propagateReplacements();
@@ -84,11 +86,30 @@ export class CipherSolver extends CipherHandler {
         // for (let c of this.getCharset()) {
         //     this.setChar(c, this.state.replacement[c]);
         // }
+        $(".sli")
+            .val("")
+            .text("");
         for (let repc in this.state.replacement) {
             this.setChar(repc, this.state.replacement[repc]);
         }
     }
+    /**
+     * Creates the input area
+     */
+    genPreCommands(): JQuery<HTMLElement> {
+        let result = $("<div>");
 
+        result.append(
+            JTFLabeledInput(
+                "Cipher Text",
+                "textarea",
+                "encoded",
+                this.state.cipherString,
+                "small-12 medium-12 large-12"
+            )
+        );
+        return result;
+    }
     /**
      * Generates an HTML representation of a string for display
      * @param str String to normalize
@@ -113,7 +134,7 @@ export class CipherSolver extends CipherHandler {
                     .empty()
                     .append(this.genAnalysis(encoded));
             });
-
+            this.UpdateFreqEditTable();
             // Show the update frequency values
             this.displayFreq();
             // We need to attach handlers for any newly created input fields
@@ -128,6 +149,80 @@ export class CipherSolver extends CipherHandler {
         this.updateOutput();
     }
     /**
+     * Creates an HTML table to display the frequency of characters
+     */
+    createFreqEditTable(): JQuery<HTMLElement> {
+        let result = $("<div/>", { class: "clearfix" });
+        let table = new JTTable({ class: "tfreq" });
+
+        let headrow = table.addHeaderRow();
+        let freqrow = table.addHeaderRow();
+        let replrow = table.addHeaderRow();
+        let altreprow;
+        if (this.ShowRevReplace) {
+            altreprow = table.addHeaderRow();
+        }
+        let charset = this.getSourceCharset();
+        let replOrder = this.state.replOrder;
+        if (replOrder === "") {
+            replOrder = charset;
+        }
+
+        headrow.add({
+            settings: { class: "topleft" },
+            content: "",
+        });
+        freqrow.add({ celltype: "th", content: "Frequency" });
+        replrow.add({ celltype: "th", content: "Replacement" });
+
+        if (this.ShowRevReplace) {
+            altreprow.add({
+                celltype: "th",
+                content: "Rev Replace",
+            });
+        }
+        result.append(
+            $("<div/>", {
+                class: "float-left",
+            }).append(table.generate())
+        );
+        let list = $("<ul/>", {
+            id: "freqtable",
+            class: "no-bullet sortable",
+        });
+
+        for (let c of replOrder.toUpperCase()) {
+            table = new JTTable({ class: "tfreq" });
+
+            headrow = table.addHeaderRow();
+            freqrow = table.addBodyRow();
+            replrow = table.addBodyRow();
+            if (this.ShowRevReplace) {
+                altreprow = table.addBodyRow();
+            }
+            headrow.add(c);
+            freqrow.add({
+                settings: { id: "f" + c },
+                content: "",
+            });
+            replrow.add(this.makeFreqEditField(c));
+            if (this.ShowRevReplace) {
+                altreprow.add({
+                    settings: { id: "rf" + c },
+                    content: "",
+                });
+            }
+            list.append(
+                $("<li/>", {
+                    class: "float-left",
+                    id: "sc" + c,
+                }).append(table.generate())
+            );
+        }
+        result.append(list);
+        return result;
+    }
+    /**
      * Create an edit field for a dropdown
      * @param c Character to make the dropdown for
      */
@@ -137,7 +232,7 @@ export class CipherSolver extends CipherHandler {
             class: "sli",
             "data-char": c,
             id: "m" + c,
-            value: this.state.replacement[c]
+            value: this.state.replacement[c],
         });
         if (this.state.locked[c]) {
             einput.prop("disabled", true);
@@ -276,7 +371,7 @@ export class CipherSolver extends CipherHandler {
                     freq: frequency,
                     let: c,
                     prevs: prevs[c],
-                    posts: posts[c]
+                    posts: posts[c],
                 };
                 tobjs.push(item);
             }
@@ -289,30 +384,30 @@ export class CipherSolver extends CipherHandler {
             {
                 celltype: "th",
                 settings: {
-                    colspan: 3
+                    colspan: 3,
                 },
-                content: "Contact Table"
-            }
+                content: "Contact Table",
+            },
         ]);
         for (let item of tobjs) {
             let row = table.addBodyRow();
             row.add({
                 settings: {
-                    class: "prev"
+                    class: "prev",
                 },
-                content: item.prevs
+                content: item.prevs,
             });
             row.add({
                 settings: {
-                    class: "tlet"
+                    class: "tlet",
                 },
-                content: item.let
+                content: item.let,
             });
             row.add({
                 settings: {
-                    class: "post"
+                    class: "post",
                 },
-                content: item.posts
+                content: item.posts,
             });
             freq[item.let] = item.freq;
             consonantline = item.let + consonantline;
@@ -361,7 +456,7 @@ export class CipherSolver extends CipherHandler {
             prevlet = c;
         }
         let table = new JTTable({
-            class: "cell shrink consonantline"
+            class: "cell shrink consonantline",
         });
         let consonants = "";
         let lastfreq = 0;
@@ -377,33 +472,33 @@ export class CipherSolver extends CipherHandler {
                 let row = table.addBodyRow();
                 row.add({
                     settings: {
-                        class: "prev"
+                        class: "prev",
                     },
-                    content: prevs[item.let]
+                    content: prevs[item.let],
                 });
                 row.add({
                     settings: {
-                        class: "post"
+                        class: "post",
                     },
-                    content: posts[item.let]
+                    content: posts[item.let],
                 });
             }
         }
         table.addHeaderRow([
             {
                 settings: {
-                    colspan: 2
+                    colspan: 2,
                 },
-                content: "Consonant Line"
-            }
+                content: "Consonant Line",
+            },
         ]);
         table.addHeaderRow([
             {
                 settings: {
-                    colspan: 2
+                    colspan: 2,
                 },
-                content: consonants
-            }
+                content: consonants,
+            },
         ]);
         return table.generate();
     }
@@ -777,5 +872,12 @@ export class CipherSolver extends CipherHandler {
                 this.markUndo();
                 this.setMultiChars(mapfix);
             });
+        $(".sortable").each((i: number, elem: HTMLElement) => {
+            sortable(elem, "destroy");
+            sortable(elem)[0].addEventListener("sortupdate", e => {
+                this.markUndo();
+                this.getReplacementOrder();
+            });
+        });
     }
 }

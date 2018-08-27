@@ -261,6 +261,18 @@ table.mword .locked {
 .fmwide {
     clear: both;
 }
+
+table.tfreq,
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
 table.tfreq,
 table.satable {
     border-collapse: collapse;
@@ -271,12 +283,17 @@ table.ckfreq {
     border-collapse: collapse;
     margin-left: 20px;
 }
-
 table.tfreq th {
-    padding: 0.1rem 0.3rem 0.1rem;
+    border-top: 1px solid #f1f1f1;
 }
-table.tfreq td.fq {
-    height: 1.8rem;
+table.tfreq th,
+table.tfreq td {
+    padding: 0.1rem 0.3rem 0.1rem;
+    height: 2rem;
+}
+table.tfreq td.rep,
+table.tfreq th.rep {
+    height: 4rem;
 }
 .prfreq td,
 .prfreq th,

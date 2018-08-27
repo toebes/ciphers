@@ -4,7 +4,7 @@ import { CipherMenu } from "./ciphermenu";
 import {
     getCipherEquivalents,
     getCipherTitle,
-    ICipherType
+    ICipherType,
 } from "./ciphertypes";
 import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
 import { JTFDialog } from "./jtfdialog";
@@ -48,6 +48,8 @@ export interface IState {
     curlang?: string;
     /** Indicates that a character is locked     */
     locked?: { [key: string]: boolean };
+    /** Replacement order string */
+    replOrder?: string;
     /** Any other extensions not yet thought of */
     //  any?: any
 }
@@ -94,7 +96,7 @@ export class CipherHandler {
         pt: "Portuguese",
         sv: "Swedish",
         ia: "Interlingua",
-        la: "Latin"
+        la: "Latin",
     };
     /**
      * This maps which characters are legal in a cipher for a given language
@@ -111,7 +113,7 @@ export class CipherHandler {
         pt: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         sv: "AÅÄBCDEFGHIJKLMNOÖPQRSTUVWXYZ",
         ia: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     };
     /**
      * Character replacement for purposes of encoding
@@ -135,7 +137,7 @@ export class CipherHandler {
             Ô: "O",
             Û: "U",
             Ù: "U",
-            Ü: "U"
+            Ü: "U",
         },
         it: { À: "A", É: "E", È: "E", Ì: "I", Ò: "O", Ù: "U" },
         no: {},
@@ -151,11 +153,11 @@ export class CipherHandler {
             Ó: "O",
             Ô: "O",
             Õ: "O",
-            Ú: "U"
+            Ú: "U",
         },
         sv: {},
         ia: {},
-        la: {}
+        la: {},
     };
     /**
      * This maps which characters are to be used when encoding an ACA cipher
@@ -171,7 +173,7 @@ export class CipherHandler {
         pt: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         sv: "AÅÄBCDEFGHIJKLMNOÖPRSTUVYZ",
         ia: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     };
     /**
      * This maps which characters are to be encoded to for an ACA cipher
@@ -187,7 +189,7 @@ export class CipherHandler {
         pt: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         sv: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         ia: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     };
     /**
      * Character replacement for purposes of encoding
@@ -211,7 +213,7 @@ export class CipherHandler {
             Ô: "O",
             Û: "U",
             Ù: "U",
-            Ü: "U"
+            Ü: "U",
         },
         it: { É: "E", È: "E", Ì: "I", Ò: "O", Ù: "U" },
         no: {},
@@ -227,11 +229,11 @@ export class CipherHandler {
             Ó: "O",
             Ô: "O",
             Õ: "O",
-            Ú: "U"
+            Ú: "U",
         },
         sv: {},
         ia: {},
-        la: {}
+        la: {},
     };
     /**
      * Language character frequency
@@ -263,7 +265,7 @@ export class CipherHandler {
             X: 0.0023,
             J: 0.0016,
             Q: 0.0012,
-            Z: 0.0009
+            Z: 0.0009,
         },
         nl: {
             E: 0.204011,
@@ -291,7 +293,7 @@ export class CipherHandler {
             J: 0.0080682,
             F: 0.005302,
             É: 0.0011526,
-            X: 0.0002305
+            X: 0.0002305,
         },
         de: {
             E: 0.149958,
@@ -320,7 +322,7 @@ export class CipherHandler {
             Ö: 0.0030431,
             J: 0.002705,
             ß: 0.0006762,
-            Q: 0.0001691
+            Q: 0.0001691,
         },
         eo: {
             A: 0.122894,
@@ -349,7 +351,7 @@ export class CipherHandler {
             Ĝ: 0.0054468,
             Ĉ: 0.0040851,
             Ŝ: 0.0011915,
-            Ĵ: 0.0010213
+            Ĵ: 0.0010213,
         },
         es: {
             E: 0.1408,
@@ -378,7 +380,7 @@ export class CipherHandler {
             Ñ: 0.0017,
             X: 0.0014,
             K: 0.0011,
-            W: 0.0004
+            W: 0.0004,
         },
         fr: {
             E: 0.1406753,
@@ -411,7 +413,7 @@ export class CipherHandler {
             Ù: 0.0004156,
             Â: 0.0002078,
             Ô: 0.0002078,
-            Û: 0.0001039
+            Û: 0.0001039,
         },
         it: {
             I: 0.137609,
@@ -435,7 +437,7 @@ export class CipherHandler {
             È: 0.0103511,
             V: 0.0101482,
             F: 0.0085245,
-            Q: 0.00548
+            Q: 0.00548,
         },
         no: {
             E: 0.16463,
@@ -463,7 +465,7 @@ export class CipherHandler {
             Y: 0.0057983,
             Æ: 0.0,
             C: 0.0,
-            Z: 0.0
+            Z: 0.0,
         },
         pt: {
             E: 0.148438,
@@ -500,7 +502,7 @@ export class CipherHandler {
             Â: 0.0004596,
             Õ: 0.0002298,
             W: 0.0,
-            Y: 0.0
+            Y: 0.0,
         },
         sv: {
             N: 0.102144,
@@ -528,7 +530,7 @@ export class CipherHandler {
             B: 0.0121359,
             J: 0.00768608,
             Y: 0.0052589,
-            X: 0.000202265
+            X: 0.000202265,
         },
         ia: {
             E: 0.1729506,
@@ -556,7 +558,7 @@ export class CipherHandler {
             Y: 0.0006355,
             K: 0.0,
             W: 0.0,
-            Z: 0.0
+            Z: 0.0,
         },
         la: {
             I: 0.1333172,
@@ -584,22 +586,17 @@ export class CipherHandler {
             K: 0.0,
             W: 0.0,
             Y: 0.0,
-            Z: 0.0
-        }
+            Z: 0.0,
+        },
     };
     defaultstate: IState = {
         /** The current cipher typewe are working on */
-        cipherType: ICipherType.Vigenere,
-        /** Currently selected keyword */
-        keyword: "",
-        /** The current cipher we are working on */
-        cipherString: "",
-        /** The current string we are looking for */
-        findString: "",
-        /** Replacement characters */
-        replacement: {},
-        /** Current language */
-        curlang: ""
+        cipherType: ICipherType.Vigenere /** Currently selected keyword */,
+        keyword: "" /** The current cipher we are working on */,
+        cipherString: "" /** The current string we are looking for */,
+        findString: "" /** Replacement characters */,
+        replacement: {} /** Current language */,
+        curlang: "",
     };
     state: IState = cloneObject(this.defaultstate) as IState;
     undocmdButton: JTButtonItem = {
@@ -607,21 +604,21 @@ export class CipherHandler {
         id: "undo",
         color: "primary",
         class: "undo",
-        disabled: true
+        disabled: true,
     };
     redocmdButton: JTButtonItem = {
         title: "Redo",
         id: "redo",
         color: "primary",
         class: "redo",
-        disabled: true
+        disabled: true,
     };
 
     cmdButtons: JTButtonItem[] = [
         { title: "Load", color: "primary", id: "load" },
         this.undocmdButton,
         this.redocmdButton,
-        { title: "Reset", color: "warning", id: "reset" }
+        { title: "Reset", color: "warning", id: "reset" },
     ];
     testStrings: string[] = [];
     defaultRunningKeys: IRunningKey[] = [
@@ -630,7 +627,7 @@ export class CipherHandler {
             text:
                 "FOUR SCORE AND SEVEN YEARS AGO OUR FATHERS BROUGHT FORTH ON THIS CONTINENT, " +
                 "A NEW NATION, CONCEIVED IN LIBERTY, AND DEDICATED TO THE " +
-                "PROPOSITION THAT ALL MEN ARE CREATED EQUAL."
+                "PROPOSITION THAT ALL MEN ARE CREATED EQUAL.",
         },
         {
             title: "Declaration of Independence",
@@ -639,7 +636,7 @@ export class CipherHandler {
                 "DISSOLVE THE POLITICAL BANDS WHICH HAVE CONNECTED THEM WITH ANOTHER AND TO ASSUME " +
                 "AMONG THE POWERS OF THE EARTH, THE SEPARATE AND EQUAL STATION TO WHICH THE LAWS " +
                 "OF NATURE AND OF NATURE'S GOD ENTITLE THEM, A DECENT RESPECT TO THE OPINIONS OF " +
-                "MANKIND REQUIRES THAT THEY SHOULD DECLARE THE CAUSES WHICH IMPEL THEM TO THE SEPARATION."
+                "MANKIND REQUIRES THAT THEY SHOULD DECLARE THE CAUSES WHICH IMPEL THEM TO THE SEPARATION.",
         },
         {
             title: "Constitution of United States of America",
@@ -648,7 +645,7 @@ export class CipherHandler {
                 "ESTABLISH JUSTICE, INSURE DOMESTIC TRANQUILITY, PROVIDE FOR THE COMMON DEFENSE, " +
                 "PROMOTE THE GENERAL WELFARE, AND SECURE THE BLESSINGS OF LIBERTY TO OURSELVES AND " +
                 "OUR POSTERITY, DO ORDAIN AND ESTABLISH THIS CONSTITUTION FOR THE " +
-                "UNITED STATES OF AMERICA."
+                "UNITED STATES OF AMERICA.",
         },
         {
             title: "MAGNA CARTA (In Latin)",
@@ -656,8 +653,8 @@ export class CipherHandler {
                 "JOHANNES DEI GRACIA REX ANGLIE, DOMINUS HIBERNIE, DUX NORMANNIE, " +
                 "AQUITANNIE ET COMES ANDEGAVIE, ARCHIEPISCOPIS, EPISCOPIS, ABBATIBUS, COMITIBUS, " +
                 "BARONIBUS, JUSTICIARIIS, FORESTARIIS, VICECOMITIBUS, PREPOSITIS, " +
-                "MINISTRIS ET OMNIBUS BALLIVIS ET FIDELIBUS SUIS SALUTEM."
-        }
+                "MINISTRIS ET OMNIBUS BALLIVIS ET FIDELIBUS SUIS SALUTEM.",
+        },
     ];
     /** Any special running key not in the default set used by this cipher */
     extraRunningKey: string;
@@ -743,7 +740,7 @@ export class CipherHandler {
             timed: -1,
             title: "Invalid Test",
             count: 0,
-            questions: []
+            questions: [],
         };
         if (this.storage.isAvailable()) {
             // Cipher-Count [number] holds the number of currently saved questions.
@@ -840,7 +837,7 @@ export class CipherHandler {
         if (cipherCount === 0) {
             result = $("<div/>", {
                 class: "callout warning filelist",
-                id: "files"
+                id: "files",
             }).text("No files found");
         } else {
             // Generate a list of the types of ciphers that we allow
@@ -848,7 +845,7 @@ export class CipherHandler {
             result = $("<select/>", {
                 id: "files",
                 class: "filelist",
-                size: 10
+                size: 10,
             });
             for (let entry = 0; entry < cipherCount; entry++) {
                 let fileEntry = this.getFileEntry(entry);
@@ -864,7 +861,9 @@ export class CipherHandler {
                         entryText += fileEntry.question;
                     }
                     result.append(
-                        $("<option />", { value: entry }).html(entryText)
+                        $("<option />", {
+                            value: entry,
+                        }).html(entryText)
                     );
                 }
             }
@@ -1175,34 +1174,7 @@ export class CipherHandler {
      * Creates an HTML table to display the frequency of characters
      */
     createFreqEditTable(): JQElement {
-        let table = new JTTable({ class: "tfreq dragcol" });
-
-        let headrow = table.addHeaderRow();
-        let freqrow = table.addBodyRow();
-        let replrow = table.addBodyRow();
-        let altreprow;
-        if (this.ShowRevReplace) {
-            altreprow = table.addBodyRow();
-        }
-        let charset = this.getSourceCharset();
-
-        headrow.add({ settings: { class: "topleft" }, content: "" });
-        freqrow.add({ celltype: "th", content: "Frequency" });
-        replrow.add({ celltype: "th", content: "Replacement" });
-
-        if (this.ShowRevReplace) {
-            altreprow.add({ celltype: "th", content: "Rev Replace" });
-        }
-        for (let i = 0, len = charset.length; i < len; i++) {
-            let c = charset.substr(i, 1).toUpperCase();
-            headrow.add(c);
-            freqrow.add({ settings: { id: "f" + c }, content: "" });
-            replrow.add(this.makeFreqEditField(c));
-            if (this.ShowRevReplace) {
-                altreprow.add({ settings: { id: "rf" + c }, content: "" });
-            }
-        }
-        return table.generate();
+        return null;
     }
     /**
      * Creates an HTML table to display the frequency of characters for printing
@@ -1212,7 +1184,9 @@ export class CipherHandler {
      * we leave it blank.
      */
     genFreqTable(showanswers: boolean, encodeType: string): JQElement {
-        let table = new JTTable({ class: "prfreq shrink cell unstriped" });
+        let table = new JTTable({
+            class: "prfreq shrink cell unstriped",
+        });
         if (encodeType === "random") {
             encodeType = "";
         }
@@ -1232,7 +1206,7 @@ export class CipherHandler {
 
         headrow.add({
             settings: { class: "topleft " + encodeType },
-            content: encodeType.toUpperCase()
+            content: encodeType.toUpperCase(),
         });
         freqrow.add({ celltype: "th", content: "Frequency" });
         replrow.add({ celltype: "th", content: "Replacement" });
@@ -1271,7 +1245,7 @@ export class CipherHandler {
                 }
                 if (use !== undefined) {
                     let link = $("<a>", {
-                        href: "TestGenerator.html?test=" + String(entry)
+                        href: "TestGenerator.html?test=" + String(entry),
                     }).text(test.title + " " + use);
                     result.addClass("callout primary");
                     result.append(prefix).append(link);
@@ -1306,7 +1280,7 @@ export class CipherHandler {
                 id: "undo",
                 class: "button primary undo",
                 value: "Undo",
-                disabled: true
+                disabled: true,
             })
         );
         buttons.append(
@@ -1315,7 +1289,7 @@ export class CipherHandler {
                 id: "redo",
                 class: "button primary redo",
                 value: "Redo",
-                disabled: true
+                disabled: true,
             })
         );
         return buttons.children();
@@ -1345,10 +1319,7 @@ export class CipherHandler {
     }
     restore(data: IState): void {}
     save(): IState {
-        return {
-            cipherType: ICipherType.None,
-            cipherString: ""
-        };
+        return { cipherType: ICipherType.None, cipherString: "" };
     }
     /**
      * Saves the current state of the cipher work so that it can be undone
@@ -1556,15 +1527,21 @@ export class CipherHandler {
                 if (this.isValidChar(c)) {
                     rowover.add({
                         settings: { class: "o v" },
-                        content: overline.substr(i, 1)
+                        content: overline.substr(i, 1),
                     });
                 } else {
                     rowover.add(overline.substr(i, 1));
                 }
             }
             if (this.isValidChar(c)) {
-                rowcipher.add({ settings: { class: "q v" }, content: c });
-                rowanswer.add({ settings: { class: aclass }, content: a });
+                rowcipher.add({
+                    settings: { class: "q v" },
+                    content: c,
+                });
+                rowanswer.add({
+                    settings: { class: aclass },
+                    content: a,
+                });
             } else {
                 if (answerline === undefined) {
                     a = c;
@@ -1928,6 +1905,375 @@ export class CipherHandler {
         }
     }
     /**
+     * Generate a replacement pattern string.  Any unknown characters are represented as a space
+     * otherwise they are given as the character it replaces as.
+     *
+     * For example if we know
+     *    A B C D E F G J I J K L M N O P Q R S T U V W X Y Z
+     *        E             H
+     *
+     * And were given the input string of "RJCXC" then the result would be " HE E"
+     */
+    genReplPattern(str: string): string[] {
+        let res = [];
+        for (let c of str) {
+            res.push(this.state.replacement[c]);
+        }
+        return res;
+    }
+    /**
+     * Determines if a string is a valid match for the known matching characters
+     * This is used to generate the candidates in the dropdown dialog
+     */
+    isValidReplacement(str: string, repl: string[], used: BoolMap): boolean {
+        //   console.log(str)
+        for (let i = 0, len = str.length; i < len; i++) {
+            let c = str.substr(i, 1);
+            if (repl[i] !== "") {
+                if (c !== repl[i]) {
+                    //             console.log("No match c=" + c + " repl[" + i + "]=" + repl[i])
+                    return false;
+                }
+            } else if (used[c]) {
+                //          console.log("No match c=" + c + " used[c]=" + used[c])
+                return false;
+            }
+        }
+        return true;
+    }
+    public setDefaultCipherType(ciphertype: ICipherType): void {
+        this.state.cipherType = ciphertype;
+        this.defaultstate.cipherType = ciphertype;
+    }
+    /**
+     * Updates the stored state cipher string
+     * @param cipherString Cipher string to set
+     */
+    public setCipherString(cipherString: string): boolean {
+        let changed = false;
+        if (this.state.cipherString !== cipherString) {
+            this.state.cipherString = cipherString;
+            changed = true;
+        }
+        return changed;
+    }
+    /**
+     * set the cipher type
+     */
+    public setCipherType(ciphertype: ICipherType): boolean {
+        let changed = false;
+        if (this.state.cipherType !== ciphertype) {
+            this.state.cipherType = ciphertype;
+            changed = true;
+        }
+        return changed;
+    }
+    /**
+     * Quote a string, escaping any quotes with \.  This is used for generating Javascript
+     * that can be safely loaded.
+     */
+    quote(str: string): string {
+        if (typeof str === "undefined") {
+            return "\"\"";
+        }
+        return "'" + str.replace(/([""])/g, "\\$1") + "'";
+    }
+    /**
+     * Given a string with groupings of a size, this computes a pattern which matches the
+     * string in a unique order.
+     * for example for makeUniquePattern("XYZZY",1)
+     *                 it would generate "01221"
+     * with  makeUniquePattern("..--X..X..X",2)
+     *                          0 1 2 3 0 4   (note the hidden addition of the extra X)
+     * This makes it easy to search for a pattern in any input cryptogram
+     */
+    makeUniquePattern(str: string, width: number): string {
+        let cmap = {};
+        let res = "";
+        let mapval: number = 0;
+        let len = str.length;
+        // in case they give us an odd length string, just padd it with enough Xs
+        str += "XXXX";
+
+        for (let i = 0; i < len; i += width) {
+            let c = str.substr(i, width);
+            if (typeof cmap[c] === "undefined") {
+                cmap[c] = "" + mapval;
+                mapval++;
+            }
+            res += cmap[c];
+        }
+        return res;
+    }
+    /**
+     * Dump out the language template for a given language
+     */
+    dumpLang(lang: string): string {
+        let extra = "";
+        let res = "cipherTool.Frequent[" + this.quote(lang) + "]={";
+        for (let pat in this.Frequent[lang]) {
+            if (this.Frequent[lang].hasOwnProperty(pat) && pat !== "") {
+                res += extra + '"' + pat + '":[';
+                let extra1 = "";
+                let matches = this.Frequent[lang][pat];
+                for (let i = 0, len = matches.length; i < len; i++) {
+                    // console.log(matches[i])
+                    res +=
+                        extra1 +
+                        "[" +
+                        this.quote(matches[i][0]) +
+                        "," +
+                        matches[i][1] +
+                        "," +
+                        matches[i][2] +
+                        "," +
+                        matches[i][3] +
+                        "]";
+                    extra1 = ",";
+                }
+                res += "]";
+                extra = ",";
+            }
+        }
+        res += "};";
+        return res;
+    }
+    /**
+     * Fills in the language choices on an HTML Select
+     */
+    getLangDropdown(): JQElement {
+        let result = $("<div/>", { class: "cell input-group" });
+        result.append(
+            $("<span/>", {
+                class: "input-group-label",
+            }).text("Language")
+        );
+        let select = $("<select/>", {
+            class: "lang input-group-field",
+        });
+        select.append(
+            $("<option />", {
+                value: "",
+            }).text("--Select a language--")
+        );
+        for (let lang in this.langmap) {
+            if (this.langmap.hasOwnProperty(lang)) {
+                select.append(
+                    $("<option />", {
+                        value: lang,
+                    }).text(this.langmap[lang])
+                );
+            }
+        }
+        result.append(select);
+        return result;
+    }
+    /**
+     * Loads a language in response to a dropdown event
+     */
+    loadLanguage(lang: string): void {
+        this.state.curlang = lang;
+        this.setCharset(this.langcharset[lang]);
+        $(".langstatus").text(
+            "Attempting to load " + this.langmap[lang] + "..."
+        );
+        $.getScript("Languages/" + lang + ".js", (data, textStatus, jqxhr) => {
+            $(".langstatus").text("");
+            this.updateMatchDropdowns("");
+        }).fail((jqxhr, settings, exception) => {
+            console.log("Complied language file not found for " + lang + ".js");
+            this.loadRawLanguage(lang);
+        });
+    }
+    /**
+     * Loads a raw language from the server
+     * lang Language to load (2 character abbreviation)
+     */
+    loadRawLanguage(lang: string): void {
+        let jqxhr = $.get("Languages/" + lang + ".txt", () => {}).done(data => {
+            // empty out all the frequent words
+            $(".langstatus").text("Processing " + this.langmap[lang] + "...");
+            this.Frequent[lang] = {};
+            this.state.curlang = lang;
+            let charset = this.langcharset[lang];
+            let langreplace = this.langreplace[lang];
+            this.setCharset(charset);
+            let lines = data.split("\n");
+            let len = lines.length;
+            charset = charset.toUpperCase();
+            for (let i = 0; i < len; i++) {
+                let pieces = lines[i]
+                    .replace(/\r/g, " ")
+                    .toUpperCase()
+                    .split(/ /);
+                // make sure that all the characters in the pieces are valid
+                // for this character set.  Otherwise we can throw it away
+                let legal = true;
+                for (let c of pieces[0]) {
+                    if (charset.indexOf(c) < 0) {
+                        if (typeof langreplace[c] === "undefined") {
+                            console.log(
+                                "skipping out on " +
+                                    pieces[0] +
+                                    " for " +
+                                    c +
+                                    " against " +
+                                    charset
+                            );
+                            legal = false;
+                            break;
+                        }
+                        pieces[0] = pieces[0].replace(c, langreplace[c]);
+                    }
+                }
+                if (legal) {
+                    let pat = this.makeUniquePattern(pieces[0], 1);
+                    let elem: patelem = [
+                        pieces[0].toUpperCase(),
+                        i,
+                        pieces[1],
+                        0,
+                    ];
+                    if (i < 500) {
+                        elem[3] = 0;
+                    } else if (i < 1000) {
+                        elem[3] = 1;
+                    } else if (i < 2000) {
+                        elem[3] = 3;
+                    } else if (i < 5000) {
+                        elem[3] = 4;
+                    } else {
+                        elem[3] = 5;
+                    }
+                    if (typeof this.Frequent[lang][pat] === "undefined") {
+                        this.Frequent[lang][pat] = [];
+                    }
+                    this.Frequent[lang][pat].push(elem);
+                }
+            }
+            // console.log(this.Frequent)
+            $(".langout").each((i: number, elem: HTMLElement) => {
+                $(".langstatus").text("Dumping " + this.langmap[lang] + "...");
+                $(elem).text(this.dumpLang(lang));
+            });
+            $(".langstatus").text("");
+            this.updateMatchDropdowns("");
+        });
+        $(".langstatus").text("Loading " + this.langmap[lang] + "...");
+    }
+    /**
+     * Retrieve all of the replacement characters that have been selected so far
+     */
+    UpdateReverseReplacements(): void {
+        let charset = this.getSourceCharset().toUpperCase();
+        $("[id^=rf]").text("");
+        for (let c of charset) {
+            $("#rf" + this.state.replacement[c]).text(c);
+        }
+    }
+    /**
+     * Get a URL associated with an editor for a saved cipher
+     */
+    public getEditURL(state: IState): string {
+        let lang;
+        if (state.cipherType === undefined) {
+            return "";
+        }
+        if (state.curlang !== undefined && state.curlang !== "en") {
+            lang = state.curlang;
+        }
+        return JTGetURL(CipherMenu, state.cipherType, lang);
+    }
+    /**
+     * Create the hidden dialog for selecting a cipher to open
+     */
+    private createOpenFileDlg(): JQElement {
+        let dlgContents = $("<select/>", {
+            id: "files",
+            class: "filelist",
+            size: 10,
+        });
+        let openFileDlg = JTFDialog(
+            "OpenFile",
+            "Select File to Open",
+            dlgContents,
+            "okopen",
+            "OK"
+        );
+        return openFileDlg;
+    }
+    /**
+     * Creates the hidden dialog for selecting an XML file to import
+     */
+    private createImportFileDlg(): JQElement {
+        let dlgContents = $("<div/>", {
+            id: "importstatus",
+            class: "callout secondary",
+        })
+            .append(
+                $("<label/>", {
+                    for: "xmlFile",
+                    class: "impfile button",
+                }).text("Select File")
+            )
+            .append(
+                $("<input/>", {
+                    type: "file",
+                    id: "xmlFile",
+                    accept: ".json",
+                    class: "impfile show-for-sr",
+                })
+            )
+            .append(
+                $("<span/>", {
+                    id: "xmltoimport",
+                    class: "impfile",
+                }).text("No File Selected")
+            )
+            .append(
+                JTFLabeledInput(
+                    "URL",
+                    "text",
+                    "xmlurl",
+                    "",
+                    "impurl small-12 medium-6 large-6"
+                )
+            );
+        let importDlg = JTFDialog(
+            "ImportFile",
+            "Import Test Data",
+            dlgContents,
+            "okimport",
+            "Import"
+        );
+        return importDlg;
+    }
+    /**
+     * Create the main menu at the top of the page.
+     * This also creates the hidden dialogs used for opening and importing files
+     */
+    public createMainMenu(): JQElement {
+        let result = $("<div/>");
+        result.append(JTCreateMenu(CipherMenu, "example-menu", "Cipher Tools"));
+        // Create the dialog for selecting which cipher to load
+        result.append(this.createOpenFileDlg());
+        result.append(this.createImportFileDlg());
+        return result;
+    }
+    /**
+     * Preserve the current replacement order
+     */
+    public getReplacementOrder(): void {
+        let replOrder = "";
+        $("#freqtable")
+            .children()
+            .each((i, elem) => {
+                let eid = $(elem).attr("id");
+                replOrder += eid.substr(eid.length - 1);
+            });
+        this.state.replOrder = replOrder;
+    }
+    /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     attachHandlers(): void {
@@ -2096,15 +2442,15 @@ export class CipherHandler {
                 }
             });
 
-        $(".dragcol").each((i: number, elem: HTMLElement) => {
-            if (!$.fn.dataTable.isDataTable(".dragcol")) {
-                $(elem).DataTable({
-                    colReorder: true,
-                    ordering: false,
-                    dom: "t"
-                });
-            }
-        });
+        // $(".dragcol").each((i: number, elem: HTMLElement) => {
+        //     if (!$.fn.dataTable.isDataTable(".dragcol")) {
+        //         $(elem).DataTable({
+        //             colReorder: true,
+        //             ordering: false,
+        //             dom: "t"
+        //         });
+        //     }
+        // });
         $(".msli")
             .off("change")
             .on("change", e => {
@@ -2145,351 +2491,5 @@ export class CipherHandler {
                 let findStr = $(e.target).val() as string;
                 this.findPossible(findStr);
             });
-    }
-    /**
-     * Generate a replacement pattern string.  Any unknown characters are represented as a space
-     * otherwise they are given as the character it replaces as.
-     *
-     * For example if we know
-     *    A B C D E F G J I J K L M N O P Q R S T U V W X Y Z
-     *        E             H
-     *
-     * And were given the input string of "RJCXC" then the result would be " HE E"
-     */
-    genReplPattern(str: string): string[] {
-        let res = [];
-        for (let c of str) {
-            res.push(this.state.replacement[c]);
-        }
-        return res;
-    }
-    /**
-     * Determines if a string is a valid match for the known matching characters
-     * This is used to generate the candidates in the dropdown dialog
-     */
-    isValidReplacement(str: string, repl: string[], used: BoolMap): boolean {
-        //   console.log(str)
-        for (let i = 0, len = str.length; i < len; i++) {
-            let c = str.substr(i, 1);
-            if (repl[i] !== "") {
-                if (c !== repl[i]) {
-                    //             console.log("No match c=" + c + " repl[" + i + "]=" + repl[i])
-                    return false;
-                }
-            } else if (used[c]) {
-                //          console.log("No match c=" + c + " used[c]=" + used[c])
-                return false;
-            }
-        }
-        return true;
-    }
-    public setDefaultCipherType(ciphertype: ICipherType): void {
-        this.state.cipherType = ciphertype;
-        this.defaultstate.cipherType = ciphertype;
-    }
-    /**
-     * Updates the stored state cipher string
-     * @param cipherString Cipher string to set
-     */
-    public setCipherString(cipherString: string): boolean {
-        let changed = false;
-        if (this.state.cipherString !== cipherString) {
-            this.state.cipherString = cipherString;
-            changed = true;
-        }
-        return changed;
-    }
-    /**
-     * set the cipher type
-     */
-    public setCipherType(ciphertype: ICipherType): boolean {
-        let changed = false;
-        if (this.state.cipherType !== ciphertype) {
-            this.state.cipherType = ciphertype;
-            changed = true;
-        }
-        return changed;
-    }
-    /**
-     * Quote a string, escaping any quotes with \.  This is used for generating Javascript
-     * that can be safely loaded.
-     */
-    quote(str: string): string {
-        if (typeof str === "undefined") {
-            return "\"\"";
-        }
-        return "'" + str.replace(/([""])/g, "\\$1") + "'";
-    }
-    /**
-     * Given a string with groupings of a size, this computes a pattern which matches the
-     * string in a unique order.
-     * for example for makeUniquePattern("XYZZY",1)
-     *                 it would generate "01221"
-     * with  makeUniquePattern("..--X..X..X",2)
-     *                          0 1 2 3 0 4   (note the hidden addition of the extra X)
-     * This makes it easy to search for a pattern in any input cryptogram
-     */
-    makeUniquePattern(str: string, width: number): string {
-        let cmap = {};
-        let res = "";
-        let mapval: number = 0;
-        let len = str.length;
-        // in case they give us an odd length string, just padd it with enough Xs
-        str += "XXXX";
-
-        for (let i = 0; i < len; i += width) {
-            let c = str.substr(i, width);
-            if (typeof cmap[c] === "undefined") {
-                cmap[c] = "" + mapval;
-                mapval++;
-            }
-            res += cmap[c];
-        }
-        return res;
-    }
-    /**
-     * Dump out the language template for a given language
-     */
-    dumpLang(lang: string): string {
-        let extra = "";
-        let res = "cipherTool.Frequent[" + this.quote(lang) + "]={";
-        for (let pat in this.Frequent[lang]) {
-            if (this.Frequent[lang].hasOwnProperty(pat) && pat !== "") {
-                res += extra + '"' + pat + '":[';
-                let extra1 = "";
-                let matches = this.Frequent[lang][pat];
-                for (let i = 0, len = matches.length; i < len; i++) {
-                    // console.log(matches[i])
-                    res +=
-                        extra1 +
-                        "[" +
-                        this.quote(matches[i][0]) +
-                        "," +
-                        matches[i][1] +
-                        "," +
-                        matches[i][2] +
-                        "," +
-                        matches[i][3] +
-                        "]";
-                    extra1 = ",";
-                }
-                res += "]";
-                extra = ",";
-            }
-        }
-        res += "};";
-        return res;
-    }
-    /**
-     * Fills in the language choices on an HTML Select
-     */
-    getLangDropdown(): JQElement {
-        let result = $("<div/>", { class: "cell input-group" });
-        result.append(
-            $("<span/>", { class: "input-group-label" }).text("Language")
-        );
-        let select = $("<select/>", { class: "lang input-group-field" });
-        select.append(
-            $("<option />", { value: "" }).text("--Select a language--")
-        );
-        for (let lang in this.langmap) {
-            if (this.langmap.hasOwnProperty(lang)) {
-                select.append(
-                    $("<option />", { value: lang }).text(this.langmap[lang])
-                );
-            }
-        }
-        result.append(select);
-        return result;
-    }
-    /**
-     * Loads a language in response to a dropdown event
-     */
-    loadLanguage(lang: string): void {
-        this.state.curlang = lang;
-        this.setCharset(this.langcharset[lang]);
-        $(".langstatus").text(
-            "Attempting to load " + this.langmap[lang] + "..."
-        );
-        $.getScript("Languages/" + lang + ".js", (data, textStatus, jqxhr) => {
-            $(".langstatus").text("");
-            this.updateMatchDropdowns("");
-        }).fail((jqxhr, settings, exception) => {
-            console.log("Complied language file not found for " + lang + ".js");
-            this.loadRawLanguage(lang);
-        });
-    }
-    /**
-     * Loads a raw language from the server
-     * lang Language to load (2 character abbreviation)
-     */
-    loadRawLanguage(lang: string): void {
-        let jqxhr = $.get("Languages/" + lang + ".txt", () => {}).done(data => {
-            // empty out all the frequent words
-            $(".langstatus").text("Processing " + this.langmap[lang] + "...");
-            this.Frequent[lang] = {};
-            this.state.curlang = lang;
-            let charset = this.langcharset[lang];
-            let langreplace = this.langreplace[lang];
-            this.setCharset(charset);
-            let lines = data.split("\n");
-            let len = lines.length;
-            charset = charset.toUpperCase();
-            for (let i = 0; i < len; i++) {
-                let pieces = lines[i]
-                    .replace(/\r/g, " ")
-                    .toUpperCase()
-                    .split(/ /);
-                // make sure that all the characters in the pieces are valid
-                // for this character set.  Otherwise we can throw it away
-                let legal = true;
-                for (let c of pieces[0]) {
-                    if (charset.indexOf(c) < 0) {
-                        if (typeof langreplace[c] === "undefined") {
-                            console.log(
-                                "skipping out on " +
-                                    pieces[0] +
-                                    " for " +
-                                    c +
-                                    " against " +
-                                    charset
-                            );
-                            legal = false;
-                            break;
-                        }
-                        pieces[0] = pieces[0].replace(c, langreplace[c]);
-                    }
-                }
-                if (legal) {
-                    let pat = this.makeUniquePattern(pieces[0], 1);
-                    let elem: patelem = [
-                        pieces[0].toUpperCase(),
-                        i,
-                        pieces[1],
-                        0
-                    ];
-                    if (i < 500) {
-                        elem[3] = 0;
-                    } else if (i < 1000) {
-                        elem[3] = 1;
-                    } else if (i < 2000) {
-                        elem[3] = 3;
-                    } else if (i < 5000) {
-                        elem[3] = 4;
-                    } else {
-                        elem[3] = 5;
-                    }
-                    if (typeof this.Frequent[lang][pat] === "undefined") {
-                        this.Frequent[lang][pat] = [];
-                    }
-                    this.Frequent[lang][pat].push(elem);
-                }
-            }
-            // console.log(this.Frequent)
-            $(".langout").each((i: number, elem: HTMLElement) => {
-                $(".langstatus").text("Dumping " + this.langmap[lang] + "...");
-                $(elem).text(this.dumpLang(lang));
-            });
-            $(".langstatus").text("");
-            this.updateMatchDropdowns("");
-        });
-        $(".langstatus").text("Loading " + this.langmap[lang] + "...");
-    }
-    /**
-     * Retrieve all of the replacement characters that have been selected so far
-     */
-    UpdateReverseReplacements(): void {
-        let charset = this.getSourceCharset().toUpperCase();
-        $("[id^=rf]").text("");
-        for (let c of charset) {
-            $("#rf" + this.state.replacement[c]).text(c);
-        }
-    }
-    /**
-     * Get a URL associated with an editor for a saved cipher
-     */
-    public getEditURL(state: IState): string {
-        let lang;
-        if (state.cipherType === undefined) {
-            return "";
-        }
-        if (state.curlang !== undefined && state.curlang !== "en") {
-            lang = state.curlang;
-        }
-        return JTGetURL(CipherMenu, state.cipherType, lang);
-    }
-    /**
-     * Create the hidden dialog for selecting a cipher to open
-     */
-    private createOpenFileDlg(): JQElement {
-        let dlgContents = $("<select/>", {
-            id: "files",
-            class: "filelist",
-            size: 10
-        });
-        let openFileDlg = JTFDialog(
-            "OpenFile",
-            "Select File to Open",
-            dlgContents,
-            "okopen",
-            "OK"
-        );
-        return openFileDlg;
-    }
-    /**
-     * Creates the hidden dialog for selecting an XML file to import
-     */
-    private createImportFileDlg(): JQElement {
-        let dlgContents = $("<div/>", {
-            id: "importstatus",
-            class: "callout secondary"
-        })
-            .append(
-                $("<label/>", { for: "xmlFile", class: "impfile button" }).text(
-                    "Select File"
-                )
-            )
-            .append(
-                $("<input/>", {
-                    type: "file",
-                    id: "xmlFile",
-                    accept: ".json",
-                    class: "impfile show-for-sr"
-                })
-            )
-            .append(
-                $("<span/>", { id: "xmltoimport", class: "impfile" }).text(
-                    "No File Selected"
-                )
-            )
-            .append(
-                JTFLabeledInput(
-                    "URL",
-                    "text",
-                    "xmlurl",
-                    "",
-                    "impurl small-12 medium-6 large-6"
-                )
-            );
-        let importDlg = JTFDialog(
-            "ImportFile",
-            "Import Test Data",
-            dlgContents,
-            "okimport",
-            "Import"
-        );
-        return importDlg;
-    }
-    /**
-     * Create the main menu at the top of the page.
-     * This also creates the hidden dialogs used for opening and importing files
-     */
-    public createMainMenu(): JQElement {
-        let result = $("<div/>");
-        result.append(JTCreateMenu(CipherMenu, "example-menu", "Cipher Tools"));
-        // Create the dialog for selecting which cipher to load
-        result.append(this.createOpenFileDlg());
-        result.append(this.createImportFileDlg());
-        return result;
     }
 }

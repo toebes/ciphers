@@ -777,16 +777,33 @@ export class CipherSolver extends CipherHandler {
         this.updateMatchDropdowns("");
     }
     /**
+     * Change two sets of characters at once.  Unlike setMultiChars which
+     * expects the characters to be interleaved, this assumes two separate strings
+     * of characters which we would expect to be the same length.
+     * @param repchars Cipher text characters
+     * @param newchars New replacement characters
+     */
+    setCharStrings(repchars: string, newchars: string): void {
+        this.holdupdates = true;
+        for (let i = 0; i < repchars.length; i++) {
+            this.setChar(repchars.substr(i, 1), newchars.substr(i, 1));
+        }
+        this.holdupdates = false;
+        this.updateMatchDropdowns("");
+    }
+    /**
      * Generates the Match dropdown for a given string
      * @param str Pattern string to generate match dropdown
      */
-    generateMatchDropdown(str: string): JQuery<HTMLElement> {
+    genMatchDropdown(str: string): JQuery<HTMLElement> {
         if (
             this.state.curlang === "" ||
             !this.Frequent.hasOwnProperty(this.state.curlang)
         ) {
             return $("");
         }
+        // Get a template for the pattern of the word so that we can subset
+        // which words we will pull from the precompiled language
         let pat = this.makeUniquePattern(str, 1);
         let repl = this.genReplPattern(str);
         let mselect = $("<select/>").addClass("match");
@@ -810,12 +827,20 @@ export class CipherSolver extends CipherHandler {
                     if (!matched) {
                         selectclass = "l" + entry[3];
                     }
-                    matched = true;
+                    if (!matched) {
+                        mselect.append(
+                            $("<option/>", { selected: "", disabled: "" })
+                                .addClass("l" + entry[3])
+                                .text(entry[0])
+                        );
+                    }
+                    mselect.append(
+                        $("<option/>")
+                            .addClass("l" + entry[3])
+                            .text(entry[0])
+                    );
                     added++;
-                    $("<option/>")
-                        .addClass("l" + entry[3])
-                        .text(entry[0])
-                        .appendTo(mselect);
+                    matched = true;
                     /*    } else if (entry[1] < 100 && added < 9) {
                     if (selectclass === '') {
                         selectclass = entry.c;
@@ -846,8 +871,9 @@ export class CipherSolver extends CipherHandler {
         $("[data-chars]").each((i, elem) => {
             $(elem)
                 .empty()
-                .append(this.generateMatchDropdown($(elem).attr("data-chars")));
+                .append(this.genMatchDropdown($(elem).attr("data-chars")));
         });
+        this.attachHandlers();
     }
     /**
      * Attach handlers to any newly created DOM Elements
@@ -879,5 +905,15 @@ export class CipherSolver extends CipherHandler {
                 this.getReplacementOrder();
             });
         });
+        $(".match")
+            .off("change")
+            .on("change", e => {
+                this.markUndo(null);
+                let newchars = $(e.target).val() as string;
+                let repchars = $(e.target)
+                    .parent("[data-chars]")
+                    .attr("data-chars");
+                this.setCharStrings(repchars, newchars);
+            });
     }
 }

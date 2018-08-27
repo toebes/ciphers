@@ -1930,7 +1930,11 @@ export class CipherHandler {
     genReplPattern(str: string): string[] {
         let res = [];
         for (let c of str) {
-            res.push(this.state.replacement[c]);
+            if (this.state.replacement[c] === undefined) {
+                res.push("");
+            } else {
+                res.push(this.state.replacement[c]);
+            }
         }
         return res;
     }

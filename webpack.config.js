@@ -2,7 +2,8 @@ const path = require("path");
 const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const HardSourceWebpackPlugin = require("hard-source-webpack-plugin");
-// var TypedocWebpackPlugin = require('typedoc-webpack-plugin');
+const TypedocWebpackPlugin = require("typedoc-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
     //    mode: "development", // "production" | "development" | "none"
@@ -155,6 +156,16 @@ module.exports = {
         ],
     },
     plugins: [
+        new CopyWebpackPlugin([
+            {
+                from: path.join(__dirname, "Languages", "*.js"),
+                to: path.resolve(__dirname, "dist"),
+            },
+            {
+                from: path.join(__dirname, "Languages", "*.txt"),
+                to: path.resolve(__dirname, "dist"),
+            },
+        ]),
         new HardSourceWebpackPlugin(),
         // new TypedocWebpackPlugin(
         //     {

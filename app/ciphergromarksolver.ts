@@ -270,7 +270,7 @@ export class CipherGromarkSolver extends CipherSolver {
     /**
      *      * Generates the Match dropdown for a given string
      */
-    generateMatchDropdown(str: string): JQuery<HTMLElement> {
+    genMatchDropdown(str: string): JQuery<HTMLElement> {
         if (this.state.curlang === "") {
             return $("");
         }
@@ -367,7 +367,7 @@ export class CipherGromarkSolver extends CipherSolver {
         $("[data-chars]").each((i, elem) => {
             $(elem)
                 .empty()
-                .append(this.generateMatchDropdown($(elem).attr("data-chars")));
+                .append(this.genMatchDropdown($(elem).attr("data-chars")));
         });
     }
 

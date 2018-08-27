@@ -782,7 +782,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             .on("input", e => {
                 let newa: number = Number($(e.target).val());
                 if (newa !== this.state.a) {
-                    this.markUndo();
+                    this.markUndo(null);
                     if (this.seta(newa)) {
                         this.updateOutput();
                     }
@@ -794,7 +794,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             .on("input", e => {
                 let newb: number = Number($(e.target).val());
                 if (newb !== this.state.b) {
-                    this.markUndo();
+                    this.markUndo(null);
                     if (this.setb(newb)) {
                         this.updateOutput();
                     }

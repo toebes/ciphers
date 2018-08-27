@@ -254,7 +254,7 @@ export class CipherEncoder extends CipherHandler {
                     .siblings()
                     .removeClass("is-active");
                 $(e.target).addClass("is-active");
-                this.markUndo();
+                this.markUndo(null);
                 if (this.setEncType($(e.target).val() as string)) {
                     this.updateOutput();
                 }
@@ -264,7 +264,7 @@ export class CipherEncoder extends CipherHandler {
             .on("input", e => {
                 let offset = Number($(e.target).val());
                 if (offset !== this.state.offset) {
-                    this.markUndo();
+                    this.markUndo(null);
                     if (this.setOffset(offset)) {
                         this.updateOutput();
                     }
@@ -275,7 +275,7 @@ export class CipherEncoder extends CipherHandler {
             .on("input", e => {
                 let shift = Number($(e.target).val());
                 if (shift !== this.state.shift) {
-                    this.markUndo();
+                    this.markUndo(null);
                     if (this.setShift(shift)) {
                         this.updateOutput();
                     }
@@ -286,7 +286,7 @@ export class CipherEncoder extends CipherHandler {
             .on("input", e => {
                 let offset2 = Number($(e.target).val());
                 if (offset2 !== this.state.offset2) {
-                    this.markUndo();
+                    this.markUndo(null);
                     if (this.setOffset2(offset2)) {
                         this.updateOutput();
                     }
@@ -346,7 +346,7 @@ export class CipherEncoder extends CipherHandler {
         $("#randomize")
             .off("click")
             .on("click", () => {
-                this.markUndo();
+                this.markUndo(null);
                 this.resetAlphabet();
                 this.updateOutput();
             });

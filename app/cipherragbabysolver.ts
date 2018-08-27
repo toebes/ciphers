@@ -751,7 +751,7 @@ export class CipherRagbabySolver extends CipherSolver {
         $("[name=alphasize]")
             .off("change")
             .on("change", () => {
-                this.markUndo();
+                this.markUndo(null);
                 this.setAlphabetSize(Number(
                     $("input[name='alphasize']:checked").val()
                 ) as alphaNum);
@@ -760,13 +760,13 @@ export class CipherRagbabySolver extends CipherSolver {
         $("button.ls")
             .off("click")
             .on("click", e => {
-                this.markUndo();
+                this.markUndo(null);
                 this.leftRotate(Number($(e.target).attr("data-vrow")));
             });
         $("button.rs")
             .off("click")
             .click(e => {
-                this.markUndo();
+                this.markUndo(null);
                 this.rightRotate(Number($(e.target).attr("data-vrow")));
             });
         $(".slvi")

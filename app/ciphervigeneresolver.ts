@@ -478,7 +478,7 @@ export class CipherVigenereSolver extends CipherSolver {
         $('[name="ciphertype"]')
             .off("click")
             .on("click", e => {
-                this.markUndo();
+                this.markUndo(null);
                 this.setCipherType($(e.target).val() as ICipherType);
                 this.updateOutput();
             });
@@ -487,7 +487,7 @@ export class CipherVigenereSolver extends CipherSolver {
             .on("input", e => {
                 let newkeyword = $(e.target).val() as string;
                 if (newkeyword !== this.state.keyword) {
-                    this.markUndo();
+                    this.markUndo(null);
                     if (this.setKeyword(newkeyword)) {
                         this.updateOutput();
                     }
@@ -501,7 +501,7 @@ export class CipherVigenereSolver extends CipherSolver {
                     newkey = $(e.target).html();
                 }
                 if (newkey !== this.state.keyword) {
-                    this.markUndo();
+                    this.markUndo(null);
                     if (this.setKeyword(newkey)) {
                         this.updateOutput();
                     }

@@ -669,6 +669,10 @@ export class CipherHandler {
     holdupdates: boolean = false;
     /** Stack of current Undo/Redo operations */
     undoStack: IState[] = [];
+    /** We can merge the next operation */
+    undoCanMerge: boolean = false;
+    /** The type of the last undo requested */
+    lastUndoRequest: string = undefined;
     /** Where we are in the undo stack */
     undoPosition: number = 0;
     /** Indicates that we need to queue an undo item before executing an Undo */
@@ -1004,7 +1008,7 @@ export class CipherHandler {
             .on("click", e => {
                 this.savefileentry = Number($("#files option:selected").val());
                 $("#OpenFile").foundation("close");
-                this.markUndo();
+                this.markUndo(null);
                 this.restore(this.getFileEntry(this.savefileentry));
             });
         $("#OpenFile").foundation("open");
@@ -1325,49 +1329,52 @@ export class CipherHandler {
      * Saves the current state of the cipher work so that it can be undone
      * This code will attempt to merge named operations when pushing a second
      * to the top of the stack.  This is useful for operations such as search
-     * undotype Type of undo (for merging with previous entries)
+     * undotype Type of undo (for merging with previous entries).  A value of
+     * null indicates that the operation is not mergable.
      */
-    markUndo(undotype?: string): void {
+    markUndo(undotype: string): void {
+        // See if we are trying to do an undo after we had popped some undo
+        // operations off the stack.  In that case, we simply truncate the stack
         if (this.undoPosition < this.undoStack.length - 1) {
             this.undoStack.splice(this.undoPosition);
         }
-        if (undotype === undefined) {
-            undotype = null;
-        }
         this.pushUndo(undotype);
+        // If we attempt to do an undo after we pushed this operation of the stack
+        // remember that we will have to save whatever this operation was so that
+        // we don't lose it as undo is always the state BEFORE the operation
         this.undoNeeded = undotype;
         this.markUndoUI(false, true);
     }
     /**
      * Pushes or merges an undo operation to the top of the stack
      * undotype Type of undo (for merging with previous entries)
+     * For example if we have the following operations
+     *    Operation          UndoType  Action Stack after
+     *    Initial State                       <empty>
+     *    Change Offset=1    undefined  push  [initial]
+     *    Type find char A   find       push  [initial][off=1]
+     *    Type find char AB  find       push  [initial][off=1][find=A,off=1]
+     *    Type find char ABC find       merge [initial][off=1][find=AB,off=1]
+     *    Change Offset=2    undefined  merge [initial][off=1][find=ABC,off=1]
+     *    Change Offset=3    undefined  push  [initial][off=1][find=ABC,off=1][find=ABC,off=2]
      */
     pushUndo(undotype: string): void {
         let undodata = this.save();
-        if (undotype !== undefined && undotype !== null) {
-            undodata.undotype = undotype;
-        } else {
-            undotype = null;
-        }
-        undodata.undotype = undotype;
         // See if we can merge this (such as a find operation) with the previous undo
-        if (
-            this.undoStack.length > 0 &&
-            ((undotype !== null &&
-                this.undoStack[this.undoStack.length - 1].undotype ===
-                    undotype) ||
-                (undotype === null &&
-                    this.undoStack[this.undoStack.length - 1].undotype !==
-                        null))
-        ) {
+        if (this.undoCanMerge) {
             this.undoStack[this.undoStack.length - 1] = undodata;
         } else {
-            if (this.undoStack.length === 0) {
-                undodata.undotype = null;
-            }
             this.undoStack.push(undodata);
         }
         this.undoPosition = this.undoStack.length - 1;
+        // Now remember what we did so that we can figure out if next time we
+        // can merge
+        this.undoCanMerge =
+            this.lastUndoRequest !== undefined &&
+            this.lastUndoRequest !== null &&
+            this.lastUndoRequest === undotype;
+        // Remember the current request so we can check on merging next time
+        this.lastUndoRequest = undotype;
     }
     /**
      * Restore work to a previous state stored on the stack
@@ -1379,6 +1386,8 @@ export class CipherHandler {
             this.pushUndo(this.undoNeeded);
             this.undoNeeded = undefined;
         }
+        this.undoCanMerge = false;
+        this.lastUndoRequest = undefined;
         if (this.undoPosition > 0) {
             this.undoPosition--;
             this.restore(this.undoStack[this.undoPosition]);
@@ -1410,6 +1419,10 @@ export class CipherHandler {
             this.undoPosition++;
             this.restore(this.undoStack[this.undoPosition]);
             this.undoNeeded = undefined;
+            // Prevent creating a new entry on the stack since it will match
+            // what we have currently
+            this.undoCanMerge = true;
+            this.lastUndoRequest = undefined;
             this.markUndoUI(
                 false,
                 this.undoPosition >= this.undoStack.length - 1
@@ -2302,7 +2315,7 @@ export class CipherHandler {
                         : focusables.eq(0);
                     next.focus();
                 } else if (event.keyCode === 46 || event.keyCode === 8) {
-                    this.markUndo();
+                    this.markUndo(null);
                     this.setChar(repchar, "");
                 }
                 event.preventDefault();
@@ -2325,7 +2338,7 @@ export class CipherHandler {
                         newchar = "";
                     }
                     console.log("Setting " + repchar + " to " + newchar);
-                    this.markUndo();
+                    this.markUndo(null);
                     this.setChar(repchar, newchar);
                     current = focusables.index(event.target);
                     next = focusables.eq(current + 1).length
@@ -2368,7 +2381,7 @@ export class CipherHandler {
                     .siblings()
                     .removeClass("is-active");
                 $(e.target).addClass("is-active");
-                this.markUndo();
+                this.markUndo(null);
                 this.setOperation($(e.target).val() as IOperationType);
                 this.updateOutput();
             });
@@ -2401,14 +2414,14 @@ export class CipherHandler {
                     .siblings()
                     .removeClass("is-active");
                 $(e.target).addClass("is-active");
-                this.markUndo();
+                this.markUndo(null);
                 this.setCipherType($(e.target).val() as ICipherType);
                 this.updateOutput();
             });
         $("#load")
             .off("click")
             .on("click", () => {
-                this.markUndo();
+                this.markUndo(null);
                 this.load();
             });
         $("#undo")
@@ -2429,7 +2442,7 @@ export class CipherHandler {
         $("#reset")
             .off("click")
             .on("click", () => {
-                this.markUndo();
+                this.markUndo(null);
                 this.reset();
             });
         $("a[data-action]")
@@ -2454,7 +2467,7 @@ export class CipherHandler {
         $(".msli")
             .off("change")
             .on("change", e => {
-                this.markUndo();
+                this.markUndo(null);
                 let toupdate = $(e.target).attr("data-char");
                 this.updateSel(toupdate, (e.target as HTMLInputElement).value);
             });

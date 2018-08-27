@@ -151,7 +151,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             .off("input")
             .on("input", e => {
                 let linewidth = $(e.target).val() as number;
-                this.markUndo();
+                this.markUndo(null);
                 if (this.setLineWidth(linewidth)) {
                     this.updateOutput();
                 }

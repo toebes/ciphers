@@ -869,13 +869,13 @@ export class CipherSolver extends CipherHandler {
             .off("click")
             .on("click", e => {
                 let mapfix = $(e.target).attr("data-mapfix");
-                this.markUndo();
+                this.markUndo(null);
                 this.setMultiChars(mapfix);
             });
         $(".sortable").each((i: number, elem: HTMLElement) => {
             sortable(elem, "destroy");
             sortable(elem)[0].addEventListener("sortupdate", e => {
-                this.markUndo();
+                this.markUndo(null);
                 this.getReplacementOrder();
             });
         });

@@ -235,7 +235,7 @@ export class CipherMorseSolver extends CipherSolver {
             .off("change")
             .on("change", e => {
                 let toupdate = $(e.target).attr("data-char");
-                this.markUndo();
+                this.markUndo(null);
                 this.updateCheck(toupdate, $(e.target).prop("checked"));
             });
     }

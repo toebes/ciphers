@@ -741,7 +741,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             .off("input")
             .on("input", e => {
                 let texta = $(e.target).val() as string;
-                this.markUndo();
+                this.markUndo(null);
                 if (this.setTexta(texta)) {
                     this.updateOutput();
                 }
@@ -750,7 +750,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             .off("input")
             .on("input", e => {
                 let textb = $(e.target).val() as string;
-                this.markUndo();
+                this.markUndo(null);
                 if (this.setTextb(textb)) {
                     this.updateOutput();
                 }
@@ -760,7 +760,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             .on("click", e => {
                 let id = $(e.target).attr("id") as string;
                 let c = id.substr(1, 1);
-                this.markUndo();
+                this.markUndo(null);
                 this.toggleAB(c);
                 this.updateOutput();
             });
@@ -768,7 +768,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             .off("input")
             .on("input", e => {
                 let linewidth = $(e.target).val() as number;
-                this.markUndo();
+                this.markUndo(null);
                 if (this.setLineWidth(linewidth)) {
                     this.updateOutput();
                 }

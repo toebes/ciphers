@@ -264,7 +264,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             .on("input", e => {
                 let blocksize = Number($(e.target).val());
                 if (blocksize !== this.state.blocksize) {
-                    this.markUndo();
+                    this.markUndo(null);
                     if (this.setBlocksize(blocksize)) {
                         this.updateOutput();
                     }

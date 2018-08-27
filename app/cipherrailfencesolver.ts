@@ -474,7 +474,7 @@ export class CipherRailfenceSolver extends CipherSolver {
             .on("input", e => {
                 let newrails: number = Number($(e.target).val());
                 if (newrails !== this.state.rails) {
-                    this.markUndo();
+                    this.markUndo(null);
                     if (this.setRailCount(newrails)) {
                         this.updateOutput();
                     }
@@ -485,7 +485,7 @@ export class CipherRailfenceSolver extends CipherSolver {
             .on("input", e => {
                 let newoffset = Number($(e.target).val());
                 if (newoffset !== this.state.railOffset) {
-                    this.markUndo();
+                    this.markUndo(null);
                     if (this.setRailOffset(newoffset)) {
                         this.updateOutput();
                     }
@@ -494,7 +494,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         $('[name="railtype"]')
             .off("click")
             .on("click", e => {
-                this.markUndo();
+                this.markUndo(null);
                 if (this.setRailType($(e.target).val() as ICipherType)) {
                     this.updateOutput();
                 }
@@ -502,7 +502,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         $('[name="rlayout"]')
             .off("click")
             .on("click", e => {
-                this.markUndo();
+                this.markUndo(null);
                 if (
                     this.setRailLayout(Number($(e.target).val()) as RailLayout)
                 ) {
@@ -512,7 +512,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         $("#rorder")
             .off("input")
             .on("input", e => {
-                this.markUndo();
+                this.markUndo(null);
                 if (this.setRailOrder(<string>$(e.target).val())) {
                     this.updateOutput();
                 }

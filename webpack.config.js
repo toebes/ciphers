@@ -8,7 +8,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 module.exports = {
     //    mode: "development", // "production" | "development" | "none"
     context: __dirname,
-    devtool: "inline-source-map",
+    // devtool: "inline-source-map",
     entry: path.join(__dirname, "app", "ciphers.ts"),
     output: {
         path: path.resolve(__dirname, "dist"),
@@ -87,6 +87,7 @@ module.exports = {
     },
     module: {
         rules: [
+            // For the typescript files, we don't want anything in the node_modules directory
             {
                 test: /\.tsx?$/,
                 loader: "ts-loader",
@@ -94,7 +95,6 @@ module.exports = {
                 exclude: [path.resolve(__dirname, "node_modules")],
             },
             // All .css files are processed with the css-loader, style-loader
-
             {
                 test: /\.css$/,
                 include: __dirname,

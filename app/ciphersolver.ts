@@ -23,6 +23,7 @@ export class CipherSolver extends CipherHandler {
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
         this.redocmdButton,
+        { title: "Load English", color: "primary", id: "loadeng" },
         { title: "Reset", color: "warning", id: "reset" },
     ];
     /** Cache the last encoded string to optimize updates */
@@ -899,6 +900,11 @@ export class CipherSolver extends CipherHandler {
                         this.updateOutput();
                     }
                 }
+            });
+        $("#loadeng")
+            .off("click")
+            .on("click", e => {
+                this.loadLanguage("en");
             });
         $("a.dapply")
             .off("click")

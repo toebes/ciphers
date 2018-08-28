@@ -1340,6 +1340,9 @@ export class CipherHandler {
      * Initializes any layout of the handler.
      */
     buildCustomUI(): void {
+        $(".MenuBar").each((i: number, elem: HTMLElement) => {
+            $(elem).replaceWith(this.createMainMenu());
+        });
         $(".precmds").each((i, elem) => {
             $(elem).replaceWith(this.genPreCommands());
         });
@@ -1349,8 +1352,8 @@ export class CipherHandler {
         $(".cmdbuttons").each((i, elem) => {
             $(elem).replaceWith(this.genCmdButtons());
         });
-        $(".undocmds").each((i, elem) => {
-            $(elem).replaceWith(this.genUndoRedoButtons());
+        $(".langsel").each((i: number, elem: HTMLElement) => {
+            $(elem).replaceWith(this.getLangDropdown());
         });
     }
     restore(data: IState): void {}
@@ -1513,14 +1516,8 @@ export class CipherHandler {
                 saveSet[v] = parms[v];
             }
         }
-        $(".langsel").each((i: number, elem: HTMLElement) => {
-            $(elem).replaceWith(this.getLangDropdown());
-        });
-        $(".MenuBar").each((i: number, elem: HTMLElement) => {
-            $(elem).replaceWith(this.createMainMenu());
-        });
-        this.setMenuMode(menuMode.none);
         this.buildCustomUI();
+        this.setMenuMode(menuMode.none);
         this.restore(saveSet);
         this.attachHandlers();
     }
@@ -2109,6 +2106,7 @@ export class CipherHandler {
      * Fills in the language choices on an HTML Select
      */
     getLangDropdown(): JQElement {
+        $("#loadeng").hide();
         let result = $("<div/>", { class: "cell input-group" });
         result.append(
             $("<span/>", {
@@ -2139,13 +2137,15 @@ export class CipherHandler {
      * Loads a language in response to a dropdown event
      */
     loadLanguage(lang: string): void {
+        $("#loadeng").hide();
         this.state.curlang = lang;
         this.setCharset(this.langcharset[lang]);
-        $(".langstatus").text(
+        this.showLangStatus(
+            "warning",
             "Attempting to load " + this.langmap[lang] + "..."
         );
         $.getScript("Languages/" + lang + ".js", (data, textStatus, jqxhr) => {
-            $(".langstatus").text("");
+            this.showLangStatus("secondary", "");
             this.updateMatchDropdowns("");
         }).fail((jqxhr, settings, exception) => {
             console.log("Complied language file not found for " + lang + ".js");
@@ -2159,7 +2159,10 @@ export class CipherHandler {
     loadRawLanguage(lang: string): void {
         let jqxhr = $.get("Languages/" + lang + ".txt", () => {}).done(data => {
             // empty out all the frequent words
-            $(".langstatus").text("Processing " + this.langmap[lang] + "...");
+            this.showLangStatus(
+                "warning",
+                "Processing " + this.langmap[lang] + "..."
+            );
             this.Frequent[lang] = {};
             this.state.curlang = lang;
             let charset = this.langcharset[lang];
@@ -2220,14 +2223,37 @@ export class CipherHandler {
             }
             // console.log(this.Frequent)
             $(".langout").each((i: number, elem: HTMLElement) => {
-                $(".langstatus").text("Dumping " + this.langmap[lang] + "...");
+                this.showLangStatus(
+                    "warning",
+                    "Dumping " + this.langmap[lang] + "..."
+                );
                 $(elem).text(this.dumpLang(lang));
             });
-            $(".langstatus").text("");
+            this.showLangStatus("secondary", "");
             this.updateMatchDropdowns("");
         });
-        $(".langstatus").text("Loading " + this.langmap[lang] + "...");
+        this.showLangStatus("warning", "Loading " + this.langmap[lang] + "...");
     }
+    /**
+     * Updates the language status message box with a message (or clears it)
+     * @param calloutclass Class of the callout
+     * @param msg Message to be displayed
+     */
+    public showLangStatus(
+        calloutclass: "secondary" | "primary" | "success" | "warning" | "alert",
+        msg: string
+    ): void {
+        $(".langstatus").empty();
+        if (msg !== "") {
+            $(".langstatus").append(
+                $("<div>", {
+                    class: "callout " + calloutclass,
+                    "data-closable": "",
+                }).text(msg)
+            );
+        }
+    }
+
     /**
      * Retrieve all of the replacement characters that have been selected so far
      */

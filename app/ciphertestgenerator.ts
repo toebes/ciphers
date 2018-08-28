@@ -1,5 +1,5 @@
 import { cloneObject } from "./ciphercommon";
-import { IState } from "./cipherhandler";
+import { IState, menuMode, toolMode } from "./cipherhandler";
 import { buttonInfo, CipherTest, ITestState } from "./ciphertest";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
@@ -22,6 +22,8 @@ import { JTTable } from "./jttable";
  *    <Generate Test><Generate Answers><Export><IMPORT>
  */
 export class CipherTestGenerator extends CipherTest {
+    activeToolMode: toolMode = toolMode.codebusters;
+
     defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.None,
@@ -191,6 +193,7 @@ export class CipherTestGenerator extends CipherTest {
         }
     }
     updateOutput(): void {
+        this.setMenuMode(menuMode.test);
         $(".testdata").each((i, elem) => {
             $(elem).replaceWith(this.genTestQuestions());
         });

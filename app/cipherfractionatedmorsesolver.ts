@@ -1,7 +1,9 @@
 import { cloneObject, StringMap } from "./ciphercommon";
+import { toolMode } from "./cipherhandler";
 import { CipherMorseSolver } from "./ciphermorsesolver";
 import { ICipherType } from "./ciphertypes";
 export class CipherFractionatedMorseSolver extends CipherMorseSolver {
+    activeToolMode: toolMode = toolMode.aca;
     readonly defaultfractionatedMorseMap: StringMap = {
         A: "OOO",
         B: "OO-",
@@ -28,7 +30,7 @@ export class CipherFractionatedMorseSolver extends CipherMorseSolver {
         W: "X--",
         X: "X-X",
         Y: "XXO",
-        Z: "XX-"
+        Z: "XX-",
     };
     fractionatedMorseMap: StringMap = {};
 
@@ -58,7 +60,7 @@ export class CipherFractionatedMorseSolver extends CipherMorseSolver {
         "X--",
         "X-X",
         "XXO",
-        "XX-"
+        "XX-",
     ];
 
     /**
@@ -67,8 +69,8 @@ export class CipherFractionatedMorseSolver extends CipherMorseSolver {
      *
      */
     init(lang: string): void {
+        this.defaultstate.cipherType = ICipherType.FractionatedMorse;
         super.init(lang);
-        this.cipherType = ICipherType.FractionatedMorse;
         this.cipherWidth = 3;
         this.fractionatedMorseMap = cloneObject(
             this.defaultfractionatedMorseMap

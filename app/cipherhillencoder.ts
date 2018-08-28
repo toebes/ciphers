@@ -1,7 +1,7 @@
 import * as math from "mathjs";
 import { cloneObject, renderMath } from "./ciphercommon";
 import { CipherEncoder } from "./cipherencoder";
-import { IState } from "./cipherhandler";
+import { IState, toolMode } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFLabeledInput } from "./jtflabeledinput";
@@ -14,6 +14,7 @@ const kmathEquiv = "\\equiv";
 const kmathMult = "*";
 // const kmathMult = ' \\cdot '
 export class CipherHillEncoder extends CipherEncoder {
+    activeToolMode: toolMode = toolMode.codebusters;
     defaultstate: IState = {
         cipherString: "",
         keyword: "" /** The type of cipher we are doing */,

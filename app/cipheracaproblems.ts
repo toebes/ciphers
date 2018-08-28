@@ -1,0 +1,248 @@
+import { cloneObject } from "./ciphercommon";
+import { menuMode, toolMode } from "./cipherhandler";
+import { buttonInfo, CipherTest, ITestState } from "./ciphertest";
+import { ICipherType } from "./ciphertypes";
+import { JTButtonItem } from "./jtbuttongroup";
+import { JTFDialog } from "./jtfdialog";
+import { JTTable } from "./jttable";
+
+/**
+ * CipherTestQuestions - This manages all of the questions to allow deleting/importing/editing
+ */
+export class CipherACAProblems extends CipherTest {
+    activeToolMode: toolMode = toolMode.aca;
+    defaultstate: ITestState = {
+        cipherString: "",
+        cipherType: ICipherType.Test,
+        test: 0,
+    };
+    state: ITestState = cloneObject(this.defaultstate) as ITestState;
+    cmdButtons: JTButtonItem[] = [
+        {
+            title: "Export Problems",
+            color: "primary",
+            id: "export",
+            download: true,
+        },
+        { title: "Import Problems from File", color: "primary", id: "import" },
+        {
+            title: "Import Problems from URL",
+            color: "primary",
+            id: "importurl",
+        },
+        { title: "Delete All Problems", color: "alert", id: "delall" },
+    ];
+    restore(data: ITestState): void {
+        let curlang = this.state.curlang;
+        this.state = cloneObject(this.defaultstate) as ITestState;
+        this.state.curlang = curlang;
+        this.copyState(this.state, data);
+        /** See if we have to import an XML file */
+        this.checkXMLImport();
+        this.setUIDefaults();
+        this.updateOutput();
+    }
+    updateOutput(): void {
+        this.setMenuMode(menuMode.aca);
+        $(".precmds").each((i, elem) => {
+            $(elem).replaceWith(this.genPreCommands());
+        });
+        $(".questions").each((i, elem) => {
+            $(elem).replaceWith(this.genPostCommands());
+        });
+        this.attachHandlers();
+    }
+    genPostCommands(): JQuery<HTMLElement> {
+        let result = $("<div>", { class: "questions" });
+
+        let buttons: buttonInfo[] = [
+            { title: "Solve", btnClass: "entrysolve" },
+            { title: "Delete", btnClass: "entrydel" },
+        ];
+        result.append(this.genACAProblemTable(buttons));
+        return result;
+    }
+    genACAProblemTable(buttons: buttonInfo[]): JQuery<HTMLElement> {
+        let result = $("<div>", { class: "questions" });
+
+        let cipherCount = this.getCipherCount();
+        let table = new JTTable({ class: "cell stack queslist" });
+        let row = table.addHeaderRow();
+        row.add("Question")
+            .add("Action")
+            .add("Type")
+            .add("Question")
+            .add("Cipher Text");
+
+        for (let entry = 0; entry < cipherCount; entry++) {
+            this.addProblemRow(table, entry, entry, buttons);
+        }
+
+        result.append(table.generate());
+        return result;
+    }
+    addProblemRow(
+        table: JTTable,
+        order: number,
+        qnum: number,
+        buttons: buttonInfo[]
+    ): void {
+        let extratext = "";
+        let row = table.addBodyRow();
+
+        row.add(String(order));
+        let state = this.getFileEntry(qnum);
+        if (state === null) {
+            state = {
+                cipherType: ICipherType.None,
+                points: 0,
+                cipherString: "",
+            };
+        }
+        let buttonset = $("<div/>", {
+            class: "button-group round entrycmds",
+        });
+        for (let btninfo of buttons) {
+            let button = $("<button/>", {
+                "data-entry": order,
+                type: "button",
+                class: btninfo.btnClass + " button",
+            }).html(btninfo.title);
+            if (btninfo.disabled === true) {
+                button.attr("disabled", "disabled");
+            }
+            buttonset.append(button);
+        }
+        row.add(buttonset).add(state.cipherType);
+        row.add(
+            $("<span/>", {
+                class: "qtextentry",
+            }).html(state.question + extratext)
+        ).add(state.cipherString);
+
+        return;
+    }
+    exportQuestions(link: JQuery<HTMLElement>): void {
+        let result = {};
+        let cipherCount = this.getCipherCount();
+        for (let entry = 0; entry < cipherCount; entry++) {
+            result["CIPHER." + String(entry)] = this.getFileEntry(entry);
+        }
+        let blob = new Blob([JSON.stringify(result)], {
+            type: "text/json",
+        });
+        let url = URL.createObjectURL(blob);
+
+        link.attr("download", "aca_problems.json");
+        link.attr("href", url);
+    }
+    gotoDeleteCipher(entry: number): void {
+        this.deleteFileEntry(entry);
+        this.updateOutput();
+    }
+    importQuestions(useLocalData: boolean): void {
+        this.openXMLImport(useLocalData);
+    }
+    /**
+     * Process imported XML
+     */
+    importXML(data: any): void {
+        console.log("Importing XML");
+        console.log(data);
+        this.processTestXML(data);
+        this.updateOutput();
+    }
+    gotoSolveCipher(entry: number): void {
+        let state = this.getFileEntry(entry);
+        let editURL = this.getSolveURL(state);
+        if (editURL !== "") {
+            if (editURL.indexOf("?") > -1) {
+                editURL += "&editEntry=" + entry;
+            } else {
+                editURL += "?editEntry=" + entry;
+            }
+            location.assign(editURL);
+        } else {
+            alert("No solver found");
+        }
+    }
+    /**
+     * This prompts a user and then deletes all ciphers
+     */
+    gotoDeleteAllCiphers(): void {
+        $("#okdel")
+            .off("click")
+            .on("click", e => {
+                let cipherCount = this.getCipherCount();
+                for (let entry = cipherCount - 1; entry >= 0; entry--) {
+                    this.deleteFileEntry(entry);
+                }
+                $("#delalldlg").foundation("close");
+                this.updateOutput();
+            });
+        $("#okdel").removeAttr("disabled");
+        $("#delalldlg").foundation("open");
+    }
+    /**
+     * Create the hidden dialog for selecting a cipher to open
+     */
+    private createDeleteAllDlg(): JQuery<HTMLElement> {
+        let dlgContents = $("<div/>", {
+            class: "callout alert",
+        }).text(
+            "This will delete all loaded problems.  Are you sure you want to do this?"
+        );
+        let DeleteAllDlg = JTFDialog(
+            "delalldlg",
+            "Delete all Problems",
+            dlgContents,
+            "okdel",
+            "Yes, Delete them!"
+        );
+        return DeleteAllDlg;
+    }
+    /**
+     * Create the main menu at the top of the page.
+     * This also creates the hidden dialog used for deleting ciphers
+     */
+    public createMainMenu(): JQuery<HTMLElement> {
+        let result = super.createMainMenu();
+        // Create the dialog for selecting which cipher to load
+        result.append(this.createDeleteAllDlg());
+        return result;
+    }
+
+    attachHandlers(): void {
+        super.attachHandlers();
+        $("#export")
+            .off("click")
+            .on("click", e => {
+                this.exportQuestions($(e.target));
+            });
+        $("#import")
+            .off("click")
+            .on("click", () => {
+                this.importQuestions(true);
+            });
+        $("#importurl")
+            .off("click")
+            .on("click", () => {
+                this.importQuestions(false);
+            });
+        $("#delall")
+            .off("click")
+            .on("click", e => {
+                this.gotoDeleteAllCiphers();
+            });
+        $(".entrydel")
+            .off("click")
+            .on("click", e => {
+                this.gotoDeleteCipher(Number($(e.target).attr("data-entry")));
+            });
+        $(".entrysolve")
+            .off("click")
+            .on("click", e => {
+                this.gotoSolveCipher(Number($(e.target).attr("data-entry")));
+            });
+    }
+}

@@ -1,10 +1,12 @@
 import { cloneObject, StringMap } from "./ciphercommon";
+import { toolMode } from "./cipherhandler";
 import { CipherMorseSolver } from "./ciphermorsesolver";
 import { ICipherType } from "./ciphertypes";
 /**
  * Morbit Solver
  */
 export class CipherMorbitSolver extends CipherMorseSolver {
+    activeToolMode: toolMode = toolMode.aca;
     readonly defaultmorbitMap: StringMap = {
         "1": "OO",
         "2": "O-",
@@ -14,7 +16,7 @@ export class CipherMorbitSolver extends CipherMorseSolver {
         "6": "-X",
         "7": "XO",
         "8": "X-",
-        "9": "XX"
+        "9": "XX",
     };
     readonly morbitReplaces: Array<string> = [
         "OO",
@@ -25,13 +27,13 @@ export class CipherMorbitSolver extends CipherMorseSolver {
         "-X",
         "XO",
         "X-",
-        "XX"
+        "XX",
     ];
     /** Current mapping of morbit values */
     morbitMap: StringMap = {};
     init(lang: string): void {
+        this.defaultstate.cipherType = ICipherType.Morbit;
         super.init(lang);
-        this.cipherType = ICipherType.Morbit;
         this.cipherWidth = 2;
         this.morbitMap = cloneObject(this.defaultmorbitMap) as StringMap;
         this.setCharset("123456789");

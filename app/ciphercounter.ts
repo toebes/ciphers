@@ -1,11 +1,12 @@
 import { cloneObject } from "./ciphercommon";
 import { CipherEncoder } from "./cipherencoder";
-import { IState } from "./cipherhandler";
+import { IState, toolMode } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFLabeledInput } from "./jtflabeledinput";
 
 export class CipherCounter extends CipherEncoder {
+    activeToolMode: toolMode = toolMode.codebusters;
     defaultstate: IState = {
         cipherString: "",
         /** The type of cipher we are doing */

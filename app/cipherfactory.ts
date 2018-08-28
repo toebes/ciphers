@@ -1,3 +1,4 @@
+import { CipherACAProblems } from "./cipheracaproblems";
 import { CipherAffineEncoder } from "./cipheraffineencoder";
 import { CipherBaconianEncoder } from "./cipherbaconianencoder";
 import { CipherCheckerboardSolver } from "./ciphercheckerboardsolver";
@@ -24,7 +25,6 @@ import { CipherTestQuestions } from "./ciphertestquestions";
 import { ICipherType } from "./ciphertypes";
 import { CipherVigenereEncoder } from "./ciphervigenereencoder";
 import { CipherVigenereSolver } from "./ciphervigeneresolver";
-import { CipherXenocryptSolver } from "./cipherxenocryptsolver";
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -37,141 +37,146 @@ interface ICipherFactoryEntry {
  * CipherHandler class.
  */
 let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
+    ACAProblems: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherACAProblems,
+        canPrint: false,
+    },
     Affine: {
         cipherType: ICipherType.Affine,
         cipherClass: CipherAffineEncoder,
-        canPrint: true
+        canPrint: true,
     },
     Atbash: {
         cipherType: ICipherType.Atbash,
         cipherClass: CipherTableEncoder,
-        canPrint: true
+        canPrint: true,
     },
     Baconian: {
         cipherType: ICipherType.Baconian,
         cipherClass: CipherBaconianEncoder,
-        canPrint: true
+        canPrint: true,
     },
     Caesar: {
         cipherType: ICipherType.Caesar,
         cipherClass: CipherTableEncoder,
-        canPrint: true
+        canPrint: true,
     },
     Checkerboard: {
         cipherType: ICipherType.Checkerboard,
         cipherClass: CipherCheckerboardSolver,
-        canPrint: false
+        canPrint: false,
     },
     Counter: {
         cipherType: ICipherType.Counter,
         cipherClass: CipherCounter,
-        canPrint: false
+        canPrint: false,
     },
     Cryptarithm: {
         cipherType: ICipherType.Cryptarithm,
         cipherClass: CryptarithmSolver,
-        canPrint: false
+        canPrint: false,
     },
     Encoder: {
         cipherType: ICipherType.Aristocrat,
         cipherClass: CipherEncoder,
-        canPrint: true
+        canPrint: true,
     },
     FractionatedMorse: {
         cipherType: ICipherType.FractionatedMorse,
         cipherClass: CipherFractionatedMorseSolver,
-        canPrint: false
+        canPrint: false,
     },
     Gromark: {
         cipherType: ICipherType.Gromark,
         cipherClass: CipherGromarkSolver,
-        canPrint: false
+        canPrint: false,
     },
     Hill: {
         cipherType: ICipherType.Hill,
         cipherClass: CipherHillEncoder,
-        canPrint: true
+        canPrint: true,
     },
     Morbit: {
         cipherType: ICipherType.Morbit,
         cipherClass: CipherMorbitSolver,
-        canPrint: false
+        canPrint: false,
     },
     Patristocrat: {
         cipherType: ICipherType.Patristocrat,
         cipherClass: CipherEncoder,
-        canPrint: true
+        canPrint: true,
     },
     RagbabySolver: {
         cipherType: ICipherType.Ragbaby,
         cipherClass: CipherRagbabySolver,
-        canPrint: false
+        canPrint: false,
     },
     RailfenceSolver: {
         cipherType: ICipherType.Railfence,
         cipherClass: CipherRailfenceSolver,
-        canPrint: false
+        canPrint: false,
     },
     RunningKeyEdit: {
         cipherType: ICipherType.None,
         cipherClass: CipherRunningKeyEdit,
-        canPrint: false
+        canPrint: false,
     },
     RunningKey: {
         cipherType: ICipherType.RunningKey,
         cipherClass: CipherRunningKeyEncoder,
-        canPrint: true
+        canPrint: true,
     },
     RSA: {
         cipherType: ICipherType.RSA,
         cipherClass: CipherRSAEncoder,
-        canPrint: true
+        canPrint: true,
     },
     Standard: {
         cipherType: ICipherType.Standard,
         cipherClass: CipherSolver,
-        canPrint: false
+        canPrint: false,
     },
     TestAnswers: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestAnswers,
-        canPrint: false
+        canPrint: false,
     },
     TestGenerator: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestGenerator,
-        canPrint: false
+        canPrint: false,
     },
     TestManage: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestManage,
-        canPrint: false
+        canPrint: false,
     },
     TestPrint: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestPrint,
-        canPrint: false
+        canPrint: false,
     },
     TestQuestions: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestQuestions,
-        canPrint: false
+        canPrint: false,
     },
     Vigenere: {
         cipherType: ICipherType.Vigenere,
         cipherClass: CipherVigenereEncoder,
-        canPrint: true
+        canPrint: true,
     },
     VigenereSolver: {
         cipherType: ICipherType.Vigenere,
         cipherClass: CipherVigenereSolver,
-        canPrint: false
+        canPrint: false,
     },
     Xenocrypt: {
         cipherType: ICipherType.Xenocrypt,
-        cipherClass: CipherXenocryptSolver,
-        canPrint: true
-    }
+        cipherClass: CipherSolver,
+        canPrint: true,
+    },
 };
 
 export function CipherFactory(
@@ -186,7 +191,7 @@ export function CipherFactory(
     let entry: ICipherFactoryEntry = {
         cipherType: ICipherType.None,
         cipherClass: CipherSolver,
-        canPrint: false
+        canPrint: false,
     };
     if (typeof cipherFactoryMap[ciphertypestr] !== "undefined") {
         entry = cipherFactoryMap[ciphertypestr];

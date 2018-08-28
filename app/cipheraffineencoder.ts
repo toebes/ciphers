@@ -1,6 +1,6 @@
 import { cloneObject, renderMath, StringMap } from "./ciphercommon";
 import { CipherEncoder } from "./cipherencoder";
-import { IState } from "./cipherhandler";
+import { IState, toolMode } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
@@ -25,26 +25,24 @@ interface IAffineState extends IState {
 }
 
 export class CipherAffineEncoder extends CipherEncoder {
+    activeToolMode: toolMode = toolMode.codebusters;
     defaultstate: IAffineState = {
         /** The type of operation */
-        operation: "encode",
-        /** a value */
-        a: 1,
-        /** b value */
+        operation: "encode" /** a value */,
+        a: 1 /** b value */,
         b: 0,
-        cipherString: "",
-        /** The type of cipher we are doing */
-        cipherType: ICipherType.Affine,
-        /** The first clicked number in the solution */
-        solclick1: -1,
-        /** The second clicked number  */
-        solclick2: -1
+        cipherString: "" /** The type of cipher we are doing */,
+        cipherType:
+            ICipherType.Affine /** The first clicked number in the solution */,
+        solclick1: -1 /** The second clicked number  */,
+        solclick2: -1,
+        replacement: {},
     };
     state: IAffineState = cloneObject(this.defaultstate) as IAffineState;
     cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
-        this.redocmdButton
+        this.redocmdButton,
     ];
     /* We have identified a complete solution */
     completeSolution: boolean = false;
@@ -201,7 +199,9 @@ export class CipherAffineEncoder extends CipherEncoder {
         let strings = this.buildReplacement(msg, this.maxEncodeWidth);
         let result = $("<div/>");
         for (let strset of strings) {
-            let table = new JTTable({ class: "cell shrink tfreq" });
+            let table = new JTTable({
+                class: "cell shrink tfreq",
+            });
             let toprow = table.addBodyRow();
             let bottomrow = table.addBodyRow();
             for (let i = 0; i < strset[0].length; i++) {
@@ -212,20 +212,26 @@ export class CipherAffineEncoder extends CipherEncoder {
                     if (this.state.operation === "encode") {
                         toprow.add({
                             settings: { class: "TOSOLVE" },
-                            content: plainchar
+                            content: plainchar,
                         });
                         bottomrow.add({
                             settings: { class: "TOANSWER" },
-                            content: cipherchar
+                            content: cipherchar,
                         });
                     } else {
                         toprow.add({
-                            settings: { class: "TOSOLVE", id: "m" + i },
-                            content: cipherchar
+                            settings: {
+                                class: "TOSOLVE",
+                                id: "m" + i,
+                            },
+                            content: cipherchar,
                         });
                         bottomrow.add({
-                            settings: { class: "TOANSWER", id: "p" + i },
-                            content: plainchar
+                            settings: {
+                                class: "TOANSWER",
+                                id: "p" + i,
+                            },
+                            content: plainchar,
                         });
                     }
                 }
@@ -247,7 +253,9 @@ export class CipherAffineEncoder extends CipherEncoder {
         }
         this.genAlphabet();
         let strings = this.buildReplacement(this.state.cipherString, 40);
-        let table = new JTTable({ class: "ansblock shrink cell unstriped" });
+        let table = new JTTable({
+            class: "ansblock shrink cell unstriped",
+        });
         for (let strset of strings) {
             this.addCipherTableRows(
                 table,
@@ -272,7 +280,9 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         this.genAlphabet();
         let strings = this.buildReplacement(this.state.cipherString, 40);
-        let table = new JTTable({ class: "ansblock shrink cell unstriped" });
+        let table = new JTTable({
+            class: "ansblock shrink cell unstriped",
+        });
         for (let strset of strings) {
             this.addCipherTableRows(
                 table,
@@ -725,33 +735,33 @@ export class CipherAffineEncoder extends CipherEncoder {
                 prefix:
                     "The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.",
                 suffix1: "Filling in the letter we found",
-                suffix2: ", we get a bit more of the answer."
+                suffix2: ", we get a bit more of the answer.",
             },
             {
                 letters: "SRHLD",
                 prefix: "Next, encode the next 5 common letters <b>SRHLD</b>.",
                 suffix1: "We know the reverse mapping of 5 more letters",
-                suffix2: ", which we can fill in."
+                suffix2: ", which we can fill in.",
             },
             {
                 letters: "CUMFP",
                 prefix:
                     "We will convert the next 5 most frequent letters <b>CUMFP</b>.",
                 suffix1: "The next 5 letters we know are",
-                suffix2: ", so we will fill those in."
+                suffix2: ", so we will fill those in.",
             },
             {
                 letters: "GWYBV",
                 prefix: "Next, encode the next 5 common letters <b>GWYBV</b>.",
                 suffix1: "We know the reverse mapping of 5 more letters",
-                suffix2: ", which we can fill in."
+                suffix2: ", which we can fill in.",
             },
             {
                 letters: "KXJQZ",
                 prefix: "We will convert the remaining 5 letters <b>KXJQZ</b>.",
                 suffix1: "The remaining 5 letters we know are",
-                suffix2: ", so we will fill those in."
-            }
+                suffix2: ", so we will fill those in.",
+            },
         ];
 
         for (let entry of outData) {
@@ -818,7 +828,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         result.append(this.genTestUsage());
         let radiobuttons = [
             { id: "wrow", value: "encode", title: "Encode" },
-            { id: "mrow", value: "decode", title: "Decode" }
+            { id: "mrow", value: "decode", title: "Decode" },
         ];
         result.append(
             JTRadioButton(6, "operation", radiobuttons, this.state.operation)
@@ -834,7 +844,9 @@ export class CipherAffineEncoder extends CipherEncoder {
                 "small-12 medium-12 large-12"
             )
         );
-        let inputbox = $("<div/>", { class: "grid-x grid-margin-x" });
+        let inputbox = $("<div/>", {
+            class: "grid-x grid-margin-x",
+        });
         inputbox.append(
             JTFIncButton("A", "a", this.state.a, "small-12 medium-4 large-4")
         );

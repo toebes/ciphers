@@ -742,6 +742,11 @@ table.found tr th:nth-child(odd) {
     cursor: not-allowed;
 }
 
+.menu .divider {
+    background-color: white;
+    height: 2px;
+}
+
 .menu .active > a {
     background: #1779ba !important;
     color: #fefefe;

@@ -1,5 +1,5 @@
 import { BoolMap, cloneObject, NumberMap } from "./ciphercommon";
-import { IState } from "./cipherhandler";
+import { IState, menuMode, toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 import { ICipherType } from "./ciphertypes";
 import { JTFLabeledInput } from "./jtflabeledinput";
@@ -37,11 +37,12 @@ interface IRagbabyState extends IState {
  * The CipherRagbabySolver class implements a solver for the Ragbaby Cipher
  */
 export class CipherRagbabySolver extends CipherSolver {
+    activeToolMode: toolMode = toolMode.aca;
     defaultstate: IRagbabyState = {
         cipherType: ICipherType.Ragbaby,
         alphalen: 24,
         cipherString: "",
-        ctmap: []
+        ctmap: [],
     };
     state: IRagbabyState = cloneObject(this.defaultstate) as IRagbabyState;
     /** List of all CT:Offset mappings */
@@ -76,6 +77,7 @@ export class CipherRagbabySolver extends CipherSolver {
      * Updates the output based on current settings
      */
     updateOutput(): void {
+        this.setMenuMode(menuMode.aca);
         // Propagate the current settings to the UI
         $("#encoded").val(this.state.cipherString);
         $("#find").val(this.state.findString);
@@ -356,7 +358,7 @@ export class CipherRagbabySolver extends CipherSolver {
             // Ok we know how much to rotate it, put it back in place when we are done
             this.replmap.push({
                 line: this.rotateSet(testline.line, rotate),
-                notes: testline.notes
+                notes: testline.notes,
             });
         }
     }
@@ -369,7 +371,7 @@ export class CipherRagbabySolver extends CipherSolver {
         let radiobuttons = [
             { id: "a24", value: 24, title: "24 [No I/X]" },
             { id: "a26", value: 26, title: "26 [A-Z]" },
-            { id: "a36", value: 36, title: "36 [A-Z 0-9]" }
+            { id: "a36", value: 36, title: "36 [A-Z 0-9]" },
         ];
         result.append(
             JTRadioButton(5, "alphasize", radiobuttons, this.state.alphalen)
@@ -462,7 +464,7 @@ export class CipherRagbabySolver extends CipherSolver {
                     this.state.ctmap.push({
                         ct: ct,
                         pt: pt,
-                        ctoff: dist
+                        ctoff: dist,
                     });
                 }
                 this.applyMappings();
@@ -479,7 +481,7 @@ export class CipherRagbabySolver extends CipherSolver {
         this.ctoffsets = {};
         this.replmap = [
             { line: this.emptyRagline(), notes: "" },
-            { line: this.emptyRagline(), notes: "" }
+            { line: this.emptyRagline(), notes: "" },
         ];
         let res = "";
         let combinedtext = "";
@@ -569,9 +571,9 @@ export class CipherRagbabySolver extends CipherSolver {
             $("#ragwork")
                 .empty()
                 .append(
-                    $("<div/>", { class: "callout warning" }).text(
-                        "Enter a cipher to get started"
-                    )
+                    $("<div/>", {
+                        class: "callout warning",
+                    }).text("Enter a cipher to get started")
                 );
             return;
         }
@@ -596,8 +598,8 @@ export class CipherRagbabySolver extends CipherSolver {
                 $("<button>", {
                     href: "#",
                     class: "ls",
-                    "data-vrow": r
-                }).html("&#8647;")
+                    "data-vrow": r,
+                }).html("&#8647;"),
             ]);
             for (let i = 0; i < this.state.alphalen; i++) {
                 let repc = "";
@@ -616,7 +618,7 @@ export class CipherRagbabySolver extends CipherSolver {
                         $("<input>", {
                             class: "sli off",
                             "data-char": "-" + i,
-                            value: repc
+                            value: repc,
                         })
                     );
                 } else {
@@ -627,7 +629,7 @@ export class CipherRagbabySolver extends CipherSolver {
                 $("<button>", {
                     href: "#",
                     class: "rs",
-                    "data-vrow": r
+                    "data-vrow": r,
                 }).html("&#8649;")
             );
             row.add(this.replmap[r].notes + extranote);
@@ -637,8 +639,8 @@ export class CipherRagbabySolver extends CipherSolver {
             $("<button>", {
                 href: "#",
                 class: "ls",
-                "data-vrow": -1
-            }).html("&#8647;")
+                "data-vrow": -1,
+            }).html("&#8647;"),
         ]);
         for (let i = 0; i < this.state.alphalen; i++) {
             let repc = "?";
@@ -647,14 +649,14 @@ export class CipherRagbabySolver extends CipherSolver {
             }
             row.add({
                 settings: { class: "off" },
-                content: repc
+                content: repc,
             });
         }
         row.add(
             $("<button>", {
                 href: "#",
                 class: "rs",
-                "data-vrow": -1
+                "data-vrow": -1,
             }).html("&#8649;")
         );
         row.add("");
@@ -690,7 +692,7 @@ export class CipherRagbabySolver extends CipherSolver {
         result.append(
             $("<div>", {
                 id: "ragwork",
-                class: "ragedit"
+                class: "ragedit",
             })
         );
         return result;

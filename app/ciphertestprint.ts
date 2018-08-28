@@ -1,4 +1,5 @@
 import { cloneObject } from "./ciphercommon";
+import { menuMode, toolMode } from "./cipherhandler";
 import { CipherTest, ITestState } from "./ciphertest";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
@@ -10,6 +11,7 @@ import { JTTable } from "./jttable";
  *  Otherwise it provies a link back to TestManage.html
  */
 export class CipherTestPrint extends CipherTest {
+    activeToolMode: toolMode = toolMode.codebusters;
     defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.Test,
@@ -31,6 +33,7 @@ export class CipherTestPrint extends CipherTest {
         this.updateOutput();
     }
     updateOutput(): void {
+        this.setMenuMode(menuMode.test);
         $(".testcontent").each((i, elem) => {
             $(elem).replaceWith(this.genTestQuestions());
         });
@@ -72,7 +75,7 @@ export class CipherTestPrint extends CipherTest {
             );
         }
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
-        this.disableFilemenu();
+        this.setMenuMode(menuMode.test);
 
         /**
          * Now that we have generated the data for the test, output any running keys used

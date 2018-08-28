@@ -1,5 +1,5 @@
 import { cloneObject, NumberMap } from "./ciphercommon";
-import { IState } from "./cipherhandler";
+import { IState, toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 import { CipherTypeButtonItem, ICipherType } from "./ciphertypes";
 import { JTFLabeledInput } from "./jtflabeledinput";
@@ -12,6 +12,7 @@ import { mapperFactory } from "./mapperfactory";
  *    Vibenere, Variant, Beaufort, Gronsfeld and Porta
  */
 export class CipherVigenereSolver extends CipherSolver {
+    activeToolMode: toolMode = toolMode.aca;
     defaultstate: IState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.Vigenere /** Currently selected keyword */,

@@ -1,5 +1,5 @@
 import { cloneObject } from "./ciphercommon";
-import { CipherHandler, IRunningKey, IState } from "./cipherhandler";
+import { CipherHandler, IRunningKey, IState, menuMode, toolMode } from "./cipherhandler";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFLabeledInput } from "./jtflabeledinput";
 
@@ -7,6 +7,7 @@ import { JTFLabeledInput } from "./jtflabeledinput";
  * Running Key Editor
  */
 export class CipherRunningKeyEdit extends CipherHandler {
+    activeToolMode: toolMode = toolMode.codebusters;
     cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         { title: "Load Defaults", color: "primary", id: "defaults" }
@@ -49,6 +50,7 @@ export class CipherRunningKeyEdit extends CipherHandler {
     }
 
     updateOutput(): void {
+        this.setMenuMode(menuMode.test);
         $(".precmds").each((i, elem) => {
             $(elem).replaceWith(this.genPreCommands());
         });

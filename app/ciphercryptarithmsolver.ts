@@ -1,4 +1,5 @@
 import { BoolMap, StringMap } from "./ciphercommon";
+import { toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 import { JTFLabeledInput } from "./jtflabeledinput";
 
@@ -14,6 +15,7 @@ enum CryptarithmType {
 }
 
 export class CryptarithmSolver extends CipherSolver {
+    activeToolMode: toolMode = toolMode.aca;
     usedletters: BoolMap = {};
     boxState: StringMap = {};
     base: number;

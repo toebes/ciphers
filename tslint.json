@@ -1,8 +1,6 @@
 {
     "defaultSeverity": "error",
-    "extends": [
-        "tslint:recommended"
-    ],
+    "extends": ["tslint:recommended"],
     "jsRules": {
         "object-literal-sort-keys": false
     },
@@ -106,10 +104,7 @@
         "strict-boolean-expressions": true,
         "switch-default": true,
         "switch-final-break": false, // was true,
-        "triple-equals": [
-            true,
-            "allow-null-check"
-        ],
+        "triple-equals": [true, "allow-null-check"],
         "use-isnan": true,
         "use-named-parameter": true,
         /**
@@ -118,7 +113,7 @@
          */
         "adjacent-overload-signatures": true,
         "array-type": [
-            false, // was true,  
+            false, // was true,
             "array"
         ],
         "arrow-parens": false, // for simple functions the parens on arrow functions are not needed
@@ -129,19 +124,13 @@
         "chai-vague-errors": true,
         "class-name": false, // was true,
         "comment-format": true,
-        "completed-docs": [
-            true,
-            "classes"
-        ],
+        "completed-docs": [true, "classes"],
         "export-name": true,
         "function-name": true,
         "import-name": true,
         "interface-name": false, // was true,
         "jsdoc-format": true,
-        "max-classes-per-file": [
-            true,
-            3
-        ], // we generally recommend making one public class per file
+        "max-classes-per-file": [true, 3], // we generally recommend making one public class per file
         "max-file-line-count": true,
         "max-func-body-length": [
             true,
@@ -150,10 +139,7 @@
                 "ignore-parameters-to-function-regex": "describe"
             }
         ],
-        "max-line-length": [
-            true,
-            140
-        ],
+        "max-line-length": [true, 140],
         "member-access": false, // was true,
         "member-ordering": [
             false, // was true,
@@ -207,11 +193,11 @@
         "typedef": [
             true,
             "call-signature",
-//            "arrow-call-signature",
+            //            "arrow-call-signature",
             "parameter",
-//           "arrow-parameter",
+            //           "arrow-parameter",
             "property-declaration",
-//            "variable-declaration",
+            //            "variable-declaration",
             "member-variable-declaration"
         ],
         "underscore-consistent-invocation": true,
@@ -240,22 +226,14 @@
          * Whitespace related rules. The only recommended whitespace strategy is to pick a single format and
          * be consistent.
          */
-        "align": [
-            true,
-            "parameters",
-            "arguments",
-            "statements"
-        ],
+        "align": [true, "parameters", "arguments", "statements"],
         "curly": true,
         "encoding": true,
         "eofline": true,
         "import-spacing": true,
-        "indent": [
-            true,
-            "spaces"
-        ],
+        "indent": [true, "spaces"],
         "linebreak-style": [true, "CRLF"],
-        "newline-before-return": false, // was true,
+        "newline-before-return": false,
         "no-consecutive-blank-lines": true,
         "no-empty-line-after-opening-brace": false,
         "no-irregular-whitespace": true,
@@ -263,7 +241,7 @@
         "no-trailing-whitespace": true,
         "no-unnecessary-semicolons": true,
         "object-literal-key-quotes": [
-            false,  // was true
+            false, // was true
             "as-needed"
         ],
         "one-line": [
@@ -273,14 +251,11 @@
             "check-else",
             "check-whitespace"
         ],
-         "quotemark": [
-             false,   // was true
-             "single"
-         ],
-        "semicolon": [
-             true,  // Was true
-             "always"
-         ],
+        "quotemark": [
+            false, // was true
+            "single"
+        ],
+        "semicolon": [true, "always"],
         "space-within-parens": true,
         "trailing-comma": [
             false, // was true,
@@ -303,8 +278,8 @@
             "check-type"
         ],
         /**
-          * Controversial/Configurable rules.
-          */
+         * Controversial/Configurable rules.
+         */
         "ban": false, // only enable this if you have some code pattern that you want to ban
         "ban-types": true,
         "cyclomatic-complexity": true,
@@ -327,8 +302,8 @@
         "return-undefined": false, // this actually affect the readability of the code
         "space-before-function-paren": false, // turn this on if this is really your coding standard
         /**
-          * Deprecated rules.  The following rules are deprecated for various reasons.
-          */
+         * Deprecated rules.  The following rules are deprecated for various reasons.
+         */
         "missing-optional-annotation": false, // now supported by TypeScript compiler
         "no-duplicate-case": false,
         "no-duplicate-parameter-names": false, // now supported by TypeScript compiler

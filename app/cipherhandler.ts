@@ -9,10 +9,22 @@ import {
 import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
 import { JTFDialog } from "./jtfdialog";
 import { JTFLabeledInput } from "./jtflabeledinput";
-import { JTCreateMenu, JTGetURL } from "./jtmenu";
+import { JTCreateMenu, JTGetSolveURL, JTGetURL } from "./jtmenu";
 import { InitStorage, JTStorage } from "./jtstore";
 import { JTTable } from "./jttable";
 import { parseQueryString } from "./parsequerystring";
+export const enum menuMode {
+    aca, // ACA Solving Aid - File, edit menu and ACA menus
+    test, // Test generation Tools - No file or Edit menu
+    question, // Test question tool - File/Edit/Test Tools menu
+    none, // No menu selected
+}
+/** Which mode the tool is operating in to select menus and file names */
+export const enum toolMode {
+    aca,
+    codebusters,
+}
+
 /** The types of operations that an encoder will support */
 export type IOperationType =
     | "encode" // Test question involves encoding
@@ -677,6 +689,12 @@ export class CipherHandler {
     undoPosition: number = 0;
     /** Indicates that we need to queue an undo item before executing an Undo */
     undoNeeded: string = undefined;
+    activeToolMode: toolMode = toolMode.aca;
+    /** Strings for managing storage of ciphers */
+    storageTestCountName: string = "Cipher-Test-Count";
+    storageTestEntryPrefix: string = "Cipher-Test";
+    storageCipherCountName: string = "Cipher-Count";
+    storageCipherEntryPrefix: string = "Cipher-Data";
     /**
      * This is a cache of all active editors on the page.
      * It is indexed by the id of the HTML element
@@ -705,6 +723,19 @@ export class CipherHandler {
     constructor() {
         this.storage = InitStorage();
     }
+    public initToolModeSettings(): void {
+        if (this.activeToolMode === toolMode.aca) {
+            this.storageTestCountName = "ACA-Issue-Count";
+            this.storageTestEntryPrefix = "ACA-Issue";
+            this.storageCipherCountName = "ACA-Count";
+            this.storageCipherEntryPrefix = "ACA-Data";
+        } else {
+            this.storageTestCountName = "Cipher-Test-Count";
+            this.storageTestEntryPrefix = "Cipher-Test";
+            this.storageCipherCountName = "Cipher-Count";
+            this.storageCipherEntryPrefix = "Cipher-Data";
+        }
+    }
     /**
      * Gets the total number of saved tests
      * Cipher-Test-Count [number] holds the number of tests in the system.
@@ -713,7 +744,7 @@ export class CipherHandler {
     getTestCount(): number {
         let result = 0;
         if (this.storage.isAvailable()) {
-            let val = Number(this.storage.get("Cipher-Test-Count"));
+            let val = Number(this.storage.get(this.storageTestCountName));
             if (!isNaN(val)) {
                 result = val;
             }
@@ -727,14 +758,14 @@ export class CipherHandler {
         if (!this.storage.isAvailable()) {
             return "Unable to save, local storage not defined";
         }
-        this.storage.set("Cipher-Test-Count", String(count));
+        this.storage.set(this.storageTestCountName, String(count));
         return "";
     }
     /**
      * Gets the string that corresponds to a test in local storage
      */
     getTestName(entry: number): string {
-        return "Cipher-Test" + String(entry);
+        return this.storageTestEntryPrefix + String(entry);
     }
     /**
      * Retrieves a test entry from local storage
@@ -747,10 +778,8 @@ export class CipherHandler {
             questions: [],
         };
         if (this.storage.isAvailable()) {
-            // Cipher-Count [number] holds the number of currently saved questions.
-            // Cipher-Data.n [JSON] holds the data from question n. Note n is zero based.
-            let cipherCount = this.getTestCount();
-            if (entry < cipherCount) {
+            let testCount = this.getTestCount();
+            if (entry < testCount) {
                 result = this.storage.getJSON(this.getTestName(entry));
             }
         }
@@ -801,9 +830,7 @@ export class CipherHandler {
     getCipherCount(): number {
         let result = 0;
         if (this.storage.isAvailable()) {
-            // Cipher-Count [number] holds the number of currently saved questions.
-            // Cipher-Data.n [JSON] holds the data from question n. Note n is zero based.
-            let val = Number(this.storage.get("Cipher-Count"));
+            let val = Number(this.storage.get(this.storageCipherCountName));
             if (!isNaN(val)) {
                 result = val;
             }
@@ -812,9 +839,10 @@ export class CipherHandler {
     }
     /**
      * Gets the string that corresponds to an entry in local storage
+     * Cipher-Data<n> [JSON] holds the data from question n. Note n is zero based.
      */
     getEntryName(entry: number): string {
-        return "Cipher-Data" + String(entry);
+        return this.storageCipherEntryPrefix + String(entry);
     }
     /**
      * Get the save state associated with a numbered file entry
@@ -822,8 +850,6 @@ export class CipherHandler {
     getFileEntry(entry: number): IState {
         let result: IState = null;
         if (this.storage.isAvailable()) {
-            // Cipher-Count [number] holds the number of currently saved questions.
-            // Cipher-Data.n [JSON] holds the data from question n. Note n is zero based.
             let cipherCount = this.getCipherCount();
             if (entry < cipherCount) {
                 result = this.storage.getJSON(this.getEntryName(entry));
@@ -859,7 +885,12 @@ export class CipherHandler {
                         entryText +=
                             "(" + getCipherTitle(fileEntry.cipherType) + ") ";
                     }
-                    if (fileEntry.cipherString !== "") {
+                    if (
+                        fileEntry.question !== "" &&
+                        this.storageCipherEntryPrefix.substr(0, 1) === "A"
+                    ) {
+                        entryText += fileEntry.question;
+                    } else if (fileEntry.cipherString !== "") {
                         entryText += fileEntry.cipherString;
                     } else {
                         entryText += fileEntry.question;
@@ -881,7 +912,7 @@ export class CipherHandler {
         if (!this.storage.isAvailable()) {
             return "Unable to save, local storage not defined";
         }
-        this.storage.set("Cipher-Count", String(count));
+        this.storage.set(this.storageCipherCountName, String(count));
         return "";
     }
     /**
@@ -1163,6 +1194,7 @@ export class CipherHandler {
      * current state
      */
     init(lang: string): void {
+        this.initToolModeSettings();
         this.defaultstate.curlang = lang;
         this.state = cloneObject(this.defaultstate) as IState;
         this.setCharset(this.acalangcharset[this.state.curlang]);
@@ -1429,17 +1461,35 @@ export class CipherHandler {
             );
         }
     }
-    /**
-     * Enables the file and edit menus
-     */
-    enableFilemenu(): void {
-        $(".filemenu").show();
-    }
-    /**
-     * Disables the file and edit menus
-     */
-    disableFilemenu(): void {
-        $(".filemenu").hide();
+    setMenuMode(mode: menuMode): void {
+        this.activeToolMode = toolMode.codebusters;
+        switch (mode) {
+            case menuMode.aca:
+                $(".menufile").show();
+                $(".menuaca").show();
+                $(".menucb").hide();
+                this.activeToolMode = toolMode.aca;
+                break;
+            case menuMode.test:
+                $(".menufile").hide();
+                $(".menuaca").hide();
+                $(".menucb").show();
+                this.activeToolMode = toolMode.codebusters;
+                break;
+            case menuMode.question:
+                $(".menufile").show();
+                $(".menuaca").hide();
+                $(".menucb").show();
+                this.activeToolMode = toolMode.codebusters;
+                break;
+            default:
+                $(".menufile").hide();
+                $(".menuaca").show();
+                $(".menucb").show();
+                // Don't change the activeToolMode since it might be either
+                break;
+        }
+        this.initToolModeSettings();
     }
     /**
      * Updates the initial user interface for the cipher handler.  This is a one
@@ -1469,7 +1519,7 @@ export class CipherHandler {
         $(".MenuBar").each((i: number, elem: HTMLElement) => {
             $(elem).replaceWith(this.createMainMenu());
         });
-        this.disableFilemenu();
+        this.setMenuMode(menuMode.none);
         this.buildCustomUI();
         this.restore(saveSet);
         this.attachHandlers();
@@ -2190,6 +2240,7 @@ export class CipherHandler {
     }
     /**
      * Get a URL associated with an editor for a saved cipher
+     * @param state Saved cipher
      */
     public getEditURL(state: IState): string {
         let lang;
@@ -2200,6 +2251,20 @@ export class CipherHandler {
             lang = state.curlang;
         }
         return JTGetURL(CipherMenu, state.cipherType, lang);
+    }
+    /**
+     * Gte a URL associated with a solver for a saved cipher
+     * @param state Saved cipher
+     */
+    public getSolveURL(state: IState): string {
+        let lang;
+        if (state.cipherType === undefined) {
+            return "";
+        }
+        if (state.curlang !== undefined && state.curlang !== "en") {
+            lang = state.curlang;
+        }
+        return JTGetSolveURL(CipherMenu, state.cipherType, lang);
     }
     /**
      * Create the hidden dialog for selecting a cipher to open
@@ -2458,16 +2523,6 @@ export class CipherHandler {
                     this.doAction($(e.target).attr("data-action"));
                 }
             });
-
-        // $(".dragcol").each((i: number, elem: HTMLElement) => {
-        //     if (!$.fn.dataTable.isDataTable(".dragcol")) {
-        //         $(elem).DataTable({
-        //             colReorder: true,
-        //             ordering: false,
-        //             dom: "t"
-        //         });
-        //     }
-        // });
         $(".msli")
             .off("change")
             .on("change", e => {

@@ -1,5 +1,5 @@
 import { cloneObject } from "./ciphercommon";
-import { IState } from "./cipherhandler";
+import { IState, menuMode, toolMode } from "./cipherhandler";
 import { CipherTest, ITestState } from "./ciphertest";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
@@ -14,6 +14,8 @@ import { JTTable } from "./jttable";
  *       <New Test><EXPORT><IMPORT>
  */
 export class CipherTestManage extends CipherTest {
+    activeToolMode: toolMode = toolMode.codebusters;
+
     defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.Test
@@ -41,6 +43,7 @@ export class CipherTestManage extends CipherTest {
         this.updateOutput();
     }
     updateOutput(): void {
+        this.setMenuMode(menuMode.test);
         $(".testlist").each((i, elem) => {
             $(elem).replaceWith(this.genTestList());
         });

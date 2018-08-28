@@ -1,3 +1,4 @@
+import { toolMode } from "./cipherhandler";
 import { CipherVigenereEncoder } from "./ciphervigenereencoder";
 import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
@@ -9,10 +10,8 @@ import { JTRadioButton } from "./jtradiobutton";
  *
  */
 export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
-    init(lang: string): void {
-        this.usesRunningKey = true;
-        super.init(lang);
-    }
+    activeToolMode: toolMode = toolMode.codebusters;
+    usesRunningKey: boolean = true;
     getRunningKeyIndex(): number {
         // See if the current keyword is one of the valid options
         let runningKeys = this.getRunningKeyStrings();

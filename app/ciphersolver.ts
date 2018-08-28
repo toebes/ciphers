@@ -1,12 +1,13 @@
 import * as sortable from "html5sortable";
 import { BoolMap, cloneObject, NumberMap, StringMap } from "./ciphercommon";
-import { CipherHandler, IState } from "./cipherhandler";
+import { CipherHandler, IState, menuMode, toolMode } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTTable } from "./jttable";
 
 export class CipherSolver extends CipherHandler {
+    activeToolMode: toolMode = toolMode.aca;
     defaultstate: IState = {
         /** The current cipher type we are working on */
         cipherType:
@@ -31,6 +32,7 @@ export class CipherSolver extends CipherHandler {
      * @param lang Language - default = "EN" for english
      */
     init(lang: string): void {
+        this.setMenuMode(menuMode.aca);
         super.init(lang);
     }
     /**
@@ -68,8 +70,15 @@ export class CipherSolver extends CipherHandler {
      */
     updateOutput(): void {
         super.updateOutput();
-        this.enableFilemenu();
-        this.setRichText("qtext", this.state.question);
+        this.setMenuMode(menuMode.aca);
+        $("#qtext").empty();
+        if (this.state.question !== "") {
+            $("#qtext").append(
+                $("<div/>", { class: "callout primary" }).html(
+                    this.state.question
+                )
+            );
+        }
         $("#encoded").val(this.state.cipherString);
         this.load();
         this.updateMatchDropdowns(undefined);

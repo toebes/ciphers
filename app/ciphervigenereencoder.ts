@@ -1,6 +1,6 @@
 import { cloneObject } from "./ciphercommon";
 import { CipherEncoder } from "./cipherencoder";
-import { IOperationType, IState } from "./cipherhandler";
+import { IOperationType, IState, menuMode, toolMode } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
@@ -21,6 +21,8 @@ interface IVigenereState extends IState {
  *
  */
 export class CipherVigenereEncoder extends CipherEncoder {
+    activeToolMode: toolMode = toolMode.codebusters;
+
     defaultstate: IVigenereState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.Vigenere,
@@ -70,7 +72,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     updateOutput(): void {
         this.updateQuestionsOutput();
-        this.enableFilemenu();
+        this.setMenuMode(menuMode.question);
         if (this.state.operation === "encode") {
             // Change the button label to 'Encode'
             $("#load").val("Encode");

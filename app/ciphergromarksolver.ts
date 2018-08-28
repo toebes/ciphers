@@ -1,10 +1,12 @@
 import { BoolMap, StringMap } from "./ciphercommon";
+import { toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 /**
  * Gromark Solver
  *
  */
 export class CipherGromarkSolver extends CipherSolver {
+    activeToolMode: toolMode = toolMode.aca;
     gromarkRepl: StringMap;
     init(lang: string): void {
         super.init(lang);

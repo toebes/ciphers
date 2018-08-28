@@ -1,5 +1,5 @@
 import { cloneObject } from "./ciphercommon";
-import { IState } from "./cipherhandler";
+import { IState, menuMode, toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 import { CipherTypeButtonItem, ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
@@ -32,6 +32,7 @@ enum RailLayout {
  * The CipherRailfenceSolver class implements a solver for the Railfence Cipher
  */
 export class CipherRailfenceSolver extends CipherSolver {
+    activeToolMode: toolMode = toolMode.aca;
     defaultstate: IRailState = {
         /** The current cipher we are working on */
         cipherString: "" /** The number of rails currently being tested */,
@@ -437,6 +438,7 @@ export class CipherRailfenceSolver extends CipherSolver {
      * Updates the output based on current settings
      */
     updateOutput(): void {
+        this.setMenuMode(menuMode.aca);
         // Propagate the current settings to the UI
         $("#encoded").val(this.state.cipherString);
         $("#rails").val(this.state.rails);

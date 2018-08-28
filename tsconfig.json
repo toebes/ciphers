@@ -1,32 +1,8 @@
 {
     "compilerOptions": {
         "charset": "utf8",
+        "sourceMap": true,
         "target": "es5",
-        "lib": [
-            "es5",
-            "es6",
-            "dom"
-        ],
-    },
-    "files": [
-        "app/ciphers.ts",
-        "app/cipherhandler.ts",
-        "app/ciphersolver.ts",
-        "app/ciphermorsesolver.ts",
-        "app/ciphermorbitsolver.ts",
-        "app/ciphercryptarithmsolver.ts",
-        "app/cipherfractionatedmorsesolver.ts",
-        "app/ciphercheckerboardsolver.ts",
-        "app/ciphergromarksolver.ts",
-        "app/cipherxenocryptsolver.ts",
-        "app/cipherencoder.ts",
-        "app/cipheraffineencoder.ts",
-        "app/ciphervigenereencoder.ts",
-        "app/ciphervigeneresolver.ts",
-        "app/mapBeaufort.ts",
-        "app/mapper.ts",
-        "app/mapperfactory.ts",
-        "app/mapVariant.ts",
-        "app/mapVigenere.ts",
-    ]
+        "lib": ["es5", "es6", "dom"]
+    }
 }

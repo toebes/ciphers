@@ -7,6 +7,7 @@ import {
     StringMap
 } from "./ciphercommon";
 import { CipherEncoder, IEncoderState } from "./cipherencoder";
+import { toolMode } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { fiveletterwords } from "./fiveletterwords";
 import { JTButtonItem } from "./jtbuttongroup";
@@ -88,6 +89,7 @@ interface IBaconianState extends IEncoderState {
  * a Baconian cipher.
  */
 export class CipherBaconianEncoder extends CipherEncoder {
+    activeToolMode: toolMode = toolMode.codebusters;
     defaultstate: IBaconianState = {
         cipherString: "",
         cipherType: ICipherType.Baconian,

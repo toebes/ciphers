@@ -1,5 +1,5 @@
 import { cloneObject, StringMap } from "./ciphercommon";
-import { IState } from "./cipherhandler";
+import { IState, menuMode, toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 import { ICipherType } from "./ciphertypes";
 import { JTFLabeledInput } from "./jtflabeledinput";
@@ -11,13 +11,14 @@ interface IMorseState extends IState {
 }
 
 export class CipherMorseSolver extends CipherSolver {
+    activeToolMode: toolMode = toolMode.aca;
     defaultstate: IMorseState = {
         cipherType: ICipherType.None,
         morsemap: null,
         cipherString: "",
         locked: {},
         findString: "",
-        replacement: {}
+        replacement: {},
     };
     state: IMorseState = cloneObject(this.defaultstate) as IMorseState;
     readonly tomorse: { [key: string]: string } = {
@@ -63,7 +64,7 @@ export class CipherMorseSolver extends CipherSolver {
         "?": "OO--OO",
         "/": "-OO-O",
         "-": "-OOOO-",
-        "()": "-O--O-"
+        "()": "-O--O-",
     };
     /**
      * Table of classes to be associated with morse code dots/dashes/spaces
@@ -72,7 +73,7 @@ export class CipherMorseSolver extends CipherSolver {
         O: "dot",
         "-": "dash",
         "?": "error",
-        X: "null"
+        X: "null",
     };
     /**
      * Table of classes to be associated with any particular morse code decoded character
@@ -119,7 +120,7 @@ export class CipherMorseSolver extends CipherSolver {
         "?": "sym",
         "/": "sym",
         "-": "sym",
-        "()": "sym"
+        "()": "sym",
     };
     /**
      * Table to map from a morse code string to the corresponding character
@@ -166,9 +167,8 @@ export class CipherMorseSolver extends CipherSolver {
         "OO--OO": "?",
         "-OO-O": "/",
         "-OOOO-": "-",
-        "-O--O-": "()"
+        "-O--O-": "()",
     };
-    cipherType: ICipherType;
     /**
      * Marks a symbol as locked and prevents it from being changed in the interactive solver
      * c Symbol to be marked as locked/unlocked
@@ -194,7 +194,7 @@ export class CipherMorseSolver extends CipherSolver {
         this.updateOutput();
     }
     updateOutput(): void {
-        this.enableFilemenu();
+        this.setMenuMode(menuMode.aca);
         $("#encoded").val(this.state.cipherString);
         $("#find").val(this.state.findString);
         this.load();
@@ -527,11 +527,11 @@ export class CipherMorseSolver extends CipherSolver {
             headrow.add(c);
             freqrow.add({
                 settings: { id: "f" + c, class: "fq" },
-                content: ""
+                content: "",
             });
             replrow.add({
                 settings: { class: "rep" },
-                content: this.makeFreqEditField(c)
+                content: this.makeFreqEditField(c),
             });
             let ischecked = this.state.locked[c];
             lockrow.add(
@@ -541,7 +541,7 @@ export class CipherMorseSolver extends CipherSolver {
                     "data-char": c,
                     id: "cb" + c,
                     value: name,
-                    checked: ischecked
+                    checked: ischecked,
                 })
             );
             list.append(

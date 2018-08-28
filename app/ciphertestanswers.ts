@@ -1,4 +1,5 @@
 import { cloneObject } from "./ciphercommon";
+import { menuMode, toolMode } from "./cipherhandler";
 import { CipherTest, ITestState } from "./ciphertest";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
@@ -9,6 +10,7 @@ import { JTTable } from "./jttable";
  *    This prints an answer key for a specified test
  */
 export class CipherTestAnswers extends CipherTest {
+    activeToolMode: toolMode = toolMode.codebusters;
     defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.Test,
@@ -36,6 +38,7 @@ export class CipherTestAnswers extends CipherTest {
         }
     }
     updateOutput(): void {
+        this.setMenuMode(menuMode.test);
         $(".testcontent").each((i, elem) => {
             $(elem).replaceWith(this.genTestAnswers());
         });
@@ -110,7 +113,7 @@ export class CipherTestAnswers extends CipherTest {
             );
         }
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
-        this.disableFilemenu();
+        this.setMenuMode(menuMode.test);
         //
         // Generate the tie breaker order
         //

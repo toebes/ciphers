@@ -13,8 +13,12 @@ export interface menuItem {
     classname?: string;
     /** Optional Cipher Type to add */
     cipherType?: ICipherType;
+    /** Ciphers accepted for solving */
+    solveType?: ICipherType[];
     /** Optional Language */
     lang?: string;
+    /** This menu item is for a solver */
+    solver?: boolean;
 }
 
 /**
@@ -39,19 +43,25 @@ export function JTAppendSubMenu(
                 li.addClass("active");
             }
         }
-        let a = $("<a/>", { href: href }).html(item.title);
-        if (item.action !== undefined) {
-            a.attr("data-action", item.action);
-        }
-        if (item.classname !== undefined) {
-            a.addClass(item.classname);
-        }
-        li.append(a);
-        if (item.menu !== undefined) {
-            a.addClass("is-dropdown-submenu-parent");
-            let ul = $("<ul/>", { class: "menu vertical" });
-            JTAppendSubMenu(ul, item.menu);
-            li.append(ul);
+        if (item.classname === "divider") {
+            li.addClass("divider");
+        } else {
+            let a = $("<a/>", {
+                href: href,
+            }).html(item.title);
+            if (item.action !== undefined) {
+                a.attr("data-action", item.action);
+            }
+            if (item.classname !== undefined) {
+                a.addClass(item.classname);
+            }
+            li.append(a);
+            if (item.menu !== undefined) {
+                a.addClass("is-dropdown-submenu-parent");
+                let ul = $("<ul/>", { class: "menu vertical" });
+                JTAppendSubMenu(ul, item.menu);
+                li.append(ul);
+            }
         }
         parent.append(li);
     }
@@ -69,12 +79,12 @@ export function JTCreateMenu(
     let titlebar = $("<div/>", {
         class: "title-bar",
         "data-responsive-toggle": id,
-        "data-hide-for": "medium"
+        "data-hide-for": "medium",
     });
     $("<button/>", {
         class: "menu-icon",
         type: "button",
-        "data-toggle": id
+        "data-toggle": id,
     }).appendTo(titlebar);
     $("<div/>", { class: "title-bar-title" })
         .text("Menu")
@@ -85,7 +95,7 @@ export function JTCreateMenu(
     let topbarleft = $("<div/>", { class: "top-bar-left" });
     let dropdownmenu = $("<ul/>", {
         class: "dropdown menu",
-        "data-dropdown-menu": ""
+        "data-dropdown-menu": "",
     });
     dropdownmenu.append($("<li/>", { class: "menu-text" }).text(menutext));
     JTAppendSubMenu(dropdownmenu, menu);
@@ -126,6 +136,30 @@ export function JTGetURL(
         }
         if (item.menu !== undefined) {
             url = JTGetURL(item.menu, ciphertype, lang);
+            if (url !== "") {
+                return url;
+            }
+        }
+    }
+    return "";
+}
+
+export function JTGetSolveURL(
+    menu: menuItem[],
+    ciphertype: ICipherType,
+    lang: string
+): string {
+    let url = "";
+    for (let item of menu) {
+        if (
+            item.solveType !== undefined &&
+            item.lang === lang &&
+            item.solveType.indexOf(ciphertype) !== -1
+        ) {
+            return item.href;
+        }
+        if (item.menu !== undefined) {
+            url = JTGetSolveURL(item.menu, ciphertype, lang);
             if (url !== "") {
                 return url;
             }

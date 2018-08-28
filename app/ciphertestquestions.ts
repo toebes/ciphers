@@ -1,21 +1,19 @@
-import { cloneObject, NumberMap, StringMap } from "./ciphercommon";
+import { cloneObject } from "./ciphercommon";
+import { menuMode, toolMode } from "./cipherhandler";
 import { buttonInfo, CipherTest, ITestState } from "./ciphertest";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
-import { JTTable } from "./jttable";
 
 /**
- * CipherTestQuestions - This class handles all of the actions associated with
- * generating a printable test.
- *
- *  Displays a printable version of test <n> if it exists (default 0).
- *  Otherwise it provies a link back to TestManage.html
+ * CipherTestQuestions - This manages all of the questions to allow deleting/importing/editing
  */
 export class CipherTestQuestions extends CipherTest {
+    activeToolMode: toolMode = toolMode.codebusters;
+
     defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.Test,
-        test: 0
+        test: 0,
     };
     state: ITestState = cloneObject(this.defaultstate) as ITestState;
     cmdButtons: JTButtonItem[] = [
@@ -23,10 +21,14 @@ export class CipherTestQuestions extends CipherTest {
             title: "Export Problems",
             color: "primary",
             id: "export",
-            download: true
+            download: true,
         },
         { title: "Import Problems from File", color: "primary", id: "import" },
-        { title: "Import Problems from URL", color: "primary", id: "importurl" }
+        {
+            title: "Import Problems from URL",
+            color: "primary",
+            id: "importurl",
+        },
     ];
     restore(data: ITestState): void {
         let curlang = this.state.curlang;
@@ -39,6 +41,7 @@ export class CipherTestQuestions extends CipherTest {
         this.updateOutput();
     }
     updateOutput(): void {
+        this.setMenuMode(menuMode.test);
         $(".precmds").each((i, elem) => {
             $(elem).replaceWith(this.genPreCommands());
         });
@@ -52,7 +55,7 @@ export class CipherTestQuestions extends CipherTest {
 
         let buttons: buttonInfo[] = [
             { title: "Edit", btnClass: "entryedit" },
-            { title: "Delete", btnClass: "entrydel" }
+            { title: "Delete", btnClass: "entrydel" },
         ];
         result.append(this.genQuestionTable(undefined, buttons));
         return result;
@@ -94,12 +97,12 @@ export class CipherTestQuestions extends CipherTest {
             });
         $("#import")
             .off("click")
-            .on("click", e => {
+            .on("click", () => {
                 this.importQuestions(true);
             });
         $("#importurl")
             .off("click")
-            .on("click", e => {
+            .on("click", () => {
                 this.importQuestions(false);
             });
         $(".entrydel")

@@ -8,6 +8,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 module.exports = {
     //    mode: "development", // "production" | "development" | "none"
     context: __dirname,
+    devtool: "inline-source-map",
     entry: path.join(__dirname, "app", "ciphers.ts"),
     output: {
         path: path.resolve(__dirname, "dist"),
@@ -167,12 +168,23 @@ module.exports = {
             },
         ]),
         new HardSourceWebpackPlugin(),
-        // new TypedocWebpackPlugin(
-        //     {
-        //         target: "es5",
-        //         ignoreCompilerErrors: true,
-        //         includeDeclarations: true,
-        //     }),
+        // new TypedocWebpackPlugin({
+        //     target: "es5",
+        //     ignoreCompilerErrors: true,
+        //     includeDeclarations: true,
+        // }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: "ACAProblems.html",
+            template: path.join(
+                __dirname,
+                "app",
+                "pages",
+                "TestQuestions.html"
+            ),
+            cipher: "ACAProblems",
+            title: "ACA Problem Management",
+        }),
         new HtmlWebpackPlugin({
             inject: false,
             filename: "AffineEncrypt.html",

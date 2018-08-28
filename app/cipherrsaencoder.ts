@@ -1,5 +1,6 @@
 import { cloneObject, NumberMap, setCharAt, StringMap } from "./ciphercommon";
 import { CipherEncoder, IEncoderState } from "./cipherencoder";
+import { toolMode } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
@@ -16,6 +17,7 @@ interface IRSAState extends IEncoderState {
  * a Baconian cipher.
  */
 export class CipherRSAEncoder extends CipherEncoder {
+    activeToolMode: toolMode = toolMode.codebusters;
     defaultstate: IRSAState = {
         cipherString: "",
         cipherType: ICipherType.RSA,

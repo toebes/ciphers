@@ -1,5 +1,5 @@
 import { cloneObject } from "./ciphercommon";
-import { CipherHandler, IState } from "./cipherhandler";
+import { CipherHandler, IState, menuMode, toolMode } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
@@ -28,6 +28,7 @@ export interface IEncoderState extends IState {
  * a cipher.
  */
 export class CipherEncoder extends CipherHandler {
+    activeToolMode: toolMode = toolMode.codebusters;
     defaultstate: IEncoderState = {
         cipherString: "",
         cipherType: ICipherType.Aristocrat,
@@ -39,7 +40,8 @@ export class CipherEncoder extends CipherHandler {
         keyword2: "",
         alphabetSource: "",
         alphabetDest: "",
-        curlang: "en"
+        curlang: "en",
+        replacement: {},
     };
     state: IEncoderState = cloneObject(this.defaultstate) as IState;
     cmdButtons: JTButtonItem[] = [
@@ -48,11 +50,11 @@ export class CipherEncoder extends CipherHandler {
             title: "Randomize",
             color: "primary",
             id: "randomize",
-            disabled: true
+            disabled: true,
         },
         this.undocmdButton,
         this.redocmdButton,
-        { title: "Reset", color: "warning", id: "reset" }
+        { title: "Reset", color: "warning", id: "reset" },
     ];
     /**
      * Make a copy of the current state
@@ -93,8 +95,8 @@ export class CipherEncoder extends CipherHandler {
      * All values to the UI
      */
     updateOutput(): void {
+        this.setMenuMode(menuMode.question);
         this.updateQuestionsOutput();
-        this.enableFilemenu();
         $("#toencode").val(this.state.cipherString);
         $("#keyword").val(this.state.keyword);
         $("#offset").val(this.state.offset);
@@ -589,19 +591,19 @@ export class CipherEncoder extends CipherHandler {
         for (let strset of strings) {
             result.append(
                 $("<div>", {
-                    class: "TOSOLVE"
+                    class: "TOSOLVE",
                 }).text(strset[tosolve])
             );
             result.append(
                 $("<div>", {
-                    class: "TOANSWER"
+                    class: "TOANSWER",
                 }).text(strset[toanswer])
             );
         }
         if (this.state.cipherType === ICipherType.Patristocrat) {
             result.append(
                 $("<div>", {
-                    class: "origtext"
+                    class: "origtext",
                 }).text(this.state.cipherString)
             );
         }
@@ -621,7 +623,7 @@ export class CipherEncoder extends CipherHandler {
         for (let strset of strings) {
             result.append(
                 $("<div>", {
-                    class: "TOSOLVEQ"
+                    class: "TOSOLVEQ",
                 }).text(strset[0])
             );
         }
@@ -638,18 +640,18 @@ export class CipherEncoder extends CipherHandler {
         let result = $("<div/>");
         result.append(
             $("<div>", {
-                class: "callout small success"
+                class: "callout small success",
             })
                 .text("Note: Plain Text is on ")
                 .append(
                     $("<span/>", {
-                        class: "TOSOLVE"
+                        class: "TOSOLVE",
                     }).text("top line")
                 )
                 .append(", Cipher Text is ")
                 .append(
                     $("<span>", {
-                        class: "TOANSWER"
+                        class: "TOANSWER",
                     }).text("highlighted")
                 )
         );
@@ -680,11 +682,11 @@ export class CipherEncoder extends CipherHandler {
             { id: "enck1", value: "k1", title: "K1" },
             { id: "enck2", value: "k2", title: "K2" },
             { id: "enck3", value: "k3", title: "K3" },
-            { id: "enck4", value: "k4", title: "K4" }
+            { id: "enck4", value: "k4", title: "K4" },
         ];
         result.append(
             $("<div>", {
-                class: "cell"
+                class: "cell",
             }).text("Alphabet Type")
         );
         result.append(
@@ -795,7 +797,7 @@ export class CipherEncoder extends CipherHandler {
         let einput = $("<span/>", {
             type: "text",
             "data-char": c,
-            id: "m" + c
+            id: "m" + c,
         });
         return einput;
     }

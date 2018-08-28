@@ -1,5 +1,6 @@
 import { BoolMap, cloneObject, StringMap } from "./ciphercommon";
 import { CipherEncoder, IEncoderState } from "./cipherencoder";
+import { toolMode } from "./cipherhandler";
 import { CipherTypeButtonItem, ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
@@ -14,18 +15,20 @@ import { mapperFactory } from "./mapperfactory";
  * a Caesar or Atbash cipher.
  */
 export class CipherTableEncoder extends CipherEncoder {
+    activeToolMode: toolMode = toolMode.codebusters;
     defaultstate: IEncoderState = {
         cipherString: "",
         cipherType: ICipherType.Caesar,
         offset: 1,
         /** The type of operation */
-        operation: "decode"
+        operation: "decode",
+        replacement: {},
     };
     state: IEncoderState = cloneObject(this.defaultstate) as IEncoderState;
     cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
-        this.redocmdButton
+        this.redocmdButton,
     ];
     ciphermap: Mapper;
     /** Save and Restore are done on the CipherEncoder Class */
@@ -122,7 +125,7 @@ export class CipherTableEncoder extends CipherEncoder {
         let einput = $("<span/>", {
             type: "text",
             "data-char": c,
-            id: "m" + c
+            id: "m" + c,
         });
         return einput;
     }
@@ -132,7 +135,7 @@ export class CipherTableEncoder extends CipherEncoder {
 
         let radiobuttons = [
             CipherTypeButtonItem(ICipherType.Caesar),
-            CipherTypeButtonItem(ICipherType.Atbash)
+            CipherTypeButtonItem(ICipherType.Atbash),
         ];
         result.append(
             JTRadioButton(8, "ciphertype", radiobuttons, this.state.cipherType)
@@ -140,7 +143,7 @@ export class CipherTableEncoder extends CipherEncoder {
 
         radiobuttons = [
             { id: "wrow", value: "encode", title: "Encode" },
-            { id: "mrow", value: "decode", title: "Decode" }
+            { id: "mrow", value: "decode", title: "Decode" },
         ];
         result.append(
             JTRadioButton(6, "operation", radiobuttons, this.state.operation)
@@ -386,7 +389,7 @@ export class CipherTableEncoder extends CipherEncoder {
                     "OK",
                     "OX",
                     "UH",
-                    "UM"
+                    "UM",
                 ];
 
                 let p = $("<p>").text(

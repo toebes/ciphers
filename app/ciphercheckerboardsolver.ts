@@ -1,5 +1,7 @@
+import { toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 export class CipherCheckerboardSolver extends CipherSolver {
+    activeToolMode: toolMode = toolMode.aca;
     rowcharset: string = "";
     colcharset: string = "";
 

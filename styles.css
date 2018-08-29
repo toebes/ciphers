@@ -465,6 +465,16 @@ input[type="radio"] {
     color: green;
 }
 
+.rtoggle-3:after {
+    content: "\2714"; /* Heavy Checkmark */
+}
+.rtoggle-2:after {
+    content: "\2718"; /* Heavy Ballot */
+    color: white;
+}
+.rtoggle-1:after {
+    content: "?";
+}
 .rtoggle-0 {
     background-color: transparent;
 }

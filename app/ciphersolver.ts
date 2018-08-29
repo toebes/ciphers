@@ -546,6 +546,9 @@ export class CipherSolver extends CipherHandler {
      */
     findPossible(str: string): void {
         let encoded = this.minimizeString(this.state.cipherString);
+        if (str === undefined) {
+            str = "";
+        }
         this.state.findString = str;
         if (str === "") {
             $(".findres").empty();

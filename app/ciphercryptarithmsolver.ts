@@ -1266,50 +1266,6 @@ export class CryptarithmSolver extends CipherSolver {
                     .addClass("rtoggle-" + state);
             }
         }
-        // let repl = this.state.replacement[c];
-        // $("input:text[data-char='" + c + "']").prop("disabled", lock);
-        // // First mark everything in the same row.  If we are locking them
-        // // then it needs to go to a negative value.  If we are unlocking
-        // // then we flip it back
-        // for (let index = 0; index < this.base; index++) {
-        //     let r = this.basedStr(index);
-        //     let state = this.state.boxState[c + r];
-        //     if (isNaN(state)) {
-        //         state = 0;
-        //     }
-        //     if (lock) {
-        //         if (r === repl) {
-        //             state = -3;
-        //         } else if (state >= 0) {
-        //             state = -(state + 1);
-        //         }
-        //     } else if (state < 0) {
-        //         state = -(state + 1);
-        //     }
-        //     this.state.boxState[c + r] = state;
-        //     // elem.removeClass(
-        //     //     "rtoggle-0 rtoggle-1 rtoggle-2 rtoggle-3"
-        //     // ).addClass("rtoggle-" + state);
-        // }
-        // // As well as everything in the same column
-        // for (let col in this.usedletters) {
-        //     // let elem = $("#" + col + repl);
-        //     let state = this.state.boxState[col + repl];
-        //     if (isNaN(state)) {
-        //         state = 0;
-        //     }
-        //     if (lock) {
-        //         if (col !== c && state >= 0) {
-        //             state = -(state + 1);
-        //         }
-        //     } else if (state < 0) {
-        //         state = -(state + 1);
-        //     }
-        //     this.state.boxState[col + repl] = state;
-        //     // elem.removeClass(
-        //     //     "rtoggle-0 rtoggle-1 rtoggle-2 rtoggle-3"
-        //     // ).addClass("rtoggle-" + state);
-        // }
     }
     /**
      * Marks a symbol as locked and prevents it from being changed in the interactive solver
@@ -1336,7 +1292,7 @@ export class CryptarithmSolver extends CipherSolver {
             if (isNaN(state)) {
                 state = 0;
             }
-            state = state + (1 % 4);
+            state = (state + 1) % 4;
             this.state.boxState[id] = state;
         }
         return changed;

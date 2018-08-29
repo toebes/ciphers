@@ -70,9 +70,10 @@ export class CipherACAProblems extends CipherTest {
         let row = table.addHeaderRow();
         row.add("Question")
             .add("Action")
+            .add("Status")
             .add("Type")
             .add("Question")
-            .add("Cipher Text");
+            .add("Cipher");
 
         for (let entry = 0; entry < cipherCount; entry++) {
             this.addProblemRow(table, entry, entry, buttons);
@@ -113,12 +114,40 @@ export class CipherACAProblems extends CipherTest {
             }
             buttonset.append(button);
         }
-        row.add(buttonset).add(state.cipherType);
-        row.add(
-            $("<span/>", {
-                class: "qtextentry",
-            }).html(state.question + extratext)
-        ).add(state.cipherString);
+        row.add(buttonset);
+        let calloutclass = "";
+        let statusmsg = "";
+        if (state.solved !== undefined) {
+            if (state.solved) {
+                statusmsg = "Solved";
+                calloutclass = "success";
+            } else {
+                statusmsg = "In Process";
+                calloutclass = "primary";
+            }
+        }
+        let status = $("");
+        if (statusmsg !== "") {
+            status = $("<div/>", {
+                class: "callout small " + calloutclass,
+            }).text(statusmsg);
+        }
+        row.add(status)
+            .add(state.cipherType)
+            .add(
+                $("<span/>", {
+                    class: "qtextentry",
+                }).html(state.question + extratext)
+            );
+        let cipherstr = $("<div/>").append(state.cipherString);
+        if (state.solution !== undefined && state.solution !== "") {
+            cipherstr.append(
+                $("<div/>", { class: "callout small " + calloutclass }).text(
+                    state.solution
+                )
+            );
+        }
+        row.add(cipherstr);
 
         return;
     }

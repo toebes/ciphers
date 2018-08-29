@@ -62,6 +62,10 @@ export interface IState {
     locked?: { [key: string]: boolean };
     /** Replacement order string */
     replOrder?: string;
+    /** A formatted solution string */
+    solution?: string;
+    /** Is the problem solved? */
+    solved?: boolean;
     /** Any other extensions not yet thought of */
     //  any?: any
 }

@@ -1,6 +1,8 @@
-import { BoolMap, StringMap } from "./ciphercommon";
-import { toolMode } from "./cipherhandler";
+import { BoolMap, cloneObject, NumberMap, StringMap } from "./ciphercommon";
+import { IState, toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
+import { ICipherType } from "./ciphertypes";
+import { JTButtonItem } from "./jtbuttongroup";
 import { JTFLabeledInput } from "./jtflabeledinput";
 
 enum CryptarithmType {
@@ -11,42 +13,117 @@ enum CryptarithmType {
     Division,
     Addition,
     Subtraction,
-    Equations
+    Equations,
 }
 
+interface ICryptarithmState extends IState {
+    /** The state of all the boxes */
+    /** A negative value indicates that it is temporarily locked due to another row/col */
+    boxState: NumberMap;
+}
 export class CryptarithmSolver extends CipherSolver {
     activeToolMode: toolMode = toolMode.aca;
+    defaultstate: ICryptarithmState = {
+        cipherType: ICipherType.Cryptarithm,
+        cipherString: "",
+        boxState: {},
+        replacement: {},
+        locked: {},
+    };
+    state: ICryptarithmState = cloneObject(
+        this.defaultstate
+    ) as ICryptarithmState;
+    cmdButtons: JTButtonItem[] = [
+        { title: "Save", color: "primary", id: "save" },
+        this.undocmdButton,
+        this.redocmdButton,
+        { title: "Reset", color: "warning", id: "reset" },
+    ];
+
     usedletters: BoolMap = {};
-    boxState: StringMap = {};
     base: number;
     cryptarithmType: CryptarithmType = CryptarithmType.Automatic;
+    /**
+     * Add any solution text to the problem
+     */
+    saveSolution(): void {
+        if (this.state.question === undefined || this.state.question === "") {
+            return;
+        }
+        // The code that updates the page marks the SOLVED flag, but
+        // We have to compute the solution text
+        let x = this.basedStr(this.base - 1);
+        let dir = 1;
+        let off = 1;
+        if (this.state.question.includes("0-" + x)) {
+            dir = 1;
+            off = 0;
+            // val = (this.base + ( 1)*(index + 0)) % this.base;
+        } else if (this.state.question.includes("1-0")) {
+            dir = 1;
+            off = 1;
+            // val = (this.base + ( 1)*(index + 1)) % this.base;
+        } else if (this.state.question.includes(x + "-0")) {
+            dir = -1;
+            off = 1;
+            // val = (this.base + (-1)*(index + 1)) % this.base
+        } else if (this.state.question.includes("0-1")) {
+            dir = -1;
+            off = 0;
+            // val = (this.base + (-1)*(index + 0)) % this.base
+        } else {
+            return;
+        }
+        this.state.solution = "";
+        for (let index = 0; index < this.base; index++) {
+            let val = String((this.base * 2 + dir * (index + off)) % this.base);
+            let c = Object.keys(this.state.replacement).find(
+                key => this.state.replacement[key] === val
+            );
+            this.state.solution += c;
+        }
+    }
     /**
      * Loads new data into a solver, preserving all solving matches made
      */
     load(): void {
         let encoded: string = this.cleanString(this.state.cipherString);
-        let res = this.build();
-        this.UpdateFreqEditTable();
-
-        $("#answer")
-            .empty()
-            .append(res);
-        $("#analysis").each((i, elem) => {
-            $(elem)
+        if (encoded !== this.lastencoded) {
+            this.lastencoded = encoded;
+            $("#answer")
                 .empty()
-                .append(this.genAnalysis(encoded));
-        });
-        let pos = 0;
-        let charset = this.getCharset();
-        for (let c in this.usedletters) {
-            let repl = charset.substr(pos, 1);
-            pos++;
-            this.setChar(c, repl);
+                .append(this.build());
+            let pos = 0;
+            let charset = this.getCharset();
+            for (let c in this.usedletters) {
+                if (this.state.replacement[c] === undefined) {
+                    let repl = charset.substr(pos, 1);
+                    pos++;
+                    this.setChar(c, repl);
+                }
+            }
+            this.UpdateFreqEditTable();
+            // We need to attach handlers for any newly created input fields
+            this.attachHandlers();
         }
-        // Show the update frequency values
-        this.displayFreq();
-        // We need to attach handlers for any newly created input fields
-        this.attachHandlers();
+    }
+    /**
+     * Cleans up any settings, range checking and normalizing any values.
+     * This doesn't actually update the UI directly but ensures that all the
+     * values are legitimate for the cipher handler
+     * Generally you will call updateOutput() after calling setUIDefaults()
+     */
+    setUIDefaults(): void {
+        super.setUIDefaults();
+    }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
+    updateOutput(): void {
+        super.updateOutput();
+        this.updateSolverBox();
+        this.updateMatchDropdowns("");
     }
     /**
      * Loads new data into a solver, resetting any solving matches made
@@ -58,7 +135,7 @@ export class CryptarithmSolver extends CipherSolver {
      * Generates the section above the command buttons
      */
     genPreCommands(): JQuery<HTMLElement> {
-        let result = $("<div>");
+        let result = $("<div/>");
         result.append(
             JTFLabeledInput(
                 "Cryptarithm",
@@ -77,18 +154,18 @@ export class CryptarithmSolver extends CipherSolver {
         let result = $("<div/>");
         result.append(
             $("<div/>", {
-                class: "grid-x grid-margin-x"
+                class: "grid-x grid-margin-x",
             })
                 .append(
                     $("<div/>", {
                         class: "ans cell small-12 medium-7 shrink",
-                        id: "answer"
+                        id: "answer",
                     })
                 )
                 .append(
                     $("<div/>", {
                         class: "freq cell small-12 medium-5",
-                        id: "freq"
+                        id: "freq",
                     })
                 )
         );
@@ -171,10 +248,12 @@ export class CryptarithmSolver extends CipherSolver {
         let cexpected = this.compute(eexpected);
 
         if (cformula === cexpected) {
-            return $("<span>", {
-                class: "match"
+            return $("<div/>", {
+                class: "callout success small",
             }).text("Matches");
         }
+        // Something didn't match so mark it in the saved data
+        this.state.solved = false;
         // They don't match so let's go through the digits and figure out which ones do and don't match.
         // Note that one might be longer than the other but we have to compare from the right hand side
         let width = Math.max(cformula.length, cexpected.length);
@@ -204,10 +283,14 @@ export class CryptarithmSolver extends CipherSolver {
         return result;
     }
     /**
+     * We don't have to do anything for reverse replacements
+     */
+    UpdateReverseReplacements(): void {}
+    /**
      * Update the match dropdowns in response to a change in the cipher mapping
      */
     updateMatchDropdowns(reqstr: string): void {
-        this.UpdateReverseReplacements();
+        this.state.solved = true;
         $("[data-formula]").each((i, elem) => {
             $(elem)
                 .empty()
@@ -222,22 +305,7 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Fills in the frequency portion of the frequency table
      */
-    displayFreq(): void {
-        this.holdupdates = true;
-        // Replicate all of the previously set values.  This is done when
-        // you change the spacing in the encoded text and then do a reload.
-        for (let c in this.usedletters) {
-            let repl: string = <string>$("#m" + c).val();
-            if (repl === "") {
-                repl = $("#m" + c).html();
-            }
-            this.setChar(c, repl);
-        }
-
-        this.holdupdates = false;
-        this.updateMatchDropdowns("");
-    }
-
+    displayFreq(): void {}
     /**
      * Change the encrypted character.  Note that when we change one, we have
      * to swap it with the one which we are replacing
@@ -259,13 +327,23 @@ export class CryptarithmSolver extends CipherSolver {
                 if (this.state.locked[oldrep]) {
                     return;
                 }
-                super.setChar(oldrep, oldchar);
-
+                this.state.replacement[oldrep] = oldchar;
+                $("input[data-char='" + oldrep + "']").val(oldchar);
+                if (oldchar === "") {
+                    oldchar = "?";
+                }
+                $("span[data-char='" + oldrep + "']").text(oldchar);
                 $("span[data-val='" + oldchar + "']").text(oldrep);
             }
-            super.setChar(repchar, newchar);
-            $("span[data-val='" + newchar + "']").text(repchar);
+            this.state.replacement[repchar] = newchar;
+            this.updateMatchDropdowns(repchar);
         }
+        $("input[data-char='" + repchar + "']").val(newchar);
+        if (newchar === "") {
+            newchar = "?";
+        }
+        $("span[data-char='" + repchar + "']").text(newchar);
+        $("span[data-val='" + newchar + "']").text(repchar);
     }
     /**
      * Builds the GUI for the solver
@@ -283,7 +361,7 @@ export class CryptarithmSolver extends CipherSolver {
             WantPlus = "Want + value",
             WantQuotient = "Want Quotient",
             WantMultAdds = "Want * Additions",
-            Idle = "Idle"
+            Idle = "Idle",
         }
         interface lineitem {
             prefix: string;
@@ -295,9 +373,6 @@ export class CryptarithmSolver extends CipherSolver {
         }
         this.cryptarithmType = CryptarithmType.Automatic;
         this.usedletters = {};
-        this.boxState = {};
-        this.state.locked = {};
-        this.state.replacement = {};
         this.base = 0;
         let lineitems: Array<lineitem> = [];
         str = str.replace(new RegExp("gives root", "g"), "^");
@@ -311,13 +386,11 @@ export class CryptarithmSolver extends CipherSolver {
         str = str.replace(new RegExp("[\r\n ]+", "g"), "");
         // Now tokenize the string so we can parse it
         let tokens = str.split(/([;=+ \^\/\*\.\-])/g);
-        let maindiv = $("<div>");
         let state: buildState = buildState.Initial;
         let indent: number = 0;
         let numwidth: number = 1;
         let maxwidth: number = 0;
         let prefix: string = "";
-        let divwidth: number = 0;
         let dividend: string = "";
         let divisor: string = "";
         let quotient: string = "";
@@ -371,7 +444,7 @@ export class CryptarithmSolver extends CipherSolver {
                         content: "",
                         class: "",
                         formula: "",
-                        expected: ""
+                        expected: "",
                     });
                     prefix = "";
                     state = buildState.Initial;
@@ -651,7 +724,7 @@ export class CryptarithmSolver extends CipherSolver {
                         content: "",
                         class: "",
                         formula: formula,
-                        expected: token
+                        expected: token,
                     };
                     lastval = token;
                     formula = "";
@@ -848,7 +921,6 @@ export class CryptarithmSolver extends CipherSolver {
                             // When dealing with the divisor, we put it to the left of the dividend
                             if (item.prefix === "/") {
                                 item = lineitems.pop();
-                                divwidth = item.content.length;
                                 dividend = item.content;
                                 divisor = content;
                                 item.content = content + ")" + item.content;
@@ -940,7 +1012,7 @@ export class CryptarithmSolver extends CipherSolver {
             // Pad on the left with as many columns as we need
             if (item.content.length < maxwidth) {
                 $("<td>", {
-                    colspan: maxwidth - item.content.length
+                    colspan: maxwidth - item.content.length,
                 })
                     .html("&nbsp;")
                     .appendTo(tr);
@@ -982,7 +1054,7 @@ export class CryptarithmSolver extends CipherSolver {
             if (item.content !== "") {
                 for (let c of item.content) {
                     td = $("<td>");
-                    $("<div>", { class: "slil" })
+                    $("<div/>", { class: "slil" })
                         .text(c)
                         .appendTo(td);
                     if (c === ")") {
@@ -992,7 +1064,7 @@ export class CryptarithmSolver extends CipherSolver {
                         $("<input/>", {
                             type: "text",
                             class: "sli",
-                            "data-char": c
+                            "data-char": c,
                         }).appendTo(td);
                     }
                     if (addclass) {
@@ -1006,7 +1078,7 @@ export class CryptarithmSolver extends CipherSolver {
                 content = $("<span>", {
                     class: "formula",
                     "data-formula": item.formula,
-                    "data-expect": item.expected
+                    "data-expect": item.expected,
                 });
             }
 
@@ -1021,34 +1093,83 @@ export class CryptarithmSolver extends CipherSolver {
         return table;
     }
     /**
+     *
+     * @param start Starting character
+     * @param end Ending character
+     */
+    genLetterDiv(start: string, end: string): JQuery<HTMLElement> {
+        let prefix = start + "-" + end;
+        let calloutclass = "secondary";
+        if (this.state.question.includes(prefix)) {
+            calloutclass = "success";
+        }
+        let result = $("<div/>", {
+            class: "sol callout small " + calloutclass,
+        }).append($("<span>", { class: "h" }).text(prefix + ":"));
+        return result;
+    }
+    /**
+     * Generates the letter sequences for output ordering any which happen to match
+     * the question string at the start
+     */
+    genLetterSequences(): JQuery<HTMLElement> {
+        // First we generate the strings along with the text
+        let result = $("<div/>", { class: "sols" });
+        let x = this.basedStr(this.base - 1);
+
+        let a0x = this.genLetterDiv("0", x);
+        let a10 = this.genLetterDiv("1", "0");
+        let ax0 = this.genLetterDiv(x, "0");
+        let a01 = this.genLetterDiv("0", "1");
+
+        for (let index = 0; index < this.base; index++) {
+            a0x.append(
+                $("<span>", {
+                    "data-val": this.basedStr(index),
+                }).text("?")
+            );
+            let val = (index + 1) % this.base;
+            a10.append(
+                $("<span>", {
+                    "data-val": this.basedStr(val),
+                }).text("?")
+            );
+            val = (this.base - index - 1) % this.base;
+            ax0.append(
+                $("<span>", {
+                    "data-val": this.basedStr(val),
+                }).text("?")
+            );
+            val = (val + 1) % this.base;
+            a01.append(
+                $("<span>", {
+                    "data-val": this.basedStr(val),
+                }).text("?")
+            );
+        }
+        result
+            .append(a0x)
+            .append(a10)
+            .append(ax0)
+            .append(a01);
+
+        return result;
+    }
+    /**
      * Creates an HTML table to display the mapping table
      */
     createFreqEditTable(): JQuery<HTMLElement> {
         if (this.base === undefined || this.base < 1) {
             return null;
         }
+        let result = $("<div/>");
+        result.append(this.genLetterSequences());
+        // First generate the solution strings, BUT if there is one that matches the
         let table = $("<table>", { class: "tfreq" });
         let tbody = $("<tbody>");
         let thead = $("<thead>");
 
         let tr = $("<tr>");
-
-        let a0x = $("<div>", { class: "sol" });
-        $("<span>", { class: "h" })
-            .text("0-" + this.basedStr(this.base - 1) + ":")
-            .appendTo(a0x);
-        let a10 = $("<div>", { class: "sol" });
-        $("<span>", { class: "h" })
-            .text("1-0:")
-            .appendTo(a10);
-        let ax0 = $("<div>", { class: "sol" });
-        $("<span>", { class: "h" })
-            .text(this.basedStr(this.base - 1) + "-0:")
-            .appendTo(ax0);
-        let a01 = $("<div>", { class: "sol" });
-        $("<span>", { class: "h" })
-            .text("0-1:")
-            .appendTo(a01);
 
         $("<td>", { colspan: 3 })
             .text("Base " + String(this.base))
@@ -1057,32 +1178,15 @@ export class CryptarithmSolver extends CipherSolver {
             $("<th>")
                 .text(this.basedStr(index))
                 .appendTo(tr);
-
-            $("<span>", { "data-val": this.basedStr(index) })
-                .text("?")
-                .appendTo(a0x);
-            let val = (index + 1) % this.base;
-            $("<span>", { "data-val": this.basedStr(val) })
-                .text("?")
-                .appendTo(a10);
-            val = (this.base - index - 1) % this.base;
-            $("<span>", { "data-val": this.basedStr(val) })
-                .text("?")
-                .appendTo(ax0);
-            val = (val + 1) % this.base;
-            $("<span>", { "data-val": this.basedStr(val) })
-                .text("?")
-                .appendTo(a01);
         }
         tr.appendTo(thead);
         thead.appendTo(table);
-        let pos = 0;
 
         // Now we want to build the solving table
         for (let c in this.usedletters) {
             tr = $("<tr>");
             let th = $("<th>");
-            $("<div>", { class: "slil" })
+            $("<div/>", { class: "slil" })
                 .text(c)
                 .appendTo(th);
             th.appendTo(tr);
@@ -1097,82 +1201,144 @@ export class CryptarithmSolver extends CipherSolver {
                 "data-char": c,
                 id: "cb" + c,
                 value: name,
-                checked: ischecked
+                checked: ischecked,
             }).appendTo(td);
             td.appendTo(tr);
 
             for (let index = 0; index < this.base; index++) {
                 let id = c + this.basedStr(index);
-                this.boxState[id] = "0";
+                if (this.state.boxState[id] === undefined) {
+                    this.state.boxState[id] = 0;
+                }
+                let state = this.state.boxState[id];
+                if (state < 0) {
+                    state = 1;
+                }
                 $("<td>", {
                     id: id,
-                    "data-val": this.boxState[id]
+                    "data-val": state,
                 })
-                    .addClass("rtoggle rtoggle-" + this.boxState[id])
+                    .addClass("rtoggle rtoggle-" + state)
                     .appendTo(tr);
             }
             tr.appendTo(tbody);
         }
         tbody.appendTo(table);
-        let topdiv = $("<div>");
-        let solsdiv = $("<div>", { class: "sols" });
-        a0x.appendTo(solsdiv);
-        a10.appendTo(solsdiv);
-        ax0.appendTo(solsdiv);
-        a01.appendTo(solsdiv);
-        solsdiv.appendTo(topdiv);
-        table.appendTo(topdiv);
-        return topdiv;
+        result.append(table);
+        return result;
+    }
+    getLockMap(): BoolMap {
+        let result: BoolMap = {};
+        for (let c in this.usedletters) {
+            if (this.state.locked[c]) {
+                result[c] = true;
+                result["." + this.state.replacement[c]] = true;
+            } else {
+                result[c] = false;
+                result["." + this.state.replacement[c]] = false;
+            }
+        }
+        return result;
+    }
+    updateSolverBox(): void {
+        let isLocked = this.getLockMap();
+        for (let c in this.usedletters) {
+            let ischecked = this.state.locked[c];
+            let repl = this.state.replacement[c];
+            $(".cb[data-char=" + c + "]").prop("checked", ischecked);
+            $("input:text[data-char='" + c + "']").prop("disabled", ischecked);
+
+            for (let index = 0; index < this.base; index++) {
+                let r = this.basedStr(index);
+                let id = c + r;
+                let state = this.state.boxState[id];
+                if (isLocked[c]) {
+                    if (r === repl) {
+                        state = 3;
+                    } else {
+                        state = 2;
+                    }
+                } else if (isLocked["." + r]) {
+                    state = 2;
+                }
+                $("#" + c + r)
+                    .removeClass("rtoggle-0 rtoggle-1 rtoggle-2 rtoggle-3")
+                    .addClass("rtoggle-" + state);
+            }
+        }
+        // let repl = this.state.replacement[c];
+        // $("input:text[data-char='" + c + "']").prop("disabled", lock);
+        // // First mark everything in the same row.  If we are locking them
+        // // then it needs to go to a negative value.  If we are unlocking
+        // // then we flip it back
+        // for (let index = 0; index < this.base; index++) {
+        //     let r = this.basedStr(index);
+        //     let state = this.state.boxState[c + r];
+        //     if (isNaN(state)) {
+        //         state = 0;
+        //     }
+        //     if (lock) {
+        //         if (r === repl) {
+        //             state = -3;
+        //         } else if (state >= 0) {
+        //             state = -(state + 1);
+        //         }
+        //     } else if (state < 0) {
+        //         state = -(state + 1);
+        //     }
+        //     this.state.boxState[c + r] = state;
+        //     // elem.removeClass(
+        //     //     "rtoggle-0 rtoggle-1 rtoggle-2 rtoggle-3"
+        //     // ).addClass("rtoggle-" + state);
+        // }
+        // // As well as everything in the same column
+        // for (let col in this.usedletters) {
+        //     // let elem = $("#" + col + repl);
+        //     let state = this.state.boxState[col + repl];
+        //     if (isNaN(state)) {
+        //         state = 0;
+        //     }
+        //     if (lock) {
+        //         if (col !== c && state >= 0) {
+        //             state = -(state + 1);
+        //         }
+        //     } else if (state < 0) {
+        //         state = -(state + 1);
+        //     }
+        //     this.state.boxState[col + repl] = state;
+        //     // elem.removeClass(
+        //     //     "rtoggle-0 rtoggle-1 rtoggle-2 rtoggle-3"
+        //     // ).addClass("rtoggle-" + state);
+        // }
     }
     /**
      * Marks a symbol as locked and prevents it from being changed in the interactive solver
      */
-    updateCheck(c: string, lock: boolean): void {
+    updateCheck(c: string, lock: boolean): boolean {
+        let changed = false;
         if (this.state.locked[c] !== lock) {
             this.state.locked[c] = lock;
-            let repl = this.state.replacement[c];
-            $("input:text[data-char='" + c + "']").prop("disabled", lock);
-            let charset = this.getCharset();
-            // First mark everything in the same row
-            for (let index = 0; index < this.base; index++) {
-                let r = this.basedStr(index);
-                let elem = $("#" + c + r);
-                let state = this.boxState[c + r];
-                if (state === "") {
-                    state = "0";
-                }
-                if (lock) {
-                    if (r === repl) {
-                        state = "3";
-                    } else {
-                        state = "2";
-                    }
-                }
-                elem.removeClass(
-                    "rtoggle-0 rtoggle-1 rtoggle-2 rtoggle-3"
-                ).addClass("rtoggle-" + state);
-            }
-            // As well as everything in the same column
-            for (let col in this.usedletters) {
-                let elem = $("#" + col + repl);
-                let state = this.boxState[col + repl];
-                if (state === "") {
-                    state = "0";
-                }
-                if (lock) {
-                    if (col === c) {
-                        state = "3";
-                    } else {
-                        state = "2";
-                    }
-                }
-                elem.removeClass(
-                    "rtoggle-0 rtoggle-1 rtoggle-2 rtoggle-3"
-                ).addClass("rtoggle-" + state);
-            }
+            changed = true;
         }
+        return changed;
     }
-
+    updateClick(id: string): boolean {
+        let changed = false;
+        let isLocked = this.getLockMap();
+        let c = id.substr(0, 1);
+        let r = id.substr(1, 1);
+        // Make sure it isn't locked either by the row or the column
+        if (!isLocked[c] && !isLocked["." + r]) {
+            changed = true;
+            let state = this.state.boxState[id];
+            if (isNaN(state)) {
+                state = 0;
+            }
+            state = state + (1 % 4);
+            this.state.boxState[id] = state;
+        }
+        return changed;
+    }
     /**
      * Sets up the HTML DOM so that all actions go to the right handler
      */
@@ -1182,20 +1348,27 @@ export class CryptarithmSolver extends CipherSolver {
             .off("click")
             .on("click", e => {
                 let id = $(e.target).attr("id");
-                let sel = $(e.target).attr("data-val");
-                $(e.target).removeClass("rtoggle-" + sel);
-                sel = String((Number(sel) + 1) % 4);
-                $(e.target)
-                    .addClass("rtoggle-" + sel)
-                    .attr("data-val", sel);
-                console.log("Changing " + id + " to " + sel);
-                this.boxState[id] = sel;
+                this.markUndo(null);
+                // let sel = $(e.target).attr("data-val");
+                if (this.updateClick(id)) {
+                    this.updateOutput();
+                }
+                // $(e.target).removeClass("rtoggle-" + sel);
+                // sel = String((Number(sel) + 1) % 4);
+                // $(e.target)
+                //     .addClass("rtoggle-" + sel)
+                //     .attr("data-val", sel);
+                // console.log("Changing " + id + " to " + sel);
+                // // this.state.boxState[id] = sel;
             });
         $(".cb")
             .off("change")
             .on("change", e => {
                 let toupdate = $(e.target).attr("data-char");
-                this.updateCheck(toupdate, $(e.target).prop("checked"));
+                this.markUndo(null);
+                if (this.updateCheck(toupdate, $(e.target).prop("checked"))) {
+                    this.updateOutput();
+                }
             });
     }
 }

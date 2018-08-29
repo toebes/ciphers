@@ -165,6 +165,21 @@ label.rlab {
     padding-right:5px;
 }*/
 
+.formula .callout.small {
+    margin: 0rem;
+}
+
+.sol.callout.small {
+    margin: 0.05rem;
+    padding: 0.1rem;
+}
+table.cmath {
+    width: auto;
+    line-height: 100%;
+}
+table.cmath tbody {
+    border: none;
+}
 table.cmath td.solv {
     font-family: "Courier New", Courier, monospace;
     background-color: white;

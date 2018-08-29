@@ -40,6 +40,7 @@ export class CipherSolver extends CipherHandler {
      * Make a copy of the current state
      */
     save(): IState {
+        this.saveSolution();
         // We need a deep copy of the save state
         let savestate = cloneObject(this.state) as IState;
         return savestate;
@@ -704,6 +705,28 @@ export class CipherSolver extends CipherHandler {
             }
         }
         return res;
+    }
+    saveSolution(): void {
+        let str = this.cleanString(this.state.cipherString).toUpperCase();
+        let solved = true;
+        let solution = "";
+        for (let c of str) {
+            if (this.isValidChar(c)) {
+                if (
+                    this.state.replacement[c] !== undefined &&
+                    this.state.replacement[c] !== ""
+                ) {
+                    solution += this.state.replacement[c];
+                } else {
+                    solution += "?";
+                    solved = false;
+                }
+            } else {
+                solution += c;
+            }
+        }
+        this.state.solved = solved;
+        this.state.solution = solution;
     }
     /**
      * Builds the GUI for the solver

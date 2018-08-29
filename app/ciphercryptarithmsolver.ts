@@ -1314,21 +1314,23 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Marks a symbol as locked and prevents it from being changed in the interactive solver
      */
-    updateCheck(c: string, lock: boolean): boolean {
+    handleLockClick(c: string, lock: boolean): boolean {
         let changed = false;
         if (this.state.locked[c] !== lock) {
+            this.markUndo(null);
             this.state.locked[c] = lock;
             changed = true;
         }
         return changed;
     }
-    updateClick(id: string): boolean {
+    handleBoxStateClick(id: string): boolean {
         let changed = false;
         let isLocked = this.getLockMap();
         let c = id.substr(0, 1);
         let r = id.substr(1, 1);
         // Make sure it isn't locked either by the row or the column
         if (!isLocked[c] && !isLocked["." + r]) {
+            this.markUndo(null);
             changed = true;
             let state = this.state.boxState[id];
             if (isNaN(state)) {
@@ -1348,25 +1350,17 @@ export class CryptarithmSolver extends CipherSolver {
             .off("click")
             .on("click", e => {
                 let id = $(e.target).attr("id");
-                this.markUndo(null);
-                // let sel = $(e.target).attr("data-val");
-                if (this.updateClick(id)) {
+                if (this.handleBoxStateClick(id)) {
                     this.updateOutput();
                 }
-                // $(e.target).removeClass("rtoggle-" + sel);
-                // sel = String((Number(sel) + 1) % 4);
-                // $(e.target)
-                //     .addClass("rtoggle-" + sel)
-                //     .attr("data-val", sel);
-                // console.log("Changing " + id + " to " + sel);
-                // // this.state.boxState[id] = sel;
             });
         $(".cb")
             .off("change")
             .on("change", e => {
                 let toupdate = $(e.target).attr("data-char");
-                this.markUndo(null);
-                if (this.updateCheck(toupdate, $(e.target).prop("checked"))) {
+                if (
+                    this.handleLockClick(toupdate, $(e.target).prop("checked"))
+                ) {
                     this.updateOutput();
                 }
             });

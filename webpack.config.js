@@ -187,6 +187,18 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: "ACASubmit.html",
+            template: path.join(
+                __dirname,
+                "app",
+                "pages",
+                "TestQuestions.html"
+            ),
+            cipher: "ACASubmit",
+            title: "ACA Submission",
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: "AffineEncrypt.html",
             template: path.join(__dirname, "app", "pages", "StdEncoder.html"),
             cipher: "Affine",

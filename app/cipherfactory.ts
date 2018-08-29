@@ -1,4 +1,5 @@
 import { CipherACAProblems } from "./cipheracaproblems";
+import { CipherACASubmit } from "./cipheracasubmit";
 import { CipherAffineEncoder } from "./cipheraffineencoder";
 import { CipherBaconianEncoder } from "./cipherbaconianencoder";
 import { CipherCheckerboardSolver } from "./ciphercheckerboardsolver";
@@ -40,6 +41,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     ACAProblems: {
         cipherType: ICipherType.Test,
         cipherClass: CipherACAProblems,
+        canPrint: false,
+    },
+    ACASubmit: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherACASubmit,
         canPrint: false,
     },
     Affine: {

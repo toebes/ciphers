@@ -24,6 +24,7 @@ export class CipherACAProblems extends CipherTest {
             id: "export",
             download: true,
         },
+        { title: "Generate Submission", color: "primary", id: "gensub" },
         { title: "Import Problems from File", color: "primary", id: "import" },
         {
             title: "Import Problems from URL",
@@ -142,9 +143,9 @@ export class CipherACAProblems extends CipherTest {
         let cipherstr = $("<div/>").append(state.cipherString);
         if (state.solution !== undefined && state.solution !== "") {
             cipherstr.append(
-                $("<div/>", { class: "callout small " + calloutclass }).text(
-                    state.solution
-                )
+                $("<div/>", {
+                    class: "callout small " + calloutclass,
+                }).text(state.solution)
             );
         }
         row.add(cipherstr);
@@ -194,6 +195,9 @@ export class CipherACAProblems extends CipherTest {
         } else {
             alert("No solver found");
         }
+    }
+    gotoGenerateSubmission(): void {
+        location.assign("ACASubmit.html");
     }
     /**
      * This prompts a user and then deletes all ciphers
@@ -272,6 +276,11 @@ export class CipherACAProblems extends CipherTest {
             .off("click")
             .on("click", e => {
                 this.gotoSolveCipher(Number($(e.target).attr("data-entry")));
+            });
+        $("#gensub")
+            .off("click")
+            .on("click", e => {
+                this.gotoGenerateSubmission();
             });
     }
 }

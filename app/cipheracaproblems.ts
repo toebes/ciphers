@@ -59,6 +59,7 @@ export class CipherACAProblems extends CipherTest {
         let buttons: buttonInfo[] = [
             { title: "Solve", btnClass: "entrysolve" },
             { title: "Delete", btnClass: "entrydel" },
+            { title: "Edit Solution", btnClass: "editsol" },
         ];
         result.append(this.genACAProblemTable(buttons));
         return result;
@@ -140,15 +141,16 @@ export class CipherACAProblems extends CipherTest {
                     class: "qtextentry",
                 }).html(state.question + extratext)
             );
-        let cipherstr = $("<div/>").append(state.cipherString);
+        // If they solved it, print out the solution, otherwise show them the problem
         if (state.solution !== undefined && state.solution !== "") {
-            cipherstr.append(
+            row.add(
                 $("<div/>", {
                     class: "callout small " + calloutclass,
                 }).text(state.solution)
             );
+        } else {
+            row.add($("<div/>").append(state.cipherString));
         }
-        row.add(cipherstr);
 
         return;
     }
@@ -196,6 +198,32 @@ export class CipherACAProblems extends CipherTest {
             alert("No solver found");
         }
     }
+    /**
+     * Edit the manual solution for an entry
+     * @param entry Entry to edit
+     */
+    editSolution(entry: number): void {
+        let state = this.getFileEntry(entry);
+        $("#soltext")
+            .val(state.solution)
+            .off("input")
+            .on("input", e => {
+                $("#oksol").removeAttr("disabled");
+            });
+        $("#oksol")
+            .off("click")
+            .on("click", e => {
+                state.solution = $("#soltext").val() as string;
+                state.solved = state.solution !== "";
+                this.setFileEntry(entry, state);
+                $("#editsoldlg").foundation("close");
+                this.updateOutput();
+            });
+        $("#editsoldlg").foundation("open");
+    }
+    /**
+     * Show the generated solution for submission
+     */
     gotoGenerateSubmission(): void {
         location.assign("ACASubmit.html");
     }
@@ -235,13 +263,37 @@ export class CipherACAProblems extends CipherTest {
         return DeleteAllDlg;
     }
     /**
+     * Create the hidden dialog for selecting a cipher to open
+     */
+    private createEditSolDlg(): JQuery<HTMLElement> {
+        let dlgContents = $("<div/>", {
+            class: "callout success",
+        }).append(
+            $("<label/>")
+                .text("Solution")
+                .append(
+                    $("<textarea/>", { type: "text", rows: 6, id: "soltext" })
+                )
+        );
+        let EditSolDlg = JTFDialog(
+            "editsoldlg",
+            "Update Solution",
+            dlgContents,
+            "oksol",
+            "Update"
+        );
+        return EditSolDlg;
+    }
+    /**
      * Create the main menu at the top of the page.
      * This also creates the hidden dialog used for deleting ciphers
      */
     public createMainMenu(): JQuery<HTMLElement> {
         let result = super.createMainMenu();
         // Create the dialog for selecting which cipher to load
-        result.append(this.createDeleteAllDlg());
+        result
+            .append(this.createDeleteAllDlg())
+            .append(this.createEditSolDlg());
         return result;
     }
 
@@ -276,6 +328,11 @@ export class CipherACAProblems extends CipherTest {
             .off("click")
             .on("click", e => {
                 this.gotoSolveCipher(Number($(e.target).attr("data-entry")));
+            });
+        $(".editsol")
+            .off("click")
+            .on("click", e => {
+                this.editSolution(Number($(e.target).attr("data-entry")));
             });
         $("#gensub")
             .off("click")

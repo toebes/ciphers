@@ -1,4 +1,4 @@
-import { cloneObject } from "./ciphercommon";
+import { cloneObject, padLeft } from "./ciphercommon";
 import { menuMode, toolMode } from "./cipherhandler";
 import { buttonInfo, CipherTest, ITestState } from "./ciphertest";
 import { ICipherType } from "./ciphertypes";
@@ -38,34 +38,80 @@ export class CipherACASubmit extends CipherTest {
         return result;
     }
     genACAProblemList(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "questions" });
+        let result = $("<div>", {
+            class: "sublist",
+        }).append($("<div/>").text(" "));
+        let sols = { AA: 0, PP: 0, CC: 0, XX: 0, EE: 0, SS: 0, tot: 0 };
+        let missed = {
+            AA: false,
+            PP: false,
+            CC: false,
+            XX: false,
+            EE: false,
+            SS: false,
+            tot: false,
+        };
+        let mapsoltypes = { A: "AA", P: "PP", C: "CC", X: "XX", E: "EE" };
 
         let cipherCount = this.getCipherCount();
         for (let entry = 0; entry < cipherCount; entry++) {
-            result.append(this.genProblemSolution(entry));
+            let state = this.getFileEntry(entry);
+            if (state === null) {
+                state = {
+                    cipherType: ICipherType.None,
+                    points: 0,
+                    cipherString: "",
+                };
+            }
+            let issolved = false;
+            let soltext = "<<NOT SOLVED>>";
+            if (state.solved !== undefined && state.solved) {
+                issolved = true;
+                soltext = state.solution;
+            }
+            let qnum = "UNKNOWN";
+            if (state.question !== undefined && state.question !== "") {
+                let parts = state.question.split(".");
+                qnum = parts[0];
+                let types = qnum.toUpperCase().split("-");
+                let outtype = "SS";
+                if (types[1] !== "SP") {
+                    if (mapsoltypes[types[0]] !== undefined) {
+                        outtype = mapsoltypes[types[0]];
+                    }
+                }
+                if (issolved) {
+                    sols[outtype]++;
+                    sols["tot"]++;
+                } else {
+                    missed[outtype] = true;
+                    missed["tot"] = true;
+                }
+            }
+            result.append($("<div/>").text(qnum + " " + soltext));
         }
-
-        return result;
-    }
-    genProblemSolution(entry: number): JQuery<HTMLElement> {
-        let state = this.getFileEntry(entry);
-        if (state === null) {
-            state = {
-                cipherType: ICipherType.None,
-                points: 0,
-                cipherString: "",
-            };
+        // Now generate the solution count line
+        // MA2017 AA PP CC XX EE SS Issue YTD
+        // MiB *  *  * 8  5  0    64 149
+        let titlestr = "<ISSUED>  ";
+        let textstr = "<NOM HERE>";
+        for (let t of ["AA", "PP", "CC", "XX", "EE", "SS", "tot"]) {
+            if (t === "tot") {
+                titlestr += " Issue";
+                textstr += "   ";
+            } else {
+                titlestr += " " + t;
+            }
+            if (missed[t]) {
+                textstr += padLeft(sols[t], 3);
+            } else {
+                textstr += "  *";
+            }
         }
-        let soltext = "<UNSOLVED>";
-        if (state.solved !== undefined && state.solved) {
-            soltext = state.solution;
-        }
-        let qnum = "UNKNOWN";
-        if (state.question !== undefined && state.question !== "") {
-            let parts = state.question.split(".");
-            qnum = parts[0];
-        }
-        let result = $("<div/>").text(qnum + " " + soltext);
+        titlestr += " YTD";
+        textstr += " ???";
+        result.prepend($("<div/>").text(textstr));
+        result.prepend($("<div/>").text(titlestr));
         return result;
     }
     gotoProblemManagement(): void {

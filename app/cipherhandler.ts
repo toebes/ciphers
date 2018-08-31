@@ -2291,10 +2291,7 @@ export class CipherHandler {
         if (state.cipherType === undefined) {
             return "";
         }
-        if (state.curlang !== undefined && state.curlang !== "en") {
-            lang = state.curlang;
-        }
-        return JTGetSolveURL(CipherMenu, state.cipherType, lang);
+        return JTGetSolveURL(CipherMenu, state.cipherType);
     }
     /**
      * Create the hidden dialog for selecting a cipher to open

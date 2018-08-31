@@ -15,15 +15,10 @@ export class CipherTestPrint extends CipherTest {
     defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.Test,
-        test: 0
+        test: 0,
     };
     state: ITestState = cloneObject(this.defaultstate) as ITestState;
-    cmdButtons: JTButtonItem[] = [
-        { title: "Edit Test", color: "primary", id: "edittest" },
-        // { title: "Test Packet", color: "primary", id: "printtest", },
-        { title: "Answer Key", color: "primary", id: "printans" },
-        { title: "Answers and Solutions", color: "primary", id: "printsols" }
-    ];
+    cmdButtons: JTButtonItem[] = [];
 
     restore(data: ITestState): void {
         let curlang = this.state.curlang;
@@ -38,6 +33,9 @@ export class CipherTestPrint extends CipherTest {
             $(elem).replaceWith(this.genTestQuestions());
         });
         this.attachHandlers();
+    }
+    public genPreCommands(): JQuery<HTMLElement> {
+        return this.genTestEditState("testprint");
     }
     genTestQuestions(): JQuery<HTMLElement> {
         let testcount = this.getTestCount();
@@ -56,7 +54,9 @@ export class CipherTestPrint extends CipherTest {
         this.qdata = [];
         if (test.timed === -1) {
             result.append(
-                $("<p>", { class: "noprint" }).text("No timed question")
+                $("<p>", {
+                    class: "noprint",
+                }).text("No timed question")
             );
         } else {
             result.append(this.printTestQuestion(-1, test.timed, "pagebreak"));
@@ -84,17 +84,23 @@ export class CipherTestPrint extends CipherTest {
             $("#runningkeys").append($("<h2/>").text("Famous Phrases"));
             for (let ent of this.runningKeys) {
                 $("#runningkeys").append(
-                    $("<div/>", { class: "runtitle" }).text(ent.title)
+                    $("<div/>", {
+                        class: "runtitle",
+                    }).text(ent.title)
                 );
                 $("#runningkeys").append(
-                    $("<div/>", { class: "runtext" }).text(ent.text)
+                    $("<div/>", {
+                        class: "runtext",
+                    }).text(ent.text)
                 );
             }
         }
         /**
          * Lastly we need to print out the score table
          */
-        let table = new JTTable({ class: "cell shrink testscores" });
+        let table = new JTTable({
+            class: "cell shrink testscores",
+        });
         let hastimed = false;
         table
             .addHeaderRow()
@@ -113,10 +119,13 @@ export class CipherTestPrint extends CipherTest {
             }
             table
                 .addBodyRow()
-                .add({ settings: { class: "t" }, content: qtitle })
+                .add({
+                    settings: { class: "t" },
+                    content: qtitle,
+                })
                 .add({
                     settings: { class: "v" },
-                    content: String(qitem.points)
+                    content: String(qitem.points),
                 })
                 .add("")
                 .add("")
@@ -128,7 +137,10 @@ export class CipherTestPrint extends CipherTest {
                 .addFooterRow()
                 .add("Bonus")
                 .add("")
-                .add({ settings: { colspan: 2, class: "grey" }, content: "" })
+                .add({
+                    settings: { colspan: 2, class: "grey" },
+                    content: "",
+                })
                 .add("");
         }
         table

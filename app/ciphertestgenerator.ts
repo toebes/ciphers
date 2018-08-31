@@ -27,22 +27,13 @@ export class CipherTestGenerator extends CipherTest {
     defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.None,
-        test: 0
+        test: 0,
     };
     state: ITestState = cloneObject(this.defaultstate) as ITestState;
     cmdButtons: JTButtonItem[] = [
         { title: "Randomize Order", color: "primary", id: "randomize" },
-        { title: "Test Packet", color: "primary", id: "printtest" },
-        { title: "Answer Key", color: "primary", id: "printans" },
-        { title: "Answers and Solutions", color: "primary", id: "printsols" },
-        {
-            title: "Export Test",
-            color: "primary",
-            id: "export",
-            download: true
-        },
         { title: "Import Tests from File", color: "primary", id: "import" },
-        { title: "Import Tests from URL", color: "primary", id: "importurl" }
+        { title: "Import Tests from URL", color: "primary", id: "importurl" },
     ];
     restore(data: ITestState): void {
         let curlang = this.state.curlang;
@@ -53,6 +44,9 @@ export class CipherTestGenerator extends CipherTest {
         this.checkXMLImport();
         this.setUIDefaults();
         this.updateOutput();
+    }
+    public genPreCommands(): JQuery<HTMLElement> {
+        return this.genTestEditState("testedit");
     }
     genTestQuestions(): JQuery<HTMLElement> {
         let result = $("<div>", { class: "testdata" });
@@ -89,7 +83,7 @@ export class CipherTestGenerator extends CipherTest {
             .add("Plain Text");
         let buttons: buttonInfo[] = [
             { title: "Edit", btnClass: "quesedit" },
-            { title: "Remove", btnClass: "quesremove alert" }
+            { title: "Remove", btnClass: "quesremove alert" },
         ];
         this.addQuestionRow(table, -1, test.timed, buttons, undefined);
         for (let entry = 0; entry < test.count; entry++) {
@@ -98,10 +92,10 @@ export class CipherTestGenerator extends CipherTest {
                 {
                     title: "&darr;",
                     btnClass: "quesdown",
-                    disabled: entry === test.count - 1
+                    disabled: entry === test.count - 1,
                 },
                 { title: "Edit", btnClass: "quesedit" },
-                { title: "Remove", btnClass: "quesremove alert" }
+                { title: "Remove", btnClass: "quesremove alert" },
             ];
             this.addQuestionRow(
                 table,
@@ -112,25 +106,21 @@ export class CipherTestGenerator extends CipherTest {
             );
         }
         if (test.count === 0) {
-            let callout = $("<div/>", { class: "callout warning" }).text(
-                "No Questions!  Add from below"
-            );
-            table
-                .addBodyRow()
-                .add({
-                    celltype: "td",
-                    settings: { colspan: 6 },
-                    content: callout
-                });
-        }
-        let dropdown = this.genNewCipherDropdown("addnewques", "New Question");
-        table
-            .addBodyRow()
-            .add({
+            let callout = $("<div/>", {
+                class: "callout warning",
+            }).text("No Questions!  Add from below");
+            table.addBodyRow().add({
                 celltype: "td",
                 settings: { colspan: 6 },
-                content: dropdown
+                content: callout,
             });
+        }
+        let dropdown = this.genNewCipherDropdown("addnewques", "New Question");
+        table.addBodyRow().add({
+            celltype: "td",
+            settings: { colspan: 6 },
+            content: dropdown,
+        });
 
         testdiv.append(table.generate());
         // Put in buttons for adding blank tests of various types..
@@ -138,13 +128,15 @@ export class CipherTestGenerator extends CipherTest {
         return result;
     }
     genQuestionPool(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "questionpool callout secondary" });
+        let result = $("<div>", {
+            class: "questionpool callout secondary",
+        });
         result.append($("<h2>").text("Existing questions that can be added"));
 
         let buttons: buttonInfo[] = [
             { title: "Edit", btnClass: "entryedit" },
             { title: "Add", btnClass: "quesadd" },
-            { title: "Set Timed", btnClass: "questime" }
+            { title: "Set Timed", btnClass: "questime" },
         ];
 
         result.append(this.genQuestionTable(this.state.test, buttons));
@@ -163,7 +155,9 @@ export class CipherTestGenerator extends CipherTest {
         for (let entry of test.questions) {
             result["CIPHER." + String(entry)] = this.getFileEntry(entry);
         }
-        let blob = new Blob([JSON.stringify(result)], { type: "text/json" });
+        let blob = new Blob([JSON.stringify(result)], {
+            type: "text/json",
+        });
         let url = URL.createObjectURL(blob);
 
         link.attr("download", test.title + ".json");
@@ -183,7 +177,7 @@ export class CipherTestGenerator extends CipherTest {
             points: 0,
             question: "Solve This",
             cipherString: "",
-            curlang: lang
+            curlang: lang,
         };
         let entry = this.setFileEntry(-1, state);
         if (fortimed) {

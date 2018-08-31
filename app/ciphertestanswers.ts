@@ -1,6 +1,6 @@
 import { cloneObject } from "./ciphercommon";
 import { menuMode, toolMode } from "./cipherhandler";
-import { CipherTest, ITestState } from "./ciphertest";
+import { CipherTest, ITestDisp, ITestState } from "./ciphertest";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTTable } from "./jttable";
@@ -15,42 +15,59 @@ export class CipherTestAnswers extends CipherTest {
         cipherString: "",
         cipherType: ICipherType.Test,
         test: 0,
-        sols: "n"
+        sols: "n",
     };
     state: ITestState = cloneObject(this.defaultstate) as ITestState;
-    cmdButtons: JTButtonItem[] = [
-        { title: "Edit Test", color: "primary", id: "edittest" },
-        { title: "Test Packet", color: "primary", id: "printtest" },
-        // { title: "Answer Key", color: "primary", id: "printans", },
-        { title: "Answers and Solutions", color: "primary", id: "printsols" }
-    ];
-    restore(data: ITestState): void {
-        this.state = cloneObject(this.defaultstate) as ITestState;
-        this.copyState(this.state, data);
-        this.updateOutput();
-        if (
-            this.state.sols !== undefined &&
-            this.state.sols.substr(0, 1) === "y"
-        ) {
-            this.state.sols = "y";
-        } else {
-            this.state.sols = "n";
-        }
+    cmdButtons: JTButtonItem[] = [];
+    public genPreCommands(): JQuery<HTMLElement> {
+        return this.genTestEditState(this.getTestEditState());
     }
-    updateOutput(): void {
+    /**
+     * Cleans up any settings, range checking and normalizing any values.
+     * This doesn't actually update the UI directly but ensures that all the
+     * values are legitimate for the cipher handler
+     * Generally you will call updateOutput() after calling setUIDefaults()
+     */
+    setUIDefaults(): void {
+        this.setSols(this.state.sols);
+    }
+    /**
+     * Clean up the sols value so that all the other code can count on a y or n
+     * @param sols New sols display value (either y or n)
+     */
+    public setSols(sols: string): boolean {
+        let changed = false;
+        let newsols = "n";
+        if (sols !== undefined && sols.toLowerCase().substr(0, 1) === "y") {
+            newsols = "y";
+        }
+        if (newsols !== this.state.sols) {
+            changed = true;
+            this.state.sols = newsols;
+        }
+        return changed;
+    }
+    /**
+     * Get the test display state for whether we are displaying answers or solutions
+     */
+    public getTestEditState(): ITestDisp {
+        this.setSols(this.state.sols);
+        if (this.state.sols === "y") {
+            return "testsols";
+        }
+        return "testans";
+    }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
+    public updateOutput(): void {
         this.setMenuMode(menuMode.test);
+        this.setTestEditState(this.getTestEditState());
+
         $(".testcontent").each((i, elem) => {
             $(elem).replaceWith(this.genTestAnswers());
         });
-        if (this.state.sols === "y") {
-            $("#printsols")
-                .attr("id", "printans")
-                .text("Answer Key");
-        } else {
-            $("#printans")
-                .attr("id", "printsols")
-                .text("Answers and Solutions");
-        }
         this.attachHandlers();
     }
     /*
@@ -68,7 +85,10 @@ export class CipherTestAnswers extends CipherTest {
         }
         return 0;
     }
-    genTestAnswers(): JQuery<HTMLElement> {
+    /**
+     * Populate the test with answers
+     */
+    public genTestAnswers(): JQuery<HTMLElement> {
         let printSolution = false;
         if (this.state.sols === "y") {
             printSolution = true;
@@ -77,21 +97,24 @@ export class CipherTestAnswers extends CipherTest {
         }
         let testcount = this.getTestCount();
         if (testcount === 0) {
-            return $("<h3>").text("No Tests Created Yet");
+            return $("<h3/>").text("No Tests Created Yet");
         }
         if (this.state.test > testcount) {
-            return $("<h3>").text("Test not found");
+            return $("<h3/>").text("Test not found");
         }
+
+        let result = $("<div>");
         this.qdata = [];
 
         let test = this.getTestEntry(this.state.test);
-        let result = $("<div>");
         $(".testtitle").text(test.title);
         let dt = new Date();
         $(".testyear").text(dt.getFullYear());
         if (test.timed === -1) {
             result.append(
-                $("<p>", { class: "noprint" }).text("No timed question")
+                $("<p>", {
+                    class: "noprint",
+                }).text("No timed question")
             );
         } else {
             result.append(
@@ -117,8 +140,9 @@ export class CipherTestAnswers extends CipherTest {
         //
         // Generate the tie breaker order
         //
-        let table = new JTTable({ class: "cell shrink tiebreak" });
-        let hastimed = false;
+        let table = new JTTable({
+            class: "cell shrink tiebreak",
+        });
         table
             .addHeaderRow()
             .add("Tie Breaker Order")
@@ -141,10 +165,6 @@ export class CipherTestAnswers extends CipherTest {
             order++;
         }
         $("#tietable").append(table.generate());
-
         return result;
-    }
-    attachHandlers(): void {
-        super.attachHandlers();
     }
 }

@@ -13,7 +13,6 @@
         <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
         <% } %>
             <%= require('html-loader!./analytics.html') %>
-
                 <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
                 <h2>
                     <%= htmlWebpackPlugin.options.title %>

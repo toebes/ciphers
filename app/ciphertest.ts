@@ -1,8 +1,19 @@
 import { cloneObject, NumberMap } from "./ciphercommon";
 import { CipherPrintFactory } from "./cipherfactory";
-import { CipherHandler, IRunningKey, IState, ITest, toolMode } from "./cipherhandler";
-import { getCipherTitle, ICipherType } from "./ciphertypes";
+import {
+    CipherHandler,
+    IRunningKey,
+    IState,
+    ITest,
+    toolMode,
+} from "./cipherhandler";
+import {
+    CipherTypeButtonItem,
+    getCipherTitle,
+    ICipherType,
+} from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
+import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 import { JTTable } from "./jttable";
 
 export interface buttonInfo {
@@ -34,7 +45,7 @@ interface INewCipherEntry {
     /** Optional title to override the default title */
     title?: string;
 }
-
+export type ITestDisp = "testedit" | "testprint" | "testans" | "testsols";
 /**
  * Base support for all the test generation handlers
  * There are five pages that need to be created
@@ -123,6 +134,18 @@ export class CipherTest extends CipherHandler {
         this.setUIDefaults();
         this.updateOutput();
     }
+    public genTestEditState(testdisp: ITestDisp): JQuery<HTMLElement> {
+        let radiobuttons = [
+            { title: "Edit Test", value: "testedit" },
+            { title: "Test Packet", value: "testprint" },
+            { title: "Answer Key", value: "testans" },
+            { title: "Answers and Solutions", value: "testsols" },
+        ];
+        return JTRadioButton(8, "testdisp", radiobuttons, testdisp);
+    }
+    public setTestEditState(testdisp: ITestDisp): void {
+        JTRadioButtonSet("testdisp", testdisp);
+    }
     public checkXMLImport(): void {
         if (this.state.importURL !== undefined) {
             if (this.state.importURL !== "") {
@@ -164,6 +187,24 @@ export class CipherTest extends CipherHandler {
     public gotoPrintTestSols(test: number): void {
         location.assign("TestAnswers.html?test=" + String(test) + "&sols=y");
     }
+    public gotoTestDisplay(testdisp: ITestDisp): void {
+        switch (testdisp) {
+            case "testans":
+                this.gotoPrintTestAnswers(this.state.test);
+                break;
+            case "testedit":
+                this.gotoEditTest(this.state.test);
+                break;
+            default:
+            case "testprint":
+                this.gotoPrintTest(this.state.test);
+                break;
+            case "testsols":
+                this.gotoPrintTestSols(this.state.test);
+                break;
+        }
+    }
+
     public gotoEditCipher(entry: number): void {
         let state = this.getFileEntry(entry);
         let editURL = this.getEditURL(state);
@@ -636,6 +677,16 @@ export class CipherTest extends CipherHandler {
             .off("click")
             .on("click", e => {
                 this.gotoEditCipher(Number($(e.target).attr("data-entry")));
+            });
+        $('[name="testdisp"]')
+            .off("click")
+            .on("click", e => {
+                $(e.target)
+                    .siblings()
+                    .removeClass("is-active");
+                $(e.target).addClass("is-active");
+                this.gotoTestDisplay($(e.target).val() as ITestDisp);
+                this.updateOutput();
             });
     }
 }

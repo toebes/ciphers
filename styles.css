@@ -819,6 +819,10 @@ table.found tr th:nth-child(odd) {
     font-family: "Courier New", Courier, monospace;
     width: auto;
 }
+.sublist {
+    font-family: "Courier New", Courier, monospace;
+    white-space: pre;
+}
 
 .prfreq td,
 .ansblock td {

@@ -1000,10 +1000,10 @@ export class CipherHandler {
         }
         return result;
     }
-    deleteRunningKey(entry: number): void {
+    public deleteRunningKey(entry: number): void {
         this.storage.remove(this.getRunningKeyName(entry));
     }
-    setRunningKey(entry: number, data: IRunningKey): void {
+    public setRunningKey(entry: number, data: IRunningKey): void {
         if (!this.storage.isAvailable()) {
             return;
         }
@@ -1029,7 +1029,7 @@ export class CipherHandler {
     /**
      * Put up a dialog to select a cipher to load
      */
-    openCipher(): void {
+    public openCipher(): void {
         // Populate the list of known files.
         $("#files").replaceWith(this.getFileList(this.state.cipherType));
         $("#files")
@@ -1044,6 +1044,7 @@ export class CipherHandler {
                 this.savefileentry = Number($("#files option:selected").val());
                 $("#OpenFile").foundation("close");
                 this.markUndo(null);
+                this.updateSaveEntryURL();
                 this.restore(this.getFileEntry(this.savefileentry));
             });
         $("#OpenFile").foundation("open");
@@ -1051,11 +1052,11 @@ export class CipherHandler {
     /**
      * Process imported XML
      */
-    importXML(data: any): void {}
+    public importXML(data: any): void {}
     /**
      * Put up a dialog to select an XML file to import
      */
-    openXMLImport(useLocalData: boolean): void {
+    public openXMLImport(useLocalData: boolean): void {
         $("#okimport").prop("disabled", true);
         $("#importstatus")
             .removeClass("success")
@@ -1131,17 +1132,27 @@ export class CipherHandler {
     /**
      *  Save the current cipher to the current file
      */
-    saveCipher(): void {
+    public saveCipher(): void {
         let state = this.save();
         this.savefileentry = this.setFileEntry(this.savefileentry, state);
+
         // We need to update the URL to indicate which entry they saved
+        this.updateSaveEntryURL();
+    }
+    /**
+     * Update the URL to reflect the current saved file entry
+     */
+    public updateSaveEntryURL(): void {
         let url = window.location.href.split("?")[0];
+        // If the URL ends with a #, we want to make that go away
+        url = url.replace(/#$/, "");
         window.history.replaceState(
             {},
             $("title").text(),
             url + "?editEntry=" + this.savefileentry
         );
     }
+
     /**
      * Save the current cipher state to a new file
      */

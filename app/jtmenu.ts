@@ -146,20 +146,18 @@ export function JTGetURL(
 
 export function JTGetSolveURL(
     menu: menuItem[],
-    ciphertype: ICipherType,
-    lang: string
+    ciphertype: ICipherType
 ): string {
     let url = "";
     for (let item of menu) {
         if (
             item.solveType !== undefined &&
-            item.lang === lang &&
             item.solveType.indexOf(ciphertype) !== -1
         ) {
             return item.href;
         }
         if (item.menu !== undefined) {
-            url = JTGetSolveURL(item.menu, ciphertype, lang);
+            url = JTGetSolveURL(item.menu, ciphertype);
             if (url !== "") {
                 return url;
             }

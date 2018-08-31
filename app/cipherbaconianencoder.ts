@@ -235,6 +235,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         $("." + this.state.operation).show();
         $("#texta").val(this.state.texta);
         $("#textb").val(this.state.textb);
+        $("#linewidth").val(this.state.linewidth);
         let abmap = this.getABMap();
         for (let c in abmap) {
             $("#l" + c).text(abmap[c]);

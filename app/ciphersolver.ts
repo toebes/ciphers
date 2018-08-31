@@ -554,23 +554,24 @@ export class CipherSolver extends CipherHandler {
             $(".findres").empty();
             return;
         }
-        let res = "";
-        let i;
+
         str = this.minimizeString(str.toUpperCase());
+        if (this.state.cipherType === ICipherType.Patristocrat) {
+            encoded = encoded.replace(/\s+/g, "");
+            str = str.replace(/\s+/g, "");
+        }
         //
         // Look for all possible matches for the pattern.
-        res = this.searchPattern(encoded, 1, str, 1);
+        let res = this.searchPattern(encoded, 1, str, 1);
         if (res === "") {
             res = "<br/><b>Not Found</b>";
         } else {
             let charset = this.getCharset();
             let tres =
                 '<table class="mfind cell shrink"><thead><tr><th>Pos</th><th>Match</th>';
-            for (i = 0; i < charset.length; i++) {
-                let key = charset.substr(i, 1);
+            for (let key of charset) {
                 tres += "<th>" + key + "</th>";
             }
-            //   res +=             < ul > ' + res + '</ul > ';
             res = tres + "</tr></thead><tbody>" + res + "</tbody></table>";
         }
 

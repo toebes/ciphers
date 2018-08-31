@@ -131,7 +131,9 @@ export class CipherTestGenerator extends CipherTest {
         let result = $("<div>", {
             class: "questionpool callout secondary",
         });
-        result.append($("<h2>").text("Existing questions that can be added"));
+        result.append(
+            $("<h2>").text("Unused questions that can be added to this test")
+        );
 
         let buttons: buttonInfo[] = [
             { title: "Edit", btnClass: "entryedit" },

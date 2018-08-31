@@ -86,3 +86,14 @@ export function setDisabled(sel: string, disabled: boolean): void {
         $(sel).removeAttr("disabled");
     }
 }
+/**
+ * Take any number and pad it on the left with spaces, returning the right most
+ * width digits of the formatted string.  Note that if the number is wider than
+ * the width, it will be truncated.
+ * @param val Value to pad
+ * @param width Number of spaces to pad/truncate the number to
+ */
+export function padLeft(val: number, width: number): string {
+    let result = repeatStr(" ", width) + String(val);
+    return result.slice(-width);
+}

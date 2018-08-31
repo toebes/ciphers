@@ -380,7 +380,14 @@ module.exports = {
             filename: "index.html",
             template: path.join(__dirname, "app", "pages", "index.html"),
             cipher: "",
-            title: "Cipher Tools",
+            title: "Science Olympiad Code Busters",
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: "acaindex.html",
+            template: path.join(__dirname, "app", "pages", "acaindex.html"),
+            cipher: "",
+            title: "ACA Cipher Tools",
         }),
         new HtmlWebpackPlugin({
             inject: false,

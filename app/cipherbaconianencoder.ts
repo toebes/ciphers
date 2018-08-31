@@ -4,7 +4,7 @@ import {
     padToMatch,
     setCharAt,
     setDisabled,
-    StringMap
+    StringMap,
 } from "./ciphercommon";
 import { CipherEncoder, IEncoderState } from "./cipherencoder";
 import { toolMode } from "./cipherhandler";
@@ -42,7 +42,7 @@ const baconMap: StringMap = {
     W: "BABAA",
     X: "BABAB",
     Y: "BABBA",
-    Z: "BABBB"
+    Z: "BABBB",
 };
 const revBaconMap: StringMap = {
     AAAAA: "A",
@@ -68,7 +68,7 @@ const revBaconMap: StringMap = {
     BABAA: "W",
     BABAB: "X",
     BABBA: "Y",
-    BABBB: "Z"
+    BABBB: "Z",
 };
 const punctuationChars = ".,;-";
 interface IBaconianState extends IEncoderState {
@@ -99,13 +99,13 @@ export class CipherBaconianEncoder extends CipherEncoder {
         textb: "B",
         abMapping: "ABABABABABABABABABABABABAB",
         linewidth: this.maxEncodeWidth,
-        words: []
+        words: [],
     };
     state: IBaconianState = cloneObject(this.defaultstate) as IBaconianState;
     cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
-        this.redocmdButton
+        this.redocmdButton,
     ];
     /** Where we are in the editing of the words */
     wordpos: number = 0;
@@ -362,7 +362,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let radiobuttons = [
             { id: "wrow", value: "let4let", title: "Letter for letter" },
             { id: "mrow", value: "sequence", title: "Sequence" },
-            { id: "mrow", value: "words", title: "Words" }
+            { id: "words", value: "words", title: "Words" },
         ];
         result.append(
             JTRadioButton(6, "operation", radiobuttons, this.state.operation)
@@ -380,18 +380,18 @@ export class CipherBaconianEncoder extends CipherEncoder {
         );
         // Build a table so that they can click on letters to make A or B
         let table = new JTTable({
-            class: "cell shrink tfreq opfield words"
+            class: "cell shrink tfreq opfield words",
         });
         let hrow = table.addHeaderRow();
         let brow = table.addBodyRow();
         for (let c of this.getCharset()) {
             hrow.add({
                 settings: { class: "abclick", id: "a" + c },
-                content: c
+                content: c,
             });
             brow.add({
                 settings: { class: "abclick", id: "l" + c },
-                content: "A"
+                content: "A",
             });
         }
         result.append(table.generate());
@@ -438,19 +438,19 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public genShiftButtonGroup(dir: "left" | "right"): JQuery<HTMLElement> {
         let result = $("<div/>", {
-            class: "cell small-1 medium-1 flex-container flex-dir-column"
+            class: "cell small-1 medium-1 flex-container flex-dir-column",
         });
         let buttonConfigs = {
             left: [
                 { id: "", title: "<" },
                 { id: "3", title: "<<<" },
-                { id: "e", title: "|<" }
+                { id: "e", title: "|<" },
             ],
             right: [
                 { id: "", title: ">" },
                 { id: "3", title: ">>>" },
-                { id: "e", title: ">|" }
-            ]
+                { id: "e", title: ">|" },
+            ],
         };
         for (let config of buttonConfigs[dir]) {
             result.append(
@@ -458,7 +458,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     id: "w" + dir + config.id,
                     type: "button",
                     class:
-                        "wshift flex-child-auto button small-1 medium-1 w" + dir
+                        "wshift flex-child-auto button small-1 medium-1 w" +
+                        dir,
                 }).text(config.title)
             );
         }
@@ -471,23 +472,23 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public genWordSelect(slot: number): JQuery<HTMLElement> {
         let result = $("<div/>", {
-            class: "cell flex-dir-column small-2 medium-2 large-1"
+            class: "cell flex-dir-column small-2 medium-2 large-1",
         });
         result.append(
             $("<div/>", {
-                class: "flex-child-shrink"
+                class: "flex-child-shrink",
             })
                 .append(
                     $("<button/>", {
                         id: "p" + String(slot),
                         "data-slot": slot,
-                        class: "psel button secondary float-right"
+                        class: "psel button secondary float-right",
                     }).text(punctuationChars)
                 )
                 .append(
                     $("<div/>", {
                         id: "v" + String(slot),
-                        class: "wtitle"
+                        class: "wtitle",
                     }).text("X")
                 )
         );
@@ -497,7 +498,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 id: "sel" + String(slot),
                 "data-slot": slot,
                 size: 15,
-                class: "wsel flex-child-grow"
+                class: "wsel flex-child-grow",
             })
         );
         return result;
@@ -548,11 +549,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
                         if (word === slotword) {
                             option = $("<option/>", {
                                 val: word,
-                                selected: "selected"
+                                selected: "selected",
                             }).text(word);
                         } else {
                             option = $("<option/>", {
-                                val: word
+                                val: word,
                             }).text(word);
                         }
                         sel.append(option);
@@ -591,23 +592,23 @@ export class CipherBaconianEncoder extends CipherEncoder {
         for (let strset of strings) {
             result.append(
                 $("<div>", {
-                    class: "BACON TOSOLVE"
+                    class: "BACON TOSOLVE",
                 }).text(strset[2])
             );
             result.append(
                 $("<div>", {
-                    class: "BACON TOSOLVE2"
+                    class: "BACON TOSOLVE2",
                 }).text(strset[1])
             );
             result.append(
                 $("<div>", {
-                    class: "BACON TOANSWER"
+                    class: "BACON TOANSWER",
                 }).text(strset[0])
             );
         }
         result.append(
             $("<div>", {
-                class: "TOANSWER"
+                class: "TOANSWER",
             }).text(this.state.cipherString)
         );
 
@@ -666,7 +667,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 result.push([
                     decodeline + padToMatch("", prefix),
                     baconline + prefix,
-                    wordline + prefix
+                    wordline + prefix,
                 ]);
                 wordline = resword;
                 baconline = baconian;
@@ -700,7 +701,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         for (let strset of strings) {
             result.append(
                 $("<div>", {
-                    class: "BACON TOSOLVEQ"
+                    class: "BACON TOSOLVEQ",
                 }).text(strset[2])
             );
         }

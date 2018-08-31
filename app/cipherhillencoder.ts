@@ -19,13 +19,13 @@ export class CipherHillEncoder extends CipherEncoder {
         cipherString: "",
         keyword: "" /** The type of cipher we are doing */,
         cipherType: ICipherType.Hill,
-        operation: "encode"
+        operation: "encode",
     };
     state: IState = cloneObject(this.defaultstate) as IState;
     cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
-        this.redocmdButton
+        this.redocmdButton,
     ];
     charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     padval: string = "Z";
@@ -108,24 +108,24 @@ export class CipherHillEncoder extends CipherEncoder {
                     );
                     result.append(
                         $("<div>", {
-                            class: "TOSOLVE"
+                            class: "TOSOLVE",
                         }).text(encoded)
                     );
                     result.append(
                         $("<div>", {
-                            class: "TOANSWER"
+                            class: "TOANSWER",
                         }).text(toencode)
                     );
                 }
             } else {
                 result.append(
                     $("<div>", {
-                        class: "TOSOLVE"
+                        class: "TOSOLVE",
                     }).text(toencode)
                 );
                 result.append(
                     $("<div>", {
-                        class: "TOANSWER"
+                        class: "TOANSWER",
                     }).text(encoded)
                 );
             }
@@ -137,11 +137,11 @@ export class CipherHillEncoder extends CipherEncoder {
         let result = $("<div/>");
         result.append(
             $("<div/>", {
-                class: "callout primary"
+                class: "callout primary",
             }).append(
                 $("<a/>", {
                     href: "HillKeys.html",
-                    target: "new"
+                    target: "new",
                 }).text("Known Valid Keys")
             )
         );
@@ -150,7 +150,7 @@ export class CipherHillEncoder extends CipherEncoder {
         let radiobuttons = [
             { id: "wrow", value: "encode", title: "Encode" },
             { id: "wrow", value: "compute", title: "Compute Decryption" },
-            { id: "mrow", value: "decode", title: "Decode" }
+            { id: "mrow", value: "decode", title: "Decode" },
         ];
         result.append(
             JTRadioButton(6, "operation", radiobuttons, this.state.operation)
@@ -279,7 +279,7 @@ export class CipherHillEncoder extends CipherEncoder {
             vals[row][i % groupsize] = x;
         }
 
-        let determinant = math.det(vals);
+        let determinant = math.round(math.det(vals)) as number;
         if (determinant === 0) {
             $("#err").text("Matrix is not invertable");
             return undefined;
@@ -338,7 +338,7 @@ export class CipherHillEncoder extends CipherEncoder {
         p.append(
             $("<a/>", {
                 href:
-                    "https://en.wikipedia.org/wiki/Modular_multiplicative_inverse"
+                    "https://en.wikipedia.org/wiki/Modular_multiplicative_inverse",
             }).text("modular multiplicative inverse")
         );
         p.append(" math");
@@ -387,7 +387,7 @@ export class CipherHillEncoder extends CipherEncoder {
         p.append(
             $("<a/>", {
                 href:
-                    "https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm"
+                    "https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm",
             }).text("Extended Euclidean algorithm")
         );
         p.append(
@@ -414,19 +414,19 @@ export class CipherHillEncoder extends CipherEncoder {
             kmathEquiv +
             this.getKmathMatrix([
                 [detinv + kmathMult + d, detinv + kmathMult + "-" + b],
-                [detinv + kmathMult + "-" + c, detinv + kmathMult + a]
+                [detinv + kmathMult + "-" + c, detinv + kmathMult + a],
             ]) +
             "\\mod{26}" +
             kmathEquiv +
             this.getKmathMatrix([
                 [detinv * d, -detinv * b],
-                [-detinv * c, detinv * a]
+                [-detinv * c, detinv * a],
             ]) +
             "\\mod{26}" +
             kmathEquiv +
             this.getKmathMatrix([
                 [detinv * d + "\\mod{26}", -detinv * b + "\\mod{26}"],
-                [-detinv * c + "\\mod{26}", detinv * a + "\\mod{26}"]
+                [-detinv * c + "\\mod{26}", detinv * a + "\\mod{26}"],
             ]) +
             kmathEquiv +
             this.getKmathMatrix(modinv);
@@ -481,7 +481,7 @@ export class CipherHillEncoder extends CipherEncoder {
             // Generate the math formula showing the encoding
             let line = this.genEncodeEquation(vals, cluster);
             let div = $("<div>", {
-                class: "lineeq"
+                class: "lineeq",
             }).append(renderMath(line));
             equations.append(div);
         }
@@ -611,7 +611,7 @@ export class CipherHillEncoder extends CipherEncoder {
     }
     genAnswerMathMatrix(matrix: any[][]): JQuery<HTMLElement> {
         let table = new JTTable({
-            class: "hillans ansblock shrink cell unstriped"
+            class: "hillans ansblock shrink cell unstriped",
         });
         let first = true;
         for (let row of matrix) {
@@ -620,9 +620,9 @@ export class CipherHillEncoder extends CipherEncoder {
                 tabrow.add({
                     settings: {
                         rowspan: row.length,
-                        class: "big" + row.length
+                        class: "big" + row.length,
                     },
-                    content: "("
+                    content: "(",
                 });
             }
             for (let c of row) {
@@ -632,16 +632,16 @@ export class CipherHillEncoder extends CipherEncoder {
                 }
                 tabrow.add({
                     settings: { class: cclass + " v" },
-                    content: c
+                    content: c,
                 });
             }
             if (first) {
                 tabrow.add({
                     settings: {
                         rowspan: row.length,
-                        class: "big" + row.length
+                        class: "big" + row.length,
                     },
-                    content: ")"
+                    content: ")",
                 });
             }
             first = false;
@@ -716,7 +716,7 @@ export class CipherHillEncoder extends CipherEncoder {
             }
 
             let table = new JTTable({
-                class: "hillblock ansblock shrink cell unstriped"
+                class: "hillblock ansblock shrink cell unstriped",
             });
             this.addCipherTableRows(
                 table,
@@ -766,7 +766,7 @@ export class CipherHillEncoder extends CipherEncoder {
                 );
             }
             let table = new JTTable({
-                class: "hillblock ansblock shrink cell unstriped"
+                class: "hillblock ansblock shrink cell unstriped",
             });
             this.addCipherTableRows(
                 table,

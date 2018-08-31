@@ -5,7 +5,6 @@ import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFDialog } from "./jtfdialog";
 import { JTTable } from "./jttable";
-
 /**
  * CipherTestQuestions - This manages all of the questions to allow deleting/importing/editing
  */
@@ -33,7 +32,7 @@ export class CipherACAProblems extends CipherTest {
         },
         { title: "Delete All Problems", color: "alert", id: "delall" },
     ];
-    restore(data: ITestState): void {
+    public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as ITestState;
         this.state.curlang = curlang;
@@ -43,6 +42,10 @@ export class CipherACAProblems extends CipherTest {
         this.setUIDefaults();
         this.updateOutput();
     }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
     updateOutput(): void {
         this.setMenuMode(menuMode.aca);
         $(".precmds").each((i, elem) => {
@@ -53,28 +56,29 @@ export class CipherACAProblems extends CipherTest {
         });
         this.attachHandlers();
     }
-    genPostCommands(): JQuery<HTMLElement> {
+    public genPostCommands(): JQuery<HTMLElement> {
         let result = $("<div>", { class: "questions" });
 
         let buttons: buttonInfo[] = [
             { title: "Solve", btnClass: "entrysolve" },
-            { title: "Delete", btnClass: "entrydel" },
             { title: "Edit Solution", btnClass: "editsol" },
+            { title: "Edit Title", btnClass: "editques" },
+            { title: "Delete", btnClass: "alert entrydel" },
         ];
         result.append(this.genACAProblemTable(buttons));
         return result;
     }
-    genACAProblemTable(buttons: buttonInfo[]): JQuery<HTMLElement> {
+    public genACAProblemTable(buttons: buttonInfo[]): JQuery<HTMLElement> {
         let result = $("<div>", { class: "questions" });
 
         let cipherCount = this.getCipherCount();
         let table = new JTTable({ class: "cell stack queslist" });
         let row = table.addHeaderRow();
-        row.add("Question")
+        row.add("ID")
             .add("Action")
             .add("Status")
             .add("Type")
-            .add("Question")
+            .add("Title")
             .add("Cipher");
 
         for (let entry = 0; entry < cipherCount; entry++) {
@@ -84,7 +88,14 @@ export class CipherACAProblems extends CipherTest {
         result.append(table.generate());
         return result;
     }
-    addProblemRow(
+    /**
+     * Generate another row for a CON in the table
+     * @param table Table to add row to
+     * @param order Order of the entry in the table
+     * @param qnum The ID of the entry
+     * @param buttons Buttons to associate with the entry
+     */
+    public addProblemRow(
         table: JTTable,
         order: number,
         qnum: number,
@@ -154,7 +165,11 @@ export class CipherACAProblems extends CipherTest {
 
         return;
     }
-    exportQuestions(link: JQuery<HTMLElement>): void {
+    /**
+     * Make a link download the JSON for the problems
+     * @param link <A> link to associate download with
+     */
+    public exportQuestions(link: JQuery<HTMLElement>): void {
         let result = {};
         let cipherCount = this.getCipherCount();
         for (let entry = 0; entry < cipherCount; entry++) {
@@ -168,23 +183,35 @@ export class CipherACAProblems extends CipherTest {
         link.attr("download", "aca_problems.json");
         link.attr("href", url);
     }
-    gotoDeleteCipher(entry: number): void {
+    /**
+     * Delete a cipher
+     * @param entry Which CON to delete
+     */
+    public gotoDeleteCipher(entry: number): void {
         this.deleteFileEntry(entry);
         this.updateOutput();
     }
-    importQuestions(useLocalData: boolean): void {
+    /**
+     * Import questions from a file or URL
+     * @param useLocalData true indicates import from a file
+     */
+    public importQuestions(useLocalData: boolean): void {
         this.openXMLImport(useLocalData);
     }
     /**
      * Process imported XML
      */
-    importXML(data: any): void {
+    public importXML(data: any): void {
         console.log("Importing XML");
         console.log(data);
         this.processTestXML(data);
         this.updateOutput();
     }
-    gotoSolveCipher(entry: number): void {
+    /**
+     * Open a solving helper for a CON
+     * @param entry Which cipher entry to open solver for
+     */
+    public gotoSolveCipher(entry: number): void {
         let state = this.getFileEntry(entry);
         let editURL = this.getSolveURL(state);
         if (editURL !== "") {
@@ -202,8 +229,10 @@ export class CipherACAProblems extends CipherTest {
      * Edit the manual solution for an entry
      * @param entry Entry to edit
      */
-    editSolution(entry: number): void {
+    public editSolution(entry: number): void {
         let state = this.getFileEntry(entry);
+        $("#sollabel").text("Solution");
+        $("#editcondlg .dlgtitle").text("Update Solution");
         $("#soltext")
             .val(state.solution)
             .off("input")
@@ -216,21 +245,45 @@ export class CipherACAProblems extends CipherTest {
                 state.solution = $("#soltext").val() as string;
                 state.solved = state.solution !== "";
                 this.setFileEntry(entry, state);
-                $("#editsoldlg").foundation("close");
+                $("#editcondlg").foundation("close");
                 this.updateOutput();
             });
-        $("#editsoldlg").foundation("open");
+        $("#editcondlg").foundation("open");
+    }
+    /**
+     * Edit the manual title for a CON
+     * @param entry Entry to edit
+     */
+    public editTitle(entry: number): void {
+        let state = this.getFileEntry(entry);
+        $("#sollabel").text("Title");
+        $("#editcondlg .dlgtitle").text("Update Title");
+        $("#soltext")
+            .val(state.question)
+            .off("input")
+            .on("input", e => {
+                $("#oksol").removeAttr("disabled");
+            });
+        $("#oksol")
+            .off("click")
+            .on("click", e => {
+                state.question = $("#soltext").val() as string;
+                this.setFileEntry(entry, state);
+                $("#editcondlg").foundation("close");
+                this.updateOutput();
+            });
+        $("#editcondlg").foundation("open");
     }
     /**
      * Show the generated solution for submission
      */
-    gotoGenerateSubmission(): void {
+    public gotoGenerateSubmission(): void {
         location.assign("ACASubmit.html");
     }
     /**
      * This prompts a user and then deletes all ciphers
      */
-    gotoDeleteAllCiphers(): void {
+    public gotoDeleteAllCiphers(): void {
         $("#okdel")
             .off("click")
             .on("click", e => {
@@ -263,26 +316,34 @@ export class CipherACAProblems extends CipherTest {
         return DeleteAllDlg;
     }
     /**
-     * Create the hidden dialog for selecting a cipher to open
+     * Create the hidden dialog for editing part of a CON
      */
-    private createEditSolDlg(): JQuery<HTMLElement> {
+    private createEditCONDlg(): JQuery<HTMLElement> {
         let dlgContents = $("<div/>", {
             class: "callout success",
         }).append(
             $("<label/>")
-                .text("Solution")
                 .append(
-                    $("<textarea/>", { type: "text", rows: 6, id: "soltext" })
+                    $("<span/>", {
+                        id: "sollabel",
+                    }).text("Solution")
+                )
+                .append(
+                    $("<textarea/>", {
+                        type: "text",
+                        rows: 6,
+                        id: "soltext",
+                    })
                 )
         );
-        let EditSolDlg = JTFDialog(
-            "editsoldlg",
+        let editcondlg = JTFDialog(
+            "editcondlg",
             "Update Solution",
             dlgContents,
             "oksol",
             "Update"
         );
-        return EditSolDlg;
+        return editcondlg;
     }
     /**
      * Create the main menu at the top of the page.
@@ -293,11 +354,11 @@ export class CipherACAProblems extends CipherTest {
         // Create the dialog for selecting which cipher to load
         result
             .append(this.createDeleteAllDlg())
-            .append(this.createEditSolDlg());
+            .append(this.createEditCONDlg());
         return result;
     }
 
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $("#export")
             .off("click")
@@ -333,6 +394,11 @@ export class CipherACAProblems extends CipherTest {
             .off("click")
             .on("click", e => {
                 this.editSolution(Number($(e.target).attr("data-entry")));
+            });
+        $(".editques")
+            .off("click")
+            .on("click", e => {
+                this.editTitle(Number($(e.target).attr("data-entry")));
             });
         $("#gensub")
             .off("click")

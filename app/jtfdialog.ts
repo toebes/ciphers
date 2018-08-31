@@ -13,11 +13,11 @@ export function JTFDialog(
     let dlg = $("<div/>", {
         class: "reveal",
         id: id,
-        "data-reveal": ""
+        "data-reveal": "",
     }).append(
         $("<div/>", { class: "top-bar Primary" }).append(
             $("<div/>", { class: "top-bar-left" }).append(
-                $("<h3/>").text(title)
+                $("<h3/>", { class: "dlgtitle" }).text(title)
             )
         )
     );
@@ -42,7 +42,7 @@ export function JTFDialog(
             class: "close-button",
             "data-close": "",
             "aria-label": "Close reveal",
-            type: "button"
+            type: "button",
         }).append($("<span/>", { "aria-hidden": true }).html("&times;"))
     );
     return dlg;

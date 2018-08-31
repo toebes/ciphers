@@ -32,7 +32,12 @@ export type IOperationType =
     | "compute" // Test question involves computing a math result
     | "let4let" // Baconian individual letter substitition
     | "sequence" // Baconian sequence substitition
-    | "words"; // Baconian word substitution
+    | "words" // Baconian word substitution
+    | "rsa1"
+    | "rsa2"
+    | "rsa3"
+    | "rsa4"
+    | "rsa5";
 /**
  * The saved state for all ciphers.  This is used for undo/redo as well as
  * the save file format.

@@ -58,7 +58,7 @@ export const modInverse26 = {
     17: 23,
     19: 11,
     21: 5,
-    23: 17
+    23: 17,
 };
 export function mod26Inverse2x2(matrix: number[][]): number[][] {
     let result: number[][] = [];
@@ -74,7 +74,49 @@ export function mod26Inverse2x2(matrix: number[][]): number[][] {
     let inv = modInverse26[det];
     return [
         [mod26(d * inv), mod26(-b * inv)],
-        [mod26(-c * inv), mod26(a * inv)]
+        [mod26(-c * inv), mod26(a * inv)],
     ];
     return result;
+}
+/**
+ * I would really like to use: http://www.javascripter.net/faq/primefactors.txt
+ * but the status of reuse is unclear.
+ * @param candidate Number to test for primality
+ */
+export function isPrime(candidate: number): boolean {
+    for (let i = 2, s = Math.sqrt(candidate); i <= s; i++) {
+        if (candidate % i === 0) {
+            return false;
+        }
+    }
+    return candidate !== 1;
+}
+/**
+ * Get the random integer between two numbers (inclusive)
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+ *                         #Getting_a_random_integer_between_two_values_inclusive
+ * @param min Lower limit of random number to generate
+ * @param max Upper limit of random number to generate
+ */
+export function getRandomIntInclusive(min: number, max: number): number {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive
+}
+/**
+ * This returns a random prime number with 'numDigits' digits.
+ * The input must be a positive integer.  Note that this might run for
+ * a very long time if we get unlucky or you are asking for something with more
+ * then 6 digits
+ * @param numDigits Number of digits (should be small)
+ */
+export function getRandomPrime(numDigits: number): number {
+    let candidate = 0;
+    do {
+        candidate = getRandomIntInclusive(
+            Math.pow(10, numDigits - 1),
+            Math.pow(10, numDigits) - 1
+        );
+    } while (!isPrime(candidate));
+    return candidate;
 }

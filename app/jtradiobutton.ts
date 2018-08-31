@@ -1,6 +1,6 @@
 /** Definition of what radio buttons are required */
 export interface JTRadioButtonItem {
-    id: string;
+    id?: string;
     value: any;
     title: string;
     class?: string;
@@ -8,7 +8,7 @@ export interface JTRadioButtonItem {
 }
 export type JTRadioButtonSet = Array<JTRadioButtonItem>;
 interface RadioButtonOptions {
-    id: string;
+    id?: string;
     type: string;
     name: string;
     value: any;
@@ -27,19 +27,21 @@ export function JTRadioButton(
     if (width === 0) {
         cellclass = "cell";
     }
-    let cell = $("<div/>", { class: cellclass });
+    let cell = $("<div/>", { class: "noprint " + cellclass });
     let appmenu = $("<div/>", {
         class: "mobile-app-toggle",
-        "data-mobile-app-toggle": ""
+        "data-mobile-app-toggle": "",
     });
     for (let choice of buttons) {
         let options: RadioButtonOptions = {
-            id: choice.id,
             type: "radio",
             name: name,
             value: choice.value,
-            class: "button"
+            class: "button",
         };
+        if (choice.id !== undefined) {
+            options.id = choice.id;
+        }
         if (choice.value === selected) {
             options.class += " is-active";
         }

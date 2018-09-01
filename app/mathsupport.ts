@@ -84,7 +84,10 @@ export function mod26Inverse2x2(matrix: number[][]): number[][] {
  * @param candidate Number to test for primality
  */
 export function isPrime(candidate: number): boolean {
-    for (let i = 2, s = Math.sqrt(candidate); i <= s; i++) {
+    if (candidate % 2 === 0) {
+        return false;
+    }
+    for (let i = 3, s = Math.sqrt(candidate); i <= s; i += 2) {
         if (candidate % i === 0) {
             return false;
         }
@@ -104,6 +107,23 @@ export function getRandomIntInclusive(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive
 }
 /**
+ * Generate an odd random integer between two numbers (inclusive)
+ * @param min Minimum value to return
+ * @param max Maximum value to return
+ */
+export function getOddRandomIntInclusive(min: number, max: number): number {
+    // Since we can skip all the even numbers, our possible range is half what they give us
+    // Compute a random number in the range and then multiply it by 2.
+    // Add it back to the minimum and then if the minumum wasn't already odd, add 1 to
+    // make sure the result is odd
+    let minhalf = Math.ceil(min / 2);
+    let residual = 1 - Math.floor(min - minhalf * 2);
+    let maxhalf = Math.floor(max / 2);
+    let range = maxhalf - minhalf + 1;
+    let result = (Math.floor(Math.random() * range) + minhalf) * 2 + residual;
+    return result;
+}
+/**
  * This returns a random prime number with 'numDigits' digits.
  * The input must be a positive integer.  Note that this might run for
  * a very long time if we get unlucky or you are asking for something with more
@@ -113,7 +133,7 @@ export function getRandomIntInclusive(min: number, max: number): number {
 export function getRandomPrime(numDigits: number): number {
     let candidate = 0;
     do {
-        candidate = getRandomIntInclusive(
+        candidate = getOddRandomIntInclusive(
             Math.pow(10, numDigits - 1),
             Math.pow(10, numDigits) - 1
         );

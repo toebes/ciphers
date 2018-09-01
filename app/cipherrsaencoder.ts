@@ -15,20 +15,25 @@ import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 import { JTTable } from "./jttable";
 import { gcd, getRandomIntInclusive, getRandomPrime } from "./mathsupport";
 
+export interface IRSAData {
+    p: number;
+    q: number;
+    n: number;
+    phi: number;
+    e: number;
+    d: number;
+}
+
 interface IRSAState extends IEncoderState {
     /** How wide a line can be before wrapping */
     linewidth?: number;
     digitsPrime?: number;
     digitsCombo?: number;
-    p?: number;
-    q?: number;
+    rsa1?: IRSAData;
+    rsa2?: IRSAData;
     combo?: number;
-    n?: number;
-    phi?: number;
-    e?: number;
     name1?: string;
     name2?: string;
-    d?: number;
 }
 /**
  * CipherBaconianEncoder - This class handles all of the actions associated with encoding
@@ -38,6 +43,7 @@ export class CipherRSAEncoder extends CipherEncoder {
     activeToolMode: toolMode = toolMode.codebusters;
     defaultstate: IRSAState = {
         cipherString: "",
+        question: "Something goes here",
         cipherType: ICipherType.RSA,
         offset: 1 /** The type of operation */,
         operation: "rsa1",
@@ -220,35 +226,72 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     public recalcData(): void {
-        this.state.p = undefined;
-        this.state.q = undefined;
+        this.state.rsa1.p = undefined;
+        this.state.rsa1.q = undefined;
+    }
+    /**
+     * Compute a full RSA value set
+     * @param nDigits Number of digits for the Prime
+     */
+    public CalculateRSA(nDigits: number): IRSAData {
+        let result: IRSAData = {
+            p: 0,
+            q: 0,
+            n: 0,
+            phi: 0,
+            e: 0,
+            d: 0,
+        };
+        result.p = getRandomPrime(this.state.digitsPrime);
+        result.q = getRandomPrime(this.state.digitsPrime);
+        this.state.combo = getRandomIntInclusive(
+            (Math.pow(10, nDigits) - 1) / 9,
+            Math.pow(10, nDigits) - 1
+        );
+        while (result.p === result.q) {
+            result.q = getRandomPrime(nDigits);
+        }
+        result.n = result.p * result.q;
+        result.phi = (result.p - 1) * (result.q - 1);
+        result.e = getRandomIntInclusive(3, result.n - 1);
+        while (gcd(result.e, result.phi) !== 1) {
+            result.e = getRandomIntInclusive(3, result.phi);
+        }
+        result.d = 0;
+        result.d = 0; //inverse_mod(my_e, phi);
+        return result;
     }
     public compute1(): void {
-        //     digits_for_primes = slider(2, 10, 1, 3, label = "Digits for Primes"),
-        //     digits_for_combo = slider(2, 6, 1, 4, label = "Digits for Combination"),
         if (this.state.name1 === undefined || this.state.name1 === "") {
             this.state.name1 = "Billy";
         }
         if (this.state.name2 === undefined || this.state.name2 === "") {
             this.state.name2 = "Elon";
         }
-        if (this.state.p === undefined || this.state.q === undefined) {
-            this.state.p = getRandomPrime(this.state.digitsPrime);
-            this.state.q = getRandomPrime(this.state.digitsPrime);
+        if (
+            this.state.rsa1.p === undefined ||
+            this.state.rsa1.q === undefined
+        ) {
+            this.state.rsa1.p = getRandomPrime(this.state.digitsPrime);
+            this.state.rsa1.q = getRandomPrime(this.state.digitsPrime);
             this.state.combo = getRandomIntInclusive(
                 (Math.pow(10, this.state.digitsCombo) - 1) / 9,
                 Math.pow(10, this.state.digitsCombo) - 1
             );
-            while (this.state.p === this.state.q) {
-                this.state.q = getRandomPrime(this.state.digitsPrime);
+            while (this.state.rsa1.p === this.state.rsa1.q) {
+                this.state.rsa1.q = getRandomPrime(this.state.digitsPrime);
             }
-            this.state.n = this.state.p * this.state.q;
-            this.state.phi = (this.state.p - 1) * (this.state.q - 1);
-            this.state.e = getRandomIntInclusive(3, this.state.n - 1);
-            while (gcd(this.state.e, this.state.phi) !== 1) {
-                this.state.e = getRandomIntInclusive(3, this.state.phi);
+            this.state.rsa1.n = this.state.rsa1.p * this.state.rsa1.q;
+            this.state.rsa1.phi =
+                (this.state.rsa1.p - 1) * (this.state.rsa1.q - 1);
+            this.state.rsa1.e = getRandomIntInclusive(3, this.state.rsa1.n - 1);
+            while (gcd(this.state.rsa1.e, this.state.rsa1.phi) !== 1) {
+                this.state.rsa1.e = getRandomIntInclusive(
+                    3,
+                    this.state.rsa1.phi
+                );
             }
-            this.state.d = 0;
+            this.state.rsa1.d = 0;
             // this.state.d = inverse_mod(my_e, phi)
         }
     }
@@ -257,7 +300,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      */
     public genAnswer1(): JQuery<HTMLElement> {
         let result = $("<div>");
-        if (this.state.combo > this.state.n) {
+        if (this.state.combo > this.state.rsa1.n) {
             result.append(
                 $("<div/>", { class: "callout error" }).text(
                     "The combination is smaller than N. Please pick a smaller combo or larger primes"
@@ -269,29 +312,29 @@ export class CipherRSAEncoder extends CipherEncoder {
         result.append(
             $("<div/>").text(
                 this.state.name1 +
-                    "has faithfully followed the steps of the RSA key-generation algorithm."
+                    " has faithfully followed the steps of the RSA key-generation algorithm."
             )
         );
         result.append($("<div/>").text("Here are the results:"));
         let math =
             "\\begin{aligned}" +
             "p &=" +
-            this.state.p +
+            this.state.rsa1.p +
             "\\\\" +
             "q &=" +
-            this.state.q +
+            this.state.rsa1.q +
             "\\\\" +
             "N &=" +
-            this.state.n +
+            this.state.rsa1.n +
             "\\\\" +
             "phi &=" +
-            this.state.phi +
+            this.state.rsa1.phi +
             "\\\\" +
             "e &=" +
-            this.state.e +
+            this.state.rsa1.e +
             "\\\\" +
             "d &=" +
-            this.state.d +
+            this.state.rsa1.d +
             "\\end{aligned}";
 
         result.append(renderMath(math));
@@ -322,7 +365,7 @@ export class CipherRSAEncoder extends CipherEncoder {
 
         result.append(
             $("<div/>", { class: "TOANSWER" }).text(
-                this.state.n + ", " + this.state.e
+                this.state.rsa1.n + ", " + this.state.rsa1.e
             )
         );
         result.append($("<div/>").html("<em>(order does not matter)</em>"));
@@ -346,7 +389,11 @@ export class CipherRSAEncoder extends CipherEncoder {
             $("<div/>", {
                 class: "TOANSWER",
             }).text(
-                this.state.combo + " ^ " + this.state.e + " mod " + this.state.n
+                this.state.combo +
+                    " ^ " +
+                    this.state.rsa1.e +
+                    " mod " +
+                    this.state.rsa1.n
             )
         );
         return result;

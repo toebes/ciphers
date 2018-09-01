@@ -7,17 +7,6 @@ import { ICipherType } from "./ciphertypes";
  */
 export class CipherMorbitSolver extends CipherMorseSolver {
     activeToolMode: toolMode = toolMode.aca;
-    readonly defaultmorbitMap: StringMap = {
-        "1": "OO",
-        "2": "O-",
-        "3": "OX",
-        "4": "-O",
-        "5": "--",
-        "6": "-X",
-        "7": "XO",
-        "8": "X-",
-        "9": "XX",
-    };
     readonly morbitReplaces: Array<string> = [
         "OO",
         "O-",
@@ -29,31 +18,19 @@ export class CipherMorbitSolver extends CipherMorseSolver {
         "X-",
         "XX",
     ];
-    /** Current mapping of morbit values */
-    morbitMap: StringMap = {};
     init(lang: string): void {
         this.defaultstate.cipherType = ICipherType.Morbit;
         super.init(lang);
         this.cipherWidth = 2;
-        this.morbitMap = cloneObject(this.defaultmorbitMap) as StringMap;
         this.setCharset("123456789");
     }
     load(): void {
         super.load();
     }
-    getMorseMap(): StringMap {
-        return this.morbitMap;
-    }
-    unmapMorse(entry: string): number {
-        return this.morbitReplaces.indexOf(entry);
-    }
-
-    setMorseMapEntry(entry: string, val: string): void {
-        this.morbitMap[entry] = val;
-    }
-    /*
+    /**
      * Create an edit field for a dropdown
-    */
+     * @param c Charcter to make dropdown for
+     */
     makeFreqEditField(c: string): JQuery<HTMLElement> {
         let mselect = $(
             '<select class="msli" data-char="' + c + '" id="m' + c + '"/>'
@@ -63,10 +40,13 @@ export class CipherMorbitSolver extends CipherMorseSolver {
         }
         let mreplaces = this.morbitReplaces.length;
         let selected = [];
-        selected[this.morbitMap[c]] = " selected";
+        selected[this.state.morseMap[c]] = " selected";
         for (let i = 0; i < mreplaces; i++) {
             let text = this.morbitReplaces[i];
-            $("<option />", { value: i, selected: selected[text] })
+            $("<option />", {
+                value: i,
+                selected: selected[text],
+            })
                 .html(this.normalizeHTML(text))
                 .appendTo(mselect);
         }
@@ -82,18 +62,18 @@ export class CipherMorbitSolver extends CipherMorseSolver {
         let toswapwith = item;
         let newvalue = this.morbitReplaces[val];
 
-        for (let key in this.morbitMap) {
-            if (this.morbitMap.hasOwnProperty(key)) {
-                if (this.morbitMap[key] === newvalue) {
+        for (let key in this.state.morseMap) {
+            if (this.state.morseMap.hasOwnProperty(key)) {
+                if (this.state.morseMap[key] === newvalue) {
                     toswapwith = key;
                     break;
                 }
             }
         }
         if (toswapwith !== item) {
-            let swapval = this.morbitMap[item];
-            this.morbitMap[item] = this.morbitMap[toswapwith];
-            this.morbitMap[toswapwith] = swapval;
+            let swapval = this.state.morseMap[item];
+            this.state.morseMap[item] = this.state.morseMap[toswapwith];
+            this.state.morseMap[toswapwith] = swapval;
             this.UpdateFreqEditTable();
             this.load();
         }

@@ -2082,7 +2082,7 @@ export class CipherHandler {
         for (let i = 0; i < len; i += width) {
             let c = str.substr(i, width);
             if (typeof cmap[c] === "undefined") {
-                cmap[c] = "" + mapval;
+                cmap[c] = mapval.toString(36).toUpperCase();
                 mapval++;
             }
             res += cmap[c];

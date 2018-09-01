@@ -2,11 +2,160 @@ import { cloneObject, StringMap } from "./ciphercommon";
 import { IState, menuMode, toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 import { ICipherType } from "./ciphertypes";
+import { JTButtonItem } from "./jtbuttongroup";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTTable } from "./jttable";
 
+const tomorse: { [key: string]: string } = {
+    " ": "",
+    A: "O-",
+    B: "-OOO",
+    C: "-O-O",
+    D: "-OO",
+    E: "O",
+    F: "OO-O",
+    G: "--O",
+    H: "OOOO",
+    I: "OO",
+    J: "O---",
+    K: "-O-",
+    L: "O-OO",
+    M: "--",
+    N: "-O",
+    O: "---",
+    P: "O--O",
+    Q: "--O-",
+    R: "O-O",
+    S: "OOO",
+    T: "-",
+    U: "OO-",
+    V: "OOO-",
+    W: "O--",
+    X: "-OO-",
+    Y: "-O--",
+    Z: "--OO",
+    "1": "O----",
+    "2": "OO---",
+    "3": "OOO--",
+    "4": "OOOO-",
+    "5": "OOOOO",
+    "6": "-OOOO",
+    "7": "--OOO",
+    "8": "---OO",
+    "9": "----O",
+    "0": "-----",
+    ",": "--OO--",
+    ".": "O-O-O-",
+    "?": "OO--OO",
+    "/": "-OO-O",
+    "-": "-OOOO-",
+    "()": "-O--O-",
+};
+/**
+ * Table of classes to be associated with morse code dots/dashes/spaces
+ */
+const morsedigitClass: { [key: string]: string } = {
+    O: "dot",
+    "-": "dash",
+    "?": "error",
+    X: "null",
+};
+/**
+ * Table of classes to be associated with any particular morse code decoded character
+ */
+const morseClass: { [key: string]: string } = {
+    A: "",
+    B: "",
+    C: "",
+    D: "",
+    E: "",
+    F: "",
+    G: "",
+    H: "",
+    I: "",
+    J: "",
+    K: "",
+    L: "",
+    M: "",
+    N: "",
+    O: "",
+    P: "",
+    Q: "",
+    R: "",
+    S: "",
+    T: "",
+    U: "",
+    V: "",
+    W: "",
+    X: "",
+    Y: "",
+    Z: "",
+    "1": "num",
+    "2": "num",
+    "3": "num",
+    "4": "num",
+    "5": "num",
+    "6": "num",
+    "7": "num",
+    "8": "num",
+    "9": "num",
+    "0": "num",
+    ",": "sym",
+    ".": "sym",
+    "?": "sym",
+    "/": "sym",
+    "-": "sym",
+    "()": "sym",
+};
+/**
+ * Table to map from a morse code string to the corresponding character
+ */
+const frommorse: { [key: string]: string } = {
+    "O-": "A",
+    "-OOO": "B",
+    "-O-O": "C",
+    "-OO": "D",
+    O: "E",
+    "OO-O": "F",
+    "--O": "G",
+    OOOO: "H",
+    OO: "I",
+    "O---": "J",
+    "-O-": "K",
+    "O-OO": "L",
+    "--": "M",
+    "-O": "N",
+    "---": "O",
+    "O--O": "P",
+    "--O-": "Q",
+    "O-O": "R",
+    OOO: "S",
+    "-": "T",
+    "OO-": "U",
+    "OOO-": "V",
+    "O--": "W",
+    "-OO-": "X",
+    "-O--": "Y",
+    "--OO": "Z",
+    "O----": "1",
+    "OO---": "2",
+    "OOO--": "3",
+    "OOOO-": "4",
+    OOOOO: "5",
+    "-OOOO": "6",
+    "--OOO": "7",
+    "---OO": "8",
+    "----O": "9",
+    "-----": "0",
+    "--OO--": ",",
+    "O-O-O-": ".",
+    "OO--OO": "?",
+    "-OO-O": "/",
+    "-OOOO-": "-",
+    "-O--O-": "()",
+};
 interface IMorseState extends IState {
-    morsemap: StringMap;
+    morseMap: StringMap;
     locked: { [key: string]: boolean };
 }
 
@@ -14,161 +163,19 @@ export class CipherMorseSolver extends CipherSolver {
     activeToolMode: toolMode = toolMode.aca;
     defaultstate: IMorseState = {
         cipherType: ICipherType.None,
-        morsemap: null,
+        morseMap: {},
         cipherString: "",
         locked: {},
         findString: "",
         replacement: {},
     };
     state: IMorseState = cloneObject(this.defaultstate) as IMorseState;
-    readonly tomorse: { [key: string]: string } = {
-        " ": "",
-        A: "O-",
-        B: "-OOO",
-        C: "-O-O",
-        D: "-OO",
-        E: "O",
-        F: "OO-O",
-        G: "--O",
-        H: "OOOO",
-        I: "OO",
-        J: "O---",
-        K: "-O-",
-        L: "O-OO",
-        M: "--",
-        N: "-O",
-        O: "---",
-        P: "O--O",
-        Q: "--O-",
-        R: "O-O",
-        S: "OOO",
-        T: "-",
-        U: "OO-",
-        V: "OOO-",
-        W: "O--",
-        X: "-OO-",
-        Y: "-O--",
-        Z: "--OO",
-        "1": "O----",
-        "2": "OO---",
-        "3": "OOO--",
-        "4": "OOOO-",
-        "5": "OOOOO",
-        "6": "-OOOO",
-        "7": "--OOO",
-        "8": "---OO",
-        "9": "----O",
-        "0": "-----",
-        ",": "--OO--",
-        ".": "O-O-O-",
-        "?": "OO--OO",
-        "/": "-OO-O",
-        "-": "-OOOO-",
-        "()": "-O--O-",
-    };
-    /**
-     * Table of classes to be associated with morse code dots/dashes/spaces
-     */
-    readonly morsedigitClass: { [key: string]: string } = {
-        O: "dot",
-        "-": "dash",
-        "?": "error",
-        X: "null",
-    };
-    /**
-     * Table of classes to be associated with any particular morse code decoded character
-     */
-    readonly morseClass: { [key: string]: string } = {
-        A: "",
-        B: "",
-        C: "",
-        D: "",
-        E: "",
-        F: "",
-        G: "",
-        H: "",
-        I: "",
-        J: "",
-        K: "",
-        L: "",
-        M: "",
-        N: "",
-        O: "",
-        P: "",
-        Q: "",
-        R: "",
-        S: "",
-        T: "",
-        U: "",
-        V: "",
-        W: "",
-        X: "",
-        Y: "",
-        Z: "",
-        "1": "num",
-        "2": "num",
-        "3": "num",
-        "4": "num",
-        "5": "num",
-        "6": "num",
-        "7": "num",
-        "8": "num",
-        "9": "num",
-        "0": "num",
-        ",": "sym",
-        ".": "sym",
-        "?": "sym",
-        "/": "sym",
-        "-": "sym",
-        "()": "sym",
-    };
-    /**
-     * Table to map from a morse code string to the corresponding character
-     */
-    readonly frommorse: { [key: string]: string } = {
-        "O-": "A",
-        "-OOO": "B",
-        "-O-O": "C",
-        "-OO": "D",
-        O: "E",
-        "OO-O": "F",
-        "--O": "G",
-        OOOO: "H",
-        OO: "I",
-        "O---": "J",
-        "-O-": "K",
-        "O-OO": "L",
-        "--": "M",
-        "-O": "N",
-        "---": "O",
-        "O--O": "P",
-        "--O-": "Q",
-        "O-O": "R",
-        OOO: "S",
-        "-": "T",
-        "OO-": "U",
-        "OOO-": "V",
-        "O--": "W",
-        "-OO-": "X",
-        "-O--": "Y",
-        "--OO": "Z",
-        "O----": "1",
-        "OO---": "2",
-        "OOO--": "3",
-        "OOOO-": "4",
-        OOOOO: "5",
-        "-OOOO": "6",
-        "--OOO": "7",
-        "---OO": "8",
-        "----O": "9",
-        "-----": "0",
-        "--OO--": ",",
-        "O-O-O-": ".",
-        "OO--OO": "?",
-        "-OO-O": "/",
-        "-OOOO-": "-",
-        "-O--O-": "()",
-    };
+    cmdButtons: JTButtonItem[] = [
+        { title: "Save", color: "primary", id: "save" },
+        this.undocmdButton,
+        this.redocmdButton,
+        { title: "Reset", color: "warning", id: "reset" },
+    ];
     /**
      * Marks a symbol as locked and prevents it from being changed in the interactive solver
      * c Symbol to be marked as locked/unlocked
@@ -200,52 +207,13 @@ export class CipherMorseSolver extends CipherSolver {
         $("#qtext").empty();
         if (this.state.question !== "") {
             $("#qtext").append(
-                $("<div/>", { class: "callout primary" }).html(
-                    this.state.question
-                )
+                $("<div/>", {
+                    class: "callout primary",
+                }).html(this.state.question)
             );
         }
         this.load();
         this.findPossible(this.state.findString);
-    }
-    /**
-     * Make a copy of the current state
-     */
-    save(): IState {
-        // We need a deep copy of the save state
-        let savestate = { ...this.state };
-        savestate.locked = { ...this.state.locked };
-        return savestate;
-    }
-    /**
-     * Get the Morse mapping table
-     */
-    getMorseMap(): any {
-        return null;
-    }
-    /**
-     * Update an entry in the morse mapping table
-     */
-    unmapMorse(entry: string): number {
-        return 0;
-    }
-    /**
-     * Assign a new value for an entry
-     */
-    setMorseMapEntry(entry: string, val: string): void {}
-
-    /**
-     * Set up all the HTML DOM elements so that they invoke the right functions
-     */
-    attachHandlers(): void {
-        super.attachHandlers();
-        $(".cb")
-            .off("change")
-            .on("change", e => {
-                let toupdate = $(e.target).attr("data-char");
-                this.markUndo(null);
-                this.updateCheck(toupdate, $(e.target).prop("checked"));
-            });
     }
     reset(): void {
         this.init(this.state.curlang);
@@ -325,10 +293,14 @@ export class CipherMorseSolver extends CipherSolver {
             if (this.isValidChar(c)) {
                 intext += c;
                 // Figure out what this character corresponds to.  If it
-                // has no mapping, we will use two filler ?? values just to
+                // has no mapping, we will use filler ?? values just to
                 // keep things running smoothly.  It will ensure that we
                 // don't get a valid morse code string
-                let morsepiece = this.getMorseMap()[c] + "????";
+                let morsepiece = this.state.morseMap[c];
+                if (morsepiece === undefined) {
+                    morsepiece = "";
+                }
+                morsepiece += "????";
                 morsetext += morsepiece.substr(0, cipherwidth);
             }
         }
@@ -353,7 +325,7 @@ export class CipherMorseSolver extends CipherSolver {
             inrow.append(td);
             for (mpos = 0; mpos < cipherwidth; mpos++) {
                 let morse = morsetext.substr(i * cipherwidth + mpos, 1);
-                morseclass = this.morsedigitClass[morse];
+                morseclass = morsedigitClass[morse];
                 if (morseclass === "") {
                     morseclass = "error";
                 }
@@ -393,29 +365,29 @@ export class CipherMorseSolver extends CipherSolver {
                         }
                     } else {
                         let morselet = morsetext.substr(startpos, mlen);
-                        console.log(
-                            "Moreselet:" +
-                                morselet +
-                                "len=" +
-                                mlen +
-                                " remaining=" +
-                                remaining +
-                                " mpos=" +
-                                mpos +
-                                " Cipherwidth=" +
-                                cipherwidth
-                        );
+                        // console.log(
+                        //     "Moreselet:" +
+                        //         morselet +
+                        //         "len=" +
+                        //         mlen +
+                        //         " remaining=" +
+                        //         remaining +
+                        //         " mpos=" +
+                        //         mpos +
+                        //         " Cipherwidth=" +
+                        //         cipherwidth
+                        // );
                         lastsep = "";
                         let outchar = "";
                         // See if we have an invalid morse sequence.  If so
                         // our output class will be an error and replace the string with ??
-                        if (typeof this.frommorse[morselet] === "undefined") {
+                        if (typeof frommorse[morselet] === "undefined") {
                             morseclass = "error";
                             outchar = "??";
                             finaltext += '<span class="error">?</span>';
                         } else {
-                            outchar = this.frommorse[morselet];
-                            morseclass = this.morseClass[outchar];
+                            outchar = frommorse[morselet];
+                            morseclass = morseClass[outchar];
                             finaltext += outchar;
                         }
                         // Now figure out how much of this string we are going to output
@@ -518,12 +490,20 @@ export class CipherMorseSolver extends CipherSolver {
         let lockrow = table.addHeaderRow();
         let charset = this.getCharset();
 
-        headrow.add({ settings: { class: "topleft" }, content: "" });
+        headrow.add({
+            settings: { class: "topleft" },
+            content: "",
+        });
         freqrow.add("Frequency");
-        replrow.add({ settings: { class: "rep" }, content: "Replacement" });
+        replrow.add({
+            settings: { class: "rep" },
+            content: "Replacement",
+        });
         lockrow.add("Locked");
         list.append(
-            $("<li/>", { class: "float-left" }).append(table.generate())
+            $("<li/>", {
+                class: "float-left",
+            }).append(table.generate())
         );
         for (let i = 0, len = charset.length; i < len; i++) {
             let c = charset.substr(i, 1).toUpperCase();
@@ -542,18 +522,23 @@ export class CipherMorseSolver extends CipherSolver {
                 content: this.makeFreqEditField(c),
             });
             let ischecked = this.state.locked[c];
-            lockrow.add(
-                $("<input />", {
-                    type: "checkbox",
-                    class: "cb",
-                    "data-char": c,
-                    id: "cb" + c,
-                    value: name,
-                    checked: ischecked,
-                })
-            );
+            let cb = $("<input/>", {
+                type: "checkbox",
+                class: "cb",
+                "data-char": c,
+                id: "cb" + c,
+                value: name,
+                checked: ischecked,
+            });
+            if (this.state.morseMap[c] === undefined) {
+                cb.prop("disabled", true);
+            }
+
+            lockrow.add(cb);
             list.append(
-                $("<li/>", { class: "float-left" }).append(table.generate())
+                $("<li/>", {
+                    class: "float-left",
+                }).append(table.generate())
             );
         }
         result.append(list);
@@ -575,11 +560,12 @@ export class CipherMorseSolver extends CipherSolver {
                 i * (this.cipherWidth + 1) + 1,
                 this.cipherWidth
             );
-            let newval = this.unmapMorse(newchar);
             console.log("Set " + repchar + " to " + newchar);
-            this.updateSel(repchar, String(newval));
+            this.updateSel(repchar, newchar);
         }
         this.holdupdates = false;
+        this.updateOutput();
+        this.UpdateFreqEditTable();
         this.updateMatchDropdowns("");
     }
     /**
@@ -602,8 +588,8 @@ export class CipherMorseSolver extends CipherSolver {
         let res = "";
         // Convert the string to Morse.
         for (let c of str.toUpperCase()) {
-            if (typeof this.tomorse[c] !== "undefined") {
-                morse += extra + this.tomorse[c];
+            if (typeof tomorse[c] !== "undefined") {
+                morse += extra + tomorse[c];
                 extra = "X";
             }
         }
@@ -665,5 +651,18 @@ export class CipherMorseSolver extends CipherSolver {
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
+    }
+    /**
+     * Set up all the HTML DOM elements so that they invoke the right functions
+     */
+    attachHandlers(): void {
+        super.attachHandlers();
+        $(".cb")
+            .off("change")
+            .on("change", e => {
+                let toupdate = $(e.target).attr("data-char");
+                this.markUndo(null);
+                this.updateCheck(toupdate, $(e.target).prop("checked"));
+            });
     }
 }

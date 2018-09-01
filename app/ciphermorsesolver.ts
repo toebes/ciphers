@@ -1,4 +1,4 @@
-import { cloneObject, StringMap } from "./ciphercommon";
+import { cloneObject, setDisabled, StringMap } from "./ciphercommon";
 import { IState, menuMode, toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 import { ICipherType } from "./ciphertypes";
@@ -154,23 +154,20 @@ const frommorse: { [key: string]: string } = {
     "-OOOO-": "-",
     "-O--O-": "()",
 };
-interface IMorseState extends IState {
-    morseMap: StringMap;
-    locked: { [key: string]: boolean };
-}
 
 export class CipherMorseSolver extends CipherSolver {
-    activeToolMode: toolMode = toolMode.aca;
-    defaultstate: IMorseState = {
+    public activeToolMode: toolMode = toolMode.aca;
+    /** Morse Lookup table overridden by the subclasses */
+    readonly morseReplaces: string[] = [];
+    public defaultstate: IState = {
         cipherType: ICipherType.None,
-        morseMap: {},
+        replacement: {},
         cipherString: "",
         locked: {},
         findString: "",
-        replacement: {},
     };
-    state: IMorseState = cloneObject(this.defaultstate) as IMorseState;
-    cmdButtons: JTButtonItem[] = [
+    public state: IState = cloneObject(this.defaultstate) as IState;
+    public cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
         this.redocmdButton,
@@ -181,7 +178,7 @@ export class CipherMorseSolver extends CipherSolver {
      * c Symbol to be marked as locked/unlocked
      * lock new state for the symbol
      */
-    updateCheck(c: string, lock: boolean): void {
+    public updateCheck(c: string, lock: boolean): void {
         if (this.state.locked[c] !== lock) {
             this.state.locked[c] = lock;
             this.UpdateFreqEditTable();
@@ -192,15 +189,19 @@ export class CipherMorseSolver extends CipherSolver {
      * Restore from an UNDO or saved state
      * @param data Saved state to restore
      */
-    restore(data: IMorseState): void {
-        this.state = cloneObject(this.defaultstate) as IMorseState;
+    public restore(data: IState): void {
+        this.state = cloneObject(this.defaultstate) as IState;
         this.copyState(this.state, data);
         this.UpdateFreqEditTable();
 
         this.setUIDefaults();
         this.updateOutput();
     }
-    updateOutput(): void {
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
+    public updateOutput(): void {
         this.setMenuMode(menuMode.aca);
         $("#encoded").val(this.state.cipherString);
         $("#find").val(this.state.findString);
@@ -215,13 +216,16 @@ export class CipherMorseSolver extends CipherSolver {
         this.load();
         this.findPossible(this.state.findString);
     }
-    reset(): void {
+    /**
+     * Resetting any solving matches made
+     */
+    public reset(): void {
         this.init(this.state.curlang);
-        super.reset();
         this.state.locked = {};
+        this.state.replacement = {};
+        super.reset();
     }
-
-    genAnalysis(str: string): JQuery<HTMLElement> {
+    public genAnalysis(str: string): JQuery<HTMLElement> {
         return null;
     }
     /**
@@ -261,7 +265,7 @@ export class CipherMorseSolver extends CipherSolver {
      *    then we output a cell with a class of "error"
      * 4- Otherwise it is a valid morse code string and we output the cell with the class from the morseClass
      */
-    build(): JQuery<HTMLElement> {
+    public build(): JQuery<HTMLElement> {
         let str = this.cleanString(this.state.cipherString);
         let topdiv = $("<div/>").addClass("sword");
         let table = $("<table/>").addClass("mword");
@@ -296,7 +300,7 @@ export class CipherMorseSolver extends CipherSolver {
                 // has no mapping, we will use filler ?? values just to
                 // keep things running smoothly.  It will ensure that we
                 // don't get a valid morse code string
-                let morsepiece = this.state.morseMap[c];
+                let morsepiece = this.state.replacement[c];
                 if (morsepiece === undefined) {
                     morsepiece = "";
                 }
@@ -463,7 +467,7 @@ export class CipherMorseSolver extends CipherSolver {
     /**
      * Generates the section above the command buttons
      */
-    genPreCommands(): JQuery<HTMLElement> {
+    public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div>");
         result.append(
             JTFLabeledInput(
@@ -479,7 +483,7 @@ export class CipherMorseSolver extends CipherSolver {
     /*
      * Creates an HTML table to display the frequency of characters
      */
-    createFreqEditTable(): JQuery<HTMLElement> {
+    public createFreqEditTable(): JQuery<HTMLElement> {
         let result = $("<div/>", { class: "clearfix" });
         let list = $("<ul/>", { class: "clearfix no-bullet" });
         let table = new JTTable({ class: "tfreq" });
@@ -530,7 +534,7 @@ export class CipherMorseSolver extends CipherSolver {
                 value: name,
                 checked: ischecked,
             });
-            if (this.state.morseMap[c] === undefined) {
+            if (this.state.replacement[c] === undefined) {
                 cb.prop("disabled", true);
             }
 
@@ -547,7 +551,7 @@ export class CipherMorseSolver extends CipherSolver {
     /**
      * Set multiple characters
      */
-    setMultiChars(reqstr: string): void {
+    public setMultiChars(reqstr: string): void {
         console.log("setMorseMultiChars " + reqstr);
         this.holdupdates = true;
         for (
@@ -576,7 +580,7 @@ export class CipherMorseSolver extends CipherSolver {
      *   this.cipherWidth to be the width of each encoded character
      *
      */
-    findPossible(str: string): void {
+    public findPossible(str: string): void {
         let encoded = this.minimizeString(this.state.cipherString);
         this.state.findString = str;
         if (str === "") {
@@ -623,20 +627,21 @@ export class CipherMorseSolver extends CipherSolver {
         );
         this.attachHandlers();
     }
-
     /**
      * Generates an HTML representation of a string for display.  Replaces the X, O and -
      * with more visible HTML equivalents
      * str String to normalize (with - X and O representing morese characters)
      */
-    normalizeHTML(str: string): string {
+    public normalizeHTML(str: string): string {
         return str
             .replace(/O/g, "&#9679;")
             .replace(/-/g, "&ndash;")
             .replace(/X/g, "&times;");
     }
-
-    load(): void {
+    /**
+     * Loads new data into a solver, preserving all solving matches made
+     */
+    public load(): void {
         this.encodedString = this.cleanString(this.state.cipherString);
         let res = this.build();
         $("#answer")
@@ -651,6 +656,82 @@ export class CipherMorseSolver extends CipherSolver {
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
+    }
+    /**
+     * Create an edit field for a dropdown
+     * @param c Charcter to make dropdown for
+     */
+    public makeFreqEditField(c: string): JQuery<HTMLElement> {
+        if (this.state.locked[c]) {
+            return $(
+                $("<span/>").html(this.normalizeHTML(this.state.replacement[c]))
+            );
+        }
+        let mselect = $("<select/>", {
+            class: "msli",
+            "data-char": c,
+        });
+        let locklist = {};
+        /* Build a list of the locked strings we should skip */
+        for (let key in this.state.locked) {
+            if (
+                this.state.locked.hasOwnProperty(key) &&
+                this.state.locked[key]
+            ) {
+                locklist[this.state.replacement[key]] = true;
+            }
+        }
+        let mreplaces = this.morseReplaces.length;
+        if (this.state.replacement[c] === undefined) {
+            mselect.append(
+                $("<option />", {
+                    value: "",
+                    disabled: "disabled",
+                    selected: true,
+                }).html("")
+            );
+        }
+        for (let i = 0; i < mreplaces; i++) {
+            let text = this.morseReplaces[i];
+            if (!locklist[text]) {
+                let option = $("<option />", { value: text }).html(
+                    this.normalizeHTML(text)
+                );
+                if (this.state.replacement[c] === text) {
+                    option.prop("selected", true);
+                }
+                mselect.append(option);
+            }
+        }
+        return mselect;
+    }
+    /**
+     * Handle a dropdown event.  They are changing the mapping for a character.
+     * Process the change, but first we need to swap around any other character which
+     * is using what we are changing to.
+     */
+    public updateSel(item: string, val: string): void {
+        console.log("updateFractionatedMorseSel item=" + item + " val=" + val);
+        let toswapwith = item;
+        setDisabled("#cb" + item, false);
+
+        for (let key in this.state.replacement) {
+            if (this.state.replacement.hasOwnProperty(key)) {
+                if (this.state.replacement[key] === val) {
+                    toswapwith = key;
+                    break;
+                }
+            }
+        }
+        if (toswapwith !== item) {
+            const swapval = this.state.replacement[item];
+            this.state.replacement[item] = this.state.replacement[toswapwith];
+            this.state.replacement[toswapwith] = swapval;
+        } else {
+            this.state.replacement[item] = val;
+        }
+        this.UpdateFreqEditTable();
+        this.load();
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions

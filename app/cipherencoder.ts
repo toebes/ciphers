@@ -341,7 +341,11 @@ export class CipherEncoder extends CipherHandler {
             .on("richchange", (e, newtext) => {
                 let question = newtext;
                 if (question !== this.state.question) {
-                    this.markUndo("question");
+                    // Don't push an undo operation if all that happend was that the
+                    // rich text editor put a paragraph around our text
+                    if (question !== "<p>" + this.state.question + "</p>") {
+                        this.markUndo("question");
+                    }
                     this.state.question = question;
                 }
             });

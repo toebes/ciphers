@@ -809,7 +809,7 @@ table.found tr th:nth-child(odd) {
 .qtextentry p {
     display: inline;
 }
-.qtext .qbody p {
+.qtext .qbody p:first-of-type {
     display: inline;
 }
 
@@ -845,6 +845,18 @@ table.found tr th:nth-child(odd) {
     height: 3rem;
 }
 
+.formulabox {
+    height: 3rem;
+    width: 80%;
+    margin: 1rem auto;
+    border: 1px solid black;
+    text-align: center;
+    padding-top: 0.5rem;
+}
+.rsawide {
+    height: 3rem;
+    width: 12rem;
+}
 table.times {
     width: auto;
     margin-left: auto;

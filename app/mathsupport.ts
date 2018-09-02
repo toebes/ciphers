@@ -1,7 +1,7 @@
 /**
  * Compute the greatest common denominator between two numbers
- * a First number
- * b Second Number
+ * @param a First number
+ * @param b Second Number
  */
 export function gcd(a: number, b: number): number {
     if (isNaN(a)) {
@@ -23,7 +23,6 @@ export function gcd(a: number, b: number): number {
         b = temp;
     }
     while (true) {
-        console.log("gcd a=" + a + " b=" + b);
         if (b === 0) {
             return a;
         }
@@ -34,6 +33,11 @@ export function gcd(a: number, b: number): number {
         b %= a;
     }
 }
+/**
+ * Determines if a number is CoPrime with another
+ * @param a First Number
+ * @param r Number to checn against
+ */
 export function isCoPrime(a: number, r: number): boolean {
     console.log("iscoprime a=" + a + " r=" + r);
     let gcdval = gcd(a, r);
@@ -43,7 +47,10 @@ export function isCoPrime(a: number, r: number): boolean {
     }
     return true;
 }
-
+/**
+ * Compute the Mod 26 of a value, properly handling negative values
+ * @param v Value to compute
+ */
 export function mod26(v: number): number {
     return ((v % 26) + 26) % 26;
 }
@@ -60,6 +67,10 @@ export const modInverse26 = {
     21: 5,
     23: 17,
 };
+/**
+ * Compute the modular 26 inverse of a matrix
+ * @param matrix 2x2 matrix of numbers
+ */
 export function mod26Inverse2x2(matrix: number[][]): number[][] {
     let result: number[][] = [];
     let a = matrix[0][0];
@@ -132,11 +143,51 @@ export function getOddRandomIntInclusive(min: number, max: number): number {
  */
 export function getRandomPrime(numDigits: number): number {
     let candidate = 0;
-    do {
-        candidate = getOddRandomIntInclusive(
-            Math.pow(10, numDigits - 1),
-            Math.pow(10, numDigits) - 1
-        );
-    } while (!isPrime(candidate));
+    candidate = getOddRandomIntInclusive(
+        Math.pow(10, numDigits - 1),
+        Math.pow(10, numDigits) - 1
+    );
+    let direction = 2;
+    if (Math.random() > 0.5) {
+        direction = -2;
+    }
+    while (!isPrime(candidate)) {
+        candidate += direction;
+    }
     return candidate;
+}
+/**
+ * Compute the modular inverse of a number
+ * From: https://stackoverflow.com/questions/26985808/calculating-the-modular-inverse-in-javascript
+ * An alternate to consider is at https://stackoverflow.com/questions/23279208/rsa-calculate-d
+ * @param a Number to compute
+ * @param m Modulous
+ */
+export function modularInverse(a: number, m: number): number {
+    // validate inputs
+    [a, m] = [Number(a), Number(m)];
+    if (Number.isNaN(a) || Number.isNaN(m)) {
+        return NaN; // invalid input
+    }
+    a = ((a % m) + m) % m;
+    if (!a || m < 2) {
+        return NaN; // invalid input
+    }
+    // find the gcd
+    const s = [];
+    let b = m;
+    while (b) {
+        [a, b] = [b, a % b];
+        s.push({ a, b });
+    }
+    if (a !== 1) {
+        return NaN; // inverse does not exists
+    }
+    // find the inverse
+    let x = 1;
+    let y = 0;
+    for (let i = s.length - 2; i >= 0; --i) {
+        [x, y] = [y, x - y * Math.floor(s[i].a / s[i].b)];
+    }
+    return ((y % m) + m) % m;
 }

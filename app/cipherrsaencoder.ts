@@ -1,10 +1,4 @@
-import {
-    cloneObject,
-    NumberMap,
-    renderMath,
-    setCharAt,
-    StringMap,
-} from "./ciphercommon";
+import { cloneObject } from "./ciphercommon";
 import { CipherEncoder, IEncoderState } from "./cipherencoder";
 import { toolMode } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
@@ -13,8 +7,15 @@ import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 import { JTTable } from "./jttable";
-import { gcd, getRandomIntInclusive, getRandomPrime } from "./mathsupport";
+import {
+    gcd,
+    getRandomIntInclusive,
+    getRandomPrime,
+    modularInverse,
+} from "./mathsupport";
 
+const monospan: string =
+    "<span style=\"font-family:'Courier New', Courier, monospace;\">";
 export interface IRSAData {
     p: number;
     q: number;
@@ -43,7 +44,7 @@ export class CipherRSAEncoder extends CipherEncoder {
     activeToolMode: toolMode = toolMode.codebusters;
     defaultstate: IRSAState = {
         cipherString: "",
-        question: "Something goes here",
+        question: "",
         cipherType: ICipherType.RSA,
         offset: 1 /** The type of operation */,
         operation: "rsa1",
@@ -195,7 +196,7 @@ export class CipherRSAEncoder extends CipherEncoder {
                 "number",
                 "toencode",
                 this.state.cipherString,
-                "small-12 medium-12 large-12"
+                "small-12 medium-12 large-12 opfield"
             )
         );
         result.append(
@@ -226,8 +227,111 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     public recalcData(): void {
-        this.state.rsa1.p = undefined;
-        this.state.rsa1.q = undefined;
+        this.state.question = this.getTemplatedQuestion("");
+        this.state.rsa1 = undefined;
+        this.state.rsa2 = undefined;
+        this.state.name1 = undefined;
+        this.state.name2 = undefined;
+    }
+
+    public getRandomName(): string {
+        let names = [
+            "Abigail",
+            "Alexander",
+            "Alexia",
+            "Alexis",
+            "Alison",
+            "Allison",
+            "Alyssa",
+            "Andrew",
+            "Anna",
+            "Anthony",
+            "Ashley",
+            "Austin",
+            "Ava",
+            "Benjamin",
+            "Brandon",
+            "Brendan",
+            "Brent",
+            "Brett",
+            "Brianna",
+            "Brooke",
+            "Brooklin",
+            "Cassidy",
+            "Chloe",
+            "Christian",
+            "Christopher",
+            "Cloe",
+            "Cody",
+            "Daniel",
+            "David",
+            "Dylan",
+            "Elizabeth",
+            "Ella",
+            "Emily",
+            "Emma",
+            "Ethan",
+            "Female",
+            "Gabriel",
+            "Grace",
+            "Haileigh",
+            "Hailey",
+            "Haley",
+            "Hannah",
+            "Haylee",
+            "Hayley",
+            "Isabella",
+            "Jacob",
+            "Jake",
+            "James",
+            "Jasmine",
+            "Jennifer",
+            "Jesse",
+            "Jessica",
+            "Jessie",
+            "John",
+            "Jonathan",
+            "Jose",
+            "Joseph",
+            "Joshua",
+            "Justin",
+            "Kaitlyn",
+            "Kayla",
+            "Lauren",
+            "Logan",
+            "Madison",
+            "Male",
+            "Matthew",
+            "Megan",
+            "Mia",
+            "Micaela",
+            "Michael",
+            "Mikaela",
+            "Mikayla",
+            "Morgan",
+            "Mykayla",
+            "Natalie",
+            "Nathan",
+            "Nicholas",
+            "Noah",
+            "Olivia",
+            "Paige",
+            "Rachel",
+            "Ryan",
+            "Samantha",
+            "Samuel",
+            "Sarah",
+            "Sophia",
+            "Sydney",
+            "Taylor",
+            "Tyler",
+            "Tyson",
+            "Victoria",
+            "William",
+            "Zachary",
+        ];
+        let index = Math.floor(Math.random() * names.length);
+        return names[index];
     }
     /**
      * Compute a full RSA value set
@@ -248,6 +352,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             (Math.pow(10, nDigits) - 1) / 9,
             Math.pow(10, nDigits) - 1
         );
+        // RSA requires that p and q be different prime values
         while (result.p === result.q) {
             result.q = getRandomPrime(nDigits);
         }
@@ -257,49 +362,231 @@ export class CipherRSAEncoder extends CipherEncoder {
         while (gcd(result.e, result.phi) !== 1) {
             result.e = getRandomIntInclusive(3, result.phi);
         }
-        result.d = 0;
-        result.d = 0; //inverse_mod(my_e, phi);
+        result.d = modularInverse(result.e, result.phi);
+        return result;
+    }
+    public substituteTemplateVal(
+        str: string,
+        templateid: string,
+        val: number
+    ): string {
+        if (val === undefined || isNaN(val)) {
+            return str;
+        }
+        // Make sure that the match string isn't at the start or the end so we only have to do one pattern
+        let work = " " + str + " ";
+        work = work.replace(
+            new RegExp("(\\D)" + String(val) + "(\\D)", "g"),
+            "$1##" + templateid + "##$2"
+        );
+        return work.substr(1, work.length - 2);
+    }
+    public substituteTemplateStr(
+        str: string,
+        templateid: string,
+        val: string
+    ): string {
+        if (val === undefined || val === "") {
+            return str;
+        }
+        // Make sure that the match string isn't at the start or the end so we only have to do one pattern
+        return str.replace(
+            new RegExp("\\b" + val + "\\b", "g"),
+            "##" + templateid + "##"
+        );
+    }
+    public substituteRSATemplate(
+        str: string,
+        templateid: string,
+        val: IRSAData
+    ): string {
+        if (val === undefined) {
+            return str;
+        }
+        let result = this.substituteTemplateVal(str, templateid + "P", val.p);
+        result = this.substituteTemplateVal(result, templateid + "Q", val.q);
+        result = this.substituteTemplateVal(result, templateid + "N", val.n);
+        result = this.substituteTemplateVal(
+            result,
+            templateid + "PHI",
+            val.phi
+        );
+        result = this.substituteTemplateVal(result, templateid + "E", val.e);
+        result = this.substituteTemplateVal(result, templateid + "D", val.d);
+        return result;
+    }
+    public getTemplatedQuestion(defaultQ: string): string {
+        if (
+            this.state.question === undefined ||
+            this.state.question === "" ||
+            this.state.question === "Solve This"
+        ) {
+            return defaultQ;
+        }
+        // We have to reverse all of the values.  Note that we want to start with the larger ones
+        // first just in case we catch something which isn't
+        let result = this.state.question;
+        // Find all of the places where we used the RSA1 values
+        result = this.substituteTemplateVal(
+            result,
+            "SAFECOMBO",
+            this.state.combo
+        );
+        result = this.substituteTemplateStr(result, "NAME1", this.state.name1);
+        result = this.substituteTemplateStr(result, "NAME2", this.state.name2);
+        result = this.substituteRSATemplate(result, "R1", this.state.rsa1);
+        result = this.substituteRSATemplate(result, "R2", this.state.rsa2);
+        return result;
+    }
+    public applyTemplateStr(
+        template: string,
+        templateid: string,
+        val: string
+    ): string {
+        return template.replace(new RegExp("##" + templateid + "##", "g"), val);
+    }
+    public applyTemplateRSA(
+        template: string,
+        templateid: string,
+        val: IRSAData
+    ): string {
+        if (val === undefined) {
+            return template;
+        }
+        let result = this.applyTemplateStr(
+            template,
+            templateid + "P",
+            String(val.p)
+        );
+        result = this.applyTemplateStr(result, templateid + "Q", String(val.q));
+        result = this.applyTemplateStr(result, templateid + "N", String(val.n));
+        result = this.applyTemplateStr(
+            result,
+            templateid + "PHI",
+            String(val.phi)
+        );
+        result = this.applyTemplateStr(result, templateid + "E", String(val.e));
+        result = this.applyTemplateStr(result, templateid + "D", String(val.d));
+        return result;
+    }
+    public applyTemplate(template: string): string {
+        let result = this.applyTemplateStr(
+            template,
+            "SAFECOMBO",
+            String(this.state.combo)
+        );
+        result = this.applyTemplateStr(result, "NAME1", this.state.name1);
+        result = this.applyTemplateStr(result, "NAME2", this.state.name2);
+        result = this.applyTemplateRSA(result, "R1", this.state.rsa1);
+        result = this.applyTemplateRSA(result, "R2", this.state.rsa2);
+        return result;
+    }
+    /*
+ * Sorter to compare random order entries
+ */
+    rosort(a: any, b: any): number {
+        if (a.order < b.order) {
+            return -1;
+        } else if (a.order > b.order) {
+            return 1;
+        }
+        return 0;
+    }
+    public getRSARandomTemplate(prefix: string): string {
+        let result = "<p>";
+        let sortset = [
+            { order: Math.random(), label: "p", template: "P" },
+            { order: Math.random(), label: "q", template: "Q" },
+            { order: Math.random(), label: "n", template: "N" },
+            { order: Math.random(), label: "Φ", template: "PHI" },
+            { order: Math.random(), label: "e", template: "E" },
+            { order: Math.random(), label: "d", template: "D" },
+        ];
+        sortset.sort(this.rosort);
+
+        let iseven = false;
+        for (let item of sortset) {
+            result +=
+                monospan +
+                "&nbsp;&nbsp;&nbsp;" +
+                item.label +
+                " = ##" +
+                prefix +
+                item.template +
+                "##</span>";
+            if (iseven) {
+                result += "<br/>";
+            } else {
+                result += "&nbsp;&nbsp;&nbsp;";
+            }
+            iseven = !iseven;
+        }
+        result += "</p>";
         return result;
     }
     public compute1(): void {
+        let defaultQTemplate =
+            "<p>##NAME1## has faithfully followed the steps of the RSA key-generation algorithm. " +
+            "Here are the results:</p>" +
+            this.getRSARandomTemplate("R1") +
+            "<p>As it comes to pass, ##NAME2## is on vacation in Hawaii, " +
+            "and ##NAME1## needs a document that is stored in the company safe. " +
+            "They are communicating via email, " +
+            "and both know it is very unwise to trust the security of computers in a hotel lobby." +
+            "##NAME1## needs to tell ##NAME2## his/her public key, " +
+            "knowing well that it can be read by untrustworthy parties. " +
+            "List the minimum set of numbers that ##NAME1## needs to email to ##NAME2## " +
+            "in order for ##NAME2## to be able to decode the message.</p>" +
+            "<p>Additionally, ##NAME2## wants to transmit the combination to the safe " +
+            "(which is ##SAFECOMBO##)" +
+            " in the response email, but encrypted with RSA. " +
+            "What should formula should ##NAME2## compute in order to know the ciphertext to transmit?</p>";
+
+        let question = this.getTemplatedQuestion(defaultQTemplate);
         if (this.state.name1 === undefined || this.state.name1 === "") {
-            this.state.name1 = "Billy";
+            this.state.name1 = this.getRandomName();
         }
-        if (this.state.name2 === undefined || this.state.name2 === "") {
-            this.state.name2 = "Elon";
-        }
-        if (
-            this.state.rsa1.p === undefined ||
-            this.state.rsa1.q === undefined
+        while (
+            this.state.name2 === undefined ||
+            this.state.name2 === "" ||
+            this.state.name2 === this.state.name1
         ) {
-            this.state.rsa1.p = getRandomPrime(this.state.digitsPrime);
-            this.state.rsa1.q = getRandomPrime(this.state.digitsPrime);
+            this.state.name2 = this.getRandomName();
+        }
+        if (this.state.rsa1 === undefined) {
+            this.state.rsa1 = this.CalculateRSA(this.state.digitsPrime);
             this.state.combo = getRandomIntInclusive(
                 (Math.pow(10, this.state.digitsCombo) - 1) / 9,
                 Math.pow(10, this.state.digitsCombo) - 1
             );
-            while (this.state.rsa1.p === this.state.rsa1.q) {
-                this.state.rsa1.q = getRandomPrime(this.state.digitsPrime);
-            }
-            this.state.rsa1.n = this.state.rsa1.p * this.state.rsa1.q;
-            this.state.rsa1.phi =
-                (this.state.rsa1.p - 1) * (this.state.rsa1.q - 1);
-            this.state.rsa1.e = getRandomIntInclusive(3, this.state.rsa1.n - 1);
-            while (gcd(this.state.rsa1.e, this.state.rsa1.phi) !== 1) {
-                this.state.rsa1.e = getRandomIntInclusive(
-                    3,
-                    this.state.rsa1.phi
-                );
-            }
-            this.state.rsa1.d = 0;
-            // this.state.d = inverse_mod(my_e, phi)
         }
+        this.state.question = this.applyTemplate(question);
+        this.updateQuestionsOutput();
     }
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    public genAnswer1(): JQuery<HTMLElement> {
+    public genQuestionAnswer1(showanswers: boolean): JQuery<HTMLElement> {
         let result = $("<div>");
+        let cellclass = "TOSOLVE";
+        let formula = $("<span/>").text("");
+
+        let answers: string[] = ["", "", ""];
+        if (showanswers) {
+            cellclass = "TOANSWER";
+            answers = [
+                String(this.state.rsa1.n),
+                String(this.state.rsa1.e),
+                "",
+            ];
+            formula = $("<span/>").text(
+                this.state.combo +
+                    " ^ " +
+                    this.state.rsa1.e +
+                    " mod " +
+                    this.state.rsa1.n
+            );
+        }
         if (this.state.combo > this.state.rsa1.n) {
             result.append(
                 $("<div/>", { class: "callout error" }).text(
@@ -308,104 +595,70 @@ export class CipherRSAEncoder extends CipherEncoder {
             );
             return result;
         }
+        result.append(
+            $("<div/>").text("Enter the minimum values to transmit:")
+        );
+
+        let table = new JTTable({
+            class: "ansblock shrink cell unstriped",
+        });
+        let row = table.addBodyRow();
+        for (let i = 0; i < 3; i++) {
+            row.add({
+                settings: {
+                    class: "v rsawide " + cellclass,
+                },
+                content: answers[i],
+            });
+        }
+
+        result.append(table.generate());
+        if (showanswers) {
+            result.append(
+                $("<span/>").append(
+                    $("<em/>").text("These two numbers can be in either order.")
+                )
+            );
+        }
 
         result.append(
             $("<div/>").text(
-                this.state.name1 +
-                    " has faithfully followed the steps of the RSA key-generation algorithm."
-            )
-        );
-        result.append($("<div/>").text("Here are the results:"));
-        let math =
-            "\\begin{aligned}" +
-            "p &=" +
-            this.state.rsa1.p +
-            "\\\\" +
-            "q &=" +
-            this.state.rsa1.q +
-            "\\\\" +
-            "N &=" +
-            this.state.rsa1.n +
-            "\\\\" +
-            "phi &=" +
-            this.state.rsa1.phi +
-            "\\\\" +
-            "e &=" +
-            this.state.rsa1.e +
-            "\\\\" +
-            "d &=" +
-            this.state.rsa1.d +
-            "\\end{aligned}";
-
-        result.append(renderMath(math));
-
-        result.append(
-            $("<div/>").text(
-                "As it comes to pass, " +
-                    this.state.name2 +
-                    " is on vacation in Hawaii, and " +
-                    this.state.name1 +
-                    " needs a document that is stored in the company safe." +
-                    " They are communicating via email, and both know it is very unwise" +
-                    " to trust the security of computers in a hotel lobby." +
-                    this.state.name1 +
-                    " needs to tell " +
-                    this.state.name2 +
-                    " his/her public key, knowing well" +
-                    " that it can be read by untrustworthy parties. Which numbers does " +
-                    this.state.name1 +
-                    " email to " +
-                    this.state.name2 +
-                    "? " +
-                    "Write the numbers below. You will not" +
-                    " get any points if you omit one or more needed numbers, nor will you" +
-                    "get any points if you include any extraneous numbers."
+                "Enter the formula (using correct numbers) to transmit:"
             )
         );
 
         result.append(
-            $("<div/>", { class: "TOANSWER" }).text(
-                this.state.rsa1.n + ", " + this.state.rsa1.e
-            )
-        );
-        result.append($("<div/>").html("<em>(order does not matter)</em>"));
-
-        result.append(
-            $("<div/>").text(
-                "Now " +
-                    this.state.name2 +
-                    " wants to transmit the (encrypted) combination to the safe" +
-                    " in the response email, encrypted with RSA. The combination is" +
-                    this.state.combo +
-                    "." +
-                    "What should " +
-                    this.state.name2 +
-                    " compute in order to" +
-                    " know what the ciphertext is? (Write a formula with numbers below." +
-                    "Don't compute the final answer, which would be very difficult by hand.)"
-            )
-        );
-        result.append(
-            $("<div/>", {
-                class: "TOANSWER",
-            }).text(
-                this.state.combo +
-                    " ^ " +
-                    this.state.rsa1.e +
-                    " mod " +
-                    this.state.rsa1.n
-            )
+            $("<div/>", { class: "formulabox " + cellclass }).append(formula)
         );
         return result;
     }
+    public genSolution1(): JQuery<HTMLElement> {
+        let result = $("<div/>");
+        result.append($("<h3/>").text("How to solve"));
 
+        let template =
+            "<p>In order for ##NAME2## to be able to read ##NAME1##'s RSA encrypted message, " +
+            "##NAME1## has to transmit their public key (<em>n</em>,<em>e</em>) and nothing else. " +
+            "In this case it is " +
+            monospan +
+            "n = ##R1N##, e = ##R1E##</span></p>" +
+            "<p>To encode the safe combination of ##SAFECOMBO##, ##NAME2## will have to raise it to " +
+            " the power of <em>e</em> and take the modulus <em>n</em>. " +
+            "Hence the formula " +
+            monospan +
+            "v ^ e mod n</span>. " +
+            " It is also worth noting that these are the only numbers that ##NAME2## has access to.";
+
+        result.append($(this.applyTemplate(template)));
+        return result;
+    }
     /**
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(): JQuery<HTMLElement> {
         let result = $("<div>");
         if (this.state.operation === "rsa1") {
-            return this.genAnswer1();
+            return this.genQuestionAnswer1(true);
         }
         result.append($("<h3/>").text("Not yet implemented"));
         return result;
@@ -415,13 +668,17 @@ export class CipherRSAEncoder extends CipherEncoder {
      */
     public genQuestion(): JQuery<HTMLElement> {
         let result = $("<div>");
-        result.append($("<h3/>").text("Not yet implemented"));
+        if (this.state.operation === "rsa1") {
+            return this.genQuestionAnswer1(false);
+        } else {
+            result.append($("<h3/>").text("Not yet implemented"));
+        }
         return result;
     }
     public genSolution(): JQuery<HTMLElement> {
         let result = $("<div/>");
-        if (this.state.operation === "words") {
-            result.append($("<h3/>").text("Not yet implemented"));
+        if (this.state.operation === "rsa1") {
+            return this.genSolution1();
         } else {
             result.append($("<h3/>").text("Not yet implemented"));
         }
@@ -463,7 +720,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             });
         $("#randomize")
             .off("click")
-            .on("click", e => {
+            .on("click", () => {
                 this.markUndo(null);
                 this.recalcData();
                 this.updateOutput();

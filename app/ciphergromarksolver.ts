@@ -257,7 +257,6 @@ export class CipherGromarkSolver extends CipherSolver {
         this.holdupdates = false;
         this.updateMatchDropdowns("");
     }
-
     /*
      * Sorter to compare two string pattern entries
      */

@@ -1,6 +1,6 @@
-import { cloneObject } from "./ciphercommon";
+import { cloneObject, renderMath } from "./ciphercommon";
 import { CipherEncoder, IEncoderState } from "./cipherencoder";
-import { toolMode } from "./cipherhandler";
+import { IOperationType, toolMode } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
@@ -14,8 +14,13 @@ import {
     modularInverse,
 } from "./mathsupport";
 
-const monospan: string =
-    "<span style=\"font-family:'Courier New', Courier, monospace;\">";
+function fwspan(str: string): string {
+    return (
+        "<span style=\"font-family:'Courier New', Courier, monospace;\">" +
+        str +
+        "</span>"
+    );
+}
 export interface IRSAData {
     p: number;
     q: number;
@@ -109,6 +114,18 @@ export class CipherRSAEncoder extends CipherEncoder {
         }
         return changed;
     }
+    /**
+     * Set the operation for the encoder type (which RSA type problem we are generating)
+     * @param operation New operation type
+     */
+    setOperation(operation: IOperationType): boolean {
+        let changed = super.setOperation(operation);
+        if (changed) {
+            this.recalcData();
+            this.state.question = "";
+        }
+        return changed;
+    }
     public setUIDefaults(): void {
         super.setUIDefaults();
         this.setDigitsCombo(this.state.digitsCombo);
@@ -155,6 +172,8 @@ export class CipherRSAEncoder extends CipherEncoder {
     public build(): JQuery<HTMLElement> {
         if (this.state.operation === "rsa1") {
             this.compute1();
+        } else if (this.state.operation === "rsa2") {
+            this.compute2();
         }
         return this.genAnswer();
     }
@@ -204,7 +223,7 @@ export class CipherRSAEncoder extends CipherEncoder {
                 "Prime Digits",
                 "digitsprime",
                 this.state.digitsPrime,
-                "small-12 medium-6 large-6 opfield rsa1 sequence"
+                "small-12 medium-6 large-6 opfield rsa1 rsa2 sequence"
             )
         );
         result.append(
@@ -215,15 +234,6 @@ export class CipherRSAEncoder extends CipherEncoder {
                 "small-12 medium-6 large-6 opfield rsa1 sequence"
             )
         );
-        result.append(
-            JTFIncButton(
-                "Line Width",
-                "linewidth",
-                this.state.linewidth,
-                "small-12 medium-6 large-6 opfield rsa2 sequence"
-            )
-        );
-
         return result;
     }
     public recalcData(): void {
@@ -338,14 +348,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param nDigits Number of digits for the Prime
      */
     public CalculateRSA(nDigits: number): IRSAData {
-        let result: IRSAData = {
-            p: 0,
-            q: 0,
-            n: 0,
-            phi: 0,
-            e: 0,
-            d: 0,
-        };
+        let result: IRSAData = { p: 0, q: 0, n: 0, phi: 0, e: 0, d: 0 };
         result.p = getRandomPrime(this.state.digitsPrime);
         result.q = getRandomPrime(this.state.digitsPrime);
         this.state.combo = getRandomIntInclusive(
@@ -365,6 +368,15 @@ export class CipherRSAEncoder extends CipherEncoder {
         result.d = modularInverse(result.e, result.phi);
         return result;
     }
+    /**
+     * This reverses a templated string by finding a given numberic value and
+     * replacing it with the given template string.  Note that the numeric value
+     * must be a complete set of digits preceeded and followed by a non-numeric
+     * character
+     * @param str Template string
+     * @param templateid placeholder to put in place
+     * @param val Old value to substitute for
+     */
     public substituteTemplateVal(
         str: string,
         templateid: string,
@@ -381,6 +393,15 @@ export class CipherRSAEncoder extends CipherEncoder {
         );
         return work.substr(1, work.length - 2);
     }
+    /**
+     * This reverses a templated string by finding a given string and
+     * replacing it with the given template string.  Note that the string
+     * must match a complete string (taking advantage of the \b ) regex
+     * https://www.w3schools.com/jsref/jsref_regexp_begin.asp
+     * @param str Template string
+     * @param templateid placeholder to put in place
+     * @param val Old value to substitute for
+     */
     public substituteTemplateStr(
         str: string,
         templateid: string,
@@ -395,11 +416,19 @@ export class CipherRSAEncoder extends CipherEncoder {
             "##" + templateid + "##"
         );
     }
+    /**
+     * This reverses a templated string by finding all of the RSA values in
+     * that string and replacing them with a prefixed template
+     * @param str Template string
+     * @param templateid Template prefix placeholder (R1/R2)
+     * @param val RSA values to replace
+     */
     public substituteRSATemplate(
         str: string,
         templateid: string,
         val: IRSAData
     ): string {
+        // If there is no calculated RSA value, we don't have to do anything
         if (val === undefined) {
             return str;
         }
@@ -415,12 +444,34 @@ export class CipherRSAEncoder extends CipherEncoder {
         result = this.substituteTemplateVal(result, templateid + "D", val.d);
         return result;
     }
+    /**
+     * Get a template to use for the current problem.  If we have a valid string
+     * already populating the question, we want to use it but reverse the values
+     * to turn it back into a template.  However, if the string is basically
+     * empty, then we want to use the default template
+     * @param defaultQ Default template to use
+     */
     public getTemplatedQuestion(defaultQ: string): string {
-        if (
-            this.state.question === undefined ||
-            this.state.question === "" ||
-            this.state.question === "Solve This"
-        ) {
+        // See if we have an empty question.  Unfortunately there are a lot of
+        // different ways that an empty string presents itself, so we have to
+        // get rid of all the fluff and see if we have anything left over
+        let isempty = false;
+        if (this.state.question === undefined) {
+            isempty = true;
+        } else {
+            let question = this.state.question
+                .replace("<p>", "")
+                .replace("</p>", "")
+                .replace("&nbsp;", "")
+                .replace("undefined", "")
+                .replace("Solve This", "")
+                .replace(" ", "");
+            if (question === "") {
+                isempty = true;
+            }
+        }
+        // If it really is empty, then we get to use the template
+        if (isempty) {
             return defaultQ;
         }
         // We have to reverse all of the values.  Note that we want to start with the larger ones
@@ -438,6 +489,12 @@ export class CipherRSAEncoder extends CipherEncoder {
         result = this.substituteRSATemplate(result, "R2", this.state.rsa2);
         return result;
     }
+    /**
+     * Substitute a string value into a template.
+     * @param template Template
+     * @param templateid ID to replace in the template
+     * @param val Value to substitute
+     */
     public applyTemplateStr(
         template: string,
         templateid: string,
@@ -445,11 +502,18 @@ export class CipherRSAEncoder extends CipherEncoder {
     ): string {
         return template.replace(new RegExp("##" + templateid + "##", "g"), val);
     }
+    /**
+     * Substitute all of the RSA values into a template.
+     * @param template Template
+     * @param templateid ID Prefix (R1/R2)
+     * @param val Computed RSA values
+     */
     public applyTemplateRSA(
         template: string,
         templateid: string,
         val: IRSAData
     ): string {
+        // If we don't have a computed RSA value, we are done
         if (val === undefined) {
             return template;
         }
@@ -469,6 +533,10 @@ export class CipherRSAEncoder extends CipherEncoder {
         result = this.applyTemplateStr(result, templateid + "D", String(val.d));
         return result;
     }
+    /**
+     * Apply all of the values into the template string.
+     * @param template Template string
+     */
     public applyTemplate(template: string): string {
         let result = this.applyTemplateStr(
             template,
@@ -481,9 +549,11 @@ export class CipherRSAEncoder extends CipherEncoder {
         result = this.applyTemplateRSA(result, "R2", this.state.rsa2);
         return result;
     }
-    /*
- * Sorter to compare random order entries
- */
+    /**
+     * Sorter function to compare two items
+     * @param a first item
+     * @param b second item
+     */
     rosort(a: any, b: any): number {
         if (a.order < b.order) {
             return -1;
@@ -492,6 +562,10 @@ export class CipherRSAEncoder extends CipherEncoder {
         }
         return 0;
     }
+    /**
+     * Generate a randomized order of the 6 RSA template pieces
+     * @param prefix Prefix string (R1/R2) to apply to the set in the template
+     */
     public getRSARandomTemplate(prefix: string): string {
         let result = "<p>";
         let sortset = [
@@ -502,27 +576,65 @@ export class CipherRSAEncoder extends CipherEncoder {
             { order: Math.random(), label: "e", template: "E" },
             { order: Math.random(), label: "d", template: "D" },
         ];
-        sortset.sort(this.rosort);
+        // Sort them based on the random number
+        sortset.sort(
+            (a: any, b: any): number => {
+                if (a.order < b.order) {
+                    return -1;
+                } else if (a.order > b.order) {
+                    return 1;
+                }
+                return 0;
+            }
+        );
 
         let iseven = false;
+        let extra = "";
         for (let item of sortset) {
-            result +=
-                monospan +
-                "&nbsp;&nbsp;&nbsp;" +
-                item.label +
-                " = ##" +
-                prefix +
-                item.template +
-                "##</span>";
             if (iseven) {
-                result += "<br/>";
-            } else {
                 result += "&nbsp;&nbsp;&nbsp;";
+            } else {
+                result += extra;
+                extra = "<br/>";
             }
+            result += fwspan(
+                "&nbsp;&nbsp;&nbsp;<em>" +
+                    item.label +
+                    "</em> = ##" +
+                    prefix +
+                    item.template +
+                    "##"
+            );
             iseven = !iseven;
         }
         result += "</p>";
         return result;
+    }
+    public compute2(): void {
+        let defaultQTemplate =
+            "<p>Special Agent, ##NAME1##, has the following RSA public key:</p><p>" +
+            fwspan("&nbsp;&nbsp;&nbsp;<em>n</em> = ##R1N##") +
+            fwspan("&nbsp;&nbsp;&nbsp;<em>e</em> = ##R1E##") +
+            "</p>" +
+            "<p>Unfortunately for them, A quantum computer has successfully factored their <em>n</em></p>" +
+            "<p>" +
+            fwspan("&nbsp;&nbsp;&nbsp;##R1N## = ##R1P## * ##R1Q##") +
+            "</p>" +
+            "<p>Compute the value of their private key:</p>";
+
+        let question = this.getTemplatedQuestion(defaultQTemplate);
+        if (this.state.name1 === undefined || this.state.name1 === "") {
+            this.state.name1 = this.getRandomName();
+        }
+        if (this.state.rsa1 === undefined) {
+            this.state.rsa1 = this.CalculateRSA(this.state.digitsPrime);
+            this.state.combo = getRandomIntInclusive(
+                (Math.pow(10, this.state.digitsCombo) - 1) / 9,
+                Math.pow(10, this.state.digitsCombo) - 1
+            );
+        }
+        this.state.question = this.applyTemplate(question);
+        this.updateQuestionsOutput();
     }
     public compute1(): void {
         let defaultQTemplate =
@@ -589,7 +701,9 @@ export class CipherRSAEncoder extends CipherEncoder {
         }
         if (this.state.combo > this.state.rsa1.n) {
             result.append(
-                $("<div/>", { class: "callout error" }).text(
+                $("<div/>", {
+                    class: "callout error",
+                }).text(
                     "The combination is smaller than N. Please pick a smaller combo or larger primes"
                 )
             );
@@ -628,7 +742,262 @@ export class CipherRSAEncoder extends CipherEncoder {
         );
 
         result.append(
-            $("<div/>", { class: "formulabox " + cellclass }).append(formula)
+            $("<div/>", {
+                class: "formulabox " + cellclass,
+            }).append(formula)
+        );
+        return result;
+    }
+    /**
+     * Generate the HTML to display the answer for a cipher
+     */
+    public genQuestionAnswer2(showanswers: boolean): JQuery<HTMLElement> {
+        let result = $("<div>");
+        let cellclass = "TOSOLVE";
+
+        let answer = "";
+        if (showanswers) {
+            cellclass = "TOANSWER";
+            answer = String(this.state.rsa1.d);
+        }
+        result.append($("<div/>").text("Enter the computed private key:"));
+
+        let table = new JTTable({
+            class: "ansblock shrink cell unstriped",
+        });
+        let row = table.addBodyRow();
+        row.add({
+            settings: {
+                class: "v rsawide " + cellclass,
+            },
+            content: answer,
+        });
+
+        result.append(table.generate());
+        return result;
+    }
+    public genTalkativeModularInverseStep(
+        x: number,
+        y: number,
+        a1: number,
+        b1: number,
+        n1: number,
+        a2: number,
+        b2: number,
+        n2: number,
+        counter: number
+    ): JQuery<HTMLElement> {
+        let result = $("<div/>");
+        //         assert (a1*x + b1*y) == n1
+        // assert (a2*x + b2*y) == n2
+        //
+        let multiplier = Math.floor(n1 / n2);
+        let equation_1 = "Equation_{" + String(counter + 1) + "}";
+        let equation_2 = "Equation_{" + String(counter + 2) + "}";
+        let equation_3 = "Equation_{" + String(counter + 3) + "}";
+
+        result.append($("<h4/>").text("Step " + String(counter + 1) + "..."));
+        result.append(
+            $("<div/>").append(
+                renderMath(
+                    equation_3 +
+                        "=" +
+                        equation_1 +
+                        "-" +
+                        multiplier +
+                        "*" +
+                        equation_2
+                )
+            )
+        );
+        let a3 = a1 - a2 * multiplier;
+        let b3 = b1 - b2 * multiplier;
+        let n3 = n1 - n2 * multiplier;
+
+        result.append(
+            $("<div/>").append(
+                renderMath(
+                    equation_3 +
+                        "=(" +
+                        a1 +
+                        "-" +
+                        multiplier +
+                        "*" +
+                        a2 +
+                        ") *" +
+                        x +
+                        "+(" +
+                        b1 +
+                        "-" +
+                        multiplier +
+                        "*" +
+                        b2 +
+                        ") *" +
+                        y +
+                        "=" +
+                        n1 +
+                        "-" +
+                        multiplier +
+                        "*" +
+                        n2
+                )
+            )
+        );
+
+        result.append(
+            $("<div/>").append(
+                renderMath(
+                    equation_3 +
+                        "=" +
+                        a3 +
+                        "*" +
+                        x +
+                        "+" +
+                        b3 +
+                        "*" +
+                        y +
+                        "=" +
+                        n3
+                )
+            )
+        );
+        if (n3 === 1) {
+            let success = $("<div/>", {
+                class: "callout success small",
+            }).append($("<h3/>").text("Success!"));
+            success.append(
+                $("<div/>").text("Taking the result mod " + x + ":")
+            );
+            success.append(
+                $("<div/>").append(
+                    renderMath(a3 + "*" + "0+" + b3 + "*" + y + "=1")
+                )
+            );
+            // if (n3==1):
+            //     print "Success!"
+            success.append($("<div/>").append(renderMath(b3 + "*" + y + "=1")));
+            let normalized_b3 = b3 % x;
+            if (normalized_b3 !== b3) {
+                success.append(
+                    $("<div/>").append(
+                        renderMath(b3 + "\\mod{" + x + "}*" + y + "=1")
+                    )
+                );
+                success.append(
+                    $("<div/>").append(
+                        renderMath(normalized_b3 + "*" + y + "=1")
+                    )
+                );
+            }
+            success.append(
+                $("<h4/>").text(
+                    "Hence " +
+                        normalized_b3 +
+                        " and " +
+                        y +
+                        " are inverses of each other"
+                )
+            );
+            success.append($("<h3/>").text("Checking our work..."));
+            success.append(
+                $("<div/>").append(
+                    renderMath(
+                        "({" +
+                            normalized_b3 +
+                            "*" +
+                            y +
+                            "=" +
+                            normalized_b3 * y +
+                            "= 1 +" +
+                            (normalized_b3 * y - 1) +
+                            "= 1 + " +
+                            (normalized_b3 * y - 1) / x +
+                            "*" +
+                            x +
+                            "} \\mod{" +
+                            x +
+                            ")}= 1"
+                    )
+                )
+            );
+
+            //     return normalized_b3
+            result.append(success);
+            // elif (n3==0):
+        } else if (n3 === 0) {
+            result.append(
+                $("<div/>", { class: "callout error" }).text(
+                    "Failure! " + y + " is not invertible mod " + x
+                )
+            );
+            //     print "Failure!"
+            //     print y, "is not invertible mod", x
+            // else:
+        } else {
+            result.append(
+                this.genTalkativeModularInverseStep(
+                    x,
+                    y,
+                    a2,
+                    b2,
+                    n2,
+                    a3,
+                    b3,
+                    n3,
+                    counter + 1
+                )
+            );
+            //     return talkative_modular_inverse_step( x, y, a2, b2, n2, a3, b3, n3, counter+1 )
+            //     return null;
+        }
+        return result;
+    }
+    /**
+     * Generates the math for a Modular Inverse
+     * @param element Element to divide
+     * @param modulus Modulus value
+     */
+    public genTalkativeModulerInverse(
+        element: number,
+        modulus: number
+    ): JQuery<HTMLElement> {
+        let result = $("<div/>");
+        result.append(
+            $("<div/>").append(
+                renderMath(
+                    "Equation_{1}=1 * " +
+                        String(modulus) +
+                        "+ 0 * " +
+                        String(element) +
+                        " = " +
+                        String(modulus)
+                )
+            )
+        );
+        result.append(
+            $("<div/>").append(
+                renderMath(
+                    "Equation_{2}=0 * " +
+                        String(modulus) +
+                        "+ 1 * " +
+                        String(element) +
+                        " = " +
+                        String(modulus)
+                )
+            )
+        );
+        result.append(
+            this.genTalkativeModularInverseStep(
+                modulus,
+                element,
+                1,
+                0,
+                modulus,
+                0,
+                1,
+                element,
+                0
+            )
         );
         return result;
     }
@@ -640,16 +1009,74 @@ export class CipherRSAEncoder extends CipherEncoder {
             "<p>In order for ##NAME2## to be able to read ##NAME1##'s RSA encrypted message, " +
             "##NAME1## has to transmit their public key (<em>n</em>,<em>e</em>) and nothing else. " +
             "In this case it is " +
-            monospan +
-            "n = ##R1N##, e = ##R1E##</span></p>" +
+            fwspan("n = ##R1N##, e = ##R1E##") +
+            "</p>" +
             "<p>To encode the safe combination of ##SAFECOMBO##, ##NAME2## will have to raise it to " +
             " the power of <em>e</em> and take the modulus <em>n</em>. " +
             "Hence the formula " +
-            monospan +
-            "v ^ e mod n</span>. " +
+            fwspan("v ^ e mod n") +
+            ". " +
             " It is also worth noting that these are the only numbers that ##NAME2## has access to.";
 
         result.append($(this.applyTemplate(template)));
+        return result;
+    }
+    public genSolution2(): JQuery<HTMLElement> {
+        let result = $("<div/>");
+        result.append($("<h3/>").text("How to solve"));
+
+        result.append(
+            $("<div/>").text(
+                "To find the private key, First we need to find Φ using the formula:"
+            )
+        );
+        result.append($("<div/>").append(renderMath("Φ=(p-1)*(q-1)")));
+        let p_1 = this.state.rsa1.p - 1;
+        let q_1 = this.state.rsa1.q - 1;
+        result.append(
+            $("<div/>").append(
+                renderMath(
+                    "Φ=(" +
+                        this.state.rsa1.p +
+                        "-1)*(" +
+                        this.state.rsa1.q +
+                        "-1)=" +
+                        p_1 +
+                        "*" +
+                        q_1 +
+                        "=" +
+                        this.state.rsa1.phi
+                )
+            )
+        );
+        result.append(
+            $("<p/>")
+                .text("We now know that we know that ")
+                .append(renderMath("Φ=" + this.state.rsa1.phi))
+        );
+
+        result.append(
+            $("<p/>")
+                .text("Second, we use the ")
+                .append(
+                    $("<a/>", {
+                        href:
+                            "https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm",
+                    }).text("extended Euclidean Algorithm")
+                )
+                .append(
+                    " using " +
+                        this.state.rsa1.e +
+                        " and " +
+                        this.state.rsa1.phi
+                )
+        );
+        result.append(
+            this.genTalkativeModulerInverse(
+                this.state.rsa1.e,
+                this.state.rsa1.phi
+            )
+        );
         return result;
     }
     /**
@@ -659,6 +1086,8 @@ export class CipherRSAEncoder extends CipherEncoder {
         let result = $("<div>");
         if (this.state.operation === "rsa1") {
             return this.genQuestionAnswer1(true);
+        } else if (this.state.operation === "rsa2") {
+            return this.genQuestionAnswer2(true);
         }
         result.append($("<h3/>").text("Not yet implemented"));
         return result;
@@ -670,18 +1099,22 @@ export class CipherRSAEncoder extends CipherEncoder {
         let result = $("<div>");
         if (this.state.operation === "rsa1") {
             return this.genQuestionAnswer1(false);
-        } else {
-            result.append($("<h3/>").text("Not yet implemented"));
+        } else if (this.state.operation === "rsa2") {
+            return this.genQuestionAnswer2(false);
         }
+        result.append($("<h3/>").text("Not yet implemented"));
+
         return result;
     }
     public genSolution(): JQuery<HTMLElement> {
         let result = $("<div/>");
         if (this.state.operation === "rsa1") {
             return this.genSolution1();
-        } else {
-            result.append($("<h3/>").text("Not yet implemented"));
+        } else if (this.state.operation === "rsa2") {
+            return this.genSolution2();
         }
+        result.append($("<h3/>").text("Not yet implemented"));
+
         return result;
     }
     /**

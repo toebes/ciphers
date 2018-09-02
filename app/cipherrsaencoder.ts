@@ -162,18 +162,25 @@ export class CipherRSAEncoder extends CipherEncoder {
     public init(lang: string): void {
         super.init(lang);
     }
-    public getEncodeWidth(): number {
-        let linewidth = this.maxEncodeWidth;
-        if (this.state.operation !== "words") {
-            linewidth = this.state.linewidth;
-        }
-        return linewidth;
-    }
     public build(): JQuery<HTMLElement> {
-        if (this.state.operation === "rsa1") {
-            this.compute1();
-        } else if (this.state.operation === "rsa2") {
-            this.compute2();
+        switch (this.state.operation) {
+            case "rsa1":
+                this.compute1();
+                break;
+            case "rsa2":
+                this.compute2();
+                break;
+            case "rsa3":
+                this.compute3();
+                break;
+            case "rsa4":
+                this.compute2();
+                break;
+            case "rsa5":
+                this.compute2();
+                break;
+            default:
+                break;
         }
         return this.genAnswer();
     }
@@ -198,11 +205,11 @@ export class CipherRSAEncoder extends CipherEncoder {
         result.append(this.genTestUsage());
 
         let radiobuttons = [
-            { value: "rsa1", title: "Scenario 1" },
-            { value: "rsa2", title: "Scenario 2" },
-            { value: "rsa3", title: "Scenario 3" },
-            { value: "rsa4", title: "Scenario 4" },
-            { value: "rsa5", title: "Scenario 5" },
+            { value: "rsa1", title: "Safe Combo" },
+            { value: "rsa2", title: "Quantum Computer" },
+            { value: "rsa3", title: "Compute <em>d</em>" },
+            { value: "rsa4", title: "Decode Year" },
+            { value: "rsa5", title: "Exchange Keys" },
         ];
         result.append(
             JTRadioButton(6, "operation", radiobuttons, this.state.operation)
@@ -223,7 +230,7 @@ export class CipherRSAEncoder extends CipherEncoder {
                 "Prime Digits",
                 "digitsprime",
                 this.state.digitsPrime,
-                "small-12 medium-6 large-6 opfield rsa1 rsa2 sequence"
+                "small-12 medium-6 large-6 opfield rsa1 rsa2 rsa3 rsa4 rsa5 sequence"
             )
         );
         result.append(
@@ -281,7 +288,6 @@ export class CipherRSAEncoder extends CipherEncoder {
             "Emily",
             "Emma",
             "Ethan",
-            "Female",
             "Gabriel",
             "Grace",
             "Haileigh",
@@ -310,7 +316,6 @@ export class CipherRSAEncoder extends CipherEncoder {
             "Lauren",
             "Logan",
             "Madison",
-            "Male",
             "Matthew",
             "Megan",
             "Mia",
@@ -550,23 +555,10 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     /**
-     * Sorter function to compare two items
-     * @param a first item
-     * @param b second item
-     */
-    rosort(a: any, b: any): number {
-        if (a.order < b.order) {
-            return -1;
-        } else if (a.order > b.order) {
-            return 1;
-        }
-        return 0;
-    }
-    /**
      * Generate a randomized order of the 6 RSA template pieces
      * @param prefix Prefix string (R1/R2) to apply to the set in the template
      */
-    public getRSARandomTemplate(prefix: string): string {
+    public getRSATemplate(prefix: string, randomize: boolean): string {
         let result = "<p>";
         let sortset = [
             { order: Math.random(), label: "p", template: "P" },
@@ -576,22 +568,23 @@ export class CipherRSAEncoder extends CipherEncoder {
             { order: Math.random(), label: "e", template: "E" },
             { order: Math.random(), label: "d", template: "D" },
         ];
-        // Sort them based on the random number
-        sortset.sort(
-            (a: any, b: any): number => {
-                if (a.order < b.order) {
-                    return -1;
-                } else if (a.order > b.order) {
-                    return 1;
+        if (randomize) {
+            // Sort them based on the random number
+            sortset.sort(
+                (a: any, b: any): number => {
+                    if (a.order < b.order) {
+                        return -1;
+                    } else if (a.order > b.order) {
+                        return 1;
+                    }
+                    return 0;
                 }
-                return 0;
-            }
-        );
-
-        let iseven = false;
+            );
+        }
+        let isEven = false;
         let extra = "";
         for (let item of sortset) {
-            if (iseven) {
+            if (isEven) {
                 result += "&nbsp;&nbsp;&nbsp;";
             } else {
                 result += extra;
@@ -605,10 +598,50 @@ export class CipherRSAEncoder extends CipherEncoder {
                     item.template +
                     "##"
             );
-            iseven = !iseven;
+            isEven = !isEven;
         }
         result += "</p>";
         return result;
+    }
+    public compute1(): void {
+        let defaultQTemplate =
+            "<p>##NAME1## has faithfully followed the steps of the RSA key-generation algorithm. " +
+            "But has forgotten the last step&mdash;how to encrypt a message." +
+            "First, Here are the results from the other steps:</p>" +
+            this.getRSATemplate("R1", true) +
+            "<p>As it comes to pass, ##NAME2## is on vacation in Hawaii, " +
+            "and ##NAME1## needs a document that is stored in the company safe. " +
+            "They are communicating via email, " +
+            "and both know it is very unwise to trust the security of computers in a hotel lobby." +
+            "##NAME1## needs to tell ##NAME2## his/her public key, " +
+            "knowing well that it can be read by untrustworthy parties. " +
+            "List the minimum set of numbers that ##NAME1## needs to email to ##NAME2## " +
+            "in order for ##NAME2## to be able to decode the message.</p>" +
+            "<p>Additionally, ##NAME2## wants to transmit the combination to the safe " +
+            "(which is ##SAFECOMBO##)" +
+            " in the response email, but encrypted with RSA. " +
+            "What should formula should ##NAME2## compute in order to know the ciphertext to transmit?</p>";
+
+        let question = this.getTemplatedQuestion(defaultQTemplate);
+        if (this.state.name1 === undefined || this.state.name1 === "") {
+            this.state.name1 = this.getRandomName();
+        }
+        while (
+            this.state.name2 === undefined ||
+            this.state.name2 === "" ||
+            this.state.name2 === this.state.name1
+        ) {
+            this.state.name2 = this.getRandomName();
+        }
+        if (this.state.rsa1 === undefined) {
+            this.state.rsa1 = this.CalculateRSA(this.state.digitsPrime);
+            this.state.combo = getRandomIntInclusive(
+                (Math.pow(10, this.state.digitsCombo) - 1) / 9,
+                Math.pow(10, this.state.digitsCombo) - 1
+            );
+        }
+        this.state.question = this.applyTemplate(question);
+        this.updateQuestionsOutput();
     }
     public compute2(): void {
         let defaultQTemplate =
@@ -636,34 +669,20 @@ export class CipherRSAEncoder extends CipherEncoder {
         this.state.question = this.applyTemplate(question);
         this.updateQuestionsOutput();
     }
-    public compute1(): void {
+    public compute3(): void {
         let defaultQTemplate =
-            "<p>##NAME1## has faithfully followed the steps of the RSA key-generation algorithm. " +
-            "Here are the results:</p>" +
-            this.getRSARandomTemplate("R1") +
-            "<p>As it comes to pass, ##NAME2## is on vacation in Hawaii, " +
-            "and ##NAME1## needs a document that is stored in the company safe. " +
-            "They are communicating via email, " +
-            "and both know it is very unwise to trust the security of computers in a hotel lobby." +
-            "##NAME1## needs to tell ##NAME2## his/her public key, " +
-            "knowing well that it can be read by untrustworthy parties. " +
-            "List the minimum set of numbers that ##NAME1## needs to email to ##NAME2## " +
-            "in order for ##NAME2## to be able to decode the message.</p>" +
-            "<p>Additionally, ##NAME2## wants to transmit the combination to the safe " +
-            "(which is ##SAFECOMBO##)" +
-            " in the response email, but encrypted with RSA. " +
-            "What should formula should ##NAME2## compute in order to know the ciphertext to transmit?</p>";
-
+            "<p>##NAME1##, has faithfully followed the steps of the " +
+            "RSA key-generation algorithm.  Here are the results:</p>" +
+            fwspan("&nbsp;&nbsp;&nbsp;<em>p</em> = ##R1P##<br/>") +
+            fwspan("&nbsp;&nbsp;&nbsp;<em>q</em> = ##R1Q##<br/>") +
+            fwspan("&nbsp;&nbsp;&nbsp;<em>n</em> = ##R1N##<br/>") +
+            fwspan("&nbsp;&nbsp;&nbsp;<em>Φ</em> = ##R1PHI##<br/>") +
+            fwspan("&nbsp;&nbsp;&nbsp;<em>e</em> = ##R1E##") +
+            "<p>Unfortunately, ##NAME1## doesn't know how to compute the value of <em>d</em> " +
+            "and needs you to do that final step for them.</p>";
         let question = this.getTemplatedQuestion(defaultQTemplate);
         if (this.state.name1 === undefined || this.state.name1 === "") {
             this.state.name1 = this.getRandomName();
-        }
-        while (
-            this.state.name2 === undefined ||
-            this.state.name2 === "" ||
-            this.state.name2 === this.state.name1
-        ) {
-            this.state.name2 = this.getRandomName();
         }
         if (this.state.rsa1 === undefined) {
             this.state.rsa1 = this.CalculateRSA(this.state.digitsPrime);
@@ -776,6 +795,51 @@ export class CipherRSAEncoder extends CipherEncoder {
         result.append(table.generate());
         return result;
     }
+    /**
+     * Generate the HTML to display the answer for a cipher
+     */
+    public genQuestionAnswer3(showanswers: boolean): JQuery<HTMLElement> {
+        let result = $("<div>");
+        let cellclass = "TOSOLVE";
+
+        let answer = "";
+        if (showanswers) {
+            cellclass = "TOANSWER";
+            answer = String(this.state.rsa1.d);
+        }
+        result.append(
+            $("<div/>")
+                .text("Enter the computed value of ")
+                .append($("<em/>").text("d"))
+                .append(", NOT the formula.")
+        );
+
+        let table = new JTTable({
+            class: "ansblock shrink cell unstriped",
+        });
+        let row = table.addBodyRow();
+        row.add({
+            settings: {
+                class: "v rsawide " + cellclass,
+            },
+            content: answer,
+        });
+
+        result.append(table.generate());
+        return result;
+    }
+    /**
+     * Show the math for the Modular Inverse
+     * @param x Element
+     * @param y Modulous
+     * @param a1 a1
+     * @param b1 b1
+     * @param n1 n1
+     * @param a2 a2
+     * @param b2 b2
+     * @param n2 n2
+     * @param counter Which step we are on
+     */
     public genTalkativeModularInverseStep(
         x: number,
         y: number,
@@ -788,9 +852,6 @@ export class CipherRSAEncoder extends CipherEncoder {
         counter: number
     ): JQuery<HTMLElement> {
         let result = $("<div/>");
-        //         assert (a1*x + b1*y) == n1
-        // assert (a2*x + b2*y) == n2
-        //
         let multiplier = Math.floor(n1 / n2);
         let equation_1 = "Equation_{" + String(counter + 1) + "}";
         let equation_2 = "Equation_{" + String(counter + 2) + "}";
@@ -926,9 +987,9 @@ export class CipherRSAEncoder extends CipherEncoder {
             // elif (n3==0):
         } else if (n3 === 0) {
             result.append(
-                $("<div/>", { class: "callout error" }).text(
-                    "Failure! " + y + " is not invertible mod " + x
-                )
+                $("<div/>", {
+                    class: "callout error",
+                }).text("Failure! " + y + " is not invertible mod " + x)
             );
             //     print "Failure!"
             //     print y, "is not invertible mod", x
@@ -1079,43 +1140,79 @@ export class CipherRSAEncoder extends CipherEncoder {
         );
         return result;
     }
+    public genSolution3(): JQuery<HTMLElement> {
+        let result = $("<div/>");
+        result.append($("<h3/>").text("How to solve"));
+
+        result.append(
+            $("<div/>")
+                .text("To compute <em>d</em> you need to use the  ")
+                .append(
+                    $("<a/>", {
+                        href:
+                            "https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm",
+                    }).text("extended Euclidean Algorithm")
+                )
+                .append(
+                    " with <em>e</em>=" +
+                        this.state.rsa1.e +
+                        " and Φ=" +
+                        this.state.rsa1.phi
+                )
+        );
+        result.append(
+            this.genTalkativeModulerInverse(
+                this.state.rsa1.e,
+                this.state.rsa1.phi
+            )
+        );
+        return result;
+    }
+    public genQuestionAnswer(showanswers: boolean): JQuery<HTMLElement> {
+        switch (this.state.operation) {
+            case "rsa1":
+                return this.genQuestionAnswer1(showanswers);
+            case "rsa2":
+                return this.genQuestionAnswer2(showanswers);
+            case "rsa3":
+                return this.genQuestionAnswer3(showanswers);
+            case "rsa4":
+                return this.genQuestionAnswer2(showanswers);
+            case "rsa5":
+                return this.genQuestionAnswer2(showanswers);
+            default:
+                break;
+        }
+        return $("<h3/>").text("Not yet implemented");
+    }
     /**
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(): JQuery<HTMLElement> {
-        let result = $("<div>");
-        if (this.state.operation === "rsa1") {
-            return this.genQuestionAnswer1(true);
-        } else if (this.state.operation === "rsa2") {
-            return this.genQuestionAnswer2(true);
-        }
-        result.append($("<h3/>").text("Not yet implemented"));
-        return result;
+        return this.genQuestionAnswer(true);
     }
     /**
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div>");
-        if (this.state.operation === "rsa1") {
-            return this.genQuestionAnswer1(false);
-        } else if (this.state.operation === "rsa2") {
-            return this.genQuestionAnswer2(false);
-        }
-        result.append($("<h3/>").text("Not yet implemented"));
-
-        return result;
+        return this.genQuestionAnswer(false);
     }
     public genSolution(): JQuery<HTMLElement> {
-        let result = $("<div/>");
-        if (this.state.operation === "rsa1") {
-            return this.genSolution1();
-        } else if (this.state.operation === "rsa2") {
-            return this.genSolution2();
+        switch (this.state.operation) {
+            case "rsa1":
+                return this.genSolution1();
+            case "rsa2":
+                return this.genSolution2();
+            case "rsa3":
+                return this.genSolution3();
+            case "rsa4":
+                return this.genSolution2();
+            case "rsa5":
+                return this.genSolution2();
+            default:
+                break;
         }
-        result.append($("<h3/>").text("Not yet implemented"));
-
-        return result;
+        return $("<h3/>").text("Not yet implemented");
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions

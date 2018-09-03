@@ -153,6 +153,13 @@ export function getRandomPrime(numDigits: number): number {
     }
     while (!isPrime(candidate)) {
         candidate += direction;
+        // If we somehow went negative then we want to try again
+        if (candidate < 0) {
+            candidate = getOddRandomIntInclusive(
+                Math.pow(10, numDigits - 1),
+                Math.pow(10, numDigits) - 1
+            );
+        }
     }
     return candidate;
 }

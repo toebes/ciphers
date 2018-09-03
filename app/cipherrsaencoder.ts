@@ -29,17 +29,13 @@ function RSAEncrypt(val: number, n: number, e: number): number {
         .split("")
         .reverse()
         .join("");
-    let powerval = val;
     let result = 1;
-    let first = true;
+    let powerval = val % e;
     for (let bit of binary) {
-        if (!first) {
-            powerval = (powerval * powerval) % e;
-        }
         if (bit === "1") {
             result = (result * powerval) % e;
         }
-        first = false;
+        powerval = (powerval * powerval) % e;
     }
     return result;
 }
@@ -64,7 +60,70 @@ interface IRSAState extends IEncoderState {
     name2?: string;
     year?: number;
     encrypted?: number;
+    qchoice?: number;
 }
+const digitsPrimeRange = {
+    rsa1: { min: 3, max: 8 },
+    rsa2: { min: 3, max: 6 },
+    rsa3: { min: 2, max: 6 },
+    rsa4: { min: 2, max: 4 },
+    rsa5: { min: 3, max: 8 },
+};
+const digitsComboRange = {
+    rsa1: { min: 2, max: 8 },
+    rsa2: { min: 3, max: 6 },
+    rsa3: { min: 2, max: 6 },
+    rsa4: { min: 2, max: 4 },
+    rsa5: { min: 3, max: 8 },
+};
+const optRSA5TemplateOptStrings = [
+    "formula ##NAME1## needs to calculate in order to transmit the value ##SAFECOMBO## to ##NAME2##",
+    "formula ##NAME2## needs to calculate in order to transmit the value ##SAFECOMBO## to ##NAME1##",
+    "formula ##NAME1## needs to calculate in order to decrypt the value ##SAFECOMBO## from ##NAME2##",
+    "formula ##NAME2## needs to calculate in order to decrypt the value ##SAFECOMBO## from ##NAME1##",
+];
+
+const optRSA5Formulas = [
+    "##SAFECOMBO## ^ ##R2E## mod ##R2N##",
+    "##SAFECOMBO## ^ ##R1E## mod ##R1N##",
+    "##SAFECOMBO## ^ ##R1D## mod ##R1N##",
+    "##SAFECOMBO## ^ ##R2D## mod ##R2N##",
+];
+const optRSA5TemplateAnswerStrings = [
+    "<p>##NAME1## needs to use ##NAME2##'s public key (" +
+        fwspan("<em>n</em> = ##R2N##") +
+        ", " +
+        fwspan("<em>e</em> = ##R2E##") +
+        ") in order to encrypt the value ##SAFECOMBO##.</p>" +
+        "<p>Hence the formula is: " +
+        fwspan("value ^ e mod n") +
+        "</p>",
+    "<p>##NAME2## needs to use ##NAME1##'s public key (" +
+        fwspan("<em>n</em> = ##R1N##") +
+        ", " +
+        fwspan("<em>e</em> = ##R1E##") +
+        ") in order to encrypt the value ##SAFECOMBO##.</p>" +
+        "<p>Hence the formula is: " +
+        fwspan("value ^ e mod n") +
+        "</p>",
+    "<p>##NAME1## needs to use their own private key (" +
+        fwspan("<em>n</em> = ##R1N##") +
+        ", " +
+        fwspan("<em>d</em> = ##R1D##") +
+        ") because ##NAME2## had to encode it using ##NAME1##'s public key of (##R1N##,##R1E##).</p>" +
+        "<p>In order to decrypt the value ##SAFECOMBO##, ##NAME1## must use the formula: " +
+        fwspan("value ^ d mod n") +
+        "</p>",
+    "<p>##NAME2## needs to use their own private key (" +
+        fwspan("<em>n</em> = ##R2N##") +
+        ", " +
+        fwspan("<em>d</em> = ##R2D##") +
+        ") because ##NAME1## had to encode it using ##NAME2##'s public key of (##R2N##,##R2E##).</p>" +
+        "<p>In order to decrypt the value ##SAFECOMBO##, ##NAME2## must use the formula: " +
+        fwspan("value ^ d mod n") +
+        "</p>",
+];
+
 /**
  * CipherBaconianEncoder - This class handles all of the actions associated with encoding
  * a Baconian cipher.
@@ -118,7 +177,11 @@ export class CipherRSAEncoder extends CipherEncoder {
      */
     public setDigitsPrime(digitsPrime: number): boolean {
         let changed = false;
-        let newdigits = this.applySliderRange(digitsPrime, 2, 10);
+        let newdigits = this.applySliderRange(
+            digitsPrime,
+            digitsPrimeRange[this.state.operation].min,
+            digitsPrimeRange[this.state.operation].max
+        );
         if (newdigits !== this.state.digitsPrime) {
             changed = true;
             this.state.digitsPrime = newdigits;
@@ -131,7 +194,11 @@ export class CipherRSAEncoder extends CipherEncoder {
      */
     public setDigitsCombo(digitsCombo: number): boolean {
         let changed = false;
-        let newdigits = this.applySliderRange(digitsCombo, 2, 6);
+        let newdigits = this.applySliderRange(
+            digitsCombo,
+            digitsComboRange[this.state.operation].min,
+            digitsComboRange[this.state.operation].max
+        );
         if (newdigits !== this.state.digitsCombo) {
             changed = true;
             this.state.digitsCombo = newdigits;
@@ -145,7 +212,9 @@ export class CipherRSAEncoder extends CipherEncoder {
     setOperation(operation: IOperationType): boolean {
         let changed = super.setOperation(operation);
         if (changed) {
+            this.setUIDefaults();
             this.recalcData();
+            this.state.qchoice = undefined;
             this.state.question = "";
         }
         return changed;
@@ -178,6 +247,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         $("#linewidth").val(this.state.linewidth);
         $("#digitsprime").val(this.state.digitsPrime);
         $("#digitscombo").val(this.state.digitsCombo);
+        $("#digitsData").val(this.state.digitsCombo);
         super.updateOutput();
     }
     /**
@@ -201,7 +271,7 @@ export class CipherRSAEncoder extends CipherEncoder {
                 this.compute4();
                 break;
             case "rsa5":
-                this.compute2();
+                this.compute5();
                 break;
             default:
                 break;
@@ -266,6 +336,14 @@ export class CipherRSAEncoder extends CipherEncoder {
                 "digitscombo",
                 this.state.digitsCombo,
                 "small-12 medium-6 large-6 opfield rsa1 sequence"
+            )
+        );
+        result.append(
+            JTFIncButton(
+                "Data Digits",
+                "digitsData",
+                this.state.digitsCombo,
+                "small-12 medium-6 large-6 opfield rsa5 sequence"
             )
         );
         return result;
@@ -381,23 +459,25 @@ export class CipherRSAEncoder extends CipherEncoder {
      */
     public CalculateRSA(nDigits: number): IRSAData {
         let result: IRSAData = { p: 0, q: 0, n: 0, phi: 0, e: 0, d: 0 };
-        result.p = getRandomPrime(this.state.digitsPrime);
-        result.q = getRandomPrime(this.state.digitsPrime);
-        this.state.combo = getRandomIntInclusive(
-            (Math.pow(10, nDigits) - 1) / 9,
-            Math.pow(10, nDigits) - 1
-        );
-        // RSA requires that p and q be different prime values
-        while (result.p === result.q) {
-            result.q = getRandomPrime(nDigits);
-        }
-        result.n = result.p * result.q;
-        result.phi = (result.p - 1) * (result.q - 1);
-        result.e = getRandomIntInclusive(3, result.n - 1);
-        while (gcd(result.e, result.phi) !== 1) {
-            result.e = getRandomIntInclusive(3, result.phi);
-        }
-        result.d = modularInverse(result.e, result.phi);
+        do {
+            result.p = getRandomPrime(this.state.digitsPrime);
+            result.q = getRandomPrime(this.state.digitsPrime);
+            this.state.combo = getRandomIntInclusive(
+                (Math.pow(10, nDigits) - 1) / 9,
+                Math.pow(10, nDigits) - 1
+            );
+            // RSA requires that p and q be different prime values
+            while (result.p === result.q) {
+                result.q = getRandomPrime(nDigits);
+            }
+            result.n = result.p * result.q;
+            result.phi = (result.p - 1) * (result.q - 1);
+            result.e = getRandomIntInclusive(3, result.n - 1);
+            while (gcd(result.e, result.phi) !== 1) {
+                result.e = getRandomIntInclusive(3, result.phi);
+            }
+            result.d = modularInverse(result.e, result.phi);
+        } while (isNaN(result.d));
         return result;
     }
     /**
@@ -736,8 +816,8 @@ export class CipherRSAEncoder extends CipherEncoder {
             "<p>##NAME2## and ##NAME1## are accountants for a very large bank, " +
             "and have started a friendship. They communicate via email, " +
             "because they live thousands of miles apart. " +
-            "##NAME1## gets curious and asks ##NAME2## the year that they were born." +
-            " They doesn’t mind telling ##NAME1##, " +
+            "##NAME1## gets curious and asks ##NAME2## the year that they were born.  " +
+            "##NAME2## doesn’t mind telling ##NAME1##, " +
             "but they know that the bank monitors all employee emails, " +
             "and is afraid of being the victim of age discrimination. " +
             "Therefore, ##NAME1## suggests that they use RSA, " +
@@ -760,33 +840,109 @@ export class CipherRSAEncoder extends CipherEncoder {
             do {
                 this.state.rsa1 = this.CalculateRSA(this.state.digitsPrime);
             } while (this.state.rsa1.e <= this.state.year);
-            //HACK:
-            // this.state.rsa1.n = 57;
-            // this.state.rsa1.d = 73;
-            // this.state.rsa1.e = 2173;
-            // this.state.year = 1968;
-            //ENDHACK:
-
             this.state.encrypted = RSAEncrypt(
                 this.state.year,
-                this.state.rsa1.n,
-                this.state.rsa1.e
+                this.state.rsa1.e,
+                this.state.rsa1.n
             );
         }
         this.state.question = this.applyTemplate(question);
         this.updateQuestionsOutput();
+    }
+    public compute5(): void {
+        if (this.state.qchoice === undefined) {
+            this.state.qchoice = Math.floor(Math.random() * 8);
+        }
+        let qorder = this.state.qchoice % 2;
+        let questionOpt = Math.floor(this.state.qchoice / 2) % 4;
+        let defaultQTemplate =
+            "<p>##NAME1## and ##NAME2## want to communicate with each other using RSA for encryption. " +
+            "##NAME1## generates their RSA keys generating the following values:</p>" +
+            this.getRSATemplate("R1", true) +
+            "<p>Likewise, ##NAME2## also generates their RSA keys resulting in the values</p>" +
+            this.getRSATemplate("R2", true) +
+            "<p>What information do they need to transmit to each other in order to communicate?" +
+            "<p>You must also determine what " +
+            optRSA5TemplateOptStrings[questionOpt] +
+            "</p>";
+        let question = this.getTemplatedQuestion(defaultQTemplate);
+
+        if (this.state.name1 === undefined || this.state.name1 === "") {
+            this.state.name1 = this.getRandomName();
+        }
+        while (
+            this.state.name2 === undefined ||
+            this.state.name2 === "" ||
+            this.state.name2 === this.state.name1
+        ) {
+            this.state.name2 = this.getRandomName();
+        }
+        this.state.combo = getRandomIntInclusive(
+            (Math.pow(10, this.state.digitsCombo) - 1) / 9,
+            Math.pow(10, this.state.digitsCombo) - 1
+        );
+        if (this.state.rsa1 === undefined) {
+            this.state.rsa1 = this.CalculateRSA(this.state.digitsPrime);
+        }
+        if (this.state.rsa2 === undefined) {
+            this.state.rsa2 = this.CalculateRSA(this.state.digitsPrime);
+        }
+        this.state.question = this.applyTemplate(question);
+        // Figure out what we are going to do for the question.  Lots of choices
+        //  Order of which person's public key we are asking for
+        //  Remaining question:
+        //    What function does Name1 calculate to transmit value to Name2
+        //    What function does Name2 calculate to transmit value to Name1
+        //    What function does Name1 calculate to decrypt data from Name2
+        //    What function does Name2 calculate to decrypt data from Name1
+        this.updateQuestionsOutput();
+    }
+    /**
+     * Create an answer block for a public/private key
+     * @param answers Answers to populate the fields with
+     * @param showanswers Are we showing the answers for an answerkey
+     */
+    public genKeyBlock(
+        title: string,
+        answers: string[],
+        showanswers: boolean
+    ): JQuery<HTMLElement> {
+        let cellclass = showanswers ? "TOANSWER" : "TOSOLVE";
+        let result = $("<div/>");
+        result.append($("<div/>").text(title));
+        let table = new JTTable({
+            class: "ansblock shrink cell unstriped",
+        });
+        let row = table.addBodyRow();
+        for (let i = 0; i < 3; i++) {
+            row.add({
+                settings: {
+                    class: "v rsawide " + cellclass,
+                },
+                content: answers[i],
+            });
+        }
+        result.append(table.generate());
+        if (showanswers) {
+            result.append(
+                $("<span/>").append(
+                    $("<em/>").text("These two numbers can be in either order.")
+                )
+            );
+        }
+        return result;
     }
     /**
      * Generate the HTML to display the answer for a cipher
      */
     public genQuestionAnswer1(showanswers: boolean): JQuery<HTMLElement> {
         let result = $("<div>");
-        let cellclass = "TOSOLVE";
+        let cellclass = showanswers ? "TOANSWER" : "TOSOLVE";
+
         let formula = $("<span/>").text("");
 
         let answers: string[] = ["", "", ""];
         if (showanswers) {
-            cellclass = "TOANSWER";
             answers = [
                 String(this.state.rsa1.n),
                 String(this.state.rsa1.e),
@@ -805,36 +961,18 @@ export class CipherRSAEncoder extends CipherEncoder {
                 $("<div/>", {
                     class: "callout error",
                 }).text(
-                    "The combination is smaller than N. Please pick a smaller combo or larger primes"
+                    "The combination is smaller than N. Please pick larger primes"
                 )
             );
             return result;
         }
         result.append(
-            $("<div/>").text("Enter the minimum values to transmit:")
+            this.genKeyBlock(
+                "Enter the minimum values to transmit:",
+                answers,
+                showanswers
+            )
         );
-
-        let table = new JTTable({
-            class: "ansblock shrink cell unstriped",
-        });
-        let row = table.addBodyRow();
-        for (let i = 0; i < 3; i++) {
-            row.add({
-                settings: {
-                    class: "v rsawide " + cellclass,
-                },
-                content: answers[i],
-            });
-        }
-
-        result.append(table.generate());
-        if (showanswers) {
-            result.append(
-                $("<span/>").append(
-                    $("<em/>").text("These two numbers can be in either order.")
-                )
-            );
-        }
 
         result.append(
             $("<div/>").text(
@@ -936,6 +1074,73 @@ export class CipherRSAEncoder extends CipherEncoder {
         });
 
         result.append(table.generate());
+        return result;
+    }
+    /**
+     * Generate the HTML to display the answer for a cipher
+     */
+    public genQuestionAnswer5(showanswers: boolean): JQuery<HTMLElement> {
+        let result = $("<div>");
+
+        let qorder = this.state.qchoice % 2;
+        let questionOpt = Math.floor(this.state.qchoice / 2) % 4;
+
+        let cellclass = showanswers ? "TOANSWER" : "TOSOLVE";
+        let formula = $("");
+        let answers: string[][] = [["", "", ""], ["", "", ""]];
+
+        let n1pos = 0;
+        let n2pos = 1;
+        let n1 =
+            "Enter the minimum values that " +
+            this.state.name1 +
+            " need to transmit to " +
+            this.state.name2 +
+            ":";
+        let n2 =
+            "Enter the minimum values that " +
+            this.state.name2 +
+            " need to transmit to " +
+            this.state.name1 +
+            ":";
+        if (qorder === 1) {
+            // We need to swap the order of the names
+            n1pos = 1;
+            n2pos = 0;
+            let x = n1;
+            n1 = n2;
+            n2 = x;
+        }
+        if (showanswers) {
+            formula = $("<span/>").text(
+                this.applyTemplate(optRSA5Formulas[questionOpt])
+            );
+
+            answers[n1pos] = [
+                String(this.state.rsa1.n),
+                String(this.state.rsa1.e),
+                "",
+            ];
+            answers[n2pos] = [
+                String(this.state.rsa2.n),
+                String(this.state.rsa2.e),
+                "",
+            ];
+        }
+        result.append(this.genKeyBlock(n1, answers[0], showanswers));
+        result.append(this.genKeyBlock(n2, answers[1], showanswers));
+        result.append(
+            $("<div/>").text(
+                "Write the " +
+                    this.applyTemplate(optRSA5TemplateOptStrings[questionOpt])
+            )
+        );
+
+        result.append(
+            $("<div/>", {
+                class: "formulabox " + cellclass,
+            }).append(formula)
+        );
         return result;
     }
     /**
@@ -1220,17 +1425,17 @@ export class CipherRSAEncoder extends CipherEncoder {
                                 encrypted +
                                     "^{" +
                                     power +
-                                    "}\\equiv" +
+                                    "}\\equiv " +
                                     powerval +
                                     "^2\\equiv{" +
                                     powerval +
                                     "^2}\\mod{" +
                                     mod +
-                                    "}\\equiv" +
+                                    "}\\equiv " +
                                     mult +
                                     "\\mod{" +
                                     mod +
-                                    "}\\equiv" +
+                                    "}\\equiv " +
                                     newpowerval
                             )
                         )
@@ -1254,7 +1459,7 @@ export class CipherRSAEncoder extends CipherEncoder {
                     let newrval = mult % mod;
                     result.append(
                         $("<div/>")
-                            .append("We need this power, so acumulate it: ")
+                            .append("We need this power, so accumulate it: ")
                             .append(
                                 renderMath(
                                     "result=(" +
@@ -1278,7 +1483,9 @@ export class CipherRSAEncoder extends CipherEncoder {
             power *= 2;
         }
         result.append(
-            $("<div/>", { class: "callout success" }).text(
+            $("<div/>", {
+                class: "callout success",
+            }).text(
                 "Since we have computed all the powers, we see that the result is " +
                     rval
             )
@@ -1369,7 +1576,7 @@ export class CipherRSAEncoder extends CipherEncoder {
 
         result.append(
             $("<div/>")
-                .text("To compute <em>d</em> you need to use the  ")
+                .append("To compute <em>d</em> you need to use the  ")
                 .append(
                     $("<a/>", {
                         href:
@@ -1396,8 +1603,8 @@ export class CipherRSAEncoder extends CipherEncoder {
         result.append($("<h3/>").text("How to solve"));
         result.append(
             $("<p/>")
-                .text("In order to decode, we need to use the function:")
-                .append(renderMath("value^d\\mod{e}"))
+                .text("In order to decode, we need to use the function: ")
+                .append(renderMath("{value}^d\\mod{n}"))
                 .append(
                     ". Because of the size of the values, we have to use the "
                 )
@@ -1433,9 +1640,49 @@ export class CipherRSAEncoder extends CipherEncoder {
             this.genTalkativeModulerExponentiation(
                 this.state.encrypted,
                 this.state.rsa1.d,
-                this.state.rsa1.e
+                this.state.rsa1.n
             )
         );
+        return result;
+    }
+    public genSolution5(): JQuery<HTMLElement> {
+        let result = $("<div/>");
+        result.append($("<h3/>").text("How to solve"));
+        let qorder = this.state.qchoice % 2;
+        let questionOpt = Math.floor(this.state.qchoice / 2) % 4;
+
+        let div1 = $("<div/>").html(
+            this.state.name1 +
+                " needs to send only their public key" +
+                " (<em>e</em>=" +
+                this.state.rsa1.e +
+                ", <em>n</em>=" +
+                this.state.rsa1.n +
+                ") to " +
+                this.state.name2
+        );
+        let div2 = $("<div/>").html(
+            this.state.name2 +
+                " needs to send only their public key" +
+                " (<em>e</em>=" +
+                this.state.rsa2.e +
+                ", <em>n</em>=" +
+                this.state.rsa2.n +
+                ") to " +
+                this.state.name1
+        );
+        if (qorder === 0) {
+            result.append(div1).append(div2);
+        } else {
+            result.append(div2).append(div1);
+        }
+
+        result.append(
+            $("<div/>").html(
+                this.applyTemplate(optRSA5TemplateAnswerStrings[questionOpt])
+            )
+        );
+
         return result;
     }
     public genQuestionAnswer(showanswers: boolean): JQuery<HTMLElement> {
@@ -1449,7 +1696,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             case "rsa4":
                 return this.genQuestionAnswer4(showanswers);
             case "rsa5":
-                return this.genQuestionAnswer2(showanswers);
+                return this.genQuestionAnswer5(showanswers);
             default:
                 break;
         }
@@ -1478,7 +1725,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             case "rsa4":
                 return this.genSolution4();
             case "rsa5":
-                return this.genSolution2();
+                return this.genSolution5();
             default:
                 break;
         }
@@ -1509,6 +1756,16 @@ export class CipherRSAEncoder extends CipherEncoder {
                 }
             });
         $("#digitscombo")
+            .off("input")
+            .on("input", e => {
+                let digits = Number($(e.target).val());
+                this.markUndo(null);
+                if (this.setDigitsCombo(digits)) {
+                    this.recalcData();
+                    this.updateOutput();
+                }
+            });
+        $("#digitsData")
             .off("input")
             .on("input", e => {
                 let digits = Number($(e.target).val());

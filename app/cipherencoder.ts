@@ -827,7 +827,9 @@ export class CipherEncoder extends CipherHandler {
         );
         return result.children();
     }
-
+    /**
+     * Generate HTML for any UI elements that go above the command bar
+     */
     genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(this.genTestUsage());

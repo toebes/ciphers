@@ -3,6 +3,7 @@ import { menuMode, toolMode } from "./cipherhandler";
 import { buttonInfo, CipherTest, ITestState } from "./ciphertest";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
+import { JTFDialog } from "./jtfdialog";
 
 /**
  * CipherTestQuestions - This manages all of the questions to allow deleting/importing/editing
@@ -28,6 +29,11 @@ export class CipherTestQuestions extends CipherTest {
             title: "Import Problems from URL",
             color: "primary",
             id: "importurl",
+        },
+        {
+            title: "Delete All Problems",
+            color: "alert",
+            id: "delall",
         },
     ];
     restore(data: ITestState): void {
@@ -55,7 +61,7 @@ export class CipherTestQuestions extends CipherTest {
 
         let buttons: buttonInfo[] = [
             { title: "Edit", btnClass: "entryedit" },
-            { title: "Delete", btnClass: "entrydel" },
+            { title: "Delete", btnClass: "entrydel alert" },
         ];
         result.append(this.genQuestionTable(undefined, buttons));
         return result;
@@ -78,6 +84,54 @@ export class CipherTestQuestions extends CipherTest {
     }
     importQuestions(useLocalData: boolean): void {
         this.openXMLImport(useLocalData);
+    }
+    /**
+     * This prompts a user and then deletes all ciphers
+     */
+    public gotoDeleteAllCiphers(): void {
+        $("#okdel")
+            .off("click")
+            .on("click", e => {
+                let cipherCount = this.getCipherCount();
+                for (let entry = cipherCount - 1; entry >= 0; entry--) {
+                    this.deleteFileEntry(entry);
+                }
+                $("#delalldlg").foundation("close");
+                this.updateOutput();
+            });
+        $("#okdel").removeAttr("disabled");
+        $("#delalldlg").foundation("open");
+    }
+    /**
+     * Create the hidden dialog for selecting a cipher to open
+     */
+    private createDeleteAllDlg(): JQuery<HTMLElement> {
+        let dlgContents = $("<div/>", {
+            class: "callout alert",
+        }).text(
+            "This will delete all questions! " +
+                "This operation can not be undone. " +
+                "Please make sure you have saved a copy in case you need them. " +
+                "  Are you sure you want to do this?"
+        );
+        let DeleteAllDlg = JTFDialog(
+            "delalldlg",
+            "Delete all Problems",
+            dlgContents,
+            "okdel",
+            "Yes, Delete them!"
+        );
+        return DeleteAllDlg;
+    }
+    /**
+     * Create the main menu at the top of the page.
+     * This also creates the hidden dialog used for deleting ciphers
+     */
+    public createMainMenu(): JQuery<HTMLElement> {
+        let result = super.createMainMenu();
+        // Create the dialog for selecting which cipher to load
+        result.append(this.createDeleteAllDlg());
+        return result;
     }
     /**
      * Process imported XML
@@ -109,6 +163,11 @@ export class CipherTestQuestions extends CipherTest {
             .off("click")
             .on("click", e => {
                 this.gotoDeleteCipher(Number($(e.target).attr("data-entry")));
+            });
+        $("#delall")
+            .off("click")
+            .on("click", e => {
+                this.gotoDeleteAllCiphers();
             });
     }
 }

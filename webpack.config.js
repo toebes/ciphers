@@ -168,11 +168,11 @@ module.exports = {
             },
         ]),
         new HardSourceWebpackPlugin(),
-        new TypedocWebpackPlugin({
-            target: "es5",
-            ignoreCompilerErrors: true,
-            includeDeclarations: true,
-        }),
+        // new TypedocWebpackPlugin({
+        //     target: "es5",
+        //     ignoreCompilerErrors: true,
+        //     includeDeclarations: true,
+        // }),
         new HtmlWebpackPlugin({
             inject: false,
             filename: "ACAProblems.html",

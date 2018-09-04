@@ -72,9 +72,14 @@
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_mathsupport_.html#gcd" class="tsd-kind-icon">gcd</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_mathsupport_.html#getoddrandomintinclusive" class="tsd-kind-icon">get<wbr>Odd<wbr>Random<wbr>Int<wbr>Inclusive</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_mathsupport_.html#getrandomintinclusive" class="tsd-kind-icon">get<wbr>Random<wbr>Int<wbr>Inclusive</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_mathsupport_.html#getrandomprime" class="tsd-kind-icon">get<wbr>Random<wbr>Prime</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_mathsupport_.html#iscoprime" class="tsd-kind-icon">is<wbr>CoPrime</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_mathsupport_.html#isprime" class="tsd-kind-icon">is<wbr>Prime</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_mathsupport_.html#mod26" class="tsd-kind-icon">mod26</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_mathsupport_.html#mod26inverse2x2" class="tsd-kind-icon">mod26<wbr>Inverse2x2</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_mathsupport_.html#modularinverse" class="tsd-kind-icon">modular<wbr>Inverse</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -98,23 +103,137 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L6">mathsupport.ts:6</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L6">mathsupport.ts:6</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Compute the greatest common denominator between two numbers
-										a First number
-									b Second Number</p>
+									<p>Compute the greatest common denominator between two numbers</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>a: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>First number</p>
+									</div>
 								</li>
 								<li>
 									<h5>b: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Second Number</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+					<a name="getoddrandomintinclusive" class="tsd-anchor"></a>
+					<h3>get<wbr>Odd<wbr>Random<wbr>Int<wbr>Inclusive</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Odd<wbr>Random<wbr>Int<wbr>Inclusive<span class="tsd-signature-symbol">(</span>min<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, max<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L125">mathsupport.ts:125</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Generate an odd random integer between two numbers (inclusive)</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>min: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Minimum value to return</p>
+									</div>
+								</li>
+								<li>
+									<h5>max: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Maximum value to return</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+					<a name="getrandomintinclusive" class="tsd-anchor"></a>
+					<h3>get<wbr>Random<wbr>Int<wbr>Inclusive</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Random<wbr>Int<wbr>Inclusive<span class="tsd-signature-symbol">(</span>min<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, max<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L115">mathsupport.ts:115</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get the random integer between two numbers (inclusive)
+									<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random">https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random</a></p>
+									<pre><code>                    <span class="hljs-meta">#Getting_a_random_integer_between_two_values_inclusive</span></code></pre>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>min: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Lower limit of random number to generate</p>
+									</div>
+								</li>
+								<li>
+									<h5>max: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Upper limit of random number to generate</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+					<a name="getrandomprime" class="tsd-anchor"></a>
+					<h3>get<wbr>Random<wbr>Prime</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Random<wbr>Prime<span class="tsd-signature-symbol">(</span>numDigits<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L144">mathsupport.ts:144</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>This returns a random prime number with &#39;numDigits&#39; digits.
+										The input must be a positive integer.  Note that this might run for
+										a very long time if we get unlucky or you are asking for something with more
+									then 6 digits</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>numDigits: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Number of digits (should be small)</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -131,16 +250,59 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L37">mathsupport.ts:37</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L41">mathsupport.ts:41</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Determines if a number is CoPrime with another</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>a: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>First Number</p>
+									</div>
 								</li>
 								<li>
 									<h5>r: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Number to checn against</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+					<a name="isprime" class="tsd-anchor"></a>
+					<h3>is<wbr>Prime</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+						<li class="tsd-signature tsd-kind-icon">is<wbr>Prime<span class="tsd-signature-symbol">(</span>candidate<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L97">mathsupport.ts:97</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>I would really like to use: <a href="http://www.javascripter.net/faq/primefactors.txt">http://www.javascripter.net/faq/primefactors.txt</a>
+									but the status of reuse is unclear.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>candidate: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Number to test for primality</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -157,13 +319,21 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L47">mathsupport.ts:47</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L54">mathsupport.ts:54</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Compute the Mod 26 of a value, properly handling negative values</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>v: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Value to compute</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -180,16 +350,63 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L63">mathsupport.ts:63</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L74">mathsupport.ts:74</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Compute the modular 26 inverse of a matrix</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>matrix: <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>2x2 matrix of numbers</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">[]</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+					<a name="modularinverse" class="tsd-anchor"></a>
+					<h3>modular<wbr>Inverse</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+						<li class="tsd-signature tsd-kind-icon">modular<wbr>Inverse<span class="tsd-signature-symbol">(</span>a<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, m<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L173">mathsupport.ts:173</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Compute the modular inverse of a number
+										From: <a href="https://stackoverflow.com/questions/26985808/calculating-the-modular-inverse-in-javascript">https://stackoverflow.com/questions/26985808/calculating-the-modular-inverse-in-javascript</a>
+									An alternate to consider is at <a href="https://stackoverflow.com/questions/23279208/rsa-calculate-d">https://stackoverflow.com/questions/23279208/rsa-calculate-d</a></p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>a: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Number to compute</p>
+									</div>
+								</li>
+								<li>
+									<h5>m: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Modulous</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -202,7 +419,7 @@
 					<div class="tsd-signature tsd-kind-icon">mod<wbr>Inverse26<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L50">mathsupport.ts:50</a></li>
+							<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L57">mathsupport.ts:57</a></li>
 						</ul>
 					</aside>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
@@ -211,7 +428,7 @@
 						<div class="tsd-signature tsd-kind-icon">1<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;1</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L51">mathsupport.ts:51</a></li>
+								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L58">mathsupport.ts:58</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -221,7 +438,7 @@
 						<div class="tsd-signature tsd-kind-icon">11<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;19</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L56">mathsupport.ts:56</a></li>
+								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L63">mathsupport.ts:63</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -231,7 +448,7 @@
 						<div class="tsd-signature tsd-kind-icon">15<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;7</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L57">mathsupport.ts:57</a></li>
+								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L64">mathsupport.ts:64</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -241,7 +458,7 @@
 						<div class="tsd-signature tsd-kind-icon">17<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;23</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L58">mathsupport.ts:58</a></li>
+								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L65">mathsupport.ts:65</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -251,7 +468,7 @@
 						<div class="tsd-signature tsd-kind-icon">19<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;11</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L59">mathsupport.ts:59</a></li>
+								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L66">mathsupport.ts:66</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -261,7 +478,7 @@
 						<div class="tsd-signature tsd-kind-icon">21<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;5</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L60">mathsupport.ts:60</a></li>
+								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L67">mathsupport.ts:67</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -271,7 +488,7 @@
 						<div class="tsd-signature tsd-kind-icon">23<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;17</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L61">mathsupport.ts:61</a></li>
+								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L68">mathsupport.ts:68</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -281,7 +498,7 @@
 						<div class="tsd-signature tsd-kind-icon">3<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;9</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L52">mathsupport.ts:52</a></li>
+								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L59">mathsupport.ts:59</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -291,7 +508,7 @@
 						<div class="tsd-signature tsd-kind-icon">5<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;21</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L53">mathsupport.ts:53</a></li>
+								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L60">mathsupport.ts:60</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -301,7 +518,7 @@
 						<div class="tsd-signature tsd-kind-icon">7<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;15</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L54">mathsupport.ts:54</a></li>
+								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L61">mathsupport.ts:61</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -311,7 +528,7 @@
 						<div class="tsd-signature tsd-kind-icon">9<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;3</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/mathsupport.ts#L55">mathsupport.ts:55</a></li>
+								<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/mathsupport.ts#L62">mathsupport.ts:62</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -335,13 +552,28 @@
 						<a href="_mathsupport_.html#gcd" class="tsd-kind-icon">gcd</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module">
+						<a href="_mathsupport_.html#getoddrandomintinclusive" class="tsd-kind-icon">get<wbr>Odd<wbr>Random<wbr>Int<wbr>Inclusive</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module">
+						<a href="_mathsupport_.html#getrandomintinclusive" class="tsd-kind-icon">get<wbr>Random<wbr>Int<wbr>Inclusive</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module">
+						<a href="_mathsupport_.html#getrandomprime" class="tsd-kind-icon">get<wbr>Random<wbr>Prime</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module">
 						<a href="_mathsupport_.html#iscoprime" class="tsd-kind-icon">is<wbr>CoPrime</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module">
+						<a href="_mathsupport_.html#isprime" class="tsd-kind-icon">is<wbr>Prime</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module">
 						<a href="_mathsupport_.html#mod26" class="tsd-kind-icon">mod26</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module">
 						<a href="_mathsupport_.html#mod26inverse2x2" class="tsd-kind-icon">mod26<wbr>Inverse2x2</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module">
+						<a href="_mathsupport_.html#modularinverse" class="tsd-kind-icon">modular<wbr>Inverse</a>
 					</li>
 					<li class=" tsd-kind-object-literal tsd-parent-kind-external-module">
 						<a href="_mathsupport_.html#modinverse26" class="tsd-kind-icon">mod<wbr>Inverse26</a>

@@ -80,6 +80,7 @@
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_ciphercommon_.html#cloneobject" class="tsd-kind-icon">clone<wbr>Object</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_ciphercommon_.html#padleft" class="tsd-kind-icon">pad<wbr>Left</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_ciphercommon_.html#padtomatch" class="tsd-kind-icon">pad<wbr>ToMatch</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_ciphercommon_.html#rendermath" class="tsd-kind-icon">render<wbr>Math</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-external-module"><a href="_ciphercommon_.html#repeatstr" class="tsd-kind-icon">repeat<wbr>Str</a></li>
@@ -102,7 +103,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/ciphercommon.ts#L19">ciphercommon.ts:19</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/ciphercommon.ts#L19">ciphercommon.ts:19</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -124,6 +125,45 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
+					<a name="padleft" class="tsd-anchor"></a>
+					<h3>pad<wbr>Left</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
+						<li class="tsd-signature tsd-kind-icon">pad<wbr>Left<span class="tsd-signature-symbol">(</span>val<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, width<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/ciphercommon.ts#L96">ciphercommon.ts:96</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Take any number and pad it on the left with spaces, returning the right most
+										width digits of the formatted string.  Note that if the number is wider than
+									the width, it will be truncated.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>val: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Value to pad</p>
+									</div>
+								</li>
+								<li>
+									<h5>width: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Number of spaces to pad/truncate the number to</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-external-module">
 					<a name="padtomatch" class="tsd-anchor"></a>
 					<h3>pad<wbr>ToMatch</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-external-module">
@@ -133,7 +173,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/ciphercommon.ts#L74">ciphercommon.ts:74</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/ciphercommon.ts#L74">ciphercommon.ts:74</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -167,7 +207,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/ciphercommon.ts#L54">ciphercommon.ts:54</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/ciphercommon.ts#L54">ciphercommon.ts:54</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -199,7 +239,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/ciphercommon.ts#L62">ciphercommon.ts:62</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/ciphercommon.ts#L62">ciphercommon.ts:62</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -236,7 +276,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/ciphercommon.ts#L43">ciphercommon.ts:43</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/ciphercommon.ts#L43">ciphercommon.ts:43</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -280,7 +320,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/4282ac0/app/ciphercommon.ts#L82">ciphercommon.ts:82</a></li>
+									<li>Defined in <a href="https://github.com/toebes/ciphers/blob/986b416/app/ciphercommon.ts#L82">ciphercommon.ts:82</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -333,6 +373,9 @@
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module">
 						<a href="_ciphercommon_.html#cloneobject" class="tsd-kind-icon">clone<wbr>Object</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-external-module">
+						<a href="_ciphercommon_.html#padleft" class="tsd-kind-icon">pad<wbr>Left</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-external-module">
 						<a href="_ciphercommon_.html#padtomatch" class="tsd-kind-icon">pad<wbr>ToMatch</a>

@@ -114,7 +114,7 @@ export class CipherACAProblems extends CipherTest {
             };
         }
         let buttonset = $("<div/>", {
-            class: "button-group round entrycmds",
+            class: "button-group round shrink",
         });
         for (let btninfo of buttons) {
             let button = $("<button/>", {
@@ -127,7 +127,7 @@ export class CipherACAProblems extends CipherTest {
             }
             buttonset.append(button);
         }
-        row.add(buttonset);
+        row.add($("<div/>", { class: "grid-x" }).append(buttonset));
         let calloutclass = "";
         let statusmsg = "";
         if (state.solved !== undefined) {

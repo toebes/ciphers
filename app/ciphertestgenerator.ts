@@ -138,7 +138,7 @@ export class CipherTestGenerator extends CipherTest {
         let buttons: buttonInfo[] = [
             { title: "Edit", btnClass: "entryedit" },
             { title: "Add", btnClass: "quesadd" },
-            { title: "Set Timed", btnClass: "questime" },
+            { title: "Set&nbsp;Timed", btnClass: "questime" },
         ];
 
         result.append(this.genQuestionTable(this.state.test, buttons));

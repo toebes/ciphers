@@ -25,12 +25,12 @@ interface JQbtnOptions {
  * Creates a submenu from a menuitem array
  */
 export function JTButtonGroup(submenu: JTButtonItem[]): JQuery<HTMLElement> {
-    let buttons = $("<div/>", { class: "button-group round cmds" });
+    let buttons = $("<div/>", { class: "button-group round shrink cmds" });
     for (let item of submenu) {
         let options: JQbtnOptions = {
             type: "button",
             class: "button",
-            value: item.title
+            value: item.title,
         };
         if (item.color !== undefined) {
             options.class += " " + item.color;
@@ -50,5 +50,5 @@ export function JTButtonGroup(submenu: JTButtonItem[]): JQuery<HTMLElement> {
         }
         buttons.append($("<a/>", options).text(item.title));
     }
-    return buttons;
+    return $("<div/>", { class: "grid-x" }).append(buttons);
 }

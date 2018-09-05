@@ -666,7 +666,13 @@ table.found tr th:nth-child(odd) {
     text-align: right;
     border-bottom: 1px solid grey;
 }
-
+.button-group.round {
+    border-radius: 0.625rem;
+    overflow: hidden;
+}
+.button-group .button {
+    margin-right: 0.2rem;
+}
 .mobile-app-toggle {
     display: -webkit-flex;
     display: -ms-flexbox;
@@ -685,6 +691,7 @@ table.found tr th:nth-child(odd) {
     -webkit-flex: 1 0 0;
     -ms-flex: 1 0 0px;
     flex: 1 0 0;
+    border-radius: 0;
 }
 
 .mobile-app-toggle .button:nth-child(n + 1) {
@@ -790,10 +797,6 @@ table.found tr th:nth-child(odd) {
 }
 .reveal {
     padding: 0rem;
-}
-
-.entrycmds {
-    padding-right: 200px;
 }
 
 .qtext {

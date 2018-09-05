@@ -380,7 +380,7 @@ export class CipherTest extends CipherHandler {
                 };
             }
             let buttonset = $("<div/>", {
-                class: "button-group round entrycmds",
+                class: "button-group round shrink",
             });
             for (let btninfo of buttons) {
                 let button = $("<button/>", {
@@ -393,7 +393,9 @@ export class CipherTest extends CipherHandler {
                 }
                 buttonset.append(button);
             }
-            row.add(buttonset).add(state.cipherType);
+            row.add($("<div/>", { class: "grid-x" }).append(buttonset)).add(
+                state.cipherType
+            );
             if (prevuse !== undefined) {
                 row.add(prevuse);
             }

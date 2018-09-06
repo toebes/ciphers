@@ -109,7 +109,13 @@ export class CipherEncoder extends CipherHandler {
         this.load();
     }
     updateQuestionsOutput(): void {
+        if (this.state.points === undefined) {
+            this.state.points = 0;
+        }
         $("#points").val(this.state.points);
+        if (this.state.question === undefined) {
+            this.state.question = "";
+        }
         this.setRichText("qtext", this.state.question);
     }
     /**

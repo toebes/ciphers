@@ -13,17 +13,24 @@
         <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
         <% } %>
             <%= require('html-loader!./analytics.html') %>
-
-                <h2>
-                    <a href="https://www.soinc.org/codebusters-c">Science Olympiad Code Busters</a> Test Generation Tools
-                </h2>
                 <div class="callout primary">
+                    <div class="cell clearfix">
+                        <a class="float-right" href="https://www.sciencenc.com/resources/high-school/codebusters/"><img src="https://www.sciencenc.com/wp-content/uploads/logo-short.png"
+                                width="180" height="120" /></a>
+                        <a class="float-right" href="https://www.soinc.org/codebusters-c"><img src="https://www.soinc.org/sites/default/files/SCI_OLY_LOGO.jpeg"
+                                width="180" height="120" /></a>
+                        <h2>
+                            <span class="scioly">S<span class="t">cience</span> O<span class="t">lympiad</span> C<span class="t">ode</span>B<span
+                                    class="t">usters</span><br/> Test Generation Tools</span>
+                        </h2>
+                    </div>
                     <div class="cell">
                         <a class="button" href="TestManage.html">Test Manager</a> - Create/Delete/Edit Tests
                     </div>
                     <div class="cell">
                         <a class="button" href="TestQuestions.html">Question Manager</a> - Manage/Delete unused questions
                     </div>
+
                 </div>
                 <div class="callout secondary">
                     <div class="grid-x">

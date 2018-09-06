@@ -765,6 +765,10 @@ table.found tr th:nth-child(odd) {
     margin-left: 0.1rem;
 }
 
+.menu .menu-text a {
+    padding: 0;
+}
+
 .dropdown.menu a {
     background: none;
 }
@@ -1030,6 +1034,13 @@ table.nameline td.u {
 .wshift {
     margin: 0.2rem;
     border-radius: 1rem;
+}
+.scioly {
+    font-family: "Times New Roman", Times, serif;
+}
+.scioly .t {
+    font-size: 1.9rem;
+    text-transform: uppercase;
 }
 .wtitle {
     background: #e6e6e6;

@@ -26,7 +26,7 @@ export const CipherMenu: menuItem[] = [
         ],
     },
     {
-        title: "Codebusters Test Tools",
+        title: "Test Generation Tools",
         classname: "menucb",
         menu: [
             { title: "Test Manager", href: "TestManage.html" },

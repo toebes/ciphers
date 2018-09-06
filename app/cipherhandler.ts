@@ -738,11 +738,13 @@ export class CipherHandler {
             this.storageTestEntryPrefix = "ACA-Issue";
             this.storageCipherCountName = "ACA-Count";
             this.storageCipherEntryPrefix = "ACA-Data";
+            $(".menu-text a").text("ACA Cipher Tools");
         } else {
             this.storageTestCountName = "Cipher-Test-Count";
             this.storageTestEntryPrefix = "Cipher-Test";
             this.storageCipherCountName = "Cipher-Count";
             this.storageCipherEntryPrefix = "Cipher-Data";
+            $(".menu-text a").text("Science Olympiad CodeBusters");
         }
     }
     /**

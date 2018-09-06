@@ -97,7 +97,11 @@ export function JTCreateMenu(
         class: "dropdown menu",
         "data-dropdown-menu": "",
     });
-    dropdownmenu.append($("<li/>", { class: "menu-text" }).text(menutext));
+    dropdownmenu.append(
+        $("<li/>", { class: "menu-text" }).append(
+            $("<a/>", { href: "index.html" }).text(menutext)
+        )
+    );
     JTAppendSubMenu(dropdownmenu, menu);
     topbarleft.append(dropdownmenu);
     topbar.append(topbarleft);

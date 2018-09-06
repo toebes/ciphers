@@ -509,7 +509,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             return;
         }
         let maxwords = this.baconianWords.length;
-        if (this.wordpos < 0) {
+        if (this.wordpos < 0 || maxwords <= 5) {
             this.wordpos = 0;
         } else if (this.wordpos > maxwords - 5) {
             this.wordpos = maxwords - 5;
@@ -522,6 +522,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             let slotpos = this.wordpos + slot;
             if (slotpos < maxwords) {
                 setDisabled("#v" + slot, false);
+                setDisabled("#p" + slot, false);
                 setDisabled("#sel" + slot, false);
                 // Now go through and repopulate all of the elements
                 let sel = $("#sel" + slot).empty();
@@ -530,8 +531,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 let [slotword, punctuation] = this.getSlotWord(slotpos);
                 $("#v" + slot).text(baconian);
                 if (this.wordlookup[baconian] === undefined) {
-                    setDisabled("#sel" + slot, true);
+                    setDisabled("#v" + slot, true);
                     setDisabled("#p" + slot, true);
+                    setDisabled("#sel" + slot, true);
                 } else {
                     if (punctuation !== "") {
                         punctbutton
@@ -562,6 +564,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 }
             } else {
                 setDisabled("#v" + slot, true);
+                setDisabled("#p" + slot, true);
                 setDisabled("#sel" + slot, true);
                 $("#v").text("");
                 $("#sel" + slot).empty();

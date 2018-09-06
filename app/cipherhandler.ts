@@ -1245,8 +1245,15 @@ export class CipherHandler {
         let table = new JTTable({
             class: "prfreq shrink cell unstriped",
         });
+        let charset = this.getSourceCharset();
+        let replalphabet = this.state.replacement;
         if (encodeType === "random") {
             encodeType = "";
+        } else if (encodeType === "k2") {
+            replalphabet = {};
+            for (let c of charset.toUpperCase()) {
+                replalphabet[this.state.replacement[c]] = c;
+            }
         }
         // For a K2 cipher, the replacement row goes above the header row
         let replrow;
@@ -1260,8 +1267,6 @@ export class CipherHandler {
             replrow = table.addBodyRow();
         }
 
-        let charset = this.getSourceCharset();
-
         headrow.add({
             settings: { class: "topleft " + encodeType },
             content: encodeType.toUpperCase(),
@@ -1272,7 +1277,7 @@ export class CipherHandler {
         for (let c of charset.toUpperCase()) {
             let repl = "";
             if (showanswers) {
-                repl = this.state.replacement[c];
+                repl = replalphabet[c];
             }
             headrow.add(c);
             let freq = String(this.freq[c]);

@@ -859,7 +859,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         if (this.state.combo > this.state.rsa1.n) {
             result.append(
                 $("<div/>", {
-                    class: "callout error",
+                    class: "callout alert",
                 }).text(
                     "The combination is smaller than N. Please pick larger primes"
                 )
@@ -1239,11 +1239,12 @@ export class CipherRSAEncoder extends CipherEncoder {
         let questionOpt = Math.floor(this.state.qchoice / 2) % 4;
         let defaultQTemplate =
             "<p>##NAME1## and ##NAME2## want to communicate with each other using RSA for encryption. " +
-            "##NAME1## generates their RSA keys generating the following values:</p>" +
+            "##NAME1## generates RSA keys obtaining the following values:</p>" +
             this.getRSATemplate("R1", true) +
-            "<p>Likewise, ##NAME2## also generates their RSA keys resulting in the values</p>" +
+            "<p>Likewise, ##NAME2## also generates RSA keys resulting in the values</p>" +
             this.getRSATemplate("R2", true) +
-            "<p>What information do they need to transmit to each other in order to communicate?" +
+            "<p>They ask each other for the public keys in order to communicate." +
+            "What information do they each need to transmit in response?" +
             "<p>You must also determine what " +
             optRSA5TemplateOptStrings[questionOpt] +
             "</p>";

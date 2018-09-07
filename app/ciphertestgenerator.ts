@@ -357,15 +357,17 @@ export class CipherTestGenerator extends CipherTest {
         $("#addnewtimed")
             .off("change")
             .on("change", e => {
-                let cipherType = $(e.target).val() as ICipherType;
-                let lang = $(e.target).attr("data-lang");
+                let elem = $(e.target).find(":selected");
+                let cipherType = elem.val() as ICipherType;
+                let lang = elem.attr("data-lang");
                 this.createEmptyQuestion(cipherType, lang, true);
             });
         $("#addnewques")
             .off("change")
             .on("change", e => {
-                let cipherType = $(e.target).val() as ICipherType;
-                let lang = $(e.target).attr("data-lang");
+                let elem = $(e.target).find(":selected");
+                let cipherType = elem.val() as ICipherType;
+                let lang = elem.attr("data-lang");
                 this.createEmptyQuestion(cipherType, lang, false);
             });
         $("#title")

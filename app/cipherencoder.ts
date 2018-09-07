@@ -1,4 +1,4 @@
-import { cloneObject, setDisabled } from "./ciphercommon";
+import { cloneObject } from "./ciphercommon";
 import { CipherHandler, IState, menuMode, toolMode } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";

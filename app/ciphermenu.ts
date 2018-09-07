@@ -90,6 +90,11 @@ export const CipherMenu: menuItem[] = [
                 href: "XenocryptEncrypt.html",
                 cipherType: ICipherType.Xenocrypt,
             },
+            { title: "", classname: "divider" },
+            {
+                title: "Report a problem",
+                href: "https://github.com/toebes/ciphers/issues",
+            },
         ],
     },
     {

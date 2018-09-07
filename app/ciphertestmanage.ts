@@ -18,7 +18,7 @@ export class CipherTestManage extends CipherTest {
 
     defaultstate: ITestState = {
         cipherString: "",
-        cipherType: ICipherType.Test
+        cipherType: ICipherType.Test,
     };
     state: ITestState = cloneObject(this.defaultstate) as IState;
     cmdButtons: JTButtonItem[] = [
@@ -27,10 +27,10 @@ export class CipherTestManage extends CipherTest {
             title: "Export Tests",
             color: "primary",
             id: "export",
-            download: true
+            download: true,
         },
         { title: "Import Tests from File", color: "primary", id: "import" },
-        { title: "Import Tests from URL", color: "primary", id: "importurl" }
+        { title: "Import Tests from URL", color: "primary", id: "importurl" },
     ];
     restore(data: ITestState): void {
         let curlang = this.state.curlang;
@@ -69,44 +69,44 @@ export class CipherTestManage extends CipherTest {
             if (test.timed !== undefined && test.timed >= 0) {
                 questioncount++;
             }
-            let buttons = $("<div/>");
+            let buttons = $("<div/>", { class: "button-group round shrink" });
             buttons.append(
                 $("<a/>", {
                     "data-entry": entry,
                     type: "button",
-                    class: "testedit button"
+                    class: "testedit button",
                 }).text("Edit")
             );
             buttons.append(
                 $("<a/>", {
                     "data-entry": entry,
                     type: "button",
-                    class: "testdel alert button"
+                    class: "testdel alert button",
                 }).text("Delete")
             );
             buttons.append(
                 $("<a/>", {
                     "data-entry": entry,
                     type: "button",
-                    class: "testprt button"
+                    class: "testprt button",
                 }).text("Test Packet")
             );
             buttons.append(
                 $("<a/>", {
                     "data-entry": entry,
                     type: "button",
-                    class: "testans button"
+                    class: "testans button",
                 }).text("Answer Key")
             );
             buttons.append(
                 $("<a/>", {
                     "data-entry": entry,
                     type: "button",
-                    class: "testsols button"
+                    class: "testsols button",
                 }).text("Answers and Solutions")
             );
 
-            row.add(buttons)
+            row.add($("<div/>", { class: "grid-x" }).append(buttons))
                 .add(test.title)
                 .add(String(questioncount));
         }
@@ -118,7 +118,7 @@ export class CipherTestManage extends CipherTest {
             timed: -1,
             count: 0,
             questions: [],
-            title: "New Test"
+            title: "New Test",
         });
         this.updateOutput();
     }

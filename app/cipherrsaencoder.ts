@@ -859,7 +859,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         if (this.state.combo > this.state.rsa1.n) {
             result.append(
                 $("<div/>", {
-                    class: "callout error",
+                    class: "callout alert",
                 }).text(
                     "The combination is smaller than N. Please pick larger primes"
                 )

@@ -61,8 +61,8 @@ export class CipherACAProblems extends CipherTest {
 
         let buttons: buttonInfo[] = [
             { title: "Solve", btnClass: "entrysolve" },
-            { title: "Edit Solution", btnClass: "editsol" },
-            { title: "Edit Title", btnClass: "editques" },
+            { title: "Edit&nbsp;Solution", btnClass: "editsol" },
+            { title: "Edit&nbsp;Title", btnClass: "editques" },
             { title: "Delete", btnClass: "alert entrydel" },
         ];
         result.append(this.genACAProblemTable(buttons));

@@ -1,4 +1,4 @@
-import { cloneObject } from "./ciphercommon";
+import { cloneObject, setDisabled } from "./ciphercommon";
 import { CipherHandler, IState, menuMode, toolMode } from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
@@ -21,6 +21,8 @@ export interface IEncoderState extends IState {
     alphabetSource?: string;
     /** The restination character map */
     alphabetDest?: string;
+    /** Optional translation string for non-english ciphers */
+    translation?: string;
 }
 
 /**
@@ -103,6 +105,17 @@ export class CipherEncoder extends CipherHandler {
         $("#shift").val(this.state.shift);
         $("#keyword2").val(this.state.keyword2);
         $("#offset2").val(this.state.offset2);
+        if (this.state.curlang === "en") {
+            $("#translated")
+                .parent()
+                .hide();
+        } else {
+            $("#translated")
+                .parent()
+                .show();
+        }
+        if (this.state.curlang === "en") {
+        }
         JTRadioButtonSet("enctype", this.state.encodeType);
         $(".lang").val(this.state.curlang);
         this.setkvalinputs();
@@ -158,6 +171,18 @@ export class CipherEncoder extends CipherHandler {
         let changed = super.setCipherString(cipherString);
         if (changed) {
             this.resetAlphabet();
+        }
+        return changed;
+    }
+    /**
+     * Updates the translation string for the cipher
+     * @param translation Cipher string to set
+     */
+    public setTranslation(translation: string): boolean {
+        let changed = false;
+        if (this.state.translation !== translation) {
+            changed = true;
+            this.state.translation = translation;
         }
         return changed;
     }
@@ -242,126 +267,21 @@ export class CipherEncoder extends CipherHandler {
      * @param lang New language string
      */
     loadLanguage(lang: string): void {
-        this.state.curlang = lang;
+        let changed = false;
+        this.pushUndo(null);
+        if (this.state.curlang !== lang) {
+            changed = true;
+            this.state.curlang = lang;
+        }
         this.setCharset(this.acalangcharset[lang]);
         this.setSourceCharset(this.encodingcharset[lang]);
         // Call the super if we plan to match the text against a dictionary.
         // That is generally used for a solver, but we might want to do it in the
         // case that we want to analyze the complexity of the phrase
         // super.loadLanguage(lang)
-    }
-    /**
-     * Set up all the HTML DOM elements so that they invoke the right functions
-     */
-    attachHandlers(): void {
-        super.attachHandlers();
-        $('[name="enctype"]')
-            .off("click")
-            .on("click", e => {
-                $(e.target)
-                    .siblings()
-                    .removeClass("is-active");
-                $(e.target).addClass("is-active");
-                this.markUndo(null);
-                if (this.setEncType($(e.target).val() as string)) {
-                    this.updateOutput();
-                }
-            });
-        $("#offset")
-            .off("input")
-            .on("input", e => {
-                let offset = Number($(e.target).val());
-                if (offset !== this.state.offset) {
-                    this.markUndo(null);
-                    if (this.setOffset(offset)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-        $("#shift")
-            .off("input")
-            .on("input", e => {
-                let shift = Number($(e.target).val());
-                if (shift !== this.state.shift) {
-                    this.markUndo(null);
-                    if (this.setShift(shift)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-        $("#offset2")
-            .off("input")
-            .on("input", e => {
-                let offset2 = Number($(e.target).val());
-                if (offset2 !== this.state.offset2) {
-                    this.markUndo(null);
-                    if (this.setOffset2(offset2)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-        $("#keyword")
-            .off("input")
-            .on("input", e => {
-                let keyword = $(e.target).val() as string;
-                if (keyword !== this.state.keyword) {
-                    this.markUndo("keyword");
-                    if (this.setKeyword(keyword)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-        $("#keyword2")
-            .off("input")
-            .on("input", e => {
-                let keyword2 = $(e.target).val() as string;
-                if (keyword2 !== this.state.keyword2) {
-                    this.markUndo("keyword2");
-                    if (this.setKeyword2(keyword2)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-        $("#toencode")
-            .off("input")
-            .on("input", e => {
-                let cipherString = $(e.target).val() as string;
-                if (cipherString !== this.state.cipherString) {
-                    this.markUndo("cipherString");
-                    if (this.setCipherString(cipherString)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-        $("#points")
-            .off("input")
-            .on("input", e => {
-                let points = Number($(e.target).val());
-                if (points !== this.state.points) {
-                    this.markUndo("points");
-                    this.state.points = points;
-                }
-            });
-        $("#qtext")
-            .off("richchange")
-            .on("richchange", (e, newtext) => {
-                let question = newtext;
-                if (question !== this.state.question) {
-                    // Don't push an undo operation if all that happend was that the
-                    // rich text editor put a paragraph around our text
-                    if (question !== "<p>" + this.state.question + "</p>") {
-                        this.markUndo("question");
-                    }
-                    this.state.question = question;
-                }
-            });
-        $("#randomize")
-            .off("click")
-            .on("click", () => {
-                this.markUndo(null);
-                this.resetAlphabet();
-                this.updateOutput();
-            });
+        if (changed) {
+            this.updateOutput();
+        }
     }
     /**
      * Reset the alphabet mapping so that we generate a new one
@@ -618,6 +538,18 @@ export class CipherEncoder extends CipherHandler {
             );
         }
         result.append(this.genFreqTable(true, this.state.encodeType));
+        // If this is a xenocrypt and they provided us a translation, display it
+        if (
+            this.state.curlang !== "en" &&
+            this.state.translation !== undefined &&
+            this.state.translation !== ""
+        ) {
+            result.append(
+                $("<div/>")
+                    .text("Translation: ")
+                    .append($("<em/>").text(this.state.translation))
+            );
+        }
         return result;
     }
     /**
@@ -850,7 +782,140 @@ export class CipherEncoder extends CipherHandler {
                 "small-12 medium-12 large-12"
             )
         );
+        result.append(
+            JTFLabeledInput(
+                "Translation",
+                "textarea",
+                "translated",
+                this.state.translation,
+                "small-12 medium-12 large-12"
+            )
+        );
         result.append(this.createAlphabetType());
         return result;
+    }
+    /**
+     * Set up all the HTML DOM elements so that they invoke the right functions
+     */
+    attachHandlers(): void {
+        super.attachHandlers();
+        $('[name="enctype"]')
+            .off("click")
+            .on("click", e => {
+                $(e.target)
+                    .siblings()
+                    .removeClass("is-active");
+                $(e.target).addClass("is-active");
+                this.markUndo(null);
+                if (this.setEncType($(e.target).val() as string)) {
+                    this.updateOutput();
+                }
+            });
+        $("#offset")
+            .off("input")
+            .on("input", e => {
+                let offset = Number($(e.target).val());
+                if (offset !== this.state.offset) {
+                    this.markUndo(null);
+                    if (this.setOffset(offset)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $("#shift")
+            .off("input")
+            .on("input", e => {
+                let shift = Number($(e.target).val());
+                if (shift !== this.state.shift) {
+                    this.markUndo(null);
+                    if (this.setShift(shift)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $("#offset2")
+            .off("input")
+            .on("input", e => {
+                let offset2 = Number($(e.target).val());
+                if (offset2 !== this.state.offset2) {
+                    this.markUndo(null);
+                    if (this.setOffset2(offset2)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $("#keyword")
+            .off("input")
+            .on("input", e => {
+                let keyword = $(e.target).val() as string;
+                if (keyword !== this.state.keyword) {
+                    this.markUndo("keyword");
+                    if (this.setKeyword(keyword)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $("#keyword2")
+            .off("input")
+            .on("input", e => {
+                let keyword2 = $(e.target).val() as string;
+                if (keyword2 !== this.state.keyword2) {
+                    this.markUndo("keyword2");
+                    if (this.setKeyword2(keyword2)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $("#toencode")
+            .off("input")
+            .on("input", e => {
+                let cipherString = $(e.target).val() as string;
+                if (cipherString !== this.state.cipherString) {
+                    this.markUndo("cipherString");
+                    if (this.setCipherString(cipherString)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $("#points")
+            .off("input")
+            .on("input", e => {
+                let points = Number($(e.target).val());
+                if (points !== this.state.points) {
+                    this.markUndo("points");
+                    this.state.points = points;
+                }
+            });
+        $("#qtext")
+            .off("richchange")
+            .on("richchange", (e, newtext) => {
+                let question = newtext;
+                if (question !== this.state.question) {
+                    // Don't push an undo operation if all that happend was that the
+                    // rich text editor put a paragraph around our text
+                    if (question !== "<p>" + this.state.question + "</p>") {
+                        this.markUndo("question");
+                    }
+                    this.state.question = question;
+                }
+            });
+        $("#translated")
+            .off("input")
+            .on("input", e => {
+                let translation = $(e.target).val() as string;
+                if (translation !== this.state.translation) {
+                    this.markUndo("translation");
+                    if (this.setTranslation(translation)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $("#randomize")
+            .off("click")
+            .on("click", () => {
+                this.markUndo(null);
+                this.resetAlphabet();
+                this.updateOutput();
+            });
     }
 }

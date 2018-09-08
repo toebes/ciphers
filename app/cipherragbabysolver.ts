@@ -42,6 +42,7 @@ export class CipherRagbabySolver extends CipherSolver {
         cipherType: ICipherType.Ragbaby,
         alphalen: 24,
         cipherString: "",
+        replacement: {},
         ctmap: [],
     };
     state: IRagbabyState = cloneObject(this.defaultstate) as IRagbabyState;

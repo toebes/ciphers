@@ -1,16 +1,22 @@
-﻿/* textarea, input, */ 
- .ibox, .ui-spinner, /* .note-editor, */ .ui-sel /*, .note */{
+﻿/* textarea, input, */
+.ibox, .ui-spinner, /* .note-editor, */ .ui-sel /*, .note */ {
     display: block;
     margin-left: 160px;
     margin-bottom: 10px;
     width: 600px;
 }
 
-tbody td, tbody th {
-    padding: .5rem;
+div.input-group-field,
+textarea.input-group-field {
+    white-space: normal;
+}
+tbody td,
+tbody th {
+    padding: 0.5rem;
 }
 
-.instructions tbody th, .instructions tbody td {
+.instructions tbody th,
+.instructions tbody td {
     padding: 0;
 }
 .instructions table,
@@ -28,7 +34,7 @@ tbody td, tbody th {
     width: 100%;
 }
 input.cb {
-    margin:auto;
+    margin: auto;
     width: auto;
 }
 
@@ -48,7 +54,6 @@ input.cb {
     width: 200px;
 }
 
-
 .ans {
     /* width: 600px; */
     font-size: 16px;
@@ -62,40 +67,49 @@ input.cb {
     line-height: 100%;
 }
 
-.err {
-    height: 18px;
-}
-
-.xxxxcmds {
-    clear:both;
-    display: block;
-    border-bottom: 1px solid grey;
-    margin-top: 10px;
-    margin-bottom: 5px;
-}
-
 #chi {
     display: block;
     margin-top: 10px;
     margin-bottom: 5px;
     font-style: italic;
 }
-.sword, .sword tbody {
+.sword,
+.sword tbody {
     float: left;
     background-color: #eaeaea;
     margin: 3px 5px;
     line-height: normal;
 }
-.l50,.l0  { background-color: lawngreen;}
-.l100,.l1 { background-color: greenyellow;}
-.l200,.l2 {background-color:yellow;}
-.l500,.l3 {background-color:lightpink;}
-.g500,.l4 { background-color: lightcoral;}
-.nopat,.l5 { background-color: red;}
-.nomatch { text-decoration: line-through;}
+.l50,
+.l0 {
+    background-color: lawngreen;
+}
+.l100,
+.l1 {
+    background-color: greenyellow;
+}
+.l200,
+.l2 {
+    background-color: yellow;
+}
+.l500,
+.l3 {
+    background-color: lightpink;
+}
+.g500,
+.l4 {
+    background-color: lightcoral;
+}
+.nopat,
+.l5 {
+    background-color: red;
+}
+.nomatch {
+    text-decoration: line-through;
+}
 .sli {
     margin: 0;
-    width: 15px;
+    width: 1rem;
     padding: 0;
     text-align: center;
     border: 1px black dotted;
@@ -104,7 +118,7 @@ input.cb {
 
 .slil {
     display: block;
-    width: 15px;
+    width: 1rem;
     text-align: center;
 }
 
@@ -132,9 +146,9 @@ label {
     text-align: right;
 }
 */
-    label.slil:after {
-        content: none;
-    }
+label.slil:after {
+    content: none;
+}
 
 .allfocus {
     background-color: yellow;
@@ -151,8 +165,23 @@ label.rlab {
     padding-right:5px;
 }*/
 
+.formula .callout.small {
+    margin: 0rem;
+}
+
+.sol.callout.small {
+    margin: 0.05rem;
+    padding: 0.1rem;
+}
+table.cmath {
+    width: auto;
+    line-height: 100%;
+}
+table.cmath tbody {
+    border: none;
+}
 table.cmath td.solv {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: "Courier New", Courier, monospace;
     background-color: white;
     margin-left: 10px;
     border-left: 1px dashed grey;
@@ -164,24 +193,27 @@ table.cmath td {
     background-color: #eaeaea;
 }
 table.cmath td.ovl {
-    border-top: 2px solid black
+    border-top: 2px solid black;
 }
 
-table.rithm, table.cmath {
+table.rithm,
+table.cmath {
     border-collapse: collapse;
 }
-table.rithm td.l, table.rithm td.m {
-    padding-right:20px;
+table.rithm td.l,
+table.rithm td.m {
+    padding-right: 20px;
 }
-table.rithm td.m, table.rithm td.r {
-    padding-left:20px;
+table.rithm td.m,
+table.rithm td.r {
+    padding-left: 20px;
 }
 
 table.rithm td.l {
-    border-right:1px dashed black;
+    border-right: 1px dashed black;
 }
 table.rithm td.m {
-    border-right:2px solid black;
+    border-right: 2px solid black;
 }
 table.mword {
     border: 1px solid black;
@@ -189,38 +221,39 @@ table.mword {
     margin-bottom: 10px;
 }
 
-    table.mword td {
-        border-right: 1px dotted grey;
-        border-bottom: 1px solid black;
-        background-color: white;
-    }
+table.mword td {
+    border-right: 1px dotted grey;
+    border-bottom: 1px solid black;
+    background-color: white;
+    padding: 0.1rem;
+}
 
-    table.mword .error {
-        background-color: red;
-    }
+table.mword .error {
+    background-color: red;
+}
 
-    table.mword .cnull {
-        background-color: #f6f6f6;
-    }
+table.mword .cnull {
+    background-color: #f6f6f6;
+}
 
-    table.mword .space {
-        background-color: lightgray;
-    }
+table.mword .space {
+    background-color: lightgray;
+}
 
-    table.mword .cont {
-        background-color: lightgreen;
-    }
+table.mword .cont {
+    background-color: lightgreen;
+}
 
-    table.mword .num {
-        background-color: lightblue;
-    }
+table.mword .num {
+    background-color: lightblue;
+}
 
-    table.mword .sym {
-        background-color: lightcoral;
-    }
-    table.mword .locked {
-        background-color: cyan;
-    }
+table.mword .sym {
+    background-color: lightcoral;
+}
+table.mword .locked {
+    background-color: cyan;
+}
 
 .tword {
     height: 55px;
@@ -228,20 +261,35 @@ table.mword {
     border: 0;
     border-spacing: 0;
 }
-.tword thead th, .tword tbody td {
+.tword thead th,
+.tword tbody td {
     margin: 0;
     padding: 0.05rem;
 }
 .tword .vans {
     color: green;
-    text-align:center;
+    text-align: center;
 }
 .idiv {
     float: left;
 }
-
-table.tfreq, table.satable {
+.fmwide {
     clear: both;
+}
+
+table.tfreq,
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+table.tfreq,
+table.satable {
     border-collapse: collapse;
     width: auto;
 }
@@ -250,34 +298,47 @@ table.ckfreq {
     border-collapse: collapse;
     margin-left: 20px;
 }
-
 table.tfreq th {
-    padding: 0.1rem 0.3rem 0.1rem;
+    border-top: 1px solid #f1f1f1;
 }
-.prfreq td, .prfreq th, .ckfreq td, .ckfreq th, .tfreq td, table.mfind td {
+table.tfreq th,
+table.tfreq td {
+    padding: 0.1rem 0.3rem 0.1rem;
+    height: 2rem;
+}
+table.tfreq td.rep,
+table.tfreq th.rep {
+    height: 4rem;
+}
+.prfreq td,
+.prfreq th,
+.ckfreq td,
+.ckfreq th,
+.tfreq td,
+table.mfind td {
     border: 1px solid black;
     margin: 0px;
-    padding: 0.1rem 0.3rem 0.1rem;
+    padding: 0.1rem 0.15rem 0.1rem;
 }
 
 table.mfind {
     border-collapse: collapse;
-    width: auto
+    width: auto;
 }
 
-    table.mfind td {
-        font-family: Courier New, Courier, monospace;
-        padding: 0.1rem; 
-    }
+table.mfind td {
+    font-family: Courier New, Courier, monospace;
+    padding: 0.1rem;
+}
 
-    .prfreq th,
-    .ckfreq th,
-    .tfreq thead th,
-    .satable thead th,
-    table.mfind th {
-        text-align: center;
-        background-color: #D3D3D3;
-    }
+.prfreq th,
+.ckfreq th,
+.tfreq thead th,
+.satable thead th,
+table.mfind th {
+    text-align: center;
+    background-color: #d3d3d3;
+}
 .prfreq th {
     width: 2rem;
 }
@@ -296,7 +357,9 @@ table.mfind {
     border-top: none;
     background-color: white;
 }
-
+table.talign td {
+    vertical-align: top;
+}
 thead .topleft.k1,
 thead .topleft.k2 {
     text-align: center;
@@ -305,12 +368,17 @@ thead .topleft.k2 {
     background-color: #d3d3d3;
     border: 1px solid black;
 }
-.sanalysis {
-    float: left;
-    margin-right: 10px;
+
+.sanalysis table td,
+.sanalysis table th,
+.findres table td,
+.findres table th {
+    padding: 0.1rem;
+    white-space: nowrap;
 }
 
-.ckfreq td, .tfreq td {
+.ckfreq td,
+.tfreq td {
     text-align: center;
 }
 
@@ -320,7 +388,7 @@ thead .topleft.k2 {
 }
 
 input[type="radio"] {
-    display:initial;
+    display: initial;
     width: auto;
     margin-left: 0px;
     margin-bottom: 0px;
@@ -332,23 +400,31 @@ input[type="radio"] {
 .rlab {
     display: initial;
     width: auto;
-    float:none;
+    float: none;
 }
 
-.TOSOLVE,.TOSOLVE2,.TOSOLVEQ,.TOANSWER {
-    font-family: Courier New, Courier, monospace;    
+.TOSOLVE,
+.TOSOLVE2,
+.TOSOLVEQ,
+.TOANSWER {
+    font-family: Courier New, Courier, monospace;
     font-size: 22px;
     font-weight: bold;
     margin-bottom: 0pt;
     line-height: 100%;
     white-space: pre-wrap;
 }
-
+.wsel {
+    height: 15rem;
+}
 .ul {
     text-decoration: underline;
 }
-.BACON.TOSOLVE,.BACON.TOSOLVE2,.BACON.TOSOLVEQ,.BACON.TOANSWER {
-    font-size:24px;
+.BACON.TOSOLVE,
+.BACON.TOSOLVE2,
+.BACON.TOSOLVEQ,
+.BACON.TOANSWER {
+    font-size: 24px;
 }
 .BACON.TOSOLVEQ {
     margin-bottom: 4rem;
@@ -359,16 +435,17 @@ input[type="radio"] {
 }
 
 .TOANSWER {
-    background-color: #ffff00;
+    background-color: yellow !important;
     margin-bottom: 16pt;
 }
 
-.TOSOLVECLICK,.TOANSWERCLICK {
+.TOSOLVECLICK,
+.TOANSWERCLICK {
     background-color: #74a4eb;
 }
 
 .mismatch {
-    font-weight: normal
+    font-weight: normal;
 }
 .mismatch .b {
     font-weight: bold;
@@ -379,7 +456,7 @@ input[type="radio"] {
 }
 .mismatch .formula {
     margin-left: 10px;
-    font-style:italic;
+    font-style: italic;
     color: darkslategray;
     background-color: lightyellow;
 }
@@ -388,6 +465,16 @@ input[type="radio"] {
     color: green;
 }
 
+.rtoggle-3:after {
+    content: "\2714"; /* Heavy Checkmark */
+}
+.rtoggle-2:after {
+    content: "\2718"; /* Heavy Ballot */
+    color: white;
+}
+.rtoggle-1:after {
+    content: "?";
+}
 .rtoggle-0 {
     background-color: transparent;
 }
@@ -406,40 +493,40 @@ div.sols {
 }
 div.sols .h {
     font-weight: bold;
-    margin-right:10px;
+    margin-right: 10px;
 }
 div.sols .sol {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: "Courier New", Courier, monospace;
 }
 
- #qtext {
-     border: 1px solid #cacaca;
+#qtext {
+    border: 1px solid #cacaca;
 }
 
 table.contact,
 table.consonantline {
-    margin-left:auto;
-    margin-right:auto;
+    margin-left: auto;
+    margin-right: auto;
     border-collapse: collapse;
 }
 table.contact th {
     border-bottom: 1px solid black;
-    text-align:center;
+    text-align: center;
 }
 table.consonantline th {
-    text-align:center;
-    padding: .1rem;
+    text-align: center;
+    padding: 0.1rem;
 }
 table.consonantline th.c {
     border-bottom: 1px solid black;
-    font-family: 'Courier New', Courier, monospace;
-    text-align:center;
+    font-family: "Courier New", Courier, monospace;
+    text-align: center;
 }
 
 table.contact td,
 table.consonantline td {
-    font-family: 'Courier New', Courier, monospace;
-    padding: .1rem;
+    font-family: "Courier New", Courier, monospace;
+    padding: 0.1rem;
 }
 table.contact td.prev {
     text-align: right;
@@ -464,91 +551,88 @@ table.contact td.tlet {
 }
 
 .references h2 {
-    clear:both;
+    clear: both;
     color: #b54b23;
     font: 700 35px/1em "Roboto", sans-serif;
     padding-bottom: 10px;
     text-transform: uppercase;
 }
 
+/* Style Definitions */
 
-        /* Style Definitions */
+.references * {
+    font-family: Arial, Helvetica, sans-serif;
+}
 
-        .references * {
-            font-family: Arial, Helvetica, sans-serif;
-        }
+.references a,
+.references a:visited {
+    text-decoration: none;
+}
 
-        .references a,
-        .references a:visited {
-            text-decoration: none;
-        }
+.references a[href] {
+    color: #b54b23;
+}
 
-        .references a[href] {
-            color: #b54b23;
-        }
+.references h3 {
+    color: #b54b23;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: "Roboto", sans-serif;
+    padding-bottom: 5px;
+    padding-top: 10px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
 
-
-        .references h3 {
-            color: #b54b23;
-            font-size: 15px;
-            font-weight: 700;
-            font-family: "Roboto", sans-serif;
-            padding-bottom: 5px;
-            padding-top: 10px;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-
-        .references .a {
-            font-family: Arial, Helvetica, sans-serif;
-            margin-left: 30px;
-        }
-        .references .c {
-            font-family: Arial, Helvetica, sans-serif;
-            margin-left: 60px;
-        }
-        .references .i {
-            color: #b54b23;
-            font-size: 25px;
-            font-weight: 700;
-            font-family: "Roboto", sans-serif;
-            padding-bottom: 10px;
-            text-transform: uppercase;
-            margin: 10px;
-        }
-        .references .n {
-            color: black;
-            font-style: italic;
-            margin-left: 5px;
-        }
-        .references .r {
-            margin-left:5px;
-        }
-        .references .h {
-            font-style:italic;
-            color: #b54b23;
-            font-size: 15px;
-            padding-left: 10px;
-        }
-        .references .w {
-            font-weight: bold;
-            padding-left: 10px;
-        }
-        .references .u {
-            text-decoration: overline;
-       }
-
+.references .a {
+    font-family: Arial, Helvetica, sans-serif;
+    margin-left: 30px;
+}
+.references .c {
+    font-family: Arial, Helvetica, sans-serif;
+    margin-left: 60px;
+}
+.references .i {
+    color: #b54b23;
+    font-size: 25px;
+    font-weight: 700;
+    font-family: "Roboto", sans-serif;
+    padding-bottom: 10px;
+    text-transform: uppercase;
+    margin: 10px;
+}
+.references .n {
+    color: black;
+    font-style: italic;
+    margin-left: 5px;
+}
+.references .r {
+    margin-left: 5px;
+}
+.references .h {
+    font-style: italic;
+    color: #b54b23;
+    font-size: 15px;
+    padding-left: 10px;
+}
+.references .w {
+    font-weight: bold;
+    padding-left: 10px;
+}
+.references .u {
+    text-decoration: overline;
+}
 
 table.vfact,
 table.found,
 table.vdist {
-    font-family: 'Courier New', Courier, monospace;   
+    font-family: "Courier New", Courier, monospace;
     border-collapse: collapse;
-    margin-right:10px;
-    border:1px solid black;  
+    margin-right: 10px;
+    border: 1px solid black;
 }
 
-table.combine td{
+table.combine td {
     vertical-align: top;
 }
 
@@ -563,7 +647,7 @@ table.found th {
 
 table.vdist td,
 table.vfact td {
-    border:1px solid grey;
+    border: 1px solid grey;
     text-align: right;
 }
 
@@ -572,7 +656,7 @@ table.found tr th:nth-child(even) {
     border-right: 1px solid grey;
     text-align: left;
     border-bottom: 1px solid grey;
-    padding-right:10px;
+    padding-right: 10px;
 }
 
 table.found tr td:nth-child(odd),
@@ -582,7 +666,13 @@ table.found tr th:nth-child(odd) {
     text-align: right;
     border-bottom: 1px solid grey;
 }
-
+.button-group.round {
+    border-radius: 0.625rem;
+    overflow: hidden;
+}
+.button-group .button {
+    margin-right: 0.2rem;
+}
 .mobile-app-toggle {
     display: -webkit-flex;
     display: -ms-flexbox;
@@ -592,69 +682,70 @@ table.found tr th:nth-child(odd) {
     border-radius: 0.625rem;
     overflow: hidden;
     margin-bottom: 1rem;
-  }
-  
-  .mobile-app-toggle .button {
+}
+
+.mobile-app-toggle .button {
     background: transparent;
     color: #1779ba;
     margin-bottom: 0;
     -webkit-flex: 1 0 0;
-        -ms-flex: 1 0 0px;
-            flex: 1 0 0;
-  }
-  
-  .mobile-app-toggle .button:nth-child(n+1) {
+    -ms-flex: 1 0 0px;
+    flex: 1 0 0;
+    border-radius: 0;
+}
+
+.mobile-app-toggle .button:nth-child(n + 1) {
     border-left: 1px solid #1779ba;
-  }
-  
-  .mobile-app-toggle .button.is-active {
+}
+
+.mobile-app-toggle .button.is-active {
     background: #1779ba;
     color: #fefefe;
-  }
-  
+}
+
 .input-group {
     display: -webkit-flex;
     display: -ms-flexbox;
     display: flex;
     -webkit-justify-content: center;
-        -ms-flex-pack: start;
-            justify-content: start;
-  }
-  
-  .input-group input[type=number]::-webkit-inner-spin-button,
-  .input-group input[type=number]::-webkit-outer-spin-button {
+    -ms-flex-pack: start;
+    justify-content: start;
+}
+
+.input-group input[type="number"]::-webkit-inner-spin-button,
+.input-group input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
-            appearance: none;
-  }
-  
-  .input-number-group .input-group-button {
-    line-height: calc(80px/2 - 5px);
-  }
-  
-  .input-group .input-number {
+    appearance: none;
+}
+
+.input-number-group .input-group-button {
+    line-height: calc(80px / 2 - 5px);
+}
+
+.input-group .input-number {
     width: 80px;
     padding: 0 12px;
-    vertical-align: top;
+    /* vertical-align: top; */
     text-align: center;
     outline: none;
     display: block;
     margin: 0;
-  }
-  
-  .input-group .input-number,
-  .input-group .input-number-decrement,
-  .input-group .input-number-increment {
+}
+
+.input-group .input-number,
+.input-group .input-number-decrement,
+.input-group .input-number-increment {
     border: 1px solid #cacaca;
     height: 40px;
     -webkit-user-select: none;
-       -moz-user-select: none;
-        -ms-user-select: none;
-            user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     border-radius: 0;
-  }
-  
-  .input-group .input-number-decrement,
-  .input-group .input-number-increment {
+}
+
+.input-group .input-number-decrement,
+.input-group .input-number-increment {
     display: inline-block;
     width: 40px;
     background: #e6e6e6;
@@ -664,29 +755,38 @@ table.found tr th:nth-child(odd) {
     cursor: pointer;
     font-size: 1.5rem;
     font-weight: 400;
-  }
-  
-  .input-group .input-number-decrement {
+}
+
+.input-group .input-number-decrement {
     margin-right: 0.1rem;
-  }
-  
-  .input-group .input-number-increment {
+}
+
+.input-group .input-number-increment {
     margin-left: 0.1rem;
-  }
-  
+}
+
+.menu .menu-text a {
+    padding: 0;
+}
+
 .dropdown.menu a {
     background: none;
 }
 
 .dropdown.menu .disabled_menu {
     color: #fefefe;
-    cursor: not-allowed
+    cursor: not-allowed;
+}
+
+.menu .divider {
+    background-color: white;
+    height: 2px;
 }
 
 .menu .active > a {
-        background: #1779ba !important;
-        color: #fefefe;
-    }
+    background: #1779ba !important;
+    color: #fefefe;
+}
 
 .mwide select.msli {
     width: 3.5rem;
@@ -698,21 +798,16 @@ table.found tr th:nth-child(odd) {
 
 .filelist {
     height: 20rem;
-  }
-  .reveal {
+}
+.reveal {
     padding: 0rem;
-  }
+}
 
-  .entrycmds {
-      padding-right: 200px;
-  }
-
-
-  .qtext {
-      border-top: 1px solid grey;
-      margin-bottom: 20px;
-  }
-  .qtext .points {
+.qtext {
+    border-top: 1px solid grey;
+    margin-bottom: 20px;
+}
+.qtext .points {
     font-weight: bold;
 }
 .qtext .qnum {
@@ -721,37 +816,55 @@ table.found tr th:nth-child(odd) {
 .qtextentry p {
     display: inline;
 }
-.qtext .qbody p {
-      display:inline;
-  }
-
-.prfreq, .ansblock {
-      border-collapse: collapse;
-      font-family: 'Courier New', Courier, monospace;
-      width: auto;
+.qtext .qbody p:first-of-type {
+    display: inline;
 }
 
-.prfreq td, .ansblock td {
+.prfreq,
+.ansblock {
+    border-collapse: collapse;
+    font-family: "Courier New", Courier, monospace;
+    width: auto;
+}
+.sublist {
+    font-family: "Courier New", Courier, monospace;
+    white-space: pre;
+}
+
+.prfreq td,
+.ansblock td {
     text-align: center;
 }
 
-  .ansblock td.o.v {
-      border: none;
-      height: 2rem;
-  }
-  .ansblock td.v {
-      border: 1px solid black;
-  }
-  .ansblock td.a {
-      background-color: yellow;
-      height: 3rem;
-      font-weight: bold;
-  }
-  .ansblock td.e {
-      height: 3rem;
-  }
+.ansblock td.o.v {
+    border: none;
+    height: 2rem;
+}
+.ansblock .v {
+    border: 1px solid black;
+}
+.ansblock td.a {
+    background-color: yellow !important;
+    height: 3rem;
+    font-weight: bold;
+}
+.ansblock td.e {
+    height: 3rem;
+}
 
-  table.times {
+.formulabox {
+    height: 3rem;
+    width: 80%;
+    margin: 1rem auto;
+    border: 1px solid black;
+    text-align: center;
+    padding-top: 0.5rem;
+}
+.rsawide {
+    height: 3rem;
+    width: 12rem;
+}
+table.times {
     width: auto;
     margin-left: auto;
     margin-right: auto;
@@ -805,14 +918,14 @@ table.hillans .big2 {
 
 table.instlook,
 table.instbac {
-        font-family: "Courier New", Courier, monospace;
-        text-align:center;
-        border-collapse: collapse;
-        margin: 1rem auto;
-        padding: 0;
-        border: none;
-        }
-    table.instlook th {
+    font-family: "Courier New", Courier, monospace;
+    text-align: center;
+    border-collapse: collapse;
+    margin: 1rem auto;
+    padding: 0;
+    border: none;
+}
+table.instlook th {
     width: 1.5rem;
     border: 1px solid black;
     background-color: lightgrey !important;
@@ -821,30 +934,29 @@ table.instlook td {
     border: 1px solid black;
     width: 1.5rem;
     text-align: center;
-
 }
-table.instvig tr:nth-child(5n+1) {
+table.instvig tr:nth-child(5n + 1) {
     border-bottom: 2px solid black;
 }
-table.instvig tr th:nth-child(5n+1),
-table.instvig tr td:nth-child(5n+1) {
+table.instvig tr th:nth-child(5n + 1),
+table.instvig tr td:nth-child(5n + 1) {
     border-right: 2px solid black;
 }
 table.instbac td.bv {
     font-weight: bold;
     border: 1px solid black;
-    width: 5rem;;
+    width: 5rem;
 }
 table.instbac td.bl {
     border: 1px solid black;
     width: 2rem;
 }
 table.instlfreq {
-        font-family: "Courier New", Courier, monospace;
-        border-collapse: collapse;
-        padding: 0;
-        border: none;
-        }
+    font-family: "Courier New", Courier, monospace;
+    border-collapse: collapse;
+    padding: 0;
+    border: none;
+}
 
 table.testscores {
     border: 1px solid black;
@@ -857,15 +969,15 @@ table.testscores td {
 }
 table.testscores th {
     text-align: center;
-    padding: .1rem .5rem .1rem .5rem;
+    padding: 0.1rem 0.5rem 0.1rem 0.5rem;
 }
 table.testscores td.v {
     text-align: right;
-    padding:  .1rem 4rem .1rem .5rem;
+    padding: 0.1rem 4rem 0.1rem 0.5rem;
 }
 table.testscores td.t {
     text-align: left;
-    padding: .1rem .5rem .1rem 4rem;
+    padding: 0.1rem 0.5rem 0.1rem 4rem;
 }
 table.testscores td.grey {
     background-color: grey;
@@ -877,13 +989,13 @@ table.tiebreak {
 table.instlfreq td.l {
     text-align: right;
     width: 5rem;
-    padding-right:.5rem;
+    padding-right: 0.5rem;
 }
 table.instlfreq td.v {
     text-align: right;
     width: 3rem;
 }
-table.instlfreq td.l::after { 
+table.instlfreq td.l::after {
     content: " - ";
 }
 table.nameline {
@@ -895,7 +1007,7 @@ table.nameline td {
 }
 table.nameline td.u {
     border-bottom: 1px solid black;
-    width:100%;
+    width: 100%;
     height: 2rem;
 }
 .runtitle {
@@ -910,15 +1022,43 @@ table.nameline td.u {
     margin-left: 1rem;
 }
 
-@media print
-{    
-    .title-bar, .top-bar, .noprint, .button-group
-    {
+.psel {
+    margin: 0;
+    font-size: larger;
+    height: 2.5rem;
+    width: 2.5rem;
+    padding: 0 0.3rem 0.2rem 0.3rem;
+    border-radius: 0.2rem;
+}
+
+.wshift {
+    margin: 0.2rem;
+    border-radius: 1rem;
+}
+.scioly {
+    font-family: "Times New Roman", Times, serif;
+}
+.scioly .t {
+    font-size: 1.9rem;
+    text-transform: uppercase;
+}
+.wtitle {
+    background: #e6e6e6;
+    border: 1px solid #cacaca;
+    height: 2.5rem;
+    margin-right: 2.5rem;
+    text-align: center;
+    padding: 0.4rem 0rem 0rem 0rem;
+}
+@media print {
+    .title-bar,
+    .top-bar,
+    .noprint,
+    .button-group {
         display: none !important;
     }
-    div.instructions
-    {
-        display:block;
+    div.instructions {
+        display: block;
     }
     .pagebreak {
         page-break-before: always;
@@ -929,8 +1069,20 @@ table.nameline td.u {
     div.affinework {
         height: 12rem;
     }
-    table.hillblock, table.hillans {
+    table.hillblock,
+    table.hillans {
         margin-bottom: 12rem;
     }
-    @page { margin: .5in}
+    @page {
+        margin: 0.5in;
+    }
+    .TOANSWER {
+        background-color: yellow !important;
+    }
+    .ansblock td.a {
+        background-color: yellow !important;
+    }
+    body {
+        -webkit-print-color-adjust: exact;
+    }
 }

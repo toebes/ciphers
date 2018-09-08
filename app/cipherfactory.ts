@@ -1,35 +1,36 @@
-import { CipherAffineEncoder } from "./cipheraffineencoder"
-import { CipherBaconianEncoder} from "./cipherbaconianencoder"
-import { CipherCheckerboardSolver } from "./ciphercheckerboardsolver"
-import { CipherCounter } from "./ciphercounter"
-import { CryptarithmSolver } from "./ciphercryptarithmsolver"
-import { CipherEncoder } from "./cipherencoder"
-import { CipherFractionatedMorseSolver } from "./cipherfractionatedmorsesolver"
-import { CipherGromarkSolver } from "./ciphergromarksolver"
-import { CipherHandler } from "./cipherhandler"
-import { CipherHillEncoder } from "./cipherhillencoder"
-import { CipherMorbitSolver } from "./ciphermorbitsolver"
-import { CipherRagbabySolver } from "./cipherragbabysolver"
-import { CipherRailfenceSolver } from "./cipherrailfencesolver"
-import { CipherRSAEncoder } from "./cipherrsaencoder"
-import { CipherRunningKeyEdit } from "./cipherrunningkeyedit"
-import { CipherRunningKeyEncoder } from "./cipherrunningkeyencoder"
-import { CipherSolver } from "./ciphersolver"
-import { CipherTableEncoder } from "./ciphertableencoder"
-import { CipherTestAnswers } from "./ciphertestanswers"
-import { CipherTestGenerator } from "./ciphertestgenerator"
-import { CipherTestManage } from "./ciphertestmanage"
-import { CipherTestPrint } from "./ciphertestprint"
-import { CipherTestQuestions } from "./ciphertestquestions"
-import { ICipherType } from "./ciphertypes"
-import { CipherVigenereEncoder } from "./ciphervigenereencoder"
-import { CipherVigenereSolver } from "./ciphervigeneresolver"
-import { CipherXenocryptSolver } from "./cipherxenocryptsolver"
+import { CipherACAProblems } from "./cipheracaproblems";
+import { CipherACASubmit } from "./cipheracasubmit";
+import { CipherAffineEncoder } from "./cipheraffineencoder";
+import { CipherBaconianEncoder } from "./cipherbaconianencoder";
+import { CipherCheckerboardSolver } from "./ciphercheckerboardsolver";
+import { CipherCounter } from "./ciphercounter";
+import { CryptarithmSolver } from "./ciphercryptarithmsolver";
+import { CipherEncoder } from "./cipherencoder";
+import { CipherFractionatedMorseSolver } from "./cipherfractionatedmorsesolver";
+import { CipherGromarkSolver } from "./ciphergromarksolver";
+import { CipherHandler } from "./cipherhandler";
+import { CipherHillEncoder } from "./cipherhillencoder";
+import { CipherMorbitSolver } from "./ciphermorbitsolver";
+import { CipherRagbabySolver } from "./cipherragbabysolver";
+import { CipherRailfenceSolver } from "./cipherrailfencesolver";
+import { CipherRSAEncoder } from "./cipherrsaencoder";
+import { CipherRunningKeyEdit } from "./cipherrunningkeyedit";
+import { CipherRunningKeyEncoder } from "./cipherrunningkeyencoder";
+import { CipherSolver } from "./ciphersolver";
+import { CipherTableEncoder } from "./ciphertableencoder";
+import { CipherTestAnswers } from "./ciphertestanswers";
+import { CipherTestGenerator } from "./ciphertestgenerator";
+import { CipherTestManage } from "./ciphertestmanage";
+import { CipherTestPrint } from "./ciphertestprint";
+import { CipherTestQuestions } from "./ciphertestquestions";
+import { ICipherType } from "./ciphertypes";
+import { CipherVigenereEncoder } from "./ciphervigenereencoder";
+import { CipherVigenereSolver } from "./ciphervigeneresolver";
 
 interface ICipherFactoryEntry {
-    cipherType: ICipherType
-    cipherClass: typeof CipherHandler
-    canPrint: boolean
+    cipherType: ICipherType;
+    cipherClass: typeof CipherHandler;
+    canPrint: boolean;
 }
 
 /**
@@ -37,6 +38,16 @@ interface ICipherFactoryEntry {
  * CipherHandler class.
  */
 let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
+    ACAProblems: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherACAProblems,
+        canPrint: false,
+    },
+    ACASubmit: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherACASubmit,
+        canPrint: false,
+    },
     Affine: {
         cipherType: ICipherType.Affine,
         cipherClass: CipherAffineEncoder,
@@ -112,12 +123,12 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherClass: CipherRailfenceSolver,
         canPrint: false,
     },
-    RunningKeyEdit : {
+    RunningKeyEdit: {
         cipherType: ICipherType.None,
         cipherClass: CipherRunningKeyEdit,
         canPrint: false,
     },
-    RunningKey : {
+    RunningKey: {
         cipherType: ICipherType.RunningKey,
         cipherClass: CipherRunningKeyEncoder,
         canPrint: true,
@@ -169,47 +180,56 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     },
     Xenocrypt: {
         cipherType: ICipherType.Xenocrypt,
-        cipherClass: CipherXenocryptSolver,
+        cipherClass: CipherSolver,
         canPrint: true,
     },
-}
+};
 
-export function CipherFactory(ciphertypestr: string, reqlang: string): CipherHandler {
-    let lang = "en"
-    console.log('Selecting:' + ciphertypestr + " lang=" + lang)
-    if (typeof reqlang !== 'undefined') {
-        lang = reqlang.toLowerCase()
+export function CipherFactory(
+    ciphertypestr: string,
+    reqlang: string
+): CipherHandler {
+    let lang = "en";
+    console.log("Selecting:" + ciphertypestr + " lang=" + lang);
+    if (typeof reqlang !== "undefined") {
+        lang = reqlang.toLowerCase();
     }
     let entry: ICipherFactoryEntry = {
         cipherType: ICipherType.None,
         cipherClass: CipherSolver,
         canPrint: false,
+    };
+    if (typeof cipherFactoryMap[ciphertypestr] !== "undefined") {
+        entry = cipherFactoryMap[ciphertypestr];
     }
-    if (typeof (cipherFactoryMap[ciphertypestr]) !== 'undefined') {
-        entry = cipherFactoryMap[ciphertypestr]
-    }
-    let cipherTool: CipherHandler = new entry.cipherClass()
-    cipherTool.setDefaultCipherType(entry.cipherType)
-    cipherTool.init(lang)
-    return cipherTool
+    let cipherTool: CipherHandler = new entry.cipherClass();
+    cipherTool.setDefaultCipherType(entry.cipherType);
+    cipherTool.init(lang);
+    return cipherTool;
 }
 
-export function CipherPrintFactory(ciphertype: ICipherType, reqlang: string): CipherHandler {
-    let lang = "en"
-    let cipherTool: CipherHandler
-    if (typeof reqlang !== 'undefined') {
-        lang = reqlang.toLowerCase()
+export function CipherPrintFactory(
+    ciphertype: ICipherType,
+    reqlang: string
+): CipherHandler {
+    let lang = "en";
+    let cipherTool: CipherHandler;
+    if (typeof reqlang !== "undefined") {
+        lang = reqlang.toLowerCase();
     }
     for (let entry of Object.keys(cipherFactoryMap)) {
-        if (cipherFactoryMap[entry].canPrint && cipherFactoryMap[entry].cipherType === ciphertype) {
-            cipherTool = new cipherFactoryMap[entry].cipherClass()
-            cipherTool.setDefaultCipherType(ciphertype)
-            cipherTool.init(lang)
-            return cipherTool
+        if (
+            cipherFactoryMap[entry].canPrint &&
+            cipherFactoryMap[entry].cipherType === ciphertype
+        ) {
+            cipherTool = new cipherFactoryMap[entry].cipherClass();
+            cipherTool.setDefaultCipherType(ciphertype);
+            cipherTool.init(lang);
+            return cipherTool;
         }
     }
-    cipherTool = new CipherEncoder()
-    cipherTool.setDefaultCipherType(ciphertype)
-    cipherTool.init(lang)
-    return cipherTool
+    cipherTool = new CipherEncoder();
+    cipherTool.setDefaultCipherType(ciphertype);
+    cipherTool.init(lang);
+    return cipherTool;
 }

@@ -1,39 +1,48 @@
 ﻿<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title><%= htmlWebpackPlugin.options.title %></title>
-</head>
-<body>
-<% for (var chunk in htmlWebpackPlugin.files.chunks) { %><script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script><% } %>
-<%= require('html-loader!./analytics.html') %>
 
-<div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-    <h2><%= htmlWebpackPlugin.options.title %></h2>
-    <label for="encoded">
-        Encoded Text
-    </label>
-    <textarea id="encoded" cols="20" rows="5"></textarea>
-    <div class="cmds" data-cipher="Gromark">
-        <input id="load" type="button" value="Load" />
-    </div>
-    <div class="ans" id="answer"></div>
-    <div class="freq"></div>
-    <div class="cmds">
-        <input id="reset" type="button" value="Reset" />
-    </div>
-    <div class="sanalysis" id="analysis"></div>
-    <div class="slookup" id="lookup">
-        <div class="langstatus"></div>
-        <div>
-            <label for="lang">Fill Language</label>
-            <select class="lang"></select>
-        </div>
-        <div>
-            <label for="find">Find spot for</label>
-            <input id="find" class="sfind" type="text" />
-        </div>
-        <div class="findres"></div>
-    </div>
+<head>
+    <meta charset="utf-8">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body>
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+        <% } %>
+            <%= require('html-loader!./analytics.html') %>
+
+                <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+                <h2>
+                    <%= htmlWebpackPlugin.options.title %>
+                </h2>
+                <label for="encoded">
+                    Encoded Text
+                </label>
+                <textarea id="encoded" cols="20" rows="5"></textarea>
+                <div class="cmds" data-cipher="Gromark">
+                    <input id="load" type="button" value="Load" />
+                </div>
+                <div class="ans clearfix" id="answer"></div>
+                <div class="freq"></div>
+                <div class="cmds">
+                    <input id="reset" type="button" value="Reset" />
+                </div>
+                <div class="sanalysis" id="analysis"></div>
+                <div class="slookup" id="lookup">
+                    <div class="langstatus"></div>
+                    <div>
+                        <label for="lang">Fill Language</label>
+                        <select class="lang"></select>
+                    </div>
+                    <div>
+                        <label for="find">Find spot for</label>
+                        <input id="find" class="sfind" type="text" />
+                    </div>
+                    <div class="findres"></div>
+                </div>
 </body>
+
 </html>

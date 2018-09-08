@@ -1,176 +1,195 @@
 import { BoolMap, StringMap } from "./ciphercommon";
-import { CipherSolver } from "./ciphersolver"
+import { toolMode } from "./cipherhandler";
+import { CipherSolver } from "./ciphersolver";
+/**
+ * Gromark Solver
+ *
+ */
 export class CipherGromarkSolver extends CipherSolver {
-    gromarkRepl: StringMap
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-     *
-     * Gromark Solver
-     *
-     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-    /**
-     *
-     */
+    activeToolMode: toolMode = toolMode.aca;
+    gromarkRepl: StringMap;
     init(lang: string): void {
-        super.init(lang)
-        this.cipherWidth = 2
+        super.init(lang);
+        this.cipherWidth = 2;
     }
     /**
      * Build the solver UI
      */
     build(): JQuery<HTMLElement> {
-        let str = this.state.cipherString
-        let res = ""
-        let combinedtext = ""
-        let prehead = '<div class="sword"><table class="tword"><tbody><tr>'
-        let posthead1 = '</tr></tbody></table><div class="repl" data-chars="'
-        let posthead2 = '"></div></div>'
-        let pre = prehead
-        let c, piece, datachars
-        let offsets = []
-        let offpos = 0
-        let docwidth = $(document).width()
-        this.freq = {}
-        this.encodedString = ''
+        let str = this.state.cipherString;
+        let res = "";
+        let combinedtext = "";
+        let prehead = '<div class="sword"><table class="tword"><tbody><tr>';
+        let posthead1 = '</tr></tbody></table><div class="repl" data-chars="';
+        let posthead2 = '"></div></div>';
+        let pre = prehead;
+        let c, piece, datachars;
+        let offsets = [];
+        let offpos = 0;
+        let docwidth = $(document).width();
+        this.freq = {};
+        this.encodedString = "";
 
         // Make sure all white space is just a space
-        str = str.replace(/\s+/g, ' ')
+        str = str.replace(/\s+/g, " ");
         // Get the leading digits
         for (let i = 0, len = str.length; i < len; i++) {
-            c = str.substr(i, 1)
-            if (c !== ' ') {
+            c = str.substr(i, 1);
+            if (c !== " ") {
                 if (!isNaN(c)) {
-                    offsets[offpos++] = parseInt(c, 10)
+                    offsets[offpos++] = parseInt(c, 10);
                 } else {
-                    return $('<div class="error">Gromark must start with 5 numeric digits - found ' + c + '</div>')
+                    return $(
+                        '<div class="error">Gromark must start with 5 numeric digits - found ' +
+                            c +
+                            "</div>"
+                    );
                 }
             }
             if (offpos >= 5) {
-                str = str.substr(i, len - 1)
-                break
+                str = str.substr(i, len - 1);
+                break;
             }
         }
         // Now we pull the single check digit off the end
         for (let i = str.length - 1; i > 0; i--) {
-            c = str.substr(i, 1)
-            if (c !== ' ') {
+            c = str.substr(i, 1);
+            if (c !== " ") {
                 if (!isNaN(c)) {
-                    str = str.substr(1, i - 1)
-                    break
+                    str = str.substr(1, i - 1);
+                    break;
                 }
-                return $('<div class="error">Gromark must end with single numeric check digit - found ' + c + '</div>')
+                return $(
+                    '<div class="error">Gromark must end with single numeric check digit - found ' +
+                        c +
+                        "</div>"
+                );
             }
         }
         // Eliminate any leading and trailing white space to make it easier to work with
-        str = str.replace(/^\s+|\s+$/g, "")
-        offpos = -1
-        datachars = ''
-        this.encodedString = ''
+        str = str.replace(/^\s+|\s+$/g, "");
+        offpos = -1;
+        datachars = "";
+        this.encodedString = "";
 
         // Now go through and get all the characters
         for (let i = 0, len = str.length; i < len; i++) {
-            c = str.substr(i, 1).toUpperCase()
+            c = str.substr(i, 1).toUpperCase();
             if (this.isValidChar(c)) {
-                offpos++
+                offpos++;
                 // Compute the running offset
                 if (offpos >= 5) {
-                    offsets[offpos] = (offsets[offpos - 5] + offsets[offpos - 4]) % 10
+                    offsets[offpos] =
+                        (offsets[offpos - 5] + offsets[offpos - 4]) % 10;
                 }
-                piece = c + offsets[offpos]
-                this.encodedString += piece
-                datachars += piece
+                piece = c + offsets[offpos];
+                this.encodedString += piece;
+                datachars += piece;
                 // Remember the frequencies for the single character and the group
                 if (isNaN(this.freq[piece])) {
-                    this.freq[piece] = 0
+                    this.freq[piece] = 0;
                 }
-                this.freq[piece]++
+                this.freq[piece]++;
                 if (isNaN(this.freq[c])) {
-                    this.freq[c] = 0
+                    this.freq[c] = 0;
                 }
-                this.freq[c]++
-                combinedtext += '<span data-char="' + piece + '">?</span>'
-                c = pre + '<td><div class="slil">' + c + '<br/>' + offsets[offpos] + '</div>' +
-                    '<input type="text" id="ti' + piece + '" class="sli" data-schar="' + c + '" data-char="' + piece + '" /></td>'
+                this.freq[c]++;
+                combinedtext += '<span data-char="' + piece + '">?</span>';
+                c =
+                    pre +
+                    '<td><div class="slil">' +
+                    c +
+                    "<br/>" +
+                    offsets[offpos] +
+                    "</div>" +
+                    '<input type="text" id="ti' +
+                    piece +
+                    '" class="sli" data-schar="' +
+                    c +
+                    '" data-char="' +
+                    piece +
+                    '" /></td>';
 
-                pre = ''
-            } else if (c !== ' ') {
-                combinedtext += c
-                c = pre + '<td><div class="slil">' + c + '</div></td>'
-                pre = ''
+                pre = "";
+            } else if (c !== " ") {
+                combinedtext += c;
+                c = pre + '<td><div class="slil">' + c + "</div></td>";
+                pre = "";
             } else {
-                combinedtext += ' '
-                res += posthead1 + datachars + posthead2
-                datachars = ''
-                pre = prehead
+                combinedtext += " ";
+                res += posthead1 + datachars + posthead2;
+                datachars = "";
+                pre = prehead;
             }
-            res += c
+            res += c;
         }
-        if (pre === '') {
-            res += posthead1 + datachars + posthead2
+        if (pre === "") {
+            res += posthead1 + datachars + posthead2;
         }
-        res += '<div class="ssum">' + combinedtext + '</div>'
-        return $(res)
+        res += '<div class="ssum">' + combinedtext + "</div>";
+        return $(res);
     }
     /**
      * Creates the Frequency Table for a Gromark
      */
     createFreqEditTable(): JQuery<HTMLElement> {
-        let topdiv = $('<div/>')
-        let table = $('<table/>').addClass("tfreq")
-        let thead = $('<thead/>')
-        let tbody = $('<tbody/>')
-        let headrow = $('<tr/>')
-        let freqrow
-        let replrow = $('<tr/>')
-        let n, c
-        let charset = this.getCharset()
+        let topdiv = $("<div/>");
+        let table = $("<table/>").addClass("tfreq");
+        let thead = $("<thead/>");
+        let tbody = $("<tbody/>");
+        let headrow = $("<tr/>");
+        let freqrow;
+        let replrow = $("<tr/>");
+        let n, c;
+        let charset = this.getCharset();
 
-        headrow.append($('<th/>').addClass("topleft"))
+        headrow.append($("<th/>").addClass("topleft"));
         for (n = 0; n <= 9; n++) {
-            freqrow = $('<tr/>')
-            freqrow.append($('<th/>').text(n))
+            freqrow = $("<tr/>");
+            freqrow.append($("<th/>").text(n));
             for (let i = 0, len = charset.length; i < len; i++) {
-                c = charset.substr(i, 1).toUpperCase()
+                c = charset.substr(i, 1).toUpperCase();
                 if (n === 0) {
-                    headrow.append($('<th/>').text(c))
+                    headrow.append($("<th/>").text(c));
                 }
-                freqrow.append($('<td id="f' + c + n + '"/>'))
+                freqrow.append($('<td id="f' + c + n + '"/>'));
             }
             if (n === 0) {
-                thead.append(headrow)
+                thead.append(headrow);
             }
-            thead.append(freqrow)
+            thead.append(freqrow);
         }
 
-        headrow = $('<tr/>')
-        headrow.append($('<th/>').addClass("topleft"))
-        freqrow = $('<tr/>')
-        freqrow.append($('<th/>').text("Frequency"))
-        replrow.append($('<th/>').text("Replacement"))
+        headrow = $("<tr/>");
+        headrow.append($("<th/>").addClass("topleft"));
+        freqrow = $("<tr/>");
+        freqrow.append($("<th/>").text("Frequency"));
+        replrow.append($("<th/>").text("Replacement"));
         for (let i = 0, len = charset.length; i < len; i++) {
-            c = charset.substr(i, 1).toUpperCase()
-            headrow.append($('<th/>').text(c))
-            freqrow.append($('<td id="f' + c + '"/>'))
-            let td = $('<td/>')
-            td.append(this.makeFreqEditField(c))
-            replrow.append(td)
+            c = charset.substr(i, 1).toUpperCase();
+            headrow.append($("<th/>").text(c));
+            freqrow.append($('<td id="f' + c + '"/>'));
+            let td = $("<td/>");
+            td.append(this.makeFreqEditField(c));
+            replrow.append(td);
         }
-        thead.append(headrow)
-        tbody.append(freqrow)
-        tbody.append(replrow)
-        table.append(thead)
-        table.append(tbody)
-        topdiv.append(table)
+        thead.append(headrow);
+        tbody.append(freqrow);
+        tbody.append(replrow);
+        table.append(thead);
+        table.append(tbody);
+        topdiv.append(table);
 
-        return topdiv
+        return topdiv;
     }
     /**
      * Change the encrypted character
      */
     setChar(repchar: string, newchar: string): void {
-        if (typeof newchar === 'undefined') {
-            return
+        if (typeof newchar === "undefined") {
+            return;
         }
-        let charset = this.getSourceCharset()
+        let charset = this.getSourceCharset();
 
         // If we came in with something like J5 instead of J, it means that they have typed
         // into the replacement section
@@ -178,47 +197,50 @@ export class CipherGromarkSolver extends CipherSolver {
         //  Hence repchar="V3", newchar="U" needs to switch to be repchar="X" newchar="V"
         // We compute this by Taking the offset for the U and adding 3 getting to the X and we use the V for the replacement.
         if (repchar.length > 1) {
-            let targetc = newchar // U in example
-            newchar = repchar.substr(0, 1);  // V in example
-            let roff = parseInt(repchar.substr(1, 1), 10);  // 3 in example
-            repchar = (charset + charset).substr(charset.indexOf(targetc) + roff, 1)
+            let targetc = newchar; // U in example
+            newchar = repchar.substr(0, 1); // V in example
+            let roff = parseInt(repchar.substr(1, 1), 10); // 3 in example
+            repchar = (charset + charset).substr(
+                charset.indexOf(targetc) + roff,
+                1
+            );
             // Type A U into V3 should fill a V into the X slot.
         }
-        newchar = newchar.toUpperCase()
-        let dispchar = newchar
-        let fillchar = newchar
-        let pos = charset.indexOf(repchar)
+        newchar = newchar.toUpperCase();
+        let dispchar = newchar;
+        let fillchar = newchar;
+        let pos = charset.indexOf(repchar);
 
-        if (dispchar === '') {
-            dispchar = '?'
-            fillchar = this.replacement[repchar]; // the last character that was in this spot
+        if (dispchar === "") {
+            dispchar = "?";
+            fillchar = this.state.replacement[repchar]; // the last character that was in this spot
         }
-        this.replacement[repchar] = newchar
+        this.state.replacement[repchar] = newchar;
         //console.log('Gromark setChar repchar=' + repchar + ' newchar=' + newchar + ' pos=' + pos + ' charset=' + charset)
         if (pos >= 0) {
             // Handle wrapping around by simply doubling the character set
-            pos += charset.length
-            charset += charset
+            pos += charset.length;
+            charset += charset;
 
             // First update the single letter instance
-            $("input[data-char='" + repchar + "']").val(newchar)
-            $('#f' + repchar).text(dispchar)
+            $("input[data-char='" + repchar + "']").val(newchar);
+            $("#f" + repchar).text(dispchar);
 
             // And we need to update all the offset ones to match
             for (let i = 0; i <= 9; i++) {
-                let repl = ''
-                if (newchar !== '') {
-                    repl = charset.substr(pos - i, 1)
+                let repl = "";
+                if (newchar !== "") {
+                    repl = charset.substr(pos - i, 1);
                 }
-                dispchar = repl
-                if (dispchar === '') {
-                    dispchar = '?'
+                dispchar = repl;
+                if (dispchar === "") {
+                    dispchar = "?";
                 }
-                let piece = fillchar + i
-                $("input[data-char='" + piece + "']").val(repl)
-                $("span[data-char='" + piece + "']").text(dispchar)
+                let piece = fillchar + i;
+                $("input[data-char='" + piece + "']").val(repl);
+                $("span[data-char='" + piece + "']").text(dispchar);
             }
-            this.updateMatchDropdowns(repchar)
+            this.updateMatchDropdowns(repchar);
         }
     }
     /**
@@ -226,143 +248,151 @@ export class CipherGromarkSolver extends CipherSolver {
      */
     setMultiChars(reqstr: string): void {
         //console.log('Gromark setMultiChars ' + reqstr)
-        this.holdupdates = true
+        this.holdupdates = true;
         for (let i = 0, len = reqstr.length / 2; i < len; i++) {
-            let repchar = reqstr.substr(i * 2, 1)
-            let newchar = reqstr.substr(i * 2 + 1, 1)
-            this.setChar(repchar, newchar)
+            let repchar = reqstr.substr(i * 2, 1);
+            let newchar = reqstr.substr(i * 2 + 1, 1);
+            this.setChar(repchar, newchar);
         }
-        this.holdupdates = false
-        this.updateMatchDropdowns('')
+        this.holdupdates = false;
+        this.updateMatchDropdowns("");
     }
-
     /*
      * Sorter to compare two string pattern entries
      */
     gmsort(a: any, b: any): number {
         if (a.o < b.o) {
-            return -1
+            return -1;
         } else if (a.o > b.o) {
-            return 1
+            return 1;
         }
-        return 0
+        return 0;
     }
     /**
      *      * Generates the Match dropdown for a given string
      */
-    generateMatchDropdown(str: string): JQuery<HTMLElement> {
-        if (this.state.curlang === '') {
-            return $('')
+    genMatchDropdown(str: string): JQuery<HTMLElement> {
+        if (this.state.curlang === "") {
+            return $("");
         }
-        let matchstr = ''
-        let keepadding = true
-        let repl = []
-        let matches = []
-        let used: BoolMap = {}
-        let slen = str.length / this.cipherWidth
+        let matchstr = "";
+        let keepadding = true;
+        let repl = [];
+        let matches = [];
+        let used: BoolMap = {};
+        let slen = str.length / this.cipherWidth;
         // First we need to find a pattern for the replacement that we can work with
 
         for (let i = 0; i < slen; i++) {
-            let piece = str.substr(i * this.cipherWidth, this.cipherWidth)
-            let substitute = ''
-            if (typeof this.gromarkRepl[piece] === 'undefined') {
-                keepadding = false
+            let piece = str.substr(i * this.cipherWidth, this.cipherWidth);
+            let substitute = "";
+            if (typeof this.gromarkRepl[piece] === "undefined") {
+                keepadding = false;
             } else {
-                substitute = this.gromarkRepl[piece]
+                substitute = this.gromarkRepl[piece];
             }
             if (keepadding) {
-                matchstr += substitute
+                matchstr += substitute;
             }
-            repl.push(substitute)
+            repl.push(substitute);
         }
-        let pat = this.makeUniquePattern(matchstr, this.cipherWidth)
-        let patlen = pat.length
+        let pat = this.makeUniquePattern(matchstr, this.cipherWidth);
+        let patlen = pat.length;
         //  console.log('Searching for ' + pat + ' len=' + patlen + ' based on ' + matchstr + ' slen=' + slen)
         //  console.log(repl)
 
         for (let tpat in this.Frequent[this.state.curlang]) {
-            if (this.Frequent[this.state.curlang].hasOwnProperty(tpat) && tpat.length === slen && tpat.substr(0, patlen) === pat) {
-                let tmatches = this.Frequent[this.state.curlang][tpat]
-                let added = 0
+            if (
+                this.Frequent[this.state.curlang].hasOwnProperty(tpat) &&
+                tpat.length === slen &&
+                tpat.substr(0, patlen) === pat
+            ) {
+                let tmatches = this.Frequent[this.state.curlang][tpat];
+                let added = 0;
                 for (let i = 0, len = tmatches.length; i < len; i++) {
-                    let entry = tmatches[i]
+                    let entry = tmatches[i];
                     if (this.isValidReplacement(entry[0], repl, used)) {
-                        matches.push(entry)
-                        added++
+                        matches.push(entry);
+                        added++;
                         if (added > 3) {
-                            break
+                            break;
                         }
                     }
                 }
             }
         }
         // We have stacked all of the found matches.  Now we need to sort them
-        matches.sort(this.gmsort)
+        matches.sort(this.gmsort);
 
-        let mselect = $('<select/>').addClass('match')
+        let mselect = $("<select/>").addClass("match");
         if (matches.length > 0) {
-            let selectclass = ''
-            let matched = false
-            let added = 0
+            let selectclass = "";
+            let matched = false;
+            let added = 0;
 
             for (let i = 0, len = matches.length; i < len; i++) {
-                let entry = matches[i]
+                let entry = matches[i];
                 if (this.isValidReplacement(entry.t, repl, used)) {
                     if (!matched) {
-                        selectclass = entry.c
+                        selectclass = entry.c;
                     }
-                    matched = true
-                    added++
-                    $('<option/>').addClass(entry.c).text(entry.t).appendTo(mselect)
+                    matched = true;
+                    added++;
+                    $("<option/>")
+                        .addClass(entry.c)
+                        .text(entry.t)
+                        .appendTo(mselect);
                 }
                 if (matched && added > 9) {
-                    break
+                    break;
                 }
             }
             if (added === 0) {
-                selectclass = 'nopat'
+                selectclass = "nopat";
             }
-            mselect.addClass(selectclass)
+            mselect.addClass(selectclass);
         } else {
-            mselect.addClass('nopat')
+            mselect.addClass("nopat");
         }
-        return mselect
+        return mselect;
     }
     /**
      * Update the match dropdowns in respose to an update to a character
      */
     updateMatchDropdowns(repchar: string): void {
         if (this.holdupdates) {
-            return
+            return;
         }
-        this.UpdateReverseReplacements()
-        this.saveGromarkReplacements()
+        this.UpdateReverseReplacements();
+        this.saveGromarkReplacements();
         $("[data-chars]").each((i, elem) => {
-            $(elem).empty().append(this.generateMatchDropdown($(elem).attr('data-chars')))
-        })
+            $(elem)
+                .empty()
+                .append(this.genMatchDropdown($(elem).attr("data-chars")));
+        });
     }
 
     /**
      * Build a set of replacements so that we can quickly check against them
      */
     saveGromarkReplacements(): void {
-        this.gromarkRepl = {}
-        let i, n, len, charset
+        this.gromarkRepl = {};
+        let i, n, len, charset;
         // Get the replacement character set and double it so that we can index past the beginning and wrap around to get the set again
-        charset = this.getSourceCharset()
-        len = charset.length
-        charset += charset
+        charset = this.getSourceCharset();
+        len = charset.length;
+        charset += charset;
         // Iterate through all of our characters
         for (i = 0; i < len; i++) {
-            let c = charset.substr(i, 1)
-            let repl = this.replacement[c]
+            let c = charset.substr(i, 1);
+            let repl = this.state.replacement[c];
             // See if we have a replacement for it.
             if (this.isValidChar(repl)) {
                 // if we do have a replacement, we want to figure out what the corresponding characters map
                 // to and then update that replacement table.
                 for (n = 0; n <= 9; n++) {
-                    let decodc = charset.substr(len + i - n, 1)
-                    this.gromarkRepl[repl + n] = decodc
+                    let decodc = charset.substr(len + i - n, 1);
+                    this.gromarkRepl[repl + n] = decodc;
                 }
             }
         }
@@ -372,124 +402,150 @@ export class CipherGromarkSolver extends CipherSolver {
      * Update the mapping of Gromark characters
      */
     makeGromarkMap(str: string, gromark: string): StringMap {
-        let charset = this.getSourceCharset()
-        let res: StringMap = {}
+        let charset = this.getSourceCharset();
+        let res: StringMap = {};
         // Empty out the result so it can be readily used
         for (let c of charset) {
-            res[c] = ''
+            res[c] = "";
         }
         // Double the character set so we can get the wrapping for free
-        charset += charset
+        charset += charset;
         for (let i = 0, len = str.length; i < len; i++) {
-            let c = str.substr(i, 1)
-            let piece = gromark.substr(i * this.cipherWidth, this.cipherWidth)
+            let c = str.substr(i, 1);
+            let piece = gromark.substr(i * this.cipherWidth, this.cipherWidth);
             // Let's compute the value for the letter plus the offset
-            let offset = charset.indexOf(c) + parseInt(piece.substr(1, 1), 10)
-            let repl = piece.substr(0, 1)
-            res[charset.substr(offset, 1)] = repl
+            let offset = charset.indexOf(c) + parseInt(piece.substr(1, 1), 10);
+            let repl = piece.substr(0, 1);
+            res[charset.substr(offset, 1)] = repl;
         }
         // console.log('makeGromarkMap str=' + str + ' gromark=' + gromark)
         // console.log(res)
-        return res
+        return res;
     }
     /**
      * Search for a match string in a gromark encoded string
      */
     checkGromark(tomatch: string, gromark: string): number {
         if (tomatch.length * this.cipherWidth !== gromark.length) {
-            console.log('Invalid check comparing "' + tomatch +
-                         '"(' + tomatch.length + ') against "' + gromark + '"(' + gromark.length + ')')
-            return 0
+            console.log(
+                'Invalid check comparing "' +
+                    tomatch +
+                    '"(' +
+                    tomatch.length +
+                    ') against "' +
+                    gromark +
+                    '"(' +
+                    gromark.length +
+                    ")"
+            );
+            return 0;
         }
-        let i, len
-        let charset = this.getSourceCharset()
-        let sets = {}
-        let matchlevel = 1
+        let i, len;
+        let charset = this.getSourceCharset();
+        let sets = {};
+        let matchlevel = 1;
         for (i = 0; i < tomatch.length; i++) {
-            let c = tomatch.substr(i, 1)
-            let piece = gromark.substr(i * this.cipherWidth, this.cipherWidth)
+            let c = tomatch.substr(i, 1);
+            let piece = gromark.substr(i * this.cipherWidth, this.cipherWidth);
             // See if we already know that this letter actually maps to something.
-            if (typeof this.gromarkRepl[piece] !== 'undefined') {
+            if (typeof this.gromarkRepl[piece] !== "undefined") {
                 // This is already known to map to a letter.  Let's make sure we match the corresponding character
                 if (this.gromarkRepl[piece] !== c) {
                     //console.log('Failed to match c=' + c + ' vs known[' + piece + ']=' + this.gromarkRepl[piece])
-                    return 0
+                    return 0;
                 }
             }
             // We don't map, so let's compute the value for the letter plus the offset
-            let offset = parseInt(piece.substr(1, 1), 10)
-            let repl = piece.substr(0, 1)
+            let offset = parseInt(piece.substr(1, 1), 10);
+            let repl = piece.substr(0, 1);
             //console.log('Piece='+piece+' Repl=' + repl + ' offset=' + offset + ' delta='+charset.indexOf(c))
-            offset += charset.indexOf(c)
-            if (typeof sets[offset] !== 'undefined') {
+            offset += charset.indexOf(c);
+            if (typeof sets[offset] !== "undefined") {
                 if (sets[offset] !== repl) {
                     //console.log('Already found another sets[' + offset + ']=' + sets[offset] + ' vs ' + repl)
-                    return 0
+                    return 0;
                 }
-                matchlevel = 2
+                matchlevel = 2;
             }
-            if (typeof sets[repl] !== 'undefined') {
+            if (typeof sets[repl] !== "undefined") {
                 if (sets[repl] !== offset) {
                     // console.log('Already found another sets[' + repl + ']=' + sets[repl] + ' vs ' + offset)
-                    return 0
+                    return 0;
                 }
-                matchlevel = 2
+                matchlevel = 2;
             }
-            sets[repl] = offset
-            sets[offset] = repl
+            sets[repl] = offset;
+            sets[offset] = repl;
         }
-        return matchlevel
+        return matchlevel;
     }
     /**
      * Search for a string.  Note that this runs through all the entries looking for a possible match
      */
     findGromark(str: string): void {
-        let tosearch = this.minimizeString(str)
-        let gromarklen = tosearch.length * this.cipherWidth
-        let limit = (this.encodedString.length / this.cipherWidth) - tosearch.length
-        let charset = this.getSourceCharset()
-        let len = charset.length
-        let i, j
-        let res = ''
+        let tosearch = this.minimizeString(str);
+        let gromarklen = tosearch.length * this.cipherWidth;
+        let limit =
+            this.encodedString.length / this.cipherWidth - tosearch.length;
+        let charset = this.getSourceCharset();
+        let len = charset.length;
+        let i, j;
+        let res = "";
 
-        this.saveGromarkReplacements()
+        this.saveGromarkReplacements();
         //console.log('Searching for :' + tosearch + ' in ' + this.encodedString + ' limit=' + limit)
         for (i = 0; i < limit; i++) {
-            let gromark = this.encodedString.substr(i * this.cipherWidth, gromarklen)
-            let matchlevel = this.checkGromark(tosearch, gromark)
+            let gromark = this.encodedString.substr(
+                i * this.cipherWidth,
+                gromarklen
+            );
+            let matchlevel = this.checkGromark(tosearch, gromark);
             if (matchlevel > 0) {
                 // Now go through and figure out what letters need to be picked to make this
-                let mappings = this.makeGromarkMap(tosearch, gromark)
-                let maptable = ''
-                let mapfix = ''
+                let mappings = this.makeGromarkMap(tosearch, gromark);
+                let maptable = "";
+                let mapfix = "";
                 for (j = 0; j < len; j++) {
-                    let c = charset.substr(j, 1)
-                    let mapc = mappings[c]
-                    maptable += '<td>' + mapc + '</td>'
-                    if (mapc !== '') {
-                        mapfix += c + mapc
+                    let c = charset.substr(j, 1);
+                    let mapc = mappings[c];
+                    maptable += "<td>" + mapc + "</td>";
+                    if (mapc !== "") {
+                        mapfix += c + mapc;
                     }
                 }
-                res += '<tr><td>' + i + '</td><td>' + matchlevel +
-                    '</td><td class="dapply" onclick="cipherTool.setMultiChars(\'' + mapfix + '\');">' +
-                     gromark + '</td>' + maptable + '</tr>'
+                res +=
+                    "<tr><td>" +
+                    i +
+                    "</td><td>" +
+                    matchlevel +
+                    '</td><td class="dapply" onclick="cipherTool.setMultiChars(\'' +
+                    mapfix +
+                    "');\">" +
+                    gromark +
+                    "</td>" +
+                    maptable +
+                    "</tr>";
             }
         }
-        if (res === '') {
-            res = '<br/><b>Not Found</b>'
+        if (res === "") {
+            res = "<br/><b>Not Found</b>";
         } else {
-            let tres = '<table class="mfind"><thead><tr><th>Pos</th><th>Type</th><th>Gromark</th>'
+            let tres =
+                '<table class="mfind"><thead><tr><th>Pos</th><th>Type</th><th>Gromark</th>';
             for (i = 0; i < len; i++) {
-                tres += '<th>' + charset.substr(i, 1) + '</th>'
+                tres += "<th>" + charset.substr(i, 1) + "</th>";
             }
-            res = tres + '</tr></thead>' +
-                '<tbody>' + res + '</tbody>' +
-                '</table>'
+            res =
+                tres +
+                "</tr></thead>" +
+                "<tbody>" +
+                res +
+                "</tbody>" +
+                "</table>";
         }
-        $(".findres").html('Searching for ' + str + res)
-        this.attachHandlers()
+        $(".findres").html("Searching for " + str + res);
+        this.attachHandlers();
     }
-
 }
 // Gromark: {
 //     normalizeHTML: 'normalizeHTML',

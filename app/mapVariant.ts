@@ -1,6 +1,6 @@
-import { Mapper } from "./mapper"
+import { Mapper } from "./mapper";
 
-const Aval = "A".charCodeAt(0)
+const Aval = "A".charCodeAt(0);
 
 export class mapVariant extends Mapper {
     /**
@@ -10,18 +10,18 @@ export class mapVariant extends Mapper {
      * @returns cipher text (ct) encoded character
      */
     encode(cpt: string, ckey: string): string {
-        cpt = cpt.toUpperCase()
-        ckey = ckey.toUpperCase()
+        cpt = cpt.toUpperCase();
+        ckey = ckey.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
-        if ((cpt.toLowerCase() === cpt) || (ckey.toLowerCase() === ckey)) {
-            return '?';
+        if (cpt.toLowerCase() === cpt || ckey.toLowerCase() === ckey) {
+            return "?";
         }
-        let keyval = ckey.charCodeAt(0) - Aval
+        let keyval = ckey.charCodeAt(0) - Aval;
         if (keyval > 0) {
-            keyval = 26 - keyval
+            keyval = 26 - keyval;
         }
-        let ctval = cpt.charCodeAt(0) - Aval + keyval
-        return this.getCharCode(ctval)
+        let ctval = cpt.charCodeAt(0) - Aval + keyval;
+        return this.getCharCode(ctval);
     }
     /**
      * Recover the plain text character using the encode text and a key character
@@ -30,18 +30,18 @@ export class mapVariant extends Mapper {
      * ckey Unencoded character
      */
     decode(ct: string, ckey: string): string {
-        ckey = ckey.toUpperCase()
-        ct = ct.toUpperCase()
+        ckey = ckey.toUpperCase();
+        ct = ct.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
-        if ((ckey.toLowerCase() === ckey) || (ct.toLowerCase() === ct)) {
-            return '?';
+        if (ckey.toLowerCase() === ckey || ct.toLowerCase() === ct) {
+            return "?";
         }
-        let keyval = ckey.charCodeAt(0) - Aval
+        let keyval = ckey.charCodeAt(0) - Aval;
         if (keyval > 0) {
-            keyval = 26 - keyval
+            keyval = 26 - keyval;
         }
-        let ptval = (ct.charCodeAt(0) - Aval - keyval)
-        return this.getCharCode(ptval)
+        let ptval = ct.charCodeAt(0) - Aval - keyval;
+        return this.getCharCode(ptval);
     }
     /**
      * Recover the key character using the encode text and a plain text character
@@ -50,14 +50,15 @@ export class mapVariant extends Mapper {
      * cpt Unencoded character
      */
     decodeKey(ct: string, cpt: string): string {
-        cpt = cpt.toUpperCase()
-        ct = ct.toUpperCase()
+        cpt = cpt.toUpperCase();
+        ct = ct.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
-        if ((cpt.toLowerCase() === cpt) || (ct.toLowerCase() === ct)) {
-            return '?';
+        if (cpt.toLowerCase() === cpt || ct.toLowerCase() === ct) {
+            return "?";
         }
-        let keyval = 26 - ((ct.charCodeAt(0) - Aval - cpt.charCodeAt(0) - Aval) % 26)
-        return this.getCharCode(keyval)
+        let keyval =
+            26 - ((ct.charCodeAt(0) - Aval - cpt.charCodeAt(0) - Aval) % 26);
+        return this.getCharCode(keyval);
     }
     // let testmap:StringMap = {
     //     'encVariant-aa=A': this.encVariant("a","a"), // OK

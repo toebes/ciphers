@@ -1,19 +1,28 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title><%= htmlWebpackPlugin.options.title %></title>
-</head>
-<body>
-<% for (var chunk in htmlWebpackPlugin.files.chunks) { %><script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script><% } %>
-<%= require('html-loader!./analytics.html') %>
 
-<div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-    <h2><%= htmlWebpackPlugin.options.title %></h2>
-    <div class="testlist"></div>
-    <div class="ans" id="answer"></div>
-    <div class="err" id="err"></div>
-    <div class="cmdbuttons" ></div>
+<head>
+    <meta charset="utf-8">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body>
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+        <% } %>
+            <%= require('html-loader!./analytics.html') %>
+
+                <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+                <h2>
+                    <%= htmlWebpackPlugin.options.title %>
+                </h2>
+                <div class="precmds"></div>
+                <div class="testlist"></div>
+                <div class="ans clearfix" id="answer"></div>
+                <div class="err" id="err"></div>
+                <div class="cmdbuttons"></div>
 </body>
 
 </html>

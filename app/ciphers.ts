@@ -1,4 +1,4 @@
-"use strict"
+"use strict";
 
 /**
  * ciphers.js is a library for JavaScript which provides functions for
@@ -26,34 +26,32 @@
  * Main CipherTool class object
  * @type {Object.<string, function>}
  */
-import 'dataTables-colReorder-zf'
-import 'dataTables-zf'
-import 'foundation-sites'
-import 'foundation.css'
-import * as $ from "jquery"
-import 'katex.css'
-import '../styles.css'
+import "foundation-sites";
+import "foundation.css";
+import * as $ from "jquery";
+import "katex.css";
+import "../styles.css";
 
-import { CipherFactory } from "./cipherfactory"
-import { CipherHandler } from "./cipherhandler"
+import { CipherFactory } from "./cipherfactory";
+import { CipherHandler } from "./cipherhandler";
 
-let cipherTool: CipherHandler = new CipherHandler()
-declare let window: any
-window.cipherTool = cipherTool
+let cipherTool: CipherHandler = new CipherHandler();
+declare let window: any;
+window.cipherTool = cipherTool;
 
-$(function (): void {
+$(function(): void {
     // Patch for a Foundation Bug in v6.3.1
-    $(window).on('changed.zf.mediaquery', () => {
-        $('.is-dropdown-submenu.invisible').removeClass('invisible');
+    $(window).on("changed.zf.mediaquery", () => {
+        $(".is-dropdown-submenu.invisible").removeClass("invisible");
     });
-    let data_lang
-    let data_cipher
+    let data_lang;
+    let data_cipher;
     // First figure out what type of solver we are building
     $("[data-cipher]").each((i, elem) => {
-        data_cipher = $(elem).attr('data-cipher')
-        data_lang = $(elem).attr('data-lang')
-    })
-    window.cipherTool = cipherTool = CipherFactory(data_cipher, data_lang)
+        data_cipher = $(elem).attr("data-cipher");
+        data_lang = $(elem).attr("data-lang");
+    });
+    window.cipherTool = cipherTool = CipherFactory(data_cipher, data_lang);
     cipherTool.layout();
-    $(document).foundation()
-})
+    $(document).foundation();
+});

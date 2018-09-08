@@ -1,6 +1,6 @@
-const Aval = "A".charCodeAt(0)
+const Aval = "A".charCodeAt(0);
 
-import { Mapper } from "./mapper"
+import { Mapper } from "./mapper";
 export class mapBeaufort extends Mapper {
     /**
      * Map two unencoded characters using the Beaufort mapping table
@@ -10,14 +10,14 @@ export class mapBeaufort extends Mapper {
      * cipher text (ct) encoded character
      */
     encode(cpt: string, ckey: string): string {
-        cpt = cpt.toUpperCase()
-        ckey = ckey.toUpperCase()
+        cpt = cpt.toUpperCase();
+        ckey = ckey.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
-        if ((cpt.toLowerCase() === cpt) || (ckey.toLowerCase() === ckey)) {
-            return '?';
+        if (cpt.toLowerCase() === cpt || ckey.toLowerCase() === ckey) {
+            return "?";
         }
-        let ctval = ckey.charCodeAt(0) - cpt.charCodeAt(0)
-        return this.getCharCode(ctval)
+        let ctval = ckey.charCodeAt(0) - cpt.charCodeAt(0);
+        return this.getCharCode(ctval);
     }
     /**
      * Recover the plain text character using the encode text and a key character
@@ -28,7 +28,7 @@ export class mapBeaufort extends Mapper {
      * ckey Unencoded character
      */
     decode(ct: string, ckey: string): string {
-        return this.encode(ct, ckey)
+        return this.encode(ct, ckey);
     }
     /**
      * Recover the key character using the encode text and a plain text character
@@ -38,14 +38,14 @@ export class mapBeaufort extends Mapper {
      * cpt Unencoded character
      */
     decodeKey(ct: string, cpt: string): string {
-        cpt = cpt.toUpperCase()
-        ct = ct.toUpperCase()
+        cpt = cpt.toUpperCase();
+        ct = ct.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
-        if ((cpt.toLowerCase() === cpt) || (ct.toLowerCase() === ct)) {
-            return '?';
+        if (cpt.toLowerCase() === cpt || ct.toLowerCase() === ct) {
+            return "?";
         }
-        let keyval = (ct.charCodeAt(0) - Aval) + (cpt.charCodeAt(0) - Aval)
-        return this.getCharCode(keyval)
+        let keyval = ct.charCodeAt(0) - Aval + (cpt.charCodeAt(0) - Aval);
+        return this.getCharCode(keyval);
     }
     // Test cases to confirm that the Beaufort encoders/decoders work
     //     'encBeaufort-aa=A': this.encBeaufort("a","a"), // OK

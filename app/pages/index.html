@@ -6,32 +6,6 @@
     <title>
         <%= htmlWebpackPlugin.options.title %>
     </title>
-    <style>
-        table.solvers {
-            border-collapse: collapse;
-            border: 0px;
-            font-family: "Roboto", sans-serif;
-
-        }
-
-        table.solvers th {
-            border: 1px solid black;
-            background-color: #d8a18d;
-        }
-
-        table.solvers td.notimp {
-            background-color: #cecece;
-            color: #634c43;
-        }
-
-        table.solvers td {
-            background-color: #d8a18d;
-            font-family: "Roboto", sans-serif;
-            text-align: center;
-            padding: 4px;
-            border: 1px solid black;
-        }
-    </style>
 </head>
 
 <body>
@@ -39,401 +13,195 @@
         <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
         <% } %>
             <%= require('html-loader!./analytics.html') %>
-
-                <div class="MenuBar"></div>
-                <h2>
-                    <a href="https://www.soinc.org/codebusters-c">Science Olympiad Code Busters</a> Test Generation Tools
-                </h2>
-                  <div class="callout primary">
-                    <h4><a href="TestManage.html">Test Manager</a> - Create/Delete/Edit Tests</li></h4>
-                        <h4><a href="TestQuestions.html">Question Manager</a> - Manage/Delete unused questions</h4>
+                <div class="callout primary">
+                    <div class="cell clearfix">
+                        <a class="float-right" href="https://www.sciencenc.com/resources/high-school/codebusters/"><img src="https://www.sciencenc.com/wp-content/uploads/logo-short.png"
+                                width="180" height="120" /></a>
+                        <a class="float-right" href="https://www.soinc.org/codebusters-c"><img src="https://www.soinc.org/sites/default/files/SCI_OLY_LOGO.jpeg"
+                                width="180" height="120" /></a>
+                        <h2>
+                            <span class="scioly">S<span class="t">cience</span> O<span class="t">lympiad</span> C<span class="t">ode</span>B<span
+                                    class="t">usters</span><br/> Test Generation Tools</span>
+                        </h2>
                     </div>
-                    <div class="callout secondary">
-                        <div class="grid-x">
-                        <div class="cell small-12"><h4>Create individual questions</h4></div>
-                        <div class="cell small-4 medium-3"><a href="AffineEncrypt.html?cipherType=affine">Affine</a></div>
-                        <div class="cell small-4 medium-3"><a href="AristocratEncrypt.html?cipherType=aristocrat">Aristocrat</a></div>
-                        <div class="cell small-4 medium-3"><a href="Atbash.html?cipherType=atbash">Atbash</a></div>
-                        <div class="cell small-4 medium-3"><a href="Baconian.html?cipherType=baconian">Baconian</a></div>
-                        <div class="cell small-4 medium-3"><a href="Caesar.html?cipherType=caesar">Caesar</a></div>
-                        <div class="cell small-4 medium-3"><a href="HillEncrypt.html?cipherType=hill">Hill (2x2 and 3x3)</a></div>
-                        <div class="cell small-4 medium-3"><a href="PatristocratEncrypt.html?cipherType=patristocrat">Patristocrat</a></div>
-                        <div class="cell small-4 medium-3"><a href="RunningKeyEncoder.html?cipherType=runningKey">Running Key</a></div>
-                        <div class="cell small-4 medium-3"><a href="AristocratSpanishEncrypt.html">Spanish Aristocrat</a></div>
-                        <div class="cell small-4 medium-3"><a href="VigenereEncrypt.html?cipherType=vigenere">Vigen&egrave;re</a></div>
-                        <div class="cell small-4 medium-3"><a href="XenocryptEncrypt.html?cipherType=xenocrypt">Xenocrypt</a></div>
+                    <div class="cell">
+                        <a class="button" href="TestManage.html">Test Manager</a> - Create/Delete/Edit Tests
                     </div>
+                    <div class="cell">
+                        <a class="button" href="TestQuestions.html">Question Manager</a> - Manage/Delete unused questions
                     </div>
-                <h1><a href="http://www.cryptogram.org/">ACA</a> Cipher Solving Assistants</h1>
-                <ul>
-                    <li>
-                        <a href="Solver.html">Solving Assistant</a>
-                    </li>
-                    <!-- <li>
-            <a href="MorbitSolver.html">Morbit Solving Assistant</a>
-        </li>
-        <li>
-            <a href="FractionatedMorseSolver.html">Fractionated Morse Solving Assistant</a>
-        </li>
-        <li>
-            <a href="CheckerboardSolver.html">Checkerboard Solving Assistant</a>
-        </li> -->
-                    <li>
-                        <a href="XenocryptSolver.html">Xenocrypt Solving Assistant</a>
-                    </li>
-                    <!-- <li>
-            <a href="VigenereSolver.html">Vigen&egrave;re Solving Assistant</a>
-        </li>
-        <li>
-            <a href="GromarkSolver.html">Gromark Solving Assistant</a>
-        </li> -->
-                    <li>
-                        <a href="CryptarithmSolver.html">Cryptarithm Solving Assistant</a>
-                    </li>
-                    <!-- <li>
-            <a href="RagbabySolver.html">Ragbaby Solving Assistant</a>
-        </li> -->
-                </ul>
-                <table class="solvers">
-                    <tbody>
-                        <tr>
-                            <td class="notimp">Amsco
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Amsco.pdf">?</a>
-                            </td>
-                            <td class="notimp">Autokey
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Autokey.pdf">?</a>
-                            </td>
-                            <td class="notimp">Baconian
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Baconian.pdf">?</a>
-                            </td>
-                            <td class="notimp">Bazeries
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Bazeries.pdf">?</a>
-                            </td>
-                            <td>
-                                <a href="VigenereSolver.html?cipherType=beaufort">Beaufort</a>
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Beaufort.pdf">?</a>
-                            </td>
-                            <td class="notimp">Bifid
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Bifid.pdf">?</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="notimp">Cadenus
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Cadenus.pdf">?</a>
-                            </td>
-                            <td>
-                                <a href="CheckerboardSolver.html">Checkerboard</a>
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Checkerboard.pdf">?</a>
-                            </td>
-                            <td class="notimp">Complete Columnar Transposition
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/CompleteColTransposition.pdf">?</a>
-                            </td>
-                            <td class="notimp">Condi
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Condi.pdf">?</a>
-                            </td>
-                            <td class="notimp">Cm Bifid
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/CMBifid.pdf">?</a>
-                            </td>
-                            <td class="notimp">Digrafid
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Digrafid.pdf">?</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="notimp">Foursquare
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Foursquare.pdf">?</a>
-                            </td>
-                            <td>
-                                <a href="FractionatedMorseSolver.html">Fractionated Morse</a>
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/FractionatedMorse.pdf">?</a>
-                            </td>
-                            <td class="notimp">Grandpr&eacute;
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Grandpre.pdf">?</a>
-                            </td>
-                            <td class="notimp">Grille
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Grille.pdf">?</a>
-                            </td>
-                            <td>
-                                <a href="GromarkSolver.html">Gromark</a>
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Gromark.pdf">?</a>
-                            </td>
-                            <td>
-                                <a href="VigenereSolver.html?cipherType=gronsfeld">Gronsfeld</a>
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Gronsfeld.pdf">?</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="notimp">Headlines
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Headlines.pdf">?</a>
-                            </td>
-                            <td class="notimp">Homophonic
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Homophonic.pdf">?</a>
-                            </td>
-                            <td class="notimp">Incomplete Columnar
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/IncompleteColTransposition.pdf">?</a>
-                            </td>
-                            <td class="notimp">Interrupted Key
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/InterruptedKey.pdf">?</a>
-                            </td>
-                            <td class="notimp">Key Phrase
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/KeyPhrase.pdf">?</a>
-                            </td>
-                            <td class="notimp">Monome-Dinome
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/MonomeDinome.pdf">?</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a href="MorbitSolver.html">Morbit</a>
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Morbit.pdf">?</a>
-                            </td>
-                            <td class="notimp">Myszkowski
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Myszkowski.pdf">?</a>
-                            </td>
-                            <td class="notimp">Nicodemus
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Nicodemus.pdf">?</a>
-                            </td>
-                            <td class="notimp">Nihilist Substitution
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/NihilistSubstitution.pdf">?</a>
-                            </td>
-                            <td class="notimp">Nihilist Transposition
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/NihilistTransposition.pdf">?</a>
-                            </td>
-                            <td class="notimp">Null
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Null.pdf">?</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="notimp">Numbered Key
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/NumberedKey.pdf">?</a>
-                            </td>
-                            <td class="notimp">Periodic Gromark
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/PeriodicGromark.pdf">?</a>
-                            </td>
-                            <td class="notimp">Phillips
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Phillips.pdf">?</a>
-                            </td>
-                            <td class="notimp">Phillips-Rc
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/PhillipsRC.pdf">?</a>
-                            </td>
-                            <td class="notimp">Playfair
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Playfair.pdf">?</a>
-                            </td>
-                            <td class="notimp">Pollux
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Pollux.pdf">?</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <a href="VigenereSolver.html?cipherType=porta">Porta</a>
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Porta.pdf">?</a>
-                            </td>
-                            <td class="notimp">Portax
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Portax.pdf">?</a>
-                            </td>
-                            <td class="notimp">Progressive Key
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/ProgressiveKey.pdf">?</a>
-                            </td>
-                            <td class="notimp">Quagmire &#8544;
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/QuagmireI.pdf">?</a>
-                            </td>
-                            <td class="notimp">Quagmire &#8545;
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/QuagmireII.pdf">?</a>
-                            </td>
-                            <td class="notimp">Quagmire &#8546;
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/QuagmireIII.pdf">?</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="notimp">Quagmire &#8547;
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/QuagmireIV.pdf">?</a>
-                            </td>
-                            <td>
-                                <a href="RagbabySolver.html?cipherType=ragbaby">Ragbaby</a>
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Ragbaby.pdf">?</a>
-                            </td>
-                            <td>
-                                <a href="RailfenceSolver.html?cipherType=railfence">Railfence</a>
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Railfence.pdf">?</a>
-                            </td>
-                            <td>
-                                <a href="RailfenceSolver.html?cipherType=redefence">Redefence</a>
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Redefence.pdf">?</a>
-                            </td>
-                            <td class="notimp">Route Transposition
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/RouteTransposition.pdf">?</a>
-                            </td>
-                            <td class="notimp">Running Key
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/RunningKey.pdf">?</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="notimp">Seriated Playfair
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/SeriatedPlayfair.pdf">?</a>
-                            </td>
-                            <td class="notimp">Slidefair
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Slidefair.pdf">?</a>
-                            </td>
-                            <td class="notimp">Swagman
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Swagman.pdf">?</a>
-                            </td>
-                            <td class="notimp">Syllabary
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Syllabary.pdf">?</a>
-                            </td>
-                            <td class="notimp">Tridigital
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Tridigital.pdf">?</a>
-                            </td>
-                            <td class="notimp">Trifid
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Trifid.pdf">?</a>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="notimp">Tri-Square
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/TriSquare.pdf">?</a>
-                            </td>
-                            <td class="notimp">Twin Bifid
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/TwinBifidTrifid.pdf">?</a>
-                            </td>
-                            <td class="notimp">Twin Trifid
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/TwinBifidTrifid.pdf">?</a>
-                            </td>
-                            <td class="notimp">Two-Square
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/TwoSquare.pdf">?</a>
-                            </td>
-                            <td>
-                                <a href="VigenereSolver.html?cipherType=variant">Variant</a>
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Variant.pdf">?</a>
-                            </td>
-                            <td>
-                                <a href="VigenereSolver.html?cipherType=vigenere">Vigen&egrave;re</a>
-                                <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Vigenere.pdf">?</a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <p>10 implemented... only 50 more to go</p>
-
-                <h1>2018 North Carolina Regional and State Tests</h1>
-                <ul>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Test%201.pdf">2018 Regional Test 1</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Test%201%20Answers.pdf">Answers</a>
-                        ]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Test%202.pdf">2018 Regional Test 2</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Test%202%20Answers.pdf">Answers</a>
-                        ]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Test%203.pdf">2018 Regional Test 3</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Test%203%20Answers.pdf">Answers</a>
-                        ]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Test%20State.pdf">2018 State Test</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Test%20State%20Answers.pdf">Answers</a>
-                        ]</li>
-                </ul>
-                <h1>2018 Sample Tests</h1>
-                <ul>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Sample%201.pdf">2018 Sample 1</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Sample%201%20Answers.pdf">Answers</a>
-                        ]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Sample%202.pdf">2018 Sample 2</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Sample%202%20Answers.pdf">Answers</a>
-                        ]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Sample%203.pdf">2018 Sample 3</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Sample%203%20Answers.pdf">Answers</a>
-                        ]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Sample%204.pdf">2018 Sample 4</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Sample%204%20Answers.pdf">Answers</a>
-                        ]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Sample%205.pdf">2018 Sample 5</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Sample%205%20Answers.pdf">Answers</a>,&nbsp;
-                        <a href="Samples/Code%20Busters%202018%20Sample%205%20Patristocrat%20Solution.pdf">Question 2 Patristrocrat Solving Approach</a>
-                        ]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Sample%206.pdf">2018 Sample 6</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Sample%206%20Answers.pdf">Answers</a>,&nbsp;
-                        <a href="Samples/Code%20Busters%202018%20Sample%206%20Patristocrat%20Solution.pdf">Question 2 Patristrocrat Solving Approach</a>
-                        ]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Sample%207.pdf">2018 Sample 7</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Sample%207%20Answers.pdf">Answers</a>,&nbsp;
-                        <a href="Samples/Code%20Busters%202018%20Sample%207%20Patristocrat%20Solution.pdf">Question 5 Patristrocrat Solving Approach</a>
-                        ]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Mini%20Test1.pdf">2018 Mini Test1</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Mini%20Test1%20Answers.pdf">Answers</a>
-                        ]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Sample%208.pdf">2018 Sample 8</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Sample%208%20Answers.pdf">Answers</a>
-                        ]
-                    </li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Sample%209.pdf">2018 Sample 9</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Sample%209%20Answers.pdf">Answers</a>,&nbsp;
-                        <a href="Samples/Code%20Busters%202018%20Sample%209%20Xenocrypt%20Solution.pdf">Question 2 Xenocrypt Solving Approach</a>
-                        ]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202018%20Sample%2010.pdf">2018 Sample 10</a>
-                        [
-                        <a href="Samples/Code%20Busters%202018%20Sample%2010%20Answers.pdf">Answers</a>
-                        ]</li>
-
-                </ul>
-                <h1>2017 Sample Tests</h1>
-                <ul>
-                    <li>
-                        <a href="Samples/Code%20Busters%202017%20Sample%204.pdf">2017 Sample 4</a>
-                        [
-                        <a href="Samples/Code%20Busters%202017%20Sample%204%20Answers.pdf">Answers</a>]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202017%20Sample%205.pdf">2017 Sample 5</a>
-                        [
-                        <a href="Samples/Code%20Busters%202017%20Sample%205%20Answers.pdf">Answers</a>]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202017%20Sample%206.pdf">2017 Sample 6</a>
-                        [
-                        <a href="Samples/Code%20Busters%202017%20Sample%206%20Answers.pdf">Answers</a>]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202017%20Sample%207.pdf">2017 Sample 7</a>
-                        [
-                        <a href="Samples/Code%20Busters%202017%20Sample%207%20Answers.pdf">Answers</a>]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202017%20Test%201.pdf">2017 Regional Test 1</a>
-                        [
-                        <a href="Samples/Code%20Busters%202017%20Test%201%20Answers.pdf">Answers</a>]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202017%20Test%202.pdf">2017 Regional Test 2</a>
-                        [
-                        <a href="Samples/Code%20Busters%202017%20Test%202%20Answers.pdf">Answers</a>]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202017%20Test%203.pdf">2017 Regional Test 3</a>
-                        [
-                        <a href="Samples/Code%20Busters%202017%20Test%203%20Answers.pdf">Answers</a>]</li>
-                    <li>
-                        <a href="Samples/Code%20Busters%202017%20Test%20State.pdf">2017 State Test </a>
-                        [
-                        <a href="Samples/Code%20Busters%202017%20Test%20State%20Answers.pdf">Answers</a>]</li>
-                </ul>
+                    <div class="cell">
+                        <em>Please report any problems at </em><a href="https://github.com/toebes/ciphers/issues">github.com/toebes/ciphers/issues</a>
+                    </div>
+                </div>
+                <div class="callout secondary">
+                    <div class="grid-x">
+                        <div class="cell small-12">
+                            <h4>Create individual questions</h4>
+                        </div>
+                        <div class="cell small-4 medium-3"><a class="button secondary" href="AffineEncrypt.html?cipherType=affine">Affine</a></div>
+                        <div class="cell small-4 medium-3"><a class="button secondary" href="AristocratEncrypt.html?cipherType=aristocrat">Aristocrat</a></div>
+                        <div class="cell small-4 medium-3"><a class="button secondary" href="Atbash.html?cipherType=atbash">Atbash</a></div>
+                        <div class="cell small-4 medium-3"><a class="button secondary" href="Baconian.html?cipherType=baconian">Baconian</a></div>
+                        <div class="cell small-4 medium-3"><a class="button secondary" href="Caesar.html?cipherType=caesar">Caesar</a></div>
+                        <div class="cell small-4 medium-3"><a class="button secondary" href="HillEncrypt.html?cipherType=hill">Hill
+                                (2x2 and 3x3)</a></div>
+                        <div class="cell small-4 medium-3"><a class="button secondary" href="PatristocratEncrypt.html?cipherType=patristocrat">Patristocrat</a></div>
+                        <div class="cell small-4 medium-3"><a class="button secondary" href="RunningKeyEncoder.html?cipherType=runningKey">Running
+                                Key
+                            </a></div>
+                        <div class="cell small-4 medium-3"><a class="button secondary" href="RSAEncrypt.html">RSA</a></div>
+                        <div class="cell small-4 medium-3"><a class="button secondary" href="AristocratSpanishEncrypt.html">Spanish
+                                Aristocrat
+                            </a></div>
+                        <div class="cell small-4 medium-3"><a class="button secondary" href="VigenereEncrypt.html?cipherType=vigenere">Vigen&egrave;re</a></div>
+                        <div class="cell small-4 medium-3"><a class="button secondary" href="XenocryptEncrypt.html?cipherType=xenocrypt">Xenocrypt</a></div>
+                    </div>
+                </div>
+                <div class="callout secondary">
+                    <h3>2019 Sample Tests</h3>
+                    <hr>
+                    <ul>
+                        <li>
+                            <a href="https://toebes.com/codebusters/TestManage.html?importURL=Coaches_Institute_2018.json">Coaches
+                                Institute 2018</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="callout secondary">
+                    <h3>2018 North Carolina Regional and State Tests</h3>
+                    <hr>
+                    <ul>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Test%201.pdf">2018 Regional Test 1</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Test%201%20Answers.pdf">Answers</a>
+                            ]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Test%202.pdf">2018 Regional Test 2</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Test%202%20Answers.pdf">Answers</a>
+                            ]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Test%203.pdf">2018 Regional Test 3</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Test%203%20Answers.pdf">Answers</a>
+                            ]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Test%20State.pdf">2018 State Test</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Test%20State%20Answers.pdf">Answers</a>
+                            ]</li>
+                    </ul>
+                </div>
+                <div class="callout secondary">
+                    <h3>2018 Sample Tests</h3>
+                    <hr>
+                    <ul>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Sample%201.pdf">2018 Sample 1</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Sample%201%20Answers.pdf">Answers</a>
+                            ]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Sample%202.pdf">2018 Sample 2</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Sample%202%20Answers.pdf">Answers</a>
+                            ]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Sample%203.pdf">2018 Sample 3</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Sample%203%20Answers.pdf">Answers</a>
+                            ]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Sample%204.pdf">2018 Sample 4</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Sample%204%20Answers.pdf">Answers</a>
+                            ]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Sample%205.pdf">2018 Sample 5</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Sample%205%20Answers.pdf">Answers</a>,&nbsp;
+                            <a href="Samples/Code%20Busters%202018%20Sample%205%20Patristocrat%20Solution.pdf">Question 2
+                                Patristrocrat Solving Approach</a>
+                            ]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Sample%206.pdf">2018 Sample 6</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Sample%206%20Answers.pdf">Answers</a>,&nbsp;
+                            <a href="Samples/Code%20Busters%202018%20Sample%206%20Patristocrat%20Solution.pdf">Question 2
+                                Patristrocrat Solving Approach</a>
+                            ]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Sample%207.pdf">2018 Sample 7</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Sample%207%20Answers.pdf">Answers</a>,&nbsp;
+                            <a href="Samples/Code%20Busters%202018%20Sample%207%20Patristocrat%20Solution.pdf">Question 5
+                                Patristrocrat Solving Approach</a>
+                            ]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Mini%20Test1.pdf">2018 Mini Test1</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Mini%20Test1%20Answers.pdf">Answers</a>
+                            ]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Sample%208.pdf">2018 Sample 8</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Sample%208%20Answers.pdf">Answers</a>
+                            ]
+                        </li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Sample%209.pdf">2018 Sample 9</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Sample%209%20Answers.pdf">Answers</a>,&nbsp;
+                            <a href="Samples/Code%20Busters%202018%20Sample%209%20Xenocrypt%20Solution.pdf">Question 2 Xenocrypt
+                                Solving Approach</a>
+                            ]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202018%20Sample%2010.pdf">2018 Sample 10</a>
+                            [
+                            <a href="Samples/Code%20Busters%202018%20Sample%2010%20Answers.pdf">Answers</a>
+                            ]</li>
+                    </ul>
+                </div>
+                <div class="callout secondary">
+                    <h3>2017 Sample Tests</h3>
+                    <hr>
+                    <ul>
+                        <li>
+                            <a href="Samples/Code%20Busters%202017%20Sample%204.pdf">2017 Sample 4</a>
+                            [
+                            <a href="Samples/Code%20Busters%202017%20Sample%204%20Answers.pdf">Answers</a>]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202017%20Sample%205.pdf">2017 Sample 5</a>
+                            [
+                            <a href="Samples/Code%20Busters%202017%20Sample%205%20Answers.pdf">Answers</a>]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202017%20Sample%206.pdf">2017 Sample 6</a>
+                            [
+                            <a href="Samples/Code%20Busters%202017%20Sample%206%20Answers.pdf">Answers</a>]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202017%20Sample%207.pdf">2017 Sample 7</a>
+                            [
+                            <a href="Samples/Code%20Busters%202017%20Sample%207%20Answers.pdf">Answers</a>]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202017%20Test%201.pdf">2017 Regional Test 1</a>
+                            [
+                            <a href="Samples/Code%20Busters%202017%20Test%201%20Answers.pdf">Answers</a>]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202017%20Test%202.pdf">2017 Regional Test 2</a>
+                            [
+                            <a href="Samples/Code%20Busters%202017%20Test%202%20Answers.pdf">Answers</a>]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202017%20Test%203.pdf">2017 Regional Test 3</a>
+                            [
+                            <a href="Samples/Code%20Busters%202017%20Test%203%20Answers.pdf">Answers</a>]</li>
+                        <li>
+                            <a href="Samples/Code%20Busters%202017%20Test%20State.pdf">2017 State Test </a>
+                            [
+                            <a href="Samples/Code%20Busters%202017%20Test%20State%20Answers.pdf">Answers</a>]</li>
+                    </ul>
+                </div>
 </body>
 
 </html>

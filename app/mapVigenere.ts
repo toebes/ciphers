@@ -1,6 +1,6 @@
-import {Mapper} from "./mapper"
+import { Mapper } from "./mapper";
 
-const Aval = "A".charCodeAt(0)
+const Aval = "A".charCodeAt(0);
 export class mapVigenere extends Mapper {
     /**
      * Map two unencoded characters using the Vigenere mapping table
@@ -9,14 +9,14 @@ export class mapVigenere extends Mapper {
      * @returns cipher text (ct) encoded character
      */
     encode(cpt: string, ckey: string): string {
-        cpt = cpt.toUpperCase()
-        ckey = ckey.toUpperCase()
+        cpt = cpt.toUpperCase();
+        ckey = ckey.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
-        if ((cpt.toLowerCase() === cpt) || (ckey.toLowerCase() === ckey)) {
-            return '?';
+        if (cpt.toLowerCase() === cpt || ckey.toLowerCase() === ckey) {
+            return "?";
         }
-        let ctval = (cpt.charCodeAt(0) - Aval + ckey.charCodeAt(0) - Aval)
-        return this.getCharCode(ctval)
+        let ctval = cpt.charCodeAt(0) - Aval + ckey.charCodeAt(0) - Aval;
+        return this.getCharCode(ctval);
     }
     /**
      * Recover the plain text character using the encode text and a key character
@@ -25,14 +25,14 @@ export class mapVigenere extends Mapper {
      * ckey Unencoded character
      */
     decode(ct: string, ckey: string): string {
-        ckey = ckey.toUpperCase()
-        ct = ct.toUpperCase()
+        ckey = ckey.toUpperCase();
+        ct = ct.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
-        if ((ckey.toLowerCase() === ckey) || (ct.toLowerCase() === ct)) {
-            return '?';
+        if (ckey.toLowerCase() === ckey || ct.toLowerCase() === ct) {
+            return "?";
         }
-        let ptval = (ct.charCodeAt(0) - Aval - ckey.charCodeAt(0) - Aval)
-        return this.getCharCode(ptval)
+        let ptval = ct.charCodeAt(0) - Aval - ckey.charCodeAt(0) - Aval;
+        return this.getCharCode(ptval);
     }
     /**
      * Recover the key character using the encode text and a plain text character

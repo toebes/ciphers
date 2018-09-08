@@ -1,4 +1,4 @@
-const Aval = "A".charCodeAt(0)
+const Aval = "A".charCodeAt(0);
 
 export class Mapper {
     /**
@@ -6,7 +6,7 @@ export class Mapper {
      * val Code to be mapped to a character
      */
     getCharCode(val: number): string {
-        return String.fromCharCode((((val % 26) + 26) % 26) + Aval)
+        return String.fromCharCode((((val % 26) + 26) % 26) + Aval);
     }
     /**
      * Map two unencoded characters using the Vigenere mapping table
@@ -15,7 +15,7 @@ export class Mapper {
      * @returns cipher text (ct) encoded character
      */
     encode(cpt: string, ckey: string): string {
-        return '?';
+        return "?";
     }
     /**
      * Recover the plain text character using the encode text and a key character
@@ -24,7 +24,7 @@ export class Mapper {
      * ckey Unencoded character
      */
     decode(ct: string, ckey: string): string {
-        return '?';
+        return "?";
     }
     /**
      * Recover the key character using the encode text and a plain text character
@@ -34,7 +34,6 @@ export class Mapper {
      * cpt Unencoded character
      */
     decodeKey(ct: string, cpt: string): string {
-        return '?';
+        return "?";
     }
-
 }

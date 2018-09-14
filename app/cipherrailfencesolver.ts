@@ -25,7 +25,7 @@ enum RailLayout {
     W_by_Row,
     M_by_Row,
     W_Zig_Zag, // Railfence only
-    M_Zig_Zag // Railfence only
+    M_Zig_Zag, // Railfence only
 }
 
 /**
@@ -40,15 +40,23 @@ export class CipherRailfenceSolver extends CipherSolver {
         railOffset: 0 /** The type of cipher we are doing */,
         cipherType: ICipherType.Railfence /** How the rails are laid out */,
         railLayout: RailLayout.W_by_Row /** The order string for a Redefence */,
-        railOrder: "123456789"
+        railOrder: "123456789",
     };
     public state: IRailState = cloneObject(this.defaultstate) as IRailState;
     public cmdButtons: JTButtonItem[] = [
         { title: "Save", id: "save" },
         this.undocmdButton,
-        this.redocmdButton
+        this.redocmdButton,
     ];
     public railOrderOffs: Array<number>;
+    /**
+     * Add any solution text to the problem
+     */
+    public saveSolution(): void {
+        // We don't have to do anything because it has already been calculated
+        // but we don't want to call the super class implementation because
+        // it does something completely different.
+    }
     /**
      * Set the number of rails
      * @param rails Number of rails requested
@@ -149,7 +157,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         for (let i = 0; i < this.state.rails; i++) {
             sortset.push({
                 let: railorder.substr(i, 1),
-                order: i
+                order: i,
             });
         }
         sortset.sort(this.rsort);
@@ -179,7 +187,7 @@ export class CipherRailfenceSolver extends CipherSolver {
 
         let radiobuttons = [
             CipherTypeButtonItem(ICipherType.Railfence),
-            CipherTypeButtonItem(ICipherType.Redefence)
+            CipherTypeButtonItem(ICipherType.Redefence),
         ];
         result.append(
             JTRadioButton(6, "railtype", radiobuttons, this.state.cipherType)
@@ -208,21 +216,21 @@ export class CipherRailfenceSolver extends CipherSolver {
                 id: "wzig",
                 value: RailLayout.W_Zig_Zag,
                 title: "W - by zig-zag",
-                class: "rail"
+                class: "rail",
             },
             {
                 id: "mzig",
                 value: RailLayout.M_Zig_Zag,
                 title: "M - by zig-zag",
-                class: "rail"
-            }
+                class: "rail",
+            },
         ];
         result.append(
             JTRadioButton(8, "rlayout", radiobuttons, this.state.railLayout)
         );
 
         let inputbox = $("<div/>", {
-            class: "grid-x grid-margin-x"
+            class: "grid-x grid-margin-x",
         });
         inputbox.append(
             JTFIncButton(
@@ -357,7 +365,7 @@ export class CipherRailfenceSolver extends CipherSolver {
                 sortset.push({
                     let: "",
                     order: this.railOrderOffs[i],
-                    size: lens[i]
+                    size: lens[i],
                 });
             }
             sortset.sort(this.rsort);
@@ -414,9 +422,12 @@ export class CipherRailfenceSolver extends CipherSolver {
             ansline += "\n";
         }
         ansline += "\n";
+        this.state.solution = "";
         for (let c of ans) {
             ansline += c;
+            this.state.solution += c;
         }
+        this.state.solved = true;
         let result = $('<pre class="rail">' + ansline + "</pre>");
         return result;
     }

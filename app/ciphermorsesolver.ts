@@ -225,6 +225,14 @@ export class CipherMorseSolver extends CipherSolver {
         this.state.replacement = {};
         super.reset();
     }
+    /**
+     * Add any solution text to the problem
+     */
+    public saveSolution(): void {
+        // We don't have to do anything because it has already been calculated
+        // but we don't want to call the super class implementation because
+        // it does something completely different.
+    }
     public genAnalysis(str: string): JQuery<HTMLElement> {
         return null;
     }
@@ -284,8 +292,8 @@ export class CipherMorseSolver extends CipherSolver {
         let cipherwidth = this.cipherWidth;
         let finaltext = "";
         let docwidth = $(document).width();
-        //docwidth = 9 * 24 * cipherwidth
         let width = cipherwidth * Math.floor(docwidth / (cipherwidth * 24));
+        this.state.solved = true;
 
         //
         // Build up the input string and the corresponding morse code
@@ -364,6 +372,7 @@ export class CipherMorseSolver extends CipherSolver {
                             lastsep = "XX";
                             finaltext += " ";
                         } else {
+                            this.state.solved = false;
                             outrow.append($("<td/>").addClass("error"));
                             finaltext += '<span class="error">?</span>';
                         }
@@ -388,6 +397,7 @@ export class CipherMorseSolver extends CipherSolver {
                         if (typeof frommorse[morselet] === "undefined") {
                             morseclass = "error";
                             outchar = "??";
+                            this.state.solved = false;
                             finaltext += '<span class="error">?</span>';
                         } else {
                             outchar = frommorse[morselet];
@@ -461,6 +471,7 @@ export class CipherMorseSolver extends CipherSolver {
         tbody.append(outrow);
         table.append(tbody);
         topdiv.append(table);
+        this.state.solution = finaltext;
         topdiv.append($("<hr/><div>" + finaltext + "</div>"));
         return topdiv;
     }
@@ -478,6 +489,15 @@ export class CipherMorseSolver extends CipherSolver {
                 "small-12 medium-12 large-12"
             )
         );
+        return result;
+    }
+    /**
+     * Set up the UI elements for the result fields
+     */
+    public genPostCommands(): JQuery<HTMLElement> {
+        let result = $("<div/>");
+        result.append($("<div>", { class: "err" }));
+        result.append(this.genFindCommands());
         return result;
     }
     /*

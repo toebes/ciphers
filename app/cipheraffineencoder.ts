@@ -25,8 +25,8 @@ interface IAffineState extends IState {
 }
 
 export class CipherAffineEncoder extends CipherEncoder {
-    activeToolMode: toolMode = toolMode.codebusters;
-    defaultstate: IAffineState = {
+    public activeToolMode: toolMode = toolMode.codebusters;
+    public defaultstate: IAffineState = {
         /** The type of operation */
         operation: "encode" /** a value */,
         a: 1 /** b value */,
@@ -38,15 +38,15 @@ export class CipherAffineEncoder extends CipherEncoder {
         solclick2: -1,
         replacement: {},
     };
-    state: IAffineState = cloneObject(this.defaultstate) as IAffineState;
-    cmdButtons: JTButtonItem[] = [
+    public state: IAffineState = cloneObject(this.defaultstate) as IAffineState;
+    public cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
         this.redocmdButton,
     ];
     /* We have identified a complete solution */
-    completeSolution: boolean = false;
-    restore(data: IAffineState): void {
+    public completeSolution: boolean = false;
+    public restore(data: IAffineState): void {
         this.state = cloneObject(this.defaultstate) as IAffineState;
         this.copyState(this.state, data);
         if (isNaN(this.state.solclick1)) {
@@ -58,12 +58,12 @@ export class CipherAffineEncoder extends CipherEncoder {
         this.setUIDefaults();
         this.updateOutput();
     }
-    setUIDefaults(): void {
+    public setUIDefaults(): void {
         this.seta(this.state.a);
         this.setb(this.state.b);
         this.setOperation(this.state.operation);
     }
-    updateOutput(): void {
+    public updateOutput(): void {
         super.updateOutput();
         $("#a").val(this.state.a);
         $("#b").val(this.state.b);
@@ -81,7 +81,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      * Make a copy of the current state
      */
-    save(): IState {
+    public save(): IState {
         // We need a deep copy of the save state
         let savestate = cloneObject(this.state) as IState;
         return savestate;
@@ -90,7 +90,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      * Sets the new A value.  A direction is also provided in the state so that if the
      * intended value is bad, we can keep advancing until we find one
      */
-    seta(a: number): boolean {
+    public seta(a: number): boolean {
         let changed = false;
         let charset = this.getCharset();
         if (a !== this.state.a) {
@@ -119,7 +119,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         }
         return changed;
     }
-    setb(b: number): boolean {
+    public setb(b: number): boolean {
         let changed = false;
         let charset = this.getCharset();
         b = (b + charset.length) % charset.length;
@@ -129,7 +129,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         }
         return changed;
     }
-    affinechar(c: string): string {
+    public affinechar(c: string): string {
         let charset = this.getCharset();
         let x = charset.indexOf(c.toUpperCase());
         if (x < 0) {
@@ -143,11 +143,11 @@ export class CipherAffineEncoder extends CipherEncoder {
      * Initializes the encoder.
      * We don't want to show the reverse replacement since we are doing an encode
      */
-    init(lang: string): void {
+    public init(lang: string): void {
         super.init(lang);
         this.ShowRevReplace = false;
     }
-    buildReplacement(msg: string, maxEncodeWidth: number): string[][] {
+    public buildReplacement(msg: string, maxEncodeWidth: number): string[][] {
         let result: string[][] = [];
         let message = "";
         let cipher = "";
@@ -194,7 +194,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      * it can be easily pasted into the text.  This returns the result
      * as the HTML to be displayed
      */
-    build(): JQuery<HTMLElement> {
+    public build(): JQuery<HTMLElement> {
         let msg = this.minimizeString(this.state.cipherString);
         let strings = this.buildReplacement(msg, this.maxEncodeWidth);
         let result = $("<div/>");
@@ -243,8 +243,8 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    genAnswer(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "grid-x" });
+    public genAnswer(): JQuery<HTMLElement> {
+        let result = $("<div/>", { class: "grid-x" });
         let plainindex = 0;
         let cipherindex = 1;
         if (this.state.operation === "encode") {
@@ -271,8 +271,8 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "grid-x" });
+    public genQuestion(): JQuery<HTMLElement> {
+        let result = $("<div/>", { class: "grid-x" });
         let plainindex = 0;
         if (this.state.operation === "encode") {
             plainindex = 1;
@@ -293,10 +293,10 @@ export class CipherAffineEncoder extends CipherEncoder {
             );
         }
         result.append(table.generate());
-        result.append($("<div>", { class: "cell affinework" }));
+        result.append($("<div/>", { class: "cell affinework" }));
         return result;
     }
-    canSolve(m1: string, m2: string): boolean {
+    public canSolve(m1: string, m2: string): boolean {
         let charset = this.getCharset();
         let c1 = this.affinechar(m1);
         let c2 = this.affinechar(m2);
@@ -331,7 +331,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      * Show the encoding of a set of letters using a and b values
      */
-    encodeLetters(
+    public encodeLetters(
         a: number,
         b: number,
         letterString: string
@@ -366,7 +366,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      * Encode a string using the current replacement alphabet
      */
-    encodeString(s: string): string {
+    public encodeString(s: string): string {
         let encoded = "";
         for (let i = 0; i < s.length; i++) {
             encoded += this.state.replacement[s.substr(i, 1)];
@@ -376,7 +376,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      *
      */
-    genAlphabet(): void {
+    public genAlphabet(): void {
         let charset = this.getCharset();
         for (let i = 0; i < charset.length; i++) {
             let c = -1;
@@ -391,7 +391,10 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      * Generate HTML showing the current decoding progress
      */
-    genDecodeProgress(msg: string, letters: string): JQuery<HTMLElement> {
+    public genDecodeProgress(
+        msg: string,
+        letters: string
+    ): JQuery<HTMLElement> {
         let i;
         let message = "";
         let msgLength = msg.length;
@@ -444,16 +447,16 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         return table;
     }
-    genSolution(): JQuery<HTMLElement> {
+    public genSolution(): JQuery<HTMLElement> {
         if (this.state.operation === "decode") {
             return this.genDecodeSolution();
         }
         return this.genEncodeSolution();
     }
-    genEncodeSolution(): JQuery<HTMLElement> {
+    public genEncodeSolution(): JQuery<HTMLElement> {
         let msg = this.minimizeString(this.state.cipherString);
         let mapping: StringMap = {};
-        let result = $("<div>", { id: "solution" });
+        let result = $("<div/>", { id: "solution" });
         result.append($("<h3/>").text("How to solve"));
 
         let showencmsg = true;
@@ -462,7 +465,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             let c = this.affinechar(m);
             if (mapping[m] !== undefined) {
                 result.append(
-                    $("<p>").text(
+                    $("<p/>").text(
                         "We already computed for " +
                             m +
                             " and know that it is " +
@@ -492,11 +495,11 @@ export class CipherAffineEncoder extends CipherEncoder {
         return result;
     }
 
-    genDecodeSolution(): JQuery<HTMLElement> {
+    public genDecodeSolution(): JQuery<HTMLElement> {
         let msg = this.minimizeString(this.state.cipherString);
         let m1 = msg.substr(this.state.solclick1, 1);
         let m2 = msg.substr(this.state.solclick2, 1);
-        let result = $("<div>", { id: "solution" });
+        let result = $("<div/>", { id: "solution" });
         result.append($("<h3/>").text("How to solve"));
 
         if (!this.canSolve(m1, m2)) {
@@ -690,7 +693,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             cSubstitute +
             "\\end{aligned}";
         result.append(renderMath(findingB));
-        let p = $("<p>").text("Subtract ");
+        let p = $("<p/>").text("Subtract ");
         p.append(renderMath(String(a * mSubstitute)));
         p.append(" from both sides: ");
         result.append(p);
@@ -779,13 +782,13 @@ export class CipherAffineEncoder extends CipherEncoder {
             }
         }
 
-        result.append($("<p>").text("The solution is now complete!"));
+        result.append($("<p/>").text("The solution is now complete!"));
         return result;
     }
     /**
      *
      */
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $("#a")
             .off("input")
@@ -823,7 +826,7 @@ export class CipherAffineEncoder extends CipherEncoder {
                 }
             });
     }
-    genPreCommands(): JQuery<HTMLElement> {
+    public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(this.genTestUsage());
         let radiobuttons = [
@@ -859,7 +862,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      *
      */
-    load(): void {
+    public load(): void {
         this.genAlphabet();
         let res = this.build();
         $("#answer")

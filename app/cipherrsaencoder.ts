@@ -154,8 +154,8 @@ const optRSA5TemplateAnswerStrings = [
  * a Baconian cipher.
  */
 export class CipherRSAEncoder extends CipherEncoder {
-    activeToolMode: toolMode = toolMode.codebusters;
-    defaultstate: IRSAState = {
+    public activeToolMode: toolMode = toolMode.codebusters;
+    public defaultstate: IRSAState = {
         cipherString: "",
         question: "",
         cipherType: ICipherType.RSA,
@@ -163,8 +163,8 @@ export class CipherRSAEncoder extends CipherEncoder {
         digitsPrime: 3,
         digitsCombo: 4,
     };
-    state: IRSAState = cloneObject(this.defaultstate) as IRSAState;
-    cmdButtons: JTButtonItem[] = [
+    public state: IRSAState = cloneObject(this.defaultstate) as IRSAState;
+    public cmdButtons: JTButtonItem[] = [
         { title: "Randomize", color: "primary", id: "randomize" },
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
@@ -232,7 +232,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Set the operation for the encoder type (which RSA type problem we are generating)
      * @param operation New operation type
      */
-    setOperation(operation: IOperationType): boolean {
+    public setOperation(operation: IOperationType): boolean {
         let changed = super.setOperation(operation);
         if (changed) {
             this.setUIDefaults();
@@ -836,7 +836,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genQuestionAnswer1(showanswers: boolean): JQuery<HTMLElement> {
-        let result = $("<div>");
+        let result = $("<div/>");
         let cellclass = showanswers ? "TOANSWER" : "TOSOLVE";
 
         let formula = $("<span/>").text("");
@@ -940,7 +940,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genQuestionAnswer2(showanswers: boolean): JQuery<HTMLElement> {
-        let result = $("<div>");
+        let result = $("<div/>");
         let cellclass = "TOSOLVE";
 
         let answer = "";
@@ -1054,7 +1054,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genQuestionAnswer3(showanswers: boolean): JQuery<HTMLElement> {
-        let result = $("<div>");
+        let result = $("<div/>");
         let cellclass = "TOSOLVE";
 
         let answer = "";
@@ -1156,7 +1156,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genQuestionAnswer4(showanswers: boolean): JQuery<HTMLElement> {
-        let result = $("<div>");
+        let result = $("<div/>");
         let cellclass = "TOSOLVE";
 
         let answer = "";
@@ -1213,7 +1213,7 @@ export class CipherRSAEncoder extends CipherEncoder {
                         this.state.name1 +
                         "'s private key "
                 )
-                .append($("<em>").text("d"))
+                .append($("<em/>").text("d"))
                 .append(
                     " to binary which will tell us how many operations we will need to do"
                 )
@@ -1277,7 +1277,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genQuestionAnswer5(showanswers: boolean): JQuery<HTMLElement> {
-        let result = $("<div>");
+        let result = $("<div/>");
 
         let qorder = this.state.qchoice % 2;
         let questionOpt = Math.floor(this.state.qchoice / 2) % 4;

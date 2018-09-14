@@ -5,7 +5,7 @@ export class Mapper {
      * Converts a character (mod 26) to the correct character in the alphabet
      * val Code to be mapped to a character
      */
-    getCharCode(val: number): string {
+    public getCharCode(val: number): string {
         return String.fromCharCode((((val % 26) + 26) % 26) + Aval);
     }
     /**
@@ -14,7 +14,7 @@ export class Mapper {
      * ckey Key Unencoded character
      * @returns cipher text (ct) encoded character
      */
-    encode(cpt: string, ckey: string): string {
+    public encode(cpt: string, ckey: string): string {
         return "?";
     }
     /**
@@ -23,7 +23,7 @@ export class Mapper {
      * ct Encoded character
      * ckey Unencoded character
      */
-    decode(ct: string, ckey: string): string {
+    public decode(ct: string, ckey: string): string {
         return "?";
     }
     /**
@@ -33,7 +33,7 @@ export class Mapper {
      * ct Encoded character
      * cpt Unencoded character
      */
-    decodeKey(ct: string, cpt: string): string {
+    public decodeKey(ct: string, cpt: string): string {
         return "?";
     }
 }

@@ -32,8 +32,8 @@ enum RailLayout {
  * The CipherRailfenceSolver class implements a solver for the Railfence Cipher
  */
 export class CipherRailfenceSolver extends CipherSolver {
-    activeToolMode: toolMode = toolMode.aca;
-    defaultstate: IRailState = {
+    public activeToolMode: toolMode = toolMode.aca;
+    public defaultstate: IRailState = {
         /** The current cipher we are working on */
         cipherString: "" /** The number of rails currently being tested */,
         rails: 3 /** The current rail offset being tested */,
@@ -42,13 +42,13 @@ export class CipherRailfenceSolver extends CipherSolver {
         railLayout: RailLayout.W_by_Row /** The order string for a Redefence */,
         railOrder: "123456789"
     };
-    state: IRailState = cloneObject(this.defaultstate) as IRailState;
-    cmdButtons: JTButtonItem[] = [
+    public state: IRailState = cloneObject(this.defaultstate) as IRailState;
+    public cmdButtons: JTButtonItem[] = [
         { title: "Save", id: "save" },
         this.undocmdButton,
         this.redocmdButton
     ];
-    railOrderOffs: Array<number>;
+    public railOrderOffs: Array<number>;
     /**
      * Set the number of rails
      * @param rails Number of rails requested
@@ -125,7 +125,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     /**
      * Sorter to compare two order matching entries
      */
-    rsort(a: any, b: any): number {
+    public rsort(a: any, b: any): number {
         if (a.let < b.let) {
             return -1;
         } else if (a.let > b.let) {
@@ -174,7 +174,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     /**
      * Sets up the radio button to choose the variant of the cipher
      */
-    genPreCommands(): JQuery<HTMLElement> {
+    public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
 
         let radiobuttons = [
@@ -198,8 +198,8 @@ export class CipherRailfenceSolver extends CipherSolver {
     /**
      * Set up the UI elements for the commands for this cipher assistant
      */
-    genPostCommands(): JQuery<HTMLElement> {
-        let result = $("<div>");
+    public genPostCommands(): JQuery<HTMLElement> {
+        let result = $("<div/>");
 
         let radiobuttons = [
             { id: "wrow", value: RailLayout.W_by_Row, title: "W - by rows" },
@@ -256,8 +256,8 @@ export class CipherRailfenceSolver extends CipherSolver {
      * Locate a string.
      * Note that we assume that the period has been set
      */
-    findPossible(str: string): void {
-        let res = $("<span>").text(
+    public findPossible(str: string): void {
+        let res = $("<span/>").text(
             "Unable to find " + str + " as " + this.normalizeHTML(str)
         );
         $(".findres")
@@ -269,19 +269,19 @@ export class CipherRailfenceSolver extends CipherSolver {
      * Analyze the cipher string and show any data for the user to make decisions.
      * encoded Encoded string to analyze
      */
-    genAnalysis(): JQuery<HTMLElement> {
+    public genAnalysis(): JQuery<HTMLElement> {
         return null;
     }
 
     /**
      * Change the encrypted character.  This primarily shows us what the key might be if we use it
      */
-    setChar(): void {}
+    public setChar(): void {}
 
     /**
      * Builds the GUI for the solver
      */
-    build(): JQuery<HTMLElement> {
+    public build(): JQuery<HTMLElement> {
         let str = this.minimizeString(this.state.cipherString);
         // Generate the empty outlines array that we will output later.  This way
         // we don't have to check if a spot is empty, we can just write to it
@@ -379,7 +379,7 @@ export class CipherRailfenceSolver extends CipherSolver {
      * isZigZag This is a zigzag version of the rail
      * str Original string for replacing from a zig zag
      */
-    buildRailPre(
+    public buildRailPre(
         outlines: string[][],
         offs: number[],
         isZigZag: boolean,
@@ -426,7 +426,7 @@ export class CipherRailfenceSolver extends CipherSolver {
      * values are legitimate for the cipher handler
      * Generally you will call updateOutput() after calling setUIDefaults()
      */
-    setUIDefaults(): void {
+    public setUIDefaults(): void {
         super.setUIDefaults();
         this.setRailType(this.state.cipherType);
         this.setRailLayout(this.state.railLayout);
@@ -437,7 +437,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     /**
      * Updates the output based on current settings
      */
-    updateOutput(): void {
+    public updateOutput(): void {
         this.setMenuMode(menuMode.aca);
         // Propagate the current settings to the UI
         $("#encoded").val(this.state.cipherString);
@@ -459,17 +459,17 @@ export class CipherRailfenceSolver extends CipherSolver {
      * Fills in the frequency portion of the frequency table.  For the Ragbaby
      * we don't have the frequency table, so this doesn't need to do anything
      */
-    displayFreq(): void {}
+    public displayFreq(): void {}
     /**
      * Creates an HTML table to display the frequency of characters
      */
-    createFreqEditTable(): JQuery<HTMLElement> {
+    public createFreqEditTable(): JQuery<HTMLElement> {
         return null;
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $("#rails")
             .off("input")

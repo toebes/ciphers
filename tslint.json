@@ -140,7 +140,7 @@
             }
         ],
         "max-line-length": [true, 140],
-        "member-access": false, // was true,
+        "member-access": true,
         "member-ordering": [
             false, // was true,
             {

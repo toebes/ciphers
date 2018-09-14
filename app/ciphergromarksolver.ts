@@ -6,16 +6,16 @@ import { CipherSolver } from "./ciphersolver";
  *
  */
 export class CipherGromarkSolver extends CipherSolver {
-    activeToolMode: toolMode = toolMode.aca;
-    gromarkRepl: StringMap;
-    init(lang: string): void {
+    public activeToolMode: toolMode = toolMode.aca;
+    public gromarkRepl: StringMap;
+    public init(lang: string): void {
         super.init(lang);
         this.cipherWidth = 2;
     }
     /**
      * Build the solver UI
      */
-    build(): JQuery<HTMLElement> {
+    public build(): JQuery<HTMLElement> {
         let str = this.state.cipherString;
         let res = "";
         let combinedtext = "";
@@ -132,7 +132,7 @@ export class CipherGromarkSolver extends CipherSolver {
     /**
      * Creates the Frequency Table for a Gromark
      */
-    createFreqEditTable(): JQuery<HTMLElement> {
+    public createFreqEditTable(): JQuery<HTMLElement> {
         let topdiv = $("<div/>");
         let table = $("<table/>").addClass("tfreq");
         let thead = $("<thead/>");
@@ -185,7 +185,7 @@ export class CipherGromarkSolver extends CipherSolver {
     /**
      * Change the encrypted character
      */
-    setChar(repchar: string, newchar: string): void {
+    public setChar(repchar: string, newchar: string): void {
         if (typeof newchar === "undefined") {
             return;
         }
@@ -246,7 +246,7 @@ export class CipherGromarkSolver extends CipherSolver {
     /**
      * Set multiple characters at once
      */
-    setMultiChars(reqstr: string): void {
+    public setMultiChars(reqstr: string): void {
         //console.log('Gromark setMultiChars ' + reqstr)
         this.holdupdates = true;
         for (let i = 0, len = reqstr.length / 2; i < len; i++) {
@@ -260,7 +260,7 @@ export class CipherGromarkSolver extends CipherSolver {
     /*
      * Sorter to compare two string pattern entries
      */
-    gmsort(a: any, b: any): number {
+    public gmsort(a: any, b: any): number {
         if (a.o < b.o) {
             return -1;
         } else if (a.o > b.o) {
@@ -271,7 +271,7 @@ export class CipherGromarkSolver extends CipherSolver {
     /**
      *      * Generates the Match dropdown for a given string
      */
-    genMatchDropdown(str: string): JQuery<HTMLElement> {
+    public genMatchDropdown(str: string): JQuery<HTMLElement> {
         if (this.state.curlang === "") {
             return $("");
         }
@@ -359,7 +359,7 @@ export class CipherGromarkSolver extends CipherSolver {
     /**
      * Update the match dropdowns in respose to an update to a character
      */
-    updateMatchDropdowns(repchar: string): void {
+    public updateMatchDropdowns(repchar: string): void {
         if (this.holdupdates) {
             return;
         }
@@ -375,7 +375,7 @@ export class CipherGromarkSolver extends CipherSolver {
     /**
      * Build a set of replacements so that we can quickly check against them
      */
-    saveGromarkReplacements(): void {
+    public saveGromarkReplacements(): void {
         this.gromarkRepl = {};
         let i, n, len, charset;
         // Get the replacement character set and double it so that we can index past the beginning and wrap around to get the set again
@@ -401,7 +401,7 @@ export class CipherGromarkSolver extends CipherSolver {
     /**
      * Update the mapping of Gromark characters
      */
-    makeGromarkMap(str: string, gromark: string): StringMap {
+    public makeGromarkMap(str: string, gromark: string): StringMap {
         let charset = this.getSourceCharset();
         let res: StringMap = {};
         // Empty out the result so it can be readily used
@@ -425,7 +425,7 @@ export class CipherGromarkSolver extends CipherSolver {
     /**
      * Search for a match string in a gromark encoded string
      */
-    checkGromark(tomatch: string, gromark: string): number {
+    public checkGromark(tomatch: string, gromark: string): number {
         if (tomatch.length * this.cipherWidth !== gromark.length) {
             console.log(
                 'Invalid check comparing "' +
@@ -482,7 +482,7 @@ export class CipherGromarkSolver extends CipherSolver {
     /**
      * Search for a string.  Note that this runs through all the entries looking for a possible match
      */
-    findGromark(str: string): void {
+    public findGromark(str: string): void {
         let tosearch = this.minimizeString(str);
         let gromarklen = tosearch.length * this.cipherWidth;
         let limit =

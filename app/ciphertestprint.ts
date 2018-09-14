@@ -11,23 +11,23 @@ import { JTTable } from "./jttable";
  *  Otherwise it provies a link back to TestManage.html
  */
 export class CipherTestPrint extends CipherTest {
-    activeToolMode: toolMode = toolMode.codebusters;
-    defaultstate: ITestState = {
+    public activeToolMode: toolMode = toolMode.codebusters;
+    public defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.Test,
         test: 0,
     };
-    state: ITestState = cloneObject(this.defaultstate) as ITestState;
-    cmdButtons: JTButtonItem[] = [];
+    public state: ITestState = cloneObject(this.defaultstate) as ITestState;
+    public cmdButtons: JTButtonItem[] = [];
 
-    restore(data: ITestState): void {
+    public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as ITestState;
         this.state.curlang = curlang;
         this.copyState(this.state, data);
         this.updateOutput();
     }
-    updateOutput(): void {
+    public updateOutput(): void {
         this.setMenuMode(menuMode.test);
         $(".testcontent").each((i, elem) => {
             $(elem).replaceWith(this.genTestQuestions());
@@ -37,7 +37,7 @@ export class CipherTestPrint extends CipherTest {
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genTestEditState("testprint");
     }
-    genTestQuestions(): JQuery<HTMLElement> {
+    public genTestQuestions(): JQuery<HTMLElement> {
         let testcount = this.getTestCount();
         if (testcount === 0) {
             return $("<h3>").text("No Tests Created Yet");
@@ -46,7 +46,7 @@ export class CipherTestPrint extends CipherTest {
             return $("<h3>").text("Test not found");
         }
         let test = this.getTestEntry(this.state.test);
-        let result = $("<div>");
+        let result = $("<div/>");
         $(".testtitle").text(test.title);
         let dt = new Date();
         $(".testyear").text(dt.getFullYear());
@@ -54,7 +54,7 @@ export class CipherTestPrint extends CipherTest {
         this.qdata = [];
         if (test.timed === -1) {
             result.append(
-                $("<p>", {
+                $("<p/>", {
                     class: "noprint",
                 }).text("No timed question")
             );

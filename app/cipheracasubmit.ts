@@ -9,11 +9,11 @@ import { JTTable } from "./jttable";
  * CipherTestQuestions - This manages all of the questions to allow deleting/importing/editing
  */
 export class CipherACASubmit extends CipherTest {
-    activeToolMode: toolMode = toolMode.aca;
-    cmdButtons: JTButtonItem[] = [
+    public activeToolMode: toolMode = toolMode.aca;
+    public cmdButtons: JTButtonItem[] = [
         { title: "Problems Management", color: "primary", id: "probman" },
     ];
-    restore(data: ITestState): void {
+    public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as ITestState;
         this.state.curlang = curlang;
@@ -21,7 +21,7 @@ export class CipherACASubmit extends CipherTest {
         this.setUIDefaults();
         this.updateOutput();
     }
-    updateOutput(): void {
+    public updateOutput(): void {
         this.setMenuMode(menuMode.aca);
         $(".precmds").each((i, elem) => {
             $(elem).replaceWith(this.genPreCommands());
@@ -31,14 +31,17 @@ export class CipherACASubmit extends CipherTest {
         });
         this.attachHandlers();
     }
-    genPostCommands(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "questions" });
+    /**
+     * Set up the UI elements for the result fields
+     */
+    public genPostCommands(): JQuery<HTMLElement> {
+        let result = $("<div/>", { class: "questions" });
 
         result.append(this.genACAProblemList());
         return result;
     }
-    genACAProblemList(): JQuery<HTMLElement> {
-        let result = $("<div>", {
+    public genACAProblemList(): JQuery<HTMLElement> {
+        let result = $("<div/>", {
             class: "sublist",
         }).append($("<div/>").text(" "));
         let sols = { AA: 0, PP: 0, CC: 0, XX: 0, EE: 0, SS: 0, tot: 0 };
@@ -114,10 +117,10 @@ export class CipherACASubmit extends CipherTest {
         result.prepend($("<div/>").text(titlestr));
         return result;
     }
-    gotoProblemManagement(): void {
+    public gotoProblemManagement(): void {
         location.assign("ACAProblems.html");
     }
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $("#probman")
             .off("click")

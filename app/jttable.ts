@@ -48,9 +48,9 @@ function isRowParms(parms: JTRowParms | JTRowItems): parms is JTRowParms {
 }
 
 export class JTRow {
-    class: string;
-    celltype: string;
-    row: JTRowItems;
+    public class: string;
+    public celltype: string;
+    public row: JTRowItems;
     constructor(parms?: JTRowParms | JTRowItems) {
         this.celltype = "td";
         this.class = undefined;
@@ -71,11 +71,11 @@ export class JTRow {
             }
         }
     }
-    setClass(tclass: string): JTRow {
+    public setClass(tclass: string): JTRow {
         this.class = tclass;
         return this;
     }
-    setCellType(celltype: string): JTRow {
+    public setCellType(celltype: string): JTRow {
         this.celltype = celltype;
         return this;
     }
@@ -83,7 +83,7 @@ export class JTRow {
      * Adds a new element to the row.  This returns the row so you can chain
      * elem Element to be added (string | JQuery<HTMLElement>)
      */
-    add(elem: JTElem): JTRow {
+    public add(elem: JTElem): JTRow {
         if (elem !== null && elem !== undefined) {
             this.row.push(elem);
         }
@@ -93,12 +93,12 @@ export class JTRow {
      * Generates the dom object from this Row.  Note that if the row is empty
      * we don't generate anything at all
      */
-    generate(): JQuery<HTMLElement> {
+    public generate(): JQuery<HTMLElement> {
         // If the row is empty, we toss it out
         if (this.row.length === 0) {
             return null;
         }
-        let row = $("<tr>");
+        let row = $("<tr/>");
         for (let item of this.row) {
             let cell = null;
             let celltype = this.celltype;
@@ -129,11 +129,11 @@ export class JTRow {
  * Creates a new table object that can be used to generate an HTML Table
  */
 export class JTTable {
-    class: string = null;
-    caption: string = null;
-    header: Array<JTRow> = [];
-    body: Array<JTRow> = [];
-    footer: Array<JTRow> = [];
+    public class: string = null;
+    public caption: string = null;
+    public header: Array<JTRow> = [];
+    public body: Array<JTRow> = [];
+    public footer: Array<JTRow> = [];
 
     constructor(parms: JTTableParms) {
         this.class = parms.class;
@@ -159,7 +159,7 @@ export class JTTable {
      * Adds a new header row and returns it so you can add elements to it
      * parms Header row items to add
      */
-    addHeaderRow(parms?: JTRowParms | JTRowItems): JTRow {
+    public addHeaderRow(parms?: JTRowParms | JTRowItems): JTRow {
         let newRow = new JTRow(parms).setCellType("th");
         this.header.push(newRow);
         return newRow;
@@ -169,7 +169,7 @@ export class JTTable {
      * Adds a new body row and returns it so you can add elements to it
      * parms Body row items to add
      */
-    addBodyRow(parms?: JTRowParms | JTRowItems): JTRow {
+    public addBodyRow(parms?: JTRowParms | JTRowItems): JTRow {
         let newRow = new JTRow(parms);
         this.body.push(newRow);
         return newRow;
@@ -179,7 +179,7 @@ export class JTTable {
      * Adds a new Footer row and returns it so you can add elements to it
      * parms Footer row items to add
      */
-    addFooterRow(parms?: JTRowParms | JTRowItems): JTRow {
+    public addFooterRow(parms?: JTRowParms | JTRowItems): JTRow {
         let newRow = new JTRow(parms);
         this.footer.push(newRow);
         return newRow;
@@ -187,24 +187,24 @@ export class JTTable {
     /**
      * Generates the final table using everything that was gathered
      */
-    generate(): JQuery<HTMLElement> {
-        let table = $("<table>", { class: this.class });
+    public generate(): JQuery<HTMLElement> {
+        let table = $("<table/>", { class: this.class });
         if (this.header.length) {
-            let thead = $("<thead>");
+            let thead = $("<thead/>");
             for (let row of this.header) {
                 thead.append(row.generate());
             }
             table.append(thead);
         }
         if (this.body.length) {
-            let tbody = $("<tbody>");
+            let tbody = $("<tbody/>");
             for (let row of this.body) {
                 tbody.append(row.generate());
             }
             table.append(tbody);
         }
         if (this.footer.length) {
-            let tfoot = $("<tfoot>");
+            let tfoot = $("<tfoot/>");
             for (let row of this.footer) {
                 tfoot.append(row.generate());
             }

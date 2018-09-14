@@ -89,8 +89,8 @@ interface IBaconianState extends IEncoderState {
  * a Baconian cipher.
  */
 export class CipherBaconianEncoder extends CipherEncoder {
-    activeToolMode: toolMode = toolMode.codebusters;
-    defaultstate: IBaconianState = {
+    public activeToolMode: toolMode = toolMode.codebusters;
+    public defaultstate: IBaconianState = {
         cipherString: "",
         cipherType: ICipherType.Baconian,
         offset: 1,
@@ -101,18 +101,18 @@ export class CipherBaconianEncoder extends CipherEncoder {
         linewidth: this.maxEncodeWidth,
         words: [],
     };
-    state: IBaconianState = cloneObject(this.defaultstate) as IBaconianState;
-    cmdButtons: JTButtonItem[] = [
+    public state: IBaconianState = cloneObject(this.defaultstate) as IBaconianState;
+    public cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
         this.redocmdButton,
     ];
     /** Where we are in the editing of the words */
-    wordpos: number = 0;
-    baconianWords: string[];
+    public wordpos: number = 0;
+    public baconianWords: string[];
     /** Mapping table of all baconian strings to known words */
-    wordlookup: { [index: string]: string[] };
-    setUIDefaults(): void {
+    public wordlookup: { [index: string]: string[] };
+    public setUIDefaults(): void {
         super.setUIDefaults();
         this.setTexta(this.state.texta);
         this.setTextb(this.state.textb);
@@ -123,7 +123,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @param texta New A text character(s)
      * @returns Boolean indicating that the value has changed
      */
-    setTexta(texta: string): boolean {
+    public setTexta(texta: string): boolean {
         let changed = false;
         if (this.state.texta !== texta) {
             this.state.texta = texta;
@@ -136,7 +136,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @param texta New B text character(s)
      * @returns Boolean indicating that the value has changed
      */
-    setTextb(textb: string): boolean {
+    public setTextb(textb: string): boolean {
         let changed = false;
         if (this.state.textb !== textb) {
             this.state.textb = textb;
@@ -148,7 +148,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * Changes the width of the maximum line output
      * @param linewidth New line width
      */
-    setLineWidth(linewidth: number): boolean {
+    public setLineWidth(linewidth: number): boolean {
         let changed = false;
         if (linewidth < 0) {
             linewidth = this.maxEncodeWidth;
@@ -163,7 +163,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * Switches the mapping character of a letter in the character set
      * @param c Which character in the character set to change the value of
      */
-    toggleAB(c: string): void {
+    public toggleAB(c: string): void {
         let charset = this.getCharset();
         let idx = charset.indexOf(c);
         if (idx >= 0) {
@@ -230,7 +230,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
     }
-    updateOutput(): void {
+    public updateOutput(): void {
         $(".opfield").hide();
         $("." + this.state.operation).show();
         $("#texta").val(this.state.texta);
@@ -247,10 +247,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
     /**
      * Initializes the encoder.
      */
-    init(lang: string): void {
+    public init(lang: string): void {
         super.init(lang);
     }
-    makeReplacement(str: string, maxEncodeWidth: number): string[][] {
+    public makeReplacement(str: string, maxEncodeWidth: number): string[][] {
         let langreplace = this.langreplace[this.state.curlang];
         // Since the word baconian is so different, we break it out to a different routine
         if (this.state.operation === "words") {
@@ -325,7 +325,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     /**
      * Returns how wide the user expects to encode the string as
      */
-    getEncodeWidth(): number {
+    public getEncodeWidth(): number {
         let linewidth = this.maxEncodeWidth;
         if (this.state.operation !== "words") {
             linewidth = this.state.linewidth;
@@ -335,7 +335,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     /**
      * Build the HTML that corresponds to the UI when creating a question
      */
-    build(): JQuery<HTMLElement> {
+    public build(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(this.genAnswer());
         return result;
@@ -343,7 +343,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     /**
      * Loads up the values for the encoder
      */
-    load(): void {
+    public load(): void {
         $(".err").text("");
         let res = this.build();
         $("#answer")
@@ -355,7 +355,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     /**
      * Generates the section above the command buttons
      */
-    genPreCommands(): JQuery<HTMLElement> {
+    public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         // Show them what tests the question is used on
         result.append(this.genTestUsage());
@@ -590,28 +590,28 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(): JQuery<HTMLElement> {
-        let result = $("<div>");
+        let result = $("<div/>");
         let cipherString = this.getEncodingString();
         let strings = this.makeReplacement(cipherString, this.getEncodeWidth());
         for (let strset of strings) {
             result.append(
-                $("<div>", {
+                $("<div/>", {
                     class: "BACON TOSOLVE",
                 }).text(strset[2])
             );
             result.append(
-                $("<div>", {
+                $("<div/>", {
                     class: "BACON TOSOLVE2",
                 }).text(strset[1])
             );
             result.append(
-                $("<div>", {
+                $("<div/>", {
                     class: "BACON TOANSWER",
                 }).text(strset[0])
             );
         }
         result.append(
-            $("<div>", {
+            $("<div/>", {
                 class: "TOANSWER",
             }).text(this.state.cipherString)
         );
@@ -696,22 +696,22 @@ export class CipherBaconianEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div>");
+    public genQuestion(): JQuery<HTMLElement> {
+        let result = $("<div/>");
         let strings = this.makeReplacement(
             this.getEncodingString(),
             this.getEncodeWidth()
         );
         for (let strset of strings) {
             result.append(
-                $("<div>", {
+                $("<div/>", {
                     class: "BACON TOSOLVEQ",
                 }).text(strset[2])
             );
         }
         return result;
     }
-    genSolution(): JQuery<HTMLElement> {
+    public genSolution(): JQuery<HTMLElement> {
         let result = $("<div/>");
         if (this.state.operation === "words") {
             result.append($("<h3/>").text("The letters are mapped as:"));
@@ -742,7 +742,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $("#texta")
             .off("input")

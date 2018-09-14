@@ -5,8 +5,8 @@ import { ICipherType } from "./ciphertypes";
  * Morbit Solver
  */
 export class CipherMorbitSolver extends CipherMorseSolver {
-    activeToolMode: toolMode = toolMode.aca;
-    readonly morseReplaces: string[] = [
+    public activeToolMode: toolMode = toolMode.aca;
+    public readonly morseReplaces: string[] = [
         "OO",
         "O-",
         "OX",
@@ -17,7 +17,7 @@ export class CipherMorbitSolver extends CipherMorseSolver {
         "X-",
         "XX",
     ];
-    init(lang: string): void {
+    public init(lang: string): void {
         this.defaultstate.cipherType = ICipherType.Morbit;
         super.init(lang);
         this.cipherWidth = 2;

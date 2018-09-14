@@ -158,7 +158,7 @@ const frommorse: { [key: string]: string } = {
 export class CipherMorseSolver extends CipherSolver {
     public activeToolMode: toolMode = toolMode.aca;
     /** Morse Lookup table overridden by the subclasses */
-    readonly morseReplaces: string[] = [];
+    public readonly morseReplaces: string[] = [];
     public defaultstate: IState = {
         cipherType: ICipherType.None,
         replacement: {},
@@ -321,7 +321,7 @@ export class CipherMorseSolver extends CipherSolver {
         for (let i = 0, len = intext.length; i < len; i++) {
             c = intext.substr(i, 1);
             let mpos, td;
-            td = $("<td>", { colspan: cipherwidth });
+            td = $("<td/>", { colspan: cipherwidth });
             if (this.state.locked[c]) {
                 td.addClass("locked");
             }
@@ -468,7 +468,7 @@ export class CipherMorseSolver extends CipherSolver {
      * Generates the section above the command buttons
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $("<div>");
+        let result = $("<div/>");
         result.append(
             JTFLabeledInput(
                 "Cipher Text",
@@ -736,7 +736,7 @@ export class CipherMorseSolver extends CipherSolver {
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $(".cb")
             .off("change")

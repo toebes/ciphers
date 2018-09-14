@@ -9,7 +9,7 @@ export class mapBeaufort extends Mapper {
      * ckey Key Unencoded character
      * cipher text (ct) encoded character
      */
-    encode(cpt: string, ckey: string): string {
+    public encode(cpt: string, ckey: string): string {
         cpt = cpt.toUpperCase();
         ckey = ckey.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
@@ -27,7 +27,7 @@ export class mapBeaufort extends Mapper {
      * ct Encoded character
      * ckey Unencoded character
      */
-    decode(ct: string, ckey: string): string {
+    public decode(ct: string, ckey: string): string {
         return this.encode(ct, ckey);
     }
     /**
@@ -37,7 +37,7 @@ export class mapBeaufort extends Mapper {
      * ct Encoded character
      * cpt Unencoded character
      */
-    decodeKey(ct: string, cpt: string): string {
+    public decodeKey(ct: string, cpt: string): string {
         cpt = cpt.toUpperCase();
         ct = ct.toUpperCase();
         // If either character is not an alphabetic, then we can't map it

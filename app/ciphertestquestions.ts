@@ -9,15 +9,15 @@ import { JTFDialog } from "./jtfdialog";
  * CipherTestQuestions - This manages all of the questions to allow deleting/importing/editing
  */
 export class CipherTestQuestions extends CipherTest {
-    activeToolMode: toolMode = toolMode.codebusters;
+    public activeToolMode: toolMode = toolMode.codebusters;
 
-    defaultstate: ITestState = {
+    public defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.Test,
         test: 0,
     };
-    state: ITestState = cloneObject(this.defaultstate) as ITestState;
-    cmdButtons: JTButtonItem[] = [
+    public state: ITestState = cloneObject(this.defaultstate) as ITestState;
+    public cmdButtons: JTButtonItem[] = [
         {
             title: "Export Problems",
             color: "primary",
@@ -30,13 +30,9 @@ export class CipherTestQuestions extends CipherTest {
             color: "primary",
             id: "importurl",
         },
-        {
-            title: "Delete All Problems",
-            color: "alert",
-            id: "delall",
-        },
+        { title: "Delete All Problems", color: "alert", id: "delall" },
     ];
-    restore(data: ITestState): void {
+    public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as ITestState;
         this.state.curlang = curlang;
@@ -46,7 +42,7 @@ export class CipherTestQuestions extends CipherTest {
         this.setUIDefaults();
         this.updateOutput();
     }
-    updateOutput(): void {
+    public updateOutput(): void {
         this.setMenuMode(menuMode.test);
         $(".precmds").each((i, elem) => {
             $(elem).replaceWith(this.genPreCommands());
@@ -56,8 +52,11 @@ export class CipherTestQuestions extends CipherTest {
         });
         this.attachHandlers();
     }
-    genPostCommands(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "questions" });
+    /**
+     * Set up the UI elements for the result fields
+     */
+    public genPostCommands(): JQuery<HTMLElement> {
+        let result = $("<div/>", { class: "questions" });
 
         let buttons: buttonInfo[] = [
             { title: "Edit", btnClass: "entryedit" },
@@ -66,23 +65,25 @@ export class CipherTestQuestions extends CipherTest {
         result.append(this.genQuestionTable(undefined, buttons));
         return result;
     }
-    exportQuestions(link: JQuery<HTMLElement>): void {
+    public exportQuestions(link: JQuery<HTMLElement>): void {
         let result = {};
         let cipherCount = this.getCipherCount();
         for (let entry = 0; entry < cipherCount; entry++) {
             result["CIPHER." + String(entry)] = this.getFileEntry(entry);
         }
-        let blob = new Blob([JSON.stringify(result)], { type: "text/json" });
+        let blob = new Blob([JSON.stringify(result)], {
+            type: "text/json",
+        });
         let url = URL.createObjectURL(blob);
 
         link.attr("download", "cipher_questions.json");
         link.attr("href", url);
     }
-    gotoDeleteCipher(entry: number): void {
+    public gotoDeleteCipher(entry: number): void {
         this.deleteFileEntry(entry);
         this.updateOutput();
     }
-    importQuestions(useLocalData: boolean): void {
+    public importQuestions(useLocalData: boolean): void {
         this.openXMLImport(useLocalData);
     }
     /**
@@ -136,13 +137,13 @@ export class CipherTestQuestions extends CipherTest {
     /**
      * Process imported XML
      */
-    importXML(data: any): void {
+    public importXML(data: any): void {
         console.log("Importing XML");
         console.log(data);
         this.processTestXML(data);
         this.updateOutput();
     }
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $("#export")
             .off("click")

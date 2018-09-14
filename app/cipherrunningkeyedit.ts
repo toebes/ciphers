@@ -1,5 +1,11 @@
 import { cloneObject } from "./ciphercommon";
-import { CipherHandler, IRunningKey, IState, menuMode, toolMode } from "./cipherhandler";
+import {
+    CipherHandler,
+    IRunningKey,
+    IState,
+    menuMode,
+    toolMode,
+} from "./cipherhandler";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFLabeledInput } from "./jtflabeledinput";
 
@@ -7,18 +13,18 @@ import { JTFLabeledInput } from "./jtflabeledinput";
  * Running Key Editor
  */
 export class CipherRunningKeyEdit extends CipherHandler {
-    activeToolMode: toolMode = toolMode.codebusters;
-    cmdButtons: JTButtonItem[] = [
+    public activeToolMode: toolMode = toolMode.codebusters;
+    public cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
-        { title: "Load Defaults", color: "primary", id: "defaults" }
+        { title: "Load Defaults", color: "primary", id: "defaults" },
     ];
-    restore(data: IState): void {
+    public restore(data: IState): void {
         this.state = cloneObject(this.defaultstate) as IState;
         this.copyState(this.state, data);
         this.setUIDefaults();
         this.updateOutput();
     }
-    genKeyData(runningKeys: IRunningKey[]): JQuery<HTMLElement> {
+    public genKeyData(runningKeys: IRunningKey[]): JQuery<HTMLElement> {
         let result = $("<div/>", { class: "precmds" });
         let working = runningKeys.slice();
         working.push({ title: "", text: "" });
@@ -45,22 +51,22 @@ export class CipherRunningKeyEdit extends CipherHandler {
         }
         return result;
     }
-    genPreCommands(): JQuery<HTMLElement> {
+    public genPreCommands(): JQuery<HTMLElement> {
         return this.genKeyData(this.getRunningKeyStrings());
     }
 
-    updateOutput(): void {
+    public updateOutput(): void {
         this.setMenuMode(menuMode.test);
         $(".precmds").each((i, elem) => {
             $(elem).replaceWith(this.genPreCommands());
         });
     }
-    setKeyDefaults(): void {
+    public setKeyDefaults(): void {
         $(".precmds").each((i, elem) => {
             $(elem).replaceWith(this.genKeyData(this.defaultRunningKeys));
         });
     }
-    saveKeys(): void {
+    public saveKeys(): void {
         for (let index = 0; index < 10; index++) {
             let title = $("#title" + index).val() as string;
             let text = $("#text" + index).val() as string;
@@ -74,7 +80,7 @@ export class CipherRunningKeyEdit extends CipherHandler {
             }
         }
     }
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $(".runedit")
             .off("input")

@@ -37,26 +37,26 @@ interface IRagbabyState extends IState {
  * The CipherRagbabySolver class implements a solver for the Ragbaby Cipher
  */
 export class CipherRagbabySolver extends CipherSolver {
-  activeToolMode: toolMode = toolMode.aca;
-  defaultstate: IRagbabyState = {
+  public activeToolMode: toolMode = toolMode.aca;
+  public defaultstate: IRagbabyState = {
     cipherType: ICipherType.Ragbaby,
     alphalen: 24,
     cipherString: "",
     replacement: {},
     ctmap: []
   };
-  state: IRagbabyState = cloneObject(this.defaultstate) as IRagbabyState;
+  public state: IRagbabyState = cloneObject(this.defaultstate) as IRagbabyState;
   /** List of all CT:Offset mappings */
-  ctoffsets: BoolMap = {};
+  public ctoffsets: BoolMap = {};
   /**
    * replmap is the map of letters.
    * replmap[0] is the combined entries
    * replmap[1] is editable entries from the user
    * replmap[2..n] is the mappings derived from entries under the cipher text
    */
-  replmap: Array<mappedLine>;
+  public replmap: Array<mappedLine>;
 
-  emptyRagline(): RagLine {
+  public emptyRagline(): RagLine {
     let rslt: RagLine = [];
     for (let i = 0; i < this.state.alphalen; i++) {
       rslt.push("");
@@ -66,7 +66,7 @@ export class CipherRagbabySolver extends CipherSolver {
   /**
    * Save any complete solution
    */
-  saveSolution(): void {
+  public saveSolution(): void {
     let wordidx = 1;
     let wordlen = 0;
 
@@ -118,7 +118,7 @@ export class CipherRagbabySolver extends CipherSolver {
    * values are legitimate for the cipher handler
    * Generally you will call updateOutput() after calling setUIDefaults()
    */
-  setUIDefaults(): void {
+  public setUIDefaults(): void {
     super.setUIDefaults();
     this.setCipherType(this.state.cipherType);
     this.setAlphabetSize(this.state.alphalen);
@@ -126,7 +126,7 @@ export class CipherRagbabySolver extends CipherSolver {
   /**
    * Updates the output based on current settings
    */
-  updateOutput(): void {
+  public updateOutput(): void {
     this.setMenuMode(menuMode.aca);
     // Propagate the current settings to the UI
     $("#encoded").val(this.state.cipherString);
@@ -146,7 +146,7 @@ export class CipherRagbabySolver extends CipherSolver {
    * Selects which form of a ragbaby we are doing
    * alphalen Number of characters in the alphabet (24, 26, 36)
    */
-  setAlphabetSize(alphalen: alphaNum): boolean {
+  public setAlphabetSize(alphalen: alphaNum): boolean {
     let changed = false;
     if (this.state.alphalen !== alphalen) {
       changed = true;
@@ -173,7 +173,7 @@ export class CipherRagbabySolver extends CipherSolver {
    * r Which map to shift
    * dist Distance to shift by
    */
-  rotateSet(s: RagLine, dist: number): RagLine {
+  public rotateSet(s: RagLine, dist: number): RagLine {
     if (dist === 0) {
       return s;
     }
@@ -192,7 +192,7 @@ export class CipherRagbabySolver extends CipherSolver {
   /**
    * Apply all of the mappings entered so far (in order)
    */
-  applyMappings(): void {
+  public applyMappings(): void {
     let cslot: NumberMap = {};
     let prevslot: NumberMap = {};
     let charset = this.getCharset();
@@ -321,7 +321,7 @@ export class CipherRagbabySolver extends CipherSolver {
    * lines Computed line strips
    * mergeslot slot to attempt to merge
    */
-  mergeMappings(lines: mapLine[], mergeslot: number): void {
+  public mergeMappings(lines: mapLine[], mergeslot: number): void {
     while (mergeslot !== -1) {
       let tomerge = mergeslot;
       mergeslot = -1;
@@ -376,7 +376,7 @@ export class CipherRagbabySolver extends CipherSolver {
    * lines Computed lines
    * prevslot Previous positions of letters to attempt to line up against
    */
-  lineUpMappings(lines: mapLine[], prevslot: NumberMap): void {
+  public lineUpMappings(lines: mapLine[], prevslot: NumberMap): void {
     for (let testline of lines) {
       // For convenience we try to see if the first letter has a corresponding favorite position
       let rotate = -prevslot[testline.line[0]];
@@ -403,8 +403,8 @@ export class CipherRagbabySolver extends CipherSolver {
   /**
    * Sets up the radio button to choose the variant as well as the input field for the cipher
    */
-  genPreCommands(): JQuery<HTMLElement> {
-    let result = $("<div>");
+  public genPreCommands(): JQuery<HTMLElement> {
+    let result = $("<div/>");
 
     let radiobuttons = [
       { id: "a24", value: 24, title: "24 [No I/X]" },
@@ -426,7 +426,10 @@ export class CipherRagbabySolver extends CipherSolver {
 
     return result;
   }
-  genPostCommands(): JQuery<HTMLElement> {
+    /**
+     * Set up the UI elements for the result fields
+     */
+    public genPostCommands(): JQuery<HTMLElement> {
     this.UpdateFreqEditTable();
     // <div class="slookup" id = "lookup" >
     //     <label for= "find" > Find spot for</label>
@@ -439,8 +442,8 @@ export class CipherRagbabySolver extends CipherSolver {
    * Locate a string.
    * Note that we assume that the period has been set
    */
-  findPossible(str: string): void {
-    let res = $("<span>").text(
+  public findPossible(str: string): void {
+    let res = $("<span/>").text(
       "Unable to find " +
         str +
         " as " +
@@ -457,17 +460,17 @@ export class CipherRagbabySolver extends CipherSolver {
    * Fills in the frequency portion of the frequency table.  For the Ragbaby
    * we don't have the frequency table, so this doesn't need to do anything
    */
-  displayFreq(): void {}
+  public displayFreq(): void {}
   /**
    * Analyze the encoded text
    */
-  genAnalysis(encoded: string): JQuery<HTMLElement> {
+  public genAnalysis(encoded: string): JQuery<HTMLElement> {
     return null;
   }
   /**
    * Change the encrypted character.  This primarily shows us what the key might be if we use it
    */
-  setChar(repchar: string, newchar: string): void {
+  public setChar(repchar: string, newchar: string): void {
     console.log("Ragbaby setChar data-char=" + repchar + " newchar=" + newchar);
     let pt = newchar;
     let ct = repchar.substr(0, 1);
@@ -512,7 +515,7 @@ export class CipherRagbabySolver extends CipherSolver {
   /**
    * Builds the GUI for the solver
    */
-  build(): JQuery<HTMLElement> {
+  public build(): JQuery<HTMLElement> {
     let str = this.state.cipherString;
     this.ctoffsets = {};
     this.replmap = [
@@ -601,7 +604,7 @@ export class CipherRagbabySolver extends CipherSolver {
   /**
    * Replaces the map of letters for shifting
    */
-  buildMap(): void {
+  public buildMap(): void {
     if (this.state.cipherString === "") {
       $("#ragwork")
         .empty()
@@ -630,7 +633,7 @@ export class CipherRagbabySolver extends CipherSolver {
       }
 
       row = table.addBodyRow([
-        $("<button>", {
+        $("<button/>", {
           href: "#",
           class: "ls",
           "data-vrow": r
@@ -650,7 +653,7 @@ export class CipherRagbabySolver extends CipherSolver {
         }
         if (r === 1) {
           row.add(
-            $("<input>", {
+            $("<input/>", {
               class: "sli off",
               "data-char": "-" + i,
               value: repc
@@ -661,7 +664,7 @@ export class CipherRagbabySolver extends CipherSolver {
         }
       }
       row.add(
-        $("<button>", {
+        $("<button/>", {
           href: "#",
           class: "rs",
           "data-vrow": r
@@ -671,7 +674,7 @@ export class CipherRagbabySolver extends CipherSolver {
     }
     // Go back and put a header row showing all the letters we have picked up
     row = table.addHeaderRow([
-      $("<button>", {
+      $("<button/>", {
         href: "#",
         class: "ls",
         "data-vrow": -1
@@ -688,7 +691,7 @@ export class CipherRagbabySolver extends CipherSolver {
       });
     }
     row.add(
-      $("<button>", {
+      $("<button/>", {
         href: "#",
         class: "rs",
         "data-vrow": -1
@@ -721,10 +724,10 @@ export class CipherRagbabySolver extends CipherSolver {
   /**
    * Creates an HTML table to display the frequency of characters
    */
-  createFreqEditTable(): JQuery<HTMLElement> {
-    let result = $("<div>");
+  public createFreqEditTable(): JQuery<HTMLElement> {
+    let result = $("<div/>");
     result.append(
-      $("<div>", {
+      $("<div/>", {
         id: "ragwork",
         class: "ragedit"
       })
@@ -736,7 +739,7 @@ export class CipherRagbabySolver extends CipherSolver {
    * r Which map to shift
    * dist Distance to shift by
    */
-  rotateMap(r: number, dist: number): void {
+  public rotateMap(r: number, dist: number): void {
     if (r < this.replmap.length) {
       let newmap: Array<string> = [];
       for (let i = 0; i < this.state.alphalen; i++) {
@@ -754,7 +757,7 @@ export class CipherRagbabySolver extends CipherSolver {
    * Rotate left all the letters in a slot by 1
    * r Which slot (-1 for all) to shift
    */
-  leftRotate(r: number): void {
+  public leftRotate(r: number): void {
     if (r === -1) {
       for (let slot in this.replmap) {
         this.rotateMap(Number(slot), 1);
@@ -768,7 +771,7 @@ export class CipherRagbabySolver extends CipherSolver {
    * Rotate right all the letters in a slot by 1
    * r Which slot (-1 for all) to shift
    */
-  rightRotate(r: number): void {
+  public rightRotate(r: number): void {
     if (r === -1) {
       for (let slot in this.replmap) {
         this.rotateMap(Number(slot), -1);
@@ -781,7 +784,7 @@ export class CipherRagbabySolver extends CipherSolver {
   /**
    * Set up all the HTML DOM elements so that they invoke the right functions
    */
-  attachHandlers(): void {
+  public attachHandlers(): void {
     super.attachHandlers();
     $("[name=alphasize]")
       .off("change")

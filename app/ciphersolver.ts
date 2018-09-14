@@ -1128,6 +1128,9 @@ export class CipherSolver extends CipherHandler {
                 break;
             case "k4":
                 let pieces = this.state.keyword.split("/", 2);
+                if (pieces.length < 2) {
+                    pieces.push("?");
+                }
                 extra =
                     pieces[0].toLowerCase() +
                     "/" +

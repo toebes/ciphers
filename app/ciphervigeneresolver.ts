@@ -19,7 +19,7 @@ export class CipherVigenereSolver extends CipherSolver {
         keyword: "" /** The current cipher we are working on */,
         cipherString: "" /** The current string we are looking for */,
         findString: "" /** Replacement characters */,
-        replacement: {}
+        replacement: {},
     };
     public state: IState = cloneObject(this.defaultstate) as IState;
 
@@ -63,7 +63,7 @@ export class CipherVigenereSolver extends CipherSolver {
             CipherTypeButtonItem(ICipherType.Variant),
             CipherTypeButtonItem(ICipherType.Beaufort),
             CipherTypeButtonItem(ICipherType.Gronsfeld),
-            CipherTypeButtonItem(ICipherType.Porta)
+            CipherTypeButtonItem(ICipherType.Porta),
         ];
         result.append(
             JTRadioButton(8, "ciphertype", radiobuttons, this.state.cipherType)
@@ -85,7 +85,7 @@ export class CipherVigenereSolver extends CipherSolver {
     public genPostCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         let inputbox = $("<div/>", {
-            class: "grid-x grid-margin-x"
+            class: "grid-x grid-margin-x",
         });
         inputbox.append(
             JTFLabeledInput(
@@ -108,20 +108,20 @@ export class CipherVigenereSolver extends CipherSolver {
         result.append(inputbox);
         result.append(
             $("<div/>", {
-                class: "grid-x grid-margin-x"
+                class: "grid-x grid-margin-x",
             })
                 .append(
                     $("<div/>", {
                         class:
                             "sanalysis cell medium-order-2 large-order-1 medium-12 large-3",
-                        id: "analysis"
+                        id: "analysis",
                     })
                 )
                 .append(
                     $("<div/>", {
                         class:
                             "findres cell medium-order-1 large-order-2 medium-12 large-9",
-                        id: "findres"
+                        id: "findres",
                     })
                 )
         );
@@ -139,6 +139,10 @@ export class CipherVigenereSolver extends CipherSolver {
         this.lastencoded = undefined;
         super.updateOutput();
     }
+    /**
+     * Prevent the superclass updateOutput() from hiding our keyword
+     */
+    public updateKeywordApply(): void {}
     /**
      * Selects which variant table is to be used for mapping
      * @param cipherType Name of code variant - one of vigenere, variant or beaufort
@@ -264,7 +268,7 @@ export class CipherVigenereSolver extends CipherSolver {
                 row.add(String(i)).add(
                     $("<a/>", {
                         class: "vkey",
-                        href: "#"
+                        href: "#",
                     }).text(thiskey)
                 );
             }
@@ -307,7 +311,7 @@ export class CipherVigenereSolver extends CipherSolver {
         let pos = 0;
         let table1 = new JTTable({
             class: "vdist",
-            head: [["Seq", "Dist"]]
+            head: [["Seq", "Dist"]],
         });
         for (let c of encoded) {
             if (this.isValidChar(c)) {
@@ -362,14 +366,14 @@ export class CipherVigenereSolver extends CipherSolver {
         // Now dump out all the factors and the frequency of them
         let table2 = new JTTable({
             class: "vfact",
-            head: [["Factor", "Freq"]]
+            head: [["Factor", "Freq"]],
         });
         for (let factor in factorSet) {
             if (factorSet[factor] > 1) {
                 let link = $("<a/>", {
                     class: "vkey",
                     href: "#",
-                    "data-key": this.repeatStr("-", Number(factor))
+                    "data-key": this.repeatStr("-", Number(factor)),
                 }).text(factor);
                 table2.addBodyRow([link, String(factorSet[factor])]);
             }
@@ -385,7 +389,7 @@ export class CipherVigenereSolver extends CipherSolver {
     ): JQuery<HTMLElement> {
         return new JTTable({
             class: "talign",
-            body: [[elem1, elem2]]
+            body: [[elem1, elem2]],
         }).generate();
     }
     /**

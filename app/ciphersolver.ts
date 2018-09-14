@@ -109,14 +109,7 @@ export class CipherSolver extends CipherHandler {
         super.updateOutput();
         this.setMenuMode(menuMode.aca);
         $(".err").empty();
-        $("#qtext").empty();
-        if (this.state.question !== "") {
-            $("#qtext").append(
-                $("<div/>", {
-                    class: "callout primary",
-                }).html(this.state.question)
-            );
-        }
+        this.showQuestion();
         $("#encoded").val(this.state.cipherString);
         this.load();
         this.holdupdates = true;
@@ -129,6 +122,20 @@ export class CipherSolver extends CipherHandler {
         this.findPossible(this.state.findString);
         this.updateKeywordApply();
     }
+    /**
+     * Display the question text if there is any
+     */
+    public showQuestion(): void {
+        $("#qtext").empty();
+        if (this.state.question !== "") {
+            $("#qtext").append(
+                $("<div/>", {
+                    class: "callout primary",
+                }).html(this.state.question)
+            );
+        }
+    }
+
     /**
      * Given an alphabet string, normalize it eliminating all of the
      * letters in alphabetic order, returning any remaining string

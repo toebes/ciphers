@@ -135,6 +135,7 @@ export class CipherRagbabySolver extends CipherSolver {
         // Propagate the current settings to the UI
         $("#encoded").val(this.state.cipherString);
         $("#find").val(this.state.findString);
+        this.showQuestion();
         JTRadioButtonSet("alphasize", this.state.alphalen);
         this.load();
         for (let entry of this.state.ctmap) {

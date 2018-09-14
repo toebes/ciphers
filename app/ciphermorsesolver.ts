@@ -205,14 +205,7 @@ export class CipherMorseSolver extends CipherSolver {
         this.setMenuMode(menuMode.aca);
         $("#encoded").val(this.state.cipherString);
         $("#find").val(this.state.findString);
-        $("#qtext").empty();
-        if (this.state.question !== "") {
-            $("#qtext").append(
-                $("<div/>", {
-                    class: "callout primary",
-                }).html(this.state.question)
-            );
-        }
+        this.showQuestion();
         this.load();
         this.findPossible(this.state.findString);
     }

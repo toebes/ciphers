@@ -1,4 +1,4 @@
-import { cloneObject, NumberMap } from "./ciphercommon";
+import { cloneObject, NumberMap, setCharAt } from "./ciphercommon";
 import { IState, toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 import { CipherTypeButtonItem, ICipherType } from "./ciphertypes";
@@ -22,24 +22,39 @@ export class CipherVigenereSolver extends CipherSolver {
         replacement: {},
     };
     public state: IState = cloneObject(this.defaultstate) as IState;
-
     /** Map of indexes into which character of the string is at that index */
     public cipherOffsets: Array<number> = [];
     /** Implements the mapping for the various cipher types */
     public ciphermap: Mapper = null;
-    public restore(data: IState): void {
-        this.state = cloneObject(this.defaultstate) as IState;
-        this.copyState(this.state, data);
-        this.setUIDefaults();
-        this.updateOutput();
-    }
     /**
-     * Make a copy of the current state
+     * Save any complete solution
      */
-    public save(): IState {
-        // We need a deep copy of the save state
-        let savestate = cloneObject(this.state) as IState;
-        return savestate;
+    public saveSolution(): void {
+        let solved = true;
+        let solution = this.state.cipherString;
+        let keyword = this.state.keyword;
+        if (keyword === undefined || keyword === "") {
+            return;
+        }
+        keyword = keyword.replace(" ", "");
+        let period = keyword.length;
+
+        // Fix up all the vslot values so that they can be mapped
+        for (let i in this.cipherOffsets) {
+            let vslot = Number(i) % period;
+            let ckey = keyword.charAt(vslot);
+            let pt = this.ciphermap.decode(
+                this.state.cipherString.charAt(this.cipherOffsets[i]),
+                ckey
+            );
+            solution = setCharAt(solution, this.cipherOffsets[i], pt);
+            if (pt === "?") {
+                solved = false;
+            }
+        }
+        this.state.solved = solved;
+        this.state.solution =
+            this.state.keyword.toUpperCase() + ". " + solution;
     }
     /**
      * Cleans up any settings, range checking and normalizing any values.

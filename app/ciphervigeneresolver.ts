@@ -150,6 +150,7 @@ export class CipherVigenereSolver extends CipherSolver {
         JTRadioButtonSet("ciphertype", this.state.cipherType);
         $("#keyword").val(this.state.keyword);
         $("#encoded").val(this.state.cipherString);
+        this.showQuestion();
         // Force build to rebuild completely
         this.lastencoded = undefined;
         super.updateOutput();

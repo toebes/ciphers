@@ -661,7 +661,6 @@ export class CipherMorseSolver extends CipherSolver {
         let searchlen = searchstr.length;
         let encrlen = encoded.length;
         let charset = this.getCharset().toUpperCase();
-        let used = this.getUsedMap();
 
         for (let i = 0; i + searchlen <= encrlen; i++) {
             let checkstr = encoded.substr(i, searchlen);

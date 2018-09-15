@@ -36,4 +36,5 @@ out/fonts/OpenSans-Regular-webfont.eot
 AffineEncrypt - Copy.html
 SamplePhrases.xlsx
 node_modules/*
+dist/*
 .DS_Store

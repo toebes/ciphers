@@ -758,6 +758,9 @@ table.found tr th:nth-child(odd) {
     font-weight: 400;
 }
 
+.menu-text a {
+    padding: 0 !important;
+}
 .input-group .input-number-decrement {
     margin-right: 0.1rem;
 }

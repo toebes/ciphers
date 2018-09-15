@@ -233,6 +233,85 @@ export class CipherCheckerboardSolver extends CipherSolver {
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
     }
+    /**
+     * Searches for a string (drags a crib through the crypt)
+     * @param encoded Encoded string
+     * @param tofind Pattern string to find
+     */
+    // tslint:disable-next-line:cyclomatic-complexity
+    public searchPattern2(
+        encoded: string,
+        tofind: string
+    ): string {
+        let res = "";
+        let notmapped = "?";
+        let searchstr = this.makeUniquePattern(tofind, 1);
+        let searchlen = searchstr.length;
+        let encrlen = encoded.length;
+        let prevchar = "";
+
+        let used: { [key: string]: boolean } = {};
+        let charset = this.getCharset().toUpperCase();
+        for (let c of charset) {
+            used[c] = false;
+        }
+        for (let c of charset) {
+            used[this.state.replacement[c]] = true;
+        }
+
+        for (let i = 0; i + searchlen * this.cipherWidth <= encrlen; i += this.cipherWidth) {
+            let checkstr = encoded.substr(i, searchlen * this.cipherWidth);
+            let check = this.makeUniquePattern(checkstr, this.cipherWidth);
+            // console.log(i + ':"' + check + '/' + encoded.substr(i, searchlen) + '" for "' + searchstr + '/'+tofind+ '"');
+            if (check === searchstr) {
+                let keymap = {};
+                let matched;
+                //
+                // Build the character mapping table to show what they would use
+                matched = true;
+                //let charset = this.getCharset();
+                for (let c of charset) {
+                    keymap[c] = notmapped;
+                }
+                // Show the matching characters in order
+                for (let j = 0; j < searchlen; j++) {
+                    let keystr = tofind.substr(j, 1);
+                    keymap[checkstr.substr(j, 1)] = keystr;
+                    if (keystr === checkstr.substr(j, 1)) {
+                        matched = false;
+                    }
+                }
+                // We matched, BUT we need to make sure that there are no signs that preclude it from
+                let repl = this.genReplPattern(checkstr);
+                if (matched && this.isValidReplacement(tofind, repl, used)) {
+                    let maptable = "";
+                    let mapfix = "";
+                    for (let key of charset) {
+                        maptable +=
+                            "<td>" + this.normalizeHTML(keymap[key]) + "</td>";
+                        if (keymap[key] !== notmapped) {
+                            mapfix += key + keymap[key];
+                        }
+                    }
+                    res +=
+                        "<tr><td>" +
+                        i +
+                        '</td><td><a class="dapply" href="#" data-mapfix="' +
+                        mapfix +
+                        '">' +
+                        checkstr +
+                        "</a></td>" +
+                        maptable +
+                        "</tr>";
+                }
+            }
+        }
+        return res;
+    }
+    /**
+     * Locate a string and update the UI
+     * @param str String to look for
+     */
     public findPossible(str: string): void {
         let encoded = this.minimizeString(this.state.cipherString);
         let res = "";
@@ -240,7 +319,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
         str = str.toUpperCase();
         //
         // Look for all possible matches for the pattern.
-        res = this.searchPattern(encoded, this.cipherWidth, str, 1);
+        res = this.searchPattern2(encoded, str);
         if (res === "") {
             res = "<br/><b>Not Found</b>";
         } else {

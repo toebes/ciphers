@@ -931,9 +931,9 @@ export class CipherSolver extends CipherHandler {
     public updateSel(item: string, val: string): void {
         this.setChar(item, val);
     }
-
     /**
      * Locate a string and update the UI
+     * @param str String to look for
      */
     public findPossible(str: string): void {
         let encoded = this.minimizeString(this.state.cipherString);
@@ -953,7 +953,7 @@ export class CipherSolver extends CipherHandler {
         }
         //
         // Look for all possible matches for the pattern.
-        let res = this.searchPattern(encoded, 1, str, 1);
+        let res = this.searchPattern(encoded, str);
         if (res === "") {
             res = "<br/><b>Not Found</b>";
         } else {
@@ -971,33 +971,19 @@ export class CipherSolver extends CipherHandler {
         );
         this.attachHandlers();
     }
-
     /**
      * Searches for a string (drags a crib through the crypt)
      * @param encoded Encoded string
-     * @param encodewidth Width of characters in the string
      * @param tofind Pattern string to find
-     * @param findwidth Width of characters in the pattern
      */
-    // tslint:disable-next-line:cyclomatic-complexity
-    public searchPattern(
-        encoded: string,
-        encodewidth: number,
-        tofind: string,
-        findwidth: number
-    ): string {
-        let res: string = "";
-        let notmapped: string = "????".substr(0, findwidth);
-        let searchstr: string = this.makeUniquePattern(tofind, findwidth);
-        if (findwidth > 1) {
-            tofind += "XXXX".substr(0, findwidth - (tofind.length % findwidth));
-        }
-        let i, len;
+    public searchPattern(encoded: string, tofind: string): string {
+        let res = "";
+        let notmapped = "?";
+        let searchstr = this.makeUniquePattern(tofind, 1);
         let searchlen = searchstr.length;
         let encrlen = encoded.length;
-        let prevchar = "";
 
-        let used: { [key: string]: boolean } = {};
+        let used: BoolMap = {};
         let charset = this.getCharset().toUpperCase();
         for (let c of charset) {
             used[c] = false;
@@ -1006,80 +992,32 @@ export class CipherSolver extends CipherHandler {
             used[this.state.replacement[c]] = true;
         }
 
-        for (i = 0; i + searchlen * encodewidth <= encrlen; i += encodewidth) {
-            let checkstr = encoded.substr(i, searchlen * encodewidth);
-            let check = this.makeUniquePattern(checkstr, encodewidth);
+        for (let i = 0; i + searchlen <= encrlen; i++) {
+            let checkstr = encoded.substr(i, searchlen);
+            let check = this.makeUniquePattern(checkstr, 1);
             // console.log(i + ':"' + check + '/' + encoded.substr(i, searchlen) + '" for "' + searchstr + '/'+tofind+ '"');
             if (check === searchstr) {
                 let keymap = {};
-                let j;
-                let matched;
                 //
                 // Build the character mapping table to show what they would use
-                matched = true;
-                //let charset = this.getCharset();
-                for (j = 0; j < charset.length; j++) {
-                    keymap[charset.substr(j, 1)] = notmapped;
+                let matched = true;
+                for (let c of charset) {
+                    keymap[c] = notmapped;
                 }
                 // Show the matching characters in order
-                for (j = 0; j < searchlen; j++) {
-                    let keystr = tofind.substr(j * findwidth, findwidth);
+                for (let j = 0; j < searchlen; j++) {
+                    let keystr = tofind.substr(j, 1);
                     keymap[checkstr.substr(j, 1)] = keystr;
-                    if (findwidth === 1 && keystr === checkstr.substr(j, 1)) {
+                    if (keystr === checkstr.substr(j, 1)) {
                         matched = false;
                     }
                 }
                 // We matched, BUT we need to make sure that there are no signs that preclude it from
-                if (findwidth > 1) {
-                    // Check the preceeding character to see if we have a match for it.  The preceeding
-                    // character can not be known to be a dot or a dash when dealing with morse code
-                    if (i > 0 && tofind.substr(0, 1) !== "X") {
-                        let preceeding = encoded.substr(i - 1, 1);
-                        prevchar = keymap[preceeding].substr(findwidth - 1, 1);
-                        if (prevchar !== "X" && prevchar !== "?") {
-                            console.log(
-                                "*** Disallowing " +
-                                    checkstr +
-                                    " because prevchar =" +
-                                    prevchar +
-                                    " for " +
-                                    preceeding
-                            );
-                            matched = false;
-                        }
-                    }
-                    // Likewise, the following character must also not be a dot or a dash.
-                    if (
-                        matched &&
-                        tofind.substr(tofind.length - 1, 1) !== "X" &&
-                        i + searchlen < encrlen
-                    ) {
-                        let following = encoded.substr(i + searchlen, 1);
-                        let nextchar = keymap[following].substr(0, 1);
-                        if (nextchar !== "X" && prevchar !== "?") {
-                            console.log(
-                                "*** Disallowing " +
-                                    checkstr +
-                                    " because nextchar =" +
-                                    nextchar +
-                                    " for " +
-                                    following
-                            );
-                            matched = false;
-                        }
-                    }
-                } else {
-                    let repl = this.genReplPattern(checkstr);
-                    if (!this.isValidReplacement(tofind, repl, used)) {
-                        // console.log('*** Disallowing ' + checkstr + ' because not valid replacement for ' + tofind);
-                        matched = false;
-                    }
-                }
-                if (matched) {
+                let repl = this.genReplPattern(checkstr);
+                if (matched && this.isValidReplacement(tofind, repl, used)) {
                     let maptable = "";
                     let mapfix = "";
-                    for (j = 0; j < charset.length; j++) {
-                        let key = charset.substr(j, 1);
+                    for (let key of charset) {
                         maptable +=
                             "<td>" + this.normalizeHTML(keymap[key]) + "</td>";
                         if (keymap[key] !== notmapped) {

@@ -586,12 +586,132 @@ export class CipherMorseSolver extends CipherSolver {
         this.updateMatchDropdowns("");
     }
     /**
-     *
-     * Morse routines.
+     * Searches for a string (drags a crib through the crypt)
+     * @param encoded Encoded string
+     * @param tofind Pattern string to find
+     */
+    public searchPatternMorse(encoded: string, tofind: string): string {
+        let res: string = "";
+        let notmapped: string = "????".substr(0, this.cipherWidth);
+        let searchstr: string = this.makeUniquePattern(
+            tofind,
+            this.cipherWidth
+        );
+        tofind += "XXXX".substr(
+            0,
+            this.cipherWidth - (tofind.length % this.cipherWidth)
+        );
+        let searchlen = searchstr.length;
+        let encrlen = encoded.length;
+        let prevchar = "";
+
+        let used: { [key: string]: boolean } = {};
+        let charset = this.getCharset().toUpperCase();
+        for (let c of charset) {
+            used[c] = false;
+        }
+        for (let c of charset) {
+            used[this.state.replacement[c]] = true;
+        }
+
+        for (let i = 0; i + searchlen <= encrlen; i++) {
+            let checkstr = encoded.substr(i, searchlen);
+            let check = this.makeUniquePattern(checkstr, 1);
+            if (check === searchstr) {
+                let keymap: StringMap = {};
+                let matched;
+                //
+                // Build the character mapping table to show what they would use
+                matched = true;
+                //let charset = this.getCharset();
+                for (let c of charset) {
+                    keymap[c] = notmapped;
+                }
+                // Show the matching characters in order
+                for (let j = 0; j < searchlen; j++) {
+                    keymap[checkstr.substr(j, 1)] = tofind.substr(
+                        j * this.cipherWidth,
+                        this.cipherWidth
+                    );
+                }
+                // We matched, BUT we need to make sure that there are no signs that preclude it from
+                // Check the preceeding character to see if we have a match for it.  The preceeding
+                // character can not be known to be a dot or a dash when dealing with morse code
+                if (i > 0 && tofind.substr(0, 1) !== "X") {
+                    let preceeding = encoded.substr(i - 1, 1);
+                    prevchar = keymap[preceeding].substr(
+                        this.cipherWidth - 1,
+                        1
+                    );
+                    if (prevchar !== "X" && prevchar !== "?") {
+                        console.log(
+                            "*** Disallowing " +
+                                checkstr +
+                                " because prevchar =" +
+                                prevchar +
+                                " for " +
+                                preceeding
+                        );
+                        matched = false;
+                    }
+                    // Likewise, the following character must also not be a dot or a dash.
+                    if (
+                        matched &&
+                        tofind.substr(tofind.length - 1, 1) !== "X" &&
+                        i + searchlen < encrlen
+                    ) {
+                        let following = encoded.substr(i + searchlen, 1);
+                        let nextchar = keymap[following].substr(0, 1);
+                        if (nextchar !== "X" && prevchar !== "?") {
+                            console.log(
+                                "*** Disallowing " +
+                                    checkstr +
+                                    " because nextchar =" +
+                                    nextchar +
+                                    " for " +
+                                    following
+                            );
+                            matched = false;
+                        }
+                    }
+                } else {
+                    let repl = this.genReplPattern(checkstr);
+                    if (!this.isValidReplacement(tofind, repl, used)) {
+                        // console.log('*** Disallowing ' + checkstr + ' because not valid replacement for ' + tofind);
+                        matched = false;
+                    }
+                }
+                if (matched) {
+                    let maptable = "";
+                    let mapfix = "";
+                    for (let j = 0; j < charset.length; j++) {
+                        let key = charset.substr(j, 1);
+                        maptable +=
+                            "<td>" + this.normalizeHTML(keymap[key]) + "</td>";
+                        if (keymap[key] !== notmapped) {
+                            mapfix += key + keymap[key];
+                        }
+                    }
+                    res +=
+                        "<tr><td>" +
+                        i +
+                        '</td><td><a class="dapply" href="#" data-mapfix="' +
+                        mapfix +
+                        '">' +
+                        checkstr +
+                        "</a></td>" +
+                        maptable +
+                        "</tr>";
+                }
+            }
+        }
+        return res;
+    }
+    /**
      *
      * This looks for a morse encoded string in the input pattern.  It relies on:
      *   this.cipherWidth to be the width of each encoded character
-     *
+     * @param str String to search for
      */
     public findPossible(str: string): void {
         let encoded = this.minimizeString(this.state.cipherString);
@@ -615,11 +735,9 @@ export class CipherMorseSolver extends CipherSolver {
         // can occur for the width of a morse character.  For a Morbit this would only be a single
         // one, but with a Fractionated Morse it could be two leadings ones.
         for (let i = 0; i < this.cipherWidth; i++) {
-            res += this.searchPattern(
+            res += this.searchPatternMorse(
                 encoded,
-                1,
-                "XXXXX".substr(0, i) + morse,
-                this.cipherWidth
+                "XXXXX".substr(0, i) + morse
             );
         }
         if (res === "") {
@@ -724,7 +842,6 @@ export class CipherMorseSolver extends CipherSolver {
      * is using what we are changing to.
      */
     public updateSel(item: string, val: string): void {
-        console.log("updateFractionatedMorseSel item=" + item + " val=" + val);
         let toswapwith = item;
         setDisabled("#cb" + item, false);
 
@@ -743,8 +860,10 @@ export class CipherMorseSolver extends CipherSolver {
         } else {
             this.state.replacement[item] = val;
         }
-        this.UpdateFreqEditTable();
-        this.load();
+        if (!this.holdupdates) {
+            this.UpdateFreqEditTable();
+            this.load();
+        }
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions

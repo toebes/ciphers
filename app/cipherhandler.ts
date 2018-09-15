@@ -1950,6 +1950,14 @@ export class CipherHandler {
                 this.copy();
                 break;
 
+            case "about":
+                this.about();
+                break;
+
+//            case "download":
+//                this.download();
+//                break;
+
             default:
                 console.log("Unknown action: " + action);
                 break;
@@ -2381,6 +2389,23 @@ export class CipherHandler {
         return importDlg;
     }
     /**
+     * Creates the hidden dialog showing version/build information
+     */
+    public createAboutDlg(): JQElement {
+        let dlgContents = $("<table/>");
+        dlgContents.append("<tr><td>Version:</td><td>[AIV]{version}[/AIV]</td></tr>");
+        dlgContents.append("<tr><td>Built  :</td><td>[AIV]{date}[/AIV]</td></tr>");
+
+        let aboutDlg = JTFDialog(
+            "About",
+            "Cipher Tools",
+            dlgContents,
+            "not-used",
+            null
+        );
+        return aboutDlg;
+    }
+    /**
      * Create the main menu at the top of the page.
      * This also creates the hidden dialogs used for opening and importing files
      */
@@ -2390,6 +2415,7 @@ export class CipherHandler {
         // Create the dialog for selecting which cipher to load
         result.append(this.createOpenFileDlg());
         result.append(this.createImportFileDlg());
+        result.append(this.createAboutDlg());
         return result;
     }
     /**
@@ -2405,6 +2431,25 @@ export class CipherHandler {
             });
         this.state.replOrder = replOrder;
     }
+    /**
+     * Show the about dialog
+     */
+    public about(): void {
+        $("#About").foundation("open");
+    }
+    /**
+     * Download the zip file of the site.
+     */
+    /*
+    public download(): void {
+        console.log('Handle request to download....')
+        $(".download").click(function() {
+            // hope the server sets Content-Disposition: attachment!
+            window.location = 'font/KaTeX_AMS-Regular.ttf';
+        });
+    }
+    */
+
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */

@@ -9,14 +9,14 @@ import { JTTable } from "./jttable";
  * CipherTestQuestions - This manages all of the questions to allow deleting/importing/editing
  */
 export class CipherACAProblems extends CipherTest {
-    activeToolMode: toolMode = toolMode.aca;
-    defaultstate: ITestState = {
+    public activeToolMode: toolMode = toolMode.aca;
+    public defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.Test,
         test: 0,
     };
-    state: ITestState = cloneObject(this.defaultstate) as ITestState;
-    cmdButtons: JTButtonItem[] = [
+    public state: ITestState = cloneObject(this.defaultstate) as ITestState;
+    public cmdButtons: JTButtonItem[] = [
         {
             title: "Export Problems",
             color: "primary",
@@ -46,7 +46,7 @@ export class CipherACAProblems extends CipherTest {
      * Update the output based on current state settings.  This propagates
      * All values to the UI
      */
-    updateOutput(): void {
+    public updateOutput(): void {
         this.setMenuMode(menuMode.aca);
         $(".precmds").each((i, elem) => {
             $(elem).replaceWith(this.genPreCommands());
@@ -56,8 +56,11 @@ export class CipherACAProblems extends CipherTest {
         });
         this.attachHandlers();
     }
+    /**
+     * Set up the UI elements for the result fields
+     */
     public genPostCommands(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "questions" });
+        let result = $("<div/>", { class: "questions" });
 
         let buttons: buttonInfo[] = [
             { title: "Solve", btnClass: "entrysolve" },
@@ -69,7 +72,7 @@ export class CipherACAProblems extends CipherTest {
         return result;
     }
     public genACAProblemTable(buttons: buttonInfo[]): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "questions" });
+        let result = $("<div/>", { class: "questions" });
 
         let cipherCount = this.getCipherCount();
         let table = new JTTable({ class: "cell stack queslist" });
@@ -127,7 +130,11 @@ export class CipherACAProblems extends CipherTest {
             }
             buttonset.append(button);
         }
-        row.add($("<div/>", { class: "grid-x" }).append(buttonset));
+        row.add(
+            $("<div/>", {
+                class: "grid-x",
+            }).append(buttonset)
+        );
         let calloutclass = "";
         let statusmsg = "";
         if (state.solved !== undefined) {

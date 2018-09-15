@@ -15,8 +15,8 @@ import { mapperFactory } from "./mapperfactory";
  * a Caesar or Atbash cipher.
  */
 export class CipherTableEncoder extends CipherEncoder {
-    activeToolMode: toolMode = toolMode.codebusters;
-    defaultstate: IEncoderState = {
+    public activeToolMode: toolMode = toolMode.codebusters;
+    public defaultstate: IEncoderState = {
         cipherString: "",
         cipherType: ICipherType.Caesar,
         offset: 1,
@@ -24,25 +24,25 @@ export class CipherTableEncoder extends CipherEncoder {
         operation: "decode",
         replacement: {},
     };
-    state: IEncoderState = cloneObject(this.defaultstate) as IEncoderState;
-    cmdButtons: JTButtonItem[] = [
+    public state: IEncoderState = cloneObject(this.defaultstate) as IEncoderState;
+    public cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
         this.redocmdButton,
     ];
-    ciphermap: Mapper;
+    public ciphermap: Mapper;
     /** Save and Restore are done on the CipherEncoder Class */
-    save(): IEncoderState {
+    public save(): IEncoderState {
         return super.save();
     }
-    restore(data: IEncoderState): void {
+    public restore(data: IEncoderState): void {
         super.restore(data);
     }
-    setUIDefaults(): void {
+    public setUIDefaults(): void {
         super.setUIDefaults();
         this.setOperation(this.state.operation);
     }
-    setOffset(offset: number): boolean {
+    public setOffset(offset: number): boolean {
         let changed = false;
         let charset = this.getCharset();
         offset = (offset + charset.length) % charset.length;
@@ -61,7 +61,7 @@ export class CipherTableEncoder extends CipherEncoder {
         return changed;
     }
 
-    updateOutput(): void {
+    public updateOutput(): void {
         if (this.state.cipherType === ICipherType.Caesar) {
             $(".offset").show();
         } else {
@@ -75,20 +75,20 @@ export class CipherTableEncoder extends CipherEncoder {
     /**
      * Initializes the encoder.
      */
-    init(lang: string): void {
+    public init(lang: string): void {
         super.init(lang);
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
     }
 
     /**
      *  Generates the replacement map based on the type of cipher
      */
-    genAlphabet(): void {
+    public genAlphabet(): void {
         let charset = this.getSourceCharset();
         let replacement = charset;
 
@@ -107,7 +107,7 @@ export class CipherTableEncoder extends CipherEncoder {
     /**
      * Loads up the values for the encoder
      */
-    load(): void {
+    public load(): void {
         $(".err").text("");
         this.genAlphabet();
         let res = this.build();
@@ -121,7 +121,7 @@ export class CipherTableEncoder extends CipherEncoder {
         this.attachHandlers();
     }
 
-    makeFreqEditField(c: string): JQuery<HTMLElement> {
+    public makeFreqEditField(c: string): JQuery<HTMLElement> {
         let einput = $("<span/>", {
             type: "text",
             "data-char": c,
@@ -129,7 +129,7 @@ export class CipherTableEncoder extends CipherEncoder {
         });
         return einput;
     }
-    genPreCommands(): JQuery<HTMLElement> {
+    public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(this.genTestUsage());
 
@@ -172,8 +172,8 @@ export class CipherTableEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    genAnswer(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "grid-x" });
+    public genAnswer(): JQuery<HTMLElement> {
+        let result = $("<div/>", { class: "grid-x" });
         this.genAlphabet();
         let strings = this.makeReplacement(this.state.cipherString, 40);
         let table = new JTTable({ class: "ansblock shrink cell unstriped" });
@@ -198,8 +198,8 @@ export class CipherTableEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "grid-x" });
+    public genQuestion(): JQuery<HTMLElement> {
+        let result = $("<div/>", { class: "grid-x" });
         this.genAlphabet();
         let strings = this.makeReplacement(this.state.cipherString, 40);
         let table = new JTTable({ class: "ansblock shrink cell unstriped" });
@@ -226,7 +226,7 @@ export class CipherTableEncoder extends CipherEncoder {
      * The third element is an array of a single word being the first "long word"
      * which is the first word of 5 or more characters
      */
-    findWords(str: string): string[][] {
+    public findWords(str: string): string[][] {
         let curstr = "";
         let result = [[], [], []];
         let longstr = "";
@@ -256,7 +256,7 @@ export class CipherTableEncoder extends CipherEncoder {
         result[2].push(longstr);
         return result;
     }
-    decodeCaesar(str: string, key: string): string {
+    public decodeCaesar(str: string, key: string): string {
         let result = "";
         for (let c of str) {
             result += this.ciphermap.decode(c, key);
@@ -264,7 +264,7 @@ export class CipherTableEncoder extends CipherEncoder {
         return result;
     }
     // tslint:disable-next-line:cyclomatic-complexity
-    genSolution(): JQuery<HTMLElement> {
+    public genSolution(): JQuery<HTMLElement> {
         let result = $("<div/>");
         let needsbrute = false;
         this.genAlphabet();
@@ -294,7 +294,7 @@ export class CipherTableEncoder extends CipherEncoder {
                 let let1word = words[0][0];
                 let akey = this.ciphermap.decodeKey(let1word, "A");
                 let ikey = this.ciphermap.decodeKey(let1word, "I");
-                let p = $("<p>").text(
+                let p = $("<p/>").text(
                     "We start out by looking for short words to decode and then see if that encoding makes sense. "
                 );
                 p.append(
@@ -392,7 +392,7 @@ export class CipherTableEncoder extends CipherEncoder {
                     "UM",
                 ];
 
-                let p = $("<p>").text(
+                let p = $("<p/>").text(
                     "Since there are no single letter words we look for the double letter words and find "
                 );
                 let extra = "";

@@ -2,8 +2,8 @@ import { toolMode } from "./cipherhandler";
 import { CipherMorseSolver } from "./ciphermorsesolver";
 import { ICipherType } from "./ciphertypes";
 export class CipherFractionatedMorseSolver extends CipherMorseSolver {
-    activeToolMode: toolMode = toolMode.aca;
-    readonly morseReplaces: string[] = [
+    public activeToolMode: toolMode = toolMode.aca;
+    public readonly morseReplaces: string[] = [
         "OOO",
         "OO-",
         "OOX",
@@ -37,7 +37,7 @@ export class CipherFractionatedMorseSolver extends CipherMorseSolver {
      * Fractionated Morse Solver
      *
      */
-    init(lang: string): void {
+    public init(lang: string): void {
         this.defaultstate.cipherType = ICipherType.FractionatedMorse;
         super.init(lang);
         this.cipherWidth = 3;

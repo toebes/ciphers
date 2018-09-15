@@ -6,21 +6,21 @@ import { JTButtonItem } from "./jtbuttongroup";
 import { JTFLabeledInput } from "./jtflabeledinput";
 
 export class CipherCounter extends CipherEncoder {
-    activeToolMode: toolMode = toolMode.codebusters;
-    defaultstate: IState = {
+    public activeToolMode: toolMode = toolMode.codebusters;
+    public defaultstate: IState = {
         cipherString: "",
         /** The type of cipher we are doing */
         cipherType: ICipherType.Counter,
-        curlang: "en"
+        curlang: "en",
     };
-    state: IState = cloneObject(this.defaultstate) as IState;
-    cmdButtons: JTButtonItem[] = [
+    public state: IState = cloneObject(this.defaultstate) as IState;
+    public cmdButtons: JTButtonItem[] = [
         // { title: "Save", color: "primary", id: "save", },
     ];
     /**
      * Make a copy of the current state
      */
-    save(): IState {
+    public save(): IState {
         // We need a deep copy of the save state
         let savestate = cloneObject(this.state) as IState;
         return savestate;
@@ -29,11 +29,11 @@ export class CipherCounter extends CipherEncoder {
      * Initializes the encoder.
      * We don't want to show the reverse replacement since we are doing an encode
      */
-    init(lang: string): void {
+    public init(lang: string): void {
         super.init(lang);
         this.ShowRevReplace = false;
     }
-    genPreCommands(): JQuery<HTMLElement> {
+    public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(
             JTFLabeledInput(
@@ -46,7 +46,7 @@ export class CipherCounter extends CipherEncoder {
         );
         return result;
     }
-    load(): void {
+    public load(): void {
         let res = this.build();
         $("#answer")
             .empty()
@@ -57,13 +57,13 @@ export class CipherCounter extends CipherEncoder {
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
     }
-    setUIDefaults(): void {}
+    public setUIDefaults(): void {}
     /**
      * Using the currently selected replacement set, encodes a string
      * This breaks it up into lines of maxEncodeWidth characters or less so that
      * it can be easily pasted into the text.
      */
-    build(): JQuery<HTMLElement> {
+    public build(): JQuery<HTMLElement> {
         let str = this.state.cipherString;
         let charset = this.getCharset();
         let sourcecharset = this.getSourceCharset();

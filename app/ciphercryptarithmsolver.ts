@@ -22,31 +22,31 @@ interface ICryptarithmState extends IState {
     boxState: NumberMap;
 }
 export class CryptarithmSolver extends CipherSolver {
-    activeToolMode: toolMode = toolMode.aca;
-    defaultstate: ICryptarithmState = {
+    public activeToolMode: toolMode = toolMode.aca;
+    public defaultstate: ICryptarithmState = {
         cipherType: ICipherType.Cryptarithm,
         cipherString: "",
         boxState: {},
         replacement: {},
         locked: {},
     };
-    state: ICryptarithmState = cloneObject(
+    public state: ICryptarithmState = cloneObject(
         this.defaultstate
     ) as ICryptarithmState;
-    cmdButtons: JTButtonItem[] = [
+    public cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
         this.redocmdButton,
         { title: "Reset", color: "warning", id: "reset" },
     ];
 
-    usedletters: BoolMap = {};
-    base: number;
-    cryptarithmType: CryptarithmType = CryptarithmType.Automatic;
+    public usedletters: BoolMap = {};
+    public base: number;
+    public cryptarithmType: CryptarithmType = CryptarithmType.Automatic;
     /**
      * Add any solution text to the problem
      */
-    saveSolution(): void {
+    public saveSolution(): void {
         if (this.state.question === undefined || this.state.question === "") {
             return;
         }
@@ -86,7 +86,7 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Loads new data into a solver, preserving all solving matches made
      */
-    load(): void {
+    public load(): void {
         let encoded: string = this.cleanString(this.state.cipherString);
         if (encoded !== this.lastencoded) {
             this.lastencoded = encoded;
@@ -113,14 +113,14 @@ export class CryptarithmSolver extends CipherSolver {
      * values are legitimate for the cipher handler
      * Generally you will call updateOutput() after calling setUIDefaults()
      */
-    setUIDefaults(): void {
+    public setUIDefaults(): void {
         super.setUIDefaults();
     }
     /**
      * Update the output based on current state settings.  This propagates
      * All values to the UI
      */
-    updateOutput(): void {
+    public updateOutput(): void {
         super.updateOutput();
         this.updateSolverBox();
         this.updateMatchDropdowns("");
@@ -128,13 +128,13 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Loads new data into a solver, resetting any solving matches made
      */
-    reset(): void {
+    public reset(): void {
         this.load();
     }
     /**
      * Generates the section above the command buttons
      */
-    genPreCommands(): JQuery<HTMLElement> {
+    public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(
             JTFLabeledInput(
@@ -150,7 +150,7 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Set up the UI elements for the result fields
      */
-    genPostCommands(): JQuery<HTMLElement> {
+    public genPostCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(
             $("<div/>", {
@@ -174,13 +174,13 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Analyze the encoded text
      */
-    genAnalysis(encoded: string): JQuery<HTMLElement> {
+    public genAnalysis(encoded: string): JQuery<HTMLElement> {
         return null;
     }
     /**
      * Substitutes all the current mappings in a string to evaluate
      */
-    subFormula(str: string): string {
+    public subFormula(str: string): string {
         let result = "";
         for (let c of str) {
             if (
@@ -224,13 +224,13 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Formats a number in the current base and returns a normalized version of it
      */
-    basedStr(val: number): string {
+    public basedStr(val: number): string {
         return val.toString(this.base).toUpperCase();
     }
     /**
      * Safe version of eval to compute a generated formula
      */
-    compute(str: string): string {
+    public compute(str: string): string {
         try {
             let val = Function('"use strict";return (' + str + ")")();
             return this.basedStr(val);
@@ -241,7 +241,7 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Check a formula to make sure it is correct
      */
-    checkFormula(formula: string, expected: string): JQuery<HTMLElement> {
+    public checkFormula(formula: string, expected: string): JQuery<HTMLElement> {
         let eformula = this.subFormula(formula);
         let eexpected = this.subFormula(expected);
         let cformula = this.compute(eformula);
@@ -257,7 +257,7 @@ export class CryptarithmSolver extends CipherSolver {
         // They don't match so let's go through the digits and figure out which ones do and don't match.
         // Note that one might be longer than the other but we have to compare from the right hand side
         let width = Math.max(cformula.length, cexpected.length);
-        let result = $("<span>", { class: "mismatch" });
+        let result = $("<span/>", { class: "mismatch" });
         for (let pos = width - 1; pos >= 0; pos--) {
             let cf = "?";
             let ce = "?";
@@ -268,16 +268,16 @@ export class CryptarithmSolver extends CipherSolver {
                 ce = cexpected.substr(cexpected.length - pos - 1, 1);
             }
             if (ce === cf) {
-                $("<span>", { class: "g" })
+                $("<span/>", { class: "g" })
                     .text(cf)
                     .appendTo(result);
             } else {
-                $("<span>", { class: "b" })
+                $("<span/>", { class: "b" })
                     .text(cf)
                     .appendTo(result);
             }
         }
-        $("<span>", { class: "formula" })
+        $("<span/>", { class: "formula" })
             .text("[" + formula + "]")
             .appendTo(result);
         return result;
@@ -285,11 +285,11 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * We don't have to do anything for reverse replacements
      */
-    UpdateReverseReplacements(): void {}
+    public UpdateReverseReplacements(): void {}
     /**
      * Update the match dropdowns in response to a change in the cipher mapping
      */
-    updateMatchDropdowns(reqstr: string): void {
+    public updateMatchDropdowns(reqstr: string): void {
         this.state.solved = true;
         $("[data-formula]").each((i, elem) => {
             $(elem)
@@ -305,12 +305,12 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Fills in the frequency portion of the frequency table
      */
-    displayFreq(): void {}
+    public displayFreq(): void {}
     /**
      * Change the encrypted character.  Note that when we change one, we have
      * to swap it with the one which we are replacing
      */
-    setChar(repchar: string, newchar: string): void {
+    public setChar(repchar: string, newchar: string): void {
         console.log("setChar data-char=" + repchar + " newchar=" + newchar);
         // See if we actually have to do anything at all
         if (this.state.replacement[repchar] !== newchar) {
@@ -349,7 +349,7 @@ export class CryptarithmSolver extends CipherSolver {
      * Builds the GUI for the solver
      */
     // tslint:disable-next-line:cyclomatic-complexity
-    build(): JQuery<HTMLElement> {
+    public build(): JQuery<HTMLElement> {
         let str: string = this.cleanString(this.state.cipherString);
         enum buildState {
             Initial = "Initial",
@@ -1005,13 +1005,13 @@ export class CryptarithmSolver extends CipherSolver {
 
         // We have built the lineitems array, now we just need to turn it into
         // a table (respecting the maxwidth)
-        let table = $("<table>", { class: "cmath" });
-        let tbody = $("<tbody>");
+        let table = $("<table/>", { class: "cmath" });
+        let tbody = $("<tbody/>");
         for (let item of lineitems) {
-            let tr = $("<tr>");
+            let tr = $("<tr/>");
             // Pad on the left with as many columns as we need
             if (item.content.length < maxwidth) {
-                $("<td>", {
+                $("<td/>", {
                     colspan: maxwidth - item.content.length,
                 })
                     .html("&nbsp;")
@@ -1021,28 +1021,28 @@ export class CryptarithmSolver extends CipherSolver {
             let addclass = item.class;
             switch (item.prefix) {
                 case "2": {
-                    td = $("<td>")
+                    td = $("<td/>")
                         .html("&radic;")
                         .addClass("math"); // √ - SQUARE ROOT
                     addclass = "";
                     break;
                 }
                 case "3": {
-                    td = $("<td>")
+                    td = $("<td/>")
                         .html("&#8731;")
                         .addClass("math"); // ∛ - CUBE ROOT
                     addclass = "";
                     break;
                 }
                 case "4": {
-                    td = $("<td>")
+                    td = $("<td/>")
                         .html("&#8732;")
                         .addClass("math"); // ∜ - FOURTH ROOT
                     addclass = "";
                     break;
                 }
                 default: {
-                    td = $("<td>").text(item.prefix); //.addClass("math")
+                    td = $("<td/>").text(item.prefix); //.addClass("math")
                     break;
                 }
             }
@@ -1053,7 +1053,7 @@ export class CryptarithmSolver extends CipherSolver {
             addclass = item.class;
             if (item.content !== "") {
                 for (let c of item.content) {
-                    td = $("<td>");
+                    td = $("<td/>");
                     $("<div/>", { class: "slil" })
                         .text(c)
                         .appendTo(td);
@@ -1075,14 +1075,14 @@ export class CryptarithmSolver extends CipherSolver {
             }
             let content = $("");
             if (item.formula !== "") {
-                content = $("<span>", {
+                content = $("<span/>", {
                     class: "formula",
                     "data-formula": item.formula,
                     "data-expect": item.expected,
                 });
             }
 
-            $("<td>", { class: "solv" })
+            $("<td/>", { class: "solv" })
                 .append(content)
                 .appendTo(tr);
             tr.appendTo(tbody);
@@ -1097,7 +1097,7 @@ export class CryptarithmSolver extends CipherSolver {
      * @param start Starting character
      * @param end Ending character
      */
-    genLetterDiv(start: string, end: string): JQuery<HTMLElement> {
+    public genLetterDiv(start: string, end: string): JQuery<HTMLElement> {
         let prefix = start + "-" + end;
         let calloutclass = "secondary";
         if (this.state.question.includes(prefix)) {
@@ -1105,14 +1105,14 @@ export class CryptarithmSolver extends CipherSolver {
         }
         let result = $("<div/>", {
             class: "sol callout small " + calloutclass,
-        }).append($("<span>", { class: "h" }).text(prefix + ":"));
+        }).append($("<span/>", { class: "h" }).text(prefix + ":"));
         return result;
     }
     /**
      * Generates the letter sequences for output ordering any which happen to match
      * the question string at the start
      */
-    genLetterSequences(): JQuery<HTMLElement> {
+    public genLetterSequences(): JQuery<HTMLElement> {
         // First we generate the strings along with the text
         let result = $("<div/>", { class: "sols" });
         let x = this.basedStr(this.base - 1);
@@ -1124,25 +1124,25 @@ export class CryptarithmSolver extends CipherSolver {
 
         for (let index = 0; index < this.base; index++) {
             a0x.append(
-                $("<span>", {
+                $("<span/>", {
                     "data-val": this.basedStr(index),
                 }).text("?")
             );
             let val = (index + 1) % this.base;
             a10.append(
-                $("<span>", {
+                $("<span/>", {
                     "data-val": this.basedStr(val),
                 }).text("?")
             );
             val = (this.base - index - 1) % this.base;
             ax0.append(
-                $("<span>", {
+                $("<span/>", {
                     "data-val": this.basedStr(val),
                 }).text("?")
             );
             val = (val + 1) % this.base;
             a01.append(
-                $("<span>", {
+                $("<span/>", {
                     "data-val": this.basedStr(val),
                 }).text("?")
             );
@@ -1158,24 +1158,24 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Creates an HTML table to display the mapping table
      */
-    createFreqEditTable(): JQuery<HTMLElement> {
+    public createFreqEditTable(): JQuery<HTMLElement> {
         if (this.base === undefined || this.base < 1) {
             return null;
         }
         let result = $("<div/>");
         result.append(this.genLetterSequences());
         // First generate the solution strings, BUT if there is one that matches the
-        let table = $("<table>", { class: "tfreq" });
-        let tbody = $("<tbody>");
-        let thead = $("<thead>");
+        let table = $("<table/>", { class: "tfreq" });
+        let tbody = $("<tbody/>");
+        let thead = $("<thead/>");
 
-        let tr = $("<tr>");
+        let tr = $("<tr/>");
 
-        $("<td>", { colspan: 3 })
+        $("<td/>", { colspan: 3 })
             .text("Base " + String(this.base))
             .appendTo(tr);
         for (let index = 0; index < this.base; index++) {
-            $("<th>")
+            $("<th/>")
                 .text(this.basedStr(index))
                 .appendTo(tr);
         }
@@ -1184,16 +1184,16 @@ export class CryptarithmSolver extends CipherSolver {
 
         // Now we want to build the solving table
         for (let c in this.usedletters) {
-            tr = $("<tr>");
-            let th = $("<th>");
+            tr = $("<tr/>");
+            let th = $("<th/>");
             $("<div/>", { class: "slil" })
                 .text(c)
                 .appendTo(th);
             th.appendTo(tr);
-            let td = $("<td>");
+            let td = $("<td/>");
             this.makeFreqEditField(c).appendTo(td);
             td.appendTo(tr);
-            td = $("<td>");
+            td = $("<td/>");
             let ischecked = this.state.locked[c];
             $("<input />", {
                 type: "checkbox",
@@ -1214,7 +1214,7 @@ export class CryptarithmSolver extends CipherSolver {
                 if (state < 0) {
                     state = 1;
                 }
-                $("<td>", {
+                $("<td/>", {
                     id: id,
                     "data-val": state,
                 })
@@ -1227,7 +1227,7 @@ export class CryptarithmSolver extends CipherSolver {
         result.append(table);
         return result;
     }
-    getLockMap(): BoolMap {
+    public getLockMap(): BoolMap {
         let result: BoolMap = {};
         for (let c in this.usedletters) {
             if (this.state.locked[c]) {
@@ -1240,7 +1240,7 @@ export class CryptarithmSolver extends CipherSolver {
         }
         return result;
     }
-    updateSolverBox(): void {
+    public updateSolverBox(): void {
         let isLocked = this.getLockMap();
         for (let c in this.usedletters) {
             let ischecked = this.state.locked[c];
@@ -1270,7 +1270,7 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Marks a symbol as locked and prevents it from being changed in the interactive solver
      */
-    handleLockClick(c: string, lock: boolean): boolean {
+    public handleLockClick(c: string, lock: boolean): boolean {
         let changed = false;
         if (this.state.locked[c] !== lock) {
             this.markUndo(null);
@@ -1279,7 +1279,7 @@ export class CryptarithmSolver extends CipherSolver {
         }
         return changed;
     }
-    handleBoxStateClick(id: string): boolean {
+    public handleBoxStateClick(id: string): boolean {
         let changed = false;
         let isLocked = this.getLockMap();
         let c = id.substr(0, 1);
@@ -1300,7 +1300,7 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Sets up the HTML DOM so that all actions go to the right handler
      */
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $(".rtoggle")
             .off("click")

@@ -10,15 +10,15 @@ import { JTTable } from "./jttable";
  *    This prints an answer key for a specified test
  */
 export class CipherTestAnswers extends CipherTest {
-    activeToolMode: toolMode = toolMode.codebusters;
-    defaultstate: ITestState = {
+    public activeToolMode: toolMode = toolMode.codebusters;
+    public defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.Test,
         test: 0,
         sols: "n",
     };
-    state: ITestState = cloneObject(this.defaultstate) as ITestState;
-    cmdButtons: JTButtonItem[] = [];
+    public state: ITestState = cloneObject(this.defaultstate) as ITestState;
+    public cmdButtons: JTButtonItem[] = [];
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genTestEditState(this.getTestEditState());
     }
@@ -28,7 +28,7 @@ export class CipherTestAnswers extends CipherTest {
      * values are legitimate for the cipher handler
      * Generally you will call updateOutput() after calling setUIDefaults()
      */
-    setUIDefaults(): void {
+    public setUIDefaults(): void {
         this.setSols(this.state.sols);
     }
     /**
@@ -73,7 +73,7 @@ export class CipherTestAnswers extends CipherTest {
     /*
      * Sorter to break ties
      */
-    tiebreakersort(a: any, b: any): number {
+    public tiebreakersort(a: any, b: any): number {
         if (a.points > b.points) {
             return -1;
         } else if (a.points < b.points) {
@@ -103,7 +103,7 @@ export class CipherTestAnswers extends CipherTest {
             return $("<h3/>").text("Test not found");
         }
 
-        let result = $("<div>");
+        let result = $("<div/>");
         this.qdata = [];
 
         let test = this.getTestEntry(this.state.test);
@@ -112,7 +112,7 @@ export class CipherTestAnswers extends CipherTest {
         $(".testyear").text(dt.getFullYear());
         if (test.timed === -1) {
             result.append(
-                $("<p>", {
+                $("<p/>", {
                     class: "noprint",
                 }).text("No timed question")
             );

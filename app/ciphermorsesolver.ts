@@ -158,7 +158,7 @@ const frommorse: { [key: string]: string } = {
 export class CipherMorseSolver extends CipherSolver {
     public activeToolMode: toolMode = toolMode.aca;
     /** Morse Lookup table overridden by the subclasses */
-    readonly morseReplaces: string[] = [];
+    public readonly morseReplaces: string[] = [];
     public defaultstate: IState = {
         cipherType: ICipherType.None,
         replacement: {},
@@ -205,14 +205,7 @@ export class CipherMorseSolver extends CipherSolver {
         this.setMenuMode(menuMode.aca);
         $("#encoded").val(this.state.cipherString);
         $("#find").val(this.state.findString);
-        $("#qtext").empty();
-        if (this.state.question !== "") {
-            $("#qtext").append(
-                $("<div/>", {
-                    class: "callout primary",
-                }).html(this.state.question)
-            );
-        }
+        this.showQuestion();
         this.load();
         this.findPossible(this.state.findString);
     }
@@ -224,6 +217,14 @@ export class CipherMorseSolver extends CipherSolver {
         this.state.locked = {};
         this.state.replacement = {};
         super.reset();
+    }
+    /**
+     * Add any solution text to the problem
+     */
+    public saveSolution(): void {
+        // We don't have to do anything because it has already been calculated
+        // but we don't want to call the super class implementation because
+        // it does something completely different.
     }
     public genAnalysis(str: string): JQuery<HTMLElement> {
         return null;
@@ -284,8 +285,8 @@ export class CipherMorseSolver extends CipherSolver {
         let cipherwidth = this.cipherWidth;
         let finaltext = "";
         let docwidth = $(document).width();
-        //docwidth = 9 * 24 * cipherwidth
         let width = cipherwidth * Math.floor(docwidth / (cipherwidth * 24));
+        this.state.solved = true;
 
         //
         // Build up the input string and the corresponding morse code
@@ -321,7 +322,7 @@ export class CipherMorseSolver extends CipherSolver {
         for (let i = 0, len = intext.length; i < len; i++) {
             c = intext.substr(i, 1);
             let mpos, td;
-            td = $("<td>", { colspan: cipherwidth });
+            td = $("<td/>", { colspan: cipherwidth });
             if (this.state.locked[c]) {
                 td.addClass("locked");
             }
@@ -364,6 +365,7 @@ export class CipherMorseSolver extends CipherSolver {
                             lastsep = "XX";
                             finaltext += " ";
                         } else {
+                            this.state.solved = false;
                             outrow.append($("<td/>").addClass("error"));
                             finaltext += '<span class="error">?</span>';
                         }
@@ -388,6 +390,7 @@ export class CipherMorseSolver extends CipherSolver {
                         if (typeof frommorse[morselet] === "undefined") {
                             morseclass = "error";
                             outchar = "??";
+                            this.state.solved = false;
                             finaltext += '<span class="error">?</span>';
                         } else {
                             outchar = frommorse[morselet];
@@ -461,6 +464,7 @@ export class CipherMorseSolver extends CipherSolver {
         tbody.append(outrow);
         table.append(tbody);
         topdiv.append(table);
+        this.state.solution = finaltext;
         topdiv.append($("<hr/><div>" + finaltext + "</div>"));
         return topdiv;
     }
@@ -468,7 +472,7 @@ export class CipherMorseSolver extends CipherSolver {
      * Generates the section above the command buttons
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $("<div>");
+        let result = $("<div/>");
         result.append(
             JTFLabeledInput(
                 "Cipher Text",
@@ -478,6 +482,15 @@ export class CipherMorseSolver extends CipherSolver {
                 "small-12 medium-12 large-12"
             )
         );
+        return result;
+    }
+    /**
+     * Set up the UI elements for the result fields
+     */
+    public genPostCommands(): JQuery<HTMLElement> {
+        let result = $("<div/>");
+        result.append($("<div>", { class: "err" }));
+        result.append(this.genFindCommands());
         return result;
     }
     /*
@@ -736,7 +749,7 @@ export class CipherMorseSolver extends CipherSolver {
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $(".cb")
             .off("change")

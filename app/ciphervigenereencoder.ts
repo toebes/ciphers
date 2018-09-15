@@ -21,9 +21,9 @@ interface IVigenereState extends IState {
  *
  */
 export class CipherVigenereEncoder extends CipherEncoder {
-    activeToolMode: toolMode = toolMode.codebusters;
+    public activeToolMode: toolMode = toolMode.codebusters;
 
-    defaultstate: IVigenereState = {
+    public defaultstate: IVigenereState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.Vigenere,
         /** Currently selected keyword */
@@ -35,14 +35,14 @@ export class CipherVigenereEncoder extends CipherEncoder {
         operation: "encode",
         blocksize: 0
     };
-    state: IVigenereState = cloneObject(this.defaultstate) as IVigenereState;
-    cmdButtons: JTButtonItem[] = [
+    public state: IVigenereState = cloneObject(this.defaultstate) as IVigenereState;
+    public cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save", class: "save" },
         this.undocmdButton,
         this.redocmdButton
     ];
 
-    restore(data: IState): void {
+    public restore(data: IState): void {
         this.state = cloneObject(this.defaultstate) as IVigenereState;
         this.copyState(this.state, data);
         this.setUIDefaults();
@@ -51,7 +51,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     /**
      * Make a copy of the current state
      */
-    save(): IState {
+    public save(): IState {
         // We need a deep copy of the save state
         let savestate = cloneObject(this.state) as IState;
         return savestate;
@@ -62,7 +62,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * values are legitimate for the cipher handler
      * Generally you will call updateOutput() after calling setUIDefaults()
      */
-    setUIDefaults(): void {
+    public setUIDefaults(): void {
         this.setOperation(this.state.operation);
         this.setBlocksize(this.state.blocksize);
     }
@@ -70,7 +70,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Update the output based on current state settings.  This propagates
      * All values to the UI
      */
-    updateOutput(): void {
+    public updateOutput(): void {
         this.updateQuestionsOutput();
         this.setMenuMode(menuMode.question);
         if (this.state.operation === "encode") {
@@ -88,7 +88,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.load();
     }
 
-    genPreCommands(): JQuery<HTMLElement> {
+    public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(this.genTestUsage());
         let radiobuttons = [
@@ -127,7 +127,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
         return result;
     }
-    setBlocksize(blocksize: number): boolean {
+    public setBlocksize(blocksize: number): boolean {
         let changed = false;
         if (this.state.blocksize !== blocksize) {
             this.state.blocksize = blocksize;
@@ -135,7 +135,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
         return changed;
     }
-    buildReplacementVigenere(
+    public buildReplacementVigenere(
         msg: string,
         keystring: string,
         maxEncodeWidth: number
@@ -209,8 +209,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
         return result;
     }
 
-    buildVigenere(msg: string, key: string): JQuery<HTMLElement> {
-        let result = $("<div>");
+    public buildVigenere(msg: string, key: string): JQuery<HTMLElement> {
+        let result = $("<div/>");
         let source = 1;
         let dest = 0;
         if (this.state.operation === "decode") {
@@ -224,10 +224,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
         );
         for (let stringset of strings) {
             result.append(
-                $("<div>", { class: "TOSOLVE" }).text(stringset[source])
+                $("<div/>", { class: "TOSOLVE" }).text(stringset[source])
             );
             result.append(
-                $("<div>", { class: "TOANSWER" }).text(stringset[dest])
+                $("<div/>", { class: "TOANSWER" }).text(stringset[dest])
             );
         }
         return result;
@@ -235,7 +235,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     /**
      * Loads up the values for vigenere
      */
-    load(): void {
+    public load(): void {
         let encoded = this.cleanString(this.state.cipherString);
         /*
         * If it is characteristic of the cipher type (e.g. patristocrat),
@@ -259,7 +259,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $("#blocksize")
             .off("input")
@@ -287,9 +287,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(): JQuery<HTMLElement> {
         let keypos = 0;
-        let result = $("<div>", { class: "grid-x" });
+        let result = $("<div/>", { class: "grid-x" });
         let strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
@@ -333,8 +333,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "grid-x" });
+    public genQuestion(): JQuery<HTMLElement> {
+        let result = $("<div/>", { class: "grid-x" });
         let strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,

@@ -5,19 +5,19 @@ import * as Cookies from "js-cookie";
  * away all data.
  */
 export class JTStorage {
-    isAvailable(): boolean {
+    public isAvailable(): boolean {
         return false;
     }
-    get(entry: string): string {
+    public get(entry: string): string {
         return "";
     }
-    getJSON(entry: string): any {
+    public getJSON(entry: string): any {
         return JSON.parse(this.get(entry));
     }
-    set(entry: string, content: any): void {
+    public set(entry: string, content: any): void {
         return;
     }
-    remove(entry: string): void {
+    public remove(entry: string): void {
         return;
     }
 }
@@ -27,11 +27,11 @@ export class JTStorage {
  * attempt to access localStorage as long as it is called
  */
 class JTStorageLocal extends JTStorage {
-    isWorking: boolean = true;
-    isAvailable(): boolean {
+    public isWorking: boolean = true;
+    public isAvailable(): boolean {
         return this.isWorking;
     }
-    get(entry: string): string {
+    public get(entry: string): string {
         let result = "";
         try {
             result = localStorage.getItem(entry);
@@ -41,7 +41,7 @@ class JTStorageLocal extends JTStorage {
         }
         return result;
     }
-    set(entry: string, content: any): void {
+    public set(entry: string, content: any): void {
         // Try to convert the content from JSON if it isn't a string
         // Taken from https://github.com/js-cookie/js-cookie where it was done very well
         try {
@@ -59,7 +59,7 @@ class JTStorageLocal extends JTStorage {
         }
         return;
     }
-    remove(entry: string): void {
+    public remove(entry: string): void {
         try {
             localStorage.removeItem(entry);
         } catch {
@@ -71,20 +71,20 @@ class JTStorageLocal extends JTStorage {
 }
 
 class JTStorageCookies extends JTStorage {
-    isAvailable(): boolean {
+    public isAvailable(): boolean {
         return true;
     }
-    get(entry: string): string {
+    public get(entry: string): string {
         return Cookies.get(entry);
     }
-    getJSON(entry: string): any {
+    public getJSON(entry: string): any {
         return Cookies.getJSON(entry);
     }
-    set(entry: string, content: any): void {
+    public set(entry: string, content: any): void {
         Cookies.set(entry, content);
         return;
     }
-    remove(entry: string): void {
+    public remove(entry: string): void {
         Cookies.remove(entry);
         return;
     }

@@ -1,5 +1,11 @@
 import { cloneObject } from "./ciphercommon";
-import { CipherHandler, IState, menuMode, toolMode } from "./cipherhandler";
+import {
+    CipherHandler,
+    IEncodeType,
+    IState,
+    menuMode,
+    toolMode,
+} from "./cipherhandler";
 import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFIncButton } from "./jtfIncButton";
@@ -7,8 +13,6 @@ import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 
 export interface IEncoderState extends IState {
-    /** Type of encoding */
-    encodeType?: string;
     /** K1/K2/K3/K4 Keyword */
     keyword2?: string;
     /** K1/K2/K3/K4 Offset */
@@ -30,8 +34,8 @@ export interface IEncoderState extends IState {
  * a cipher.
  */
 export class CipherEncoder extends CipherHandler {
-    activeToolMode: toolMode = toolMode.codebusters;
-    defaultstate: IEncoderState = {
+    public activeToolMode: toolMode = toolMode.codebusters;
+    public defaultstate: IEncoderState = {
         cipherString: "",
         cipherType: ICipherType.Aristocrat,
         encodeType: "random",
@@ -45,8 +49,8 @@ export class CipherEncoder extends CipherHandler {
         curlang: "en",
         replacement: {},
     };
-    state: IEncoderState = cloneObject(this.defaultstate) as IState;
-    cmdButtons: JTButtonItem[] = [
+    public state: IEncoderState = cloneObject(this.defaultstate) as IState;
+    public cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         {
             title: "Randomize",
@@ -61,7 +65,7 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Make a copy of the current state
      */
-    save(): IEncoderState {
+    public save(): IEncoderState {
         let result: IEncoderState = cloneObject(this.state) as IState;
         return result;
     }
@@ -69,7 +73,7 @@ export class CipherEncoder extends CipherHandler {
      * Restore a saved state or undo state
      * @param data Previous state to restore
      */
-    restore(data: IEncoderState): void {
+    public restore(data: IEncoderState): void {
         this.state = cloneObject(this.defaultstate) as IState;
         this.copyState(this.state, data);
         this.setUIDefaults();
@@ -81,7 +85,7 @@ export class CipherEncoder extends CipherHandler {
      * values are legitimate for the cipher handler
      * Generally you will call updateOutput() after calling setUIDefaults()
      */
-    setUIDefaults(): void {
+    public setUIDefaults(): void {
         super.setUIDefaults();
         this.setCharset(this.acalangcharset[this.state.curlang]);
         this.setSourceCharset(this.encodingcharset[this.state.curlang]);
@@ -96,7 +100,7 @@ export class CipherEncoder extends CipherHandler {
      * Update the output based on current state settings.  This propagates
      * All values to the UI
      */
-    updateOutput(): void {
+    public updateOutput(): void {
         this.setMenuMode(menuMode.question);
         this.updateQuestionsOutput();
         $("#toencode").val(this.state.cipherString);
@@ -114,14 +118,12 @@ export class CipherEncoder extends CipherHandler {
                 .parent()
                 .show();
         }
-        if (this.state.curlang === "en") {
-        }
         JTRadioButtonSet("enctype", this.state.encodeType);
         $(".lang").val(this.state.curlang);
         this.setkvalinputs();
         this.load();
     }
-    updateQuestionsOutput(): void {
+    public updateQuestionsOutput(): void {
         if (this.state.points === undefined) {
             this.state.points = 0;
         }
@@ -134,7 +136,7 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Enable / Disable the HTML elements based on the alphabet selection
      */
-    setkvalinputs(): void {
+    public setkvalinputs(): void {
         let val = this.state.encodeType;
         if (val === "random") {
             $("#randomize").removeAttr("disabled");
@@ -154,23 +156,16 @@ export class CipherEncoder extends CipherHandler {
             $(".k4val").hide();
         }
     }
-    setEncType(encodeType: string): boolean {
+    /**
+     * Sets the encoding type for the cipher
+     * @param encodeType Type of encoding random/k1/k2/k3/k4
+     */
+    public setEncType(encodeType: IEncodeType): boolean {
         let changed = false;
         if (this.state.encodeType !== encodeType) {
             this.state.encodeType = encodeType;
             this.resetAlphabet();
             changed = true;
-        }
-        return changed;
-    }
-    /**
-     * Updates the stored state cipher string
-     * @param cipherString Cipher string to set
-     */
-    public setCipherString(cipherString: string): boolean {
-        let changed = super.setCipherString(cipherString);
-        if (changed) {
-            this.resetAlphabet();
         }
         return changed;
     }
@@ -191,7 +186,7 @@ export class CipherEncoder extends CipherHandler {
      * @param keyword New keyword
      * @returns Boolean indicating if the value actually changed
      */
-    setKeyword(keyword: string): boolean {
+    public setKeyword(keyword: string): boolean {
         let changed = false;
         if (this.state.keyword !== keyword) {
             this.state.keyword = keyword;
@@ -205,7 +200,7 @@ export class CipherEncoder extends CipherHandler {
      * @param keyword2 new Secondary keyword
      * @returns Boolean indicating if the value actually changed
      */
-    setKeyword2(keyword2: string): boolean {
+    public setKeyword2(keyword2: string): boolean {
         let changed = false;
         if (this.state.keyword2 !== keyword2) {
             this.state.keyword2 = keyword2;
@@ -219,7 +214,7 @@ export class CipherEncoder extends CipherHandler {
      * @param offset new offset value
      * @returns Boolean indicating if the value actually changed
      */
-    setOffset(offset: number): boolean {
+    public setOffset(offset: number): boolean {
         let changed = false;
         let charset = this.getCharset();
         offset = (offset + charset.length) % charset.length;
@@ -235,7 +230,7 @@ export class CipherEncoder extends CipherHandler {
      * @param offset2 new offset value
      * @returns Boolean indicating if the value actually changed
      */
-    setOffset2(offset2: number): boolean {
+    public setOffset2(offset2: number): boolean {
         let changed = false;
         let charset = this.getCharset();
         offset2 = (offset2 + charset.length) % charset.length;
@@ -251,7 +246,7 @@ export class CipherEncoder extends CipherHandler {
      * @param shift new shift value
      * @returns Boolean indicating if the value actually changed
      */
-    setShift(shift: number): boolean {
+    public setShift(shift: number): boolean {
         let changed = false;
         let charset = this.getCharset();
         shift = (shift + charset.length) % charset.length;
@@ -266,7 +261,7 @@ export class CipherEncoder extends CipherHandler {
      * Loads a language in response to a dropdown event
      * @param lang New language string
      */
-    loadLanguage(lang: string): void {
+    public loadLanguage(lang: string): void {
         let changed = false;
         this.pushUndo(null);
         if (this.state.curlang !== lang) {
@@ -286,14 +281,14 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Reset the alphabet mapping so that we generate a new one
      */
-    resetAlphabet(): void {
+    public resetAlphabet(): void {
         this.state.alphabetSource = "";
         this.state.alphabetDest = "";
     }
     /**
      * Generate the maping from the source to the destination alphabet
      */
-    genAlphabet(): void {
+    public genAlphabet(): void {
         // If we already have a mapping, then we stay with it
         if (
             this.state.alphabetSource !== "" &&
@@ -333,7 +328,7 @@ export class CipherEncoder extends CipherHandler {
      * Note that we actually have to reverse them because the ciphers class
      * is mostly built around decrypting
      */
-    setReplacement(cset: string, repl: string): void {
+    public setReplacement(cset: string, repl: string): void {
         let errors = "";
         this.state.alphabetSource = cset;
         this.state.alphabetDest = repl;
@@ -362,7 +357,7 @@ export class CipherEncoder extends CipherHandler {
      * keyword Keyword/keyphrase to map
      * offset Offset from the start of the alphabet to place the keyword
      */
-    genAlphabetK1(keyword: string, offset: number): void {
+    public genAlphabetK1(keyword: string, offset: number): void {
         let repl = this.genKstring(keyword, offset, this.getCharset());
         this.setReplacement(this.getSourceCharset(), repl);
     }
@@ -371,7 +366,7 @@ export class CipherEncoder extends CipherHandler {
      * keyword Keyword/Keyphrase to map
      * offset Offset from the start of the alphabet to place the keyword
      */
-    genAlphabetK2(keyword: string, offset: number): void {
+    public genAlphabetK2(keyword: string, offset: number): void {
         let repl = this.genKstring(keyword, offset, this.getSourceCharset());
         this.setReplacement(repl, this.getCharset());
     }
@@ -385,7 +380,7 @@ export class CipherEncoder extends CipherHandler {
      * offset Offset from the start of the alphabet to place the keyword
      * shift Shift of the destination alphabet from the source alphabet
      */
-    genAlphabetK3(keyword: string, offset: number, shift: number): void {
+    public genAlphabetK3(keyword: string, offset: number, shift: number): void {
         if (this.getCharset() !== this.getSourceCharset()) {
             let error = "Source and encoding character sets must be the same";
             console.log(error);
@@ -403,7 +398,7 @@ export class CipherEncoder extends CipherHandler {
      * keyword2 Keyword for the destination alphabet
      * offset2 Offset for the keyword in the destination alphabet
      */
-    genAlphabetK4(
+    public genAlphabetK4(
         keyword: string,
         offset: number,
         keyword2: string,
@@ -425,7 +420,11 @@ export class CipherEncoder extends CipherHandler {
      * keyword Keyword to map into the alphabet
      * offset Offset from the start of the alphabet to place the keyword
      */
-    genKstring(keyword: string, offset: number, alphabet: string): string {
+    public genKstring(
+        keyword: string,
+        offset: number,
+        alphabet: string
+    ): string {
         let unasigned = alphabet;
         let repl = "";
 
@@ -455,7 +454,7 @@ export class CipherEncoder extends CipherHandler {
      * Gets a random replacement character from the remaining set of unassigned
      * characters
      */
-    getRepl(): string {
+    public getRepl(): string {
         let sel = Math.floor(Math.random() * this.unasigned.length);
         let res = this.unasigned.substr(sel, 1);
         this.unasigned =
@@ -465,7 +464,7 @@ export class CipherEncoder extends CipherHandler {
     /**
      *  Generates a random replacement set of characters
      */
-    genAlphabetRandom(): void {
+    public genAlphabetRandom(): void {
         let charset = this.getCharset();
         this.unasigned = charset;
         let replacement = "";
@@ -505,8 +504,8 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    genAnswer(): JQuery<HTMLElement> {
-        let result = $("<div>");
+    public genAnswer(): JQuery<HTMLElement> {
+        let result = $("<div/>");
         this.genAlphabet();
         let strings = this.makeReplacement(
             this.getEncodingString(),
@@ -520,19 +519,19 @@ export class CipherEncoder extends CipherHandler {
         }
         for (let strset of strings) {
             result.append(
-                $("<div>", {
+                $("<div/>", {
                     class: "TOSOLVE",
                 }).text(strset[tosolve])
             );
             result.append(
-                $("<div>", {
+                $("<div/>", {
                     class: "TOANSWER",
                 }).text(strset[toanswer])
             );
         }
         if (this.state.cipherType === ICipherType.Patristocrat) {
             result.append(
-                $("<div>", {
+                $("<div/>", {
                     class: "origtext",
                 }).text(this.state.cipherString)
             );
@@ -555,8 +554,8 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div>");
+    public genQuestion(): JQuery<HTMLElement> {
+        let result = $("<div/>");
         this.genAlphabet();
         let strings = this.makeReplacement(
             this.getEncodingString(),
@@ -564,7 +563,7 @@ export class CipherEncoder extends CipherHandler {
         );
         for (let strset of strings) {
             result.append(
-                $("<div>", {
+                $("<div/>", {
                     class: "TOSOLVEQ",
                 }).text(strset[0])
             );
@@ -578,10 +577,10 @@ export class CipherEncoder extends CipherHandler {
      * it can be easily pasted into the text.  This returns the result
      * as the HTML to be displayed
      */
-    build(): JQuery<HTMLElement> {
+    public build(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(
-            $("<div>", {
+            $("<div/>", {
                 class: "callout small success",
             })
                 .text("Note: Plain Text is on ")
@@ -592,7 +591,7 @@ export class CipherEncoder extends CipherHandler {
                 )
                 .append(", Cipher Text is ")
                 .append(
-                    $("<span>", {
+                    $("<span/>", {
                         class: "TOANSWER",
                     }).text("highlighted")
                 )
@@ -616,7 +615,7 @@ export class CipherEncoder extends CipherHandler {
      * Generates the HTML code for allowing an encoder to select the alphabet type
      * along with specifying the parameters for that alphabet
      */
-    createAlphabetType(): JQuery<HTMLElement> {
+    public createAlphabetType(): JQuery<HTMLElement> {
         let result = $("<div/>", { class: "grid-x" });
 
         let radiobuttons = [
@@ -627,7 +626,7 @@ export class CipherEncoder extends CipherHandler {
             { id: "enck4", value: "k4", title: "K4" },
         ];
         result.append(
-            $("<div>", {
+            $("<div/>", {
                 class: "cell",
             }).text("Alphabet Type")
         );
@@ -682,7 +681,7 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Loads up the values for the encoder
      */
-    load(): void {
+    public load(): void {
         // this.hideRevReplace = true
         let encoded = this.cleanString(this.state.cipherString);
         $(".err").text("");
@@ -735,7 +734,7 @@ export class CipherEncoder extends CipherHandler {
         this.attachHandlers();
     }
 
-    makeFreqEditField(c: string): JQuery<HTMLElement> {
+    public makeFreqEditField(c: string): JQuery<HTMLElement> {
         let einput = $("<span/>", {
             type: "text",
             "data-char": c,
@@ -743,7 +742,7 @@ export class CipherEncoder extends CipherHandler {
         });
         return einput;
     }
-    genQuestionFields(): JQuery<HTMLElement> {
+    public genQuestionFields(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(
             JTFLabeledInput(
@@ -768,7 +767,7 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Generate HTML for any UI elements that go above the command bar
      */
-    genPreCommands(): JQuery<HTMLElement> {
+    public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(this.genTestUsage());
         result.append(this.genQuestionFields());
@@ -797,7 +796,7 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $('[name="enctype"]')
             .off("click")
@@ -807,7 +806,7 @@ export class CipherEncoder extends CipherHandler {
                     .removeClass("is-active");
                 $(e.target).addClass("is-active");
                 this.markUndo(null);
-                if (this.setEncType($(e.target).val() as string)) {
+                if (this.setEncType($(e.target).val() as IEncodeType)) {
                     this.updateOutput();
                 }
             });

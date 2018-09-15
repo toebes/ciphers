@@ -10,9 +10,9 @@ import { JTRadioButton } from "./jtradiobutton";
  *
  */
 export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
-    activeToolMode: toolMode = toolMode.codebusters;
-    usesRunningKey: boolean = true;
-    getRunningKeyIndex(): number {
+    public activeToolMode: toolMode = toolMode.codebusters;
+    public usesRunningKey: boolean = true;
+    public getRunningKeyIndex(): number {
         // See if the current keyword is one of the valid options
         let runningKeys = this.getRunningKeyStrings();
         for (let entry in runningKeys) {
@@ -26,7 +26,7 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
      * Update the output based on current state settings.  This propagates
      * All values to the UI
      */
-    updateOutput(): void {
+    public updateOutput(): void {
         super.updateOutput();
         // See if the current keyword is one of the valid options
         let selopt = this.getRunningKeyIndex();
@@ -44,13 +44,13 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
         );
     }
 
-    genPreCommands(): JQuery<HTMLElement> {
+    public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(this.genTestUsage());
         let runningKeys = this.getRunningKeyStrings();
         let radiobuttons = [
             { id: "wrow", value: "encode", title: "Encode" },
-            { id: "mrow", value: "decode", title: "Decode" }
+            { id: "mrow", value: "decode", title: "Decode" },
         ];
         result.append(
             JTRadioButton(6, "operation", radiobuttons, this.state.operation)
@@ -68,14 +68,14 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
         );
 
         let inputgroup = $("<div/>", {
-            class: "input-group cell small-12 medium-12 large-12"
+            class: "input-group cell small-12 medium-12 large-12",
         });
         $("<span/>", { class: "input-group-label" })
             .text("title")
             .appendTo(inputgroup);
         let select = $("<select/>", {
             id: "runningkey",
-            class: "lang input-group-field"
+            class: "lang input-group-field",
         });
         select.append(
             $("<option />", { value: "" }).text("--Select a Running Key--")
@@ -103,7 +103,7 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $("#runningkey")
             .off("change")
@@ -118,7 +118,7 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
                 }
             });
     }
-    genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(): JQuery<HTMLElement> {
         if (this.getRunningKeyIndex() === -1) {
             this.extraRunningKey = this.state.keyword;
         }
@@ -127,7 +127,7 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    genQuestion(): JQuery<HTMLElement> {
+    public genQuestion(): JQuery<HTMLElement> {
         if (this.getRunningKeyIndex() === -1) {
             this.extraRunningKey = this.state.keyword;
         }

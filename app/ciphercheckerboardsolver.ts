@@ -1,23 +1,23 @@
 import { toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
 export class CipherCheckerboardSolver extends CipherSolver {
-    activeToolMode: toolMode = toolMode.aca;
-    rowcharset: string = "";
-    colcharset: string = "";
+    public activeToolMode: toolMode = toolMode.aca;
+    public rowcharset: string = "";
+    public colcharset: string = "";
 
     /**
      *
      * Checkerboard Solver
      *
      */
-    init(lang: string): void {
+    public init(lang: string): void {
         super.init(lang);
         this.cipherWidth = 2;
         this.rowcharset = "     ";
         this.colcharset = "     ";
     }
 
-    setrowcolset(
+    public setrowcolset(
         rowcharset: string,
         colcharset: string,
         forceorder: boolean
@@ -70,7 +70,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
             this.load();
         }
     }
-    build(): JQuery<HTMLElement> {
+    public build(): JQuery<HTMLElement> {
         let str = this.cleanString(this.state.cipherString);
         let res = "";
         let combinedtext = "";
@@ -147,7 +147,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
     /*
     * Creates an HTML table to display the frequency of characters
     */
-    createFreqEditTable(): JQuery<HTMLElement> {
+    public createFreqEditTable(): JQuery<HTMLElement> {
         let topdiv = $("<div/>");
         let inputdiv = $("<div/>", { class: "idiv" });
         let table = $("<table/>").addClass("ckfreq");
@@ -174,7 +174,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
                 type: "text",
                 class: "csc",
                 id: "rowcharset",
-                value: this.rowcharset
+                value: this.rowcharset,
             })
         );
         inputdiv.append(
@@ -185,7 +185,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
                 type: "text",
                 class: "csc",
                 id: "colcharset",
-                value: this.colcharset
+                value: this.colcharset,
             })
         );
         topdiv.append(inputdiv);
@@ -215,7 +215,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
 
         return topdiv;
     }
-    load(): void {
+    public load(): void {
         let encoded = this.cleanString(this.state.cipherString);
         let res = this.build();
         $("#answer")
@@ -233,7 +233,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
     }
-    findPossible(str: string): void {
+    public findPossible(str: string): void {
         let encoded = this.minimizeString(this.state.cipherString);
         let res = "";
         let i;
@@ -259,7 +259,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
         );
     }
 
-    attachHandlers(): void {
+    public attachHandlers(): void {
         $("#rowcharset")
             .off("change")
             .on("change", e => {
@@ -280,7 +280,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
             });
         super.attachHandlers();
     }
-    updateSel(): void {
+    public updateSel(): void {
         this.UpdateFreqEditTable();
     }
 }

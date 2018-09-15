@@ -84,13 +84,13 @@ export type ITestDisp = "testedit" | "testprint" | "testans" | "testsols";
  *  TestAnswers.html?test=<n>
  */
 export class CipherTest extends CipherHandler {
-    activeToolMode: toolMode = toolMode.codebusters;
-    defaultstate: ITestState = {
+    public activeToolMode: toolMode = toolMode.codebusters;
+    public defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.None,
     };
-    state: ITestState = cloneObject(this.defaultstate) as IState;
-    cmdButtons: JTButtonItem[] = [
+    public state: ITestState = cloneObject(this.defaultstate) as IState;
+    public cmdButtons: JTButtonItem[] = [
         { title: "New Test", color: "primary", id: "newtest" },
         {
             title: "Export Tests",
@@ -101,7 +101,7 @@ export class CipherTest extends CipherHandler {
         { title: "Import Tests from File", color: "primary", id: "import" },
         { title: "Import Tests from URL", color: "primary", id: "importurl" },
     ];
-    cipherChoices: INewCipherEntry[] = [
+    public cipherChoices: INewCipherEntry[] = [
         { cipherType: ICipherType.Affine },
         { cipherType: ICipherType.Caesar },
         { cipherType: ICipherType.Atbash },
@@ -121,12 +121,12 @@ export class CipherTest extends CipherHandler {
     /**
      * Stash of the current questions
      */
-    qdata: IQuestionData[];
+    public qdata: IQuestionData[];
     /**
      * Any running keys used for the test
      */
-    runningKeys: IRunningKey[];
-    restore(data: ITestState): void {
+    public runningKeys: IRunningKey[];
+    public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;
         this.state.curlang = curlang;
@@ -267,14 +267,14 @@ export class CipherTest extends CipherHandler {
                     testuse[entry] = $("<div/>");
                 }
                 testuse[entry].append(
-                    $("<a>", {
+                    $("<a/>", {
                         href: "TestGenerator.html?test=" + testent,
                     }).text(title)
                 );
             }
         }
 
-        let result = $("<div>", { class: "questions" });
+        let result = $("<div/>", { class: "questions" });
 
         let cipherCount = this.getCipherCount();
         let table = new JTTable({ class: "cell stack queslist" });
@@ -421,10 +421,10 @@ export class CipherTest extends CipherHandler {
     ): JQuery<HTMLElement> {
         let state = this.getFileEntry(question);
         let extratext = "";
-        let result = $("<div>", {
+        let result = $("<div/>", {
             class: "question " + extraclass,
         });
-        let qtext = $("<div>", { class: "qtext" });
+        let qtext = $("<div/>", { class: "qtext" });
         if (qnum === -1) {
             qtext.append(
                 $("<span/>", {
@@ -435,13 +435,13 @@ export class CipherTest extends CipherHandler {
                 "  When you have solved it, raise your hand so that the time can be recorded and the solution checked.";
         } else {
             qtext.append(
-                $("<span>", {
+                $("<span/>", {
                     class: "qnum",
                 }).text(String(qnum) + ")")
             );
         }
         qtext.append(
-            $("<span>", {
+            $("<span/>", {
                 class: "points",
             }).text(" [" + String(state.points) + " points] ")
         );
@@ -473,10 +473,10 @@ export class CipherTest extends CipherHandler {
     ): JQuery<HTMLElement> {
         let state = this.getFileEntry(question);
         let extratext = "";
-        let result = $("<div>", {
+        let result = $("<div/>", {
             class: "question " + extraclass,
         });
-        let qtext = $("<div>", { class: "qtext" });
+        let qtext = $("<div/>", { class: "qtext" });
         if (qnum === -1) {
             qtext.append(
                 $("<span/>", {
@@ -487,13 +487,13 @@ export class CipherTest extends CipherHandler {
                 "  When you have solved it, raise your hand so that the time can be recorded and the solution checked.";
         } else {
             qtext.append(
-                $("<span>", {
+                $("<span/>", {
                     class: "qnum",
                 }).text(String(qnum) + ")")
             );
         }
         qtext.append(
-            $("<span>", {
+            $("<span/>", {
                 class: "points",
             }).text(" [" + String(state.points) + " points] ")
         );
@@ -653,7 +653,7 @@ export class CipherTest extends CipherHandler {
             }
         }
     }
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $("#printtest")
             .off("click")

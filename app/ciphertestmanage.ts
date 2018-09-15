@@ -14,14 +14,14 @@ import { JTTable } from "./jttable";
  *       <New Test><EXPORT><IMPORT>
  */
 export class CipherTestManage extends CipherTest {
-    activeToolMode: toolMode = toolMode.codebusters;
+    public activeToolMode: toolMode = toolMode.codebusters;
 
-    defaultstate: ITestState = {
+    public defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.Test,
     };
-    state: ITestState = cloneObject(this.defaultstate) as IState;
-    cmdButtons: JTButtonItem[] = [
+    public state: ITestState = cloneObject(this.defaultstate) as IState;
+    public cmdButtons: JTButtonItem[] = [
         { title: "New Test", color: "primary", id: "newtest" },
         {
             title: "Export Tests",
@@ -32,7 +32,7 @@ export class CipherTestManage extends CipherTest {
         { title: "Import Tests from File", color: "primary", id: "import" },
         { title: "Import Tests from URL", color: "primary", id: "importurl" },
     ];
-    restore(data: ITestState): void {
+    public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;
         this.state.curlang = curlang;
@@ -42,14 +42,14 @@ export class CipherTestManage extends CipherTest {
         this.setUIDefaults();
         this.updateOutput();
     }
-    updateOutput(): void {
+    public updateOutput(): void {
         this.setMenuMode(menuMode.test);
         $(".testlist").each((i, elem) => {
             $(elem).replaceWith(this.genTestList());
         });
         this.attachHandlers();
     }
-    genTestList(): JQuery<HTMLElement> {
+    public genTestList(): JQuery<HTMLElement> {
         let result = $("<div/>", { class: "testlist" });
         let testcount = this.getTestCount();
         if (testcount === 0) {
@@ -113,7 +113,7 @@ export class CipherTestManage extends CipherTest {
         result.append(table.generate());
         return result;
     }
-    newTest(): void {
+    public newTest(): void {
         this.setTestEntry(-1, {
             timed: -1,
             count: 0,
@@ -122,7 +122,7 @@ export class CipherTestManage extends CipherTest {
         });
         this.updateOutput();
     }
-    exportAllTests(link: JQuery<HTMLElement>): void {
+    public exportAllTests(link: JQuery<HTMLElement>): void {
         let result = {};
         // Go through all of the questions and build a structure holding them
         let ciphercount = this.getCipherCount();
@@ -143,18 +143,18 @@ export class CipherTestManage extends CipherTest {
     /**
      * Process imported XML
      */
-    importXML(data: any): void {
+    public importXML(data: any): void {
         this.processTestXML(data);
         this.updateOutput();
     }
-    importTests(useLocalData: boolean): void {
+    public importTests(useLocalData: boolean): void {
         this.openXMLImport(useLocalData);
     }
-    deleteTest(test: number): void {
+    public deleteTest(test: number): void {
         this.deleteTestEntry(test);
         this.updateOutput();
     }
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $("#newtest")
             .off("click")

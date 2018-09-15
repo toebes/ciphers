@@ -22,20 +22,20 @@ import { JTTable } from "./jttable";
  *    <Generate Test><Generate Answers><Export><IMPORT>
  */
 export class CipherTestGenerator extends CipherTest {
-    activeToolMode: toolMode = toolMode.codebusters;
+    public activeToolMode: toolMode = toolMode.codebusters;
 
-    defaultstate: ITestState = {
+    public defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.None,
         test: 0,
     };
-    state: ITestState = cloneObject(this.defaultstate) as ITestState;
-    cmdButtons: JTButtonItem[] = [
+    public state: ITestState = cloneObject(this.defaultstate) as ITestState;
+    public cmdButtons: JTButtonItem[] = [
         { title: "Randomize Order", color: "primary", id: "randomize" },
         { title: "Import Tests from File", color: "primary", id: "import" },
         { title: "Import Tests from URL", color: "primary", id: "importurl" },
     ];
-    restore(data: ITestState): void {
+    public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as ITestState;
         this.state.curlang = curlang;
@@ -48,8 +48,8 @@ export class CipherTestGenerator extends CipherTest {
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genTestEditState("testedit");
     }
-    genTestQuestions(): JQuery<HTMLElement> {
-        let result = $("<div>", { class: "testdata" });
+    public genTestQuestions(): JQuery<HTMLElement> {
+        let result = $("<div/>", { class: "testdata" });
         let testcount = this.getTestCount();
         if (testcount === 0) {
             result.append($("<h3>").text("No Tests Created Yet"));
@@ -127,8 +127,8 @@ export class CipherTestGenerator extends CipherTest {
         result.append(testdiv);
         return result;
     }
-    genQuestionPool(): JQuery<HTMLElement> {
-        let result = $("<div>", {
+    public genQuestionPool(): JQuery<HTMLElement> {
+        let result = $("<div/>", {
             class: "questionpool callout secondary",
         });
         result.append(
@@ -144,7 +144,7 @@ export class CipherTestGenerator extends CipherTest {
         result.append(this.genQuestionTable(this.state.test, buttons));
         return result;
     }
-    exportTest(link: JQuery<HTMLElement>): void {
+    public exportTest(link: JQuery<HTMLElement>): void {
         let result = {};
         let test = this.getTestEntry(this.state.test);
         result["TEST.0"] = test;
@@ -165,7 +165,7 @@ export class CipherTestGenerator extends CipherTest {
         link.attr("download", test.title + ".json");
         link.attr("href", url);
     }
-    createEmptyQuestion(
+    public createEmptyQuestion(
         ciphertype: ICipherType,
         reqlang: string,
         fortimed: boolean
@@ -188,7 +188,7 @@ export class CipherTestGenerator extends CipherTest {
             this.gotoAddCipher(entry);
         }
     }
-    updateOutput(): void {
+    public updateOutput(): void {
         this.setMenuMode(menuMode.test);
         $(".testdata").each((i, elem) => {
             $(elem).replaceWith(this.genTestQuestions());
@@ -198,25 +198,25 @@ export class CipherTestGenerator extends CipherTest {
         });
         this.attachHandlers();
     }
-    setTitle(title: string): void {
+    public setTitle(title: string): void {
         let test = this.getTestEntry(this.state.test);
         test.title = title;
         this.setTestEntry(this.state.test, test);
     }
-    gotoAddCipher(entry: number): void {
+    public gotoAddCipher(entry: number): void {
         let test = this.getTestEntry(this.state.test);
         test.count++;
         test.questions.push(entry);
         this.setTestEntry(this.state.test, test);
         this.updateOutput();
     }
-    gotoSetTimedCipher(entry: number): void {
+    public gotoSetTimedCipher(entry: number): void {
         let test = this.getTestEntry(this.state.test);
         test.timed = entry;
         this.setTestEntry(this.state.test, test);
         this.updateOutput();
     }
-    gotoEditTestCipher(entry: number): void {
+    public gotoEditTestCipher(entry: number): void {
         let test = this.getTestEntry(this.state.test);
         let editEntry = -1;
         if (entry === -1) {
@@ -231,7 +231,7 @@ export class CipherTestGenerator extends CipherTest {
             this.gotoEditCipher(editEntry);
         }
     }
-    gotoMoveTestCipher(entry: number, dist: number): void {
+    public gotoMoveTestCipher(entry: number, dist: number): void {
         let test = this.getTestEntry(this.state.test);
         let sourceent = entry - 1;
         let toswap = sourceent + dist;
@@ -249,7 +249,7 @@ export class CipherTestGenerator extends CipherTest {
         this.setTestEntry(this.state.test, test);
         this.updateOutput();
     }
-    gotoRemoveCipher(entry: number): void {
+    public gotoRemoveCipher(entry: number): void {
         let test = this.getTestEntry(this.state.test);
         if (entry === -1) {
             test.timed = -1;
@@ -264,7 +264,7 @@ export class CipherTestGenerator extends CipherTest {
         this.updateOutput();
     }
     /** From https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array */
-    shuffle(array: any[]): any[] {
+    public shuffle(array: any[]): any[] {
         let currentIndex = array.length;
         // While there remain elements to shuffle...
         while (currentIndex !== 0) {
@@ -280,23 +280,23 @@ export class CipherTestGenerator extends CipherTest {
 
         return array;
     }
-    gotoRandomizeTest(): void {
+    public gotoRandomizeTest(): void {
         let test = this.getTestEntry(this.state.test);
         test.questions = this.shuffle(test.questions);
         this.setTestEntry(this.state.test, test);
         this.updateOutput();
     }
-    importQuestions(useLocalData: boolean): void {
+    public importQuestions(useLocalData: boolean): void {
         this.openXMLImport(useLocalData);
     }
     /**
      * Process imported XML
      */
-    importXML(data: any): void {
+    public importXML(data: any): void {
         this.processTestXML(data);
         this.updateOutput();
     }
-    attachHandlers(): void {
+    public attachHandlers(): void {
         super.attachHandlers();
         $("#export")
             .off("click")

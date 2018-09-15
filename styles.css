@@ -666,8 +666,9 @@ table.found tr th:nth-child(odd) {
     text-align: right;
     border-bottom: 1px solid grey;
 }
-.button-group.round {
-    border-radius: 0.625rem;
+.button-group.round,
+.input-group-button .round {
+    border-radius: 0.625rem !important;
     overflow: hidden;
 }
 .button-group .button {

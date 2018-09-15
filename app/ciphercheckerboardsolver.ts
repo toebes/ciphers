@@ -248,16 +248,8 @@ export class CipherCheckerboardSolver extends CipherSolver {
         let searchstr = this.makeUniquePattern(tofind, 1);
         let searchlen = searchstr.length;
         let encrlen = encoded.length;
-        let prevchar = "";
-
-        let used: { [key: string]: boolean } = {};
         let charset = this.getCharset().toUpperCase();
-        for (let c of charset) {
-            used[c] = false;
-        }
-        for (let c of charset) {
-            used[this.state.replacement[c]] = true;
-        }
+        let used = this.getUsedMap();
 
         for (let i = 0; i + searchlen * this.cipherWidth <= encrlen; i += this.cipherWidth) {
             let checkstr = encoded.substr(i, searchlen * this.cipherWidth);

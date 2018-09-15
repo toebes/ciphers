@@ -588,97 +588,153 @@ export class CipherMorseSolver extends CipherSolver {
     /**
      * Searches for a string (drags a crib through the crypt)
      * @param encoded Encoded string
-     * @param tofind Pattern string to find
+     * @param findStr Pattern string to find
+     * @param offset Distance from start of letter to look for match
+     * Because a morse pattern has a good chance of not starting and ending
+     * on a cipherWidth boundary, we want to search for the portion that is
+     * on a boundary and then confirm that the starting portion (if any) can fit
+     * on the preceding character and the same for the terminating portion.
+     * We can optimize this a bit on the start and the end if there is a single
+     * piece not used and force it to be an X.
      */
-    public searchPatternMorse(encoded: string, tofind: string): string {
+    // tslint:disable-next-line:cyclomatic-complexity
+    public searchPatternMorse(
+        encoded: string,
+        tofind: string,
+        offset: number
+    ): string {
+        let findStr = tofind;
+        let prefix = "";
+        let suffix = "";
+
         let res: string = "";
-        let notmapped: string = "????".substr(0, this.cipherWidth);
-        let searchstr: string = this.makeUniquePattern(
-            tofind,
-            this.cipherWidth
-        );
-        tofind += "XXXX".substr(
-            0,
-            this.cipherWidth - (tofind.length % this.cipherWidth)
-        );
+        let notmapped = this.repeatStr("?", this.cipherWidth);
+        // Figure out how we map the start of the string
+        switch (offset) {
+            case 2:
+                // For Fractionated Morse if we are at the second offset
+                // then we need to pull off the first character and also
+                // make sure that there is a separator in front of it
+                prefix = "X" + findStr.substr(0, 1);
+                findStr = findStr.substr(1);
+                break;
+            case 1:
+                // For Fractionated Morse or Morbit and we are at the first
+                // offset, we can just assume that there will be a separator
+                // in front of it and search for it.
+                findStr = "X" + findStr;
+                break;
+            case 0:
+            default:
+                // Otherwise when we line up at the start, the previous
+                // character (if any) must end with a separator
+                prefix = "X";
+                break;
+        }
+        // Now that we know that the start is lined up on a even boundary
+        // see if we have anything hanging off the end.
+        let extraRoom =
+            (this.cipherWidth - (findStr.length % this.cipherWidth)) %
+            this.cipherWidth;
+        switch (extraRoom) {
+            case 2:
+                // For Fractionated Morse with a single extra character,
+                // we need to pull it off and add a separator
+                suffix = findStr.substr(findStr.length - 1) + "X";
+                findStr = findStr.substr(0, findStr.length - 1);
+                break;
+            case 1:
+                // For Fractionated Morse or Morbit with an extra space, we
+                // can assume that it will be a separator and search for it
+                findStr += "X";
+                break;
+            default:
+            case 0:
+                // Otherwise we lined up perfectly, so any optional follow on
+                // character must start with a separator
+                suffix = "X";
+                break;
+        }
+        // findStr is now a perfect multiple of the cipherWidth and aligns to
+        // the boundary.  Make a pattern and look for it
+        let searchstr = this.makeUniquePattern(findStr, this.cipherWidth);
         let searchlen = searchstr.length;
         let encrlen = encoded.length;
-        let prevchar = "";
-
-        let used: { [key: string]: boolean } = {};
         let charset = this.getCharset().toUpperCase();
-        for (let c of charset) {
-            used[c] = false;
-        }
-        for (let c of charset) {
-            used[this.state.replacement[c]] = true;
-        }
+        let used = this.getUsedMap();
 
         for (let i = 0; i + searchlen <= encrlen; i++) {
             let checkstr = encoded.substr(i, searchlen);
             let check = this.makeUniquePattern(checkstr, 1);
             if (check === searchstr) {
+                // OK the central part of it matches.
+                // Check to see that the prefix and suffix also match
                 let keymap: StringMap = {};
-                let matched;
+                let replacement: StringMap = {};
+                let matched = true;
                 //
                 // Build the character mapping table to show what they would use
-                matched = true;
                 //let charset = this.getCharset();
                 for (let c of charset) {
                     keymap[c] = notmapped;
+                    replacement[c] = "";
+                    if (this.state.replacement[c] !== undefined) {
+                        replacement[c] = this.state.replacement[c];
+                    }
                 }
-                // Show the matching characters in order
+                // Show the matching characters in order.  While we are at it,
+                // Update our local replacement table so we can do a quick check
+                // of the prefix/suffix characters as needed
                 for (let j = 0; j < searchlen; j++) {
-                    keymap[checkstr.substr(j, 1)] = tofind.substr(
+                    let c = checkstr.substr(j, 1);
+                    let repl = findStr.substr(
                         j * this.cipherWidth,
                         this.cipherWidth
                     );
-                }
-                // We matched, BUT we need to make sure that there are no signs that preclude it from
-                // Check the preceeding character to see if we have a match for it.  The preceeding
-                // character can not be known to be a dot or a dash when dealing with morse code
-                if (i > 0 && tofind.substr(0, 1) !== "X") {
-                    let preceeding = encoded.substr(i - 1, 1);
-                    prevchar = keymap[preceeding].substr(
-                        this.cipherWidth - 1,
-                        1
-                    );
-                    if (prevchar !== "X" && prevchar !== "?") {
-                        console.log(
-                            "*** Disallowing " +
-                                checkstr +
-                                " because prevchar =" +
-                                prevchar +
-                                " for " +
-                                preceeding
-                        );
+                    keymap[c] = repl;
+                    if (replacement[c] === "") {
+                        replacement[c] = repl;
+                    } else if (replacement[c] !== repl) {
                         matched = false;
                     }
-                    // Likewise, the following character must also not be a dot or a dash.
-                    if (
-                        matched &&
-                        tofind.substr(tofind.length - 1, 1) !== "X" &&
-                        i + searchlen < encrlen
-                    ) {
-                        let following = encoded.substr(i + searchlen, 1);
-                        let nextchar = keymap[following].substr(0, 1);
-                        if (nextchar !== "X" && prevchar !== "?") {
-                            console.log(
-                                "*** Disallowing " +
-                                    checkstr +
-                                    " because nextchar =" +
-                                    nextchar +
-                                    " for " +
-                                    following
-                            );
+                }
+                // Let's go for the prefix.
+                if (prefix !== "") {
+                    if (i === 0) {
+                        if (prefix !== "X") {
+                            matched = false;
+                        }
+                    } else {
+                        // Get the previous character
+                        let prevc = encoded.substr(i - 1, 1);
+                        // And what it maps to (if anything).  To make our
+                        // comparison go easier, Put what we are looking for
+                        // in front of it.  If the replacement is blank then we
+                        // are guaranteed to match!
+                        let repl = prefix + replacement[prevc];
+                        if (
+                            repl.substr(repl.length - prefix.length) !== prefix
+                        ) {
                             matched = false;
                         }
                     }
-                } else {
-                    let repl = this.genReplPattern(checkstr);
-                    if (!this.isValidReplacement(tofind, repl, used)) {
-                        // console.log('*** Disallowing ' + checkstr + ' because not valid replacement for ' + tofind);
-                        matched = false;
+                }
+                // If the prefix matched, then look at any suffix
+                if (matched && suffix !== "") {
+                    let nextc = encoded.substr(i + searchlen, 1);
+                    if (nextc === "") {
+                        if (suffix !== "X") {
+                            matched = false;
+                        }
+                    } else {
+                        // And what it maps to (if anything).  To make our
+                        // comparison go easier, Put what we are looking for
+                        // at the end of it.  If the replacement is blank then we
+                        // are guaranteed to match!
+                        let repl = replacement[nextc] + suffix;
+                        if (repl.substr(0, suffix.length) !== suffix) {
+                            matched = false;
+                        }
                     }
                 }
                 if (matched) {
@@ -708,7 +764,6 @@ export class CipherMorseSolver extends CipherSolver {
         return res;
     }
     /**
-     *
      * This looks for a morse encoded string in the input pattern.  It relies on:
      *   this.cipherWidth to be the width of each encoded character
      * @param str String to search for
@@ -735,10 +790,7 @@ export class CipherMorseSolver extends CipherSolver {
         // can occur for the width of a morse character.  For a Morbit this would only be a single
         // one, but with a Fractionated Morse it could be two leadings ones.
         for (let i = 0; i < this.cipherWidth; i++) {
-            res += this.searchPatternMorse(
-                encoded,
-                "XXXXX".substr(0, i) + morse
-            );
+            res += this.searchPatternMorse(encoded, morse, i);
         }
         if (res === "") {
             res = "<br/><b>Not Found</b>";

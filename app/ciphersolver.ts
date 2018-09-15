@@ -982,15 +982,8 @@ export class CipherSolver extends CipherHandler {
         let searchstr = this.makeUniquePattern(tofind, 1);
         let searchlen = searchstr.length;
         let encrlen = encoded.length;
-
-        let used: BoolMap = {};
         let charset = this.getCharset().toUpperCase();
-        for (let c of charset) {
-            used[c] = false;
-        }
-        for (let c of charset) {
-            used[this.state.replacement[c]] = true;
-        }
+        let used = this.getUsedMap();
 
         for (let i = 0; i + searchlen <= encrlen; i++) {
             let checkstr = encoded.substr(i, searchlen);
@@ -1039,6 +1032,21 @@ export class CipherSolver extends CipherHandler {
         }
         return res;
     }
+    /**
+     * Gets a map of all characters which are used as replacements
+     */
+    public getUsedMap(): BoolMap {
+        let charset = this.getCharset().toUpperCase();
+        let used: BoolMap = {};
+        for (let c of charset) {
+            used[c] = false;
+        }
+        for (let c of charset) {
+            used[this.state.replacement[c]] = true;
+        }
+        return used;
+    }
+
     /**
      * Save any complete solution
      */

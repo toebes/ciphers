@@ -450,7 +450,7 @@ export class CipherRailfenceSolver extends CipherSolver {
      */
     public updateOutput(): void {
         this.setMenuMode(menuMode.aca);
-        // Propagate the current settings to the UI
+        this.showQuestion();
         $("#encoded").val(this.state.cipherString);
         $("#rails").val(this.state.rails);
         $("#offset").val(this.state.railOffset);

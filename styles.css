@@ -231,6 +231,9 @@ table.mword td {
 table.mword .error {
     background-color: red;
 }
+table.mword .unk {
+    background-color: lightyellow;
+}
 
 table.mword .cnull {
     background-color: #f6f6f6;

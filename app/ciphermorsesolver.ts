@@ -57,7 +57,7 @@ const tomorse: { [key: string]: string } = {
 const morsedigitClass: { [key: string]: string } = {
     O: "dot",
     "-": "dash",
-    "?": "error",
+    "?": "unk",
     X: "null",
 };
 /**
@@ -277,6 +277,7 @@ export class CipherMorseSolver extends CipherSolver {
         let c, morseclass;
         let remaining;
         let lastsep = "XX"; // Start out with a few Xs so that an initial X generates an error
+        let partial = false;
         let extraout = "";
         let extralen = 0;
         let extraclass = "";
@@ -285,9 +286,8 @@ export class CipherMorseSolver extends CipherSolver {
         let cipherwidth = this.cipherWidth;
         let finaltext = "";
         let docwidth = $(document).width();
-        let width = cipherwidth * Math.floor(docwidth / (cipherwidth * 24));
+        let width = cipherwidth * Math.floor(docwidth / (cipherwidth * 36));
         this.state.solved = true;
-
         //
         // Build up the input string and the corresponding morse code
         // string.  We will guarantee that the morse code string is
@@ -356,7 +356,7 @@ export class CipherMorseSolver extends CipherSolver {
                     // or the end of a word (double X)
                     // or an error (three or more X in a row)
                     if (mlen === 0) {
-                        console.log("Empty Morse laststep=" + lastsep);
+                        partial = false;
                         if (lastsep === "") {
                             outrow.append($("<td/>").addClass("cnull"));
                             lastsep = "X";
@@ -371,23 +371,24 @@ export class CipherMorseSolver extends CipherSolver {
                         }
                     } else {
                         let morselet = morsetext.substr(startpos, mlen);
-                        // console.log(
-                        //     "Moreselet:" +
-                        //         morselet +
-                        //         "len=" +
-                        //         mlen +
-                        //         " remaining=" +
-                        //         remaining +
-                        //         " mpos=" +
-                        //         mpos +
-                        //         " Cipherwidth=" +
-                        //         cipherwidth
-                        // );
                         lastsep = "";
                         let outchar = "";
-                        // See if we have an invalid morse sequence.  If so
-                        // our output class will be an error and replace the string with ??
-                        if (typeof frommorse[morselet] === "undefined") {
+                        // See if we have a partial string.
+                        let qpos = morselet.indexOf("?");
+                        if (qpos !== -1 || partial) {
+                            partial = true;
+                            mlen = 1;
+                            if (qpos > 4) {
+                                morseclass = "error";
+                            } else {
+                                morseclass = "unk";
+                            }
+                            outchar = morselet.substr(0, 1);
+                            this.state.solved = false;
+                            finaltext += '<span class="unk">?</span>';
+                        } else if (typeof frommorse[morselet] === "undefined") {
+                            // See if we have an invalid morse sequence.  If so
+                            // our output class will be an error and replace the string with ??
                             morseclass = "error";
                             outchar = "??";
                             this.state.solved = false;
@@ -661,6 +662,7 @@ export class CipherMorseSolver extends CipherSolver {
         let searchlen = searchstr.length;
         let encrlen = encoded.length;
         let charset = this.getCharset().toUpperCase();
+        let used = this.getUsedMap();
 
         for (let i = 0; i + searchlen <= encrlen; i++) {
             let checkstr = encoded.substr(i, searchlen);
@@ -693,6 +695,9 @@ export class CipherMorseSolver extends CipherSolver {
                     keymap[c] = repl;
                     if (replacement[c] === "") {
                         replacement[c] = repl;
+                        if (used[repl]) {
+                            matched = false;
+                        }
                     } else if (replacement[c] !== repl) {
                         matched = false;
                     }

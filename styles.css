@@ -231,6 +231,9 @@ table.mword td {
 table.mword .error {
     background-color: red;
 }
+table.mword .unk {
+    background-color: lightyellow;
+}
 
 table.mword .cnull {
     background-color: #f6f6f6;
@@ -758,6 +761,9 @@ table.found tr th:nth-child(odd) {
     font-weight: 400;
 }
 
+.menu-text a {
+    padding: 0 !important;
+}
 .input-group .input-number-decrement {
     margin-right: 0.1rem;
 }

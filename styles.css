@@ -1038,6 +1038,56 @@ table.nameline td.u {
     border-radius: 0.2rem;
 }
 
+/**
+ * Dragable styling
+*/
+/* .draggable--original {
+    border: 1px dashed purple;
+    background: lightpink;
+    color: purple;
+} */
+/* The container of the item being dragged applied before starting the dragging */
+/* .draggable-container--is-dragging {
+    border: 1px dashed green;
+    color: green;
+} */
+/* The source item being dragged applied before starting the dragging */
+/* .draggable-source--is-dragging {
+    border: 1px dashed blue;
+    color: blue;
+} */
+/* Applied to the entire DOM when you start dragging */
+/* .draggable--is-dragging {
+    border: 1px dashed orange;
+    color: orange;
+} */
+/* The version of the dragged item within the container during dragging */
+/* .draggable--over {
+    border: 1px dashed purple;
+} */
+/* The container holding the overall draggable during dragging */
+/* .draggable-container--over {
+    border: 1px dashed cyan;
+} */
+/* The version of the dragged item just after it is dropped */
+/* .draggable-source--placed {
+    border: 1px dashed yellow;
+    color: yellow;
+} */
+/* The version of the container just after it is dropped */
+/* .draggable-container--placed {
+    border: 1px dashed red;
+    color: red;
+} */
+/* The copy which is being dragged */
+.draggable-mirror table.tfreq th {
+    background-color: #1779ba;
+    color: #fefefe;
+}
+.draggable--over {
+    opacity: 0.25;
+}
+
 .wshift {
     margin: 0.2rem;
     border-radius: 1rem;

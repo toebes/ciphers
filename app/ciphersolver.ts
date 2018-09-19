@@ -1,4 +1,4 @@
-import * as sortable from "html5sortable";
+import { Sortable } from "@shopify/draggable";
 import {
     BoolMap,
     cloneObject,
@@ -19,6 +19,7 @@ import { JTFLabeledInput, JTFLabeledInputApply } from "./jtflabeledinput";
 import { JTTable } from "./jttable";
 
 export class CipherSolver extends CipherHandler {
+    public sortable: Sortable;
     public activeToolMode: toolMode = toolMode.aca;
     public defaultstate: IState = {
         /** The current cipher type we are working on */
@@ -616,6 +617,9 @@ export class CipherSolver extends CipherHandler {
             .children()
             .each((i, elem) => {
                 let eid = $(elem).attr("id");
+                if (eid === undefined || eid === null) {
+                    eid = " ";
+                }
                 replOrder += eid.substr(eid.length - 1);
             });
         this.state.replOrder = replOrder;
@@ -1331,8 +1335,13 @@ export class CipherSolver extends CipherHandler {
                 this.setMultiChars(mapfix);
             });
         $(".sortable").each((i: number, elem: HTMLElement) => {
-            sortable(elem, "destroy");
-            sortable(elem)[0].addEventListener("sortupdate", e => {
+            if (this.sortable !== undefined) {
+                this.sortable.destroy();
+            }
+            this.sortable = new Sortable(elem, {
+                draggable: "li",
+            });
+            this.sortable.on("drag:stop", () => {
                 this.markUndo(null);
                 this.saveReplacementOrder();
             });

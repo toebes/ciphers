@@ -114,6 +114,14 @@ export const CipherMenu: menuItem[] = [
                 solveType: [ICipherType.Morbit],
             },
             {
+                title: "Columnar Solving Assistant",
+                href: "ColumnarSolver.html",
+                solveType: [
+                    ICipherType.CompleteColumnar,
+                    ICipherType.IncompleteColumnar,
+                ],
+            },
+            {
                 title: "Fractionated Morse Solving Assistant",
                 href: "FractionatedMorseSolver.html",
                 solveType: [ICipherType.FractionatedMorse],
@@ -165,7 +173,7 @@ export const CipherMenu: menuItem[] = [
         title: "Help",
         classname: "menuhelp",
         menu: [
-//            { title: "Download", action: "download", classname: "download" },
+            //            { title: "Download", action: "download", classname: "download" },
             { title: "About", action: "about", classname: "about" },
         ],
     },

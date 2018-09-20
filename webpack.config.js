@@ -169,35 +169,35 @@ module.exports = {
             },
         ]),
         new WebpackAutoInject({
-        // specify the name of the tag in the outputed files eg
-        // bundle.js: [SHORT]  Version: 0.13.36 ...
-        SHORT: 'CUSTOM',
-        SILENT: false,
-        PACKAGE_JSON_PATH: './package.json',
-        components: {
-          AutoIncreaseVersion: true,
-          InjectAsComment: false,
-          InjectByTag: true
-        },
-        componentsOptions: {
-          AutoIncreaseVersion: {
-            runInWatchMode: false // it will increase version with every single build!
-          },
-          InjectAsComment: {
-            tag: 'Version: {version} - {date}',
-            dateFormat: 'h:MM:ss TT'
-          },
-          InjectByTag: {
-            fileRegex: /\.+/,
-            // regexp to find [AIV] tag inside html, if you tag contains unallowed characters you can adjust the regex
-            // but also you can change [AIV] tag to anything you want
-            AIVTagRegexp: /(\[AIV])(([a-zA-Z{} ,:;!()_@\-"'\\\/])+)(\[\/AIV])/g,
-            dateFormat: 'mmm d, yyyy @ HH:MM:ss o'
-          }
-        },
-        LOGS_TEXT: {
-          AIS_START: 'DEMO AIV started'
-        }
+            // specify the name of the tag in the outputed files eg
+            // bundle.js: [SHORT]  Version: 0.13.36 ...
+            SHORT: "CUSTOM",
+            SILENT: false,
+            PACKAGE_JSON_PATH: "./package.json",
+            components: {
+                AutoIncreaseVersion: true,
+                InjectAsComment: false,
+                InjectByTag: true,
+            },
+            componentsOptions: {
+                AutoIncreaseVersion: {
+                    runInWatchMode: false, // it will increase version with every single build!
+                },
+                InjectAsComment: {
+                    tag: "Version: {version} - {date}",
+                    dateFormat: "h:MM:ss TT",
+                },
+                InjectByTag: {
+                    fileRegex: /\.+/,
+                    // regexp to find [AIV] tag inside html, if you tag contains unallowed characters you can adjust the regex
+                    // but also you can change [AIV] tag to anything you want
+                    AIVTagRegexp: /(\[AIV])(([a-zA-Z{} ,:;!()_@\-"'\\\/])+)(\[\/AIV])/g,
+                    dateFormat: "mmm d, yyyy @ HH:MM:ss o",
+                },
+            },
+            LOGS_TEXT: {
+                AIS_START: "DEMO AIV started",
+            },
         }),
         new HardSourceWebpackPlugin(),
         // new TypedocWebpackPlugin({
@@ -304,6 +304,13 @@ module.exports = {
             ),
             cipher: "Counter",
             title: "Cipher Counter",
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: "ColumnarSolver.html",
+            template: path.join(__dirname, "app", "pages", "Solver.html"),
+            cipher: "CompleteColumnarSolver",
+            title: "Columnar Solver",
         }),
         new HtmlWebpackPlugin({
             inject: false,

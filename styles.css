@@ -1107,6 +1107,47 @@ table.nameline td.u {
     text-align: center;
     padding: 0.4rem 0rem 0rem 0rem;
 }
+.match1 {
+    color: #8b4e38;
+    font-weight: bold;
+}
+.match2 {
+    color: #8e5b38;
+    font-weight: bold;
+}
+.match3 {
+    color: #906a39;
+    font-weight: bold;
+}
+.match4 {
+    color: #927839;
+    font-weight: bold;
+}
+.match5 {
+    color: #958839;
+    font-weight: bold;
+}
+.match6 {
+    color: #969739;
+    font-weight: bold;
+}
+.match7 {
+    color: #8a9939;
+    font-weight: bold;
+}
+.match8 {
+    color: #7d9c3a;
+    font-weight: bold;
+}
+.match9 {
+    color: #709e3a;
+    font-weight: bold;
+}
+.match10 {
+    color: #62a13a;
+    font-weight: bold;
+}
+
 @media print {
     .title-bar,
     .top-bar,

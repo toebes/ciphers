@@ -607,21 +607,34 @@ export class CipherSolver extends CipherHandler {
         }
         return result;
     }
+    public getSortedContainerIDs(container: HTMLElement): string[] {
+        let result: string[] = [];
+        $(container)
+            .children()
+            .each((i, elem) => {
+                let li = $(elem);
+                let eid = li.attr("id");
 
+                if (
+                    eid !== undefined &&
+                    eid !== null &&
+                    !li.hasClass("draggable--original") &&
+                    !li.hasClass("draggable--mirror")
+                ) {
+                    result.push(eid);
+                }
+            });
+        return result;
+    }
     /**
      * Preserve the current replacement order
      */
-    public saveReplacementOrder(): void {
+    public saveReplacementOrder(container: HTMLElement): void {
+        let ids = this.getSortedContainerIDs(container);
         let replOrder = "";
-        $("#freqtable")
-            .children()
-            .each((i, elem) => {
-                let eid = $(elem).attr("id");
-                if (eid === undefined || eid === null) {
-                    eid = " ";
-                }
-                replOrder += eid.substr(eid.length - 1);
-            });
+        for (let id of ids) {
+            replOrder += id.substr(id.length - 1);
+        }
         this.state.replOrder = replOrder;
     }
     /**
@@ -1343,7 +1356,7 @@ export class CipherSolver extends CipherHandler {
             });
             this.sortable.on("drag:stop", () => {
                 this.markUndo(null);
-                this.saveReplacementOrder();
+                this.saveReplacementOrder(elem);
             });
         });
         $("#appkeyword")

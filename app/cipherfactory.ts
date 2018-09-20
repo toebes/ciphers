@@ -3,6 +3,7 @@ import { CipherACASubmit } from "./cipheracasubmit";
 import { CipherAffineEncoder } from "./cipheraffineencoder";
 import { CipherBaconianEncoder } from "./cipherbaconianencoder";
 import { CipherCheckerboardSolver } from "./ciphercheckerboardsolver";
+import { CipherColumnarSolver } from "./ciphercolmnarsolver";
 import { CipherCounter } from "./ciphercounter";
 import { CryptarithmSolver } from "./ciphercryptarithmsolver";
 import { CipherEncoder } from "./cipherencoder";
@@ -71,6 +72,16 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Checkerboard: {
         cipherType: ICipherType.Checkerboard,
         cipherClass: CipherCheckerboardSolver,
+        canPrint: false,
+    },
+    CompleteColumnarSolver: {
+        cipherType: ICipherType.CompleteColumnar,
+        cipherClass: CipherColumnarSolver,
+        canPrint: false,
+    },
+    IncompleteColumnarSolver: {
+        cipherType: ICipherType.IncompleteColumnar,
+        cipherClass: CipherColumnarSolver,
         canPrint: false,
     },
     Counter: {

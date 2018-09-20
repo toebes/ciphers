@@ -310,7 +310,7 @@ module.exports = {
             filename: "ColumnarSolver.html",
             template: path.join(__dirname, "app", "pages", "Solver.html"),
             cipher: "CompleteColumnarSolver",
-            title: "Columnar Solver",
+            title: "Complete/Incomplete Columnar Solver",
         }),
         new HtmlWebpackPlugin({
             inject: false,

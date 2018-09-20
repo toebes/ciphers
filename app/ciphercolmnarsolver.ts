@@ -26,7 +26,7 @@ export class CipherColumnarSolver extends CipherSolver {
         cipherString: "",
         locked: {},
         findString: "",
-        columns: 1,
+        columns: 2,
         colOrder: [],
         offset: 0,
     };
@@ -160,6 +160,10 @@ export class CipherColumnarSolver extends CipherSolver {
         let origcolumns = columns;
         let advancedir = this.advancedir;
         let str = this.minimizeString(this.state.cipherString);
+        if (str.length < 2) {
+            this.setColOrder(this.state.colOrder);
+            return false;
+        }
         let maxlen = Math.floor(str.length / 2);
         while (
             columns < 2 ||
@@ -217,9 +221,13 @@ export class CipherColumnarSolver extends CipherSolver {
     }
     public build(): JQuery<HTMLElement> {
         let result = $("<div/>", { class: "clearfix" });
-
         let columninfo: { head: string; data: string }[] = [];
         let str = this.minimizeString(this.state.cipherString);
+        if (str === "") {
+            return $("<div/>", { class: "callout warning" }).text(
+                "Enter a cipher to get started"
+            );
+        }
         if (this.state.offset > 0) {
             str =
                 str.substr(this.state.offset) +

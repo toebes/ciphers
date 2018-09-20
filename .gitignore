@@ -38,3 +38,5 @@ SamplePhrases.xlsx
 node_modules/*
 dist/*
 .DS_Store
+pom.xml
+CipherTools*.zip

@@ -40,6 +40,16 @@
                 "$tsc",
                 "$jshint"
             ]
-        }
+        },
+        {
+            "label": "create dist zip-under development",
+            "type": "shell",
+            "command": "/usr/bin/zip -uro CipherTools.zip dist/",
+            "windows": {
+                "command": "echo not supported."
+            },
+            "group": "build" 
+        },
+
     ]
 }

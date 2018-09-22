@@ -338,6 +338,13 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: "HomophonicSolver.html",
+            template: path.join(__dirname, "app", "pages", "Solver.html"),
+            cipher: "HomophonicSolver",
+            title: "Homophonic Solver",
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: "RSAEncrypt.html",
             template: path.join(__dirname, "app", "pages", "StdEncoder.html"),
             cipher: "RSA",

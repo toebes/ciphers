@@ -11,6 +11,7 @@ import { CipherFractionatedMorseSolver } from "./cipherfractionatedmorsesolver";
 import { CipherGromarkSolver } from "./ciphergromarksolver";
 import { CipherHandler } from "./cipherhandler";
 import { CipherHillEncoder } from "./cipherhillencoder";
+import { CipherHomophonicSolver } from "./cipherhomophonicsolver";
 import { CipherMorbitSolver } from "./ciphermorbitsolver";
 import { CipherRagbabySolver } from "./cipherragbabysolver";
 import { CipherRailfenceSolver } from "./cipherrailfencesolver";
@@ -113,6 +114,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherType: ICipherType.Hill,
         cipherClass: CipherHillEncoder,
         canPrint: true,
+    },
+    HomophonicSolver: {
+        cipherType: ICipherType.Homophonic,
+        cipherClass: CipherHomophonicSolver,
+        canPrint: false,
     },
     Morbit: {
         cipherType: ICipherType.Morbit,

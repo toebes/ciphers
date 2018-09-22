@@ -127,6 +127,11 @@ export const CipherMenu: menuItem[] = [
                 solveType: [ICipherType.FractionatedMorse],
             },
             {
+                title: "Homophonic Solving Assistant",
+                href: "HomophonicSolver.html",
+                solveType: [ICipherType.Homophonic],
+            },
+            {
                 title: "Xenocrypt Solving Assistant",
                 href: "XenocryptSolver.html",
                 solveType: [ICipherType.Xenocrypt],

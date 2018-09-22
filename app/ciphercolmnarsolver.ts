@@ -354,67 +354,6 @@ export class CipherColumnarSolver extends CipherSolver {
      */
     public createFreqEditTable(): JQuery<HTMLElement> {
         let result = $("<div/>", { class: "clearfix" });
-        let list = $("<ul/>", { class: "clearfix no-bullet" });
-        let table = new JTTable({ class: "tfreq" });
-
-        let headrow = table.addHeaderRow();
-        let freqrow = table.addHeaderRow();
-        let replrow = table.addHeaderRow();
-        let lockrow = table.addHeaderRow();
-        let charset = this.getCharset();
-
-        headrow.add({
-            settings: { class: "topleft" },
-            content: "",
-        });
-        freqrow.add("Frequency");
-        replrow.add({
-            settings: { class: "rep" },
-            content: "Replacement",
-        });
-        lockrow.add("Locked");
-        list.append(
-            $("<li/>", {
-                class: "float-left",
-            }).append(table.generate())
-        );
-        for (let i = 0, len = charset.length; i < len; i++) {
-            let c = charset.substr(i, 1).toUpperCase();
-            table = new JTTable({ class: "tfreq float-left" });
-            headrow = table.addHeaderRow();
-            freqrow = table.addBodyRow();
-            replrow = table.addBodyRow();
-            lockrow = table.addBodyRow();
-            headrow.add(c);
-            freqrow.add({
-                settings: { id: "f" + c, class: "fq" },
-                content: "",
-            });
-            replrow.add({
-                settings: { class: "rep" },
-                content: this.makeFreqEditField(c),
-            });
-            let ischecked = this.state.locked[c];
-            let cb = $("<input/>", {
-                type: "checkbox",
-                class: "cb",
-                "data-char": c,
-                id: "cb" + c,
-                value: name,
-                checked: ischecked,
-            });
-            if (this.state.replacement[c] === undefined) {
-                cb.prop("disabled", true);
-            }
-
-            lockrow.add(cb);
-            list.append(
-                $("<li/>", {
-                    class: "float-left",
-                }).append(table.generate())
-            );
-        }
-        result.append(list);
         return result;
     }
     /**

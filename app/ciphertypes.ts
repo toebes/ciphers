@@ -28,6 +28,7 @@ export const enum ICipherType {
     Test = "test",
     RunningKey = "runningkey",
     Baconian = "baconian",
+    Homophonic = "homophonic",
     RSA = "rsa",
     CompleteColumnar = "compcolumnar",
     IncompleteColumnar = "inccolumnar",
@@ -68,6 +69,14 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
             title: "Incomplete Columnar",
             id: "inccolumnar",
             equiv: [ICipherType.IncompleteColumnar],
+        },
+    ],
+    [
+        ICipherType.Homophonic,
+        {
+            title: "Homophonic",
+            id: "homophonic",
+            equiv: [ICipherType.Homophonic],
         },
     ],
     [

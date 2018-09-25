@@ -79,11 +79,14 @@ export class CipherKeyPhraseSolver extends CipherSolver {
     }
     /**
      * Update all of the match dropdowns in response to a change in the cipher mapping
+     * For the KeyPhrase we also update the list of possible plain text matches
      * @param reqstr String to optimize updates for (mostly ignored)
      */
     public updateMatchDropdowns(reqstr: string): void {
         super.updateMatchDropdowns(reqstr);
         let choices: StringMap = {};
+        // Remember the longest (tallest) list of matches
+        let maxlen = 0;
         // Figure out all the possibilities
         for (let c in this.state.replacement) {
             let t = this.state.replacement[c];
@@ -92,13 +95,27 @@ export class CipherKeyPhraseSolver extends CipherSolver {
             } else {
                 choices[t] += "<br/>" + c;
             }
-        }
-        for (let c of this.getCharset()) {
-            let newdata = choices[c];
-            if (newdata === undefined) {
-                newdata = "";
+            if (choices[t].length > maxlen) {
+                maxlen = choices[t].length;
             }
-            $("div[data-mchar=" + c + "]").html(newdata);
+        }
+        // If we had no matches, just clear them all out quickly
+        if (maxlen === 0) {
+            $("div[data-mchar]").html("");
+        } else {
+            // For each match we need to figure out how many entries we have
+            // to pad it with.
+            maxlen = Math.ceil(maxlen / "<br/> ".length);
+            for (let c of this.getCharset()) {
+                let newdata = choices[c];
+                if (newdata === undefined) {
+                    newdata = " ";
+                }
+                let len = Math.ceil(newdata.length / "<br/> ".length);
+                let extra = this.repeatStr("<br/>&nbsp;", maxlen - len);
+
+                $("div[data-mchar=" + c + "]").html(newdata + extra);
+            }
         }
     }
     /**

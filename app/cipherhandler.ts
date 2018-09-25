@@ -693,6 +693,8 @@ export class CipherHandler {
     public usesRunningKey: boolean = false;
     /** The direction of the last advance */
     public advancedir: number = 0;
+    /** The Jquery element associated with a keypress */
+    public keyTarget: JQuery<HTMLElement>;
     public cipherWidth: number = 1;
     public charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     public sourcecharset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -1670,9 +1672,17 @@ export class CipherHandler {
         );
     }
     /**
-     * Change the encrypted character
+     * Change the encrypted character.  Note that when we change one, we have
+     * to swap it with the one which we are replacing
+     * @param repchar Character that is being replaced
+     * @param newchar Character to replace it with
+     * @param elem Optional HTML Element triggering the request
      */
-    public setChar(repchar: string, newchar: string): void {
+    public setChar(
+        repchar: string,
+        newchar: string,
+        elem?: JQuery<HTMLElement>
+    ): void {
         // console.log("handler setChar data-char=" + repchar + " newchar=" + newchar)
         // See if any other slots have this character and reset it
         if (newchar !== "") {
@@ -1969,9 +1979,9 @@ export class CipherHandler {
                 this.about();
                 break;
 
-//            case "download":
-//                this.download();
-//                break;
+            //            case "download":
+            //                this.download();
+            //                break;
 
             default:
                 console.log("Unknown action: " + action);
@@ -2412,8 +2422,12 @@ export class CipherHandler {
      */
     public createAboutDlg(): JQElement {
         let dlgContents = $("<table/>");
-        dlgContents.append("<tr><td>Version:</td><td>[AIV]{version}[/AIV]</td></tr>");
-        dlgContents.append("<tr><td>Built  :</td><td>[AIV]{date}[/AIV]</td></tr>");
+        dlgContents.append(
+            "<tr><td>Version:</td><td>[AIV]{version}[/AIV]</td></tr>"
+        );
+        dlgContents.append(
+            "<tr><td>Built  :</td><td>[AIV]{date}[/AIV]</td></tr>"
+        );
 
         let aboutDlg = JTFDialog(
             "About",
@@ -2476,7 +2490,8 @@ export class CipherHandler {
         $(".sli")
             .off("keyup")
             .on("keyup", event => {
-                let repchar = $(event.target).attr("data-char");
+                let target = $(event.target);
+                let repchar = target.attr("data-char");
                 let current;
                 let next;
                 let focusables = $(".sli");
@@ -2499,14 +2514,15 @@ export class CipherHandler {
                     next.focus();
                 } else if (event.keyCode === 46 || event.keyCode === 8) {
                     this.markUndo(null);
-                    this.setChar(repchar, "");
+                    this.setChar(repchar, "", target);
                 }
                 event.preventDefault();
             })
             .off("keypress")
             .on("keypress", event => {
                 let newchar;
-                let repchar = $(event.target).attr("data-char");
+                let target = $(event.target);
+                let repchar = target.attr("data-char");
                 let current;
                 let next;
                 let focusables = $(".sli");
@@ -2522,7 +2538,7 @@ export class CipherHandler {
                     }
                     console.log("Setting " + repchar + " to " + newchar);
                     this.markUndo(null);
-                    this.setChar(repchar, newchar);
+                    this.setChar(repchar, newchar, target);
                     current = focusables.index(event.target);
                     next = focusables.eq(current + 1).length
                         ? focusables.eq(current + 1)

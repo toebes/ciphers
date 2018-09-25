@@ -91,6 +91,25 @@ export class CipherSolver extends CipherHandler {
         this.setEncType(encodeType);
     }
     /**
+     * Updates the stored state cipher string
+     * @param cipherString Cipher string to set
+     */
+    public setCipherString(cipherString: string): boolean {
+        let changed = super.setCipherString(cipherString);
+        if (Object.keys(this.freq).length === 0 && cipherString !== "") {
+            this.freq = {};
+            for (let c of this.getCharset().toUpperCase()) {
+                this.freq[c] = 0;
+            }
+            for (let c of this.state.cipherString.toUpperCase()) {
+                if (this.isValidChar(c)) {
+                    this.freq[c]++;
+                }
+            }
+        }
+        return changed;
+    }
+    /**
      * Sets the encoding type for the cipher
      * @param encodeType Type of encoding random/k1/k2/k3/k4
      */
@@ -1125,20 +1144,10 @@ export class CipherSolver extends CipherHandler {
         let posthead2 = '"></div></div>';
         let pre = prehead;
         let datachars = "";
-        let charset = this.getCharset();
-        this.freq = {};
-        for (let c of charset.toUpperCase()) {
-            this.freq[c] = 0;
-        }
 
         for (let i = 0, len = str.length; i < len; i++) {
             let t = str.substr(i, 1).toUpperCase();
             if (this.isValidChar(t)) {
-                if (isNaN(this.freq[t])) {
-                    this.freq[t] = 0;
-                }
-                this.freq[t]++;
-
                 datachars += t;
                 combinedtext += '<span data-char="' + t + '">?</span>';
                 t =

@@ -345,6 +345,13 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: "KeyPhraseSolver.html",
+            template: path.join(__dirname, "app", "pages", "Solver.html"),
+            cipher: "KeyPhraseSolver",
+            title: "Key Phrase Solver",
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: "RSAEncrypt.html",
             template: path.join(__dirname, "app", "pages", "StdEncoder.html"),
             cipher: "RSA",

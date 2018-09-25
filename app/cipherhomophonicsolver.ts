@@ -1,11 +1,10 @@
-import { BoolMap, cloneObject, NumberMap, setCharAt } from "./ciphercommon";
+import { cloneObject, setCharAt } from "./ciphercommon";
 import { IState, menuMode, toolMode } from "./cipherhandler";
 import { CipherSolver } from "./ciphersolver";
-import { CipherTypeButtonItem, ICipherType } from "./ciphertypes";
+import { ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
-import { JTFIncButton } from "./jtfIncButton";
 import { JTFLabeledInput } from "./jtflabeledinput";
-import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
+import { JTRadioButtonSet } from "./jtradiobutton";
 import { JTTable } from "./jttable";
 
 export class CipherHomophonicSolver extends CipherSolver {

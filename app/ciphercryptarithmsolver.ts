@@ -241,7 +241,10 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Check a formula to make sure it is correct
      */
-    public checkFormula(formula: string, expected: string): JQuery<HTMLElement> {
+    public checkFormula(
+        formula: string,
+        expected: string
+    ): JQuery<HTMLElement> {
         let eformula = this.subFormula(formula);
         let eexpected = this.subFormula(expected);
         let cformula = this.compute(eformula);
@@ -309,8 +312,15 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Change the encrypted character.  Note that when we change one, we have
      * to swap it with the one which we are replacing
+     * @param repchar Character that is being replaced
+     * @param newchar Character to replace it with
+     * @param elem Optional HTML Element triggering the request
      */
-    public setChar(repchar: string, newchar: string): void {
+    public setChar(
+        repchar: string,
+        newchar: string,
+        elem?: JQuery<HTMLElement>
+    ): void {
         console.log("setChar data-char=" + repchar + " newchar=" + newchar);
         // See if we actually have to do anything at all
         if (this.state.replacement[repchar] !== newchar) {

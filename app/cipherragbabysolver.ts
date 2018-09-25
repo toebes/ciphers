@@ -485,9 +485,19 @@ export class CipherRagbabySolver extends CipherSolver {
         return null;
     }
     /**
-     * Change the encrypted character.  This primarily shows us what the key might be if we use it
+     * Change the encrypted character.
+     * This primarily shows us what the key might be if we use it.
+     * Note that when we change one, we have
+     * to swap it with the one which we are replacing
+     * @param repchar Character that is being replaced
+     * @param newchar Character to replace it with
+     * @param elem Optional HTML Element triggering the request
      */
-    public setChar(repchar: string, newchar: string): void {
+    public setChar(
+        repchar: string,
+        newchar: string,
+        elem?: JQuery<HTMLElement>
+    ): void {
         console.log(
             "Ragbaby setChar data-char=" + repchar + " newchar=" + newchar
         );

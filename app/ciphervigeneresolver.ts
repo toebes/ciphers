@@ -412,8 +412,13 @@ export class CipherVigenereSolver extends CipherSolver {
      * Change the encrypted character.  This primarily shows us what the key might be if we use it
      * @param repchar Character that is being mapped
      * @param newchar Character to map it to
+     * @param elem Optional HTML Element triggering the request
      */
-    public setChar(repchar: string, newchar: string): void {
+    public setChar(
+        repchar: string,
+        newchar: string,
+        elem?: JQuery<HTMLElement>
+    ): void {
         this.state.replacement[repchar] = newchar;
         let index = Number(repchar);
         let ct = this.state.cipherString.charAt(index);

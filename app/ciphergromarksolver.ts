@@ -183,9 +183,17 @@ export class CipherGromarkSolver extends CipherSolver {
         return topdiv;
     }
     /**
-     * Change the encrypted character
+     * Change the encrypted character.  Note that when we change one, we have
+     * to swap it with the one which we are replacing
+     * @param repchar Character that is being replaced
+     * @param newchar Character to replace it with
+     * @param elem Optional HTML Element triggering the request
      */
-    public setChar(repchar: string, newchar: string): void {
+    public setChar(
+        repchar: string,
+        newchar: string,
+        elem?: JQuery<HTMLElement>
+    ): void {
         if (typeof newchar === "undefined") {
             return;
         }

@@ -115,6 +115,7 @@ export class CipherHomophonicSolver extends CipherSolver {
         let changed = super.setCipherString(cipherString);
         let str = this.cleanString(this.state.cipherString);
         this.HomophonicVals = [];
+        this.freq = {};
         // Go through the string and parse it generating the frequency of each
         // group of numbers
         let curval = "";

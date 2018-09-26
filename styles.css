@@ -301,6 +301,7 @@ table.satable {
 table.ckfreq {
     border-collapse: collapse;
     margin-left: 20px;
+    width: auto;
 }
 table.tfreq th {
     border-top: 1px solid #f1f1f1;

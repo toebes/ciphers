@@ -1191,17 +1191,15 @@ export class CipherSolver extends CipherHandler {
     public setMultiChars(reqstr: string): void {
         console.log("setStandardMultiChars " + reqstr);
         this.holdupdates = true;
-        for (let i = 0, len = reqstr.length / 2; i < len; i++) {
-            let repchar = reqstr.substr(i * (this.cipherWidth + 1), 1);
-            let newchar = reqstr.substr(
-                i * (this.cipherWidth + 1) + 1,
-                this.cipherWidth
-            );
+        for (let i = 0; i < reqstr.length; i += this.cipherWidth + 1) {
+            let repchar = reqstr.substr(i, 1);
+            let newchar = reqstr.substr(i + 1, this.cipherWidth);
             console.log("Set " + repchar + " to " + newchar);
             this.updateSel(repchar, newchar);
         }
         this.holdupdates = false;
         this.updateMatchDropdowns("");
+        this.updateOutput();
     }
     /**
      * Change two sets of characters at once.  Unlike setMultiChars which

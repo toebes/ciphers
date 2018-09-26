@@ -284,12 +284,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: "CheckerboardSolver.html",
-            template: path.join(
-                __dirname,
-                "app",
-                "pages",
-                "CheckerboardSolver.html"
-            ),
+            template: path.join(__dirname, "app", "pages", "Solver.html"),
             cipher: "Checkerboard",
             title: "Checkerboard Assistant",
         }),

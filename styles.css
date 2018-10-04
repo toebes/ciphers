@@ -66,6 +66,25 @@ input.cb {
 .rail {
     line-height: 100%;
 }
+.tword td.ke {
+    font-style: italic;
+    font-weight: bolt;
+    background-color: red;
+    width: 1rem;
+}
+.tword td.kc {
+    font-style: italic;
+    width: 1rem;
+}
+.tword td.c1,
+.tword td.c2 {
+    background-color: lightyellow;
+}
+.tword td.p1,
+.tword td.p2 {
+    background-color: lightblue;
+    vertical-align: middle;
+}
 
 #chi {
     display: block;

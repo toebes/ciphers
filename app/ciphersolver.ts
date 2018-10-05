@@ -661,14 +661,18 @@ export class CipherSolver extends CipherHandler {
      * @param c Character to make the dropdown for
      */
     public makeFreqEditField(c: string): JQuery<HTMLElement> {
+        let repl = "";
+        if (this.state.replacement !== undefined) {
+            repl = this.state.replacement[c];
+        }
         let einput = $("<input/>", {
             type: "text",
             class: "sli",
             "data-char": c,
             id: "m" + c,
-            value: this.state.replacement[c],
+            value: repl,
         });
-        if (this.state.locked[c]) {
+        if (this.state.locked !== undefined && this.state.locked[c]) {
             einput.prop("disabled", true);
         }
         return einput;

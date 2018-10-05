@@ -63,6 +63,15 @@ input.cb {
     line-height: 200%;
 }
 
+.ans #ftext {
+    line-height: 100%;
+    overflow-wrap: break-word;
+}
+
+.solinfo {
+    overflow-wrap: break-word;
+}
+
 .rail {
     line-height: 100%;
 }
@@ -71,19 +80,24 @@ input.cb {
     font-weight: bolt;
     background-color: red;
     width: 1rem;
+    text-align: center;
 }
 .tword td.kc {
     font-style: italic;
     width: 1rem;
+    text-align: center;
 }
 .tword td.c1,
 .tword td.c2 {
     background-color: lightyellow;
+    text-align: center;
 }
 .tword td.p1,
 .tword td.p2 {
     background-color: lightblue;
     vertical-align: middle;
+    text-align: center;
+    height: 1.65rem;
 }
 
 #chi {

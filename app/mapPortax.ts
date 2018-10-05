@@ -1,5 +1,4 @@
 import { Mapper } from "./mapper";
-import { O_DIRECT } from "constants";
 
 const Aval = "A".charCodeAt(0);
 
@@ -12,12 +11,6 @@ const Aval = "A".charCodeAt(0);
 // NOPQRSTUVWXYZ
 // ACEGIKMOQSUWY
 // BDFHJLNPRTVXZ
-
-//  ABCDEFGHIJKLM
-// NOPQRSTUVWXYZN
-// ACEGIKMOQSUWYA
-// BDFHJLNPRTVXZB
-
 export class mapPortax extends Mapper {
     private row1: string = "ABCDEFGHIJKLM";
     private row2: string = "NOPQRSTUVWXYZNOPQRSTUVWXYZ";
@@ -103,6 +96,7 @@ export class mapPortax extends Mapper {
      * ct Encoded character
      * cpt Unencoded character
      */
+    // tslint:disable-next-line:cyclomatic-complexity
     public decodeKey(ct: string, cpt: string): string {
         ct = ct.toUpperCase();
         cpt = cpt.toUpperCase();
@@ -146,6 +140,7 @@ export class mapPortax extends Mapper {
         }
         let idxct1 = this.row2.indexOf(ct1);
         let idxcpt1 = this.row2.indexOf(cpt1);
+        let idx1 = -1;
         // Now let's see if the first characters are consistent
         if (idxct2 === idxcpt2) {
             // They are the same column but different rows, so the first two
@@ -154,56 +149,68 @@ export class mapPortax extends Mapper {
                 if (idxct1 !== idxct2 || idxcpt1 !== -1) {
                     return "!";
                 }
-                idxcpt1 = this.row1.indexOf(cpt1);
-                if (idxcpt1 === -1) {
-                    return "!";
-                }
-                return this.row3.substr(idxct2 - idxcpt1, 1);
+                idx1 = this.row1.indexOf(cpt1);
             } else {
                 if (idxcpt1 !== idxct2) {
                     return "!";
                 }
-                idxct1 = this.row1.indexOf(ct1);
-                if (idxct1 === -1) {
-                    return "!";
-                }
-                return this.row3.substr(idxct2 - idxct1, 1);
+                idx1 = this.row1.indexOf(ct1);
             }
+            if (idx1 === -1) {
+                return "!";
+            }
+            return this.row3.substr(idxct2 - idx1, 1);
+        }
+        // The second characters are on the same row but different columns, so both of the first characters
+        // must be on the same row.
+        // If they are on the second row then we have no clue what the key character
+        // is because only the first row slides to reveal the key
+        if (idxct1 !== -1) {
+            // If the other character was not on the second row, it is broken
+            if (idxcpt1 === -1) {
+                return "!";
+            }
+            // Also they must be in the same columns as each other to be valid
+            if (idxct1 !== idxcpt2 || idxct2 !== idxcpt1) {
+                return "!";
+            }
+            // Everything is good, but.. we have no clue what the key character is because
+            // we don't touch the top row.
+            return "?";
+        }
+        idxct1 = this.row1.indexOf(ct1);
+        idxcpt1 = this.row1.indexOf(cpt1);
+        if (idxct1 === -1 || idxcpt1 === -1) {
+            return "!";
+        }
+        // Since we think the characters are good. now we need to figure out what
+        // the shift character is for mapping
+        idx1 = Math.min(idxct1, idxcpt1);
+        let idx2 = Math.min(idxct2, idxcpt2);
+        // We can have two scenarios here (it we can use either Row3 or Row4)
+        // as they produce the same result.
+        if (Math.abs(idxct2 - idxcpt2) === Math.abs(idxct1 - idxcpt1)) {
+            // First scenario:
+            //   A W  / I G
+            //   0 11   8 3
+            // Row1:    ABCDEFGHIJKLM
+            // ROW3: ACEGIKMOQSUWYACEGIKMOQSUWY
+            // In this first case the distances are the same (8-0 = 11-3)
         } else {
-            // The second characters are on the same row but different columns, so both of the first characters
-            // must be on the same row.
-            if (idxct1 === -1) {
-                idxct1 = this.row1.indexOf(ct1);
-                idxcpt1 = this.row1.indexOf(cpt1);
-                if (idxct1 === -1 || idxcpt1 === -1) {
-                    return "!";
-                }
-                // Since we think the characters are good. now we need to figure out what
-                // the shift character is for mapping
-                let idx2 = Math.min(idxct2, idxcpt2);
-                let idx1 = Math.min(idxct1, idxcpt1);
-                // The distance between the two characters must be the same
-                // But also remember that the alphabet can wrap
-                if (Math.abs(idxct2 - idxcpt2) === Math.abs(idxct1 - idxcpt1)) {
-                } else if (
-                    Math.abs(13 + idxct2 - idxcpt2) !==
-                    Math.abs(idxct1 - idxcpt1)
-                ) {
-                    return "!";
-                }
-                return this.row3.substr(idx2 - idx1, 1);
-            } else {
-                // If the other character was not on the second row, it is broken
-                if (idxcpt1 === -1) {
-                    return "!";
-                }
-                if (idxct1 !== idxcpt2 || idxct2 !== idxcpt1) {
-                    return "!";
-                }
-                // Everything is good, but.. we have no clue what the key character is because
-                // we don't touch the top row.
-                return "?";
+            //   A E  /  M G
+            //   0 4  / 12 3
+            // Row1:    ABCDEFGHIJKLM
+            // ROW3: ACEGIKMOQSUWYACEGIKMOQSUWY
+            // In the second case, the distances are off (12-0 != 4-3)
+            // However:  (13+0)-12 = 4-3 so we have to adjust the lower number by 13
+            idx2 = Math.max(idxct2, idxcpt2);
+            if (
+                Math.abs(idxct2 - idxcpt2) !==
+                Math.abs(idx1 + 13 - Math.max(idxct1, idxcpt1))
+            ) {
+                return "!";
             }
         }
+        return this.row3.substr(idx2 - idx1, 1);
     }
 }

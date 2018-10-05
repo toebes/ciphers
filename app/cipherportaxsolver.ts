@@ -36,7 +36,7 @@ let xmap = {
     W: "W",
     X: "W",
     Y: "Y",
-    Z: "Y"
+    Z: "Y",
 };
 let xmap2 = {
     A: "AB",
@@ -64,9 +64,33 @@ let xmap2 = {
     W: "WX",
     X: "WX",
     Y: "YZ",
-    Z: "YZ"
+    Z: "YZ",
 };
 
+enum DecodeType {
+    known,
+    first,
+    both,
+}
+interface IPortaxPart {
+    /** Position of first element of this piece */
+    pos: number;
+    /** Cipher Text first part (sliced based on the period) */
+    ct1: string[];
+    /** Cipher Text second part (sliced based on the period) */
+    ct2: string[];
+    /** Computed plain text first part computed from ct1/ct2 and state.keyword */
+    pt1: string[];
+    /** Computed plain text second part computed from ct1/ct2 and state.keyword */
+    pt2: string[];
+    /** User entered (or well known) plain text first part */
+    ut1: string[];
+    /** User entered (or well known) plain text second part */
+    ut2: string[];
+    /** Computed keyword based on ct1/ct2 ut1/ut2 */
+    keyword: string[];
+    dtype: DecodeType[];
+}
 interface IPortaxState extends IState {
     /** Cipher Period */
     period: number;
@@ -77,7 +101,7 @@ interface IPortaxState extends IState {
 export class CipherPortaxSolver extends CipherSolver {
     public activeToolMode: toolMode = toolMode.aca;
     /** Portax Lookup table overridden by the subclasses */
-    public readonly PortaxReplaces: string[] = [];
+    public parts: IPortaxPart[] = [];
     public defaultstate: IPortaxState = {
         cipherType: ICipherType.Portax,
         replacement: {},
@@ -86,7 +110,7 @@ export class CipherPortaxSolver extends CipherSolver {
         findString: "",
         period: 2,
         keyword: "",
-        plainText: ""
+        plainText: "",
     };
     public state: IPortaxState = cloneObject(this.defaultstate) as IPortaxState;
     public ciphermap: Mapper;
@@ -95,7 +119,7 @@ export class CipherPortaxSolver extends CipherSolver {
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
         this.redocmdButton,
-        { title: "Reset", color: "warning", id: "reset" }
+        { title: "Reset", color: "warning", id: "reset" },
     ];
     /**
      * Initializes the encoder/decoder. (EN is the default)
@@ -105,7 +129,6 @@ export class CipherPortaxSolver extends CipherSolver {
         this.ciphermap = mapperFactory(ICipherType.Portax);
         super.init(lang);
     }
-
     /**
      * Cleans up any settings, range checking and normalizing any values.
      * This doesn't actually update the UI directly but ensures that all the
@@ -114,7 +137,6 @@ export class CipherPortaxSolver extends CipherSolver {
      */
     public setUIDefaults(): void {
         super.setUIDefaults();
-        this.setCipherType(this.state.cipherType);
         this.setPeriod(this.state.period);
         this.setKeyword(this.state.keyword);
         this.setPlainText(this.state.plainText);
@@ -130,10 +152,7 @@ export class CipherPortaxSolver extends CipherSolver {
         $("#keyword").val(this.state.keyword);
         $("#encoded").val(this.state.cipherString);
         $("#find").val(this.state.findString);
-        for (let i = 0; i < this.state.plainText.length; i++) {
-            let c = this.state.plainText.substr(i, 1);
-            $("[data-char=" + i + "]").val(c);
-        }
+        $("#ftext").text(this.getSolutionText());
         this.showQuestion();
         this.load();
         this.findPossible(this.state.findString);
@@ -150,16 +169,28 @@ export class CipherPortaxSolver extends CipherSolver {
      * Add any solution text to the problem
      */
     public saveSolution(): void {
-        // We don't have to do anything because it has already been calculated
-        // but we don't want to call the super class implementation because
-        // it does something completely different.
+        this.state.solution = this.state.keyword + " " + this.getSolutionText();
+        this.state.solved = this.state.solution.indexOf("?") === -1;
     }
-    public setCipherType(cipherType: ICipherType): boolean {
-        let changed = super.setCipherType(cipherType);
-        if (changed) {
-            this.setPeriod(this.state.period);
+    public getSolutionText(): string {
+        let result = "";
+        for (let part of this.parts) {
+            let extra = "";
+            for (let i = 0; i < part.keyword.length; i++) {
+                let c = part.ut1[i];
+                if (c === " ") {
+                    c = "?";
+                }
+                result += c;
+                c = part.ut2[i];
+                if (c === " ") {
+                    c = "?";
+                }
+                extra += c;
+            }
+            result += extra;
         }
-        return changed;
+        return result;
     }
     /**
      * Updates the stored state cipher string
@@ -167,9 +198,8 @@ export class CipherPortaxSolver extends CipherSolver {
      */
     public setCipherString(cipherString: string): boolean {
         let changed = super.setCipherString(cipherString);
-        if (changed) {
-            this.setPeriod(this.state.period);
-        }
+        this.setPeriod(this.state.period);
+        this.sliceData();
         return changed;
     }
     /**
@@ -187,6 +217,7 @@ export class CipherPortaxSolver extends CipherSolver {
         if (period !== this.state.period) {
             changed = true;
             this.state.period = period;
+            this.sliceData();
         }
         return changed;
     }
@@ -196,11 +227,13 @@ export class CipherPortaxSolver extends CipherSolver {
      * @returns Boolean indicating if the value actually changed
      */
     public setKeyword(keyword: string): boolean {
+        let newkey = this.minimizeString(keyword.toUpperCase());
         let changed = false;
-        if (this.state.keyword !== keyword) {
-            this.state.keyword = keyword;
-            this.lastencoded = undefined;
+        if (this.state.keyword !== newkey) {
             changed = true;
+            this.state.keyword = newkey;
+            this.lastencoded = undefined;
+            this.sliceData();
         }
         return changed;
     }
@@ -216,6 +249,7 @@ export class CipherPortaxSolver extends CipherSolver {
         if (newPlain !== this.state.plainText) {
             changed = true;
             this.state.plainText = newPlain;
+            this.sliceData();
         }
         return changed;
     }
@@ -234,26 +268,176 @@ export class CipherPortaxSolver extends CipherSolver {
     ): void {
         console.log("Portax: repchar=" + repchar + " newchar=" + newchar);
         let pos = Number(repchar);
+        if (newchar === "") {
+            newchar = " ";
+        }
         this.setPlainText(this.state.plainText);
         this.setPlainText(
             this.state.plainText.substr(0, pos) +
                 newchar +
                 this.state.plainText.substr(pos + newchar.length)
         );
-        this.updateOutput();
+        this.recomputePortax(pos);
+        this.updatePortaxSlot(pos);
     }
     public genAnalysis(str: string): JQuery<HTMLElement> {
         return null;
     }
-    public build(): JQuery<HTMLElement> {
-        let result = $("<div/>", { class: "clearfix" });
+    public updatePortaxSlot(pos: number): void {
+        let chunk = Math.floor(pos / (this.state.period * 2));
+        if (chunk > this.parts.length) {
+            return;
+        }
+        let part = this.parts[chunk];
+        let width = part.keyword.length;
+        let slot = (pos % (this.state.period * 2)) % width;
+        if (slot >= part.keyword.length) {
+            return;
+        }
+        let keyword = this.state.keyword + this.repeatStr("?", width);
+        let kc = keyword.substr(slot, 1);
+        let key = part.keyword[slot];
+        let p1 = part.pt1[slot];
+        let p2 = part.pt2[slot];
+        let u1 = part.ut1[slot];
+        let u2 = part.ut2[slot];
+        let p1pos = part.pos + slot;
+        let p2pos = p1pos + width;
+
+        if (key === "-" || xmap[key] === xmap[kc]) {
+            $("#k" + p1pos)
+                .removeClass("ke")
+                .addClass("kc")
+                .text(kc);
+        } else {
+            $("#k" + p1pos)
+                .removeClass("kc")
+                .addClass("ke")
+                .text(key);
+        }
+        $("#v" + p1pos).text(p1);
+        $("#v" + p2pos).text(p2);
+        $("#m" + p1pos).val(u1);
+        $("#m" + p2pos).val(u2);
+    }
+    public recomputePortax(pos: number): void {
+        let chunk = Math.floor(pos / (this.state.period * 2));
+        if (chunk > this.parts.length) {
+            return;
+        }
+        let part = this.parts[chunk];
+        let width = part.keyword.length;
+        let slot = (pos % (this.state.period * 2)) % width;
+        if (slot >= part.keyword.length) {
+            return;
+        }
+        let keyword = this.state.keyword + this.repeatStr("?", width);
+        let kc = keyword.substr(slot, 1);
+
+        // We have ct1 and ct2 as given and (potentially) a keyword character
+        // Additionally the user may have typed in characters to fill in
+        // the spots for them (u1 and u2) which we need to put into ut1/ut2
+        // We need to compute pt1/pt2 based on ct1/ct2 and keyword character
+        // We also need to compute a keyword character based on ct1/ct2 ut1/ut2
+        // if one can actually be computed.
+        let p1slot = part.pos + slot;
+        let p2slot = p1slot + width;
+        let u1 = this.state.plainText.substr(p1slot, 1);
+        let u2 = this.state.plainText.substr(p2slot, 1);
+        let c1 = part.ct1[slot];
+        let c2 = part.ct2[slot];
+        let dec = this.ciphermap.encode(c1 + c2, kc);
+        let p1 = dec.substr(0, 1);
+        let p2 = dec.substr(1, 1);
+        let key = "-";
+        let dtype = DecodeType.both;
+        // We need to compute pt1 and pt2 as well as the keyword
+        if (c1 >= "N") {
+            dtype = DecodeType.first;
+            let decoded = this.ciphermap.decode(c1 + c2, "?");
+            let p1a = decoded.substr(0, 1);
+            p2 = decoded.substr(1, 1);
+            if (p1a !== "?") {
+                dtype = DecodeType.known;
+                p1 = p1a;
+                u1 = p1;
+            }
+            u2 = p2;
+        } else {
+            if (u1 !== " " && u2 !== " ") {
+                key = this.ciphermap.decodeKey(c1 + c2, u1 + u2);
+            }
+        }
+        part.pt1[slot] = p1;
+        part.pt2[slot] = p2;
+        part.ut1[slot] = u1;
+        part.ut2[slot] = u2;
+        part.keyword[slot] = key;
+        part.dtype[slot] = dtype;
+    }
+    /**
+     * Data structure
+     * array of
+     * keyword: string[]
+     * ct1: string[]
+     * ct2: string[]
+     * pt1: string[]
+     * pt2: string[]
+     * ut1: string[]
+     * ut2: string[]
+     */
+    public sliceData(): void {
         let str = this.minimizeString(this.state.cipherString);
-        if (str === "") {
+        this.parts = [];
+        for (let pos = 0; pos < str.length; pos += this.state.period * 2) {
+            let part: IPortaxPart = {
+                pos: pos,
+                ct1: [],
+                ct2: [],
+                ut1: [],
+                ut2: [],
+                pt1: [],
+                pt2: [],
+                keyword: [],
+                dtype: [],
+            };
+            this.parts.push(part);
+            let piece = str.substr(pos, this.state.period * 2);
+            let width = Math.floor((piece.length + 1) / 2);
+            for (let i = 0; i < width; i++) {
+                let c1 = piece.substr(i, 1);
+                let c2 = piece.substr(width + i, 1);
+                part.ct1.push(c1);
+                part.ct2.push(c2);
+                let p1slot = pos + i;
+                let p2slot = pos + i + width;
+                let u1 = this.state.plainText.substr(p1slot, 1);
+                let u2 = this.state.plainText.substr(p2slot, 1);
+                part.ut1.push(u1);
+                part.ut2.push(u2);
+                part.pt1.push(" ");
+                part.pt2.push(" ");
+                part.dtype.push(DecodeType.known);
+                part.keyword.push(" ");
+            }
+            // Now that we built the segment, go ahead and calculate it
+            for (let i = 0; i < width; i++) {
+                this.recomputePortax(pos + i);
+            }
+        }
+    }
+    public build(): JQuery<HTMLElement> {
+        let block = $("<div/>", { class: "clearfix" });
+        let result = $("<div/>", { class: "clearfix" });
+        if (this.parts.length === 0) {
             return $("<div/>", { class: "callout warning" }).text(
                 "Enter a cipher to get started"
             );
         }
-        for (let pos = 0; pos < str.length; pos += this.state.period * 2) {
+        let keyword =
+            this.state.keyword + this.repeatStr("?", this.state.period);
+
+        for (let part of this.parts) {
             let section = $("<div/>", { class: "sword" });
             let table = new JTTable({ class: "tword" });
             let hrow = table.addBodyRow();
@@ -263,108 +447,90 @@ export class CipherPortaxSolver extends CipherSolver {
             let vrow2 = table.addBodyRow();
             let prow1 = table.addBodyRow();
             let prow2 = table.addBodyRow();
-            let v1 = "?";
-            let v2 = "?";
-            let piece = str.substr(pos, this.state.period * 2);
-            let width = Math.floor((piece.length + 1) / 2);
-            let keyword =
-                this.minimizeString(this.state.keyword.toUpperCase()) +
-                this.repeatStr("?", width);
+            let width = part.keyword.length;
             for (let i = 0; i < width; i++) {
-                let c1 = piece.substr(i, 1);
-                let c2 = piece.substr(width + i, 1);
+                let c1 = part.ct1[i];
+                let c2 = part.ct2[i];
+                let p1 = part.pt1[i];
+                let p2 = part.pt2[i];
+                let key = part.keyword[i];
+                let u1 = part.ut1[i];
+                let u2 = part.ut2[i];
+                let dtype = part.dtype[i];
+                let p1slot = part.pos + i;
+                let p2slot = part.pos + i + width;
                 let kc = keyword.substr(i, 1);
-                let key = "-";
                 crow1.add({
                     settings: { class: "c1" },
-                    content: c1
+                    content: c1,
                 });
                 crow2.add({
                     settings: { class: "c2" },
-                    content: c2
+                    content: c2,
                 });
-                if (c1 >= "N") {
-                    let decoded = this.ciphermap.decode(c1 + c2, "?");
-                    let p1 = decoded.substr(0, 1);
-                    let p2 = decoded.substr(1, 1);
-                    v1 = p1;
-                    v2 = p2;
-                    if (p1 === "?") {
-                        p1 = this.state.plainText.substr(pos + i, 1);
-                        let dec = this.ciphermap.encode(c1 + c2, kc);
-                        v1 = dec.substr(0, 1);
-                        v2 = dec.substr(1, 1);
-                        prow1.add(
-                            $("<input/>", {
-                                type: "text",
-                                class: "sli p1",
-                                "data-char": pos + i,
-                                id: "m1" + c1 + c2,
-                                value: ""
-                            })
-                        );
-                    } else {
-                        prow1.add({
-                            settings: { class: "p1" },
-                            content: p1
-                        });
-                    }
-                    prow2.add({
-                        settings: { class: "p2" },
-                        content: p2
+                if (dtype === DecodeType.known) {
+                    prow1.add({
+                        settings: { class: "p1" },
+                        content: p1,
                     });
                 } else {
-                    let p1 = this.state.plainText.substr(pos + i, 1);
-                    let p2 = this.state.plainText.substr(pos + i + width, 1);
-                    prow1.add(
-                        $("<input/>", {
+                    prow1.add({
+                        settings: { class: "p1" },
+                        content: $("<input/>", {
                             type: "text",
-                            class: "sli p1",
-                            "data-char": pos + i,
-                            id: "m1" + c1 + c2,
-                            value: p1
-                        })
-                    );
-                    prow2.add(
-                        $("<input/>", {
+                            class: "sli",
+                            "data-char": p1slot,
+                            id: "m" + p1slot,
+                            value: u1,
+                        }),
+                    });
+                }
+                if (dtype !== DecodeType.both) {
+                    prow2.add({
+                        settings: { class: "p2" },
+                        content: p2,
+                    });
+                } else {
+                    prow2.add({
+                        settings: { class: "p2" },
+                        content: $("<input/>", {
                             type: "text",
-                            class: "sli p2",
-                            "data-char": pos + i + width,
-                            id: "m2" + c1 + c2,
-                            value: p2
-                        })
-                    );
-                    let dec = this.ciphermap.encode(c1 + c2, kc);
-                    v1 = dec.substr(0, 1);
-                    v2 = dec.substr(1, 1);
-                    if (p1 !== " " && p2 !== " ") {
-                        key = this.ciphermap.decodeKey(c1 + c2, p1 + p2);
-                        if (key === "?") {
-                            key = "-";
-                        }
-                    } else {
-                        key = "-";
-                    }
+                            class: "sli",
+                            "data-char": p2slot,
+                            id: "m" + p2slot,
+                            value: u2,
+                        }),
+                    });
                 }
                 // We need to display the key.  However we want to make sure that it is a legitimate
                 // key value.
                 if (key === "-" || xmap[key] === xmap[kc]) {
                     hrow.add({
-                        settings: { class: "kc" },
-                        content: kc
+                        settings: { class: "kc", id: "k" + p1slot },
+                        content: kc,
                     });
                 } else {
                     hrow.add({
-                        settings: { class: "ke" },
-                        content: key
+                        settings: { class: "ke", id: "k" + p1slot },
+                        content: key,
                     });
                 }
-                vrow1.add(v1);
-                vrow2.add(v2);
+                vrow1.add({
+                    settings: { id: "v" + p1slot },
+                    content: p1,
+                });
+                vrow2.add({
+                    settings: { id: "v" + p2slot },
+                    content: p2,
+                });
             }
             section.append(table.generate());
-            result.append(section);
+            block.append(section);
         }
+        result.append(block);
+        result.append(
+            $("<div/>", { id: "ftext" }).text(this.getSolutionText())
+        );
         return result;
     }
     /**
@@ -383,7 +549,7 @@ export class CipherPortaxSolver extends CipherSolver {
             )
         );
         let inputbox = $("<div/>", {
-            class: "grid-x grid-margin-x"
+            class: "grid-x grid-margin-x",
         });
         inputbox.append(
             JTFIncButton(
@@ -429,35 +595,18 @@ export class CipherPortaxSolver extends CipherSolver {
      */
     public findPossible(str: string): void {
         this.state.findString = str;
-        $("[data-char]").removeClass(
-            "match1 match2 match3 match4 match5 match6 match7 match8 match9 match10"
-        );
         if (str === "") {
             $(".findres").empty();
             return;
         }
 
-        let matchnum = 1;
-        let alreadyused: NumberMap = {};
-        let lookfor = $("<div/>").append("Highlighting: ");
-        for (let c of str.toUpperCase()) {
-            if (this.isValidChar(c)) {
-                if (alreadyused[c] === undefined) {
-                    alreadyused[c] = matchnum;
-                    $("[data-char=" + c + "]").addClass("match" + matchnum);
-                    matchnum++;
-                }
-                lookfor.append(
-                    $("<span/>", { class: "match" + alreadyused[c] }).text(c)
-                );
-            } else {
-                lookfor.append(c);
-            }
-        }
-
         $(".findres")
             .empty()
-            .append(lookfor);
+            .append(
+                $("<div/>", { class: "callout warning" }).text(
+                    "Not yet implemented"
+                )
+            );
     }
     /**
      * Loads new data into a solver, preserving all solving matches made
@@ -479,6 +628,10 @@ export class CipherPortaxSolver extends CipherSolver {
                     .empty()
                     .append(this.genAnalysis(this.encodedString));
             });
+        } else {
+            for (let i = 0; i < this.state.plainText.length; i++) {
+                this.updatePortaxSlot(i);
+            }
         }
         // Show the update frequency values
         this.displayFreq();

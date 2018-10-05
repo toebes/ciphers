@@ -149,7 +149,7 @@ export class CipherACAProblems extends CipherTest {
         let status = $("");
         if (statusmsg !== "") {
             status = $("<div/>", {
-                class: "callout small " + calloutclass,
+                class: "callout small solinfo " + calloutclass,
             }).text(statusmsg);
         }
         row.add(status)
@@ -163,7 +163,7 @@ export class CipherACAProblems extends CipherTest {
         if (state.solution !== undefined && state.solution !== "") {
             row.add(
                 $("<div/>", {
-                    class: "callout small " + calloutclass,
+                    class: "callout small solinfo " + calloutclass,
                 }).text(state.solution)
             );
         } else {

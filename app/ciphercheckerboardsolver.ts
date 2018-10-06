@@ -79,64 +79,96 @@ export class CipherCheckerboardSolver extends CipherSolver {
             " " +
             solution;
     }
+    /**
+     * Generate a 5 character string to be used for the column or row
+     * @param basecharset Starting character set (if any)
+     * @param newcharset New characters to be added in order
+     * @param forceorder Replace the base set completely
+     */
+    public buildCharset(
+        basecharset: string,
+        newcharset: string,
+        forceorder: boolean
+    ): string {
+        let result = "";
+        let unknowns = 0;
+        if (!forceorder) {
+            for (let c of basecharset.toUpperCase()) {
+                if (
+                    c === "?" ||
+                    (this.isValidChar(c) && result.indexOf(c) === -1)
+                ) {
+                    result += c;
+                    if (c === "?") {
+                        unknowns++;
+                    }
+                }
+            }
+        }
+        // Now add in the new characters.
+        for (let c of newcharset.toUpperCase()) {
+            if (
+                c === "?" ||
+                (this.isValidChar(c) && result.indexOf(c) === -1)
+            ) {
+                if (result.length < 5) {
+                    result += c;
+                } else if (unknowns > 0) {
+                    // Adding this new character would make the string longer
+                    // than 5 characters, so we have to throw something away
+                    let idx = result.indexOf("?");
+                    if (idx !== -1) {
+                        result =
+                            result.substr(0, idx) + result.substr(idx + 1) + c;
+                    }
+                } else {
+                    // Unfortunately the character can't fit, so we are throwing it away
+                    $(".err")
+                        .empty()
+                        .append(
+                            $("<div/", { class: "callout small warning" }).text(
+                                "More than five unique characters found, using only the first five:" +
+                                    result
+                            )
+                        );
+                }
+            }
+        }
+        return result;
+    }
     public setrowcolset(
         rowcharset: string,
         colcharset: string,
         forceorder: boolean
-    ): void {
+    ): boolean {
         let changed = false;
 
-        rowcharset = rowcharset.toUpperCase();
-        colcharset = colcharset.toUpperCase();
+        let newrowcharset = this.buildCharset(
+            this.state.rowcharset,
+            rowcharset,
+            forceorder
+        );
+        let newcolcharset = this.buildCharset(
+            this.state.colcharset,
+            colcharset,
+            forceorder
+        );
 
-        this.state.rowcharset = this.state.rowcharset.trim();
-        this.state.colcharset = this.state.colcharset.trim();
-
-        if (rowcharset !== this.state.rowcharset) {
-            if (forceorder) {
-                changed = true;
-                this.state.rowcharset = rowcharset;
-            } else {
-                for (let c of rowcharset) {
-                    if (this.state.rowcharset.indexOf(c) < 0) {
-                        this.state.rowcharset += c;
-                        changed = true;
-                    }
-                }
-            }
+        if (newrowcharset !== this.state.rowcharset) {
+            changed = true;
+            this.state.rowcharset = newrowcharset;
         }
 
-        if (colcharset !== this.state.colcharset) {
-            if (forceorder) {
-                changed = true;
-                this.state.colcharset = colcharset;
-            } else {
-                for (let c of colcharset) {
-                    if (this.state.colcharset.indexOf(c) < 0) {
-                        this.state.colcharset += c;
-                        changed = true;
-                    }
-                }
-            }
+        if (newcolcharset !== this.state.colcharset) {
+            changed = true;
+            this.state.colcharset = newcolcharset;
         }
 
-        if (this.state.rowcharset.length < 5) {
-            this.state.rowcharset += "     ".substr(
-                0,
-                5 - this.state.rowcharset.length
-            );
-        }
-        if (this.state.colcharset.length < 5) {
-            this.state.colcharset += "     ".substr(
-                0,
-                5 - this.state.colcharset.length
-            );
-        }
-
-        if (changed) {
-            this.UpdateFreqEditTable();
-            this.load();
-        }
+        // if (changed) {
+        //     this.UpdateFreqEditTable();
+        //     this.load();
+        // }
+        return changed;
     }
     /**
      * Cleans up any settings, range checking and normalizing any values.
@@ -304,25 +336,23 @@ export class CipherCheckerboardSolver extends CipherSolver {
         let tbody = $("<tbody/>");
         let headrow = $("<tr/>");
         let row, rowlen, col, collen;
-        rowlen = this.state.rowcharset.length;
-        collen = this.state.colcharset.length;
+        let colset = this.state.colcharset.toUpperCase() + "??????????";
+        let rowset = this.state.rowcharset.toUpperCase() + "??????????";
+        rowlen = 5; //this.state.rowcharset.length;
+        collen = 5; // this.state.colcharset.length;
         // console.log('createCheckerboardFreqEditTable: rowcharset=' + this.rowcharset + ' colcharset=' + this.colcharset)
         headrow.append($("<th/>").addClass("topleft"));
         for (col = 0; col < collen; col++) {
-            headrow.append(
-                $("<th/>").text(
-                    this.state.colcharset.substr(col, 1).toUpperCase()
-                )
-            );
+            headrow.append($("<th/>").text(colset.substr(col, 1)));
         }
         thead.append(headrow);
 
         for (row = 0; row < rowlen; row++) {
             let replrow = $("<tr/>");
-            let rowc = this.state.rowcharset.substr(row, 1).toUpperCase();
+            let rowc = rowset.substr(row, 1);
             replrow.append($("<th/>").text(rowc));
             for (col = 0; col < collen; col++) {
-                let colc = this.state.colcharset.substr(col, 1).toUpperCase();
+                let colc = colset.substr(col, 1);
                 let piece = rowc + colc;
                 let freq: string = String(this.freq[piece]);
                 if (this.freq[piece] === undefined) {
@@ -492,20 +522,28 @@ export class CipherCheckerboardSolver extends CipherSolver {
         $("#rowcharset")
             .off("input")
             .on("input", e => {
-                this.setrowcolset(
-                    (<HTMLInputElement>e.target).value,
-                    this.state.colcharset,
-                    true
-                );
+                if (
+                    this.setrowcolset(
+                        (<HTMLInputElement>e.target).value,
+                        this.state.colcharset,
+                        true
+                    )
+                ) {
+                    this.updateOutput();
+                }
             });
         $("#colcharset")
             .off("input")
             .on("input", e => {
-                this.setrowcolset(
-                    this.state.rowcharset,
-                    (<HTMLInputElement>e.target).value,
-                    true
-                );
+                if (
+                    this.setrowcolset(
+                        this.state.rowcharset,
+                        (<HTMLInputElement>e.target).value,
+                        true
+                    )
+                ) {
+                    this.updateOutput();
+                }
             });
     }
 }

@@ -792,7 +792,6 @@ export class CryptarithmSolver extends CipherSolver {
                             content += c;
                             rootLen++;
                         }
-                        // td.appendTo(tr)
                     }
 
                     // See if we ended up with a Cuberoot
@@ -822,7 +821,11 @@ export class CryptarithmSolver extends CipherSolver {
                                     new RegExp(" ", "g"),
                                     ""
                                 );
-                                lastval = rootbase.substr(0, numwidth);
+                                let digits = rootbase.length % numwidth;
+                                if (digits === 0) {
+                                    digits = numwidth;
+                                }
+                                lastval = rootbase.substr(0, digits);
                             } else {
                                 if (indent > 0 && expected !== "") {
                                     if (
@@ -881,7 +884,11 @@ export class CryptarithmSolver extends CipherSolver {
                                     new RegExp(" ", "g"),
                                     ""
                                 );
-                                lastval = rootbase.substr(0, numwidth);
+                                let digits = rootbase.length % numwidth;
+                                if (digits === 0) {
+                                    digits = numwidth;
+                                }
+                                lastval = rootbase.substr(0, digits);
                             } else {
                                 if (indent > 0 && expected !== "") {
                                     if (

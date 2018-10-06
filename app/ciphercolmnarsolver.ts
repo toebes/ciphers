@@ -196,7 +196,10 @@ export class CipherColumnarSolver extends CipherSolver {
                 break;
             }
         }
-        if (columns !== this.state.columns) {
+        if (
+            columns !== this.state.columns ||
+            this.state.colOrder.length !== columns
+        ) {
             changed = true;
             this.state.columns = columns;
             this.setColOrder(this.state.colOrder);

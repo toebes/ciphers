@@ -9,7 +9,7 @@ export class mapGronsfeld extends Mapper {
      * ckey Key Unencoded character
      * returns cipher text (ct) encoded character
      */
-    encode(cpt: string, ckey: string): string {
+    public encode(cpt: string, ckey: string): string {
         cpt = cpt.toUpperCase();
         ckey = ckey.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
@@ -26,7 +26,7 @@ export class mapGronsfeld extends Mapper {
      * ct Encoded character
      * ckey Unencoded character
      */
-    decode(ct: string, ckey: string): string {
+    public decode(ct: string, ckey: string): string {
         ckey = ckey.toUpperCase();
         ct = ct.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
@@ -43,14 +43,18 @@ export class mapGronsfeld extends Mapper {
      * ct Encoded character
      * cpt Unencoded character
      */
-    decodeKey(ct: string, cpt: string): string {
+    public decodeKey(ct: string, cpt: string): string {
         cpt = cpt.toUpperCase();
         ct = ct.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
         if (cpt.toLowerCase() === cpt || ct.toLowerCase() === ct) {
             return "?";
         }
-        let keyval = ct.charCodeAt(0) - cpt.charCodeAt(0);
-        return String.fromCharCode((((keyval % 10) + 10) % 10) + zeroval);
+        let mapstr = "0123456789????????????????";
+        let mapoff =
+            (mapstr.length - (cpt.charCodeAt(0) - Aval)) % mapstr.length;
+        mapstr = mapstr.substr(mapoff) + mapstr.substr(0, mapoff);
+        let keyval = ct.charCodeAt(0) - Aval;
+        return mapstr.substr(keyval, 1);
     }
 }

@@ -31,24 +31,24 @@
         "uglify-es": "^3.3.9",
         "uglify-js": "^3.4.9",
         "url-loader": "^1.1.1",
-        "webpack": "^4.19.0",
+        "webpack": "^4.20.2",
         "webpack-auto-inject-version": "^1.1.0",
-        "webpack-cli": "^2.1.5"
+        "webpack-cli": "^3.1.2"
     },
     "dependencies": {
         "@ckeditor/ckeditor5-build-inline": "git+https://github.com/toebes/ckeditor5-build-inline.git",
         "@shopify/draggable": "^1.0.0-beta.8",
         "@types/es6-shim": "^0.31.37",
-        "@types/jquery": "^3.3.6",
+        "@types/jquery": "^3.3.13",
         "@types/katex": "^0.5.0",
         "@types/mathjs": "^4.4.1",
-        "es5-shim": "^4.5.11",
+        "es5-shim": "^4.5.12",
         "es6-shim": "^0.35.3",
         "foundation-sites": "^6.5.0-rc.3",
         "jquery": "^3.3.1",
         "js-cookie": "^2.2.0",
         "katex": "^0.10.0-rc.1",
-        "mathjs": "^5.1.2",
+        "mathjs": "^5.2.0",
         "what-input": "^5.1.2"
     }
 }

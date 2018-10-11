@@ -6,6 +6,56 @@
     width: 600px;
 }
 
+body.txt {
+    padding: 1rem;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.ctl {
+    font-weight: bold;
+    font-family: Helvetica Neue, Helvetica, Roboto, Arial, sans-serif;
+    background-color: #e6e6e6;
+}
+.quser {
+    float: right;
+    background-color: lightgreen;
+}
+.qusen {
+    float: right;
+    background-color: lightblue;
+}
+.fq {
+    font-family: "Courier New", Courier, monospace;
+    font-weight: bold;
+}
+.ht {
+    width: 10rem;
+    font-weight: bold;
+    clear: both;
+    float: left;
+    border-top: 1px solid lightgrey;
+    text-align: right;
+    padding-right: 0.5rem;
+}
+.ex {
+    margin-left: 12rem;
+    margin-right: 5rem;
+}
+h2.ol {
+    border-top: 1px solid black;
+    background-color: rgb(240, 240, 240);
+}
+h3.ol {
+    border-top: 1px solid black;
+    background-color: rgb(240, 240, 240);
+    padding-left: 2rem;
+}
+.in {
+    margin-left: 10rem;
+    border-top: 1px solid lightgrey;
+}
+.in1 {
+    margin-left: 10rem;
+}
 div.input-group-field,
 textarea.input-group-field {
     white-space: normal;

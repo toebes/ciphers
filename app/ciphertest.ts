@@ -7,11 +7,7 @@ import {
     ITest,
     toolMode,
 } from "./cipherhandler";
-import {
-    CipherTypeButtonItem,
-    getCipherTitle,
-    ICipherType,
-} from "./ciphertypes";
+import { getCipherTitle, ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTRadioButton, JTRadioButtonSet } from "./jtradiobutton";
 import { JTTable } from "./jttable";
@@ -152,7 +148,7 @@ export class CipherTest extends CipherHandler {
                 let url = this.state.importURL;
                 $.getJSON(url, data => {
                     this.importXML(data);
-                }).fail((jqxhr, settings, exception) => {
+                }).fail(() => {
                     alert("Unable to load file " + url);
                 });
             }
@@ -573,6 +569,32 @@ export class CipherTest extends CipherHandler {
         }
         return true;
     }
+    public findTest(newTest: ITest): number {
+        // Go through all the tests and build a structure holding them that we will convert to JSON
+        let testcount = this.getTestCount();
+        for (let testnum = 0; testnum < testcount; testnum++) {
+            let test = this.getTestEntry(testnum);
+            if (
+                test.title === newTest.title &&
+                test.timed === newTest.timed &&
+                test.questions.length === newTest.questions.length
+            ) {
+                let issame = true;
+                for (let i = 0; i < test.questions.length; i++) {
+                    if (test.questions[i] !== newTest.questions[i]) {
+                        issame = false;
+                        break;
+                    }
+                }
+                if (issame) {
+                    return testnum;
+                }
+            }
+        }
+
+        return -1;
+    }
+
     // tslint:disable-next-line:cyclomatic-complexity
     public processTestXML(data: any): void {
         // Load in all the ciphers we know of so that we don't end up doing a duplicate
@@ -649,7 +671,13 @@ export class CipherTest extends CipherHandler {
                 }
                 // For good measure, just fix up the questions length
                 newTest.count = newTest.questions.length;
-                this.setTestEntry(-1, newTest);
+                let testnum = this.findTest(newTest);
+                if (testnum === -1) {
+                    testnum = this.setTestEntry(-1, newTest);
+                }
+                if (testnum !== -1) {
+                    this.gotoEditTest(testnum);
+                }
             }
         }
     }
@@ -657,22 +685,22 @@ export class CipherTest extends CipherHandler {
         super.attachHandlers();
         $("#printtest")
             .off("click")
-            .on("click", e => {
+            .on("click", () => {
                 this.gotoPrintTest(this.state.test);
             });
         $("#printans")
             .off("click")
-            .on("click", e => {
+            .on("click", () => {
                 this.gotoPrintTestAnswers(this.state.test);
             });
         $("#printsols")
             .off("click")
-            .on("click", e => {
+            .on("click", () => {
                 this.gotoPrintTestSols(this.state.test);
             });
         $("#edittest")
             .off("click")
-            .on("click", e => {
+            .on("click", () => {
                 this.gotoEditTest(this.state.test);
             });
         $(".entryedit")

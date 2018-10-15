@@ -814,6 +814,9 @@ export class CipherHandler {
     /**
      * Writes a test entry to local storage.  An entry of -1 or
      * greater than the number of entries just writes as a new entry
+     * @param entry Entry to store test as (-1 for a new entry)
+     * @param state New test data
+     * @returns Entry of newly stored test (-1 for failure)
      */
     public setTestEntry(entry: number, state: ITest): number {
         if (!this.storage.isAvailable()) {

@@ -291,10 +291,11 @@ export class CipherTest extends CipherHandler {
                         entry,
                         entry,
                         buttons,
+                        true,
                         testuse[entry]
                     );
                 } else {
-                    this.addQuestionRow(table, entry, entry, buttons, "");
+                    this.addQuestionRow(table, entry, entry, buttons, true, "");
                 }
             }
         }
@@ -318,6 +319,8 @@ export class CipherTest extends CipherHandler {
         select.append(
             $("<option />", {
                 value: "",
+                disabled: "disabled",
+                selected: "selected",
             }).text("--Select a Cipher Type to add--")
         );
         for (let entry of this.cipherChoices) {
@@ -334,6 +337,20 @@ export class CipherTest extends CipherHandler {
             option.html(cipherTitle);
             select.append(option);
         }
+        // See if we need to add the ability to add existing ciphers
+        let cipherCount = this.getCipherCount();
+        let test = this.getTestEntry(this.state.test);
+        cipherCount -= test.questions.length;
+        if (test.timed !== -1) {
+            cipherCount--;
+        }
+        if (cipherCount > 0) {
+            select.append(
+                $("<option/>", { value: ICipherType.None }).html(
+                    "**Choose Existing Cipher**"
+                )
+            );
+        }
         inputgroup.append(select);
         return inputgroup;
     }
@@ -342,9 +359,14 @@ export class CipherTest extends CipherHandler {
         order: number,
         qnum: number,
         buttons: buttonInfo[],
+        showPlain: boolean,
         prevuse: any
     ): void {
         let ordertext = "Timed";
+        let plainclass = "";
+        if (!showPlain) {
+            plainclass = "qplain";
+        }
         let extratext = "";
         if (order === -1) {
             extratext =
@@ -401,7 +423,11 @@ export class CipherTest extends CipherHandler {
                         class: "qtextentry",
                     }).html(state.question + extratext)
                 )
-                .add(state.cipherString);
+                .add(
+                    $("<span/>", {
+                        class: plainclass,
+                    }).text(state.cipherString)
+                );
         }
         return;
     }

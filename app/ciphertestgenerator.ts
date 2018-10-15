@@ -1,7 +1,7 @@
 import { cloneObject } from "./ciphercommon";
 import { IState, menuMode, toolMode } from "./cipherhandler";
 import { buttonInfo, CipherTest, ITestState } from "./ciphertest";
-import { ICipherType } from "./ciphertypes";
+import { getCipherTitle, ICipherType } from "./ciphertypes";
 import { JTButtonItem } from "./jtbuttongroup";
 import { JTFLabeledInput } from "./jtflabeledinput";
 import { JTTable } from "./jttable";
@@ -23,6 +23,7 @@ import { JTTable } from "./jttable";
  */
 export class CipherTestGenerator extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;
+    public showPlain: boolean = false;
 
     public defaultstate: ITestState = {
         cipherString: "",
@@ -32,6 +33,7 @@ export class CipherTestGenerator extends CipherTest {
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [
         { title: "Randomize Order", color: "primary", id: "randomize" },
+        { title: "Export Test", color: "primary", id: "export" },
         { title: "Import Tests from File", color: "primary", id: "import" },
         { title: "Import Tests from URL", color: "primary", id: "importurl" },
     ];
@@ -79,13 +81,28 @@ export class CipherTestGenerator extends CipherTest {
             .add("Action")
             .add("Type")
             .add("Points")
-            .add("Question")
-            .add("Plain Text");
+            .add("Question");
+        if (this.showPlain) {
+            row.add("Plain Text");
+        } else {
+            row.add(
+                $("<span/>")
+                    .append("Plain Text ")
+                    .append($("<a/>", { id: "showplain" }).text("(show)"))
+            );
+        }
         let buttons: buttonInfo[] = [
             { title: "Edit", btnClass: "quesedit" },
             { title: "Remove", btnClass: "quesremove alert" },
         ];
-        this.addQuestionRow(table, -1, test.timed, buttons, undefined);
+        this.addQuestionRow(
+            table,
+            -1,
+            test.timed,
+            buttons,
+            this.showPlain,
+            undefined
+        );
         for (let entry = 0; entry < test.count; entry++) {
             let buttons2: buttonInfo[] = [
                 { title: "&uarr;", btnClass: "quesup", disabled: entry === 0 },
@@ -102,6 +119,7 @@ export class CipherTestGenerator extends CipherTest {
                 entry + 1,
                 test.questions[entry],
                 buttons2,
+                this.showPlain,
                 undefined
             );
         }
@@ -125,23 +143,6 @@ export class CipherTestGenerator extends CipherTest {
         testdiv.append(table.generate());
         // Put in buttons for adding blank tests of various types..
         result.append(testdiv);
-        return result;
-    }
-    public genQuestionPool(): JQuery<HTMLElement> {
-        let result = $("<div/>", {
-            class: "questionpool callout secondary",
-        });
-        result.append(
-            $("<h2>").text("Unused questions that can be added to this test")
-        );
-
-        let buttons: buttonInfo[] = [
-            { title: "Edit", btnClass: "entryedit" },
-            { title: "Add", btnClass: "quesadd" },
-            { title: "Set&nbsp;Timed", btnClass: "questime" },
-        ];
-
-        result.append(this.genQuestionTable(this.state.test, buttons));
         return result;
     }
     public exportTest(link: JQuery<HTMLElement>): void {
@@ -192,9 +193,6 @@ export class CipherTestGenerator extends CipherTest {
         this.setMenuMode(menuMode.test);
         $(".testdata").each((i, elem) => {
             $(elem).replaceWith(this.genTestQuestions());
-        });
-        $(".questionpool").each((i, elem) => {
-            $(elem).replaceWith(this.genQuestionPool());
         });
         this.attachHandlers();
     }
@@ -248,6 +246,93 @@ export class CipherTestGenerator extends CipherTest {
         test.questions[toswap] = save;
         this.setTestEntry(this.state.test, test);
         this.updateOutput();
+    }
+    /**
+     * Populate the file list dialog to match all the entries of a given type
+     */
+    public getFileList(ciphertype: ICipherType): JQuery<HTMLElement> {
+        let result = null;
+        let cipherCount = this.getCipherCount();
+        $("#okopen").prop("disabled", true);
+        if (cipherCount === 0) {
+            result = $("<div/>", {
+                class: "callout warning filelist",
+                id: "files",
+            }).text("No files found");
+        } else {
+            // Figure out what items we will not display if they gave us a filter
+            let useditems: { [index: string]: boolean } = {};
+            let test = this.getTestEntry(this.state.test);
+            if (test.timed !== -1) {
+                useditems[test.timed] = true;
+            }
+            for (let entry of test.questions) {
+                useditems[entry] = true;
+            }
+
+            result = $("<select/>", {
+                id: "files",
+                class: "filelist",
+                size: 10,
+            });
+            for (let entry = 0; entry < cipherCount; entry++) {
+                if (!useditems[entry]) {
+                    let fileEntry = this.getFileEntry(entry);
+                    let entryText = "[" + String(entry) + "]:";
+                    entryText +=
+                        "(" + getCipherTitle(fileEntry.cipherType) + ") ";
+                    if (
+                        fileEntry.question !== "" &&
+                        this.storageCipherEntryPrefix.substr(0, 1) === "A"
+                    ) {
+                        entryText += fileEntry.question;
+                    } else if (fileEntry.cipherString !== "") {
+                        entryText += fileEntry.cipherString;
+                    } else {
+                        entryText += fileEntry.question;
+                    }
+                    result.append(
+                        $("<option />", {
+                            value: entry,
+                        }).html(entryText)
+                    );
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Put up a dialog to select a cipher to load
+     */
+    public addExistingCipher(isTimed: boolean): void {
+        // Populate the list of known files.
+        if (isTimed) {
+            $("#OpenFile .dlgtitle").text(
+                "Select existing cipher for Timed Question"
+            );
+        } else {
+            $("#OpenFile .dlgtitle").text("Select existing cipher to add");
+        }
+        $("#files").replaceWith(this.getFileList(this.state.cipherType));
+        $("#files")
+            .off("change")
+            .on("change", e => {
+                $("#okopen").removeAttr("disabled");
+            });
+        $("#okopen").prop("disabled", true);
+        $("#okopen")
+            .off("click")
+            .on("click", e => {
+                let entry = Number($("#files option:selected").val());
+                $("#OpenFile").foundation("close");
+                if (isTimed) {
+                    this.gotoSetTimedCipher(entry);
+                } else {
+                    this.gotoAddCipher(entry);
+                }
+            });
+        $("#OpenFile").foundation("open");
     }
     public gotoRemoveCipher(entry: number): void {
         let test = this.getTestEntry(this.state.test);
@@ -360,7 +445,18 @@ export class CipherTestGenerator extends CipherTest {
                 let elem = $(e.target).find(":selected");
                 let cipherType = elem.val() as ICipherType;
                 let lang = elem.attr("data-lang");
-                this.createEmptyQuestion(cipherType, lang, true);
+                if (cipherType === ICipherType.None) {
+                    this.addExistingCipher(true);
+                } else {
+                    this.createEmptyQuestion(cipherType, lang, true);
+                }
+            });
+        $("#showplain")
+            .off("click")
+            .on("click", e => {
+                this.showPlain = true;
+                $(".qplain").removeClass("qplain");
+                $(e.target).hide();
             });
         $("#addnewques")
             .off("change")
@@ -368,7 +464,11 @@ export class CipherTestGenerator extends CipherTest {
                 let elem = $(e.target).find(":selected");
                 let cipherType = elem.val() as ICipherType;
                 let lang = elem.attr("data-lang");
-                this.createEmptyQuestion(cipherType, lang, false);
+                if (cipherType === ICipherType.None) {
+                    this.addExistingCipher(false);
+                } else {
+                    this.createEmptyQuestion(cipherType, lang, false);
+                }
             });
         $("#title")
             .off("input")

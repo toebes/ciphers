@@ -5,6 +5,12 @@
     margin-bottom: 10px;
     width: 600px;
 }
+.qplain {
+    display: none;
+}
+.qplain::after {
+    content: "Hidden";
+}
 
 body.txt {
     padding: 1rem;

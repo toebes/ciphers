@@ -10,19 +10,18 @@
 
 <body>
     <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
-        <% } %>
-            <%= require('html-loader!./analytics.html') %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+    <%= require('html-loader!./analytics.html') %>
 
-                <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-                <h2>
-                    <%= htmlWebpackPlugin.options.title %>
-                </h2>
-                <div class="precmds"></div>
-                <div class="cmdbuttons"></div>
-                <div class="testdata"></div>
-                <div class="questionpool"></div>
-                <div class="err" id="err"></div>
+    <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+    <h2>
+        <%= htmlWebpackPlugin.options.title %>
+    </h2>
+    <div class="precmds"></div>
+    <div class="cmdbuttons"></div>
+    <div class="testdata"></div>
+    <div class="err" id="err"></div>
 </body>
 
 </html>

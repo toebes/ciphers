@@ -1,4 +1,4 @@
-﻿/* textarea, input, */
+/* textarea, input, */
 .ibox, .ui-spinner, /* .note-editor, */ .ui-sel /*, .note */ {
     display: block;
     margin-left: 160px;
@@ -1237,6 +1237,9 @@ table.nameline td.u {
 .match10 {
     color: #62a13a;
     font-weight: bold;
+}
+.imgscale {
+    height: 0.9em;
 }
 
 @media print {

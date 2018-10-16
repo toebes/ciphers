@@ -171,6 +171,13 @@ module.exports = {
                 to: path.resolve(__dirname, "dist"),
             },
         ]),
+        new CopyWebpackPlugin([
+            {
+                from: path.join(__dirname, "app/images", "*.png"),
+                to: path.resolve(__dirname, "dist"),
+                flatten: true
+            }
+        ]),
         new WebpackAutoInject({
             // specify the name of the tag in the outputed files eg
             // bundle.js: [SHORT]  Version: 0.13.36 ...

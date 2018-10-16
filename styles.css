@@ -1238,6 +1238,9 @@ table.nameline td.u {
     color: #62a13a;
     font-weight: bold;
 }
+.imgscale {
+    height: 0.9em;
+}
 
 @media print {
     .title-bar,

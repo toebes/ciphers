@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body>
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+    <%= require('html-loader!./analytics.html') %>
+    <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+    <h2>
+        <%= htmlWebpackPlugin.options.title %>
+    </h2>
+    <div class="precmds"></div>
+    <div class="err" id="err"></div>
+    <div class="cmdbuttons"></div>
+    <div id="qtext" class="cell"></div>
+    <div class="ans clearfix" id="answer"></div>
+    <div class="postcmds"></div>
+    <div class="references">
+        <h2>Cipher Descriptions</h2>
+        <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Vigenere.pdf">VIGEN&Egrave;RE (period times
+            10-15 lines deep)</a>
+        &nbsp;|&nbsp; <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Variant.pdf">VARIANT (period
+            times 10-15 lines deep)</a>
+        &nbsp;|&nbsp; <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Beaufort.pdf">BEAUFORT (width
+            of period times 10-15 lines deep)</a>
+        &nbsp;|&nbsp; <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Gronsfeld.pdf">GRONSFELD
+            (period times 12-15 lines deep)</a>
+        &nbsp;|&nbsp; <a href="http://www.cryptogram.org/downloads/aca.info/ciphers/Porta.pdf">PORTA (period
+            times 10-15 lines deep)</a>
+        <h2>References</h2>
+        <ul>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1996_2000.pdf#page=520">A Trick for Variants,
+                    <b> CERE E. US</b>, Sep-Oct 1998, p.8</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2006-2010.pdf#page=104">A Vigen&egrave;re
+                    Slide Chart, <b> ROT13 </b>, Jul-Aug 2006, p.8</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2011-2015.pdf#page=12">A Vigen&egrave;re Solver
+                    &mdash; Part 1, <b> GGMA </b>, Jan-Feb 2011, p.12</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2011-2015.pdf#page=76">A Vigen&egrave;re Solver
+                    &mdash; Part 2, <b> GGMA </b>, May-Jun 2011, p.12</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1966_1970.pdf#page=452">Auto-encipherment,
+                    Letter Frequencies, <b> BASSETT</b>, May-Jun 1970, p.68</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1946_1950.pdf#page=47">Beaufort Auto-Key,
+                    <b> S-TUCK </b>, Jun-Jul 1946, p.47</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1936_1940.pdf#page=29">Beaufort Ciphers, <b>
+                        PICCOLA </b>, Jun 1936, p.3</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1976_1980.pdf#page=654">Comparative Analysis
+                    of the Vigen&egrave;re, Beaufort & Variant Ciphers, <b> SI SI </b>, Jul-Aug 1980, p.78</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2001_2005.pdf#page=140">Computer Column: Diagnosing
+                    Unknowns: Vigen&egrave;re, Slidefair, Autokey, <b> Larry Mayhew (AAHJU) </b>, Sep-Oct 2001,
+                    p.12
+                </a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1951_1955.pdf#page=92">Discard Your Old
+                    Vigen&egrave;re
+                    Charts and Strips, <b> SAI CHESS </b>, Aug-Sep 1951, p.92</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1971_1975.pdf#page=20">Early Proposal for
+                    the Use of the Vigen&egrave;re Table in America, <b> COMET</b>, Jan-Feb 1971, p.20</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2001_2005.pdf#page=232">Enjoying Ex-Libris:
+                    An Error-filled Vigen&egrave;re Cryptogram, <b> photon</b>, Mar-Apr 2002, p.8</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1966_1970.pdf#page=279">Half-Vigen&egrave;re
+                    Cipher, <b> AB STRUSE</b>, Mar-Apr 1969, p.43</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1946_1950.pdf#page=109">How I Work a
+                    Vigen&egrave;re,
+                    <b> GLENDALE </b>, Dec 1946-Jan 1947, p.109</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1941_1945.pdf#page=398">Introduction to the
+                    Vigen&egrave;re Family, <b> S-TUCK </b>, Jun-Jul 1944, p.41</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1961_1965.pdf#page=485">Kasiski Method, Part
+                    2: Solving A Long Vigen&egrave;re Cipher, <b> ZEMBIE </b>, Mar-Apr 1964, p.80</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1976_1980.pdf#page=517">Making a Cipher Disk,
+                    <b> EDNASANDE </b>, Sep-Oct 1979, p.89</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1996_2000.pdf#page=135">Method for Vigen&egrave;re
+                    Key and Solution, <b> ASAP</b>, Sep-Oct 1996, p.7</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1976_1980.pdf#page=592">More on the Cipher
+                    Disk, <b> EDNASANDE </b>, Mar-Apr 1980, p.28</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1986_1990.pdf#page=256">Novice Notes #18:
+                    Vigen&egrave;re, Variant, Beaufort and Gronsfeld Ciphers, <b> LEDGE</b>, Jul-Aug 1987, p.4</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1971_1975.pdf#page=174">Novice Notes:
+                    Vigen&egrave;re
+                    Family, <b> LEDGE </b>, Jan-Feb 1972, p.6</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1971_1975.pdf#page=150">Novice Notes:
+                    Vigen&egrave;re,
+                    Variant, Beaufort and Gronsfeld Ciphers (Fundamentals), <b> LEDGE</b>, Nov-Dec 1971, p.166</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1991_1995.pdf#page=36">Porta a Special Case
+                    of Beaufort, <b> O'PSHAW </b>, Mar-Apr 1991, p.4</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1946_1950.pdf#page=166">Short Cuts for Lining
+                    Up the Alphabets in Vigen&egrave;re Family Type Ciphers, <b> X. GOTKY </b>, Jun-Jul 1947,
+                    p.46
+                </a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1941_1945.pdf#page=240">Sigma Test for Keyword
+                    Letters in the Vigen&egrave;re, <b> CONTRACUS </b>, Feb-Mar 1943, p.1</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1941_1945.pdf#page=484">Solving a Vigen&egrave;re,
+                    <b> S-TUCK </b>, Feb-Mar 1945, p.7</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1932_1935.pdf#page=155">Solving a Vigen&egrave;re
+                    Cipher, <b> PICCOLA </b>, Apr 1935, p.2</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2001_2005.pdf#page=780">Solving Homophonic
+                    and Vigen&egrave;re by Cross-correlation, <b> ANCHISES </b>, Jan-Feb 2005, p.12</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1941_1945.pdf#page=285">Solving Vigen&egrave;res
+                    by the Trigram Method, <b> TRYIT </b>, Jun-Jul 1943, p.46</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1951_1955.pdf#page=703">Sure and Easy Procedure
+                    for Solving Vigen&egrave;re Type of Periodic in an Unknown Language with Non-Roman Alphabet,
+                    <b> KOHOP</b>, Mar-Apr 1955, p.22</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2006-2010.pdf#page=937">The Big Four Circle,
+                    <b> LABRONICUS</b>, Nov-Dec 2010, p.9</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2006-2010.pdf#page=149">Tyro Grams: Vigen&egrave;re,
+                    <b> LIONEL </b>, Sep-Oct 2006, p.21</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2006-2010.pdf#page=85">Tyro Grams: Vigen&egrave;re,
+                    <b> LIONEL </b>, May-Jun 2006, p.21</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2006-2010.pdf#page=117">Tyro Grams: Vigen&egrave;re,
+                    <b> LIONEL </b>, Jul-Aug 2006, p.21</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2006-2010.pdf#page=85">Tyro Grams: Vigen&egrave;re
+                    Square, <b> LIONEL </b>, May-Jun 2006, p.21</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2006-2010.pdf#page=245">Tyro Grams: Vigen&egrave;re,
+                    Variant, Beaufort, Gronsfeld Slides, <b> LIONEL </b>, Mar-Apr 2007, p.21</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2011-2015.pdf#page=232">Uncovering Errors
+                    in a Cryptogram in The Mystic Cipher, <b> DadTheCool </b>, Mar-Apr 2012, p.8</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1941_1945.pdf#page=502">Variant Cipher, <b>
+                        S-TUCK </b>, Apr-May 1945, p.25</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2006-2010.pdf#page=452">Vigen&egrave;re and
+                    Autokey: An Update, <b> LABRONICUS </b>, May-Jun 2008, p.4</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1932_1935.pdf#page=144">Vigen&egrave;re Cipher,
+                    <b> PICCOLA </b>, Feb 1935, p.3</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1951_1955.pdf#page=533">Vigen&egrave;re Family,
+                    <b> TONTO </b>, Jun-Jul 1954, p.42</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1951_1955.pdf#page=591">Vigen&egrave;re Family,
+                    <b> TONTO </b>, Oct-Nov 1954, p.80</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1946_1950.pdf#page=1">Vigen&egrave;re Variations,
+                    <b> S-TUCK</b>, Feb-Mar 1946, p.1</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1936_1940.pdf#page=70">Vigen&egrave;re with
+                    a "Running Key", <b> PICCOLA</b>, Oct 1936, p.12</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1996_2000.pdf#page=676">Vigen&egrave;re Without
+                    a Crib: Generatrices, <b> Larry Mayhew (AAHJU)</b>, Jul-Aug 1999, p.4</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2001_2005.pdf#page=360">Vigen&egrave;re, Beaufort
+                    & Variant: A Shortcut for Solving, <b> ROT13 </b>, Nov-Dec 2002, p.8</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2011-2015.pdf#page=776">Wordplay &lsquo;Ful&rsquo;
+                    of Words, <b> TRUPSILON </b>, Mar-Apr 2015, p.8</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1986_1990.pdf#page=742">Computer Column: Gronsfeld,
+                    <b>PHOENIX</b>, Jan-Feb 1990, p.10</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1986_1990.pdf#page=774">Computer Column: Gronsfeld
+                    -> Gromark, <b>PHOENIX</b>, Mar-Apr 1990, p.10</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1936_1940.pdf#page=230">Condensed Analysis
+                    (of a Gronsfeld), <b>R.L.H.</b>, Apr 1938, p.8</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1936_1940.pdf#page=286">Condensed Analysis
+                    (of a Gronsfeld), <b>R.L.H.</b>, Oct 1938, p.4</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1941_1945.pdf#page=423">Gronsfeld, <b>CHARMER</b>,
+                    Aug-Sep 1944, p.66</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1932_1935.pdf#page=199">Gronsfeld Cipher,
+                    <b>PICCOLA</b>, Oct 1935, p.6</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1941_1945.pdf#page=422">Gronsfeld Cipher,
+                    <b>S-TUCK</b>, Aug-Sep 1944, p.65</a></li>
+
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1991_1995.pdf#page=612">Early Forms of the
+                    Porta Table, <b>LABRONICUS</b>, Mar-Apr 1994, p.4</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1991_1995.pdf#page=265">Historical Tidbits
+                    (Alberti, Bellaso, Porta, Vigenére), <b>LABRONICUS</b>, May-Jun 1992, p.9</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1971_1975.pdf#page=202">Novice Notes: Porta,
+                    <b>LEDGE</b>, Mar-Apr 1972, p.54</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1946_1950.pdf#page=482">Breaking the Porta
+                    Auto-Key, <b>AB STRUSE</b>, Oct-Nov 1949, p.99</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1986_1990.pdf#page=579">Easier Porta, <b>SOLDJER
+                        C
+                    </b>, Mar-Apr 1989, p.11</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1981_1985.pdf#page=632">Keyed Alphabet Porta1,
+                    <b>CODEX</b>, May-Jun 1985, p.3</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1941_1945.pdf#page=383">Porta Auto-Key, <b>X.GOTKY
+                        and S-TUCK</b>, Apr-May 1944, p.26</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2011-2015.pdf#page=362">Porta Crib Placement,
+                    <b>CONFUOCO</b>, Nov-Dec 2012, p.10</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1971_1975.pdf#page=202">Porta (Novice Notes),
+                    <b>LEDGE</b>, Mar-Apr 1972, p.54</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2011-2015.pdf#page=692">Porta Period Determination
+                    &amp; Crib Placement, <b>LIONEL</b>, Sep-Oct 2014, p.8</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1946_1950.pdf#page=76">Short Cut for Lining
+                    Up Porta Alphabets, <b>X.GOTKY</b>, Aug-Sep 1946, p.76</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1941_1945.pdf#page=245">Shortcuts for Lining
+                    Up Porta Alphabets, <b>X.GOTKY</b>, Feb-Mar 1943, p.6</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2001_2005.pdf#page=585">SO X-12 Italian Porta,
+                    <b>LIONEL</b>, Jan-Feb 2004, p.9</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/2006-2010.pdf#page=932">Solving a Porta Crypt
+                    Using Sliding Strips, <b>MATANZA</b>, Nov-Dec 2010, p.4</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1936_1940.pdf#page=504">Some Odds and Ends
+                    On the Porta, <b>PICCOLA</b>, Jun 1940, p.52</a></li>
+            <li><a href="http://www.cryptogram.org/members/Cm_PDFs/1996_2000.pdf#page=488">Using the PhoeBee
+                    to Solve a Porta Slidefair, <b>HONEYBEE</b>, Jul-Aug 1998, p.8</a></li>
+
+        </ul>
+    </div>
+</body>
+
+</html>

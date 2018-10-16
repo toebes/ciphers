@@ -1,0 +1,32 @@
+﻿<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body>
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+    <%= require('html-loader!./analytics.html') %>
+
+    <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+    <h2>
+        <%= htmlWebpackPlugin.options.title %>
+    </h2>
+    <div class="slookup" id="lookup">
+        <div class="langstatus"></div>
+        <div>
+            <label for="lang">Pick Language</label>
+            <select class="lang"></select>
+        </div>
+    </div>
+    <hr />
+    <div class="langout"></div>
+</body>
+
+</html>

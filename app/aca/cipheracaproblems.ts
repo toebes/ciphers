@@ -1,10 +1,10 @@
-import { buttonInfo, CipherTest, ITestState } from "../codebusters/ciphertest";
 import { cloneObject } from "../common/ciphercommon";
 import { menuMode, toolMode } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTFDialog } from "../common/jtfdialog";
 import { JTTable } from "../common/jttable";
+import { buttonInfo, CipherTest, ITestState } from "./ciphertest";
 /**
  * CipherTestQuestions - This manages all of the questions to allow deleting/importing/editing
  */

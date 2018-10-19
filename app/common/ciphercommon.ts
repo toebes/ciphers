@@ -1,5 +1,3 @@
-import * as katex from "katex";
-
 export interface StringMap {
     [index: string]: string;
 }
@@ -46,14 +44,7 @@ export function setCharAt(str: string, index: number, chr: string): string {
     }
     return str.substr(0, index) + chr + str.substr(index + 1);
 }
-/**
- * Render a LaTeX math string with katex.
- * See https://khan.github.io/KaTeX/docs/supported.html for everything supported
- * @param str LaTeX formatted string
- */
-export function renderMath(str: string): JQuery<HTMLElement> {
-    return $(katex.renderToString(str));
-}
+
 /**
  * Make multiple copies of a string concatenated
  * @param c Character(or string) to repeat

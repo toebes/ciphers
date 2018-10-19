@@ -1,5 +1,10 @@
 import { cloneObject } from "../common/ciphercommon";
-import { IOperationType, IState, menuMode, toolMode } from "../common/cipherhandler";
+import {
+    IOperationType,
+    IState,
+    menuMode,
+    toolMode,
+} from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTFIncButton } from "../common/jtfIncButton";
@@ -22,6 +27,7 @@ interface IVigenereState extends IState {
  */
 export class CipherVigenereEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
+    public guidanceURL: string = "TestGuidance.html#Vigenere";
 
     public defaultstate: IVigenereState = {
         /** The current cipher type we are working on */
@@ -33,13 +39,15 @@ export class CipherVigenereEncoder extends CipherEncoder {
         /** The current string we are looking for */
         findString: "",
         operation: "encode",
-        blocksize: 0
+        blocksize: 0,
     };
-    public state: IVigenereState = cloneObject(this.defaultstate) as IVigenereState;
+    public state: IVigenereState = cloneObject(
+        this.defaultstate
+    ) as IVigenereState;
     public cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save", class: "save" },
         this.undocmdButton,
-        this.redocmdButton
+        this.redocmdButton,
     ];
 
     public restore(data: IState): void {
@@ -74,9 +82,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.updateQuestionsOutput();
         this.setMenuMode(menuMode.question);
         if (this.state.operation === "encode") {
+            this.guidanceURL = "TestGuidance.html#Vigenere";
             // Change the button label to 'Encode'
             $("#load").val("Encode");
         } else {
+            this.guidanceURL = "TestGuidance.html#Vigenere_Decrypt";
             // Change button label to 'Decode'
             $("#load").val("Decode");
         }
@@ -93,7 +103,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         result.append(this.genTestUsage());
         let radiobuttons = [
             { id: "wrow", value: "encode", title: "Encode" },
-            { id: "mrow", value: "decode", title: "Decode" }
+            { id: "mrow", value: "decode", title: "Decode" },
         ];
         result.append(
             JTRadioButton(6, "operation", radiobuttons, this.state.operation)

@@ -35,6 +35,8 @@ export interface IEncoderState extends IState {
  */
 export class CipherEncoder extends CipherHandler {
     public activeToolMode: toolMode = toolMode.codebusters;
+    public guidanceURL: string = "TestGuidance.html#Aristocrat";
+
     public defaultstate: IEncoderState = {
         cipherString: "",
         cipherType: ICipherType.Aristocrat,

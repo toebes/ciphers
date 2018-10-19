@@ -1,8 +1,8 @@
-import { CipherTest, ITestState } from "../codebusters/ciphertest";
 import { cloneObject, padLeft } from "../common/ciphercommon";
 import { menuMode, toolMode } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
+import { CipherTest, ITestState } from "./ciphertest";
 
 /**
  * CipherTestQuestions - This manages all of the questions to allow deleting/importing/editing

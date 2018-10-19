@@ -125,6 +125,7 @@ export class CipherHandler {
         ia: "Interlingua",
         la: "Latin",
     };
+    public guidanceURL: string = "TestGuidance.html";
     /**
      * This maps which characters are legal in a cipher for a given language
      */
@@ -1982,6 +1983,10 @@ export class CipherHandler {
                 this.about();
                 break;
 
+            case "guidance":
+                this.guidance();
+                break;
+
             //            case "download":
             //                this.download();
             //                break;
@@ -2466,6 +2471,9 @@ export class CipherHandler {
                 replOrder += eid.substr(eid.length - 1);
             });
         this.state.replOrder = replOrder;
+    }
+    public guidance(): void {
+        window.open(this.guidanceURL, "guidance");
     }
     /**
      * Show the about dialog

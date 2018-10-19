@@ -1,5 +1,4 @@
-import { cloneObject, renderMath } from "../common/ciphercommon";
-import { CipherEncoder, IEncoderState } from "./cipherencoder";
+import { cloneObject } from "../common/ciphercommon";
 import { IOperationType, toolMode } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
@@ -13,6 +12,8 @@ import {
     getRandomPrime,
     modularInverse,
 } from "../common/mathsupport";
+import { renderMath } from "../common/renderMath";
+import { CipherEncoder, IEncoderState } from "./cipherencoder";
 /**
  * Generates the HTML to display a sting in a fixed width font
  * @param str String to display as fixed width
@@ -155,6 +156,8 @@ const optRSA5TemplateAnswerStrings = [
  */
 export class CipherRSAEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
+    public guidanceURL: string = "TestGuidance.html#RSA";
+
     public defaultstate: IRSAState = {
         cipherString: "",
         question: "",

@@ -90,6 +90,7 @@ interface IBaconianState extends IEncoderState {
  */
 export class CipherBaconianEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
+    public guidanceURL: string = "TestGuidance.html#Baconian";
     public defaultstate: IBaconianState = {
         cipherString: "",
         cipherType: ICipherType.Baconian,

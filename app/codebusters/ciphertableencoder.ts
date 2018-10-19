@@ -16,6 +16,8 @@ import { CipherEncoder, IEncoderState } from "./cipherencoder";
  */
 export class CipherTableEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
+    public guidanceURL: string = "TestGuidance.html#Baconian";
+
     public defaultstate: IEncoderState = {
         cipherString: "",
         cipherType: ICipherType.Caesar,
@@ -24,7 +26,9 @@ export class CipherTableEncoder extends CipherEncoder {
         operation: "decode",
         replacement: {},
     };
-    public state: IEncoderState = cloneObject(this.defaultstate) as IEncoderState;
+    public state: IEncoderState = cloneObject(
+        this.defaultstate
+    ) as IEncoderState;
     public cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         this.undocmdButton,
@@ -63,8 +67,10 @@ export class CipherTableEncoder extends CipherEncoder {
 
     public updateOutput(): void {
         if (this.state.cipherType === ICipherType.Caesar) {
+            this.guidanceURL = "TestGuidance.html#Caesar";
             $(".offset").show();
         } else {
+            this.guidanceURL = "TestGuidance.html#Atbash";
             $(".offset").hide();
         }
         JTRadioButtonSet("ciphertype", this.state.cipherType);

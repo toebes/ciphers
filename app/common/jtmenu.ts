@@ -107,16 +107,16 @@ export function JTCreateMenu(
     topbar.append(topbarleft);
 
     let topbarright = $("<div/>", { class: "top-bar-right" });
-    let searchmenu = $("<ul/>", { class: "menu" });
-    $("<li/>")
-        .append($("<input/>", { type: "search", placeholder: "Search" }))
-        .appendTo(searchmenu);
-    $("<li/>")
-        .append(
-            $("<button/>", { type: "button", class: "button" }).text("Search")
-        )
-        .appendTo(searchmenu);
-    topbarright.append(searchmenu);
+    // let searchmenu = $("<ul/>", { class: "menu" });
+    // $("<li/>")
+    //     .append($("<input/>", { type: "search", placeholder: "Search" }))
+    //     .appendTo(searchmenu);
+    // $("<li/>")
+    //     .append(
+    //         $("<button/>", { type: "button", class: "button" }).text("Search")
+    //     )
+    //     .appendTo(searchmenu);
+    // topbarright.append(searchmenu);
     topbar.append(topbarright);
     result.append(topbar);
 

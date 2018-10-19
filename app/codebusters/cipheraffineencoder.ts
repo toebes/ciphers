@@ -1,4 +1,4 @@
-import { cloneObject, renderMath, StringMap } from "../common/ciphercommon";
+import { cloneObject, StringMap } from "../common/ciphercommon";
 import { IState, toolMode } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
@@ -7,6 +7,7 @@ import { JTFLabeledInput } from "../common/jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "../common/jtradiobutton";
 import { JTTable } from "../common/jttable";
 import { isCoPrime } from "../common/mathsupport";
+import { renderMath } from "../common/renderMath";
 import { CipherEncoder } from "./cipherencoder";
 
 // Configure how we want the multiplication to appear - either as a * or a dot
@@ -26,6 +27,7 @@ interface IAffineState extends IState {
 
 export class CipherAffineEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
+    public guidanceURL: string = "TestGuidance.html#Affine";
     public defaultstate: IAffineState = {
         /** The type of operation */
         operation: "encode" /** a value */,
@@ -69,6 +71,13 @@ export class CipherAffineEncoder extends CipherEncoder {
         $("#b").val(this.state.b);
 
         JTRadioButtonSet("operation", this.state.operation);
+
+        if (this.state.operation === "encode") {
+            this.guidanceURL = "TestGuidance.html#Affine";
+        } else {
+            this.guidanceURL = "TestGuidance.html#Affine_Decrypt";
+        }
+
         if (this.state.solclick1 !== -1) {
             $("td#m" + this.state.solclick1).addClass("TOSOLVECLICK");
             $("td#p" + this.state.solclick1).addClass("TOSOLVECLICK");

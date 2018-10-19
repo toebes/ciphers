@@ -198,3 +198,59 @@ export function modularInverse(a: number, m: number): number {
     }
     return ((y % m) + m) % m;
 }
+
+/**
+ * Extract a sub-array from an array eliminating a specific row and column
+ * From https://coderbyte.com/tutorial/determinant-of-a-matrix-in-javascript-using-laplace-expansion
+ * @param a Array to extract sub-array
+ * @param idx Index to slice
+ */
+export function deleteRowAndColumn(a: number[][], idx: number): number[][] {
+    let temp = [];
+    // copy the array first
+    for (let row of a) {
+        temp.push(row.slice(0));
+    }
+    // delete the first row
+    temp.splice(0, 1);
+    // delete the column at the index specified
+    for (let row of temp) {
+        row.splice(idx, 1);
+    }
+    return temp;
+}
+
+/**
+ * Calculate the determinant of a 2x2 or 3x3 array.
+ * @param a Array to get determinant of
+ * @returns Determinant of the array
+ */
+export function determinant(a: number[][]): number {
+    if (a.length === 2) {
+        return a[0][0] * a[1][1] - a[0][1] * a[1][0];
+    }
+    let answer = 0;
+    for (let i = 0; i < a.length; i++) {
+        answer +=
+            Math.pow(-1, i) * a[0][i] * determinant(deleteRowAndColumn(a, i));
+    }
+    return answer;
+}
+
+/**
+ * Multiply two arrays.  This function is limited to multiplying a 2x2 or 3x3
+ * array by a corresponding 1 dimentional array of the same size.
+ * @param a Array to multiply
+ * @param m Vector to multiply
+ */
+export function multarray(a: number[][], m: number[]): number[] {
+    let result: number[] = [];
+    for (let row of a) {
+        let sum = 0;
+        for (let i = 0; i < row.length; i++) {
+            sum += row[i] * m[i];
+        }
+        result.push(sum);
+    }
+    return result;
+}

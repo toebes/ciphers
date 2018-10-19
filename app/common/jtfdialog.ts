@@ -24,7 +24,7 @@ export function JTFDialog(
     // Of course we need the content for the dialog
     dlg.append(content);
     // With a Cancel and an ok button
-    let buttongroup = $("<div/>", { class: "expanded button-group round" });
+    let buttongroup = $("<div/>", { class: "expanded button-group" });
     if (oktitle == null) {
         buttongroup.append(
             $("<a/>", { class: "secondary button", "data-close": "" }).text(

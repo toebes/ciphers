@@ -1,13 +1,20 @@
-import * as math from "mathjs";
-import { cloneObject, renderMath } from "../common/ciphercommon";
-import { CipherEncoder } from "./cipherencoder";
+import { cloneObject } from "../common/ciphercommon";
 import { IState, toolMode } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTFLabeledInput } from "../common/jtflabeledinput";
 import { JTRadioButton, JTRadioButtonSet } from "../common/jtradiobutton";
 import { JTTable } from "../common/jttable";
-import { isCoPrime, mod26, mod26Inverse2x2, modInverse26 } from "../common/mathsupport";
+import {
+    determinant,
+    isCoPrime,
+    mod26,
+    mod26Inverse2x2,
+    modInverse26,
+    multarray,
+} from "../common/mathsupport";
+import { renderMath } from "../common/renderMath";
+import { CipherEncoder } from "./cipherencoder";
 
 const kmathEquiv = "\\equiv";
 // Configure how we want the multiplication to appear - either as a * or a dot
@@ -15,6 +22,7 @@ const kmathMult = "*";
 // const kmathMult = ' \\cdot '
 export class CipherHillEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
+    public guidanceURL: string = "TestGuidance.html#Hill_Matrix";
     public defaultstate: IState = {
         cipherString: "",
         keyword: "" /** The type of cipher we are doing */,
@@ -60,8 +68,10 @@ export class CipherHillEncoder extends CipherEncoder {
     public updateOutput(): void {
         if (this.state.operation === "compute") {
             $(".encbox").hide();
+            this.guidanceURL = "TestGuidance.html#Hill_Matrix";
         } else {
             $(".encbox").show();
+            this.guidanceURL = "TestGuidance.html#Hill_Encrypt";
         }
         JTRadioButtonSet("operation", this.state.operation);
         super.updateOutput();
@@ -279,15 +289,15 @@ export class CipherHillEncoder extends CipherEncoder {
             vals[row][i % groupsize] = x;
         }
 
-        let determinant = math.round(math.det(vals)) as number;
-        if (determinant === 0) {
+        let detval = Math.round(determinant(vals)) as number;
+        if (detval === 0) {
             $("#err").text("Matrix is not invertable");
             return undefined;
         }
-        if (!isCoPrime(determinant, charset.length)) {
+        if (!isCoPrime(detval, charset.length)) {
             $("#err").text(
                 "Matrix is not invertable.  Determinant " +
-                    mod26(determinant) +
+                    mod26(detval) +
                     " is not coprime with " +
                     charset.length
             );
@@ -671,7 +681,7 @@ export class CipherHillEncoder extends CipherEncoder {
                 }
                 cluster.push(val);
             }
-            let clustervals = math.multiply(vals, cluster);
+            let clustervals = multarray(vals, cluster);
             for (let j = 0; j < groupsize; j++) {
                 result += charset.substr(clustervals[j] % charset.length, 1);
             }

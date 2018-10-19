@@ -190,6 +190,11 @@ export const CipherMenu: menuItem[] = [
         menu: [
             //            { title: "Download", action: "download", classname: "download" },
             { title: "About", action: "about", classname: "about" },
+            {
+                title: "Test Question Guidance",
+                action: "guidance",
+                classname: "guidance menucb",
+            },
         ],
     },
 ];

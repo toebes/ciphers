@@ -54,13 +54,6 @@ module.exports = {
                 "css",
                 "foundation.css"
             ),
-            mathjs: path.join(
-                __dirname,
-                "node_modules",
-                "mathjs",
-                "dist",
-                "math.js"
-            ),
             "katex.js": path.join(
                 __dirname,
                 "node_modules",
@@ -127,16 +120,21 @@ module.exports = {
                 },
             },
             // All .woff and .woff2 fonts files are packed inline (unless they are
-            // larger than 100,000)
+            // larger than 1,000)
             {
                 test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-                loader:
-                    "url-loader?limit=100000&mimetype=application/font-woff",
+                // loader: "url-loader?limit=1000&mimetype=application/font-woff",
+                use: {
+                    loader: "file-loader",
+                    options: {
+                        name: "font/[name].[ext]",
+                    },
+                },
             },
             // All ttf and eot files are kept in a standalone directory to load
             // Eventually they should go away
             {
-                test: /\.(ttf|eot)$/,
+                test: /\.(ttf)$/,
                 use: {
                     loader: "file-loader",
                     options: {
@@ -175,8 +173,8 @@ module.exports = {
             {
                 from: path.join(__dirname, "app/images", "*.png"),
                 to: path.resolve(__dirname, "dist"),
-                flatten: true
-            }
+                flatten: true,
+            },
         ]),
         new WebpackAutoInject({
             // specify the name of the tag in the outputed files eg

@@ -11,6 +11,8 @@ import { CipherVigenereEncoder } from "./ciphervigenereencoder";
  */
 export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
+    public guidanceURL: string = "TestGuidance.html#RunningKey";
+
     public usesRunningKey: boolean = true;
     public getRunningKeyIndex(): number {
         // See if the current keyword is one of the valid options

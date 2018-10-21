@@ -13,6 +13,7 @@ import { JTCreateMenu, JTGetSolveURL, JTGetURL } from "./jtmenu";
 import { InitStorage, JTStorage } from "./jtstore";
 import { JTTable } from "./jttable";
 import { parseQueryString } from "./parsequerystring";
+import { getVersion } from "./getversion";
 export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
     test, // Test generation Tools - No file or Edit menu
@@ -1987,10 +1988,6 @@ export class CipherHandler {
                 this.guidance();
                 break;
 
-            //            case "download":
-            //                this.download();
-            //                break;
-
             default:
                 console.log("Unknown action: " + action);
                 break;
@@ -2429,9 +2426,12 @@ export class CipherHandler {
      * Creates the hidden dialog showing version/build information
      */
     public createAboutDlg(): JQElement {
-        let dlgContents = $("<table/>");
+        let dlgContents = $("<table class=\"version-table\"/>");
         dlgContents.append(
-            "<tr><td>Version:</td><td>[AIV]{version}[/AIV]</td></tr>"
+            "<tr class=\"version\"><td>Version:</td><td>"+getVersion()+"</td></tr>"
+        );
+        dlgContents.append(
+            "<tr class=\"latest-version\"><td>Latest version:</td><td><span class=\"remote-version\">Unknown</span></td></tr>"
         );
         dlgContents.append(
             "<tr><td>Built  :</td><td>[AIV]{date}[/AIV]</td></tr>"
@@ -2441,8 +2441,8 @@ export class CipherHandler {
             "About",
             "Cipher Tools",
             dlgContents,
-            "not-used",
-            null
+            "okdownload",
+            "Download latest version"
         );
         return aboutDlg;
     }
@@ -2476,23 +2476,93 @@ export class CipherHandler {
         window.open(this.guidanceURL, "guidance");
     }
     /**
-     * Show the about dialog
+     * Show the about dialog.  If served from file:// (i.e. running
+     * local), try to contact the server and get the online version.
+     * If online is newer, enable download button for zip file.
      */
     public about(): void {
+        var served_from = window.location.href;
+        var local_version = getVersion();
+        console.log("Local version: "+ local_version);
+        console.log("served from: "+served_from.substring(0,4));
+        $(".version-table tr.latest-version").hide();
+        if ('file:' === served_from.substring(0,5)) {
+            this.getWebVersion(local_version);
+            $(".version-table tr.latest-version").show();
+        }
+        else {
+            // Enable the download button...
+            $("#okdownload").removeAttr("disabled");
+            this.download();
+        }
+
         $("#About").foundation("open");
     }
+
     /**
-     * Download the zip file of the site.
+     * Download the zip file is the 'download' button is not disabled
      */
-    /*
     public download(): void {
-        console.log('Handle request to download....')
-        $(".download").click(function() {
-            // hope the server sets Content-Disposition: attachment!
-            window.location = 'font/KaTeX_AMS-Regular.ttf';
+        $("#okdownload")
+        .off("click")
+        .on("click", e => {
+            if (! $("#okdownload").prop("disabled")) {
+                console.log("disable download prop: >"+$("#okdownload").prop("disabled")+"<");
+                e.preventDefault();
+                window.location.href = 'https://toebes.com/codebusters/CipherTools.zip';
+            }
         });
     }
-    */
+
+    /**
+     * Download the zip file of the site.  Overall design of this goes like:
+     *         
+     *   // check if running from file system
+     *   // = true - try to phone home.
+     *   //   = true - get version file
+     *   //     is version at home > local version
+     *   //     = true - download
+     *   //     = else - OK dialog "@ latest level"
+     *   //   = else - nothing to do
+     *   // = else - do the download
+     */
+    public getWebVersion(local_version: string): void {
+        console.log('Handle request to get Web version....');
+        var remote_version = "0.0.0";
+        // Phone home
+        // test from: "http://192.168.109.10:10980/dist/siteVersion.txt"
+        $.ajax({
+            url: "https://toebes.com/codebusters/siteVersion.txt", 
+            dataType: "jsonp", 
+            jsonpCallback: "getVersion",
+            success: function (a, b, c) {
+                console.log("A Success "+JSON.stringify(a));
+                console.log("B Success "+b);
+                console.log("C Success "+c);
+                remote_version = a["version"];
+                console.log("Set remote version to: "+remote_version);
+                },
+            error: function (a, b, c) {
+                alert(c);
+                }
+            }).done(function(yyy) {
+                $(".remote-version").html(remote_version);
+                // enable the down load buttin if appropriate
+                console.log("Enable download button?");
+                if (remote_version > local_version) {
+                    console.log("remove disable attrib, to enable download button");
+                    $("#okdownload").removeAttr("disabled");                    
+                }
+                else {
+                    console.log("Disable the download button...");
+                    $("#okdownload").prop("disabled", true);
+                }
+            });
+
+        console.log("Remote version: "+ remote_version);
+        console.log("Local version: "+ local_version);
+        this.download();
+    }
 
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions

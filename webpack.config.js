@@ -204,6 +204,13 @@ module.exports = {
                 },
             },
         }),
+        new CopyWebpackPlugin([
+            {
+                from: path.join(__dirname, "app", "siteVersion.txt"),
+                to: path.resolve(__dirname, "dist", "siteVersion.txt"),
+                flatten: true
+            }
+        ]),
         // new HardSourceWebpackPlugin(),
         // new TypedocWebpackPlugin({
         //     target: "es5",

@@ -2549,7 +2549,7 @@ export class CipherHandler {
                 console.log("Disable the download button...");
                 $("#okdownload").prop("disabled", true);
              }
-            }).done(function(yyy) {
+            }).done(function(a, b, c) {
                 $(".remote-version").html(remote_version);
                 // enable the down load buttin if appropriate
                 console.log("Enable download button?");

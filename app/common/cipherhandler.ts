@@ -2543,7 +2543,9 @@ export class CipherHandler {
                 console.log("Set remote version to: "+remote_version);
                 },
             error: function (a, b, c) {
-                alert(c);
+                console.log("A Error "+JSON.stringify(a));
+                console.log("B Error "+b);
+                console.log("C Error "+c);
                 }
             }).done(function(yyy) {
                 $(".remote-version").html(remote_version);

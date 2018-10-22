@@ -42,9 +42,9 @@
             ]
         },
         {
-            "label": "create dist zip-under development",
+            "label": "create dist zip",
             "type": "shell",
-            "command": "/usr/bin/zip -uro CipherTools.zip dist/",
+            "command": "${workspaceRoot}/mkCTZip.sh",
             "windows": {
                 "command": "echo not supported."
             },

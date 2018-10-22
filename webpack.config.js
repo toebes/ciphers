@@ -180,7 +180,7 @@ module.exports = {
             // specify the name of the tag in the outputed files eg
             // bundle.js: [SHORT]  Version: 0.13.36 ...
             SHORT: "CUSTOM",
-            SILENT: false,
+            SILENT: true,
             PACKAGE_JSON_PATH: "./package.json",
             components: {
                 AutoIncreaseVersion: true,

@@ -1,4 +1,3 @@
-import * as InlineEditor from "@ckeditor/ckeditor5-build-inline";
 import { BoolMap, cloneObject, StringMap } from "../common/ciphercommon";
 import { CipherMenu } from "./ciphermenu";
 import {
@@ -717,11 +716,6 @@ export class CipherHandler {
     public storageTestEntryPrefix: string = "Cipher-Test";
     public storageCipherCountName: string = "Cipher-Count";
     public storageCipherEntryPrefix: string = "Cipher-Data";
-    /**
-     * This is a cache of all active editors on the page.
-     * It is indexed by the id of the HTML element
-     */
-    public editor: { [key: string]: InlineEditor } = {};
     /**
      * The maximum number of characters to
      * be shown on an encoded line so that it can be readily pasted into a test
@@ -2021,18 +2015,6 @@ export class CipherHandler {
         this.updateMatchDropdowns("");
     }
     /**
-     * Set the value of a rich text element.  Note that some editors may not
-     * be fully initialized, so we may have to stash it for when it does get
-     * initialized
-     */
-    public setRichText(id: string, val: string): void {
-        if (id in this.editor && this.editor[id] !== null) {
-            this.editor[id].setData(val);
-        } else {
-            $("#" + id).val(val);
-        }
-    }
-    /**
      * Generate a replacement pattern string.  Any unknown characters are represented as a space
      * otherwise they are given as the character it replaces as.
      *
@@ -2676,27 +2658,6 @@ export class CipherHandler {
             .on("change", e => {
                 this.loadLanguage($(e.target).val() as string);
             });
-        $(".richtext").each((i: number, elem: HTMLElement) => {
-            let id = $(elem).prop("id") as string;
-            if (id !== "" && !(id in this.editor)) {
-                this.editor[id] = null;
-                InlineEditor.create(elem)
-                    .then(editor => {
-                        let initialtext = $(elem).val();
-                        this.editor[id] = editor;
-                        if (initialtext !== "") {
-                            editor.setData(initialtext);
-                        }
-                        editor.model.document.on("change:data", () => {
-                            $(elem).trigger("richchange", editor.getData());
-                        });
-                    })
-                    .catch(error => {
-                        console.error(error);
-                        delete this.editor[id];
-                    });
-            }
-        });
         $("#find")
             .off("input")
             .on("input", e => {

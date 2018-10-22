@@ -1,3 +1,4 @@
+import * as InlineEditor from "@ckeditor/ckeditor5-build-inline";
 import { cloneObject } from "../common/ciphercommon";
 import {
     CipherHandler,
@@ -52,6 +53,12 @@ export class CipherEncoder extends CipherHandler {
         replacement: {},
     };
     public state: IEncoderState = cloneObject(this.defaultstate) as IState;
+    /**
+     * This is a cache of all active editors on the page.
+     * It is indexed by the id of the HTML element
+     */
+    public editor: { [key: string]: InlineEditor } = {};
+
     public cmdButtons: JTButtonItem[] = [
         { title: "Save", color: "primary", id: "save" },
         {
@@ -125,6 +132,21 @@ export class CipherEncoder extends CipherHandler {
         this.setkvalinputs();
         this.load();
     }
+    /**
+     * Set the value of a rich text element.  Note that some editors may not
+     * be fully initialized, so we may have to stash it for when it does get
+     * initialized
+     */
+    public setRichText(id: string, val: string): void {
+        if (id in this.editor && this.editor[id] !== null) {
+            this.editor[id].setData(val);
+        } else {
+            $("#" + id).val(val);
+        }
+    }
+    /**
+     * Update the questions fields (points and quesiton text)
+     */
     public updateQuestionsOutput(): void {
         if (this.state.points === undefined) {
             this.state.points = 0;
@@ -887,6 +909,27 @@ export class CipherEncoder extends CipherHandler {
                     this.state.points = points;
                 }
             });
+        $(".richtext").each((i: number, elem: HTMLElement) => {
+            let id = $(elem).prop("id") as string;
+            if (id !== "" && !(id in this.editor)) {
+                this.editor[id] = null;
+                InlineEditor.create(elem)
+                    .then(editor => {
+                        let initialtext = $(elem).val();
+                        this.editor[id] = editor;
+                        if (initialtext !== "") {
+                            editor.setData(initialtext);
+                        }
+                        editor.model.document.on("change:data", () => {
+                            $(elem).trigger("richchange", editor.getData());
+                        });
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        delete this.editor[id];
+                    });
+            }
+        });
         $("#qtext")
             .off("richchange")
             .on("richchange", (e, newtext) => {

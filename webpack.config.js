@@ -5,6 +5,9 @@ const HardSourceWebpackPlugin = require("hard-source-webpack-plugin");
 const TypedocWebpackPlugin = require("typedoc-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const WebpackAutoInject = require("webpack-auto-inject-version");
+const WebpackShellPlugin = require("webpack-shell-plugin");
+const package = require("./package.json");
+var toolsVersion = package.version;
 
 module.exports = {
     //    mode: "development", // "production" | "development" | "none"
@@ -805,5 +808,9 @@ module.exports = {
         new webpack.DefinePlugin({
             "require.specified": "require.resolve",
         }),
+        // The webpack-shell-plugin is installed with "npm install --save-dev webpack-shell-plugin"
+        new WebpackShellPlugin({
+            onBuildExit: ['python zip-ct.py '+toolsVersion]
+        })       
     ],
 };

@@ -648,7 +648,7 @@ export class CipherRSAEncoder extends CipherEncoder {
                 .replace("</p>", "")
                 .replace("&nbsp;", "")
                 .replace("undefined", "")
-                .replace("Solve This", "")
+                .replace("Solve this", "")
                 .replace(" ", "");
             if (question === "") {
                 isempty = true;

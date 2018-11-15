@@ -4,6 +4,7 @@ import { CipherAffineEncoder } from "./cipheraffineencoder";
 import { CipherBaconianEncoder } from "./cipherbaconianencoder";
 import { CipherEncoder } from "./cipherencoder";
 import { CipherHillEncoder } from "./cipherhillencoder";
+import { CipherQuoteAnalyze } from "./cipherquoteanalyze";
 import { CipherRSAEncoder } from "./cipherrsaencoder";
 import { CipherRunningKeyEdit } from "./cipherrunningkeyedit";
 import { CipherRunningKeyEncoder } from "./cipherrunningkeyencoder";
@@ -60,6 +61,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherType: ICipherType.Patristocrat,
         cipherClass: CipherEncoder,
         canPrint: true,
+    },
+    QuoteAnalyze: {
+        cipherType: ICipherType.None,
+        cipherClass: CipherQuoteAnalyze,
+        canPrint: false,
     },
     RunningKeyEdit: {
         cipherType: ICipherType.None,

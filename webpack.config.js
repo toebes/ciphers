@@ -34,20 +34,6 @@ module.exports = {
                 "dist",
                 "html5sortable.cjs.js"
             ),
-            "dataTables-zf": path.join(
-                __dirname,
-                "node_modules",
-                "datatables.net-zf",
-                "js",
-                "dataTables.foundation.js"
-            ),
-            "dataTables-colReorder-zf": path.join(
-                __dirname,
-                "node_modules",
-                "datatables.net-colreorder-zf",
-                "js",
-                "colReorder.foundation.js"
-            ),
             "styles-css": path.join(__dirname, "styles.css"),
             "foundation.css": path.join(
                 __dirname,
@@ -533,6 +519,20 @@ module.exports = {
             chunks: ["codebusters"],
             cipher: "",
             title: "Test Guidance",
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: "QuoteAnalyze.html",
+            template: path.join(
+                __dirname,
+                "app",
+                "codebusters",
+                "pages",
+                "StdEncoder.html"
+            ),
+            chunks: ["codebusters"],
+            cipher: "QuoteAnalyze",
+            title: "Quote Analyzer",
         }),
         new HtmlWebpackPlugin({
             inject: false,

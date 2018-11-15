@@ -1,3 +1,4 @@
+import "foundation-sites";
 import { cloneObject } from "../common/ciphercommon";
 import { IState, menuMode, toolMode } from "../common/cipherhandler";
 import { getCipherTitle, ICipherType } from "../common/ciphertypes";

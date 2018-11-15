@@ -48,7 +48,8 @@
             "windows": {
                 "command": "echo not supported."
             },
-            "group": "build"
+            "group": "build",
+            "problemMatcher": []
         },
         {
             "type": "typescript",

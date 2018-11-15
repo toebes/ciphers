@@ -1,247 +1,518 @@
-﻿<!doctype html>
+﻿<!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title><%= htmlWebpackPlugin.options.title %></title>
+    </head>
 
-<head>
-    <meta charset="utf-8">
-    <title>
-        <%= htmlWebpackPlugin.options.title %>
-    </title>
-</head>
-
-<body>
-    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
-    <% } %>
-    <%= require('html-loader!./analytics.html') %>
-    <div class="callout primary">
-        <div class="cell clearfix">
-            <a class="float-right" href="https://www.sciencenc.com/resources/high-school/codebusters/"><img src="https://www.sciencenc.com/wp-content/uploads/logo-short.png"
-                    width="180" height="120" /></a>
-            <a class="float-right" href="https://www.soinc.org/codebusters-c"><img src="https://www.soinc.org/sites/default/files/SCI_OLY_LOGO.jpeg"
-                    width="180" height="120" /></a>
-            <h2>
-                <span class="scioly">S<span class="t">cience</span> O<span class="t">lympiad</span> C<span class="t">ode</span>B<span
-                        class="t">usters</span><br /> Test Generation Tools</span>
-            </h2>
-        </div>
-        <div class="cell">
-            <a class="button" href="TestManage.html">Test Manager</a> - Create/Delete/Edit Tests
-        </div>
-        <div class="cell">
-            <a class="button" href="TestQuestions.html">Question Manager</a> - Manage/Delete unused questions
-        </div>
-        <div class="cell">
-            <h4>Summary of what's new:</h4>
-            <ul>
-                <li>Version 1.3.1</li>
-                <ul>
-                    <li>Download a zip file of the site for offline use. Check out the
-                        "Help"; "About" dialog on the <a href="TestManage.html">Test Manager</a>
-                        or <a href="TestQuestions.html">Question Manager</a> pages.</li>
-                </ul>
-                <li>Version 1.3.0</li>
-                <ul>
-                    <li>Event leaders can find guidance about how to write test questions at:
-                        <a href="TestGuidance.html">Test Guidance</a>. The page is also accessible under
-                        the "Help" menu on the <a href="TestManage.html">Test Manager</a>
-                        or <a href="TestQuestions.html">Question Manager</a> pages.</li>
-                </ul>
-            </ul>
-            <hr>
-        </div>
-        <div class="cell">
-            <p>
-                An quick tutorial of using the tool can be seen at
-                <a href="https://www.youtube.com/watch?v=pcz_3ql8ebM">https://www.youtube.com/watch?v=pcz_3ql8ebM</a>
-            </p>
-        </div>
-        <div class="cell">
-            <em>Please report any problems at </em><a href="https://github.com/toebes/ciphers/issues">github.com/toebes/ciphers/issues</a>
-        </div>
-        <div class="cell callout warning small">
-            <em><b>Are you an Event leader looking to create a Regional or Invitational test?</b></em> You can use
-            <a href="TestManage.html?importURL=https://toebes.com/codebusters/sample_regional_test.json">this
-                sample test</a>
-            as a starting point for a good mix of questions and nominal score values. Don't forget to Randomize the
-            Aristocrats
-            and pick new values for the questions. You can also randomize the order of the questions when editing
-            the test.
-        </div>
-    </div>
-    <div class="callout secondary">
-        <div class="grid-x">
-            <div class="cell small-12">
-                <h4>Create individual questions</h4>
+    <body>
+        <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+        <% } %> <%= require('html-loader!./analytics.html') %>
+        <div class="callout primary">
+            <div class="cell clearfix">
+                <a
+                    class="float-right"
+                    href="https://www.sciencenc.com/resources/high-school/codebusters/"
+                    ><img
+                        src="https://www.sciencenc.com/wp-content/uploads/logo-short.png"
+                        width="180"
+                        height="120"
+                /></a>
+                <a
+                    class="float-right"
+                    href="https://www.soinc.org/codebusters-c"
+                    ><img
+                        src="https://www.soinc.org/sites/default/files/SCI_OLY_LOGO.jpeg"
+                        width="180"
+                        height="120"
+                /></a>
+                <h2>
+                    <span class="scioly"
+                        >S<span class="t">cience</span> O<span class="t"
+                            >lympiad</span
+                        >
+                        C<span class="t">ode</span>B<span class="t">usters</span
+                        ><br />
+                        Test Generation Tools</span
+                    >
+                </h2>
             </div>
-            <div class="cell small-4 medium-3"><a class="button secondary" href="AffineEncrypt.html?cipherType=affine">Affine</a></div>
-            <div class="cell small-4 medium-3"><a class="button secondary" href="AristocratEncrypt.html?cipherType=aristocrat">Aristocrat</a></div>
-            <div class="cell small-4 medium-3"><a class="button secondary" href="Atbash.html?cipherType=atbash">Atbash</a></div>
-            <div class="cell small-4 medium-3"><a class="button secondary" href="Baconian.html?cipherType=baconian">Baconian</a></div>
-            <div class="cell small-4 medium-3"><a class="button secondary" href="Caesar.html?cipherType=caesar">Caesar</a></div>
-            <div class="cell small-4 medium-3"><a class="button secondary" href="HillEncrypt.html?cipherType=hill">Hill
-                    (2x2 and 3x3)</a></div>
-            <div class="cell small-4 medium-3"><a class="button secondary" href="PatristocratEncrypt.html?cipherType=patristocrat">Patristocrat</a></div>
-            <div class="cell small-4 medium-3"><a class="button secondary" href="RunningKeyEncoder.html?cipherType=runningKey">Running
-                    Key
-                </a></div>
-            <div class="cell small-4 medium-3"><a class="button secondary" href="RSAEncrypt.html">RSA</a></div>
-            <div class="cell small-4 medium-3"><a class="button secondary" href="AristocratSpanishEncrypt.html">Spanish
-                    Aristocrat
-                </a></div>
-            <div class="cell small-4 medium-3"><a class="button secondary" href="VigenereEncrypt.html?cipherType=vigenere">Vigen&egrave;re</a></div>
-            <div class="cell small-4 medium-3"><a class="button secondary" href="XenocryptEncrypt.html?cipherType=xenocrypt">Xenocrypt</a></div>
+            <div class="cell">
+                <a class="button" href="TestManage.html">Test Manager</a> -
+                Create/Delete/Edit Tests
+            </div>
+            <div class="cell">
+                <a class="button" href="TestQuestions.html">Question Manager</a>
+                - Manage/Delete unused questions
+            </div>
+            <div class="cell">
+                <h4>Summary of what's new:</h4>
+                <ul>
+                    <li>Version 1.3.2</li>
+                    <ul>
+                        <li>
+                            The offset for Caesar ciphers has been fixed (for an
+                            offset of 1, A should map to B)
+                        </li>
+                        <li>
+                            A new page has been added for bulk analyzing quotes
+                            at
+                            <a href="QuoteAnalyze.html">QuoteAnalyze.html</a>.
+                        </li>
+                    </ul>
+                    <li>Version 1.3.1</li>
+                    <ul>
+                        <li>
+                            Download a zip file of the site for offline use.
+                            Check out the "Help"; "About" dialog on the
+                            <a href="TestManage.html">Test Manager</a> or
+                            <a href="TestQuestions.html">Question Manager</a>
+                            pages.
+                        </li>
+                    </ul>
+                    <li>Version 1.3.0</li>
+                    <ul>
+                        <li>
+                            Event leaders can find guidance about how to write
+                            test questions at:
+                            <a href="TestGuidance.html">Test Guidance</a>. The
+                            page is also accessible under the "Help" menu on the
+                            <a href="TestManage.html">Test Manager</a> or
+                            <a href="TestQuestions.html">Question Manager</a>
+                            pages.
+                        </li>
+                    </ul>
+                </ul>
+                <hr />
+            </div>
+            <div class="cell">
+                <p>
+                    An quick tutorial of using the tool can be seen at
+                    <a href="https://www.youtube.com/watch?v=pcz_3ql8ebM"
+                        >https://www.youtube.com/watch?v=pcz_3ql8ebM</a
+                    >
+                </p>
+            </div>
+            <div class="cell">
+                <em>Please report any problems at </em
+                ><a href="https://github.com/toebes/ciphers/issues"
+                    >github.com/toebes/ciphers/issues</a
+                >
+            </div>
+            <div class="cell callout warning small">
+                <em
+                    ><b
+                        >Are you an Event leader looking to create a Regional or
+                        Invitational test?</b
+                    ></em
+                >
+                You can use
+                <a
+                    href="TestManage.html?importURL=https://toebes.com/codebusters/sample_regional_test.json"
+                    >this sample test</a
+                >
+                as a starting point for a good mix of questions and nominal
+                score values. Don't forget to Randomize the Aristocrats and pick
+                new values for the questions. You can also randomize the order
+                of the questions when editing the test.
+            </div>
         </div>
-    </div>
-    <div class="callout secondary">
-        <h3>2019 Sample Tests</h3>
-        <hr>
-        <ul>
-            <li>
-                <a href="TestManage.html?importURL=https://toebes.com/codebusters/Coaches_Institute_2018.json">Coaches
-                    Institute 2018</a>
-            </li>
-            <li>
-                <a href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_01_2019.json">2019 Sample 1</a>
-            </li>
-            <li>
-                <a href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_02_2019.json">2019 Sample 2</a>
-            </li>
-        </ul>
-    </div>
-    <div class="callout secondary">
-        <h3>2018 North Carolina Regional and State Tests</h3>
-        <hr>
-        <ul>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Test%201.pdf">2018 Regional Test 1</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Test%201%20Answers.pdf">Answers</a>
-                ]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Test%202.pdf">2018 Regional Test 2</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Test%202%20Answers.pdf">Answers</a>
-                ]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Test%203.pdf">2018 Regional Test 3</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Test%203%20Answers.pdf">Answers</a>
-                ]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Test%20State.pdf">2018 State Test</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Test%20State%20Answers.pdf">Answers</a>
-                ]</li>
-        </ul>
-    </div>
-    <div class="callout secondary">
-        <h3>2018 Sample Tests</h3>
-        <hr>
-        <ul>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Sample%201.pdf">2018 Sample 1</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Sample%201%20Answers.pdf">Answers</a>
-                ]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Sample%202.pdf">2018 Sample 2</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Sample%202%20Answers.pdf">Answers</a>
-                ]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Sample%203.pdf">2018 Sample 3</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Sample%203%20Answers.pdf">Answers</a>
-                ]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Sample%204.pdf">2018 Sample 4</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Sample%204%20Answers.pdf">Answers</a>
-                ]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Sample%205.pdf">2018 Sample 5</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Sample%205%20Answers.pdf">Answers</a>,&nbsp;
-                <a href="Samples/Code%20Busters%202018%20Sample%205%20Patristocrat%20Solution.pdf">Question 2
-                    Patristrocrat Solving Approach</a>
-                ]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Sample%206.pdf">2018 Sample 6</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Sample%206%20Answers.pdf">Answers</a>,&nbsp;
-                <a href="Samples/Code%20Busters%202018%20Sample%206%20Patristocrat%20Solution.pdf">Question 2
-                    Patristrocrat Solving Approach</a>
-                ]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Sample%207.pdf">2018 Sample 7</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Sample%207%20Answers.pdf">Answers</a>,&nbsp;
-                <a href="Samples/Code%20Busters%202018%20Sample%207%20Patristocrat%20Solution.pdf">Question 5
-                    Patristrocrat Solving Approach</a>
-                ]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Mini%20Test1.pdf">2018 Mini Test1</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Mini%20Test1%20Answers.pdf">Answers</a>
-                ]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Sample%208.pdf">2018 Sample 8</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Sample%208%20Answers.pdf">Answers</a>
-                ]
-            </li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Sample%209.pdf">2018 Sample 9</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Sample%209%20Answers.pdf">Answers</a>,&nbsp;
-                <a href="Samples/Code%20Busters%202018%20Sample%209%20Xenocrypt%20Solution.pdf">Question 2 Xenocrypt
-                    Solving Approach</a>
-                ]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202018%20Sample%2010.pdf">2018 Sample 10</a>
-                [
-                <a href="Samples/Code%20Busters%202018%20Sample%2010%20Answers.pdf">Answers</a>
-                ]</li>
-        </ul>
-    </div>
-    <div class="callout secondary">
-        <h3>2017 Sample Tests</h3>
-        <hr>
-        <ul>
-            <li>
-                <a href="Samples/Code%20Busters%202017%20Sample%204.pdf">2017 Sample 4</a>
-                [
-                <a href="Samples/Code%20Busters%202017%20Sample%204%20Answers.pdf">Answers</a>]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202017%20Sample%205.pdf">2017 Sample 5</a>
-                [
-                <a href="Samples/Code%20Busters%202017%20Sample%205%20Answers.pdf">Answers</a>]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202017%20Sample%206.pdf">2017 Sample 6</a>
-                [
-                <a href="Samples/Code%20Busters%202017%20Sample%206%20Answers.pdf">Answers</a>]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202017%20Sample%207.pdf">2017 Sample 7</a>
-                [
-                <a href="Samples/Code%20Busters%202017%20Sample%207%20Answers.pdf">Answers</a>]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202017%20Test%201.pdf">2017 Regional Test 1</a>
-                [
-                <a href="Samples/Code%20Busters%202017%20Test%201%20Answers.pdf">Answers</a>]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202017%20Test%202.pdf">2017 Regional Test 2</a>
-                [
-                <a href="Samples/Code%20Busters%202017%20Test%202%20Answers.pdf">Answers</a>]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202017%20Test%203.pdf">2017 Regional Test 3</a>
-                [
-                <a href="Samples/Code%20Busters%202017%20Test%203%20Answers.pdf">Answers</a>]</li>
-            <li>
-                <a href="Samples/Code%20Busters%202017%20Test%20State.pdf">2017 State Test </a>
-                [
-                <a href="Samples/Code%20Busters%202017%20Test%20State%20Answers.pdf">Answers</a>]</li>
-        </ul>
-    </div>
-</body>
-
+        <div class="callout secondary">
+            <div class="grid-x">
+                <div class="cell small-12">
+                    <h4>Create individual questions</h4>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary"
+                        href="AffineEncrypt.html?cipherType=affine"
+                        >Affine</a
+                    >
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary"
+                        href="AristocratEncrypt.html?cipherType=aristocrat"
+                        >Aristocrat</a
+                    >
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary"
+                        href="Atbash.html?cipherType=atbash"
+                        >Atbash</a
+                    >
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary"
+                        href="Baconian.html?cipherType=baconian"
+                        >Baconian</a
+                    >
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary"
+                        href="Caesar.html?cipherType=caesar"
+                        >Caesar</a
+                    >
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary"
+                        href="HillEncrypt.html?cipherType=hill"
+                        >Hill (2x2 and 3x3)</a
+                    >
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary"
+                        href="PatristocratEncrypt.html?cipherType=patristocrat"
+                        >Patristocrat</a
+                    >
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary"
+                        href="RunningKeyEncoder.html?cipherType=runningKey"
+                        >Running Key
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a class="button secondary" href="RSAEncrypt.html">RSA</a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary"
+                        href="AristocratSpanishEncrypt.html"
+                        >Spanish Aristocrat
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary"
+                        href="VigenereEncrypt.html?cipherType=vigenere"
+                        >Vigen&egrave;re</a
+                    >
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary"
+                        href="XenocryptEncrypt.html?cipherType=xenocrypt"
+                        >Xenocrypt</a
+                    >
+                </div>
+            </div>
+        </div>
+        <div class="callout secondary">
+            <h3>2019 Sample Tests</h3>
+            <hr />
+            <ul>
+                <li>
+                    <a
+                        href="TestManage.html?importURL=https://toebes.com/codebusters/Coaches_Institute_2018.json"
+                        >Coaches Institute 2018</a
+                    >
+                </li>
+                <li>
+                    <a
+                        href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_01_2019.json"
+                        >2019 Sample 1</a
+                    >
+                </li>
+                <li>
+                    <a
+                        href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_02_2019.json"
+                        >2019 Sample 2</a
+                    >
+                </li>
+                <li>
+                    <a
+                        href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_03_2019.json"
+                        >2019 Sample 3</a
+                    >
+                </li>
+            </ul>
+        </div>
+        <div class="callout secondary">
+            <h3>2018 North Carolina Regional and State Tests</h3>
+            <hr />
+            <ul>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Test%201.pdf"
+                        >2018 Regional Test 1</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Test%201%20Answers.pdf"
+                        >Answers</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Test%202.pdf"
+                        >2018 Regional Test 2</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Test%202%20Answers.pdf"
+                        >Answers</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Test%203.pdf"
+                        >2018 Regional Test 3</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Test%203%20Answers.pdf"
+                        >Answers</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Test%20State.pdf"
+                        >2018 State Test</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Test%20State%20Answers.pdf"
+                        >Answers</a
+                    >
+                    ]
+                </li>
+            </ul>
+        </div>
+        <div class="callout secondary">
+            <h3>2018 Sample Tests</h3>
+            <hr />
+            <ul>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Sample%201.pdf"
+                        >2018 Sample 1</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%201%20Answers.pdf"
+                        >Answers</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Sample%202.pdf"
+                        >2018 Sample 2</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%202%20Answers.pdf"
+                        >Answers</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Sample%203.pdf"
+                        >2018 Sample 3</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%203%20Answers.pdf"
+                        >Answers</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Sample%204.pdf"
+                        >2018 Sample 4</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%204%20Answers.pdf"
+                        >Answers</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Sample%205.pdf"
+                        >2018 Sample 5</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%205%20Answers.pdf"
+                        >Answers</a
+                    >,&nbsp;
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%205%20Patristocrat%20Solution.pdf"
+                        >Question 2 Patristrocrat Solving Approach</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Sample%206.pdf"
+                        >2018 Sample 6</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%206%20Answers.pdf"
+                        >Answers</a
+                    >,&nbsp;
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%206%20Patristocrat%20Solution.pdf"
+                        >Question 2 Patristrocrat Solving Approach</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Sample%207.pdf"
+                        >2018 Sample 7</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%207%20Answers.pdf"
+                        >Answers</a
+                    >,&nbsp;
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%207%20Patristocrat%20Solution.pdf"
+                        >Question 5 Patristrocrat Solving Approach</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Mini%20Test1.pdf"
+                        >2018 Mini Test1</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Mini%20Test1%20Answers.pdf"
+                        >Answers</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Sample%208.pdf"
+                        >2018 Sample 8</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%208%20Answers.pdf"
+                        >Answers</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Sample%209.pdf"
+                        >2018 Sample 9</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%209%20Answers.pdf"
+                        >Answers</a
+                    >,&nbsp;
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%209%20Xenocrypt%20Solution.pdf"
+                        >Question 2 Xenocrypt Solving Approach</a
+                    >
+                    ]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202018%20Sample%2010.pdf"
+                        >2018 Sample 10</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202018%20Sample%2010%20Answers.pdf"
+                        >Answers</a
+                    >
+                    ]
+                </li>
+            </ul>
+        </div>
+        <div class="callout secondary">
+            <h3>2017 Sample Tests</h3>
+            <hr />
+            <ul>
+                <li>
+                    <a href="Samples/Code%20Busters%202017%20Sample%204.pdf"
+                        >2017 Sample 4</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202017%20Sample%204%20Answers.pdf"
+                        >Answers</a
+                    >]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202017%20Sample%205.pdf"
+                        >2017 Sample 5</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202017%20Sample%205%20Answers.pdf"
+                        >Answers</a
+                    >]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202017%20Sample%206.pdf"
+                        >2017 Sample 6</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202017%20Sample%206%20Answers.pdf"
+                        >Answers</a
+                    >]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202017%20Sample%207.pdf"
+                        >2017 Sample 7</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202017%20Sample%207%20Answers.pdf"
+                        >Answers</a
+                    >]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202017%20Test%201.pdf"
+                        >2017 Regional Test 1</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202017%20Test%201%20Answers.pdf"
+                        >Answers</a
+                    >]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202017%20Test%202.pdf"
+                        >2017 Regional Test 2</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202017%20Test%202%20Answers.pdf"
+                        >Answers</a
+                    >]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202017%20Test%203.pdf"
+                        >2017 Regional Test 3</a
+                    >
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202017%20Test%203%20Answers.pdf"
+                        >Answers</a
+                    >]
+                </li>
+                <li>
+                    <a href="Samples/Code%20Busters%202017%20Test%20State.pdf"
+                        >2017 State Test
+                    </a>
+                    [
+                    <a
+                        href="Samples/Code%20Busters%202017%20Test%20State%20Answers.pdf"
+                        >Answers</a
+                    >]
+                </li>
+            </ul>
+        </div>
+    </body>
 </html>

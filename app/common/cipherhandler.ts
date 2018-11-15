@@ -1,3 +1,4 @@
+import "foundation-sites";
 import { BoolMap, cloneObject, StringMap } from "../common/ciphercommon";
 import { CipherMenu } from "./ciphermenu";
 import {
@@ -2530,7 +2531,7 @@ export class CipherHandler {
                 remote_version = a["version"];
                 console.log("Set remote version to: " + remote_version);
             },
-            error: function(a: JQueryXHR, b: string, c:string ): void {
+            error: function(a: JQueryXHR, b: string, c: string): void {
                 console.log("A Error " + JSON.stringify(a));
                 console.log("B Error " + b);
                 console.log("C Error " + c);

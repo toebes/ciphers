@@ -40,3 +40,4 @@ dist/*
 .DS_Store
 pom.xml
 CipherTools*.zip
+quotes*.json

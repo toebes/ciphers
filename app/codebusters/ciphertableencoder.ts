@@ -108,7 +108,9 @@ export class CipherTableEncoder extends CipherEncoder {
                 charset.substr(this.state.offset) +
                 charset.substr(0, this.state.offset);
         }
-        this.setReplacement(charset, replacement);
+        // Remember that the replacement is backwards because the class is built
+        // around decodeing.
+        this.setReplacement(replacement, charset);
     }
     /**
      * Loads up the values for the encoder

@@ -179,7 +179,7 @@ export class CipherTestGenerator extends CipherTest {
         let state: IState = {
             cipherType: ciphertype,
             points: 0,
-            question: "Solve This",
+            question: "Solve this",
             cipherString: "",
             curlang: lang,
         };

@@ -603,17 +603,29 @@ export class CipherEncoder extends CipherHandler {
      */
     public build(): JQuery<HTMLElement> {
         let result = $("<div/>");
+
+        // Provide correct guidance message as to which line is
+        // plain text and which is cipher text.
+        let topLine = " Cipher Text is on ";
+        let highlightedLine = " Plain Text is on ";
+        if (this.state.operation === "encode") {
+            topLine = " Plain Text is ";
+            highlightedLine = " Cipher Text is ";
+        }
+
         result.append(
             $("<div/>", {
                 class: "callout small success",
             })
-                .text("Note: Plain Text is on ")
+                .text("Note:")
+                .append(topLine)
                 .append(
                     $("<span/>", {
                         class: "TOSOLVE",
                     }).text("top line")
                 )
-                .append(", Cipher Text is ")
+                .append(",")
+                .append(highlightedLine)
                 .append(
                     $("<span/>", {
                         class: "TOANSWER",

@@ -58,6 +58,7 @@ export class CipherQuoteAnalyze extends CipherHandler {
         table.addHeaderRow([
             "Length",
             "Chi-Squared",
+            "Unique",
             "Likes",
             "Author",
             "Source",
@@ -75,11 +76,17 @@ export class CipherQuoteAnalyze extends CipherHandler {
             /* testStrings */
             let chi = this.CalculateChiSquare(teststr);
             teststr = this.cleanString(teststr);
-            let l = teststr.length;
+            let minstr = this.minimizeString(teststr);
+            let mina = minstr.split("");
+
+            mina = mina.filter((x, i, a) => a.indexOf(x) === i);
+            let unique = mina.length;
+            let l = minstr.length;
             table
                 .addBodyRow()
-                .add(l) /* Length */
+                .add(String(l)) /* Length */
                 .add(String(chi)) /* Chi-Squared */
+                .add(String(unique))
                 .add(ent.likes) /* Likes */
                 .add(ent.author) /* Author */
                 .add(ent.source) /* Source */

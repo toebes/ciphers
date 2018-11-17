@@ -70,7 +70,7 @@ const revBaconMap: StringMap = {
     BABBA: "Y",
     BABBB: "Z",
 };
-const punctuationChars = ".,;-";
+const punctuationChars = ".,;-!";
 interface IBaconianState extends IEncoderState {
     /** Characters to use to represent the A value */
     texta: string;

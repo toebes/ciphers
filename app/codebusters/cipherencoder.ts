@@ -607,9 +607,9 @@ export class CipherEncoder extends CipherHandler {
         // Provide correct guidance message as to which line is
         // plain text and which is cipher text.
         let topLine = " Cipher Text is on ";
-        let highlightedLine = " Plain Text is on ";
+        let highlightedLine = " Plain Text is ";
         if (this.state.operation === "encode") {
-            topLine = " Plain Text is ";
+            topLine = " Plain Text is on ";
             highlightedLine = " Cipher Text is ";
         }
 

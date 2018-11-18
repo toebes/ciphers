@@ -82,14 +82,26 @@ export class CipherQuoteAnalyze extends CipherHandler {
             mina = mina.filter((x, i, a) => a.indexOf(x) === i);
             let unique = mina.length;
             let l = minstr.length;
+            let likes = "";
+            let author = "";
+            let source = "";
+            if (ent.likes !== undefined) {
+                likes = ent.likes;
+            }
+            if (ent.author !== undefined) {
+                author = ent.author;
+            }
+            if (ent.source !== undefined) {
+                source = ent.source;
+            }
             table
                 .addBodyRow()
                 .add(String(l)) /* Length */
                 .add(String(chi)) /* Chi-Squared */
                 .add(String(unique))
-                .add(ent.likes) /* Likes */
-                .add(ent.author) /* Author */
-                .add(ent.source) /* Source */
+                .add(likes) /* Likes */
+                .add(author) /* Author */
+                .add(source) /* Source */
                 .add(teststr) /* Quote */
                 .add("") /* Use */
                 .add("") /* Test */

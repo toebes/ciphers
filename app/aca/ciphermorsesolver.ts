@@ -175,11 +175,18 @@ export class CipherMorseSolver extends CipherSolver {
     ];
     /**
      * Marks a symbol as locked and prevents it from being changed in the interactive solver
-     * c Symbol to be marked as locked/unlocked
-     * lock new state for the symbol
+     * @param crepl Symbol to be marked as locked/unlocked
+     * @param lock new state for the symbol
      */
-    public updateCheck(c: string, lock: boolean): void {
-        if (this.state.locked[c] !== lock) {
+    public updateCheck(crepl: string, lock: boolean): void {
+        let c;
+        for (let key in this.state.replacement) {
+            if (this.state.replacement[key] === crepl) {
+                c = key;
+                break;
+            }
+        }
+        if (c !== undefined && this.state.locked[c] !== lock) {
             this.state.locked[c] = lock;
             this.UpdateFreqEditTable();
             this.load();
@@ -466,7 +473,7 @@ export class CipherMorseSolver extends CipherSolver {
         table.append(tbody);
         topdiv.append(table);
         this.state.solution = finaltext;
-        topdiv.append($("<hr/><div>" + finaltext + "</div>"));
+        topdiv.append($('<hr/><div class="ftext">' + finaltext + "</div>"));
         return topdiv;
     }
     /**
@@ -498,21 +505,42 @@ export class CipherMorseSolver extends CipherSolver {
      * Creates an HTML table to display the frequency of characters
      */
     public createFreqEditTable(): JQuery<HTMLElement> {
+        // We need the map of the reverse replacements
+        let revRepl = this.getReverseReplacement();
         let result = $("<div/>", { class: "clearfix" });
-        let list = $("<ul/>", { class: "clearfix no-bullet" });
-        let table = new JTTable({ class: "tfreq" });
 
+        // First we need to output the frequency table for the letters.  This will
+        // be short so we don't have to worry about it splitting.
+        let table = new JTTable({ class: "tfreq" });
         let headrow = table.addHeaderRow();
         let freqrow = table.addHeaderRow();
-        let replrow = table.addHeaderRow();
-        let lockrow = table.addHeaderRow();
         let charset = this.getCharset();
-
         headrow.add({
             settings: { class: "topleft" },
             content: "",
         });
         freqrow.add("Frequency");
+        for (let i = 0, len = charset.length; i < len; i++) {
+            let c = charset.substr(i, 1);
+            headrow.add(c);
+            freqrow.add({
+                settings: { id: "f" + c, class: "fq" },
+                content: "",
+            });
+        }
+        result.append(table.generate());
+
+        // Now we need to list of all the fractionated pieces
+        let list = $("<ul/>", { class: "clearfix no-bullet" });
+        table = new JTTable({ class: "tfreq" });
+        headrow = table.addHeaderRow();
+        let replrow = table.addHeaderRow();
+        let lockrow = table.addHeaderRow();
+
+        headrow.add({
+            settings: { class: "topleft" },
+            content: "",
+        });
         replrow.add({
             settings: { class: "rep" },
             content: "Replacement",
@@ -523,32 +551,35 @@ export class CipherMorseSolver extends CipherSolver {
                 class: "float-left",
             }).append(table.generate())
         );
-        for (let i = 0, len = charset.length; i < len; i++) {
-            let c = charset.substr(i, 1).toUpperCase();
-            table = new JTTable({ class: "tfreq float-left" });
+        for (let i = 0, len = this.morseReplaces.length; i < len; i++) {
+            let cmorse = this.morseReplaces[i];
+            table = new JTTable({ class: "tfreq tmorse float-left" });
             headrow = table.addHeaderRow();
             freqrow = table.addBodyRow();
             replrow = table.addBodyRow();
             lockrow = table.addBodyRow();
-            headrow.add(c);
-            freqrow.add({
-                settings: { id: "f" + c, class: "fq" },
-                content: "",
+            headrow.add({
+                settings: {},
+                content: this.normalizeHTML(cmorse),
             });
             replrow.add({
                 settings: { class: "rep" },
-                content: this.makeFreqEditField(c),
+                content: this.makeMorseFreqEditField(cmorse, revRepl),
             });
-            let ischecked = this.state.locked[c];
+            let crepl = revRepl[cmorse];
+            if (crepl === "") {
+                crepl = undefined;
+            }
+            let ischecked = this.state.locked[crepl];
             let cb = $("<input/>", {
                 type: "checkbox",
                 class: "cb",
-                "data-char": c,
-                id: "cb" + c,
+                "data-char": cmorse,
+                // id: "cb" + i,
                 value: name,
                 checked: ischecked,
             });
-            if (this.state.replacement[c] === undefined) {
+            if (crepl === undefined) {
                 cb.prop("disabled", true);
             }
 
@@ -562,6 +593,85 @@ export class CipherMorseSolver extends CipherSolver {
         result.append(list);
         return result;
     }
+    /**
+     * Change the encrypted character.  Note that when we change one, we have
+     * to swap it with the one which we are replacing
+     * @param repchar Character that is being replaced
+     * @param newchar Character to replace it with
+     * @param elem Optional HTML Element triggering the request
+     */
+    public setChar(
+        repchar: string,
+        newchar: string,
+        elem?: JQuery<HTMLElement>
+    ): void {
+        if (elem === undefined) {
+            super.setChar(repchar, newchar, elem);
+            return;
+        }
+        console.log(
+            "handler setChar data-char=" + repchar + " newchar=" + newchar
+        );
+        // Newchar = letter
+        // repchar = morselet
+        // This.state.replacement is indexed by letter
+        // See if any other slots have this character and reset it
+        if (newchar !== "") {
+            // If the character is already locked, we can't move it so just
+            // return.
+            if (this.state.locked[newchar]) {
+                return;
+            }
+            if (
+                this.state.replacement[newchar] !== undefined &&
+                this.state.replacement[newchar] !== repchar
+            ) {
+                let holdupdates = this.holdupdates;
+                this.holdupdates = true;
+                this.setChar(this.state.replacement[newchar], "", elem);
+                this.holdupdates = holdupdates;
+            }
+            this.state.replacement[newchar] = repchar;
+        } else {
+            // The new character is blank so we need to delete the entry that
+            // pointed to it.
+            for (let key in this.state.replacement) {
+                if (this.state.replacement[key] === repchar) {
+                    delete this.state.replacement[key];
+                    break;
+                }
+            }
+        }
+        $(".sli[data-char='" + repchar + "']").val(newchar);
+        // We need to enable/disable the check box.  However, we have the morselet
+        // and not the index.
+        if (newchar === "") {
+            $(".cb[data-char='" + repchar + "']").prop("disabled", true);
+        } else {
+            $(".cb[data-char='" + repchar + "']").removeAttr("disabled");
+        }
+
+        if (newchar === "") {
+            newchar = "?";
+        }
+
+        $("span[data-char='" + repchar + "']").text(newchar);
+
+        // Ok we changed the morse mapping, so we need to rebuild the main section
+        // Note that we don't want to update everything because it would replace
+        // the Frequency portion and we would lose the cursor focus.
+        if (!this.holdupdates) {
+            let res = this.build();
+            $("#answer")
+                .empty()
+                .append(res);
+            this.findPossible(this.state.findString);
+
+            this.UpdateReverseReplacements();
+            this.updateMatchDropdowns(repchar);
+        }
+    }
+
     /**
      * Set multiple characters
      */
@@ -607,6 +717,7 @@ export class CipherMorseSolver extends CipherSolver {
         let findStr = tofind;
         let prefix = "";
         let suffix = "";
+        let matchcount = 0;
 
         let res: string = "";
         let notmapped = this.repeatStr("?", this.cipherWidth);
@@ -744,18 +855,27 @@ export class CipherMorseSolver extends CipherSolver {
                 if (matched) {
                     let maptable = "";
                     let mapfix = "";
-                    for (let j = 0; j < charset.length; j++) {
-                        let key = charset.substr(j, 1);
-                        maptable +=
-                            "<td>" + this.normalizeHTML(keymap[key]) + "</td>";
-                        if (keymap[key] !== notmapped) {
-                            mapfix += key + keymap[key];
+                    matchcount++;
+                    // Build all the mappings
+                    let mapset: StringMap = {};
+                    for (let key of this.morseReplaces) {
+                        mapset[key] = "?";
+                    }
+                    for (let c of charset) {
+                        if (keymap[c] !== notmapped) {
+                            mapset[keymap[c]] = c;
+                            mapfix += c + keymap[c];
                         }
                     }
+                    for (let key of this.morseReplaces) {
+                        maptable += "<td>" + mapset[key] + "</td>";
+                    }
                     res +=
-                        "<tr><td>" +
+                        '<tr class="mc' +
+                        offset +
+                        '"><td>' +
                         i +
-                        '</td><td><a class="dapply" href="#" data-mapfix="' +
+                        '</td><td><a class="dapply" data-mapfix="' +
                         mapfix +
                         '">' +
                         checkstr +
@@ -765,6 +885,31 @@ export class CipherMorseSolver extends CipherSolver {
                 }
             }
         }
+        if (matchcount > 0) {
+            let action = "hide";
+            if (matchcount > 9) {
+                action = "show";
+                res = res.replace(
+                    new RegExp('"mc' + offset, "g"),
+                    '"mch' + offset
+                );
+            }
+            res =
+                '<tr><td class="mcoff" colspan="28">Offset ' +
+                offset +
+                " - " +
+                matchcount +
+                " matches " +
+                " (" +
+                '<a class="mctoggle" data-mcoffset="' +
+                offset +
+                '">' +
+                action +
+                "</a>)" +
+                "</td></tr>" +
+                res;
+        }
+
         return res;
     }
     /**
@@ -801,9 +946,9 @@ export class CipherMorseSolver extends CipherSolver {
         } else {
             let charset = this.getCharset();
             let tres =
-                '<table class="mfind"><thead><tr><th>Pos</th><th>Match</th>';
-            for (let key of charset) {
-                tres += "<th>" + key + "</th>";
+                '<table class="mfind morsef"><thead><tr><th>Pos</th><th>Match</th>';
+            for (let key of this.morseReplaces) {
+                tres += "<th>" + this.normalizeHTML(key) + "</th>";
             }
             //   res +=             < ul > ' + res + '</ul > '
             res = tres + "</tr></thead><tbody>" + res + "</tbody></table>";
@@ -848,49 +993,22 @@ export class CipherMorseSolver extends CipherSolver {
      * Create an edit field for a dropdown
      * @param c Charcter to make dropdown for
      */
-    public makeFreqEditField(c: string): JQuery<HTMLElement> {
-        if (this.state.locked[c]) {
-            return $(
-                $("<span/>").html(this.normalizeHTML(this.state.replacement[c]))
-            );
-        }
-        let mselect = $("<select/>", {
-            class: "msli",
-            "data-char": c,
+    public makeMorseFreqEditField(
+        frac: string,
+        revRepl: StringMap
+    ): JQuery<HTMLElement> {
+        let cfrac = revRepl[frac];
+        let einput = $("<input/>", {
+            type: "text",
+            class: "sli",
+            "data-char": frac,
+            id: "m" + frac,
+            value: cfrac,
         });
-        let locklist = {};
-        /* Build a list of the locked strings we should skip */
-        for (let key in this.state.locked) {
-            if (
-                this.state.locked.hasOwnProperty(key) &&
-                this.state.locked[key]
-            ) {
-                locklist[this.state.replacement[key]] = true;
-            }
+        if (cfrac !== "" && cfrac !== undefined && this.state.locked[cfrac]) {
+            einput.prop("disabled", true);
         }
-        let mreplaces = this.morseReplaces.length;
-        if (this.state.replacement[c] === undefined) {
-            mselect.append(
-                $("<option />", {
-                    value: "",
-                    disabled: "disabled",
-                    selected: true,
-                }).html("")
-            );
-        }
-        for (let i = 0; i < mreplaces; i++) {
-            let text = this.morseReplaces[i];
-            if (!locklist[text]) {
-                let option = $("<option />", { value: text }).html(
-                    this.normalizeHTML(text)
-                );
-                if (this.state.replacement[c] === text) {
-                    option.prop("selected", true);
-                }
-                mselect.append(option);
-            }
-        }
-        return mselect;
+        return einput;
     }
     /**
      * Handle a dropdown event.  They are changing the mapping for a character.
@@ -929,9 +1047,28 @@ export class CipherMorseSolver extends CipherSolver {
         $(".cb")
             .off("change")
             .on("change", e => {
-                let toupdate = $(e.target).attr("data-char");
                 this.markUndo(null);
-                this.updateCheck(toupdate, $(e.target).prop("checked"));
+                this.updateCheck(
+                    $(e.target).attr("data-char"),
+                    $(e.target).prop("checked")
+                );
+            });
+        $(".mctoggle")
+            .off("click")
+            .on("click", e => {
+                let title = $(e.target).text();
+                let offset = $(e.target).attr("data-mcoffset");
+                if (title === "show") {
+                    $(e.target).text("hide");
+                    $(".mch" + offset)
+                        .removeClass("mch" + offset)
+                        .addClass("mc" + offset);
+                } else {
+                    $(e.target).text("show");
+                    $(".mc" + offset)
+                        .removeClass("mc" + offset)
+                        .addClass("mch" + offset);
+                }
             });
     }
 }

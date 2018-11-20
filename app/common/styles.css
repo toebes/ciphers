@@ -369,6 +369,13 @@ table.mword .locked {
 .fmwide {
     clear: both;
 }
+table.tmorse {
+    white-space: nowrap;
+}
+
+table.tmorse input {
+    display: inline;
+}
 
 table.tfreq,
 .noselect {
@@ -386,11 +393,29 @@ table.satable {
     border-collapse: collapse;
     width: auto;
 }
+span.unk::after {
+    content: "\200b";
+}
 
+div.ftext {
+    max-width: 800px;
+}
+td.mcoff {
+    text-align: left;
+    background: #f1f1f1;
+}
+tr.mch0,
+tr.mch1,
+tr.mch2 {
+    display: none;
+}
 table.ckfreq {
     border-collapse: collapse;
     margin-left: 20px;
     width: auto;
+}
+table.morsef td {
+    text-align: center;
 }
 table.tfreq th {
     border-top: 1px solid #f1f1f1;

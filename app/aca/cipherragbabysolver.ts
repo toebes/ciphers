@@ -577,7 +577,7 @@ export class CipherRagbabySolver extends CipherSolver {
                 let outc = "?";
                 if (off === 0) {
                     outc = t;
-                    disabled = " disabled";
+                    disabled = ' disabled value="' + t + '"';
                 }
                 datachars += t;
                 combinedtext +=

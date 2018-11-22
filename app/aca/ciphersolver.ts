@@ -15,7 +15,10 @@ import {
 } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTFLabeledInput, JTFLabeledInputApply } from "../common/jtflabeledinput";
+import {
+    JTFLabeledInput,
+    JTFLabeledInputApply,
+} from "../common/jtflabeledinput";
 import { JTTable } from "../common/jttable";
 
 export class CipherSolver extends CipherHandler {
@@ -999,7 +1002,7 @@ export class CipherSolver extends CipherHandler {
         } else {
             let charset = this.getCharset();
             let tres =
-                '<table class="mfind cell shrink"><thead><tr><th>Pos</th><th>Match</th>';
+                '<table class="mfind cell shrink"><thead><tr><th>Pos</th><th>Match</th><th>Fit</th>';
             for (let key of charset) {
                 tres += "<th>" + key + "</th>";
             }
@@ -1048,6 +1051,15 @@ export class CipherSolver extends CipherHandler {
                 // We matched, BUT we need to make sure that there are no signs that preclude it from
                 let repl = this.genReplPattern(checkstr);
                 if (matched && this.isValidReplacement(tofind, repl, used)) {
+                    // Calculate a match strength based on the chi-square
+                    let matchfreq: NumberMap = {};
+                    for (let key in keymap) {
+                        let c = keymap[key];
+                        matchfreq[c] = this.freq[key];
+                    }
+                    let matchval = this.CalculateCribChiSquare(
+                        matchfreq
+                    ).toFixed(2);
                     let maptable = "";
                     let mapfix = "";
                     for (let key of charset) {
@@ -1065,6 +1077,9 @@ export class CipherSolver extends CipherHandler {
                         '">' +
                         checkstr +
                         "</a></td>" +
+                        "<td class=\"chi\">" +
+                        matchval +
+                        "</td>" +
                         maptable +
                         "</tr>";
                 }

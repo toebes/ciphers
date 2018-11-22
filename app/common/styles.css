@@ -450,6 +450,10 @@ table.mfind td {
     padding: 0.1rem;
 }
 
+table.mfind td.chi {
+    text-align: right;
+}
+
 .prfreq th,
 .ckfreq th,
 .tfreq thead th,

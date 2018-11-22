@@ -1,5 +1,5 @@
 import "foundation-sites";
-import { BoolMap, cloneObject, StringMap } from "../common/ciphercommon";
+import { BoolMap, cloneObject, NumberMap, StringMap } from "../common/ciphercommon";
 import { CipherMenu } from "./ciphermenu";
 import {
     getCipherEquivalents,
@@ -1927,6 +1927,29 @@ export class CipherHandler {
             if (expected !== undefined && expected !== 0) {
                 chiSquare +=
                     Math.pow(counts[i] - total * expected, 2) /
+                    (total * expected);
+            }
+        }
+        return chiSquare;
+    }
+    /**
+     * Calculates the Chi Square value for a cipher string against the current
+     * language character frequency
+     */
+    public CalculateCribChiSquare(matchfreq: NumberMap): number {
+        let charset = this.getCharset();
+        let len = charset.length;
+        let counts = new Array(len);
+        let total = 0;
+        for (let val in this.freq) {
+            total += this.freq[val];
+        }
+        let chiSquare = 0.0;
+        for (let c in matchfreq) {
+            let expected = this.langfreq[this.state.curlang][c];
+            if (expected !== undefined && expected !== 0) {
+                chiSquare +=
+                    Math.pow(matchfreq[c] - total * expected, 2) /
                     (total * expected);
             }
         }

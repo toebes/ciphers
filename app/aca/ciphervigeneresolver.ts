@@ -245,6 +245,15 @@ export class CipherVigenereSolver extends CipherSolver {
             $(".findres").empty();
             return;
         }
+        if (this.state.keyword.length === 0) {
+            let msg = $("<span/>", { class: "callout alert" }).text(
+                "No period set, unable to search"
+            );
+            $(".findres")
+                .empty()
+                .append(msg);
+            return;
+        }
         let blankkey = this.repeatStr("-", this.state.keyword.length);
         let res = null;
         let maxcols = 5;
@@ -316,7 +325,7 @@ export class CipherVigenereSolver extends CipherSolver {
         if (this.state.keyword === undefined || this.state.keyword === "") {
             $("#err").append(
                 $("<div/>", { class: "callout alert" }).text(
-                    "Enter a sample keyword to set the period"
+                    "Enter a sample keyword to set the period or click on a factor below."
                 )
             );
         }

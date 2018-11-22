@@ -1451,6 +1451,28 @@ export class CipherRSAEncoder extends CipherEncoder {
 
         result.append($("<h4/>").text("Step " + String(counter + 1) + "..."));
         result.append(
+            $("<div/>")
+                .text("We start with first equation values of ")
+                .append(renderMath("a=" + a1 + ", b=" + b1 + ",n=" + n1))
+                .append(" and second equation values of ")
+                .append(renderMath("a=" + a2 + ", b=" + b2 + ",n=" + n2))
+        );
+        result.append(
+            $("<div/>")
+                .append("The multiplier for this step is computed from ")
+                .append(
+                    renderMath(
+                        "\\lfloor" +
+                            n1 +
+                            " \\div " +
+                            n2 +
+                            "\\rfloor =" +
+                            multiplier
+                    )
+                )
+        );
+
+        result.append(
             $("<div/>").append(
                 renderMath(
                     equation_3 +
@@ -1608,9 +1630,9 @@ export class CipherRSAEncoder extends CipherEncoder {
         result.append(
             $("<div/>").append(
                 renderMath(
-                    "Equation_{1}=1 * " +
+                    "Equation_{1}=(1-1*0) * " +
                         String(modulus) +
-                        "+ 0 * " +
+                        "+ (0-1*1) * " +
                         String(element) +
                         " = " +
                         String(modulus)

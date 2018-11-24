@@ -947,12 +947,26 @@ table.found tr th:nth-child(odd) {
     display: inline;
 }
 
+div.rn,
+div.sn,
+div.tn {
+    display: inline-block;
+    padding: 2px 10px;
+    margin: 2px 0px;
+    border: 1px solid rgb(200, 200, 200);
+}
+
 .prfreq,
 .ansblock {
     border-collapse: collapse;
     font-family: "Courier New", Courier, monospace;
     width: auto;
 }
+
+div.vsolv {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
 .sublist {
     font-family: "Courier New", Courier, monospace;
     white-space: pre;

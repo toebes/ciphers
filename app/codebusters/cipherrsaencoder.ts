@@ -1087,23 +1087,30 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     public genSolution3(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $("<div/>", { class: "vsolv" });
         result.append($("<h3/>").text("How to solve"));
 
         result.append(
             $("<div/>")
-                .append("To compute <em>d</em> you need to use the  ")
+                .append("To compute ")
+                .append(renderMath("d"))
+                .append(", you need to use the  ")
                 .append(
                     $("<a/>", {
                         href:
                             "https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm",
                     }).text("extended Euclidean Algorithm")
                 )
+                .append(" to compute the greatest common divisor of integers ")
+                .append(renderMath("e=" + this.state.rsa1.e))
+                .append(" and ")
+                .append(renderMath("Φ=" + this.state.rsa1.phi))
+                .append(" and the integer coefficients of ")
                 .append(
-                    " with <em>e</em>=" +
-                        this.state.rsa1.e +
-                        " and Φ=" +
-                        this.state.rsa1.phi
+                    $("<a/>", {
+                        href:
+                            "https://en.wikipedia.org/wiki/B%C3%A9zout%27s_identity",
+                    }).append("B&eacute;zout's identity.")
                 )
         );
         result.append(
@@ -1421,6 +1428,67 @@ export class CipherRSAEncoder extends CipherEncoder {
     }
 
     /**
+     * Generates equation solutions which follow the same pattern.
+     *
+     * @param sequence_of variable being determined (i + 1)
+     * @param seq_previous previous (i - 1) variable value
+     * @param quotient_current value of ith quotient
+     * @param seq_current value of ith variable
+     */
+    public nextSequenceCalculation(
+        sequence_of: string,
+        sclass: string,
+        seq_previous: number,
+        quotient_current: number,
+        seq_current: number
+    ): JQuery<HTMLElement> {
+        let result = $("<div/>", { class: sclass });
+        result.append(
+            $("<div/>").append(
+                renderMath(
+                    sequence_of +
+                        "=" +
+                        seq_previous +
+                        "- (" +
+                        quotient_current +
+                        "*" +
+                        seq_current +
+                        ")"
+                )
+            )
+        );
+        let paren_left = "";
+        let paren_right = "";
+        if (quotient_current * seq_current < 0) {
+            paren_left = "(";
+            paren_right = ")";
+        }
+        result.append(
+            $("<div/>").append(
+                renderMath(
+                    sequence_of +
+                        "=" +
+                        seq_previous +
+                        "-" +
+                        paren_left +
+                        quotient_current * seq_current +
+                        paren_right
+                )
+            )
+        );
+        result.append(
+            $("<div/>").append(
+                renderMath(
+                    sequence_of +
+                        "=" +
+                        (seq_previous - quotient_current * seq_current)
+                )
+            )
+        );
+        return result;
+    }
+
+    /**
      * Show the math for the Modular Inverse
      * @param x Element
      * @param y Modulous
@@ -1433,190 +1501,210 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param counter Which step we are on
      */
     public genTalkativeModularInverseStep(
-        x: number,
-        y: number,
-        a1: number,
-        b1: number,
-        n1: number,
-        a2: number,
-        b2: number,
-        n2: number,
+        phi: number,
+        e: number,
+        R_iMinus1: number,
+        S_iMinus1: number,
+        T_iMinus1: number,
+        R_i: number,
+        S_i: number,
+        T_i: number,
         counter: number
     ): JQuery<HTMLElement> {
         let result = $("<div/>");
-        let multiplier = Math.floor(n1 / n2);
-        let equation_1 = "Equation_{" + String(counter + 1) + "}";
-        let equation_2 = "Equation_{" + String(counter + 2) + "}";
-        let equation_3 = "Equation_{" + String(counter + 3) + "}";
 
-        result.append($("<h4/>").text("Step " + String(counter + 1) + "..."));
+        let Q_iMinus1 = Math.floor(R_iMinus1 / R_i);
+
+        // Remainder
+        let R_iPlus1 = R_iMinus1 - Q_iMinus1 * R_i;
+        //Bezout coefficients
+        let S_iPlus1 = S_iMinus1 - Q_iMinus1 * S_i;
+        let T_iPlus1 = T_iMinus1 - Q_iMinus1 * T_i;
+
+        let Q_i = Math.floor(R_iMinus1 / R_i); // RTL just integer division
+        let remainder = "r_{" + String(counter + 1) + "}";
+        let s_coefficient = "s_{" + String(counter + 1) + "}";
+        let t_coefficient = "t_{" + String(counter + 1) + "}";
+
+        result.append($("<h4/>").text("Iteration " + String(counter) + " ..."));
+        let prev_index = counter - 1;
+        let curr_index = counter;
         result.append(
             $("<div/>")
-                .text("We start with first equation values of ")
-                .append(renderMath("a=" + a1 + ", b=" + b1 + ",n=" + n1))
-                .append(" and second equation values of ")
-                .append(renderMath("a=" + a2 + ", b=" + b2 + ",n=" + n2))
+                .text(
+                    "Start with first set of values for the remainder and coefficients: "
+                )
+                .append(
+                    renderMath(
+                        "r_{" +
+                            prev_index +
+                            "}=" +
+                            R_iMinus1 +
+                            ", s_{" +
+                            prev_index +
+                            "}=" +
+                            S_iMinus1 +
+                            ", t_{" +
+                            prev_index +
+                            "}=" +
+                            T_iMinus1
+                    )
+                )
         );
         result.append(
             $("<div/>")
-                .append("The multiplier for this step is computed from ")
+                .text("... and the second set of values for them: ")
                 .append(
                     renderMath(
-                        "\\lfloor" +
-                            n1 +
+                        "r_{" +
+                            curr_index +
+                            "}=" +
+                            R_i +
+                            ", s_{" +
+                            curr_index +
+                            "}=" +
+                            S_i +
+                            ", t_{" +
+                            curr_index +
+                            "}=" +
+                            T_i
+                    )
+                )
+        );
+        result.append(
+            $("<div/>")
+                .append("The quotient for this step is computed from ")
+                .append(
+                    renderMath(
+                        "q_{i} = \\lfloor" +
+                            R_iMinus1 +
                             " \\div " +
-                            n2 +
+                            R_i +
                             "\\rfloor =" +
-                            multiplier
+                            Q_i
                     )
                 )
         );
 
         result.append(
-            $("<div/>").append(
-                renderMath(
-                    equation_3 +
-                        "=" +
-                        equation_1 +
-                        "-" +
-                        multiplier +
-                        "*" +
-                        equation_2
-                )
+            this.nextSequenceCalculation(
+                remainder,
+                "rn",
+                R_iMinus1,
+                Q_iMinus1,
+                R_i
             )
         );
-        let a3 = a1 - a2 * multiplier;
-        let b3 = b1 - b2 * multiplier;
-        let n3 = n1 - n2 * multiplier;
-
         result.append(
-            $("<div/>").append(
-                renderMath(
-                    equation_3 +
-                        "=(" +
-                        a1 +
-                        "-" +
-                        multiplier +
-                        "*" +
-                        a2 +
-                        ") *" +
-                        x +
-                        "+(" +
-                        b1 +
-                        "-" +
-                        multiplier +
-                        "*" +
-                        b2 +
-                        ") *" +
-                        y +
-                        "=" +
-                        n1 +
-                        "-" +
-                        multiplier +
-                        "*" +
-                        n2
-                )
+            this.nextSequenceCalculation(
+                s_coefficient,
+                "sn",
+                S_iMinus1,
+                Q_iMinus1,
+                S_i
+            )
+        );
+        result.append(
+            this.nextSequenceCalculation(
+                t_coefficient,
+                "tn",
+                T_iMinus1,
+                Q_iMinus1,
+                T_i
             )
         );
 
-        result.append(
-            $("<div/>").append(
-                renderMath(
-                    equation_3 +
-                        "=" +
-                        a3 +
-                        "*" +
-                        x +
-                        "+" +
-                        b3 +
-                        "*" +
-                        y +
-                        "=" +
-                        n3
-                )
-            )
-        );
-        if (n3 === 1) {
+        if (R_iPlus1 === 1) {
             let success = $("<div/>", {
                 class: "callout success small",
             }).append($("<h3/>").text("Success!"));
+
+            if (T_iPlus1 < 0) {
+                success.append(
+                    $("<div/>").append(
+                        "Since the value for <em>d</em> is negative, add the modulus " +
+                            phi
+                    )
+                );
+                success.append(
+                    $("<div/>").append(
+                        renderMath(
+                            T_iPlus1 + " + " + phi + " = " + (T_iPlus1 + phi)
+                        )
+                    )
+                );
+                T_iPlus1 = T_iPlus1 + phi;
+            }
+
+            success.append($("<div/>").append(renderMath("d = " + T_iPlus1)));
+
             success.append(
-                $("<div/>").text("Taking the result mod " + x + ":")
+                $("<div/>")
+                    .append("Therefore, let's check that ")
+                    .append(renderMath("d \\cdot e = 1 \\mod{Φ} "))
+            );
+
+            success.append(
+                $("<div/>").append(
+                    renderMath(T_iPlus1 + "\\cdot" + e + " = 1 \\mod " + phi)
+                )
             );
             success.append(
                 $("<div/>").append(
-                    renderMath(a3 + "*" + "0+" + b3 + "*" + y + "=1")
+                    renderMath(T_iPlus1 * e + " = 1 \\mod " + phi)
                 )
             );
-            success.append($("<div/>").append(renderMath(b3 + "*" + y + "=1")));
-            let normalized_b3 = b3 % x;
-            if (normalized_b3 !== b3) {
-                success.append(
-                    $("<div/>").append(
-                        renderMath(b3 + "\\mod{" + x + "}*" + y + "=1")
-                    )
-                );
-                success.append(
-                    $("<div/>").append(
-                        renderMath(normalized_b3 + "*" + y + "=1")
-                    )
-                );
-            }
-            success.append(
-                $("<h4/>").text(
-                    "Hence " +
-                        normalized_b3 +
-                        " and " +
-                        y +
-                        " are inverses of each other"
-                )
-            );
-            success.append($("<h3/>").text("Checking our work..."));
             success.append(
                 $("<div/>").append(
                     renderMath(
-                        "({" +
-                            normalized_b3 +
-                            "*" +
-                            y +
-                            "=" +
-                            normalized_b3 * y +
-                            "= 1 +" +
-                            (normalized_b3 * y - 1) +
-                            "= 1 + " +
-                            (normalized_b3 * y - 1) / x +
-                            "*" +
-                            x +
-                            "} \\mod{" +
-                            x +
-                            ")}= 1"
+                        "1 + " + (T_iPlus1 * e - 1) + " = 1 \\mod " + phi
                     )
                 )
             );
+            let factor = (T_iPlus1 * e - 1) / phi;
+            success.append(
+                $("<div/>").append(
+                    renderMath(
+                        "1 + (" + factor + "\\cdot" + phi + ") = 1 \\mod " + phi
+                    )
+                )
+            );
+
+            // Not sure about this...
+            success.append(
+                $("<h4/>").text(
+                    "Hence " +
+                        T_iPlus1 +
+                        " and " +
+                        phi +
+                        " are inverses of each other"
+                )
+            );
             result.append(success);
-        } else if (n3 === 0) {
+        } else if (R_iPlus1 === 0) {
             result.append(
                 $("<div/>", {
                     class: "callout error",
-                }).text("Failure! " + y + " is not invertible mod " + x)
+                }).text("Failure! " + phi + " is not invertible mod " + e)
             );
         } else {
             result.append(
                 this.genTalkativeModularInverseStep(
-                    x,
-                    y,
-                    a2,
-                    b2,
-                    n2,
-                    a3,
-                    b3,
-                    n3,
+                    phi,
+                    e,
+                    R_i,
+                    S_i,
+                    T_i,
+                    R_iPlus1,
+                    S_iPlus1,
+                    T_iPlus1,
                     counter + 1
                 )
             );
         }
-        return result;
+        return result.children();
     }
+
     /**
      * Generates the math for a Modular Inverse
      * @param element Element to divide
@@ -1628,40 +1716,91 @@ export class CipherRSAEncoder extends CipherEncoder {
     ): JQuery<HTMLElement> {
         let result = $("<div/>");
         result.append(
-            $("<div/>").append(
-                renderMath(
-                    "Equation_{1}=(1-1*0) * " +
-                        String(modulus) +
-                        "+ (0-1*1) * " +
-                        String(element) +
-                        " = " +
-                        String(modulus)
-                )
-            )
+            "This sequence formula is used to calculate the remainder:"
         );
+        result.append(
+            $("<div/>").append(renderMath("r_{i+1} = r_{i-1} - q_{i} r_{i}"))
+        );
+
+        result
+            .append("This formula is used to calculate the ")
+            .append(renderMath("s"))
+            .append(" B&eacute;zout coefficient");
+        result.append(
+            $("<div/>").append(renderMath("s_{i+1} = s_{i-1} - q_{i} s_{i}"))
+        );
+
+        result
+            .append("This formula is used to calculate the ")
+            .append(renderMath("t"))
+            .append(" B&eacute;zout coefficient");
+        result.append(
+            $("<div/>").append(renderMath("t_{i+1} = t_{i-1} - q_{i} t_{i}"))
+        );
+
+        result
+            .append("The quotient ")
+            .append(renderMath("q_{i}"))
+            .append(" is calculated by:");
         result.append(
             $("<div/>").append(
                 renderMath(
-                    "Equation_{2}=0 * " +
-                        String(modulus) +
-                        "+ 1 * " +
-                        String(element) +
-                        " = " +
-                        String(modulus)
+                    "q_{i} = \\lfloor r_{i-1}" + " \\div " + "r_{i} \\rfloor"
                 )
             )
         );
+
+        result.append(
+            $("<div/>")
+                .append(
+                    "Therefore, using the initial conditions as specified for the extended Euclidian algorithm:"
+                )
+                .append("<div/>")
+                .append(
+                    renderMath(
+                        "r_{0} = " + String(modulus) + "; s_{0} = 1; t_{0} = 0"
+                    )
+                )
+                .append("<div/>")
+                .append(
+                    renderMath(
+                        "r_{1} = " + String(element) + "; s_{1} = 0; t_{1} = 1"
+                    )
+                )
+        );
+        result.append(
+            $("<div/>")
+                .append("Calculate ")
+                .append(renderMath("r_{i}, s_{i}, t_{i}"))
+                .append(" until ")
+                .append(renderMath("r_{i} = 1"))
+                .append("; at which time, ")
+                .append(renderMath("t_{i} = d"))
+                .append(" which is the modular multiplicative inverse of ")
+                .append(renderMath("e \\cdot \\mod{Φ}"))
+        );
+        result.append(
+            $("<div/>")
+                .append("(Note:  When ")
+                .append(renderMath("r_{i} = 1"))
+                .append(", ")
+                .append(renderMath("s_{i}"))
+                .append(" will be the modular multiplicative inverse of ")
+                .append(renderMath("Φ \\cdot\\mod{e}"))
+                .append(" !)")
+        );
+
         result.append(
             this.genTalkativeModularInverseStep(
                 modulus,
                 element,
-                1,
-                0,
                 modulus,
+                1,
+                0,
+                element,
                 0,
                 1,
-                element,
-                0
+                1
             )
         );
         return result;

@@ -891,7 +891,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     public genSolution1(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $("<div/>", { class: "vsolv" });
         result.append($("<h3/>").text("How to solve"));
 
         let template =
@@ -968,13 +968,14 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     public genSolution2(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $("<div/>", { class: "vsolv" });
         result.append($("<h3/>").text("How to solve"));
 
         result.append(
-            $("<div/>").text(
-                "To find the private key, First we need to find Φ using the formula:"
-            )
+            $("<div/>")
+                .text("To find the private key, First we need to find ")
+                .append(renderMath("Φ"))
+                .append(" using the formula:")
         );
         result.append($("<div/>").append(renderMath("Φ=(p-1)*(q-1)")));
         let p_1 = this.state.rsa1.p - 1;
@@ -1191,7 +1192,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     public genSolution4(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $("<div/>", { class: "vsolv" });
         result.append($("<h3/>").text("How to solve"));
         result.append(
             $("<p/>")
@@ -1351,7 +1352,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     public genSolution5(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $("<div/>", { class: "vsolv" });
         result.append($("<h3/>").text("How to solve"));
         let qorder = this.state.qchoice % 2;
         let questionOpt = Math.floor(this.state.qchoice / 2) % 4;
@@ -1438,11 +1439,13 @@ export class CipherRSAEncoder extends CipherEncoder {
     public nextSequenceCalculation(
         sequence_of: string,
         sclass: string,
+        formula: string,
         seq_previous: number,
         quotient_current: number,
         seq_current: number
     ): JQuery<HTMLElement> {
         let result = $("<div/>", { class: sclass });
+        result.append(renderMath(formula));
         result.append(
             $("<div/>").append(
                 renderMath(
@@ -1523,8 +1526,38 @@ export class CipherRSAEncoder extends CipherEncoder {
 
         let Q_i = Math.floor(R_iMinus1 / R_i); // RTL just integer division
         let remainder = "r_{" + String(counter + 1) + "}";
+        let rformula =
+            "r_{" +
+            String(counter + 1) +
+            "} = r_{" +
+            String(counter - 1) +
+            "} - (q_{" +
+            String(counter) +
+            "} * r_{" +
+            String(counter) +
+            "})";
         let s_coefficient = "s_{" + String(counter + 1) + "}";
+        let sformula =
+            "s_{" +
+            String(counter + 1) +
+            "} = s_{" +
+            String(counter - 1) +
+            "} - ( q_{" +
+            String(counter) +
+            "} * s_{" +
+            String(counter) +
+            "})";
         let t_coefficient = "t_{" + String(counter + 1) + "}";
+        let tformula =
+            "t_{" +
+            String(counter + 1) +
+            "} = t_{" +
+            String(counter - 1) +
+            "} - ( q_{" +
+            String(counter) +
+            "} * t_{" +
+            String(counter) +
+            "})";
 
         result.append($("<h4/>").text("Iteration " + String(counter) + " ..."));
         let prev_index = counter - 1;
@@ -1590,6 +1623,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             this.nextSequenceCalculation(
                 remainder,
                 "rn",
+                rformula,
                 R_iMinus1,
                 Q_iMinus1,
                 R_i
@@ -1599,6 +1633,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             this.nextSequenceCalculation(
                 s_coefficient,
                 "sn",
+                sformula,
                 S_iMinus1,
                 Q_iMinus1,
                 S_i
@@ -1608,6 +1643,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             this.nextSequenceCalculation(
                 t_coefficient,
                 "tn",
+                tformula,
                 T_iMinus1,
                 Q_iMinus1,
                 T_i
@@ -1715,31 +1751,8 @@ export class CipherRSAEncoder extends CipherEncoder {
         modulus: number
     ): JQuery<HTMLElement> {
         let result = $("<div/>");
-        result.append(
-            "This sequence formula is used to calculate the remainder:"
-        );
-        result.append(
-            $("<div/>").append(renderMath("r_{i+1} = r_{i-1} - q_{i} r_{i}"))
-        );
-
         result
-            .append("This formula is used to calculate the ")
-            .append(renderMath("s"))
-            .append(" B&eacute;zout coefficient");
-        result.append(
-            $("<div/>").append(renderMath("s_{i+1} = s_{i-1} - q_{i} s_{i}"))
-        );
-
-        result
-            .append("This formula is used to calculate the ")
-            .append(renderMath("t"))
-            .append(" B&eacute;zout coefficient");
-        result.append(
-            $("<div/>").append(renderMath("t_{i+1} = t_{i-1} - q_{i} t_{i}"))
-        );
-
-        result
-            .append("The quotient ")
+            .append("In each iteration, the quotient ")
             .append(renderMath("q_{i}"))
             .append(" is calculated by:");
         result.append(
@@ -1749,23 +1762,70 @@ export class CipherRSAEncoder extends CipherEncoder {
                 )
             )
         );
-
+        result.append(
+            "The remainder and two coefficients are calculated with the formulas:"
+        );
+        result.append(
+            $("<div>")
+                .append(
+                    $("<div/>", { class: "rn" }).append(
+                        $("<div/>").append(
+                            renderMath("r_{i+1} = r_{i-1} - q_{i} r_{i}")
+                        )
+                    )
+                )
+                .append(
+                    $("<div/>", { class: "sn" }).append(
+                        $("<div/>").append(
+                            renderMath("s_{i+1} = s_{i-1} - q_{i} s_{i}")
+                        )
+                    )
+                )
+                .append(
+                    $("<div/>", { class: "tn" }).append(
+                        $("<div/>").append(
+                            renderMath("t_{i+1} = t_{i-1} - q_{i} t_{i}")
+                        )
+                    )
+                )
+        );
         result.append(
             $("<div/>")
                 .append(
-                    "Therefore, using the initial conditions as specified for the extended Euclidian algorithm:"
+                    "Therefore, using the initial conditions as specified for the "
                 )
-                .append("<div/>")
                 .append(
-                    renderMath(
-                        "r_{0} = " + String(modulus) + "; s_{0} = 1; t_{0} = 0"
-                    )
+                    $("<a/>", {
+                        href:
+                            "https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm",
+                    }).text("extended Euclidean Algorithm")
                 )
-                .append("<div/>")
+                .append(":")
+        );
+        result.append(
+            $("<div>")
                 .append(
-                    renderMath(
-                        "r_{1} = " + String(element) + "; s_{1} = 0; t_{1} = 1"
-                    )
+                    $("<div/>", { class: "rn" })
+                        .append(
+                            $("<div/>").append(
+                                renderMath("r_{0} = " + String(modulus))
+                            )
+                        )
+                        .append(
+                            $("<div/>").append(
+                                renderMath("r_{1} = " + String(element))
+                            )
+                        )
+                )
+                .append(
+                    $("<div/>", { class: "sn" })
+                        .append($("<div/>").append(renderMath("s_{0} = 1")))
+                        .append($("<div/>").append(renderMath("s_{1} = 0")))
+                )
+                .append(
+                    $("<div/>", { class: "tn" })
+                        .append($("<div/>").append(renderMath("t_{0} = 0")))
+                        .append($("<div/>").append(renderMath("t_{1} = 1")))
                 )
         );
         result.append(
@@ -1777,7 +1837,7 @@ export class CipherRSAEncoder extends CipherEncoder {
                 .append("; at which time, ")
                 .append(renderMath("t_{i} = d"))
                 .append(" which is the modular multiplicative inverse of ")
-                .append(renderMath("e \\cdot \\mod{Φ}"))
+                .append(renderMath("e\\mod{Φ}"))
         );
         result.append(
             $("<div/>")
@@ -1786,8 +1846,8 @@ export class CipherRSAEncoder extends CipherEncoder {
                 .append(", ")
                 .append(renderMath("s_{i}"))
                 .append(" will be the modular multiplicative inverse of ")
-                .append(renderMath("Φ \\cdot\\mod{e}"))
-                .append(" !)")
+                .append(renderMath("Φ\\mod{e}"))
+                .append(")")
         );
 
         result.append(

@@ -2583,6 +2583,13 @@ export class CipherHandler {
         console.log("Local version: " + local_version);
         this.download();
     }
+    /**
+     * Sorts a table in the DOM.
+     * Code initially taken from https://www.w3schools.com/howto/howto_js_sort_table.asp
+     * but modified to handle numeric and other sorting.
+     * @param th Element clicked on for sorting
+     * @param n Index to sort on
+     */
     public sortTable(th: HTMLElement, n: number): void {
         let switchcount = 0;
         let switching = true;

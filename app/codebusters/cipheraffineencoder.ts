@@ -505,10 +505,17 @@ export class CipherAffineEncoder extends CipherEncoder {
     }
 
     public genDecodeSolution(): JQuery<HTMLElement> {
+        let result = $("<div/>", { id: "solution" });
+        if (this.state.solclick1 === -1 || this.state.solclick2 === -1) {
+            result.append(
+                $("<p/>").text(
+                    "Click on any two columns to choose the decode problem"
+                )
+            );
+        }
         let msg = this.minimizeString(this.state.cipherString);
         let m1 = msg.substr(this.state.solclick1, 1);
         let m2 = msg.substr(this.state.solclick2, 1);
-        let result = $("<div/>", { id: "solution" });
         result.append($("<h3/>").text("How to solve"));
 
         if (!this.canSolve(m1, m2)) {
@@ -877,12 +884,15 @@ export class CipherAffineEncoder extends CipherEncoder {
         $("#answer")
             .empty()
             .append(res);
-        if (this.state.solclick1 !== -1 && this.state.solclick2 !== -1) {
-            res = this.genSolution();
-        } else {
+        if (
+            this.state.operation === "decode" &&
+            (this.state.solclick1 === -1 || this.state.solclick2 === -1)
+        ) {
             res = $("<p/>").text(
                 "Click on any two columns to choose the decode problem"
             );
+        } else {
+            res = this.genSolution();
         }
         $("#sol")
             .empty()

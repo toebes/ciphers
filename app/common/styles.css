@@ -12,6 +12,16 @@
     content: "Hidden";
 }
 
+th.asc::after {
+    content: "\25b2";
+    color: darkgreen;
+}
+
+th.desc::after {
+    content: "\25bc";
+    color: darkgreen;
+}
+
 body.txt {
     padding: 1rem;
     font-family: Arial, Helvetica, sans-serif;
@@ -447,7 +457,7 @@ table.mfind {
 
 table.mfind td {
     font-family: Courier New, Courier, monospace;
-    padding: 0.1rem;
+    padding: 0.1rem 0.3rem !important;
 }
 
 table.mfind td.chi {

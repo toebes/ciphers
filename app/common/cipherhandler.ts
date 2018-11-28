@@ -1,5 +1,10 @@
 import "foundation-sites";
-import { BoolMap, cloneObject, NumberMap, StringMap } from "../common/ciphercommon";
+import {
+    BoolMap,
+    cloneObject,
+    NumberMap,
+    StringMap,
+} from "../common/ciphercommon";
 import { CipherMenu } from "./ciphermenu";
 import {
     getCipherEquivalents,
@@ -2578,6 +2583,76 @@ export class CipherHandler {
         console.log("Local version: " + local_version);
         this.download();
     }
+    public sortTable(th: HTMLElement, n: number): void {
+        let switchcount = 0;
+        let switching = true;
+        let table = th.closest("table");
+        let thlist = table.getElementsByTagName("TH");
+        // tslint:disable-next-line:prefer-for-of
+        for (let i = 0; i < thlist.length; i++) {
+            let thc = thlist[i];
+            thc.classList.remove("asc", "desc");
+        }
+        // Set the sorting direction to ascending:
+        let dir = "asc";
+        // Make a loop that will continue until no switching has been done:
+        while (switching) {
+            // Start by saying: no switching is done:
+            let shouldSwitch = false;
+            switching = false;
+            let rows = table.getElementsByTagName("TR");
+            let i;
+            // Loop through all table rows (except the first, which contains table headers):
+            for (i = 1; i < rows.length - 1; i++) {
+                // Start by saying there should be no switching:
+                shouldSwitch = false;
+                // Get the two elements you want to compare, one from current row and one from the next:
+                let x, y;
+                // Check if the two rows should switch place, based on the direction, asc or desc:
+                if (dir === "asc") {
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+                } else {
+                    y = rows[i].getElementsByTagName("TD")[n];
+                    x = rows[i + 1].getElementsByTagName("TD")[n];
+                }
+                let a = x.innerHTML.toLowerCase();
+                let b = y.innerHTML.toLowerCase();
+                // First see if we need to convert them to numbers
+                if (!isNaN(a) && !isNaN(b)) {
+                    if (Number(a) > Number(b)) {
+                        // If so, mark as a switch and break the loop:
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else {
+                    if (x.children.length > 0 && y.children.length > 0) {
+                        a = x.children[0].innerHTML.toLowerCase();
+                        b = y.children[0].innerHTML.toLowerCase();
+                    }
+                    if (a > b) {
+                        // If so, mark as a switch and break the loop:
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                // If a switch has been marked, make the switch and mark that a switch has been done:
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                // Each time a switch is done, increase this count by 1:
+                switchcount++;
+            } else {
+                // If no switching has been done AND the direction is "asc", set the direction to "desc" and run the while loop again.
+                if (switchcount === 0 && dir === "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+        th.classList.add(dir);
+    }
 
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
@@ -2767,6 +2842,14 @@ export class CipherHandler {
                 this.markUndo("find");
                 let findStr = $(e.target).val() as string;
                 this.findPossible(findStr);
+            });
+        $(".tablesort th[data-col]")
+            .off("click")
+            .on("click", e => {
+                let col = $(e.target).attr("data-col");
+                if (col !== undefined) {
+                    this.sortTable(e.target, Number(col));
+                }
             });
     }
 }

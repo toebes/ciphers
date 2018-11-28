@@ -44,6 +44,7 @@ export class CipherSolver extends CipherHandler {
     ];
     /** Cache the last encoded string to optimize updates */
     public lastencoded: string = undefined;
+    public totfreq: number;
     /**
      * Initializes the encoder/decoder. (EN is the default)
      * @param lang Language - default = "EN" for english
@@ -101,12 +102,14 @@ export class CipherSolver extends CipherHandler {
         let changed = super.setCipherString(cipherString);
         if (Object.keys(this.freq).length === 0 && cipherString !== "") {
             this.freq = {};
+            this.totfreq = 0;
             for (let c of this.getCharset().toUpperCase()) {
                 this.freq[c] = 0;
             }
             for (let c of this.state.cipherString.toUpperCase()) {
                 if (this.isValidChar(c)) {
                     this.freq[c]++;
+                    this.totfreq++;
                 }
             }
         }
@@ -998,22 +1001,78 @@ export class CipherSolver extends CipherHandler {
         // Look for all possible matches for the pattern.
         let res = this.searchPattern(encoded, str);
         if (res === "") {
-            res = "<br/><b>Not Found</b>";
+            $(".findres")
+                .empty()
+                .append(
+                    $("<div/>", { class: "callout error small" }).text(
+                        "Unable to find " +
+                            str +
+                            " as " +
+                            this.normalizeHTML(str)
+                    )
+                );
         } else {
             let charset = this.getCharset();
             let tres =
-                '<table class="mfind cell shrink"><thead><tr><th>Pos</th><th>Match</th><th>Fit</th>';
+                '<table class="mfind cell shrink tablesort">' +
+                "<thead><tr>" +
+                '<th class="asc" data-col="0">Pos</th>' +
+                '<th data-col="1">Match</th>' +
+                '<th data-col="2">Fit</th>' +
+                '<th data-col="3">Fit2</th>';
             for (let key of charset) {
                 tres += "<th>" + key + "</th>";
             }
             res = tres + "</tr></thead><tbody>" + res + "</tbody></table>";
+            $(".findres")
+                .empty()
+                .append(
+                    $("<div/>", { class: "callout success small" }).text(
+                        "Looking for" + str + " as " + this.normalizeHTML(str)
+                    )
+                )
+                .append(
+                    $("<div/>").text(
+                        "Fit is chi-square, Fit2 is SUSSI algorithm, lower numbers are better.  Click on column header to sort."
+                    )
+                )
+                .append($(res));
         }
 
-        $(".findres").html(
-            "Searching for " + str + " as " + this.normalizeHTML(str) + res
-        );
         this.attachHandlers();
     }
+    /**
+     * Calculates the Chi Square value for a cipher string against the current
+     * language character frequency
+     */
+    public CalculateCribFit(cribstr: string, checkstr: string): number {
+        let total = 0;
+        let logmsg = "|" + cribstr + "| HINT ";
+        let logmsg2 = "|" + checkstr + "| HINT ";
+        let logmsg3 = "";
+        for (let i = 0; i < cribstr.length; i++) {
+            let pt = cribstr.substr(i, 1);
+            let ct = checkstr.substr(i, 1);
+            let expected = this.langfreq[this.state.curlang][pt] * 1000.0;
+            let matched = (this.freq[ct] * 1000.0) / this.totfreq;
+            logmsg += " " + pt + "=" + expected;
+            logmsg2 += " " + ct + "=" + matched.toPrecision(6);
+            let delta = matched - expected;
+            if (delta >= -1000) {
+                total += delta * delta;
+            }
+            logmsg3 +=
+                delta.toPrecision(6) +
+                "<>" +
+                (delta * delta).toPrecision(5) +
+                "\n";
+        }
+        console.log(logmsg);
+        console.log(logmsg2);
+        console.log(logmsg3);
+        return Math.round(total);
+    }
+
     /**
      * Searches for a string (drags a crib through the crypt)
      * @param encoded Encoded string
@@ -1060,6 +1119,7 @@ export class CipherSolver extends CipherHandler {
                     let matchval = this.CalculateCribChiSquare(
                         matchfreq
                     ).toFixed(2);
+                    let matchval2 = this.CalculateCribFit(tofind, checkstr);
                     let maptable = "";
                     let mapfix = "";
                     for (let key of charset) {
@@ -1071,14 +1131,17 @@ export class CipherSolver extends CipherHandler {
                     }
                     res +=
                         "<tr><td>" +
-                        i +
+                        String(i + 1) +
                         '</td><td><a class="dapply" href="#" data-mapfix="' +
                         mapfix +
                         '">' +
                         checkstr +
                         "</a></td>" +
-                        "<td class=\"chi\">" +
+                        '<td class="chi">' +
                         matchval +
+                        "</td>" +
+                        '<td class="chi">' +
+                        matchval2 +
                         "</td>" +
                         maptable +
                         "</tr>";

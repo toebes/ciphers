@@ -3,13 +3,13 @@ import {
     BoolMap,
     cloneObject,
     NumberMap,
-    StringMap,
+    StringMap
 } from "../common/ciphercommon";
 import { CipherMenu } from "./ciphermenu";
 import {
     getCipherEquivalents,
     getCipherTitle,
-    ICipherType,
+    ICipherType
 } from "./ciphertypes";
 import { getVersion } from "./getversion";
 import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
@@ -23,12 +23,12 @@ export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
     test, // Test generation Tools - No file or Edit menu
     question, // Test question tool - File/Edit/Test Tools menu
-    none, // No menu selected
+    none // No menu selected
 }
 /** Which mode the tool is operating in to select menus and file names */
 export const enum toolMode {
     aca,
-    codebusters,
+    codebusters
 }
 
 /** The types of operations that an encoder will support */
@@ -129,7 +129,7 @@ export class CipherHandler {
         pt: "Portuguese",
         sv: "Swedish",
         ia: "Interlingua",
-        la: "Latin",
+        la: "Latin"
     };
     public guidanceURL: string = "TestGuidance.html";
     /**
@@ -147,7 +147,7 @@ export class CipherHandler {
         pt: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         sv: "AÅÄBCDEFGHIJKLMNOÖPQRSTUVWXYZ",
         ia: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     };
     /**
      * Character replacement for purposes of encoding
@@ -173,7 +173,7 @@ export class CipherHandler {
             Ô: "O",
             Û: "U",
             Ù: "U",
-            Ü: "U",
+            Ü: "U"
         },
         it: { À: "A", É: "E", È: "E", Ì: "I", Ò: "O", Ù: "U" },
         no: {},
@@ -189,11 +189,11 @@ export class CipherHandler {
             Ó: "O",
             Ô: "O",
             Õ: "O",
-            Ú: "U",
+            Ú: "U"
         },
         sv: {},
         ia: {},
-        la: {},
+        la: {}
     };
     /**
      * This maps which characters are to be used when encoding an ACA cipher
@@ -209,7 +209,7 @@ export class CipherHandler {
         pt: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         sv: "AÅÄBCDEFGHIJKLMNOÖPRSTUVYZ",
         ia: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     };
     /**
      * This maps which characters are to be encoded to for an ACA cipher
@@ -225,7 +225,7 @@ export class CipherHandler {
         pt: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         sv: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         ia: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     };
     /**
      * Character replacement for purposes of encoding
@@ -251,7 +251,7 @@ export class CipherHandler {
             Ô: "O",
             Û: "U",
             Ù: "U",
-            Ü: "U",
+            Ü: "U"
         },
         it: { É: "E", È: "E", Ì: "I", Ò: "O", Ù: "U" },
         no: {},
@@ -267,11 +267,11 @@ export class CipherHandler {
             Ó: "O",
             Ô: "O",
             Õ: "O",
-            Ú: "U",
+            Ú: "U"
         },
         sv: {},
         ia: {},
-        la: {},
+        la: {}
     };
     /**
      * Language character frequency
@@ -303,7 +303,7 @@ export class CipherHandler {
             X: 0.0023,
             J: 0.0016,
             Q: 0.0012,
-            Z: 0.0009,
+            Z: 0.0009
         },
         nl: {
             E: 0.204011,
@@ -331,7 +331,7 @@ export class CipherHandler {
             J: 0.0080682,
             F: 0.005302,
             É: 0.0011526,
-            X: 0.0002305,
+            X: 0.0002305
         },
         de: {
             E: 0.149958,
@@ -360,7 +360,7 @@ export class CipherHandler {
             Ö: 0.0030431,
             J: 0.002705,
             ß: 0.0006762,
-            Q: 0.0001691,
+            Q: 0.0001691
         },
         eo: {
             A: 0.122894,
@@ -389,7 +389,7 @@ export class CipherHandler {
             Ĝ: 0.0054468,
             Ĉ: 0.0040851,
             Ŝ: 0.0011915,
-            Ĵ: 0.0010213,
+            Ĵ: 0.0010213
         },
         es: {
             E: 0.1408,
@@ -418,7 +418,7 @@ export class CipherHandler {
             Ñ: 0.0017,
             X: 0.0014,
             K: 0.0011,
-            W: 0.0004,
+            W: 0.0004
         },
         fr: {
             E: 0.1406753,
@@ -451,7 +451,7 @@ export class CipherHandler {
             Ù: 0.0004156,
             Â: 0.0002078,
             Ô: 0.0002078,
-            Û: 0.0001039,
+            Û: 0.0001039
         },
         it: {
             I: 0.137609,
@@ -475,7 +475,7 @@ export class CipherHandler {
             È: 0.0103511,
             V: 0.0101482,
             F: 0.0085245,
-            Q: 0.00548,
+            Q: 0.00548
         },
         no: {
             E: 0.16463,
@@ -503,7 +503,7 @@ export class CipherHandler {
             Y: 0.0057983,
             Æ: 0.0,
             C: 0.0,
-            Z: 0.0,
+            Z: 0.0
         },
         pt: {
             E: 0.148438,
@@ -540,7 +540,7 @@ export class CipherHandler {
             Â: 0.0004596,
             Õ: 0.0002298,
             W: 0.0,
-            Y: 0.0,
+            Y: 0.0
         },
         sv: {
             N: 0.102144,
@@ -568,7 +568,7 @@ export class CipherHandler {
             B: 0.0121359,
             J: 0.00768608,
             Y: 0.0052589,
-            X: 0.000202265,
+            X: 0.000202265
         },
         ia: {
             E: 0.1729506,
@@ -596,7 +596,7 @@ export class CipherHandler {
             Y: 0.0006355,
             K: 0.0,
             W: 0.0,
-            Z: 0.0,
+            Z: 0.0
         },
         la: {
             I: 0.1333172,
@@ -624,8 +624,8 @@ export class CipherHandler {
             K: 0.0,
             W: 0.0,
             Y: 0.0,
-            Z: 0.0,
-        },
+            Z: 0.0
+        }
     };
     public defaultstate: IState = {
         /** The current cipher typewe are working on */
@@ -634,7 +634,7 @@ export class CipherHandler {
         cipherString: "" /** The current string we are looking for */,
         findString: "" /** Replacement characters */,
         replacement: {} /** Current language */,
-        curlang: "",
+        curlang: ""
     };
     public state: IState = cloneObject(this.defaultstate) as IState;
     public undocmdButton: JTButtonItem = {
@@ -642,21 +642,21 @@ export class CipherHandler {
         id: "undo",
         color: "primary",
         class: "undo",
-        disabled: true,
+        disabled: true
     };
     public redocmdButton: JTButtonItem = {
         title: "Redo",
         id: "redo",
         color: "primary",
         class: "redo",
-        disabled: true,
+        disabled: true
     };
 
     public cmdButtons: JTButtonItem[] = [
         { title: "Load", color: "primary", id: "load" },
         this.undocmdButton,
         this.redocmdButton,
-        { title: "Reset", color: "warning", id: "reset" },
+        { title: "Reset", color: "warning", id: "reset" }
     ];
     public testStrings: string[] = [];
     public defaultRunningKeys: IRunningKey[] = [
@@ -665,7 +665,7 @@ export class CipherHandler {
             text:
                 "FOUR SCORE AND SEVEN YEARS AGO OUR FATHERS BROUGHT FORTH ON THIS CONTINENT, " +
                 "A NEW NATION, CONCEIVED IN LIBERTY, AND DEDICATED TO THE " +
-                "PROPOSITION THAT ALL MEN ARE CREATED EQUAL.",
+                "PROPOSITION THAT ALL MEN ARE CREATED EQUAL."
         },
         {
             title: "Declaration of Independence",
@@ -674,7 +674,7 @@ export class CipherHandler {
                 "DISSOLVE THE POLITICAL BANDS WHICH HAVE CONNECTED THEM WITH ANOTHER AND TO ASSUME " +
                 "AMONG THE POWERS OF THE EARTH, THE SEPARATE AND EQUAL STATION TO WHICH THE LAWS " +
                 "OF NATURE AND OF NATURE'S GOD ENTITLE THEM, A DECENT RESPECT TO THE OPINIONS OF " +
-                "MANKIND REQUIRES THAT THEY SHOULD DECLARE THE CAUSES WHICH IMPEL THEM TO THE SEPARATION.",
+                "MANKIND REQUIRES THAT THEY SHOULD DECLARE THE CAUSES WHICH IMPEL THEM TO THE SEPARATION."
         },
         {
             title: "Constitution of United States of America",
@@ -683,7 +683,7 @@ export class CipherHandler {
                 "ESTABLISH JUSTICE, INSURE DOMESTIC TRANQUILITY, PROVIDE FOR THE COMMON DEFENSE, " +
                 "PROMOTE THE GENERAL WELFARE, AND SECURE THE BLESSINGS OF LIBERTY TO OURSELVES AND " +
                 "OUR POSTERITY, DO ORDAIN AND ESTABLISH THIS CONSTITUTION FOR THE " +
-                "UNITED STATES OF AMERICA.",
+                "UNITED STATES OF AMERICA."
         },
         {
             title: "MAGNA CARTA (In Latin)",
@@ -691,8 +691,8 @@ export class CipherHandler {
                 "JOHANNES DEI GRACIA REX ANGLIE, DOMINUS HIBERNIE, DUX NORMANNIE, " +
                 "AQUITANNIE ET COMES ANDEGAVIE, ARCHIEPISCOPIS, EPISCOPIS, ABBATIBUS, COMITIBUS, " +
                 "BARONIBUS, JUSTICIARIIS, FORESTARIIS, VICECOMITIBUS, PREPOSITIS, " +
-                "MINISTRIS ET OMNIBUS BALLIVIS ET FIDELIBUS SUIS SALUTEM.",
-        },
+                "MINISTRIS ET OMNIBUS BALLIVIS ET FIDELIBUS SUIS SALUTEM."
+        }
     ];
     /** Any special running key not in the default set used by this cipher */
     public extraRunningKey: string;
@@ -800,7 +800,7 @@ export class CipherHandler {
             timed: -1,
             title: "Invalid Test",
             count: 0,
-            questions: [],
+            questions: []
         };
         if (this.storage.isAvailable()) {
             let testCount = this.getTestCount();
@@ -895,7 +895,7 @@ export class CipherHandler {
         if (cipherCount === 0) {
             result = $("<div/>", {
                 class: "callout warning filelist",
-                id: "files",
+                id: "files"
             }).text("No files found");
         } else {
             // Generate a list of the types of ciphers that we allow
@@ -903,7 +903,7 @@ export class CipherHandler {
             result = $("<select/>", {
                 id: "files",
                 class: "filelist",
-                size: 10,
+                size: 10
             });
             for (let entry = 0; entry < cipherCount; entry++) {
                 let fileEntry = this.getFileEntry(entry);
@@ -925,7 +925,7 @@ export class CipherHandler {
                     }
                     result.append(
                         $("<option />", {
-                            value: entry,
+                            value: entry
                         }).html(entryText)
                     );
                 }
@@ -1260,7 +1260,7 @@ export class CipherHandler {
      */
     public genFreqTable(showanswers: boolean, encodeType: string): JQElement {
         let table = new JTTable({
-            class: "prfreq shrink cell unstriped",
+            class: "prfreq shrink cell unstriped"
         });
         let charset = this.getSourceCharset();
         let replalphabet = this.state.replacement;
@@ -1286,7 +1286,7 @@ export class CipherHandler {
 
         headrow.add({
             settings: { class: "topleft " + encodeType },
-            content: encodeType.toUpperCase(),
+            content: encodeType.toUpperCase()
         });
         freqrow.add({ celltype: "th", content: "Frequency" });
         replrow.add({ celltype: "th", content: "Replacement" });
@@ -1315,20 +1315,51 @@ export class CipherHandler {
             for (let entry = 0; entry < testCount; entry++) {
                 let test = this.getTestEntry(entry);
                 let use;
+                let prevq, nextq, prevtxt, nexttxt;
                 if (test.timed === this.savefileentry) {
                     use = "Timed Question";
+                    if (test.questions.length > 0) {
+                        nextq = test.questions[0];
+                        nexttxt = "#1";
+                    }
                 } else {
                     let qnum = test.questions.indexOf(this.savefileentry);
                     if (qnum !== -1) {
                         use = "Question #" + String(qnum + 1);
+                        if (qnum > 0) {
+                            prevq = test.questions[qnum - 1];
+                            prevtxt = "#" + String(qnum);
+                        } else if (test.timed !== -1) {
+                            prevq = test.timed;
+                            prevtxt = "Timed";
+                        }
+                        if (qnum < test.questions.length) {
+                            nextq = test.questions[qnum + 1];
+                            nexttxt = "#" + String(qnum + 2);
+                        }
                     }
                 }
                 if (use !== undefined) {
                     let link = $("<a/>", {
-                        href: "TestGenerator.html?test=" + String(entry),
+                        href: "TestGenerator.html?test=" + String(entry)
                     }).text(test.title + " " + use);
                     result.addClass("callout primary");
-                    result.append(prefix).append(link);
+                    result.append(prefix);
+                    if (prevq !== undefined) {
+                        let linkprev = $("<a/>", {
+                            class: "prevnav",
+                            href: this.getEntryURL(prevq)
+                        }).text(prevtxt);
+                        result.append(linkprev).append(" ");
+                    }
+                    result.append(link);
+                    if (nextq !== undefined) {
+                        let linknext = $("<a/>", {
+                            class: "nxtnav",
+                            href: this.getEntryURL(nextq)
+                        }).text(nexttxt);
+                        result.append(linknext).append(" ");
+                    }
                     prefix = ", ";
                 }
             }
@@ -1360,7 +1391,7 @@ export class CipherHandler {
                 id: "undo",
                 class: "button primary undo",
                 value: "Undo",
-                disabled: true,
+                disabled: true
             })
         );
         buttons.append(
@@ -1369,7 +1400,7 @@ export class CipherHandler {
                 id: "redo",
                 class: "button primary redo",
                 value: "Redo",
-                disabled: true,
+                disabled: true
             })
         );
         return buttons.children();
@@ -1634,7 +1665,7 @@ export class CipherHandler {
                 if (this.isValidChar(c)) {
                     rowover.add({
                         settings: { class: "o v" },
-                        content: overline.substr(i, 1),
+                        content: overline.substr(i, 1)
                     });
                 } else {
                     rowover.add(overline.substr(i, 1));
@@ -1643,11 +1674,11 @@ export class CipherHandler {
             if (this.isValidChar(c)) {
                 rowcipher.add({
                     settings: { class: "q v" },
-                    content: c,
+                    content: c
                 });
                 rowanswer.add({
                     settings: { class: aclass },
-                    content: a,
+                    content: a
                 });
             } else {
                 if (answerline === undefined) {
@@ -2190,22 +2221,22 @@ export class CipherHandler {
         let result = $("<div/>", { class: "cell input-group" });
         result.append(
             $("<span/>", {
-                class: "input-group-label",
+                class: "input-group-label"
             }).text("Language")
         );
         let select = $("<select/>", {
-            class: "lang input-group-field",
+            class: "lang input-group-field"
         });
         select.append(
             $("<option />", {
-                value: "",
+                value: ""
             }).text("--Select a language--")
         );
         for (let lang in this.langmap) {
             if (this.langmap.hasOwnProperty(lang)) {
                 select.append(
                     $("<option />", {
-                        value: lang,
+                        value: lang
                     }).text(this.langmap[lang])
                 );
             }
@@ -2282,7 +2313,7 @@ export class CipherHandler {
                         pieces[0].toUpperCase(),
                         i,
                         pieces[1],
-                        0,
+                        0
                     ];
                     if (i < 500) {
                         elem[3] = 0;
@@ -2328,7 +2359,7 @@ export class CipherHandler {
             $(".langstatus").append(
                 $("<div/>", {
                     class: "callout " + calloutclass,
-                    "data-closable": "",
+                    "data-closable": ""
                 }).text(msg)
             );
         }
@@ -2359,6 +2390,22 @@ export class CipherHandler {
         return JTGetURL(CipherMenu, state.cipherType, lang);
     }
     /**
+     * Get the URL associated with an editor for a cipher entry
+     * @param entry Entry to get editing URL for
+     */
+    public getEntryURL(entry: number): string {
+        let state = this.getFileEntry(entry);
+        let entryURL = this.getEditURL(state);
+        if (entryURL !== "") {
+            if (entryURL.indexOf("?") > -1) {
+                entryURL += "&editEntry=" + entry;
+            } else {
+                entryURL += "?editEntry=" + entry;
+            }
+        }
+        return entryURL;
+    }
+    /**
      * Gte a URL associated with a solver for a saved cipher
      * @param state Saved cipher
      */
@@ -2376,7 +2423,7 @@ export class CipherHandler {
         let dlgContents = $("<select/>", {
             id: "files",
             class: "filelist",
-            size: 10,
+            size: 10
         });
         let openFileDlg = JTFDialog(
             "OpenFile",
@@ -2393,12 +2440,12 @@ export class CipherHandler {
     private createImportFileDlg(): JQElement {
         let dlgContents = $("<div/>", {
             id: "importstatus",
-            class: "callout secondary",
+            class: "callout secondary"
         })
             .append(
                 $("<label/>", {
                     for: "xmlFile",
-                    class: "impfile button",
+                    class: "impfile button"
                 }).text("Select File")
             )
             .append(
@@ -2406,13 +2453,13 @@ export class CipherHandler {
                     type: "file",
                     id: "xmlFile",
                     accept: ".json",
-                    class: "impfile show-for-sr",
+                    class: "impfile show-for-sr"
                 })
             )
             .append(
                 $("<span/>", {
                     id: "xmltoimport",
-                    class: "impfile",
+                    class: "impfile"
                 }).text("No File Selected")
             )
             .append(
@@ -2565,7 +2612,7 @@ export class CipherHandler {
                 console.log("C Error " + c);
                 console.log("Disable the download button...");
                 $("#okdownload").prop("disabled", true);
-            },
+            }
         }).done(function(a: any, b: string, c: JQueryXHR): void {
             $(".remote-version").html(remote_version);
             // enable the down load buttin if appropriate

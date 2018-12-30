@@ -15,7 +15,7 @@ export class CipherTestPrint extends CipherTest {
     public defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.Test,
-        test: 0,
+        test: 0
     };
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
@@ -49,13 +49,15 @@ export class CipherTestPrint extends CipherTest {
         let result = $("<div/>");
         $(".testtitle").text(test.title);
         let dt = new Date();
+        // If we are at the end of the year, display the following year for tests.
+        dt.setDate(dt.getDate() + 6);
         $(".testyear").text(dt.getFullYear());
         this.runningKeys = undefined;
         this.qdata = [];
         if (test.timed === -1) {
             result.append(
                 $("<p/>", {
-                    class: "noprint",
+                    class: "noprint"
                 }).text("No timed question")
             );
         } else {
@@ -85,12 +87,12 @@ export class CipherTestPrint extends CipherTest {
             for (let ent of this.runningKeys) {
                 $("#runningkeys").append(
                     $("<div/>", {
-                        class: "runtitle",
+                        class: "runtitle"
                     }).text(ent.title)
                 );
                 $("#runningkeys").append(
                     $("<div/>", {
-                        class: "runtext",
+                        class: "runtext"
                     }).text(ent.text)
                 );
             }
@@ -99,7 +101,7 @@ export class CipherTestPrint extends CipherTest {
          * Lastly we need to print out the score table
          */
         let table = new JTTable({
-            class: "cell shrink testscores",
+            class: "cell shrink testscores"
         });
         let hastimed = false;
         table
@@ -121,11 +123,11 @@ export class CipherTestPrint extends CipherTest {
                 .addBodyRow()
                 .add({
                     settings: { class: "t" },
-                    content: qtitle,
+                    content: qtitle
                 })
                 .add({
                     settings: { class: "v" },
-                    content: String(qitem.points),
+                    content: String(qitem.points)
                 })
                 .add("")
                 .add("")
@@ -139,7 +141,7 @@ export class CipherTestPrint extends CipherTest {
                 .add("")
                 .add({
                     settings: { colspan: 2, class: "grey" },
-                    content: "",
+                    content: ""
                 })
                 .add("");
         }

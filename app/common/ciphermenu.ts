@@ -11,16 +11,16 @@ export const CipherMenu: menuItem[] = [
         menu: [
             { title: "New", action: "new" },
             { title: "Open", action: "open" },
-            { title: "Save", action: "save", classname: "save" },
-        ],
+            { title: "Save", action: "save", classname: "save" }
+        ]
     },
     {
         title: "Edit",
         classname: "menufile",
         menu: [
             { title: "Undo", action: "undo", classname: "undo disabled_menu" },
-            { title: "Redo", action: "redo", classname: "redo disabled_menu" },
-        ],
+            { title: "Redo", action: "redo", classname: "redo disabled_menu" }
+        ]
     },
     {
         title: "Test Generation Tools",
@@ -32,70 +32,75 @@ export const CipherMenu: menuItem[] = [
             {
                 title: "Affine",
                 href: "AffineEncrypt.html",
-                cipherType: ICipherType.Affine,
+                cipherType: ICipherType.Affine
             },
             {
                 title: "Aristocrat",
                 href: "AristocratEncrypt.html",
-                cipherType: ICipherType.Aristocrat,
+                cipherType: ICipherType.Aristocrat
             },
             {
                 title: "Atbash",
                 href: "Atbash.html",
-                cipherType: ICipherType.Atbash,
+                cipherType: ICipherType.Atbash
             },
             {
                 title: "Baconian",
                 href: "Baconian.html",
-                cipherType: ICipherType.Baconian,
+                cipherType: ICipherType.Baconian
             },
             {
                 title: "Caesar",
                 href: "Caesar.html",
-                cipherType: ICipherType.Caesar,
+                cipherType: ICipherType.Caesar
             },
             {
                 title: "Hill (2x2 and 3x3)",
                 href: "HillEncrypt.html",
-                cipherType: ICipherType.Hill,
+                cipherType: ICipherType.Hill
+            },
+            {
+                title: "PigPen",
+                href: "PigPenEncrypt.html",
+                cipherType: ICipherType.PigPen
             },
             {
                 title: "Patristocrat",
                 href: "PatristocratEncrypt.html",
-                cipherType: ICipherType.Patristocrat,
+                cipherType: ICipherType.Patristocrat
             },
             {
                 title: "Running Key",
                 href: "RunningKeyEncoder.html",
-                cipherType: ICipherType.RunningKey,
+                cipherType: ICipherType.RunningKey
             },
             {
                 title: "RSA",
                 href: "RSAEncrypt.html",
-                cipherType: ICipherType.RSA,
+                cipherType: ICipherType.RSA
             },
             {
                 title: "Spanish Aristocrat",
                 href: "AristocratSpanishEncrypt.html",
                 cipherType: ICipherType.Aristocrat,
-                lang: "es",
+                lang: "es"
             },
             {
                 title: "Vigen&egrave;re",
                 href: "VigenereEncrypt.html",
-                cipherType: ICipherType.Vigenere,
+                cipherType: ICipherType.Vigenere
             },
             {
                 title: "Xenocrypt",
                 href: "XenocryptEncrypt.html",
-                cipherType: ICipherType.Xenocrypt,
+                cipherType: ICipherType.Xenocrypt
             },
             { title: "", classname: "divider" },
             {
                 title: "Report a problem",
-                href: "https://github.com/toebes/ciphers/issues",
-            },
-        ],
+                href: "https://github.com/toebes/ciphers/issues"
+            }
+        ]
     },
     {
         title: "ACA Solving Assistants",
@@ -106,40 +111,40 @@ export const CipherMenu: menuItem[] = [
             {
                 title: "Aristocrat/Patristocrat Solving Assistant",
                 href: "Solver.html",
-                solveType: [ICipherType.Aristocrat, ICipherType.Patristocrat],
+                solveType: [ICipherType.Aristocrat, ICipherType.Patristocrat]
             },
             {
                 title: "Morbit Solving Assistant",
                 href: "MorbitSolver.html",
-                solveType: [ICipherType.Morbit],
+                solveType: [ICipherType.Morbit]
             },
             {
                 title: "Columnar Solving Assistant",
                 href: "ColumnarSolver.html",
                 solveType: [
                     ICipherType.CompleteColumnar,
-                    ICipherType.IncompleteColumnar,
-                ],
+                    ICipherType.IncompleteColumnar
+                ]
             },
             {
                 title: "Fractionated Morse Solving Assistant",
                 href: "FractionatedMorseSolver.html",
-                solveType: [ICipherType.FractionatedMorse],
+                solveType: [ICipherType.FractionatedMorse]
             },
             {
                 title: "Key Phrase Solving Assistant",
                 href: "KeyPhraseSolver.html",
-                solveType: [ICipherType.KeyPhrase],
+                solveType: [ICipherType.KeyPhrase]
             },
             {
                 title: "Homophonic Solving Assistant",
                 href: "HomophonicSolver.html",
-                solveType: [ICipherType.Homophonic],
+                solveType: [ICipherType.Homophonic]
             },
             {
                 title: "Xenocrypt Solving Assistant",
                 href: "XenocryptSolver.html",
-                solveType: [ICipherType.Xenocrypt],
+                solveType: [ICipherType.Xenocrypt]
             },
             {
                 title: "Vigen&egrave;re Family Solving Assistant",
@@ -149,40 +154,40 @@ export const CipherMenu: menuItem[] = [
                     ICipherType.Variant,
                     ICipherType.Beaufort,
                     ICipherType.Gronsfeld,
-                    ICipherType.Porta,
-                ],
+                    ICipherType.Porta
+                ]
             },
             {
                 title: "Gromark Solving Assistant",
                 href: "GromarkSolver.html",
-                solveType: [ICipherType.Gromark],
+                solveType: [ICipherType.Gromark]
             },
             {
                 title: "Cryptarithm Solving Assistant",
                 href: "CryptarithmSolver.html",
-                solveType: [ICipherType.Cryptarithm],
+                solveType: [ICipherType.Cryptarithm]
             },
             {
                 title: "Checkerboard Solving Assistant",
                 href: "CheckerboardSolver.html",
-                solveType: [ICipherType.Checkerboard],
+                solveType: [ICipherType.Checkerboard]
             },
             {
                 title: "Portax Solving Assistant",
                 href: "PortaxSolver.html",
-                solveType: [ICipherType.Portax],
+                solveType: [ICipherType.Portax]
             },
             {
                 title: "Ragbaby Solving Assistant",
                 href: "RagbabySolver.html",
-                solveType: [ICipherType.Ragbaby],
+                solveType: [ICipherType.Ragbaby]
             },
             {
                 title: "Railfence/Redefence Solving Assistant",
                 href: "RailfenceSolver.html",
-                solveType: [ICipherType.Railfence, ICipherType.Redefence],
-            },
-        ],
+                solveType: [ICipherType.Railfence, ICipherType.Redefence]
+            }
+        ]
     },
     {
         title: "Help",
@@ -192,9 +197,9 @@ export const CipherMenu: menuItem[] = [
             {
                 title: "Test Question Guidance",
                 action: "guidance",
-                classname: "guidance menucb",
-            },
-        ],
-    },
+                classname: "guidance menucb"
+            }
+        ]
+    }
 ];
 // { title: "Language Template Processor", href: "GenLanguage.html", },

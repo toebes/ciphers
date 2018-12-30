@@ -66,6 +66,7 @@ export const modInverse26 = {
     19: 11,
     21: 5,
     23: 17,
+    25: 25
 };
 /**
  * Compute the modular 26 inverse of a matrix
@@ -79,13 +80,13 @@ export function mod26Inverse2x2(matrix: number[][]): number[][] {
     let d = matrix[1][1];
 
     let det = mod26(a * d - b * c);
-    if (typeof modInverse26[det] === undefined) {
+    if (!modInverse26.hasOwnProperty(det)) {
         return [[]];
     }
     let inv = modInverse26[det];
     return [
         [mod26(d * inv), mod26(-b * inv)],
-        [mod26(-c * inv), mod26(a * inv)],
+        [mod26(-c * inv), mod26(a * inv)]
     ];
     return result;
 }

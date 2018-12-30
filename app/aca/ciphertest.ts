@@ -4,7 +4,7 @@ import {
     IRunningKey,
     IState,
     ITest,
-    toolMode,
+    toolMode
 } from "../common/cipherhandler";
 import { getCipherTitle, ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
@@ -30,7 +30,7 @@ export class CipherTest extends CipherHandler {
     public activeToolMode: toolMode = toolMode.codebusters;
     public defaultstate: ITestState = {
         cipherString: "",
-        cipherType: ICipherType.None,
+        cipherType: ICipherType.None
     };
     public state: ITestState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [
@@ -39,10 +39,10 @@ export class CipherTest extends CipherHandler {
             title: "Export Tests",
             color: "primary",
             id: "export",
-            disabled: true,
+            disabled: true
         },
         { title: "Import Tests from File", color: "primary", id: "import" },
-        { title: "Import Tests from URL", color: "primary", id: "importurl" },
+        { title: "Import Tests from URL", color: "primary", id: "importurl" }
     ];
     public restore(data: ITestState): void {
         let curlang = this.state.curlang;
@@ -68,20 +68,13 @@ export class CipherTest extends CipherHandler {
         location.assign("TestGenerator.html?test=" + String(test));
     }
     public gotoEditCipher(entry: number): void {
-        let state = this.getFileEntry(entry);
-        let editURL = this.getEditURL(state);
-        if (editURL !== "") {
-            if (editURL.indexOf("?") > -1) {
-                editURL += "&editEntry=" + entry;
-            } else {
-                editURL += "?editEntry=" + entry;
-            }
-            location.assign(editURL);
+        let entryURL = this.getEntryURL(entry);
+        if (entryURL !== "") {
+            location.assign(entryURL);
         } else {
             alert("No editor found");
         }
     }
-
     /**
      * Compare two arbitrary objects to see if they are equivalent
      */

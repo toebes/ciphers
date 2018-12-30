@@ -15,6 +15,7 @@ import { CipherTestManage } from "./ciphertestmanage";
 import { CipherTestPrint } from "./ciphertestprint";
 import { CipherTestQuestions } from "./ciphertestquestions";
 import { CipherVigenereEncoder } from "./ciphervigenereencoder";
+import { CipherPigPenEncoder } from "./cipherpigpenencoder";
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -30,88 +31,93 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Affine: {
         cipherType: ICipherType.Affine,
         cipherClass: CipherAffineEncoder,
-        canPrint: true,
+        canPrint: true
     },
     Atbash: {
         cipherType: ICipherType.Atbash,
         cipherClass: CipherTableEncoder,
-        canPrint: true,
+        canPrint: true
     },
     Baconian: {
         cipherType: ICipherType.Baconian,
         cipherClass: CipherBaconianEncoder,
-        canPrint: true,
+        canPrint: true
     },
     Caesar: {
         cipherType: ICipherType.Caesar,
         cipherClass: CipherTableEncoder,
-        canPrint: true,
+        canPrint: true
     },
     Encoder: {
         cipherType: ICipherType.Aristocrat,
         cipherClass: CipherEncoder,
-        canPrint: true,
+        canPrint: true
     },
     Hill: {
         cipherType: ICipherType.Hill,
         cipherClass: CipherHillEncoder,
-        canPrint: true,
+        canPrint: true
     },
     Patristocrat: {
         cipherType: ICipherType.Patristocrat,
         cipherClass: CipherEncoder,
-        canPrint: true,
+        canPrint: true
+    },
+    PigPen: {
+        cipherType: ICipherType.PigPen,
+        cipherClass: CipherPigPenEncoder,
+        canPrint: true
     },
     QuoteAnalyze: {
         cipherType: ICipherType.None,
         cipherClass: CipherQuoteAnalyze,
-        canPrint: false,
+        canPrint: false
     },
     RunningKeyEdit: {
         cipherType: ICipherType.None,
         cipherClass: CipherRunningKeyEdit,
-        canPrint: false,
+        canPrint: false
     },
     RunningKey: {
         cipherType: ICipherType.RunningKey,
         cipherClass: CipherRunningKeyEncoder,
-        canPrint: true,
+        canPrint: true
     },
     RSA: {
         cipherType: ICipherType.RSA,
         cipherClass: CipherRSAEncoder,
-        canPrint: true,
+        canPrint: true
     },
     TestAnswers: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestAnswers,
-        canPrint: false,
+        canPrint: false
     },
     TestGenerator: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestGenerator,
-        canPrint: false,
+        canPrint: false
     },
     TestManage: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestManage,
-        canPrint: false,
+        canPrint: false
     },
     TestPrint: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestPrint,
-        canPrint: false,
+        canPrint: false
     },
     TestQuestions: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestQuestions,
-        canPrint: false,
+        canPrint: false
     },
     Vigenere: {
         cipherType: ICipherType.Vigenere,
         cipherClass: CipherVigenereEncoder,
-        canPrint: true,
-    },
+        canPrint: true
+    }
 };
 
 export function CipherFactory(
@@ -126,7 +132,7 @@ export function CipherFactory(
     let entry: ICipherFactoryEntry = {
         cipherType: ICipherType.None,
         cipherClass: CipherEncoder,
-        canPrint: false,
+        canPrint: false
     };
     if (typeof cipherFactoryMap[ciphertypestr] !== "undefined") {
         entry = cipherFactoryMap[ciphertypestr];

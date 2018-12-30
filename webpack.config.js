@@ -15,7 +15,7 @@ module.exports = {
     // devtool: "inline-source-map",
     entry: {
         aca: path.join(__dirname, "app", "aca", "ciphers.ts"),
-        codebusters: path.join(__dirname, "app", "codebusters", "ciphers.ts"),
+        codebusters: path.join(__dirname, "app", "codebusters", "ciphers.ts")
     },
     output: {
         path: path.resolve(__dirname, "dist"),
@@ -23,7 +23,7 @@ module.exports = {
         filename: "[name]-[hash].js",
         libraryTarget: "umd",
         library: "MyLib",
-        umdNamedDefine: true,
+        umdNamedDefine: true
     },
     resolve: {
         alias: {
@@ -56,7 +56,7 @@ module.exports = {
                 "katex",
                 "dist",
                 "katex.css"
-            ),
+            )
         },
         modules: [__dirname, path.join(__dirname, "node_modules")],
         extensions: [
@@ -68,8 +68,8 @@ module.exports = {
             ".woff",
             ".woff2",
             ".png",
-            ".svg",
-        ],
+            ".svg"
+        ]
     },
     module: {
         rules: [
@@ -78,13 +78,13 @@ module.exports = {
                 test: /\.tsx?$/,
                 loader: "ts-loader",
                 include: [path.resolve(__dirname, "app")],
-                exclude: [path.resolve(__dirname, "node_modules")],
+                exclude: [path.resolve(__dirname, "node_modules")]
             },
             // All .css files are processed with the css-loader, style-loader
             {
                 test: /\.css$/,
                 include: __dirname,
-                use: ["style-loader", "css-loader"],
+                use: ["style-loader", "css-loader"]
             },
             // All small .png files (mostly the icons for jqueryui) are inlined
             // with the URL loader
@@ -93,9 +93,9 @@ module.exports = {
                 use: {
                     loader: "url-loader",
                     options: {
-                        limit: 8192,
-                    },
-                },
+                        limit: 8192
+                    }
+                }
             },
             // All small .svg files (mostly the icons for the editor) are inlined
             // with the URL loader
@@ -104,9 +104,9 @@ module.exports = {
                 use: {
                     loader: "url-loader",
                     options: {
-                        limit: 20000,
-                    },
-                },
+                        limit: 20000
+                    }
+                }
             },
             // All .woff and .woff2 fonts files are packed inline (unless they are
             // larger than 1,000)
@@ -116,9 +116,9 @@ module.exports = {
                 use: {
                     loader: "file-loader",
                     options: {
-                        name: "font/[name].[ext]",
-                    },
-                },
+                        name: "font/[name].[ext]"
+                    }
+                }
             },
             // All ttf and eot files are kept in a standalone directory to load
             // Eventually they should go away
@@ -127,9 +127,9 @@ module.exports = {
                 use: {
                     loader: "file-loader",
                     options: {
-                        name: "font/[name].[ext]",
-                    },
-                },
+                        name: "font/[name].[ext]"
+                    }
+                }
             },
             {
                 // Exposes jQuery for use outside Webpack build
@@ -137,33 +137,33 @@ module.exports = {
                 use: [
                     {
                         loader: "expose-loader",
-                        options: "jQuery",
+                        options: "jQuery"
                     },
                     {
                         loader: "expose-loader",
-                        options: "$",
-                    },
-                ],
-            },
-        ],
+                        options: "$"
+                    }
+                ]
+            }
+        ]
     },
     plugins: [
         new CopyWebpackPlugin([
             {
                 from: path.join(__dirname, "Languages", "*.js"),
-                to: path.resolve(__dirname, "dist"),
+                to: path.resolve(__dirname, "dist")
             },
             {
                 from: path.join(__dirname, "Languages", "*.txt"),
-                to: path.resolve(__dirname, "dist"),
-            },
+                to: path.resolve(__dirname, "dist")
+            }
         ]),
         new CopyWebpackPlugin([
             {
                 from: path.join(__dirname, "app/images", "*.png"),
                 to: path.resolve(__dirname, "dist"),
-                flatten: true,
-            },
+                flatten: true
+            }
         ]),
         new WebpackAutoInject({
             // specify the name of the tag in the outputed files eg
@@ -174,24 +174,24 @@ module.exports = {
             components: {
                 AutoIncreaseVersion: true,
                 InjectAsComment: false,
-                InjectByTag: true,
+                InjectByTag: true
             },
             componentsOptions: {
                 AutoIncreaseVersion: {
-                    runInWatchMode: false, // it will increase version with every single build!
+                    runInWatchMode: false // it will increase version with every single build!
                 },
                 InjectAsComment: {
                     tag: "Version: {version} - {date}",
-                    dateFormat: "h:MM:ss TT",
+                    dateFormat: "h:MM:ss TT"
                 },
                 InjectByTag: {
                     fileRegex: /\.+/,
                     // regexp to find [AIV] tag inside html, if you tag contains unallowed characters you can adjust the regex
                     // but also you can change [AIV] tag to anything you want
                     AIVTagRegexp: /(\[AIV])(([a-zA-Z{} ,:;!()_@\-"'\\\/])+)(\[\/AIV])/g,
-                    dateFormat: "mmm d, yyyy @ HH:MM:ss o",
-                },
-            },
+                    dateFormat: "mmm d, yyyy @ HH:MM:ss o"
+                }
+            }
         }),
         new CopyWebpackPlugin([
             {
@@ -218,7 +218,7 @@ module.exports = {
             template: path.join(__dirname, "app", "aca", "pages", "index.html"),
             chunks: ["aca"],
             cipher: "",
-            title: "ACA Cipher Tools",
+            title: "ACA Cipher Tools"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -232,7 +232,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "ACAProblems",
-            title: "ACA Problem Management",
+            title: "ACA Problem Management"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -246,7 +246,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "ACASubmit",
-            title: "ACA Submission",
+            title: "ACA Submission"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -260,7 +260,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "Checkerboard",
-            title: "Checkerboard Assistant",
+            title: "Checkerboard Assistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -274,7 +274,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "CompleteColumnarSolver",
-            title: "Complete/Incomplete Columnar Asssistant",
+            title: "Complete/Incomplete Columnar Asssistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -288,7 +288,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "PortaxSolver",
-            title: "Portax Asssistant",
+            title: "Portax Asssistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -302,7 +302,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "Cryptarithm",
-            title: "Cryptarithm Assistant",
+            title: "Cryptarithm Assistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -316,7 +316,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "None",
-            title: "Index to Cryptogram issues",
+            title: "Index to Cryptogram issues"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -330,7 +330,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "HomophonicSolver",
-            title: "Homophonic Asssistant",
+            title: "Homophonic Asssistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -344,7 +344,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "KeyPhraseSolver",
-            title: "Key Phrase Asssistant",
+            title: "Key Phrase Asssistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -358,7 +358,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "FractionatedMorse",
-            title: "Fractionated Morse Assistant",
+            title: "Fractionated Morse Assistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -372,7 +372,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "None",
-            title: "Index to Cryptogram issues",
+            title: "Index to Cryptogram issues"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -386,7 +386,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "",
-            title: "Language Template Processor",
+            title: "Language Template Processor"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -400,7 +400,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "Gromark",
-            title: "Gromark Assistant",
+            title: "Gromark Assistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -414,7 +414,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "Morbit",
-            title: "Morbit Assistant",
+            title: "Morbit Assistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -428,7 +428,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "RagbabySolver",
-            title: "Ragbaby Assistant",
+            title: "Ragbaby Assistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -442,7 +442,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "RailfenceSolver",
-            title: "Railfence and Redefence Assistant",
+            title: "Railfence and Redefence Assistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -456,7 +456,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "",
-            title: "Aristocrat/Patristocrat Assistant",
+            title: "Aristocrat/Patristocrat Assistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -471,7 +471,7 @@ module.exports = {
             chunks: ["aca"],
             cipher: "VigenereSolver",
             title:
-                "Vigen&egrave;re, Variant, Beaufort, Gronsfeld, Porta Assistant",
+                "Vigen&egrave;re, Variant, Beaufort, Gronsfeld, Porta Assistant"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -485,7 +485,7 @@ module.exports = {
             ),
             chunks: ["aca"],
             cipher: "YYYY",
-            title: "Xenocrypt Assistant",
+            title: "Xenocrypt Assistant"
         }),
         //=====================================================================
         //
@@ -504,7 +504,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "",
-            title: "Science Olympiad Code Busters",
+            title: "Science Olympiad Code Busters"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -518,7 +518,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "",
-            title: "Test Guidance",
+            title: "Test Guidance"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -532,7 +532,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "QuoteAnalyze",
-            title: "Quote Analyzer",
+            title: "Quote Analyzer"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -546,7 +546,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "Affine",
-            title: "Affine Encrypt",
+            title: "Affine Encrypt"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -560,7 +560,21 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "Encoder",
-            title: "Aristocrat Encoder",
+            title: "Aristocrat Encoder"
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: "PigPenEncrypt.html",
+            template: path.join(
+                __dirname,
+                "app",
+                "codebusters",
+                "pages",
+                "StdEncoder.html"
+            ),
+            chunks: ["codebusters"],
+            cipher: "PigPen",
+            title: "PigPen Encoder"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -574,7 +588,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "Encoder",
-            title: "Aristrocrat Spanish Encrypt",
+            title: "Aristrocrat Spanish Encrypt"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -588,7 +602,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "Atbash",
-            title: "Caesar/Atbash Encoder",
+            title: "Caesar/Atbash Encoder"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -602,7 +616,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "Baconian",
-            title: "Baconian Cipher",
+            title: "Baconian Cipher"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -616,7 +630,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "Caesar",
-            title: "Caesar/Atbash Encoder",
+            title: "Caesar/Atbash Encoder"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -630,7 +644,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "RSA",
-            title: "RSA Encoder",
+            title: "RSA Encoder"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -644,7 +658,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "RunningKeyEdit",
-            title: "Edit Running Key Values",
+            title: "Edit Running Key Values"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -658,7 +672,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "RunningKey",
-            title: "Running Key Encoder",
+            title: "Running Key Encoder"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -672,7 +686,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "Hill",
-            title: "Hill Encrypt (2x2 and 3x3)",
+            title: "Hill Encrypt (2x2 and 3x3)"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -686,7 +700,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "",
-            title: "Known Valid Hill Encryption Keys",
+            title: "Known Valid Hill Encryption Keys"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -700,7 +714,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "Patristocrat",
-            title: "Patristocrat Encrypt",
+            title: "Patristocrat Encrypt"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -714,7 +728,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "TestAnswers",
-            title: "Test Answer Key",
+            title: "Test Answer Key"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -728,7 +742,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "TestGenerator",
-            title: "Test Generator",
+            title: "Test Generator"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -742,7 +756,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "TestManage",
-            title: "Test Management",
+            title: "Test Management"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -756,7 +770,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "TestPrint",
-            title: "Test",
+            title: "Test"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -770,7 +784,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "TestQuestions",
-            title: "Test Question Management",
+            title: "Test Question Management"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -784,7 +798,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "Vigenere",
-            title: "Vigen&egrave;re Encoder",
+            title: "Vigen&egrave;re Encoder"
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -798,19 +812,19 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "Encoder",
-            title: "Xenocrypt Encrypt",
+            title: "Xenocrypt Encrypt"
         }),
         new webpack.ProvidePlugin({
             $: "jquery",
             jQuery: "jquery",
-            "global.$": "jquery",
+            "global.$": "jquery"
         }),
         new webpack.DefinePlugin({
-            "require.specified": "require.resolve",
+            "require.specified": "require.resolve"
         }),
         // The webpack-shell-plugin is installed with "npm install --save-dev webpack-shell-plugin"
         new WebpackShellPlugin({
-            onBuildExit: ['python zip-ct.py '+toolsVersion]
-        })       
-    ],
+            onBuildExit: ["python zip-ct.py " + toolsVersion]
+        })
+    ]
 };

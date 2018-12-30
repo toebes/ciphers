@@ -43,6 +43,7 @@ export const enum ICipherType {
     NumberedKey = "numberedkey",
     Patristocrat = "patristocrat",
     PeriodicGromark = "periodicgromark",
+    PigPen = "pigpen",
     Phillips = "phillips",
     PhillipsRC = "phillipsrc",
     Playfair = "playfair",
@@ -75,7 +76,7 @@ export const enum ICipherType {
     TwoSquare = "twosquare",
     Variant = "variant",
     Vigenere = "vigenere",
-    Xenocrypt = "xenocrypt",
+    Xenocrypt = "xenocrypt"
 }
 
 let cipherTypeConfig = new Map(<[ICipherType, any][]>[
@@ -84,20 +85,20 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
         {
             title: "None",
             id: "none",
-            equiv: [],
-        },
+            equiv: []
+        }
     ],
     [
         ICipherType.Affine,
-        { title: "Affine", id: "affine", equiv: [ICipherType.Affine] },
+        { title: "Affine", id: "affine", equiv: [ICipherType.Affine] }
     ],
     [
         ICipherType.Amsco,
         /* Not Yet Implemented */ {
             title: "Amsco",
             id: "amsco",
-            equiv: [ICipherType.Amsco],
-        },
+            equiv: [ICipherType.Amsco]
+        }
     ],
     [
         ICipherType.Aristocrat,
@@ -107,37 +108,37 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
             equiv: [
                 ICipherType.Aristocrat,
                 ICipherType.Patristocrat,
-                ICipherType.Xenocrypt,
-            ],
-        },
+                ICipherType.Xenocrypt
+            ]
+        }
     ],
     [
         ICipherType.Atbash,
         {
             title: "Atbash",
             id: "atbash",
-            equiv: [ICipherType.Atbash, ICipherType.Caesar],
-        },
+            equiv: [ICipherType.Atbash, ICipherType.Caesar]
+        }
     ],
     [
         ICipherType.Autokey,
         /* Not Yet Implemented */ {
             title: "Autokey",
             id: "autokey",
-            equiv: [ICipherType.Autokey],
-        },
+            equiv: [ICipherType.Autokey]
+        }
     ],
     [
         ICipherType.Baconian,
-        { title: "Baconian", id: "baconian", equiv: [ICipherType.Baconian] },
+        { title: "Baconian", id: "baconian", equiv: [ICipherType.Baconian] }
     ],
     [
         ICipherType.Bazeries,
         /* Not Yet Implemented */ {
             title: "Bazeries",
             id: "bazeries",
-            equiv: [ICipherType.Bazeries],
-        },
+            equiv: [ICipherType.Bazeries]
+        }
     ],
     [
         ICipherType.Beaufort,
@@ -149,121 +150,121 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
                 ICipherType.Variant,
                 ICipherType.Beaufort,
                 ICipherType.Gronsfeld,
-                ICipherType.Porta,
-            ],
-        },
+                ICipherType.Porta
+            ]
+        }
     ],
     [
         ICipherType.Bifid,
         /* Not Yet Implemented */ {
             title: "Bifid",
             id: "bifid",
-            equiv: [ICipherType.Bifid],
-        },
+            equiv: [ICipherType.Bifid]
+        }
     ],
     [
         ICipherType.Cadenus,
         /* Not Yet Implemented */ {
             title: "Cadenus",
             id: "cadenus",
-            equiv: [ICipherType.Cadenus],
-        },
+            equiv: [ICipherType.Cadenus]
+        }
     ],
     [
         ICipherType.Caesar,
         {
             title: "Caesar",
             id: "caesar",
-            equiv: [ICipherType.Atbash, ICipherType.Caesar],
-        },
+            equiv: [ICipherType.Atbash, ICipherType.Caesar]
+        }
     ],
     [
         ICipherType.Checkerboard,
         {
             title: "Checkerboard",
             id: "checkerboard",
-            equiv: [ICipherType.Checkerboard],
-        },
+            equiv: [ICipherType.Checkerboard]
+        }
     ],
     [
         ICipherType.CMBifid,
         /* Not Yet Implemented */ {
             title: "Cm Bifid",
             id: "cmbifid",
-            equiv: [ICipherType.CMBifid],
-        },
+            equiv: [ICipherType.CMBifid]
+        }
     ],
     [
         ICipherType.CompleteColumnar,
         {
             title: "Complete Columnar",
             id: "compcolumnar",
-            equiv: [ICipherType.CompleteColumnar],
-        },
+            equiv: [ICipherType.CompleteColumnar]
+        }
     ],
     [
         ICipherType.Condi,
         /* Not Yet Implemented */ {
             title: "Condi",
             id: "condi",
-            equiv: [ICipherType.Condi],
-        },
+            equiv: [ICipherType.Condi]
+        }
     ],
     [
         ICipherType.Counter,
-        { title: "Counter", id: "counter", equiv: [ICipherType.Counter] },
+        { title: "Counter", id: "counter", equiv: [ICipherType.Counter] }
     ],
     [
         ICipherType.Cryptarithm,
         {
             title: "Cryptarithm",
             id: "cryptarithm",
-            equiv: [ICipherType.Cryptarithm],
-        },
+            equiv: [ICipherType.Cryptarithm]
+        }
     ],
     [
         ICipherType.Digrafid,
         /* Not Yet Implemented */ {
             title: "Digrafid",
             id: "digrafid",
-            equiv: [ICipherType.Digrafid],
-        },
+            equiv: [ICipherType.Digrafid]
+        }
     ],
     [
         ICipherType.Foursquare,
         /* Not Yet Implemented */ {
             title: "Foursquare",
             id: "foursquare",
-            equiv: [ICipherType.Foursquare],
-        },
+            equiv: [ICipherType.Foursquare]
+        }
     ],
     [
         ICipherType.FractionatedMorse,
         {
             title: "Fractionated Morse",
             id: "fractionatedmorse",
-            equiv: [ICipherType.FractionatedMorse],
-        },
+            equiv: [ICipherType.FractionatedMorse]
+        }
     ],
     [
         ICipherType.Grandpre,
         /* Not Yet Implemented */ {
             title: "Grandpr&eacute;",
             id: "grandpre",
-            equiv: [ICipherType.Grandpre],
-        },
+            equiv: [ICipherType.Grandpre]
+        }
     ],
     [
         ICipherType.Grille,
         /* Not Yet Implemented */ {
             title: "Grille",
             id: "grille",
-            equiv: [ICipherType.Grille],
-        },
+            equiv: [ICipherType.Grille]
+        }
     ],
     [
         ICipherType.Gromark,
-        { title: "Gromark", id: "gromark", equiv: [ICipherType.Gromark] },
+        { title: "Gromark", id: "gromark", equiv: [ICipherType.Gromark] }
     ],
     [
         ICipherType.Gronsfeld,
@@ -275,113 +276,113 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
                 ICipherType.Variant,
                 ICipherType.Beaufort,
                 ICipherType.Gronsfeld,
-                ICipherType.Porta,
-            ],
-        },
+                ICipherType.Porta
+            ]
+        }
     ],
     [
         ICipherType.Headlines,
         /* Not Yet Implemented */ {
             title: "Headlines",
             id: "headlines",
-            equiv: [ICipherType.Headlines],
-        },
+            equiv: [ICipherType.Headlines]
+        }
     ],
     [
         ICipherType.Hill,
-        { title: "Hill", id: "hill", equiv: [ICipherType.Hill] },
+        { title: "Hill", id: "hill", equiv: [ICipherType.Hill] }
     ],
     [
         ICipherType.Homophonic,
         {
             title: "Homophonic",
             id: "homophonic",
-            equiv: [ICipherType.Homophonic],
-        },
+            equiv: [ICipherType.Homophonic]
+        }
     ],
     [
         ICipherType.IncompleteColumnar,
         {
             title: "Incomplete Columnar",
             id: "inccolumnar",
-            equiv: [ICipherType.IncompleteColumnar],
-        },
+            equiv: [ICipherType.IncompleteColumnar]
+        }
     ],
     [
         ICipherType.InterruptedKey,
         /* Not Yet Implemented */ {
             title: "Interrupted Key",
             id: "interruptedkey",
-            equiv: [ICipherType.InterruptedKey],
-        },
+            equiv: [ICipherType.InterruptedKey]
+        }
     ],
     [
         ICipherType.KeyPhrase,
         /* Not Yet Implemented */ {
             title: "Key Phrase",
             id: "keyphrase",
-            equiv: [ICipherType.KeyPhrase],
-        },
+            equiv: [ICipherType.KeyPhrase]
+        }
     ],
     [
         ICipherType.MonomeDinome,
         /* Not Yet Implemented */ {
             title: "Monome-Dinome",
             id: "monomedinome",
-            equiv: [ICipherType.MonomeDinome],
-        },
+            equiv: [ICipherType.MonomeDinome]
+        }
     ],
     [
         ICipherType.Morbit,
-        { title: "Morbit", id: "morbit", equiv: [ICipherType.Morbit] },
+        { title: "Morbit", id: "morbit", equiv: [ICipherType.Morbit] }
     ],
     [
         ICipherType.Myszkowski,
         /* Not Yet Implemented */ {
             title: "Myszkowski",
             id: "myszkowski",
-            equiv: [ICipherType.Myszkowski],
-        },
+            equiv: [ICipherType.Myszkowski]
+        }
     ],
     [
         ICipherType.Nicodemus,
         /* Not Yet Implemented */ {
             title: "Nicodemus",
             id: "nicodemus",
-            equiv: [ICipherType.Nicodemus],
-        },
+            equiv: [ICipherType.Nicodemus]
+        }
     ],
     [
         ICipherType.NihilistSubstitution,
         /* Not Yet Implemented */ {
             title: "Nihilist Substitution",
             id: "nihilistsub",
-            equiv: [ICipherType.NihilistSubstitution],
-        },
+            equiv: [ICipherType.NihilistSubstitution]
+        }
     ],
     [
         ICipherType.NihilistTransposition,
         /* Not Yet Implemented */ {
             title: "Nihilist Transposition",
             id: "nihilisttrans",
-            equiv: [ICipherType.NihilistTransposition],
-        },
+            equiv: [ICipherType.NihilistTransposition]
+        }
     ],
     [
         ICipherType.Null,
         /* Not Yet Implemented */ {
             title: "Null",
             id: "null",
-            equiv: [ICipherType.Null],
-        },
+            equiv: [ICipherType.Null]
+        }
     ],
     [
         ICipherType.NumberedKey,
         /* Not Yet Implemented */ {
             title: "Numbered Key",
             id: "numberedkey",
-            equiv: [ICipherType.NumberedKey],
-        },
+            equiv: [ICipherType.NumberedKey]
+        }
     ],
     [
         ICipherType.Patristocrat,
@@ -391,49 +392,49 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
             equiv: [
                 ICipherType.Aristocrat,
                 ICipherType.Patristocrat,
-                ICipherType.Xenocrypt,
-            ],
-        },
+                ICipherType.Xenocrypt
+            ]
+        }
     ],
     [
         ICipherType.PeriodicGromark,
         /* Not Yet Implemented */ {
             title: "Periodic Gromark",
             id: "periodicgromark",
-            equiv: [ICipherType.PeriodicGromark],
-        },
+            equiv: [ICipherType.PeriodicGromark]
+        }
     ],
     [
         ICipherType.Phillips,
         /* Not Yet Implemented */ {
             title: "Phillips",
             id: "phillips",
-            equiv: [ICipherType.Phillips],
-        },
+            equiv: [ICipherType.Phillips]
+        }
     ],
     [
         ICipherType.PhillipsRC,
         /* Not Yet Implemented */ {
             title: "Phillips-Rc",
             id: "phillipsrc",
-            equiv: [ICipherType.PhillipsRC],
-        },
+            equiv: [ICipherType.PhillipsRC]
+        }
     ],
     [
         ICipherType.Playfair,
         /* Not Yet Implemented */ {
             title: "Playfair",
             id: "playfair",
-            equiv: [ICipherType.Playfair],
-        },
+            equiv: [ICipherType.Playfair]
+        }
     ],
     [
         ICipherType.Pollux,
         /* Not Yet Implemented */ {
             title: "Pollux",
             id: "pollux",
-            equiv: [ICipherType.Pollux],
-        },
+            equiv: [ICipherType.Pollux]
+        }
     ],
     [
         ICipherType.Porta,
@@ -445,85 +446,85 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
                 ICipherType.Variant,
                 ICipherType.Beaufort,
                 ICipherType.Gronsfeld,
-                ICipherType.Porta,
-            ],
-        },
+                ICipherType.Porta
+            ]
+        }
     ],
     [
         ICipherType.Portax,
         /* Not Yet Implemented */ {
             title: "Portax",
             id: "portax",
-            equiv: [ICipherType.Portax],
-        },
+            equiv: [ICipherType.Portax]
+        }
     ],
     [
         ICipherType.ProgressiveKey,
         /* Not Yet Implemented */ {
             title: "Progressive Key",
             id: "progressivekey",
-            equiv: [ICipherType.ProgressiveKey],
-        },
+            equiv: [ICipherType.ProgressiveKey]
+        }
     ],
     [
         ICipherType.QuagmireI,
         /* Not Yet Implemented */ {
             title: "Quagmire &#8544;",
             id: "quagmirei",
-            equiv: [ICipherType.QuagmireI],
-        },
+            equiv: [ICipherType.QuagmireI]
+        }
     ],
     [
         ICipherType.QuagmireII,
         /* Not Yet Implemented */ {
             title: "Quagmire &#8545;",
             id: "quagmireii",
-            equiv: [ICipherType.QuagmireII],
-        },
+            equiv: [ICipherType.QuagmireII]
+        }
     ],
     [
         ICipherType.QuagmireIII,
         /* Not Yet Implemented */ {
             title: "Quagmire &#8546;",
             id: "quagmireiii",
-            equiv: [ICipherType.QuagmireIII],
-        },
+            equiv: [ICipherType.QuagmireIII]
+        }
     ],
     [
         ICipherType.QuagmireIV,
         /* Not Yet Implemented */ {
             title: "Quagmire &#8547;",
             id: "quagmireiv",
-            equiv: [ICipherType.QuagmireIV],
-        },
+            equiv: [ICipherType.QuagmireIV]
+        }
     ],
     [
         ICipherType.Ragbaby,
-        { title: "Ragbaby", id: "ragbaby", equiv: [ICipherType.Ragbaby] },
+        { title: "Ragbaby", id: "ragbaby", equiv: [ICipherType.Ragbaby] }
     ],
     [
         ICipherType.Railfence,
         {
             title: "Railfence",
             id: "railfence",
-            equiv: [ICipherType.Railfence, ICipherType.Redefence],
-        },
+            equiv: [ICipherType.Railfence, ICipherType.Redefence]
+        }
     ],
     [
         ICipherType.Redefence,
         {
             title: "Redefence",
             id: "redefence",
-            equiv: [ICipherType.Railfence, ICipherType.Redefence],
-        },
+            equiv: [ICipherType.Railfence, ICipherType.Redefence]
+        }
     ],
     [
         ICipherType.RouteTransposition,
         /* Not Yet Implemented */ {
             title: "Route Transposition",
             id: "routetransp",
-            equiv: [ICipherType.RouteTransposition],
-        },
+            equiv: [ICipherType.RouteTransposition]
+        }
     ],
     [ICipherType.RSA, { title: "RSA", id: "rsa", equiv: [ICipherType.RSA] }],
     [
@@ -531,32 +532,32 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
         {
             title: "Running Key",
             id: "runningkey",
-            equiv: [ICipherType.RunningKey, ICipherType.Vigenere],
-        },
+            equiv: [ICipherType.RunningKey, ICipherType.Vigenere]
+        }
     ],
     [
         ICipherType.SequenceTransposition,
         /* Not Yet Implemented */ {
             title: "Sequence Transposition",
             id: "sequencetransposition",
-            equiv: [ICipherType.SequenceTransposition],
-        },
+            equiv: [ICipherType.SequenceTransposition]
+        }
     ],
     [
         ICipherType.SeriatedPlayfair,
         /* Not Yet Implemented */ {
             title: "Seriated Playfair",
             id: "seriatedplayfair",
-            equiv: [ICipherType.SeriatedPlayfair],
-        },
+            equiv: [ICipherType.SeriatedPlayfair]
+        }
     ],
     [
         ICipherType.Slidefair,
         /* Not Yet Implemented */ {
             title: "Slidefair",
             id: "slidefair",
-            equiv: [ICipherType.Slidefair],
-        },
+            equiv: [ICipherType.Slidefair]
+        }
     ],
     [
         ICipherType.Standard,
@@ -566,81 +567,81 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
             equiv: [
                 ICipherType.Aristocrat,
                 ICipherType.Patristocrat,
-                ICipherType.Xenocrypt,
-            ],
-        },
+                ICipherType.Xenocrypt
+            ]
+        }
     ],
     [
         ICipherType.Swagman,
         /* Not Yet Implemented */ {
             title: "Swagman",
             id: "swagman",
-            equiv: [ICipherType.Swagman],
-        },
+            equiv: [ICipherType.Swagman]
+        }
     ],
     [
         ICipherType.Syllabary,
         /* Not Yet Implemented */ {
             title: "Syllabary",
             id: "syllabary",
-            equiv: [ICipherType.Syllabary],
-        },
+            equiv: [ICipherType.Syllabary]
+        }
     ],
     [
         ICipherType.Test,
         /* Not Yet Implemented */ {
             title: "Test",
             id: "test",
-            equiv: [ICipherType.Test],
-        },
+            equiv: [ICipherType.Test]
+        }
     ],
     [
         ICipherType.Tridigital,
         /* Not Yet Implemented */ {
             title: "Tridigital",
             id: "tridigital",
-            equiv: [ICipherType.Tridigital],
-        },
+            equiv: [ICipherType.Tridigital]
+        }
     ],
     [
         ICipherType.Trifid,
         /* Not Yet Implemented */ {
             title: "Trifid",
             id: "trifid",
-            equiv: [ICipherType.Trifid],
-        },
+            equiv: [ICipherType.Trifid]
+        }
     ],
     [
         ICipherType.TriSquare,
         /* Not Yet Implemented */ {
             title: "Tri-Square",
             id: "trisquare",
-            equiv: [ICipherType.TriSquare],
-        },
+            equiv: [ICipherType.TriSquare]
+        }
     ],
     [
         ICipherType.TwinBifid,
         /* Not Yet Implemented */ {
             title: "Twin Bifid",
             id: "twinbifid",
-            equiv: [ICipherType.TwinBifid],
-        },
+            equiv: [ICipherType.TwinBifid]
+        }
     ],
     [
         ICipherType.TwinTrifid,
         /* Not Yet Implemented */ {
             title: "Twin Trifid",
             id: "twintrifid",
-            equiv: [ICipherType.TwinTrifid],
-        },
+            equiv: [ICipherType.TwinTrifid]
+        }
     ],
     [
         ICipherType.TwoSquare,
         /* Not Yet Implemented */ {
             title: "Two-Square",
             id: "twosquare",
-            equiv: [ICipherType.TwoSquare],
-        },
+            equiv: [ICipherType.TwoSquare]
+        }
     ],
     [
         ICipherType.Variant,
@@ -652,9 +653,9 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
                 ICipherType.Variant,
                 ICipherType.Beaufort,
                 ICipherType.Gronsfeld,
-                ICipherType.Porta,
-            ],
-        },
+                ICipherType.Porta
+            ]
+        }
     ],
     [
         ICipherType.Vigenere,
@@ -666,9 +667,9 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
                 ICipherType.Variant,
                 ICipherType.Beaufort,
                 ICipherType.Gronsfeld,
-                ICipherType.Porta,
-            ],
-        },
+                ICipherType.Porta
+            ]
+        }
     ],
     [
         ICipherType.Xenocrypt,
@@ -678,10 +679,10 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
             equiv: [
                 ICipherType.Aristocrat,
                 ICipherType.Patristocrat,
-                ICipherType.Xenocrypt,
-            ],
-        },
-    ],
+                ICipherType.Xenocrypt
+            ]
+        }
+    ]
 ]);
 /**
  * Gets the default title for a cipher type
@@ -719,7 +720,7 @@ export function CipherTypeButtonItem(
     let res: JTRadioButtonItem = {
         value: cipherType,
         title: config.title,
-        id: config.id,
+        id: config.id
     };
     return res;
 }

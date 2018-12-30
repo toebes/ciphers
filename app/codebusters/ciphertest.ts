@@ -4,7 +4,7 @@ import {
     IRunningKey,
     IState,
     ITest,
-    toolMode,
+    toolMode
 } from "../common/cipherhandler";
 import { getCipherTitle, ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
@@ -83,7 +83,7 @@ export class CipherTest extends CipherHandler {
     public activeToolMode: toolMode = toolMode.codebusters;
     public defaultstate: ITestState = {
         cipherString: "",
-        cipherType: ICipherType.None,
+        cipherType: ICipherType.None
     };
     public state: ITestState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [
@@ -92,10 +92,10 @@ export class CipherTest extends CipherHandler {
             title: "Export Tests",
             color: "primary",
             id: "export",
-            disabled: true,
+            disabled: true
         },
         { title: "Import Tests from File", color: "primary", id: "import" },
-        { title: "Import Tests from URL", color: "primary", id: "importurl" },
+        { title: "Import Tests from URL", color: "primary", id: "importurl" }
     ];
     public cipherChoices: INewCipherEntry[] = [
         { cipherType: ICipherType.Affine },
@@ -105,7 +105,7 @@ export class CipherTest extends CipherHandler {
         {
             cipherType: ICipherType.Aristocrat,
             lang: "es",
-            title: "Spanish Aristocrat",
+            title: "Spanish Aristocrat"
         },
         { cipherType: ICipherType.Patristocrat },
         { cipherType: ICipherType.Hill },
@@ -113,6 +113,7 @@ export class CipherTest extends CipherHandler {
         { cipherType: ICipherType.RunningKey },
         { cipherType: ICipherType.Baconian },
         { cipherType: ICipherType.RSA },
+        { cipherType: ICipherType.PigPen }
     ];
     /**
      * Stash of the current questions
@@ -135,7 +136,7 @@ export class CipherTest extends CipherHandler {
             { title: "Edit Test", value: "testedit" },
             { title: "Test Packet", value: "testprint" },
             { title: "Answer Key", value: "testans" },
-            { title: "Answers and Solutions", value: "testsols" },
+            { title: "Answers and Solutions", value: "testsols" }
         ];
         return JTRadioButton(8, "testdisp", radiobuttons, testdisp);
     }
@@ -159,7 +160,7 @@ export class CipherTest extends CipherHandler {
             timed: -1,
             count: 0,
             questions: [],
-            title: "New Test",
+            title: "New Test"
         });
         location.reload();
     }
@@ -202,15 +203,9 @@ export class CipherTest extends CipherHandler {
     }
 
     public gotoEditCipher(entry: number): void {
-        let state = this.getFileEntry(entry);
-        let editURL = this.getEditURL(state);
-        if (editURL !== "") {
-            if (editURL.indexOf("?") > -1) {
-                editURL += "&editEntry=" + entry;
-            } else {
-                editURL += "?editEntry=" + entry;
-            }
-            location.assign(editURL);
+        let entryURL = this.getEntryURL(entry);
+        if (entryURL !== "") {
+            location.assign(entryURL);
         } else {
             alert("No editor found");
         }
@@ -264,7 +259,7 @@ export class CipherTest extends CipherHandler {
                 }
                 testuse[entry].append(
                     $("<a/>", {
-                        href: "TestGenerator.html?test=" + testent,
+                        href: "TestGenerator.html?test=" + testent
                     }).text(title)
                 );
             }
@@ -307,25 +302,25 @@ export class CipherTest extends CipherHandler {
         title: string
     ): JQuery<HTMLElement> {
         let inputgroup = $("<div/>", {
-            class: "input-group cell small-12 medium-12 large-12",
+            class: "input-group cell small-12 medium-12 large-12"
         });
         $("<span/>", { class: "input-group-label" })
             .text(title)
             .appendTo(inputgroup);
         let select = $("<select/>", {
             id: id,
-            class: "input-group-field",
+            class: "input-group-field"
         });
         select.append(
             $("<option />", {
                 value: "",
                 disabled: "disabled",
-                selected: "selected",
+                selected: "selected"
             }).text("--Select a Cipher Type to add--")
         );
         for (let entry of this.cipherChoices) {
             let option = $("<option />", {
-                value: entry.cipherType,
+                value: entry.cipherType
             });
             if (entry.lang !== undefined) {
                 option.attr("data-lang", entry.lang);
@@ -377,7 +372,7 @@ export class CipherTest extends CipherHandler {
         let row = table.addBodyRow();
         if (order === -1 && qnum === -1) {
             let callout = $("<div/>", {
-                class: "callout warning",
+                class: "callout warning"
             }).text("No Timed Question!  Add one from below");
             callout.append(
                 this.genNewCipherDropdown("addnewtimed", "New Timed Question")
@@ -385,7 +380,7 @@ export class CipherTest extends CipherHandler {
             row.add({
                 celltype: "td",
                 settings: { colspan: 6 },
-                content: callout,
+                content: callout
             });
         } else {
             row.add(ordertext);
@@ -394,17 +389,17 @@ export class CipherTest extends CipherHandler {
                 state = {
                     cipherType: ICipherType.None,
                     points: 0,
-                    cipherString: "",
+                    cipherString: ""
                 };
             }
             let buttonset = $("<div/>", {
-                class: "button-group round shrink",
+                class: "button-group round shrink"
             });
             for (let btninfo of buttons) {
                 let button = $("<button/>", {
                     "data-entry": order,
                     type: "button",
-                    class: btninfo.btnClass + " button",
+                    class: btninfo.btnClass + " button"
                 }).html(btninfo.title);
                 if (btninfo.disabled === true) {
                     button.attr("disabled", "disabled");
@@ -420,12 +415,12 @@ export class CipherTest extends CipherHandler {
             row.add(String(state.points))
                 .add(
                     $("<span/>", {
-                        class: "qtextentry",
+                        class: "qtextentry"
                     }).html(state.question + extratext)
                 )
                 .add(
                     $("<span/>", {
-                        class: plainclass,
+                        class: plainclass
                     }).text(state.cipherString)
                 );
         }
@@ -444,13 +439,13 @@ export class CipherTest extends CipherHandler {
         let state = this.getFileEntry(question);
         let extratext = "";
         let result = $("<div/>", {
-            class: "question " + extraclass,
+            class: "question " + extraclass
         });
         let qtext = $("<div/>", { class: "qtext" });
         if (qnum === -1) {
             qtext.append(
                 $("<span/>", {
-                    class: "timed",
+                    class: "timed"
                 }).text("Timed Question")
             );
             extratext =
@@ -458,18 +453,18 @@ export class CipherTest extends CipherHandler {
         } else {
             qtext.append(
                 $("<span/>", {
-                    class: "qnum",
+                    class: "qnum"
                 }).text(String(qnum) + ")")
             );
         }
         qtext.append(
             $("<span/>", {
-                class: "points",
+                class: "points"
             }).text(" [" + String(state.points) + " points] ")
         );
         qtext.append(
             $("<span/>", {
-                class: "qbody",
+                class: "qbody"
             }).html(state.question + extratext)
         );
 
@@ -496,13 +491,13 @@ export class CipherTest extends CipherHandler {
         let state = this.getFileEntry(question);
         let extratext = "";
         let result = $("<div/>", {
-            class: "question " + extraclass,
+            class: "question " + extraclass
         });
         let qtext = $("<div/>", { class: "qtext" });
         if (qnum === -1) {
             qtext.append(
                 $("<span/>", {
-                    class: "timed",
+                    class: "timed"
                 }).text("Timed Question")
             );
             extratext =
@@ -510,18 +505,18 @@ export class CipherTest extends CipherHandler {
         } else {
             qtext.append(
                 $("<span/>", {
-                    class: "qnum",
+                    class: "qnum"
                 }).text(String(qnum) + ")")
             );
         }
         qtext.append(
             $("<span/>", {
-                class: "points",
+                class: "points"
             }).text(" [" + String(state.points) + " points] ")
         );
         qtext.append(
             $("<span/>", {
-                class: "qbody",
+                class: "qbody"
             }).html(state.question + extratext)
         );
         result.append(qtext);
@@ -540,7 +535,7 @@ export class CipherTest extends CipherHandler {
             if (cipherhandler.extraRunningKey !== undefined) {
                 this.runningKeys.push({
                     title: "Unknown",
-                    text: cipherhandler.extraRunningKey,
+                    text: cipherhandler.extraRunningKey
                 });
             }
         }

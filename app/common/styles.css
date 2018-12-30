@@ -39,6 +39,10 @@ body.txt {
     float: right;
     background-color: lightblue;
 }
+.quseb {
+    float: right;
+    background-color: lightcoral;
+}
 .fq {
     font-family: "Courier New", Courier, monospace;
     font-weight: bold;
@@ -1002,6 +1006,19 @@ div.vsolv {
 .ansblock td.e {
     height: 3rem;
 }
+@font-face {
+    font-family: pigpen;
+    src: url(fonts/PigpenCipher.woff);
+}
+
+.pigpen.ansblock .q.v {
+    border: none;
+    font-family: pigpen;
+}
+
+.pigpen.ansblock td.a {
+    border: 1px solid block;
+}
 
 .formulabox {
     height: 3rem;
@@ -1295,6 +1312,44 @@ table.nameline td.u {
     height: 0.9em;
 }
 
+.nxtnav:hover,
+.prevnav:hover {
+    background: white;
+    border-color: #1779ba;
+    color: #1779ba;
+}
+.nxtnav {
+    background: #1779ba;
+    color: white;
+    padding: 3px 10px 3px 15px;
+    margin: 5px;
+    -webkit-clip-path: polygon(
+        75% 0%,
+        100% 50%,
+        75% 100%,
+        0% 100%,
+        25% 50%,
+        0% 0%
+    );
+    clip-path: polygon(75% 0%, 100% 50%, 75% 100%, 0% 100%, 25% 50%, 0% 0%);
+}
+
+.prevnav {
+    background: #1779ba;
+    color: white;
+    padding: 3px 15px 3px 10px;
+    margin: 5px;
+    -webkit-clip-path: polygon(
+        100% 0%,
+        75% 50%,
+        100% 100%,
+        25% 100%,
+        0% 50%,
+        25% 0%
+    );
+    clip-path: polygon(100% 0%, 75% 50%, 100% 100%, 25% 100%, 0% 50%, 25% 0%);
+}
+
 @media print {
     .title-bar,
     .top-bar,
@@ -1319,7 +1374,7 @@ table.nameline td.u {
         margin-bottom: 12rem;
     }
     @page {
-        margin: 0.5in;
+        margin: 1in 0.5in 0.5in 0.5in;
     }
     .TOANSWER {
         background-color: yellow !important;

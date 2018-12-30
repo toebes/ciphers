@@ -165,6 +165,13 @@ module.exports = {
                 flatten: true
             }
         ]),
+        new CopyWebpackPlugin([
+            {
+                from: path.join(__dirname, "app/common/fonts", "*.txt"),
+                to: path.resolve(__dirname, "dist/font"),
+                flatten: true
+            }
+        ]),
         new WebpackAutoInject({
             // specify the name of the tag in the outputed files eg
             // bundle.js: [SHORT]  Version: 0.13.36 ...
@@ -574,7 +581,7 @@ module.exports = {
             ),
             chunks: ["codebusters"],
             cipher: "PigPen",
-            title: "PigPen Encoder"
+            title: "PigPen/Masonic Encoder"
         }),
         new HtmlWebpackPlugin({
             inject: false,

@@ -60,7 +60,7 @@ export const CipherMenu: menuItem[] = [
                 cipherType: ICipherType.Hill
             },
             {
-                title: "PigPen",
+                title: "PigPen/Masonic",
                 href: "PigPenEncrypt.html",
                 cipherType: ICipherType.PigPen
             },

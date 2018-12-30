@@ -405,6 +405,14 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
         }
     ],
     [
+        ICipherType.PigPen,
+        {
+            title: "PigPen/Masonic",
+            id: "pigpen",
+            equiv: [ICipherType.PigPen]
+        }
+    ],
+    [
         ICipherType.Phillips,
         /* Not Yet Implemented */ {
             title: "Phillips",

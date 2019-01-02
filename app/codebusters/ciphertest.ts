@@ -1,16 +1,16 @@
-import { cloneObject, NumberMap } from "../common/ciphercommon";
+import { cloneObject, NumberMap } from '../common/ciphercommon';
 import {
     CipherHandler,
     IRunningKey,
     IState,
     ITest,
-    toolMode
-} from "../common/cipherhandler";
-import { getCipherTitle, ICipherType } from "../common/ciphertypes";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTRadioButton, JTRadioButtonSet } from "../common/jtradiobutton";
-import { JTTable } from "../common/jttable";
-import { CipherPrintFactory } from "./cipherfactory";
+    toolMode,
+} from '../common/cipherhandler';
+import { getCipherTitle, ICipherType } from '../common/ciphertypes';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
+import { JTTable } from '../common/jttable';
+import { CipherPrintFactory } from './cipherfactory';
 
 export interface buttonInfo {
     title: string;
@@ -41,7 +41,7 @@ interface INewCipherEntry {
     /** Optional title to override the default title */
     title?: string;
 }
-export type ITestDisp = "testedit" | "testprint" | "testans" | "testsols";
+export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols';
 /**
  * Base support for all the test generation handlers
  * There are five pages that need to be created
@@ -82,20 +82,20 @@ export type ITestDisp = "testedit" | "testprint" | "testans" | "testsols";
 export class CipherTest extends CipherHandler {
     public activeToolMode: toolMode = toolMode.codebusters;
     public defaultstate: ITestState = {
-        cipherString: "",
-        cipherType: ICipherType.None
+        cipherString: '',
+        cipherType: ICipherType.None,
     };
     public state: ITestState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [
-        { title: "New Test", color: "primary", id: "newtest" },
+        { title: 'New Test', color: 'primary', id: 'newtest' },
         {
-            title: "Export Tests",
-            color: "primary",
-            id: "export",
-            disabled: true
+            title: 'Export Tests',
+            color: 'primary',
+            id: 'export',
+            disabled: true,
         },
-        { title: "Import Tests from File", color: "primary", id: "import" },
-        { title: "Import Tests from URL", color: "primary", id: "importurl" }
+        { title: 'Import Tests from File', color: 'primary', id: 'import' },
+        { title: 'Import Tests from URL', color: 'primary', id: 'importurl' },
     ];
     public cipherChoices: INewCipherEntry[] = [
         { cipherType: ICipherType.Affine },
@@ -104,8 +104,8 @@ export class CipherTest extends CipherHandler {
         { cipherType: ICipherType.Aristocrat },
         {
             cipherType: ICipherType.Aristocrat,
-            lang: "es",
-            title: "Spanish Aristocrat"
+            lang: 'es',
+            title: 'Spanish Aristocrat',
         },
         { cipherType: ICipherType.Patristocrat },
         { cipherType: ICipherType.Hill },
@@ -113,7 +113,7 @@ export class CipherTest extends CipherHandler {
         { cipherType: ICipherType.RunningKey },
         { cipherType: ICipherType.Baconian },
         { cipherType: ICipherType.RSA },
-        { cipherType: ICipherType.PigPen }
+        { cipherType: ICipherType.PigPen },
     ];
     /**
      * Stash of the current questions
@@ -133,24 +133,24 @@ export class CipherTest extends CipherHandler {
     }
     public genTestEditState(testdisp: ITestDisp): JQuery<HTMLElement> {
         let radiobuttons = [
-            { title: "Edit Test", value: "testedit" },
-            { title: "Test Packet", value: "testprint" },
-            { title: "Answer Key", value: "testans" },
-            { title: "Answers and Solutions", value: "testsols" }
+            { title: 'Edit Test', value: 'testedit' },
+            { title: 'Test Packet', value: 'testprint' },
+            { title: 'Answer Key', value: 'testans' },
+            { title: 'Answers and Solutions', value: 'testsols' },
         ];
-        return JTRadioButton(8, "testdisp", radiobuttons, testdisp);
+        return JTRadioButton(8, 'testdisp', radiobuttons, testdisp);
     }
     public setTestEditState(testdisp: ITestDisp): void {
-        JTRadioButtonSet("testdisp", testdisp);
+        JTRadioButtonSet('testdisp', testdisp);
     }
     public checkXMLImport(): void {
         if (this.state.importURL !== undefined) {
-            if (this.state.importURL !== "") {
+            if (this.state.importURL !== '') {
                 let url = this.state.importURL;
                 $.getJSON(url, data => {
                     this.importXML(data);
                 }).fail(() => {
-                    alert("Unable to load file " + url);
+                    alert('Unable to load file ' + url);
                 });
             }
         }
@@ -160,7 +160,7 @@ export class CipherTest extends CipherHandler {
             timed: -1,
             count: 0,
             questions: [],
-            title: "New Test"
+            title: 'New Test',
         });
         location.reload();
     }
@@ -169,34 +169,54 @@ export class CipherTest extends CipherHandler {
         this.openXMLImport(useLocalData);
     }
     public gotoEditTest(test: number): void {
-        location.assign("TestGenerator.html?test=" + String(test));
+        location.assign('TestGenerator.html?test=' + String(test));
+    }
+    /**
+     * Make a copy of a test
+     * @param test Test to duplicate
+     */
+    public gotoEditCopyTest(test: number): void {
+        let testdata = this.getTestEntry(test);
+        testdata.title = 'DUP ' + testdata.title;
+        if (testdata.timed !== -1) {
+            let entry = this.getFileEntry(testdata.timed);
+            entry.question = 'DUP ' + entry.question;
+            testdata.timed = this.setFileEntry(-1, entry);
+        }
+        for (let i in testdata.questions) {
+            let entry = this.getFileEntry(testdata.questions[i]);
+            entry.question = 'DUP ' + entry.question;
+            testdata.questions[i] = this.setFileEntry(-1, entry);
+        }
+        let newtest = this.setTestEntry(-1, testdata);
+        location.assign('TestGenerator.html?test=' + String(newtest));
     }
     public deleteTest(test: number): void {
         this.deleteTestEntry(test);
         location.reload();
     }
     public gotoPrintTest(test: number): void {
-        location.assign("TestPrint.html?test=" + String(test));
+        location.assign('TestPrint.html?test=' + String(test));
     }
     public gotoPrintTestAnswers(test: number): void {
-        location.assign("TestAnswers.html?test=" + String(test));
+        location.assign('TestAnswers.html?test=' + String(test));
     }
     public gotoPrintTestSols(test: number): void {
-        location.assign("TestAnswers.html?test=" + String(test) + "&sols=y");
+        location.assign('TestAnswers.html?test=' + String(test) + '&sols=y');
     }
     public gotoTestDisplay(testdisp: ITestDisp): void {
         switch (testdisp) {
-            case "testans":
+            case 'testans':
                 this.gotoPrintTestAnswers(this.state.test);
                 break;
-            case "testedit":
+            case 'testedit':
                 this.gotoEditTest(this.state.test);
                 break;
             default:
-            case "testprint":
+            case 'testprint':
                 this.gotoPrintTest(this.state.test);
                 break;
-            case "testsols":
+            case 'testsols':
                 this.gotoPrintTestSols(this.state.test);
                 break;
         }
@@ -204,10 +224,10 @@ export class CipherTest extends CipherHandler {
 
     public gotoEditCipher(entry: number): void {
         let entryURL = this.getEntryURL(entry);
-        if (entryURL !== "") {
+        if (entryURL !== '') {
             location.assign(entryURL);
         } else {
-            alert("No editor found");
+            alert('No editor found');
         }
     }
     public genQuestionTable(
@@ -235,11 +255,11 @@ export class CipherTest extends CipherHandler {
             let test = this.getTestEntry(testent);
             // Make sure we have a unique title for the test
             let title = test.title;
-            if (title === "") {
-                title = "No Title";
+            if (title === '') {
+                title = 'No Title';
             }
             if (testNames[title] !== undefined) {
-                title += "." + testent;
+                title += '.' + testent;
             }
             testNames[title] = testent;
             // If we have a timed question, just put it in front of all the other questions
@@ -252,31 +272,31 @@ export class CipherTest extends CipherHandler {
             for (let entry of test.questions) {
                 if (entry in testuse) {
                     // If this is a subsequent entry, separate them with a comma
-                    testuse[entry].append(", ");
+                    testuse[entry].append(', ');
                 } else {
                     // For the first entry, we need a <div> to contain it all
-                    testuse[entry] = $("<div/>");
+                    testuse[entry] = $('<div/>');
                 }
                 testuse[entry].append(
-                    $("<a/>", {
-                        href: "TestGenerator.html?test=" + testent
+                    $('<a/>', {
+                        href: 'TestGenerator.html?test=' + testent,
                     }).text(title)
                 );
             }
         }
 
-        let result = $("<div/>", { class: "questions" });
+        let result = $('<div/>', { class: 'questions' });
 
         let cipherCount = this.getCipherCount();
-        let table = new JTTable({ class: "cell stack queslist" });
+        let table = new JTTable({ class: 'cell stack queslist' });
         let row = table.addHeaderRow();
-        row.add("Question")
-            .add("Action")
-            .add("Type")
-            .add("Use")
-            .add("Points")
-            .add("Question")
-            .add("Plain Text");
+        row.add('Question')
+            .add('Action')
+            .add('Type')
+            .add('Use')
+            .add('Points')
+            .add('Question')
+            .add('Plain Text');
 
         for (let entry = 0; entry < cipherCount; entry++) {
             if (!useditems[entry]) {
@@ -290,7 +310,7 @@ export class CipherTest extends CipherHandler {
                         testuse[entry]
                     );
                 } else {
-                    this.addQuestionRow(table, entry, entry, buttons, true, "");
+                    this.addQuestionRow(table, entry, entry, buttons, true, '');
                 }
             }
         }
@@ -301,29 +321,29 @@ export class CipherTest extends CipherHandler {
         id: string,
         title: string
     ): JQuery<HTMLElement> {
-        let inputgroup = $("<div/>", {
-            class: "input-group cell small-12 medium-12 large-12"
+        let inputgroup = $('<div/>', {
+            class: 'input-group cell small-12 medium-12 large-12',
         });
-        $("<span/>", { class: "input-group-label" })
+        $('<span/>', { class: 'input-group-label' })
             .text(title)
             .appendTo(inputgroup);
-        let select = $("<select/>", {
+        let select = $('<select/>', {
             id: id,
-            class: "input-group-field"
+            class: 'input-group-field',
         });
         select.append(
-            $("<option />", {
-                value: "",
-                disabled: "disabled",
-                selected: "selected"
-            }).text("--Select a Cipher Type to add--")
+            $('<option />', {
+                value: '',
+                disabled: 'disabled',
+                selected: 'selected',
+            }).text('--Select a Cipher Type to add--')
         );
         for (let entry of this.cipherChoices) {
-            let option = $("<option />", {
-                value: entry.cipherType
+            let option = $('<option />', {
+                value: entry.cipherType,
             });
             if (entry.lang !== undefined) {
-                option.attr("data-lang", entry.lang);
+                option.attr('data-lang', entry.lang);
             }
             let cipherTitle = getCipherTitle(entry.cipherType);
             if (entry.title !== undefined) {
@@ -341,8 +361,8 @@ export class CipherTest extends CipherHandler {
         }
         if (cipherCount > 0) {
             select.append(
-                $("<option/>", { value: ICipherType.None }).html(
-                    "**Choose Existing Cipher**"
+                $('<option/>', { value: ICipherType.None }).html(
+                    '**Choose Existing Cipher**'
                 )
             );
         }
@@ -357,30 +377,30 @@ export class CipherTest extends CipherHandler {
         showPlain: boolean,
         prevuse: any
     ): void {
-        let ordertext = "Timed";
-        let plainclass = "";
+        let ordertext = 'Timed';
+        let plainclass = '';
         if (!showPlain) {
-            plainclass = "qplain";
+            plainclass = 'qplain';
         }
-        let extratext = "";
+        let extratext = '';
         if (order === -1) {
             extratext =
-                "  When you have solved it, raise your hand so that the time can be recorded and the solution checked.";
+                '  When you have solved it, raise your hand so that the time can be recorded and the solution checked.';
         } else {
             ordertext = String(order);
         }
         let row = table.addBodyRow();
         if (order === -1 && qnum === -1) {
-            let callout = $("<div/>", {
-                class: "callout warning"
-            }).text("No Timed Question!  Add one from below");
+            let callout = $('<div/>', {
+                class: 'callout warning',
+            }).text('No Timed Question!  Add one from below');
             callout.append(
-                this.genNewCipherDropdown("addnewtimed", "New Timed Question")
+                this.genNewCipherDropdown('addnewtimed', 'New Timed Question')
             );
             row.add({
-                celltype: "td",
+                celltype: 'td',
                 settings: { colspan: 6 },
-                content: callout
+                content: callout,
             });
         } else {
             row.add(ordertext);
@@ -389,24 +409,24 @@ export class CipherTest extends CipherHandler {
                 state = {
                     cipherType: ICipherType.None,
                     points: 0,
-                    cipherString: ""
+                    cipherString: '',
                 };
             }
-            let buttonset = $("<div/>", {
-                class: "button-group round shrink"
+            let buttonset = $('<div/>', {
+                class: 'button-group round shrink',
             });
             for (let btninfo of buttons) {
-                let button = $("<button/>", {
-                    "data-entry": order,
-                    type: "button",
-                    class: btninfo.btnClass + " button"
+                let button = $('<button/>', {
+                    'data-entry': order,
+                    type: 'button',
+                    class: btninfo.btnClass + ' button',
                 }).html(btninfo.title);
                 if (btninfo.disabled === true) {
-                    button.attr("disabled", "disabled");
+                    button.attr('disabled', 'disabled');
                 }
                 buttonset.append(button);
             }
-            row.add($("<div/>", { class: "grid-x" }).append(buttonset)).add(
+            row.add($('<div/>', { class: 'grid-x' }).append(buttonset)).add(
                 state.cipherType
             );
             if (prevuse !== undefined) {
@@ -414,13 +434,13 @@ export class CipherTest extends CipherHandler {
             }
             row.add(String(state.points))
                 .add(
-                    $("<span/>", {
-                        class: "qtextentry"
+                    $('<span/>', {
+                        class: 'qtextentry',
                     }).html(state.question + extratext)
                 )
                 .add(
-                    $("<span/>", {
-                        class: plainclass
+                    $('<span/>', {
+                        class: plainclass,
                     }).text(state.cipherString)
                 );
         }
@@ -437,34 +457,34 @@ export class CipherTest extends CipherHandler {
         printSolution: boolean
     ): JQuery<HTMLElement> {
         let state = this.getFileEntry(question);
-        let extratext = "";
-        let result = $("<div/>", {
-            class: "question " + extraclass
+        let extratext = '';
+        let result = $('<div/>', {
+            class: 'question ' + extraclass,
         });
-        let qtext = $("<div/>", { class: "qtext" });
+        let qtext = $('<div/>', { class: 'qtext' });
         if (qnum === -1) {
             qtext.append(
-                $("<span/>", {
-                    class: "timed"
-                }).text("Timed Question")
+                $('<span/>', {
+                    class: 'timed',
+                }).text('Timed Question')
             );
             extratext =
-                "  When you have solved it, raise your hand so that the time can be recorded and the solution checked.";
+                '  When you have solved it, raise your hand so that the time can be recorded and the solution checked.';
         } else {
             qtext.append(
-                $("<span/>", {
-                    class: "qnum"
-                }).text(String(qnum) + ")")
+                $('<span/>', {
+                    class: 'qnum',
+                }).text(String(qnum) + ')')
             );
         }
         qtext.append(
-            $("<span/>", {
-                class: "points"
-            }).text(" [" + String(state.points) + " points] ")
+            $('<span/>', {
+                class: 'points',
+            }).text(' [' + String(state.points) + ' points] ')
         );
         qtext.append(
-            $("<span/>", {
-                class: "qbody"
+            $('<span/>', {
+                class: 'qbody',
             }).html(state.question + extratext)
         );
 
@@ -489,34 +509,34 @@ export class CipherTest extends CipherHandler {
         extraclass: string
     ): JQuery<HTMLElement> {
         let state = this.getFileEntry(question);
-        let extratext = "";
-        let result = $("<div/>", {
-            class: "question " + extraclass
+        let extratext = '';
+        let result = $('<div/>', {
+            class: 'question ' + extraclass,
         });
-        let qtext = $("<div/>", { class: "qtext" });
+        let qtext = $('<div/>', { class: 'qtext' });
         if (qnum === -1) {
             qtext.append(
-                $("<span/>", {
-                    class: "timed"
-                }).text("Timed Question")
+                $('<span/>', {
+                    class: 'timed',
+                }).text('Timed Question')
             );
             extratext =
-                "  When you have solved it, raise your hand so that the time can be recorded and the solution checked.";
+                '  When you have solved it, raise your hand so that the time can be recorded and the solution checked.';
         } else {
             qtext.append(
-                $("<span/>", {
-                    class: "qnum"
-                }).text(String(qnum) + ")")
+                $('<span/>', {
+                    class: 'qnum',
+                }).text(String(qnum) + ')')
             );
         }
         qtext.append(
-            $("<span/>", {
-                class: "points"
-            }).text(" [" + String(state.points) + " points] ")
+            $('<span/>', {
+                class: 'points',
+            }).text(' [' + String(state.points) + ' points] ')
         );
         qtext.append(
-            $("<span/>", {
-                class: "qbody"
+            $('<span/>', {
+                class: 'qbody',
             }).html(state.question + extratext)
         );
         result.append(qtext);
@@ -534,8 +554,8 @@ export class CipherTest extends CipherHandler {
             // creating the test.
             if (cipherhandler.extraRunningKey !== undefined) {
                 this.runningKeys.push({
-                    title: "Unknown",
-                    text: cipherhandler.extraRunningKey
+                    title: 'Unknown',
+                    text: cipherhandler.extraRunningKey,
                 });
             }
         }
@@ -551,12 +571,12 @@ export class CipherTest extends CipherHandler {
         // If the left side is blank or undefined then we assume that the
         // right side will be equivalent.  (This allows for objects which have
         // been extended with new attributes)
-        if (a === "" || a === undefined || a === null) {
+        if (a === '' || a === undefined || a === null) {
             return true;
         }
         // If we have an object on the left, the right better be an object too
-        if (typeof a === "object") {
-            if (typeof b !== "object") {
+        if (typeof a === 'object') {
+            if (typeof b !== 'object') {
                 return false;
             }
             // Both are objects, if any element of the object doesn't match
@@ -627,11 +647,11 @@ export class CipherTest extends CipherHandler {
         }
         // First we get all the ciphers defined and add them to the list of ciphers
         for (let ent in data) {
-            let pieces = ent.split(".");
+            let pieces = ent.split('.');
             // Make sure we have a valid object that we can bring in
             if (
-                pieces[0] === "CIPHER" &&
-                typeof data[ent] === "object" &&
+                pieces[0] === 'CIPHER' &&
+                typeof data[ent] === 'object' &&
                 data[ent].cipherType !== undefined &&
                 data[ent].cipherString !== undefined &&
                 !(pieces[1] in inputMap)
@@ -660,11 +680,11 @@ export class CipherTest extends CipherHandler {
         }
         // Now that we have all the ciphers in, we can go back and add the tests
         for (let ent in data) {
-            let pieces = ent.split(".");
+            let pieces = ent.split('.');
             // Make sure we have a valid object that we can bring in
             if (
-                pieces[0] === "TEST" &&
-                typeof data[ent] === "object" &&
+                pieces[0] === 'TEST' &&
+                typeof data[ent] === 'object' &&
                 data[ent].title !== undefined &&
                 data[ent].timed !== undefined &&
                 data[ent].questions !== undefined
@@ -704,38 +724,38 @@ export class CipherTest extends CipherHandler {
     }
     public attachHandlers(): void {
         super.attachHandlers();
-        $("#printtest")
-            .off("click")
-            .on("click", () => {
+        $('#printtest')
+            .off('click')
+            .on('click', () => {
                 this.gotoPrintTest(this.state.test);
             });
-        $("#printans")
-            .off("click")
-            .on("click", () => {
+        $('#printans')
+            .off('click')
+            .on('click', () => {
                 this.gotoPrintTestAnswers(this.state.test);
             });
-        $("#printsols")
-            .off("click")
-            .on("click", () => {
+        $('#printsols')
+            .off('click')
+            .on('click', () => {
                 this.gotoPrintTestSols(this.state.test);
             });
-        $("#edittest")
-            .off("click")
-            .on("click", () => {
+        $('#edittest')
+            .off('click')
+            .on('click', () => {
                 this.gotoEditTest(this.state.test);
             });
-        $(".entryedit")
-            .off("click")
-            .on("click", e => {
-                this.gotoEditCipher(Number($(e.target).attr("data-entry")));
+        $('.entryedit')
+            .off('click')
+            .on('click', e => {
+                this.gotoEditCipher(Number($(e.target).attr('data-entry')));
             });
         $('[name="testdisp"]')
-            .off("click")
-            .on("click", e => {
+            .off('click')
+            .on('click', e => {
                 $(e.target)
                     .siblings()
-                    .removeClass("is-active");
-                $(e.target).addClass("is-active");
+                    .removeClass('is-active');
+                $(e.target).addClass('is-active');
                 this.gotoTestDisplay($(e.target).val() as ITestDisp);
                 this.updateOutput();
             });

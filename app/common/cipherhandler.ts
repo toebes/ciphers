@@ -992,6 +992,7 @@ export class CipherHandler {
                     test.questions[i]--;
                 } else if (test.questions[i] === entry) {
                     test.questions.splice(i, 1);
+                    test.count--;
                 }
             }
             this.setTestEntry(pos, test);

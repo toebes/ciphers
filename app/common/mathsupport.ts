@@ -39,9 +39,9 @@ export function gcd(a: number, b: number): number {
  * @param r Number to checn against
  */
 export function isCoPrime(a: number, r: number): boolean {
-    console.log("iscoprime a=" + a + " r=" + r);
+    // console.log("iscoprime a=" + a + " r=" + r);
     let gcdval = gcd(a, r);
-    console.log("gcd(" + a + "," + r + ")=" + gcdval);
+    // console.log("gcd(" + a + "," + r + ")=" + gcdval);
     if (gcdval !== 1) {
         return false;
     }
@@ -66,7 +66,7 @@ export const modInverse26 = {
     19: 11,
     21: 5,
     23: 17,
-    25: 25
+    25: 25,
 };
 /**
  * Compute the modular 26 inverse of a matrix
@@ -86,7 +86,7 @@ export function mod26Inverse2x2(matrix: number[][]): number[][] {
     let inv = modInverse26[det];
     return [
         [mod26(d * inv), mod26(-b * inv)],
-        [mod26(-c * inv), mod26(a * inv)]
+        [mod26(-c * inv), mod26(a * inv)],
     ];
     return result;
 }

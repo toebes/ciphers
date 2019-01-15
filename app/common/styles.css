@@ -9,16 +9,16 @@
     display: none;
 }
 .qplain::after {
-    content: "Hidden";
+    content: 'Hidden';
 }
 
 th.asc::after {
-    content: "\25b2";
+    content: '\25b2';
     color: darkgreen;
 }
 
 th.desc::after {
-    content: "\25bc";
+    content: '\25bc';
     color: darkgreen;
 }
 
@@ -44,7 +44,7 @@ body.txt {
     background-color: lightcoral;
 }
 .fq {
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
 }
 .ht {
@@ -127,7 +127,7 @@ input.cb {
 .ans {
     /* width: 600px; */
     font-size: 16px;
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     margin-bottom: 24px;
     font-weight: bold;
     line-height: 200%;
@@ -284,7 +284,7 @@ table.cmath tbody {
     border: none;
 }
 table.cmath td.solv {
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     background-color: white;
     margin-left: 10px;
     border-left: 1px dashed grey;
@@ -408,7 +408,7 @@ table.satable {
     width: auto;
 }
 span.unk::after {
-    content: "\200b";
+    content: '\200b';
 }
 
 div.ftext {
@@ -524,7 +524,7 @@ thead .topleft.k2 {
     vertical-align: top;
 }
 
-input[type="radio"] {
+input[type='radio'] {
     display: initial;
     width: auto;
     margin-left: 0px;
@@ -603,14 +603,14 @@ input[type="radio"] {
 }
 
 .rtoggle-3:after {
-    content: "\2714"; /* Heavy Checkmark */
+    content: '\2714'; /* Heavy Checkmark */
 }
 .rtoggle-2:after {
-    content: "\2718"; /* Heavy Ballot */
+    content: '\2718'; /* Heavy Ballot */
     color: white;
 }
 .rtoggle-1:after {
-    content: "?";
+    content: '?';
 }
 .rtoggle-0 {
     background-color: transparent;
@@ -633,7 +633,7 @@ div.sols .h {
     margin-right: 10px;
 }
 div.sols .sol {
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
 }
 
 #qtext {
@@ -656,13 +656,13 @@ table.consonantline th {
 }
 table.consonantline th.c {
     border-bottom: 1px solid black;
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     text-align: center;
 }
 
 table.contact td,
 table.consonantline td {
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     padding: 0.1rem;
 }
 table.contact td.prev {
@@ -690,7 +690,7 @@ table.contact td.tlet {
 .references h2 {
     clear: both;
     color: #b54b23;
-    font: 700 35px/1em "Roboto", sans-serif;
+    font: 700 35px/1em 'Roboto', sans-serif;
     padding-bottom: 10px;
     text-transform: uppercase;
 }
@@ -714,7 +714,7 @@ table.contact td.tlet {
     color: #b54b23;
     font-size: 15px;
     font-weight: 700;
-    font-family: "Roboto", sans-serif;
+    font-family: 'Roboto', sans-serif;
     padding-bottom: 5px;
     padding-top: 10px;
     text-transform: uppercase;
@@ -733,7 +733,7 @@ table.contact td.tlet {
     color: #b54b23;
     font-size: 25px;
     font-weight: 700;
-    font-family: "Roboto", sans-serif;
+    font-family: 'Roboto', sans-serif;
     padding-bottom: 10px;
     text-transform: uppercase;
     margin: 10px;
@@ -763,7 +763,7 @@ table.contact td.tlet {
 table.vfact,
 table.found,
 table.vdist {
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     border-collapse: collapse;
     margin-right: 10px;
     border: 1px solid black;
@@ -850,8 +850,8 @@ table.found tr th:nth-child(odd) {
     justify-content: start;
 }
 
-.input-group input[type="number"]::-webkit-inner-spin-button,
-.input-group input[type="number"]::-webkit-outer-spin-button {
+.input-group input[type='number']::-webkit-inner-spin-button,
+.input-group input[type='number']::-webkit-outer-spin-button {
     -webkit-appearance: none;
     appearance: none;
 }
@@ -973,7 +973,7 @@ div.tn {
 .prfreq,
 .ansblock {
     border-collapse: collapse;
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     width: auto;
 }
 
@@ -982,7 +982,7 @@ div.vsolv {
 }
 
 .sublist {
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     white-space: pre;
 }
 
@@ -1086,7 +1086,7 @@ table.hillans .big2 {
 
 table.instlook,
 table.instbac {
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     text-align: center;
     border-collapse: collapse;
     margin: 1rem auto;
@@ -1094,13 +1094,13 @@ table.instbac {
     border: none;
 }
 table.instlook th {
-    width: 1.5rem;
+    width: 1.3rem;
     border: 1px solid black;
     background-color: lightgrey !important;
 }
 table.instlook td {
     border: 1px solid black;
-    width: 1.5rem;
+    width: 1.3rem;
     text-align: center;
 }
 table.instvig tr:nth-child(5n + 1) {
@@ -1120,7 +1120,7 @@ table.instbac td.bl {
     width: 2rem;
 }
 table.instlfreq {
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     border-collapse: collapse;
     padding: 0;
     border: none;
@@ -1133,19 +1133,19 @@ table.testscores {
 table.testscores th,
 table.testscores td {
     border: 1px solid black;
-    width: 12rem;
+    width: 11rem;
 }
 table.testscores th {
     text-align: center;
-    padding: 0.1rem 0.5rem 0.1rem 0.5rem;
+    padding: 0rem 0.5rem 0rem 0.5rem;
 }
 table.testscores td.v {
     text-align: right;
-    padding: 0.1rem 4rem 0.1rem 0.5rem;
+    padding: 0rem 4rem 0rem 0.5rem;
 }
 table.testscores td.t {
     text-align: left;
-    padding: 0.1rem 0.5rem 0.1rem 4rem;
+    padding: 0rem 0.5rem 0rem 4rem;
 }
 table.testscores td.grey {
     background-color: grey;
@@ -1164,7 +1164,7 @@ table.instlfreq td.v {
     width: 3rem;
 }
 table.instlfreq td.l::after {
-    content: " - ";
+    content: ' - ';
 }
 table.nameline {
     width: 50rem;
@@ -1184,7 +1184,7 @@ table.nameline td.u {
 }
 .runtext {
     margin-left: 5rem;
-    font-family: "Courier New", Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
 }
 #xmltoimport {
     margin-left: 1rem;
@@ -1254,7 +1254,7 @@ table.nameline td.u {
     border-radius: 1rem;
 }
 .scioly {
-    font-family: "Times New Roman", Times, serif;
+    font-family: 'Times New Roman', Times, serif;
 }
 .scioly .t {
     font-size: 1.9rem;
@@ -1333,7 +1333,6 @@ table.nameline td.u {
     );
     clip-path: polygon(75% 0%, 100% 50%, 75% 100%, 0% 100%, 25% 50%, 0% 0%);
 }
-
 .prevnav {
     background: #1779ba;
     color: white;
@@ -1349,7 +1348,76 @@ table.nameline td.u {
     );
     clip-path: polygon(100% 0%, 75% 50%, 100% 100%, 25% 100%, 0% 50%, 25% 0%);
 }
-
+.page {
+    page-break-inside: avoid;
+    padding: 0.5in 0in 0.25in 0in !important;
+    position: relative;
+    height: 100%;
+}
+.page .head {
+    display: none;
+}
+.page .headright {
+    display: none;
+}
+.page .foot {
+    width: 100%;
+    margin: 0.7em auto;
+    overflow: hidden;
+    text-align: center;
+    color: darkgray;
+}
+.page .foot:before,
+.page .foot:after {
+    content: '';
+    display: inline-block;
+    width: 50%;
+    margin: 0 0.5em 0 -55%;
+    vertical-align: middle;
+    border-bottom: 3px dashed darkgrey;
+}
+.page .foot:after {
+    margin: 0 -55% 0 0.5em;
+}
+.sizeset {
+    font-size: 12px;
+}
+.sizeset .TOSOLVE,
+.sizeset .TOSOLVE2,
+.sizeset .TOSOLVEQ,
+.sizeset .TOANSWER {
+    font-size: 15px;
+}
+.sizeset .wsel {
+    height: 10rem;
+}
+.sizeset .BACON.TOSOLVE,
+.sizeset .BACON.TOSOLVE2,
+.sizeset .BACON.TOSOLVEQ,
+.sizeset .BACON.TOANSWER {
+    font-size: 15px;
+}
+.sizeset .BACON.TOSOLVEQ {
+    margin-bottom: 3rem;
+}
+.sizeset .TOSOLVEQ {
+    margin-bottom: 4rem;
+}
+.sizeset .ansblock td.a,
+.sizeset .ansblock td.e {
+    height: 2rem;
+}
+.sizeset thead .topleft.k1,
+.sizeset thead .topleft.k2 {
+    font-size: 16px;
+}
+.sizeset table.hillans td.v {
+    min-width: 2rem;
+    min-height: 2rem;
+}
+.sizeset table.hillans .big2 {
+    font-size: 60px;
+}
 @media print {
     .title-bar,
     .top-bar,
@@ -1357,8 +1425,58 @@ table.nameline td.u {
     .button-group {
         display: none !important;
     }
+    .center,
+    .page,
+    .instructions {
+        max-width: 8in;
+    }
     div.instructions {
         display: block;
+    }
+    tbody td {
+        padding: 0.27rem;
+    }
+    .page {
+        page-break-inside: avoid;
+        padding: 0.5in 0in 0.25in 0in !important;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        page-break-after: always;
+        page-break-before: always;
+    }
+    .prfreq th {
+        width: 1.5rem;
+    }
+    .page .head {
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 0.25in;
+        text-align: center;
+    }
+    .page .headright {
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 0.25in;
+        text-align: right;
+    }
+    .page .foot {
+        position: absolute;
+        top: 10.5in;
+        left: 0;
+        right: 0;
+        height: 0.25in;
+        text-align: center;
+    }
+    .page .foot:before,
+    .page .foot:after {
+        content: none;
     }
     .pagebreak {
         page-break-before: always;
@@ -1369,12 +1487,31 @@ table.nameline td.u {
     div.affinework {
         height: 12rem;
     }
+    .grid-x {
+        display: block;
+        flex-flow: default;
+    }
+    .grid-x > .shrink {
+        width: default;
+    }
+    /* .cell.shrink {
+        -webkit-flex:
+        flex: 
+    } */
+    .cell {
+        max-width: 8in;
+        width: auto;
+    }
     table.hillblock,
     table.hillans {
         margin-bottom: 12rem;
     }
+    /* For the page we want an inch margin, but we need to insert the header at the half inch 
+       mark.  So instead we are going to do a half inch margin and will have the div for the 
+       page add the additional space.  On the bottom we need to do the page numbers at 1/4" 
+       and will add an extra half inch margin there */
     @page {
-        margin: 1in 0.5in 0.5in 0.5in;
+        margin: 0.5in 0.5in 0.25in 0.5in;
     }
     .TOANSWER {
         background-color: yellow !important;

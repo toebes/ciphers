@@ -1,17 +1,17 @@
-import * as InlineEditor from "@ckeditor/ckeditor5-build-inline";
-import { cloneObject } from "../common/ciphercommon";
+import * as InlineEditor from '@ckeditor/ckeditor5-build-inline';
+import { cloneObject } from '../common/ciphercommon';
 import {
     CipherHandler,
     IEncodeType,
     IState,
     menuMode,
     toolMode,
-} from "../common/cipherhandler";
-import { ICipherType } from "../common/ciphertypes";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTFIncButton } from "../common/jtfIncButton";
-import { JTFLabeledInput } from "../common/jtflabeledinput";
-import { JTRadioButton, JTRadioButtonSet } from "../common/jtradiobutton";
+} from '../common/cipherhandler';
+import { ICipherType } from '../common/ciphertypes';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFIncButton } from '../common/jtfIncButton';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 
 export interface IEncoderState extends IState {
     /** K1/K2/K3/K4 Keyword */
@@ -36,20 +36,20 @@ export interface IEncoderState extends IState {
  */
 export class CipherEncoder extends CipherHandler {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = "TestGuidance.html#Aristocrat";
+    public guidanceURL: string = 'TestGuidance.html#Aristocrat';
 
     public defaultstate: IEncoderState = {
-        cipherString: "",
+        cipherString: '',
         cipherType: ICipherType.Aristocrat,
-        encodeType: "random",
+        encodeType: 'random',
         offset: 1,
         shift: 1,
         offset2: 1,
-        keyword: "",
-        keyword2: "",
-        alphabetSource: "",
-        alphabetDest: "",
-        curlang: "en",
+        keyword: '',
+        keyword2: '',
+        alphabetSource: '',
+        alphabetDest: '',
+        curlang: 'en',
         replacement: {},
     };
     public state: IEncoderState = cloneObject(this.defaultstate) as IState;
@@ -60,16 +60,16 @@ export class CipherEncoder extends CipherHandler {
     public editor: { [key: string]: InlineEditor } = {};
 
     public cmdButtons: JTButtonItem[] = [
-        { title: "Save", color: "primary", id: "save" },
+        { title: 'Save', color: 'primary', id: 'save' },
         {
-            title: "Randomize",
-            color: "primary",
-            id: "randomize",
+            title: 'Randomize',
+            color: 'primary',
+            id: 'randomize',
             disabled: true,
         },
         this.undocmdButton,
         this.redocmdButton,
-        { title: "Reset", color: "warning", id: "reset" },
+        { title: 'Reset', color: 'warning', id: 'reset' },
     ];
     /**
      * Make a copy of the current state
@@ -112,23 +112,23 @@ export class CipherEncoder extends CipherHandler {
     public updateOutput(): void {
         this.setMenuMode(menuMode.question);
         this.updateQuestionsOutput();
-        $("#toencode").val(this.state.cipherString);
-        $("#keyword").val(this.state.keyword);
-        $("#offset").val(this.state.offset);
-        $("#shift").val(this.state.shift);
-        $("#keyword2").val(this.state.keyword2);
-        $("#offset2").val(this.state.offset2);
-        if (this.state.curlang === "en") {
-            $("#translated")
+        $('#toencode').val(this.state.cipherString);
+        $('#keyword').val(this.state.keyword);
+        $('#offset').val(this.state.offset);
+        $('#shift').val(this.state.shift);
+        $('#keyword2').val(this.state.keyword2);
+        $('#offset2').val(this.state.offset2);
+        if (this.state.curlang === 'en') {
+            $('#translated')
                 .parent()
                 .hide();
         } else {
-            $("#translated")
+            $('#translated')
                 .parent()
                 .show();
         }
-        JTRadioButtonSet("enctype", this.state.encodeType);
-        $(".lang").val(this.state.curlang);
+        JTRadioButtonSet('enctype', this.state.encodeType);
+        $('.lang').val(this.state.curlang);
         this.setkvalinputs();
         this.load();
     }
@@ -141,7 +141,7 @@ export class CipherEncoder extends CipherHandler {
         if (id in this.editor && this.editor[id] !== null) {
             this.editor[id].setData(val);
         } else {
-            $("#" + id).val(val);
+            $('#' + id).val(val);
         }
     }
     /**
@@ -151,33 +151,33 @@ export class CipherEncoder extends CipherHandler {
         if (this.state.points === undefined) {
             this.state.points = 0;
         }
-        $("#points").val(this.state.points);
+        $('#points').val(this.state.points);
         if (this.state.question === undefined) {
-            this.state.question = "";
+            this.state.question = '';
         }
-        this.setRichText("qtext", this.state.question);
+        this.setRichText('qtext', this.state.question);
     }
     /**
      * Enable / Disable the HTML elements based on the alphabet selection
      */
     public setkvalinputs(): void {
         let val = this.state.encodeType;
-        if (val === "random") {
-            $("#randomize").removeAttr("disabled");
-            $(".kval").hide();
+        if (val === 'random') {
+            $('#randomize').removeAttr('disabled');
+            $('.kval').hide();
         } else {
-            $("#randomize").prop("disabled", true);
-            $(".kval").show();
+            $('#randomize').prop('disabled', true);
+            $('.kval').show();
         }
-        if (val === "k3") {
-            $(".k3val").show();
+        if (val === 'k3') {
+            $('.k3val').show();
         } else {
-            $(".k3val").hide();
+            $('.k3val').hide();
         }
-        if (val === "k4") {
-            $(".k4val").show();
+        if (val === 'k4') {
+            $('.k4val').show();
         } else {
-            $(".k4val").hide();
+            $('.k4val').hide();
         }
     }
     /**
@@ -306,8 +306,8 @@ export class CipherEncoder extends CipherHandler {
      * Reset the alphabet mapping so that we generate a new one
      */
     public resetAlphabet(): void {
-        this.state.alphabetSource = "";
-        this.state.alphabetDest = "";
+        this.state.alphabetSource = '';
+        this.state.alphabetDest = '';
     }
     /**
      * Generate the maping from the source to the destination alphabet
@@ -315,9 +315,9 @@ export class CipherEncoder extends CipherHandler {
     public genAlphabet(): void {
         // If we already have a mapping, then we stay with it
         if (
-            this.state.alphabetSource !== "" &&
+            this.state.alphabetSource !== '' &&
             this.state.alphabetSource !== undefined &&
-            this.state.alphabetDest !== "" &&
+            this.state.alphabetDest !== '' &&
             this.state.alphabetDest !== undefined
         ) {
             this.setReplacement(
@@ -326,17 +326,17 @@ export class CipherEncoder extends CipherHandler {
             );
             return;
         }
-        if (this.state.encodeType === "k1") {
+        if (this.state.encodeType === 'k1') {
             this.genAlphabetK1(this.state.keyword, this.state.offset);
-        } else if (this.state.encodeType === "k2") {
+        } else if (this.state.encodeType === 'k2') {
             this.genAlphabetK2(this.state.keyword, this.state.offset);
-        } else if (this.state.encodeType === "k3") {
+        } else if (this.state.encodeType === 'k3') {
             this.genAlphabetK3(
                 this.state.keyword,
                 this.state.offset,
                 this.state.shift
             );
-        } else if (this.state.encodeType === "k4") {
+        } else if (this.state.encodeType === 'k4') {
             this.genAlphabetK4(
                 this.state.keyword,
                 this.state.offset,
@@ -353,10 +353,10 @@ export class CipherEncoder extends CipherHandler {
      * is mostly built around decrypting
      */
     public setReplacement(cset: string, repl: string): void {
-        let errors = "";
+        let errors = '';
         this.state.alphabetSource = cset;
         this.state.alphabetDest = repl;
-        console.log("Set Replacement cset=" + cset + " repl=" + repl);
+        // console.log("Set Replacement cset=" + cset + " repl=" + repl);
         // Figure out what letters map to the destination letters.  Note that
         // the input chracterset alphabet may not be in the same order as the
         // actual alphabet.
@@ -371,9 +371,9 @@ export class CipherEncoder extends CipherHandler {
                 errors += repc;
             }
         }
-        if (errors !== "") {
+        if (errors !== '') {
             console.log(errors);
-            $(".err").text("Bad keyword/offset combo for letters: " + errors);
+            $('.err').text('Bad keyword/offset combo for letters: ' + errors);
         }
     }
     /**
@@ -406,9 +406,9 @@ export class CipherEncoder extends CipherHandler {
      */
     public genAlphabetK3(keyword: string, offset: number, shift: number): void {
         if (this.getCharset() !== this.getSourceCharset()) {
-            let error = "Source and encoding character sets must be the same";
+            let error = 'Source and encoding character sets must be the same';
             console.log(error);
-            $(".err").text(error);
+            $('.err').text(error);
             return;
         }
         let repl = this.genKstring(keyword, offset, this.getCharset());
@@ -430,9 +430,9 @@ export class CipherEncoder extends CipherHandler {
     ): void {
         if (this.getCharset().length !== this.getSourceCharset().length) {
             let error =
-                "Source and encoding character sets must be the same length";
+                'Source and encoding character sets must be the same length';
             console.log(error);
-            $(".err").text(error);
+            $('.err').text(error);
             return;
         }
         let cset = this.genKstring(keyword, offset, this.getCharset());
@@ -450,7 +450,7 @@ export class CipherEncoder extends CipherHandler {
         alphabet: string
     ): string {
         let unasigned = alphabet;
-        let repl = "";
+        let repl = '';
 
         // Go through each character in the source string one at a time
         // and see if it is a legal character.  if we have not already seen
@@ -491,7 +491,7 @@ export class CipherEncoder extends CipherHandler {
     public genAlphabetRandom(): void {
         let charset = this.getCharset();
         this.unasigned = charset;
-        let replacement = "";
+        let replacement = '';
         let pos = 0;
 
         while (this.unasigned.length > 1) {
@@ -529,7 +529,7 @@ export class CipherEncoder extends CipherHandler {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         this.genAlphabet();
         let strings = this.makeReplacement(
             this.getEncodingString(),
@@ -537,40 +537,40 @@ export class CipherEncoder extends CipherHandler {
         );
         let tosolve = 0;
         let toanswer = 1;
-        if (this.state.operation === "encode") {
+        if (this.state.operation === 'encode') {
             tosolve = 1;
             toanswer = 0;
         }
         for (let strset of strings) {
             result.append(
-                $("<div/>", {
-                    class: "TOSOLVE",
+                $('<div/>', {
+                    class: 'TOSOLVE',
                 }).text(strset[tosolve])
             );
             result.append(
-                $("<div/>", {
-                    class: "TOANSWER",
+                $('<div/>', {
+                    class: 'TOANSWER',
                 }).text(strset[toanswer])
             );
         }
         if (this.state.cipherType === ICipherType.Patristocrat) {
             result.append(
-                $("<div/>", {
-                    class: "origtext",
+                $('<div/>', {
+                    class: 'origtext',
                 }).text(this.state.cipherString)
             );
         }
         result.append(this.genFreqTable(true, this.state.encodeType));
         // If this is a xenocrypt and they provided us a translation, display it
         if (
-            this.state.curlang !== "en" &&
+            this.state.curlang !== 'en' &&
             this.state.translation !== undefined &&
-            this.state.translation !== ""
+            this.state.translation !== ''
         ) {
             result.append(
-                $("<div/>")
-                    .text("Translation: ")
-                    .append($("<em/>").text(this.state.translation))
+                $('<div/>')
+                    .text('Translation: ')
+                    .append($('<em/>').text(this.state.translation))
             );
         }
         return result;
@@ -579,7 +579,7 @@ export class CipherEncoder extends CipherHandler {
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         this.genAlphabet();
         let strings = this.makeReplacement(
             this.getEncodingString(),
@@ -587,8 +587,8 @@ export class CipherEncoder extends CipherHandler {
         );
         for (let strset of strings) {
             result.append(
-                $("<div/>", {
-                    class: "TOSOLVEQ",
+                $('<div/>', {
+                    class: 'TOSOLVEQ',
                 }).text(strset[0])
             );
         }
@@ -602,34 +602,34 @@ export class CipherEncoder extends CipherHandler {
      * as the HTML to be displayed
      */
     public build(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
 
         // Provide correct guidance message as to which line is
         // plain text and which is cipher text.
-        let topLine = " Cipher Text is on ";
-        let highlightedLine = " Plain Text is ";
-        if (this.state.operation === "encode") {
-            topLine = " Plain Text is on ";
-            highlightedLine = " Cipher Text is ";
+        let topLine = ' Cipher Text is on ';
+        let highlightedLine = ' Plain Text is ';
+        if (this.state.operation === 'encode') {
+            topLine = ' Plain Text is on ';
+            highlightedLine = ' Cipher Text is ';
         }
 
         result.append(
-            $("<div/>", {
-                class: "callout small success",
+            $('<div/>', {
+                class: 'callout small success',
             })
-                .text("Note:")
+                .text('Note:')
                 .append(topLine)
                 .append(
-                    $("<span/>", {
-                        class: "TOSOLVE",
-                    }).text("top line")
+                    $('<span/>', {
+                        class: 'TOSOLVE',
+                    }).text('top line')
                 )
-                .append(",")
+                .append(',')
                 .append(highlightedLine)
                 .append(
-                    $("<span/>", {
-                        class: "TOANSWER",
-                    }).text("highlighted")
+                    $('<span/>', {
+                        class: 'TOANSWER',
+                    }).text('highlighted')
                 )
         );
         result.append(this.genAnswer());
@@ -652,64 +652,64 @@ export class CipherEncoder extends CipherHandler {
      * along with specifying the parameters for that alphabet
      */
     public createAlphabetType(): JQuery<HTMLElement> {
-        let result = $("<div/>", { class: "grid-x" });
+        let result = $('<div/>', { class: 'grid-x' });
 
         let radiobuttons = [
-            { id: "encrand", value: "random", title: "Random" },
-            { id: "enck1", value: "k1", title: "K1" },
-            { id: "enck2", value: "k2", title: "K2" },
-            { id: "enck3", value: "k3", title: "K3" },
-            { id: "enck4", value: "k4", title: "K4" },
+            { id: 'encrand', value: 'random', title: 'Random' },
+            { id: 'enck1', value: 'k1', title: 'K1' },
+            { id: 'enck2', value: 'k2', title: 'K2' },
+            { id: 'enck3', value: 'k3', title: 'K3' },
+            { id: 'enck4', value: 'k4', title: 'K4' },
         ];
         result.append(
-            $("<div/>", {
-                class: "cell",
-            }).text("Alphabet Type")
+            $('<div/>', {
+                class: 'cell',
+            }).text('Alphabet Type')
         );
         result.append(
-            JTRadioButton(12, "enctype", radiobuttons, this.state.encodeType)
+            JTRadioButton(12, 'enctype', radiobuttons, this.state.encodeType)
         );
 
         result.append(
             JTFLabeledInput(
-                "Keyword",
-                "text",
-                "keyword",
+                'Keyword',
+                'text',
+                'keyword',
                 this.state.keyword,
-                "kval"
+                'kval'
             )
         );
         result.append(
             JTFIncButton(
-                "Offset",
-                "offset",
+                'Offset',
+                'offset',
                 this.state.offset,
-                "kval small-12 medium-6 large-6"
+                'kval small-12 medium-6 large-6'
             )
         );
         result.append(
             JTFIncButton(
-                "Shift",
-                "shift",
+                'Shift',
+                'shift',
                 this.state.shift,
-                "k3val small-12 medium-6 large-6"
+                'k3val small-12 medium-6 large-6'
             )
         );
         result.append(
             JTFLabeledInput(
-                "Keyword 2",
-                "text",
-                "keyword2",
+                'Keyword 2',
+                'text',
+                'keyword2',
                 this.state.keyword2,
-                "k4val"
+                'k4val'
             )
         );
         result.append(
             JTFIncButton(
-                "Offset 2",
-                "offset2",
+                'Offset 2',
+                'offset2',
                 this.state.offset2,
-                "k4val small-12 medium-6 large-4"
+                'k4val small-12 medium-6 large-4'
             )
         );
         return result;
@@ -720,10 +720,10 @@ export class CipherEncoder extends CipherHandler {
     public load(): void {
         // this.hideRevReplace = true
         let encoded = this.cleanString(this.state.cipherString);
-        $(".err").text("");
+        $('.err').text('');
         this.genAlphabet();
         let res = this.build();
-        $("#answer")
+        $('#answer')
             .empty()
             .append(res);
 
@@ -732,38 +732,38 @@ export class CipherEncoder extends CipherHandler {
             let chi1 = this.CalculateChiSquare(teststr);
             teststr = this.cleanString(teststr);
             let l = teststr.length;
-            console.log(l + "`" + chi1 + "`" + teststr);
+            console.log(l + '`' + chi1 + '`' + teststr);
         }
 
         let chi = this.CalculateChiSquare(encoded);
 
-        let chitext = "";
+        let chitext = '';
         if (!isNaN(chi)) {
-            chitext = "Chi-Square Value=" + chi.toFixed();
+            chitext = 'Chi-Square Value=' + chi.toFixed();
             if (chi < 20) {
-                chitext += " [Easy]";
+                chitext += ' [Easy]';
             } else if (chi < 30) {
-                chitext += " [Medium]";
+                chitext += ' [Medium]';
             } else if (chi < 40) {
-                chitext += " [Medium Hard]";
+                chitext += ' [Medium Hard]';
             } else if (chi < 50) {
-                chitext += " [Difficult]";
+                chitext += ' [Difficult]';
             } else {
-                chitext += " [Extremely Difficult]";
+                chitext += ' [Extremely Difficult]';
             }
-            chitext += " Length=" + encoded.length;
+            chitext += ' Length=' + encoded.length;
             if (encoded.length < 60) {
-                chitext += " [Too Short]";
+                chitext += ' [Too Short]';
             } else if (encoded.length < 80) {
-                chitext += " [Short]";
+                chitext += ' [Short]';
             } else if (encoded.length > 120) {
-                chitext += " [Too Long]";
+                chitext += ' [Too Long]';
             } else if (encoded.length > 100) {
-                chitext += " [Long]";
+                chitext += ' [Long]';
             }
         }
 
-        $("#chi").text(chitext);
+        $('#chi').text(chitext);
         // Show the update frequency values
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
@@ -771,31 +771,31 @@ export class CipherEncoder extends CipherHandler {
     }
 
     public makeFreqEditField(c: string): JQuery<HTMLElement> {
-        let einput = $("<span/>", {
-            type: "text",
-            "data-char": c,
-            id: "m" + c,
+        let einput = $('<span/>', {
+            type: 'text',
+            'data-char': c,
+            id: 'm' + c,
         });
         return einput;
     }
     public genQuestionFields(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         result.append(
             JTFLabeledInput(
-                "Points",
-                "number",
-                "points",
+                'Points',
+                'number',
+                'points',
                 this.state.points,
-                "small-12 medium-12 large-12"
+                'small-12 medium-12 large-12'
             )
         );
         result.append(
             JTFLabeledInput(
-                "Question Text",
-                "richtext",
-                "qtext",
+                'Question Text',
+                'richtext',
+                'qtext',
                 this.state.question,
-                "small-12 medium-12 large-12"
+                'small-12 medium-12 large-12'
             )
         );
         return result.children();
@@ -804,26 +804,26 @@ export class CipherEncoder extends CipherHandler {
      * Generate HTML for any UI elements that go above the command bar
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         result.append(this.genTestUsage());
         result.append(this.genQuestionFields());
         result.append(this.getLangDropdown());
         result.append(
             JTFLabeledInput(
-                "Plain Text",
-                "textarea",
-                "toencode",
+                'Plain Text',
+                'textarea',
+                'toencode',
                 this.state.cipherString,
-                "small-12 medium-12 large-12"
+                'small-12 medium-12 large-12'
             )
         );
         result.append(
             JTFLabeledInput(
-                "Translation",
-                "textarea",
-                "translated",
+                'Translation',
+                'textarea',
+                'translated',
                 this.state.translation,
-                "small-12 medium-12 large-12"
+                'small-12 medium-12 large-12'
             )
         );
         result.append(this.createAlphabetType());
@@ -835,20 +835,20 @@ export class CipherEncoder extends CipherHandler {
     public attachHandlers(): void {
         super.attachHandlers();
         $('[name="enctype"]')
-            .off("click")
-            .on("click", e => {
+            .off('click')
+            .on('click', e => {
                 $(e.target)
                     .siblings()
-                    .removeClass("is-active");
-                $(e.target).addClass("is-active");
+                    .removeClass('is-active');
+                $(e.target).addClass('is-active');
                 this.markUndo(null);
                 if (this.setEncType($(e.target).val() as IEncodeType)) {
                     this.updateOutput();
                 }
             });
-        $("#offset")
-            .off("input")
-            .on("input", e => {
+        $('#offset')
+            .off('input')
+            .on('input', e => {
                 let offset = Number($(e.target).val());
                 if (offset !== this.state.offset) {
                     this.markUndo(null);
@@ -857,9 +857,9 @@ export class CipherEncoder extends CipherHandler {
                     }
                 }
             });
-        $("#shift")
-            .off("input")
-            .on("input", e => {
+        $('#shift')
+            .off('input')
+            .on('input', e => {
                 let shift = Number($(e.target).val());
                 if (shift !== this.state.shift) {
                     this.markUndo(null);
@@ -868,9 +868,9 @@ export class CipherEncoder extends CipherHandler {
                     }
                 }
             });
-        $("#offset2")
-            .off("input")
-            .on("input", e => {
+        $('#offset2')
+            .off('input')
+            .on('input', e => {
                 let offset2 = Number($(e.target).val());
                 if (offset2 !== this.state.offset2) {
                     this.markUndo(null);
@@ -879,61 +879,61 @@ export class CipherEncoder extends CipherHandler {
                     }
                 }
             });
-        $("#keyword")
-            .off("input")
-            .on("input", e => {
+        $('#keyword')
+            .off('input')
+            .on('input', e => {
                 let keyword = $(e.target).val() as string;
                 if (keyword !== this.state.keyword) {
-                    this.markUndo("keyword");
+                    this.markUndo('keyword');
                     if (this.setKeyword(keyword)) {
                         this.updateOutput();
                     }
                 }
             });
-        $("#keyword2")
-            .off("input")
-            .on("input", e => {
+        $('#keyword2')
+            .off('input')
+            .on('input', e => {
                 let keyword2 = $(e.target).val() as string;
                 if (keyword2 !== this.state.keyword2) {
-                    this.markUndo("keyword2");
+                    this.markUndo('keyword2');
                     if (this.setKeyword2(keyword2)) {
                         this.updateOutput();
                     }
                 }
             });
-        $("#toencode")
-            .off("input")
-            .on("input", e => {
+        $('#toencode')
+            .off('input')
+            .on('input', e => {
                 let cipherString = $(e.target).val() as string;
                 if (cipherString !== this.state.cipherString) {
-                    this.markUndo("cipherString");
+                    this.markUndo('cipherString');
                     if (this.setCipherString(cipherString)) {
                         this.updateOutput();
                     }
                 }
             });
-        $("#points")
-            .off("input")
-            .on("input", e => {
+        $('#points')
+            .off('input')
+            .on('input', e => {
                 let points = Number($(e.target).val());
                 if (points !== this.state.points) {
-                    this.markUndo("points");
+                    this.markUndo('points');
                     this.state.points = points;
                 }
             });
-        $(".richtext").each((i: number, elem: HTMLElement) => {
-            let id = $(elem).prop("id") as string;
-            if (id !== "" && !(id in this.editor)) {
+        $('.richtext').each((i: number, elem: HTMLElement) => {
+            let id = $(elem).prop('id') as string;
+            if (id !== '' && !(id in this.editor)) {
                 this.editor[id] = null;
                 InlineEditor.create(elem)
                     .then(editor => {
                         let initialtext = $(elem).val();
                         this.editor[id] = editor;
-                        if (initialtext !== "") {
+                        if (initialtext !== '') {
                             editor.setData(initialtext);
                         }
-                        editor.model.document.on("change:data", () => {
-                            $(elem).trigger("richchange", editor.getData());
+                        editor.model.document.on('change:data', () => {
+                            $(elem).trigger('richchange', editor.getData());
                         });
                     })
                     .catch(error => {
@@ -942,33 +942,33 @@ export class CipherEncoder extends CipherHandler {
                     });
             }
         });
-        $("#qtext")
-            .off("richchange")
-            .on("richchange", (e, newtext) => {
+        $('#qtext')
+            .off('richchange')
+            .on('richchange', (e, newtext) => {
                 let question = newtext;
                 if (question !== this.state.question) {
                     // Don't push an undo operation if all that happend was that the
                     // rich text editor put a paragraph around our text
-                    if (question !== "<p>" + this.state.question + "</p>") {
-                        this.markUndo("question");
+                    if (question !== '<p>' + this.state.question + '</p>') {
+                        this.markUndo('question');
                     }
                     this.state.question = question;
                 }
             });
-        $("#translated")
-            .off("input")
-            .on("input", e => {
+        $('#translated')
+            .off('input')
+            .on('input', e => {
                 let translation = $(e.target).val() as string;
                 if (translation !== this.state.translation) {
-                    this.markUndo("translation");
+                    this.markUndo('translation');
                     if (this.setTranslation(translation)) {
                         this.updateOutput();
                     }
                 }
             });
-        $("#randomize")
-            .off("click")
-            .on("click", () => {
+        $('#randomize')
+            .off('click')
+            .on('click', () => {
                 this.markUndo(null);
                 this.resetAlphabet();
                 this.updateOutput();

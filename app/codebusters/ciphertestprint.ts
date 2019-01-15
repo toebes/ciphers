@@ -1,9 +1,9 @@
-import { cloneObject } from "../common/ciphercommon";
-import { menuMode, toolMode } from "../common/cipherhandler";
-import { ICipherType } from "../common/ciphertypes";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTTable } from "../common/jttable";
-import { CipherTest, ITestState } from "./ciphertest";
+import { cloneObject } from '../common/ciphercommon';
+import { menuMode, toolMode } from '../common/cipherhandler';
+import { ICipherType } from '../common/ciphertypes';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTTable } from '../common/jttable';
+import { CipherTest, ITestState } from './ciphertest';
 
 /**
  * CipherTestPrint
@@ -13,12 +13,13 @@ import { CipherTest, ITestState } from "./ciphertest";
 export class CipherTestPrint extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;
     public defaultstate: ITestState = {
-        cipherString: "",
+        cipherString: '',
         cipherType: ICipherType.Test,
-        test: 0
+        test: 0,
     };
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
+    public pageNumber: number = 0;
 
     public restore(data: ITestState): void {
         let curlang = this.state.curlang;
@@ -29,51 +30,108 @@ export class CipherTestPrint extends CipherTest {
     }
     public updateOutput(): void {
         this.setMenuMode(menuMode.test);
-        $(".testcontent").each((i, elem) => {
-            $(elem).replaceWith(this.genTestQuestions());
+        $('.testcontent').each((i, elem) => {
+            this.genTestQuestions($(elem));
         });
         this.attachHandlers();
     }
     public genPreCommands(): JQuery<HTMLElement> {
-        return this.genTestEditState("testprint");
+        return this.genTestEditState('testprint');
     }
-    public genTestQuestions(): JQuery<HTMLElement> {
+    public ComputePageHeight(): Number {
+        let dpi = $('<div/>', {
+            id: 'dpi',
+            style:
+                'height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;',
+        });
+        dpi.appendTo('body');
+        let dpi_x = dpi[0].offsetWidth;
+        let dpi_y = dpi[0].offsetHeight;
+        dpi.remove();
+        console.log('dpi_x=' + dpi_x + ' dpi_y=' + dpi_y);
+        return dpi_y * 9.5;
+    }
+    public genPage(title: string): JQuery<HTMLElement> {
+        let page = $('<div/>', { class: 'page' });
+        page.append($('<div/>', { class: 'head' }).text(title));
+        if (this.pageNumber % 2 === 1) {
+            page.append(
+                $('<div/>', { class: 'headright' }).text('School:__________')
+            );
+        }
+        page.append(
+            $('<div/>', { class: 'foot' }).text(
+                'Page ' + String(this.pageNumber)
+            )
+        );
+        this.pageNumber++;
+        return page;
+    }
+
+    public genTestQuestions(elem: JQuery<HTMLElement>): void {
         let testcount = this.getTestCount();
+        elem.empty();
         if (testcount === 0) {
-            return $("<h3>").text("No Tests Created Yet");
+            elem.append($('<h3>').text('No Tests Created Yet'));
         }
         if (this.state.test > testcount) {
-            return $("<h3>").text("Test not found");
+            elem.append($('<h3>').text('Test not found'));
         }
         let test = this.getTestEntry(this.state.test);
-        let result = $("<div/>");
-        $(".testtitle").text(test.title);
+        let pagesize = this.ComputePageHeight();
+        let result = $('<div/>');
+        elem.append(result);
+        console.log('Page Height is ' + pagesize + ' pixels.');
+        $('.testtitle').text(test.title);
         let dt = new Date();
         // If we are at the end of the year, display the following year for tests.
         dt.setDate(dt.getDate() + 6);
-        $(".testyear").text(dt.getFullYear());
+        $('.testyear').text(dt.getFullYear());
         this.runningKeys = undefined;
         this.qdata = [];
+        let accumulated = 0;
+        let qcount = 0;
+        this.pageNumber = 1;
+        let page = this.genPage(test.title);
+        result.append(page);
         if (test.timed === -1) {
             result.append(
-                $("<p/>", {
-                    class: "noprint"
-                }).text("No timed question")
+                $('<p/>', {
+                    class: 'noprint',
+                }).text('No timed question')
             );
         } else {
-            result.append(this.printTestQuestion(-1, test.timed, "pagebreak"));
+            let timedquestion = this.printTestQuestion(
+                -1,
+                test.timed,
+                'pagebreak'
+            );
+            page.append(timedquestion);
+            qcount = 99;
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
-            let breakclass = "";
-            if (qnum % 2 === 0) {
-                breakclass = "pagebreak";
+            let thisquestion = this.printTestQuestion(
+                qnum + 1,
+                test.questions[qnum],
+                ''
+            );
+            page.append(thisquestion);
+            let thisheight = thisquestion.outerHeight();
+            if (thisheight + accumulated > pagesize || qcount > 1) {
+                page = this.genPage(test.title);
+                result.append(page);
+                thisquestion.detach().appendTo(page);
+                accumulated = 0;
+                qcount = 0;
             }
-            result.append(
-                this.printTestQuestion(
-                    qnum + 1,
-                    test.questions[qnum],
-                    breakclass
-                )
+            qcount++;
+            accumulated += thisheight;
+            console.log(
+                qnum +
+                    ': height=' +
+                    thisquestion.outerHeight() +
+                    ' bodyheight=' +
+                    document.body.clientHeight
             );
         }
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
@@ -83,16 +141,16 @@ export class CipherTestPrint extends CipherTest {
          * Now that we have generated the data for the test, output any running keys used
          */
         if (this.runningKeys !== undefined) {
-            $("#runningkeys").append($("<h2/>").text("Famous Phrases"));
+            $('#runningkeys').append($('<h2/>').text('Famous Phrases'));
             for (let ent of this.runningKeys) {
-                $("#runningkeys").append(
-                    $("<div/>", {
-                        class: "runtitle"
+                $('#runningkeys').append(
+                    $('<div/>', {
+                        class: 'runtitle',
                     }).text(ent.title)
                 );
-                $("#runningkeys").append(
-                    $("<div/>", {
-                        class: "runtext"
+                $('#runningkeys').append(
+                    $('<div/>', {
+                        class: 'runtext',
                     }).text(ent.text)
                 );
             }
@@ -101,20 +159,20 @@ export class CipherTestPrint extends CipherTest {
          * Lastly we need to print out the score table
          */
         let table = new JTTable({
-            class: "cell shrink testscores"
+            class: 'cell shrink testscores',
         });
         let hastimed = false;
         table
             .addHeaderRow()
-            .add("Question")
-            .add("Value")
-            .add("Incorrect letters")
-            .add("Deduction")
-            .add("Score");
+            .add('Question')
+            .add('Value')
+            .add('Incorrect letters')
+            .add('Deduction')
+            .add('Score');
         for (let qitem of this.qdata) {
-            let qtitle = "";
+            let qtitle = '';
             if (qitem.qnum === -1) {
-                qtitle = "Timed";
+                qtitle = 'Timed';
                 hastimed = true;
             } else {
                 qtitle = String(qitem.qnum);
@@ -122,34 +180,33 @@ export class CipherTestPrint extends CipherTest {
             table
                 .addBodyRow()
                 .add({
-                    settings: { class: "t" },
-                    content: qtitle
+                    settings: { class: 't' },
+                    content: qtitle,
                 })
                 .add({
-                    settings: { class: "v" },
-                    content: String(qitem.points)
+                    settings: { class: 'v' },
+                    content: String(qitem.points),
                 })
-                .add("")
-                .add("")
-                .add("");
+                .add('')
+                .add('')
+                .add('');
         }
         // If we had a timed question, we put in the slot for the bonus
         if (hastimed) {
             table
                 .addFooterRow()
-                .add("Bonus")
-                .add("")
+                .add('Bonus')
+                .add('')
                 .add({
-                    settings: { colspan: 2, class: "grey" },
-                    content: ""
+                    settings: { colspan: 2, class: 'grey' },
+                    content: '',
                 })
-                .add("");
+                .add('');
         }
         table
             .addFooterRow()
-            .add("Final Score")
-            .add({ settings: { colspan: 4 }, content: "" });
-        $("#scoretable").append(table.generate());
-        return result;
+            .add('Final Score')
+            .add({ settings: { colspan: 4 }, content: '' });
+        $('#scoretable').append(table.generate());
     }
 }

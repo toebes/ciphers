@@ -1,11 +1,11 @@
-import { cloneObject, setCharAt } from "../common/ciphercommon";
-import { IState, menuMode, toolMode } from "../common/cipherhandler";
-import { ICipherType } from "../common/ciphertypes";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTFLabeledInput } from "../common/jtflabeledinput";
-import { JTRadioButtonSet } from "../common/jtradiobutton";
-import { JTTable } from "../common/jttable";
-import { CipherSolver } from "./ciphersolver";
+import { cloneObject, setCharAt } from '../common/ciphercommon';
+import { IState, menuMode, toolMode } from '../common/cipherhandler';
+import { ICipherType } from '../common/ciphertypes';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { JTRadioButtonSet } from '../common/jtradiobutton';
+import { JTTable } from '../common/jttable';
+import { CipherSolver } from './ciphersolver';
 
 export class CipherHomophonicSolver extends CipherSolver {
     public activeToolMode: toolMode = toolMode.aca;
@@ -14,22 +14,22 @@ export class CipherHomophonicSolver extends CipherSolver {
     public defaultstate: IState = {
         cipherType: ICipherType.Homophonic,
         replacement: {},
-        cipherString: "",
-        findString: "",
-        keyword: "AAAA",
+        cipherString: '',
+        findString: '',
+        keyword: 'AAAA',
     };
     public init(lang: string): void {
         super.init(lang);
-        let charset = "ABCDEFGHIKLMNOPQRSTUVWXYZ";
+        let charset = 'ABCDEFGHIKLMNOPQRSTUVWXYZ';
         this.setCharset(charset);
         this.setSourceCharset(charset);
     }
     public state: IState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [
-        { title: "Save", color: "primary", id: "save" },
+        { title: 'Save', color: 'primary', id: 'save' },
         this.undocmdButton,
         this.redocmdButton,
-        { title: "Reset", color: "warning", id: "reset" },
+        { title: 'Reset', color: 'warning', id: 'reset' },
     ];
     /**
      * Cleans up any settings, range checking and normalizing any values.
@@ -48,10 +48,10 @@ export class CipherHomophonicSolver extends CipherSolver {
      */
     public updateOutput(): void {
         this.setMenuMode(menuMode.aca);
-        JTRadioButtonSet("ciphertype", this.state.cipherType);
-        $("#keyword").val(this.state.keyword);
-        $("#encoded").val(this.state.cipherString);
-        $("#find").val(this.state.findString);
+        JTRadioButtonSet('ciphertype', this.state.cipherType);
+        $('#keyword').val(this.state.keyword);
+        $('#encoded').val(this.state.cipherString);
+        $('#find').val(this.state.findString);
         this.showQuestion();
         this.load();
         this.findPossible(this.state.findString);
@@ -70,7 +70,7 @@ export class CipherHomophonicSolver extends CipherSolver {
     public saveSolution(): void {
         this.state.solved = true;
         this.state.solution =
-            this.state.keyword.toUpperCase() + ". " + this.getMappedString();
+            this.state.keyword.toUpperCase() + '. ' + this.getMappedString();
     }
     /**
      * Sets the keyword (state.keyword)
@@ -112,16 +112,17 @@ export class CipherHomophonicSolver extends CipherSolver {
      * @param cipherString Cipher string to set
      */
     public setCipherString(cipherString: string): boolean {
-        let changed = super.setCipherString(cipherString);
+        let newstr = cipherString.replace(/Ø/g, '0');
+        let changed = super.setCipherString(newstr);
         let str = this.cleanString(this.state.cipherString);
         this.HomophonicVals = [];
         this.freq = {};
         // Go through the string and parse it generating the frequency of each
         // group of numbers
-        let curval = "";
-        for (let c of str + " ") {
-            if (c === " ") {
-                if (curval !== "") {
+        let curval = '';
+        for (let c of str + ' ') {
+            if (c === ' ') {
+                if (curval !== '') {
                     let val = Number(curval);
                     this.HomophonicVals.push(val);
                     if (this.freq[val] === undefined) {
@@ -129,9 +130,9 @@ export class CipherHomophonicSolver extends CipherSolver {
                     } else {
                         this.freq[val]++;
                     }
-                    curval = "";
+                    curval = '';
                 }
-            } else if (c >= "0" && c <= "9") {
+            } else if (c >= '0' && c <= '9') {
                 curval += c;
             }
         }
@@ -139,8 +140,8 @@ export class CipherHomophonicSolver extends CipherSolver {
     }
     public getMappedString(): string {
         let charset = this.getCharset();
-        let mapset = "";
-        let keyword = this.state.keyword.toUpperCase() + "AAAA";
+        let mapset = '';
+        let keyword = this.state.keyword.toUpperCase() + 'AAAA';
         for (let c of keyword.substr(0, 4)) {
             let idx = charset.indexOf(c);
             if (idx < 0) {
@@ -151,7 +152,7 @@ export class CipherHomophonicSolver extends CipherSolver {
         // And because the last character is actually the first, we have to fix
         // the string
         mapset = mapset.substr(mapset.length - 1) + mapset;
-        let result = "";
+        let result = '';
         for (let i of this.HomophonicVals) {
             result += mapset.substr(i, 1);
         }
@@ -165,22 +166,22 @@ export class CipherHomophonicSolver extends CipherSolver {
      * We want to have four rows of
      */
     public build(): JQuery<HTMLElement> {
-        let result = $("<div/>", { class: "clearfix" });
+        let result = $('<div/>', { class: 'clearfix' });
         let str = this.cleanString(this.state.cipherString);
-        if (str === "") {
-            return $("<div/>", { class: "callout warning" }).text(
-                "Enter a cipher to get started"
+        if (str === '') {
+            return $('<div/>', { class: 'callout warning' }).text(
+                'Enter a cipher to get started'
             );
         }
         let charset = this.getCharset();
         let cols = charset.length;
-        let table = new JTTable({ class: "tfreq shrink cell" });
+        let table = new JTTable({ class: 'tfreq shrink cell' });
         let headrow = table.addHeaderRow();
         let keyword = this.state.keyword.toUpperCase();
-        headrow.add("");
+        headrow.add('');
         for (let c of charset) {
-            if (c === "I") {
-                headrow.add("I/J");
+            if (c === 'I') {
+                headrow.add('I/J');
             } else {
                 headrow.add(c);
             }
@@ -188,13 +189,13 @@ export class CipherHomophonicSolver extends CipherSolver {
         for (let row = 0; row < 4; row++) {
             let valrow = table.addBodyRow([
                 {
-                    celltype: "th",
+                    celltype: 'th',
                     settings: { rowspan: 2 },
-                    content: $("<button/>", {
-                        href: "#",
-                        class: "ls",
-                        "data-row": row,
-                    }).html("&#8647;"),
+                    content: $('<button/>', {
+                        href: '#',
+                        class: 'ls',
+                        'data-row': row,
+                    }).html('&#8647;'),
                 },
             ]);
             // Figure out our offset
@@ -209,27 +210,27 @@ export class CipherHomophonicSolver extends CipherSolver {
                     (((offset + col + cols) % cols) + cols * row + 1) %
                     (cols * 4);
                 let freq = this.freq[val];
-                let dispval = "00" + String(val);
+                let dispval = '00' + String(val);
                 valrow.add(String(dispval.substr(dispval.length - 2)));
                 if (freq === undefined) {
-                    freqrow.add("");
+                    freqrow.add('');
                 } else {
                     freqrow.add(String(freq));
                 }
             }
             valrow.add({
-                celltype: "th",
+                celltype: 'th',
                 settings: { rowspan: 2 },
-                content: $("<button/>", {
-                    href: "#",
-                    class: "rs",
-                    "data-row": row,
-                }).html("&#8649;"),
+                content: $('<button/>', {
+                    href: '#',
+                    class: 'rs',
+                    'data-row': row,
+                }).html('&#8649;'),
             });
         }
         result.append(table.generate());
         result.append(
-            $("<div/>", { class: "ans" }).text(this.getMappedString())
+            $('<div/>', { class: 'ans' }).text(this.getMappedString())
         );
         // this.state.solution = solution;
         // this.state.solved = true;
@@ -239,15 +240,15 @@ export class CipherHomophonicSolver extends CipherSolver {
      * Generates the section above the command buttons
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
 
         result.append(
             JTFLabeledInput(
-                "Cipher Text",
-                "textarea",
-                "encoded",
+                'Cipher Text',
+                'textarea',
+                'encoded',
                 this.state.cipherString,
-                "small-12 medium-12 large-12"
+                'small-12 medium-12 large-12'
             )
         );
         return result;
@@ -256,15 +257,15 @@ export class CipherHomophonicSolver extends CipherSolver {
      * Set up the UI elements for the result fields
      */
     public genPostCommands(): JQuery<HTMLElement> {
-        let result = $("<div/>");
-        result.append($("<div>", { class: "err" }));
+        let result = $('<div/>');
+        result.append($('<div>', { class: 'err' }));
         result.append(
             JTFLabeledInput(
-                "Keyword",
-                "text",
-                "keyword",
+                'Keyword',
+                'text',
+                'keyword',
                 this.state.keyword,
-                "small-12 medium-12 large-12"
+                'small-12 medium-12 large-12'
             )
         );
         result.append(this.genFindCommands());
@@ -274,7 +275,7 @@ export class CipherHomophonicSolver extends CipherSolver {
      * Creates an HTML table to display the frequency of characters
      */
     public createFreqEditTable(): JQuery<HTMLElement> {
-        let result = $("<div/>", { class: "clearfix" });
+        let result = $('<div/>', { class: 'clearfix' });
         return result;
     }
     /**
@@ -284,16 +285,16 @@ export class CipherHomophonicSolver extends CipherSolver {
      */
     public findPossible(str: string): void {
         this.state.findString = str;
-        if (str === "") {
-            $(".findres").empty();
+        if (str === '') {
+            $('.findres').empty();
             return;
         }
         let maxcols = 5;
         let tdcount = 0;
-        let table = new JTTable({ class: "found" });
+        let table = new JTTable({ class: 'found' });
         let row = table.addHeaderRow();
         for (let i = 0; i < maxcols; i++) {
-            row.add("Pos").add("Key");
+            row.add('Pos').add('Key');
         }
         row = table.addBodyRow();
         let keyset: number[] = [];
@@ -336,10 +337,10 @@ export class CipherHomophonicSolver extends CipherSolver {
                 }
             }
             if (matched) {
-                let keyword = "";
+                let keyword = '';
                 for (let v of keyvals) {
                     if (v === -1) {
-                        keyword += "?";
+                        keyword += '?';
                     } else {
                         keyword += charset.substr(v, 1);
                     }
@@ -349,26 +350,26 @@ export class CipherHomophonicSolver extends CipherSolver {
                 }
                 tdcount = tdcount + 1;
                 row.add(String(pos)).add(
-                    $("<a/>", {
-                        class: "vkey",
-                        href: "#",
+                    $('<a/>', {
+                        class: 'vkey',
+                        href: '#',
                     }).text(keyword)
                 );
             }
         }
         let lookfor;
         if (tdcount === 0) {
-            lookfor = $("<span/>").text(
-                "Unable to find " + str + " as " + this.normalizeHTML(str)
+            lookfor = $('<span/>').text(
+                'Unable to find ' + str + ' as ' + this.normalizeHTML(str)
             );
         } else {
-            lookfor = $("<span/>").text(
-                "Searching for " + str + " as " + this.normalizeHTML(str)
+            lookfor = $('<span/>').text(
+                'Searching for ' + str + ' as ' + this.normalizeHTML(str)
             );
             lookfor.append(table.generate());
         }
 
-        $(".findres")
+        $('.findres')
             .empty()
             .append(lookfor);
         this.attachHandlers();
@@ -379,10 +380,10 @@ export class CipherHomophonicSolver extends CipherSolver {
     public load(): void {
         this.encodedString = this.cleanString(this.state.cipherString);
         let res = this.build();
-        $("#answer")
+        $('#answer')
             .empty()
             .append(res);
-        $("#analysis").each((i, elem) => {
+        $('#analysis').each((i, elem) => {
             $(elem)
                 .empty()
                 .append(this.genAnalysis(this.encodedString));
@@ -397,9 +398,9 @@ export class CipherHomophonicSolver extends CipherSolver {
      */
     public attachHandlers(): void {
         super.attachHandlers();
-        $("#keyword")
-            .off("input")
-            .on("input", e => {
+        $('#keyword')
+            .off('input')
+            .on('input', e => {
                 let keyword = $(e.target).val() as string;
                 if (keyword !== this.state.keyword) {
                     this.markUndo(null);
@@ -408,24 +409,24 @@ export class CipherHomophonicSolver extends CipherSolver {
                     }
                 }
             });
-        $("button.ls")
-            .off("click")
-            .on("click", e => {
-                this.markUndo("ls");
-                this.adjustKeyword(Number($(e.target).attr("data-row")), 1);
+        $('button.ls')
+            .off('click')
+            .on('click', e => {
+                this.markUndo('ls');
+                this.adjustKeyword(Number($(e.target).attr('data-row')), 1);
                 this.updateOutput();
             });
-        $("button.rs")
-            .off("click")
+        $('button.rs')
+            .off('click')
             .click(e => {
-                this.markUndo("ls");
-                this.adjustKeyword(Number($(e.target).attr("data-row")), -1);
+                this.markUndo('ls');
+                this.adjustKeyword(Number($(e.target).attr('data-row')), -1);
                 this.updateOutput();
             });
-        $("a.vkey")
-            .off("click")
-            .on("click", e => {
-                let newkey = $(e.target).attr("data-key");
+        $('a.vkey')
+            .off('click')
+            .on('click', e => {
+                let newkey = $(e.target).attr('data-key');
                 if (newkey === undefined) {
                     newkey = $(e.target).html();
                 }

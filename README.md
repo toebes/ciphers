@@ -14,7 +14,7 @@ The application is built using a combination of:
 -   ZURB Foundation 6 for Sites (https://foundation.zurb.com/sites/docs/) – Provides the CSS and reactive layout engine
 -   what-input - (https://github.com/ten1seven/what-input) Used by Foundation for tracking the current input method
 -   WebPack – (https://webpack.js.org/) - JS packager/builder
--   Html5Sortable - (https://github.com/lukasoppermann/html5sortable) Enhancements for drag/drop sorting of lists
+-   Shopify Draggable - (https://github.com/Shopify/draggable) Enhancements for drag/drop sorting of lists
 -   KaTeX – (https://khan.github.io/KaTeX/) - Math Rendering (from LaTeX syntax)
 -   CKEditor 5 – (https://ckeditor.com/ckeditor-5/) - Rich text editor - Custom inline build at https://github.com/toebes/ckeditor5-build-inline
 -   Es5-shim – (https://github.com/es-shims/es5-shim) Shim to bring all ECMAScript 5 methods to the browser

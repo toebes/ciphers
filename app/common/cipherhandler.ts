@@ -2906,5 +2906,9 @@ export class CipherHandler {
                     this.sortTable(e.target, Number(col));
                 }
             });
+        $(".moreprev").off("click").on("click", e => {
+            $(".prev").show();
+            $(".moreprev").hide();
+        })
     }
 }

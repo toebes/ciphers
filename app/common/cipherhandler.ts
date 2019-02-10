@@ -1,51 +1,51 @@
-import "foundation-sites";
+import 'foundation-sites';
 import {
     BoolMap,
     cloneObject,
     NumberMap,
-    StringMap
-} from "../common/ciphercommon";
-import { CipherMenu } from "./ciphermenu";
+    StringMap,
+} from '../common/ciphercommon';
+import { CipherMenu } from './ciphermenu';
 import {
     getCipherEquivalents,
     getCipherTitle,
-    ICipherType
-} from "./ciphertypes";
-import { getVersion } from "./getversion";
-import { JTButtonGroup, JTButtonItem } from "./jtbuttongroup";
-import { JTFDialog } from "./jtfdialog";
-import { JTFLabeledInput } from "./jtflabeledinput";
-import { JTCreateMenu, JTGetSolveURL, JTGetURL } from "./jtmenu";
-import { InitStorage, JTStorage } from "./jtstore";
-import { JTTable } from "./jttable";
-import { parseQueryString } from "./parsequerystring";
+    ICipherType,
+} from './ciphertypes';
+import { getVersion } from './getversion';
+import { JTButtonGroup, JTButtonItem } from './jtbuttongroup';
+import { JTFDialog } from './jtfdialog';
+import { JTFLabeledInput } from './jtflabeledinput';
+import { JTCreateMenu, JTGetSolveURL, JTGetURL } from './jtmenu';
+import { InitStorage, JTStorage } from './jtstore';
+import { JTTable } from './jttable';
+import { parseQueryString } from './parsequerystring';
 export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
     test, // Test generation Tools - No file or Edit menu
     question, // Test question tool - File/Edit/Test Tools menu
-    none // No menu selected
+    none, // No menu selected
 }
 /** Which mode the tool is operating in to select menus and file names */
 export const enum toolMode {
     aca,
-    codebusters
+    codebusters,
 }
 
 /** The types of operations that an encoder will support */
 export type IOperationType =
-    | "encode" // Test question involves encoding
-    | "decode" // Test question involves decoding
-    | "compute" // Test question involves computing a math result
-    | "let4let" // Baconian individual letter substitition
-    | "sequence" // Baconian sequence substitition
-    | "words" // Baconian word substitution
-    | "rsa1"
-    | "rsa2"
-    | "rsa3"
-    | "rsa4"
-    | "rsa5";
+    | 'encode' // Test question involves encoding
+    | 'decode' // Test question involves decoding
+    | 'compute' // Test question involves computing a math result
+    | 'let4let' // Baconian individual letter substitition
+    | 'sequence' // Baconian sequence substitition
+    | 'words' // Baconian word substitution
+    | 'rsa1'
+    | 'rsa2'
+    | 'rsa3'
+    | 'rsa4'
+    | 'rsa5';
 /** The type of encoding for the alphabet */
-export type IEncodeType = "random" | "k1" | "k2" | "k3" | "k4";
+export type IEncodeType = 'random' | 'k1' | 'k2' | 'k3' | 'k4';
 /**
  * The saved state for all ciphers.  This is used for undo/redo as well as
  * the save file format.
@@ -118,36 +118,36 @@ export class CipherHandler {
      * User visible mapping of names of the various languages supported
      */
     public readonly langmap: StringMap = {
-        en: "English",
-        nl: "Dutch",
-        de: "German",
-        eo: "Esperanto",
-        es: "Spanish",
-        fr: "French",
-        it: "Italian",
-        no: "Norwegian",
-        pt: "Portuguese",
-        sv: "Swedish",
-        ia: "Interlingua",
-        la: "Latin"
+        en: 'English',
+        nl: 'Dutch',
+        de: 'German',
+        eo: 'Esperanto',
+        es: 'Spanish',
+        fr: 'French',
+        it: 'Italian',
+        no: 'Norwegian',
+        pt: 'Portuguese',
+        sv: 'Swedish',
+        ia: 'Interlingua',
+        la: 'Latin',
     };
-    public guidanceURL: string = "TestGuidance.html";
+    public guidanceURL: string = 'TestGuidance.html';
     /**
      * This maps which characters are legal in a cipher for a given language
      */
     public readonly langcharset: StringMap = {
-        en: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        nl: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        de: "AÄBCDEFGHIJKLMNOÖPQRSßTUÜVWXYZ",
-        eo: "ABCĈDEFGĜHĤIJĴKLMNOPRSŜTUŬVZ",
-        es: "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ",
-        fr: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        it: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        no: "ABCDEFGHIJKLMNOPQRSTUVWXYZÅØÆ",
-        pt: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        sv: "AÅÄBCDEFGHIJKLMNOÖPQRSTUVWXYZ",
-        ia: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        nl: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        de: 'AÄBCDEFGHIJKLMNOÖPQRSßTUÜVWXYZ',
+        eo: 'ABCĈDEFGĜHĤIJĴKLMNOPRSŜTUŬVZ',
+        es: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ',
+        fr: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        it: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        no: 'ABCDEFGHIJKLMNOPQRSTUVWXYZÅØÆ',
+        pt: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        sv: 'AÅÄBCDEFGHIJKLMNOÖPQRSTUVWXYZ',
+        ia: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        la: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
     };
     /**
      * Character replacement for purposes of encoding
@@ -159,73 +159,73 @@ export class CipherHandler {
         nl: {},
         de: {},
         eo: {},
-        es: { Á: "A", É: "E", Í: "I", Ó: "O", Ú: "U", Ü: "U", Ý: "Y" },
+        es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
         fr: {
-            Ç: "C",
-            Â: "A",
-            À: "A",
-            É: "E",
-            Ê: "E",
-            È: "E",
-            Ë: "E",
-            Î: "I",
-            Ï: "I",
-            Ô: "O",
-            Û: "U",
-            Ù: "U",
-            Ü: "U"
+            Ç: 'C',
+            Â: 'A',
+            À: 'A',
+            É: 'E',
+            Ê: 'E',
+            È: 'E',
+            Ë: 'E',
+            Î: 'I',
+            Ï: 'I',
+            Ô: 'O',
+            Û: 'U',
+            Ù: 'U',
+            Ü: 'U',
         },
-        it: { À: "A", É: "E", È: "E", Ì: "I", Ò: "O", Ù: "U" },
+        it: { À: 'A', É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
         no: {},
         pt: {
-            Á: "A",
-            Â: "A",
-            Ã: "A",
-            À: "A",
-            Ç: "C",
-            È: "E",
-            Ê: "E",
-            Í: "I",
-            Ó: "O",
-            Ô: "O",
-            Õ: "O",
-            Ú: "U"
+            Á: 'A',
+            Â: 'A',
+            Ã: 'A',
+            À: 'A',
+            Ç: 'C',
+            È: 'E',
+            Ê: 'E',
+            Í: 'I',
+            Ó: 'O',
+            Ô: 'O',
+            Õ: 'O',
+            Ú: 'U',
         },
         sv: {},
         ia: {},
-        la: {}
+        la: {},
     };
     /**
      * This maps which characters are to be used when encoding an ACA cipher
      */
     public readonly acalangcharset: StringMap = {
-        en: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        nl: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        de: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        es: "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ",
-        fr: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        it: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        no: "ABCDEFGHIJKLMNOPRSTUVYZÆØÅ",
-        pt: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        sv: "AÅÄBCDEFGHIJKLMNOÖPRSTUVYZ",
-        ia: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        nl: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        de: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        es: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ',
+        fr: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        it: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        no: 'ABCDEFGHIJKLMNOPRSTUVYZÆØÅ',
+        pt: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        sv: 'AÅÄBCDEFGHIJKLMNOÖPRSTUVYZ',
+        ia: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        la: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
     };
     /**
      * This maps which characters are to be encoded to for an ACA cipher
      */
     public readonly encodingcharset: StringMap = {
-        en: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        nl: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        de: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        es: "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ",
-        fr: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        it: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        no: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        pt: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        sv: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        ia: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        la: "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        en: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        nl: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        de: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        es: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ',
+        fr: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        it: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        no: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        pt: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        sv: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        ia: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        la: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
     };
     /**
      * Character replacement for purposes of encoding
@@ -235,43 +235,43 @@ export class CipherHandler {
     } = {
         en: {},
         nl: {},
-        de: { Ä: "A", Ö: "O", ß: "SS", Ü: "U" },
-        eo: { Ĉ: "C", Ĝ: "G", Ĥ: "H", Ĵ: "J", Ŝ: "S", Ŭ: "U" },
-        es: { Á: "A", É: "E", Í: "I", Ó: "O", Ú: "U", Ü: "U", Ý: "Y" },
+        de: { Ä: 'A', Ö: 'O', ß: 'SS', Ü: 'U' },
+        eo: { Ĉ: 'C', Ĝ: 'G', Ĥ: 'H', Ĵ: 'J', Ŝ: 'S', Ŭ: 'U' },
+        es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
         fr: {
-            Ç: "C",
-            Â: "A",
-            À: "A",
-            É: "E",
-            Ê: "E",
-            È: "E",
-            Ë: "E",
-            Î: "I",
-            Ï: "I",
-            Ô: "O",
-            Û: "U",
-            Ù: "U",
-            Ü: "U"
+            Ç: 'C',
+            Â: 'A',
+            À: 'A',
+            É: 'E',
+            Ê: 'E',
+            È: 'E',
+            Ë: 'E',
+            Î: 'I',
+            Ï: 'I',
+            Ô: 'O',
+            Û: 'U',
+            Ù: 'U',
+            Ü: 'U',
         },
-        it: { É: "E", È: "E", Ì: "I", Ò: "O", Ù: "U" },
+        it: { É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
         no: {},
         pt: {
-            Á: "A",
-            Â: "A",
-            Ã: "A",
-            À: "A",
-            Ç: "C",
-            È: "E",
-            Ê: "E",
-            Í: "I",
-            Ó: "O",
-            Ô: "O",
-            Õ: "O",
-            Ú: "U"
+            Á: 'A',
+            Â: 'A',
+            Ã: 'A',
+            À: 'A',
+            Ç: 'C',
+            È: 'E',
+            Ê: 'E',
+            Í: 'I',
+            Ó: 'O',
+            Ô: 'O',
+            Õ: 'O',
+            Ú: 'U',
         },
         sv: {},
         ia: {},
-        la: {}
+        la: {},
     };
     /**
      * Language character frequency
@@ -303,7 +303,7 @@ export class CipherHandler {
             X: 0.0023,
             J: 0.0016,
             Q: 0.0012,
-            Z: 0.0009
+            Z: 0.0009,
         },
         nl: {
             E: 0.204011,
@@ -331,7 +331,7 @@ export class CipherHandler {
             J: 0.0080682,
             F: 0.005302,
             É: 0.0011526,
-            X: 0.0002305
+            X: 0.0002305,
         },
         de: {
             E: 0.149958,
@@ -360,7 +360,7 @@ export class CipherHandler {
             Ö: 0.0030431,
             J: 0.002705,
             ß: 0.0006762,
-            Q: 0.0001691
+            Q: 0.0001691,
         },
         eo: {
             A: 0.122894,
@@ -389,7 +389,7 @@ export class CipherHandler {
             Ĝ: 0.0054468,
             Ĉ: 0.0040851,
             Ŝ: 0.0011915,
-            Ĵ: 0.0010213
+            Ĵ: 0.0010213,
         },
         es: {
             E: 0.1408,
@@ -418,7 +418,7 @@ export class CipherHandler {
             Ñ: 0.0017,
             X: 0.0014,
             K: 0.0011,
-            W: 0.0004
+            W: 0.0004,
         },
         fr: {
             E: 0.1406753,
@@ -451,7 +451,7 @@ export class CipherHandler {
             Ù: 0.0004156,
             Â: 0.0002078,
             Ô: 0.0002078,
-            Û: 0.0001039
+            Û: 0.0001039,
         },
         it: {
             I: 0.137609,
@@ -475,7 +475,7 @@ export class CipherHandler {
             È: 0.0103511,
             V: 0.0101482,
             F: 0.0085245,
-            Q: 0.00548
+            Q: 0.00548,
         },
         no: {
             E: 0.16463,
@@ -503,7 +503,7 @@ export class CipherHandler {
             Y: 0.0057983,
             Æ: 0.0,
             C: 0.0,
-            Z: 0.0
+            Z: 0.0,
         },
         pt: {
             E: 0.148438,
@@ -540,7 +540,7 @@ export class CipherHandler {
             Â: 0.0004596,
             Õ: 0.0002298,
             W: 0.0,
-            Y: 0.0
+            Y: 0.0,
         },
         sv: {
             N: 0.102144,
@@ -568,7 +568,7 @@ export class CipherHandler {
             B: 0.0121359,
             J: 0.00768608,
             Y: 0.0052589,
-            X: 0.000202265
+            X: 0.000202265,
         },
         ia: {
             E: 0.1729506,
@@ -596,7 +596,7 @@ export class CipherHandler {
             Y: 0.0006355,
             K: 0.0,
             W: 0.0,
-            Z: 0.0
+            Z: 0.0,
         },
         la: {
             I: 0.1333172,
@@ -624,75 +624,75 @@ export class CipherHandler {
             K: 0.0,
             W: 0.0,
             Y: 0.0,
-            Z: 0.0
-        }
+            Z: 0.0,
+        },
     };
     public defaultstate: IState = {
         /** The current cipher typewe are working on */
         cipherType: ICipherType.Vigenere /** Currently selected keyword */,
-        keyword: "" /** The current cipher we are working on */,
-        cipherString: "" /** The current string we are looking for */,
-        findString: "" /** Replacement characters */,
+        keyword: '' /** The current cipher we are working on */,
+        cipherString: '' /** The current string we are looking for */,
+        findString: '' /** Replacement characters */,
         replacement: {} /** Current language */,
-        curlang: ""
+        curlang: '',
     };
     public state: IState = cloneObject(this.defaultstate) as IState;
     public undocmdButton: JTButtonItem = {
-        title: "Undo",
-        id: "undo",
-        color: "primary",
-        class: "undo",
-        disabled: true
+        title: 'Undo',
+        id: 'undo',
+        color: 'primary',
+        class: 'undo',
+        disabled: true,
     };
     public redocmdButton: JTButtonItem = {
-        title: "Redo",
-        id: "redo",
-        color: "primary",
-        class: "redo",
-        disabled: true
+        title: 'Redo',
+        id: 'redo',
+        color: 'primary',
+        class: 'redo',
+        disabled: true,
     };
 
     public cmdButtons: JTButtonItem[] = [
-        { title: "Load", color: "primary", id: "load" },
+        { title: 'Load', color: 'primary', id: 'load' },
         this.undocmdButton,
         this.redocmdButton,
-        { title: "Reset", color: "warning", id: "reset" }
+        { title: 'Reset', color: 'warning', id: 'reset' },
     ];
     public testStrings: string[] = [];
     public defaultRunningKeys: IRunningKey[] = [
         {
-            title: "Gettysburg address",
+            title: 'Gettysburg address',
             text:
-                "FOUR SCORE AND SEVEN YEARS AGO OUR FATHERS BROUGHT FORTH ON THIS CONTINENT, " +
-                "A NEW NATION, CONCEIVED IN LIBERTY, AND DEDICATED TO THE " +
-                "PROPOSITION THAT ALL MEN ARE CREATED EQUAL."
+                'FOUR SCORE AND SEVEN YEARS AGO OUR FATHERS BROUGHT FORTH ON THIS CONTINENT, ' +
+                'A NEW NATION, CONCEIVED IN LIBERTY, AND DEDICATED TO THE ' +
+                'PROPOSITION THAT ALL MEN ARE CREATED EQUAL.',
         },
         {
-            title: "Declaration of Independence",
+            title: 'Declaration of Independence',
             text:
-                "WHEN IN THE COURSE OF HUMAN EVENTS IT BECOMES NECESSARY FOR ONE PEOPLE TO " +
-                "DISSOLVE THE POLITICAL BANDS WHICH HAVE CONNECTED THEM WITH ANOTHER AND TO ASSUME " +
-                "AMONG THE POWERS OF THE EARTH, THE SEPARATE AND EQUAL STATION TO WHICH THE LAWS " +
+                'WHEN IN THE COURSE OF HUMAN EVENTS IT BECOMES NECESSARY FOR ONE PEOPLE TO ' +
+                'DISSOLVE THE POLITICAL BANDS WHICH HAVE CONNECTED THEM WITH ANOTHER AND TO ASSUME ' +
+                'AMONG THE POWERS OF THE EARTH, THE SEPARATE AND EQUAL STATION TO WHICH THE LAWS ' +
                 "OF NATURE AND OF NATURE'S GOD ENTITLE THEM, A DECENT RESPECT TO THE OPINIONS OF " +
-                "MANKIND REQUIRES THAT THEY SHOULD DECLARE THE CAUSES WHICH IMPEL THEM TO THE SEPARATION."
+                'MANKIND REQUIRES THAT THEY SHOULD DECLARE THE CAUSES WHICH IMPEL THEM TO THE SEPARATION.',
         },
         {
-            title: "Constitution of United States of America",
+            title: 'Constitution of United States of America',
             text:
-                "WE THE PEOPLE OF THE UNITED STATES, IN ORDER TO FORM A MORE PERFECT UNION, " +
-                "ESTABLISH JUSTICE, INSURE DOMESTIC TRANQUILITY, PROVIDE FOR THE COMMON DEFENSE, " +
-                "PROMOTE THE GENERAL WELFARE, AND SECURE THE BLESSINGS OF LIBERTY TO OURSELVES AND " +
-                "OUR POSTERITY, DO ORDAIN AND ESTABLISH THIS CONSTITUTION FOR THE " +
-                "UNITED STATES OF AMERICA."
+                'WE THE PEOPLE OF THE UNITED STATES, IN ORDER TO FORM A MORE PERFECT UNION, ' +
+                'ESTABLISH JUSTICE, INSURE DOMESTIC TRANQUILITY, PROVIDE FOR THE COMMON DEFENSE, ' +
+                'PROMOTE THE GENERAL WELFARE, AND SECURE THE BLESSINGS OF LIBERTY TO OURSELVES AND ' +
+                'OUR POSTERITY, DO ORDAIN AND ESTABLISH THIS CONSTITUTION FOR THE ' +
+                'UNITED STATES OF AMERICA.',
         },
         {
-            title: "MAGNA CARTA (In Latin)",
+            title: 'MAGNA CARTA (In Latin)',
             text:
-                "JOHANNES DEI GRACIA REX ANGLIE, DOMINUS HIBERNIE, DUX NORMANNIE, " +
-                "AQUITANNIE ET COMES ANDEGAVIE, ARCHIEPISCOPIS, EPISCOPIS, ABBATIBUS, COMITIBUS, " +
-                "BARONIBUS, JUSTICIARIIS, FORESTARIIS, VICECOMITIBUS, PREPOSITIS, " +
-                "MINISTRIS ET OMNIBUS BALLIVIS ET FIDELIBUS SUIS SALUTEM."
-        }
+                'JOHANNES DEI GRACIA REX ANGLIE, DOMINUS HIBERNIE, DUX NORMANNIE, ' +
+                'AQUITANNIE ET COMES ANDEGAVIE, ARCHIEPISCOPIS, EPISCOPIS, ABBATIBUS, COMITIBUS, ' +
+                'BARONIBUS, JUSTICIARIIS, FORESTARIIS, VICECOMITIBUS, PREPOSITIS, ' +
+                'MINISTRIS ET OMNIBUS BALLIVIS ET FIDELIBUS SUIS SALUTEM.',
+        },
     ];
     /** Any special running key not in the default set used by this cipher */
     public extraRunningKey: string;
@@ -703,9 +703,9 @@ export class CipherHandler {
     /** The Jquery element associated with a keypress */
     public keyTarget: JQuery<HTMLElement>;
     public cipherWidth: number = 1;
-    public charset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    public sourcecharset: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    public unasigned: string = "";
+    public charset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    public sourcecharset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    public unasigned: string = '';
     public holdupdates: boolean = false;
     /** Stack of current Undo/Redo operations */
     public undoStack: IState[] = [];
@@ -719,10 +719,10 @@ export class CipherHandler {
     public undoNeeded: string = undefined;
     public activeToolMode: toolMode = toolMode.aca;
     /** Strings for managing storage of ciphers */
-    public storageTestCountName: string = "Cipher-Test-Count";
-    public storageTestEntryPrefix: string = "Cipher-Test";
-    public storageCipherCountName: string = "Cipher-Count";
-    public storageCipherEntryPrefix: string = "Cipher-Data";
+    public storageTestCountName: string = 'Cipher-Test-Count';
+    public storageTestEntryPrefix: string = 'Cipher-Test';
+    public storageCipherCountName: string = 'Cipher-Count';
+    public storageCipherEntryPrefix: string = 'Cipher-Data';
     /**
      * The maximum number of characters to
      * be shown on an encoded line so that it can be readily pasted into a test
@@ -738,7 +738,7 @@ export class CipherHandler {
      * Input string cleaned up.  This does not need to be saved because it is
      * rebuild by the build() function based in this.state.cipherString
      */
-    public encodedString: string = "";
+    public encodedString: string = '';
     public Frequent: { [key: string]: { [key: string]: patelem[] } } = {};
     public freq: { [key: string]: number } = {};
     public savefileentry: number = -1;
@@ -748,17 +748,17 @@ export class CipherHandler {
     }
     public initToolModeSettings(): void {
         if (this.activeToolMode === toolMode.aca) {
-            this.storageTestCountName = "ACA-Issue-Count";
-            this.storageTestEntryPrefix = "ACA-Issue";
-            this.storageCipherCountName = "ACA-Count";
-            this.storageCipherEntryPrefix = "ACA-Data";
-            $(".menu-text a").text("ACA Cipher Tools");
+            this.storageTestCountName = 'ACA-Issue-Count';
+            this.storageTestEntryPrefix = 'ACA-Issue';
+            this.storageCipherCountName = 'ACA-Count';
+            this.storageCipherEntryPrefix = 'ACA-Data';
+            $('.menu-text a').text('ACA Cipher Tools');
         } else {
-            this.storageTestCountName = "Cipher-Test-Count";
-            this.storageTestEntryPrefix = "Cipher-Test";
-            this.storageCipherCountName = "Cipher-Count";
-            this.storageCipherEntryPrefix = "Cipher-Data";
-            $(".menu-text a").text("Science Olympiad CodeBusters");
+            this.storageTestCountName = 'Cipher-Test-Count';
+            this.storageTestEntryPrefix = 'Cipher-Test';
+            this.storageCipherCountName = 'Cipher-Count';
+            this.storageCipherEntryPrefix = 'Cipher-Data';
+            $('.menu-text a').text('Science Olympiad CodeBusters');
         }
     }
     /**
@@ -781,10 +781,10 @@ export class CipherHandler {
      */
     public setTestCount(count: number): string {
         if (!this.storage.isAvailable()) {
-            return "Unable to save, local storage not defined";
+            return 'Unable to save, local storage not defined';
         }
         this.storage.set(this.storageTestCountName, String(count));
-        return "";
+        return '';
     }
     /**
      * Gets the string that corresponds to a test in local storage
@@ -798,9 +798,9 @@ export class CipherHandler {
     public getTestEntry(entry: number): ITest {
         let result: ITest = {
             timed: -1,
-            title: "Invalid Test",
+            title: 'Invalid Test',
             count: 0,
-            questions: []
+            questions: [],
         };
         if (this.storage.isAvailable()) {
             let testCount = this.getTestCount();
@@ -837,7 +837,7 @@ export class CipherHandler {
      */
     public deleteTestEntry(entry: number): string {
         if (!this.storage.isAvailable()) {
-            return "Unable to delete, local storage not defined";
+            return 'Unable to delete, local storage not defined';
         }
         let testCount = this.getTestCount();
         if (entry < testCount && entry >= 0) {
@@ -850,7 +850,7 @@ export class CipherHandler {
             this.storage.remove(this.getTestName(testCount));
             this.setTestCount(testCount - 1);
         }
-        return "";
+        return '';
     }
     /**
      * Get the total number of saved ciphers
@@ -891,41 +891,41 @@ export class CipherHandler {
     public getFileList(ciphertype: ICipherType): JQElement {
         let result = null;
         let cipherCount = this.getCipherCount();
-        $("#okopen").prop("disabled", true);
+        $('#okopen').prop('disabled', true);
         if (cipherCount === 0) {
-            result = $("<div/>", {
-                class: "callout warning filelist",
-                id: "files"
-            }).text("No files found");
+            result = $('<div/>', {
+                class: 'callout warning filelist',
+                id: 'files',
+            }).text('No files found');
         } else {
             // Generate a list of the types of ciphers that we allow
             let allowed = getCipherEquivalents(ciphertype);
-            result = $("<select/>", {
-                id: "files",
-                class: "filelist",
-                size: 10
+            result = $('<select/>', {
+                id: 'files',
+                class: 'filelist',
+                size: 10,
             });
             for (let entry = 0; entry < cipherCount; entry++) {
                 let fileEntry = this.getFileEntry(entry);
                 if (allowed.indexOf(fileEntry.cipherType) !== -1) {
-                    let entryText = "[" + String(entry) + "]:";
+                    let entryText = '[' + String(entry) + ']:';
                     if (allowed.length !== 1) {
                         entryText +=
-                            "(" + getCipherTitle(fileEntry.cipherType) + ") ";
+                            '(' + getCipherTitle(fileEntry.cipherType) + ') ';
                     }
                     if (
-                        fileEntry.question !== "" &&
-                        this.storageCipherEntryPrefix.substr(0, 1) === "A"
+                        fileEntry.question !== '' &&
+                        this.storageCipherEntryPrefix.substr(0, 1) === 'A'
                     ) {
                         entryText += fileEntry.question;
-                    } else if (fileEntry.cipherString !== "") {
+                    } else if (fileEntry.cipherString !== '') {
                         entryText += fileEntry.cipherString;
                     } else {
                         entryText += fileEntry.question;
                     }
                     result.append(
-                        $("<option />", {
-                            value: entry
+                        $('<option />', {
+                            value: entry,
                         }).html(entryText)
                     );
                 }
@@ -938,10 +938,10 @@ export class CipherHandler {
      */
     public setCipherCount(count: number): string {
         if (!this.storage.isAvailable()) {
-            return "Unable to save, local storage not defined";
+            return 'Unable to save, local storage not defined';
         }
         this.storage.set(this.storageCipherCountName, String(count));
-        return "";
+        return '';
     }
     /**
      * Save a state entry to local storage. If the entry number is higher
@@ -966,7 +966,7 @@ export class CipherHandler {
      */
     public deleteFileEntry(entry: number): string {
         if (!this.storage.isAvailable()) {
-            return "Unable to delete, local storage not defined";
+            return 'Unable to delete, local storage not defined';
         }
         let cipherCount = this.getCipherCount();
         if (entry < cipherCount && entry >= 0) {
@@ -997,13 +997,13 @@ export class CipherHandler {
             }
             this.setTestEntry(pos, test);
         }
-        return "";
+        return '';
     }
     /**
      * Gets the string that corresponds to a running key entry in local storage
      */
     public getRunningKeyName(entry: number): string {
-        return "Running-Key." + String(entry);
+        return 'Running-Key.' + String(entry);
     }
     /**
      * Retrieves a test entry from local storage
@@ -1018,7 +1018,7 @@ export class CipherHandler {
         }
         // Fill in a default if they haven't gotten one or what came in was bad
         if (
-            (result === undefined || result.text === "") &&
+            (result === undefined || result.text === '') &&
             entry < this.defaultRunningKeys.length
         ) {
             result = this.defaultRunningKeys[entry];
@@ -1056,23 +1056,23 @@ export class CipherHandler {
      */
     public openCipher(): void {
         // Populate the list of known files.
-        $("#files").replaceWith(this.getFileList(this.state.cipherType));
-        $("#files")
-            .off("change")
-            .on("change", e => {
-                $("#okopen").removeAttr("disabled");
+        $('#files').replaceWith(this.getFileList(this.state.cipherType));
+        $('#files')
+            .off('change')
+            .on('change', e => {
+                $('#okopen').removeAttr('disabled');
             });
-        $("#okopen").prop("disabled", true);
-        $("#okopen")
-            .off("click")
-            .on("click", e => {
-                this.savefileentry = Number($("#files option:selected").val());
-                $("#OpenFile").foundation("close");
+        $('#okopen').prop('disabled', true);
+        $('#okopen')
+            .off('click')
+            .on('click', e => {
+                this.savefileentry = Number($('#files option:selected').val());
+                $('#OpenFile').foundation('close');
                 this.markUndo(null);
                 this.updateSaveEntryURL();
                 this.restore(this.getFileEntry(this.savefileentry));
             });
-        $("#OpenFile").foundation("open");
+        $('#OpenFile').foundation('open');
     }
     /**
      * Process imported XML
@@ -1082,40 +1082,40 @@ export class CipherHandler {
      * Put up a dialog to select an XML file to import
      */
     public openXMLImport(useLocalData: boolean): void {
-        $("#okimport").prop("disabled", true);
-        $("#importstatus")
-            .removeClass("success")
-            .addClass("secondary");
-        $("#xmltoimport").text("No File Selected");
-        $("#xmlFile")
-            .off("change")
-            .on("change", e => {
-                $("#okimport").removeAttr("disabled");
-                $("#importstatus")
-                    .removeClass("secondary")
-                    .addClass("success");
+        $('#okimport').prop('disabled', true);
+        $('#importstatus')
+            .removeClass('success')
+            .addClass('secondary');
+        $('#xmltoimport').text('No File Selected');
+        $('#xmlFile')
+            .off('change')
+            .on('change', e => {
+                $('#okimport').removeAttr('disabled');
+                $('#importstatus')
+                    .removeClass('secondary')
+                    .addClass('success');
                 let fileinput: HTMLInputElement = $(
-                    "#xmlFile"
+                    '#xmlFile'
                 )[0] as HTMLInputElement;
                 let files = fileinput.files;
-                $("#xmltoimport").text(files[0].name + " selected");
+                $('#xmltoimport').text(files[0].name + ' selected');
             });
-        $("#xmlurl")
-            .off("input")
-            .on("input", e => {
+        $('#xmlurl')
+            .off('input')
+            .on('input', e => {
                 let url = $(e.target).val() as string;
-                if (url !== "") {
-                    $("#okimport").removeAttr("disabled");
+                if (url !== '') {
+                    $('#okimport').removeAttr('disabled');
                 } else {
-                    $("#okimport").prop("disabled", true);
+                    $('#okimport').prop('disabled', true);
                 }
             });
-        $("#okimport")
-            .off("click")
-            .on("click", e => {
+        $('#okimport')
+            .off('click')
+            .on('click', e => {
                 if (useLocalData) {
                     let fileinput: HTMLInputElement = $(
-                        "#xmlFile"
+                        '#xmlFile'
                     )[0] as HTMLInputElement;
                     let files = fileinput.files;
                     if (files.length && typeof FileReader !== undefined) {
@@ -1126,32 +1126,32 @@ export class CipherHandler {
                                 let result = JSON.parse(
                                     reader.result as string
                                 );
-                                $("#ImportFile").foundation("close");
+                                $('#ImportFile').foundation('close');
                                 this.importXML(result);
                             } catch (e) {
-                                $("#xmlerr").text("Not a valid import file");
+                                $('#xmlerr').text('Not a valid import file');
                             }
                         };
                     }
                 } else {
                     // They gave us a URL so let's do an AJAX call to pull it in
-                    let url = $("#xmlurl").val() as string;
+                    let url = $('#xmlurl').val() as string;
                     $.getJSON(url, data => {
-                        $("#ImportFile").foundation("close");
+                        $('#ImportFile').foundation('close');
                         this.importXML(data);
                     }).fail((jqxhr, settings, exception) => {
-                        alert("Unable to load file " + url);
+                        alert('Unable to load file ' + url);
                     });
                 }
             });
         if (useLocalData) {
-            $(".impurl").hide();
-            $(".impfile").show();
+            $('.impurl').hide();
+            $('.impfile').show();
         } else {
-            $(".impurl").show();
-            $(".impfile").hide();
+            $('.impurl').show();
+            $('.impfile').hide();
         }
-        $("#ImportFile").foundation("open");
+        $('#ImportFile').foundation('open');
     }
 
     /**
@@ -1168,13 +1168,13 @@ export class CipherHandler {
      * Update the URL to reflect the current saved file entry
      */
     public updateSaveEntryURL(): void {
-        let url = window.location.href.split("?")[0];
+        let url = window.location.href.split('?')[0];
         // If the URL ends with a #, we want to make that go away
-        url = url.replace(/#$/, "");
+        url = url.replace(/#$/, '');
         window.history.replaceState(
             {},
-            $("title").text(),
-            url + "?editEntry=" + this.savefileentry
+            $('title').text(),
+            url + '?editEntry=' + this.savefileentry
         );
     }
 
@@ -1182,19 +1182,19 @@ export class CipherHandler {
      * Save the current cipher state to a new file
      */
     public saveCipherAs(): void {
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
     /**
      * Submit a cipher for checking
      */
     public submit(): void {
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
     /**
      * Copy the current completed cipher to the clipboard
      */
     public copy(): void {
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
     /**
      * Start a new cipher
@@ -1210,7 +1210,7 @@ export class CipherHandler {
         for (let elem of Object.keys(source)) {
             if (Array.isArray(source[elem])) {
                 dest[elem] = source[elem].slice();
-            } else if (typeof source[elem] === "object") {
+            } else if (typeof source[elem] === 'object') {
                 dest[elem] = cloneObject(source[elem]);
             } else {
                 dest[elem] = source[elem];
@@ -1261,13 +1261,13 @@ export class CipherHandler {
      */
     public genFreqTable(showanswers: boolean, encodeType: string): JQElement {
         let table = new JTTable({
-            class: "prfreq shrink cell unstriped"
+            class: 'prfreq shrink cell unstriped',
         });
         let charset = this.getSourceCharset();
         let replalphabet = this.state.replacement;
-        if (encodeType === "random") {
-            encodeType = "";
-        } else if (encodeType === "k2") {
+        if (encodeType === 'random') {
+            encodeType = '';
+        } else if (encodeType === 'k2') {
             replalphabet = {};
             for (let c of charset.toUpperCase()) {
                 replalphabet[this.state.replacement[c]] = c;
@@ -1275,41 +1275,41 @@ export class CipherHandler {
         }
         // For a K2 cipher, the replacement row goes above the header row
         let replrow;
-        if (encodeType === "k2") {
+        if (encodeType === 'k2') {
             replrow = table.addHeaderRow();
         }
         let headrow = table.addHeaderRow();
         let freqrow = table.addBodyRow();
         // For all other cipher types, the replacement row is below the frequency
-        if (encodeType !== "k2") {
+        if (encodeType !== 'k2') {
             replrow = table.addBodyRow();
         }
 
         headrow.add({
-            settings: { class: "topleft " + encodeType },
-            content: encodeType.toUpperCase()
+            settings: { class: 'topleft ' + encodeType },
+            content: encodeType.toUpperCase(),
         });
-        freqrow.add({ celltype: "th", content: "Frequency" });
-        replrow.add({ celltype: "th", content: "Replacement" });
+        freqrow.add({ celltype: 'th', content: 'Frequency' });
+        replrow.add({ celltype: 'th', content: 'Replacement' });
 
         for (let c of charset.toUpperCase()) {
-            let repl = "";
+            let repl = '';
             if (showanswers) {
                 repl = replalphabet[c];
             }
             headrow.add(c);
             let freq = String(this.freq[c]);
-            if (freq === "0") {
-                freq = "";
+            if (freq === '0') {
+                freq = '';
             }
             freqrow.add(freq);
-            replrow.add({ celltype: "td", content: repl });
+            replrow.add({ celltype: 'td', content: repl });
         }
         return table.generate();
     }
     public genTestUsage(): JQuery<HTMLElement> {
-        let result = $("<div/>", { class: "testuse" });
-        let prefix = "Used on test(s): ";
+        let result = $('<div/>', { class: 'testuse' });
+        let prefix = 'Used on test(s): ';
         if (this.savefileentry !== -1) {
             // Find out what tests this is a part of
             let testCount = this.getTestCount();
@@ -1318,50 +1318,50 @@ export class CipherHandler {
                 let use;
                 let prevq, nextq, prevtxt, nexttxt;
                 if (test.timed === this.savefileentry) {
-                    use = "Timed Question";
+                    use = 'Timed Question';
                     if (test.questions.length > 0) {
                         nextq = test.questions[0];
-                        nexttxt = "#1";
+                        nexttxt = '#1';
                     }
                 } else {
                     let qnum = test.questions.indexOf(this.savefileentry);
                     if (qnum !== -1) {
-                        use = "Question #" + String(qnum + 1);
+                        use = 'Question #' + String(qnum + 1);
                         if (qnum > 0) {
                             prevq = test.questions[qnum - 1];
-                            prevtxt = "#" + String(qnum);
+                            prevtxt = '#' + String(qnum);
                         } else if (test.timed !== -1) {
                             prevq = test.timed;
-                            prevtxt = "Timed";
+                            prevtxt = 'Timed';
                         }
                         if (qnum < test.questions.length) {
                             nextq = test.questions[qnum + 1];
-                            nexttxt = "#" + String(qnum + 2);
+                            nexttxt = '#' + String(qnum + 2);
                         }
                     }
                 }
                 if (use !== undefined) {
-                    let link = $("<a/>", {
-                        href: "TestGenerator.html?test=" + String(entry)
-                    }).text(test.title + " " + use);
-                    result.addClass("callout primary");
+                    let link = $('<a/>', {
+                        href: 'TestGenerator.html?test=' + String(entry),
+                    }).text(test.title + ' ' + use);
+                    result.addClass('callout primary');
                     result.append(prefix);
                     if (prevq !== undefined) {
-                        let linkprev = $("<a/>", {
-                            class: "prevnav",
-                            href: this.getEntryURL(prevq)
+                        let linkprev = $('<a/>', {
+                            class: 'prevnav',
+                            href: this.getEntryURL(prevq),
                         }).text(prevtxt);
-                        result.append(linkprev).append(" ");
+                        result.append(linkprev).append(' ');
                     }
                     result.append(link);
                     if (nextq !== undefined) {
-                        let linknext = $("<a/>", {
-                            class: "nxtnav",
-                            href: this.getEntryURL(nextq)
+                        let linknext = $('<a/>', {
+                            class: 'nxtnav',
+                            href: this.getEntryURL(nextq),
                         }).text(nexttxt);
-                        result.append(linknext).append(" ");
+                        result.append(linknext).append(' ');
                     }
-                    prefix = ", ";
+                    prefix = ', ';
                 }
             }
         }
@@ -1384,24 +1384,24 @@ export class CipherHandler {
      * Creates the Undo and Redo command buttons
      */
     public genUndoRedoButtons(): JQElement {
-        let buttons = $("<div/>");
+        let buttons = $('<div/>');
 
         buttons.append(
-            $("<input/>", {
-                type: "button",
-                id: "undo",
-                class: "button primary undo",
-                value: "Undo",
-                disabled: true
+            $('<input/>', {
+                type: 'button',
+                id: 'undo',
+                class: 'button primary undo',
+                value: 'Undo',
+                disabled: true,
             })
         );
         buttons.append(
-            $("<input/>", {
-                type: "button",
-                id: "redo",
-                class: "button primary redo",
-                value: "Redo",
-                disabled: true
+            $('<input/>', {
+                type: 'button',
+                id: 'redo',
+                class: 'button primary redo',
+                value: 'Redo',
+                disabled: true,
             })
         );
         return buttons.children();
@@ -1419,25 +1419,25 @@ export class CipherHandler {
      * Initializes any layout of the handler.
      */
     public buildCustomUI(): void {
-        $(".MenuBar").each((i: number, elem: HTMLElement) => {
+        $('.MenuBar').each((i: number, elem: HTMLElement) => {
             $(elem).replaceWith(this.createMainMenu());
         });
-        $(".precmds").each((i, elem) => {
+        $('.precmds').each((i, elem) => {
             $(elem).replaceWith(this.genPreCommands());
         });
-        $(".postcmds").each((i, elem) => {
+        $('.postcmds').each((i, elem) => {
             $(elem).replaceWith(this.genPostCommands());
         });
-        $(".cmdbuttons").each((i, elem) => {
+        $('.cmdbuttons').each((i, elem) => {
             $(elem).replaceWith(this.genCmdButtons());
         });
-        $(".langsel").each((i: number, elem: HTMLElement) => {
+        $('.langsel').each((i: number, elem: HTMLElement) => {
             $(elem).replaceWith(this.getLangDropdown());
         });
     }
     public restore(data: IState): void {}
     public save(): IState {
-        return { cipherType: ICipherType.None, cipherString: "" };
+        return { cipherType: ICipherType.None, cipherString: '' };
     }
     /**
      * Saves the current state of the cipher work so that it can be undone
@@ -1510,18 +1510,18 @@ export class CipherHandler {
     }
     public markUndoUI(undostate: boolean, redostate: boolean): void {
         if (redostate) {
-            $(".redo").addClass("disabled_menu");
-            $(".redo").attr("disabled", "disabled");
+            $('.redo').addClass('disabled_menu');
+            $('.redo').attr('disabled', 'disabled');
         } else {
-            $(".redo").removeClass("disabled_menu");
-            $(".redo").removeAttr("disabled");
+            $('.redo').removeClass('disabled_menu');
+            $('.redo').removeAttr('disabled');
         }
         if (undostate) {
-            $(".undo").addClass("disabled_menu");
-            $(".undo").attr("disabled", "disabled");
+            $('.undo').addClass('disabled_menu');
+            $('.undo').attr('disabled', 'disabled');
         } else {
-            $(".undo").removeClass("disabled_menu");
-            $(".undo").removeAttr("disabled");
+            $('.undo').removeClass('disabled_menu');
+            $('.undo').removeAttr('disabled');
         }
     }
 
@@ -1547,27 +1547,27 @@ export class CipherHandler {
         this.activeToolMode = toolMode.codebusters;
         switch (mode) {
             case menuMode.aca:
-                $(".menufile").show();
-                $(".menuaca").show();
-                $(".menucb").hide();
+                $('.menufile').show();
+                $('.menuaca').show();
+                $('.menucb').hide();
                 this.activeToolMode = toolMode.aca;
                 break;
             case menuMode.test:
-                $(".menufile").hide();
-                $(".menuaca").hide();
-                $(".menucb").show();
+                $('.menufile').hide();
+                $('.menuaca').hide();
+                $('.menucb').show();
                 this.activeToolMode = toolMode.codebusters;
                 break;
             case menuMode.question:
-                $(".menufile").show();
-                $(".menuaca").hide();
-                $(".menucb").show();
+                $('.menufile').show();
+                $('.menuaca').hide();
+                $('.menucb').show();
                 this.activeToolMode = toolMode.codebusters;
                 break;
             default:
-                $(".menufile").hide();
-                $(".menuaca").show();
-                $(".menucb").show();
+                $('.menufile').hide();
+                $('.menuaca').show();
+                $('.menucb').show();
                 // Don't change the activeToolMode since it might be either
                 break;
         }
@@ -1656,17 +1656,17 @@ export class CipherHandler {
 
         for (let i = 0; i < cipherline.length; i++) {
             let c = cipherline.substr(i, 1);
-            let aclass = "e v";
-            let a = " ";
+            let aclass = 'e v';
+            let a = ' ';
             if (answerline !== undefined) {
                 a = answerline.substr(i, 1);
-                aclass = "a v";
+                aclass = 'a v';
             }
             if (overline !== undefined) {
                 if (this.isValidChar(c)) {
                     rowover.add({
-                        settings: { class: "o v" },
-                        content: overline.substr(i, 1)
+                        settings: { class: 'o v' },
+                        content: overline.substr(i, 1),
                     });
                 } else {
                     rowover.add(overline.substr(i, 1));
@@ -1674,12 +1674,12 @@ export class CipherHandler {
             }
             if (this.isValidChar(c)) {
                 rowcipher.add({
-                    settings: { class: "q v" },
-                    content: c
+                    settings: { class: 'q v' },
+                    content: c,
                 });
                 rowanswer.add({
                     settings: { class: aclass },
-                    content: a
+                    content: a,
                 });
             } else {
                 if (answerline === undefined) {
@@ -1688,7 +1688,7 @@ export class CipherHandler {
                 rowcipher.add(c);
                 rowanswer.add(a);
             }
-            rowblank.add("");
+            rowblank.add('');
         }
         return;
     }
@@ -1696,16 +1696,16 @@ export class CipherHandler {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(): JQElement {
-        return $("<h3>").text(
-            "This cipher does not support printing the Answer yet"
+        return $('<h3>').text(
+            'This cipher does not support printing the Answer yet'
         );
     }
     /**
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(): JQElement {
-        return $("<h3>").text(
-            "This cipher does not support printing the Question yet"
+        return $('<h3>').text(
+            'This cipher does not support printing the Question yet'
         );
     }
     /**
@@ -1722,17 +1722,17 @@ export class CipherHandler {
     ): void {
         // console.log("handler setChar data-char=" + repchar + " newchar=" + newchar)
         // See if any other slots have this character and reset it
-        if (newchar !== "") {
+        if (newchar !== '') {
             for (let i in this.state.replacement) {
                 if (this.state.replacement[i] === newchar && i !== repchar) {
-                    this.setChar(i, "");
+                    this.setChar(i, '');
                 }
             }
         }
         this.state.replacement[repchar] = newchar;
         $("input[data-char='" + repchar + "']").val(newchar);
-        if (newchar === "") {
-            newchar = "?";
+        if (newchar === '') {
+            newchar = '?';
         }
         $("span[data-char='" + repchar + "']").text(newchar);
         if (!this.holdupdates) {
@@ -1762,15 +1762,15 @@ export class CipherHandler {
      * Eliminate the non displayable characters and replace them with a space
      */
     public cleanString(str: string): string {
-        let pattern: string = "[\r\n ]+";
-        let re = new RegExp(pattern, "g");
-        return str.replace(re, " ");
+        let pattern: string = '[\r\n ]+';
+        let re = new RegExp(pattern, 'g');
+        return str.replace(re, ' ');
     }
     /**
      * Eliminate all characters which are not in the charset
      */
     public minimizeString(str: string): string {
-        let res: string = "";
+        let res: string = '';
         for (let c of str.toUpperCase()) {
             if (this.isValidChar(c)) {
                 res += c;
@@ -1787,7 +1787,7 @@ export class CipherHandler {
     public chunk(inputString: string, chunkSize: number): string {
         let chunkIndex = 1;
         let charset = this.getCharset();
-        let chunkedString = "";
+        let chunkedString = '';
         for (let c of inputString) {
             // Skip anthing that is not in the character set (i.e spaces,
             // punctuation, etc.)
@@ -1797,7 +1797,7 @@ export class CipherHandler {
 
             // Test for a chunk boundary using modulo of chunk size.
             if (chunkIndex % (chunkSize + 1) === 0) {
-                chunkedString += " ";
+                chunkedString += ' ';
                 chunkIndex = 1;
             }
 
@@ -1842,7 +1842,7 @@ export class CipherHandler {
      * a new cipher to encode or decode
      */
     public UpdateFreqEditTable(): void {
-        $(".freq").each((i: number, elem: HTMLElement) => {
+        $('.freq').each((i: number, elem: HTMLElement) => {
             $(elem)
                 .empty()
                 .append(this.createFreqEditTable());
@@ -1872,8 +1872,8 @@ export class CipherHandler {
         let sourcecharset = this.getSourceCharset();
         let revRepl = this.getReverseReplacement();
         let langreplace = this.langreplace[this.state.curlang];
-        let encodeline = "";
-        let decodeline = "";
+        let encodeline = '';
+        let decodeline = '';
         let lastsplit = -1;
         let result: string[][] = [];
 
@@ -1886,7 +1886,7 @@ export class CipherHandler {
         // to map to as well as update the frequency of the match
         for (let t of str.toUpperCase()) {
             // See if the character needs to be mapped.
-            if (typeof langreplace[t] !== "undefined") {
+            if (typeof langreplace[t] !== 'undefined') {
                 t = langreplace[t];
             }
             decodeline += t;
@@ -1907,8 +1907,8 @@ export class CipherHandler {
             if (encodeline.length >= maxEncodeWidth) {
                 if (lastsplit === -1) {
                     result.push([encodeline, decodeline]);
-                    encodeline = "";
-                    decodeline = "";
+                    encodeline = '';
+                    decodeline = '';
                     lastsplit = -1;
                 } else {
                     let encodepart = encodeline.substr(0, lastsplit);
@@ -1931,7 +1931,7 @@ export class CipherHandler {
      * count number of times to repeat the string
      */
     public repeatStr(c: string, count: number): string {
-        let res = "";
+        let res = '';
         for (let i = 0; i < count; i++) {
             res += c;
         }
@@ -2003,48 +2003,48 @@ export class CipherHandler {
      */
     public doAction(action: string): void {
         switch (action) {
-            case "new":
+            case 'new':
                 this.newCipher();
                 break;
 
-            case "open":
+            case 'open':
                 this.openCipher();
                 break;
 
-            case "save":
+            case 'save':
                 this.saveCipher();
                 break;
 
-            case "saveas":
+            case 'saveas':
                 this.saveCipherAs();
                 break;
 
-            case "submit":
+            case 'submit':
                 this.submit();
                 break;
 
-            case "undo":
+            case 'undo':
                 this.unDo();
                 break;
 
-            case "redo":
+            case 'redo':
                 this.reDo();
                 break;
 
-            case "copy":
+            case 'copy':
                 this.copy();
                 break;
 
-            case "about":
+            case 'about':
                 this.about();
                 break;
 
-            case "guidance":
+            case 'guidance':
                 this.guidance();
                 break;
 
             default:
-                console.log("Unknown action: " + action);
+                console.log('Unknown action: ' + action);
                 break;
         }
     }
@@ -2058,19 +2058,19 @@ export class CipherHandler {
         for (let c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
                 let subval: string = String(this.freq[c]);
-                if (subval === "0") {
-                    subval = "";
+                if (subval === '0') {
+                    subval = '';
                 }
-                $("#f" + c).text(subval);
+                $('#f' + c).text(subval);
             }
         }
         for (let c in this.state.replacement) {
             let r = this.state.replacement[c];
-            $("#m" + c).text(r);
-            $("#rf" + r).text(c);
+            $('#m' + c).text(r);
+            $('#rf' + r).text(c);
         }
         this.holdupdates = false;
-        this.updateMatchDropdowns("");
+        this.updateMatchDropdowns('');
     }
     /**
      * Generate a replacement pattern string.  Any unknown characters are represented as a space
@@ -2086,7 +2086,7 @@ export class CipherHandler {
         let res = [];
         for (let c of str) {
             if (this.state.replacement[c] === undefined) {
-                res.push("");
+                res.push('');
             } else {
                 res.push(this.state.replacement[c]);
             }
@@ -2105,7 +2105,7 @@ export class CipherHandler {
         //   console.log(str)
         for (let i = 0, len = str.length; i < len; i++) {
             let c = str.substr(i, 1);
-            if (repl[i] !== "") {
+            if (repl[i] !== '') {
                 if (c !== repl[i]) {
                     //             console.log("No match c=" + c + " repl[" + i + "]=" + repl[i])
                     return false;
@@ -2149,10 +2149,10 @@ export class CipherHandler {
      * that can be safely loaded.
      */
     public quote(str: string): string {
-        if (typeof str === "undefined") {
+        if (typeof str === 'undefined') {
             return "\"\"";
         }
-        return "'" + str.replace(/([""])/g, "\\$1") + "'";
+        return "'" + str.replace(/([""])/g, '\\$1') + "'";
     }
     /**
      * Given a string with groupings of a size, this computes a pattern which matches the
@@ -2165,15 +2165,15 @@ export class CipherHandler {
      */
     public makeUniquePattern(str: string, width: number): string {
         let cmap = {};
-        let res = "";
+        let res = '';
         let mapval: number = 0;
         let len = str.length;
         // in case they give us an odd length string, just padd it with enough Xs
-        str += "XXXX";
+        str += 'XXXX';
 
         for (let i = 0; i < len; i += width) {
             let c = str.substr(i, width);
-            if (typeof cmap[c] === "undefined") {
+            if (typeof cmap[c] === 'undefined') {
                 cmap[c] = mapval.toString(36).toUpperCase();
                 mapval++;
             }
@@ -2185,59 +2185,59 @@ export class CipherHandler {
      * Dump out the language template for a given language
      */
     public dumpLang(lang: string): string {
-        let extra = "";
-        let res = "cipherTool.Frequent[" + this.quote(lang) + "]={";
+        let extra = '';
+        let res = 'cipherTool.Frequent[' + this.quote(lang) + ']={';
         for (let pat in this.Frequent[lang]) {
-            if (this.Frequent[lang].hasOwnProperty(pat) && pat !== "") {
+            if (this.Frequent[lang].hasOwnProperty(pat) && pat !== '') {
                 res += extra + '"' + pat + '":[';
-                let extra1 = "";
+                let extra1 = '';
                 let matches = this.Frequent[lang][pat];
                 for (let i = 0, len = matches.length; i < len; i++) {
                     // console.log(matches[i])
                     res +=
                         extra1 +
-                        "[" +
+                        '[' +
                         this.quote(matches[i][0]) +
-                        "," +
+                        ',' +
                         matches[i][1] +
-                        "," +
+                        ',' +
                         matches[i][2] +
-                        "," +
+                        ',' +
                         matches[i][3] +
-                        "]";
-                    extra1 = ",";
+                        ']';
+                    extra1 = ',';
                 }
-                res += "]";
-                extra = ",";
+                res += ']';
+                extra = ',';
             }
         }
-        res += "};";
+        res += '};';
         return res;
     }
     /**
      * Fills in the language choices on an HTML Select
      */
     public getLangDropdown(): JQElement {
-        $("#loadeng").hide();
-        let result = $("<div/>", { class: "cell input-group" });
+        $('#loadeng').hide();
+        let result = $('<div/>', { class: 'cell input-group' });
         result.append(
-            $("<span/>", {
-                class: "input-group-label"
-            }).text("Language")
+            $('<span/>', {
+                class: 'input-group-label',
+            }).text('Language')
         );
-        let select = $("<select/>", {
-            class: "lang input-group-field"
+        let select = $('<select/>', {
+            class: 'lang input-group-field',
         });
         select.append(
-            $("<option />", {
-                value: ""
-            }).text("--Select a language--")
+            $('<option />', {
+                value: '',
+            }).text('--Select a language--')
         );
         for (let lang in this.langmap) {
             if (this.langmap.hasOwnProperty(lang)) {
                 select.append(
-                    $("<option />", {
-                        value: lang
+                    $('<option />', {
+                        value: lang,
                     }).text(this.langmap[lang])
                 );
             }
@@ -2249,18 +2249,18 @@ export class CipherHandler {
      * Loads a language in response to a dropdown event
      */
     public loadLanguage(lang: string): void {
-        $("#loadeng").hide();
+        $('#loadeng').hide();
         this.state.curlang = lang;
         this.setCharset(this.langcharset[lang]);
         this.showLangStatus(
-            "warning",
-            "Attempting to load " + this.langmap[lang] + "..."
+            'warning',
+            'Attempting to load ' + this.langmap[lang] + '...'
         );
-        $.getScript("Languages/" + lang + ".js", (data, textStatus, jqxhr) => {
-            this.showLangStatus("secondary", "");
-            this.updateMatchDropdowns("");
+        $.getScript('Languages/' + lang + '.js', (data, textStatus, jqxhr) => {
+            this.showLangStatus('secondary', '');
+            this.updateMatchDropdowns('');
         }).fail((jqxhr, settings, exception) => {
-            console.log("Complied language file not found for " + lang + ".js");
+            console.log('Complied language file not found for ' + lang + '.js');
             this.loadRawLanguage(lang);
         });
     }
@@ -2269,23 +2269,23 @@ export class CipherHandler {
      * lang Language to load (2 character abbreviation)
      */
     public loadRawLanguage(lang: string): void {
-        let jqxhr = $.get("Languages/" + lang + ".txt", () => {}).done(data => {
+        let jqxhr = $.get('Languages/' + lang + '.txt', () => {}).done(data => {
             // empty out all the frequent words
             this.showLangStatus(
-                "warning",
-                "Processing " + this.langmap[lang] + "..."
+                'warning',
+                'Processing ' + this.langmap[lang] + '...'
             );
             this.Frequent[lang] = {};
             this.state.curlang = lang;
             let charset = this.langcharset[lang];
             let langreplace = this.langreplace[lang];
             this.setCharset(charset);
-            let lines = data.split("\n");
+            let lines = data.split('\n');
             let len = lines.length;
             charset = charset.toUpperCase();
             for (let i = 0; i < len; i++) {
                 let pieces = lines[i]
-                    .replace(/\r/g, " ")
+                    .replace(/\r/g, ' ')
                     .toUpperCase()
                     .split(/ /);
                 // make sure that all the characters in the pieces are valid
@@ -2293,13 +2293,13 @@ export class CipherHandler {
                 let legal = true;
                 for (let c of pieces[0]) {
                     if (charset.indexOf(c) < 0) {
-                        if (typeof langreplace[c] === "undefined") {
+                        if (typeof langreplace[c] === 'undefined') {
                             console.log(
-                                "skipping out on " +
+                                'skipping out on ' +
                                     pieces[0] +
-                                    " for " +
+                                    ' for ' +
                                     c +
-                                    " against " +
+                                    ' against ' +
                                     charset
                             );
                             legal = false;
@@ -2314,7 +2314,7 @@ export class CipherHandler {
                         pieces[0].toUpperCase(),
                         i,
                         pieces[1],
-                        0
+                        0,
                     ];
                     if (i < 500) {
                         elem[3] = 0;
@@ -2327,24 +2327,24 @@ export class CipherHandler {
                     } else {
                         elem[3] = 5;
                     }
-                    if (typeof this.Frequent[lang][pat] === "undefined") {
+                    if (typeof this.Frequent[lang][pat] === 'undefined') {
                         this.Frequent[lang][pat] = [];
                     }
                     this.Frequent[lang][pat].push(elem);
                 }
             }
             // console.log(this.Frequent)
-            $(".langout").each((i: number, elem: HTMLElement) => {
+            $('.langout').each((i: number, elem: HTMLElement) => {
                 this.showLangStatus(
-                    "warning",
-                    "Dumping " + this.langmap[lang] + "..."
+                    'warning',
+                    'Dumping ' + this.langmap[lang] + '...'
                 );
                 $(elem).text(this.dumpLang(lang));
             });
-            this.showLangStatus("secondary", "");
-            this.updateMatchDropdowns("");
+            this.showLangStatus('secondary', '');
+            this.updateMatchDropdowns('');
         });
-        this.showLangStatus("warning", "Loading " + this.langmap[lang] + "...");
+        this.showLangStatus('warning', 'Loading ' + this.langmap[lang] + '...');
     }
     /**
      * Updates the language status message box with a message (or clears it)
@@ -2352,15 +2352,15 @@ export class CipherHandler {
      * @param msg Message to be displayed
      */
     public showLangStatus(
-        calloutclass: "secondary" | "primary" | "success" | "warning" | "alert",
+        calloutclass: 'secondary' | 'primary' | 'success' | 'warning' | 'alert',
         msg: string
     ): void {
-        $(".langstatus").empty();
-        if (msg !== "") {
-            $(".langstatus").append(
-                $("<div/>", {
-                    class: "callout " + calloutclass,
-                    "data-closable": ""
+        $('.langstatus').empty();
+        if (msg !== '') {
+            $('.langstatus').append(
+                $('<div/>', {
+                    class: 'callout ' + calloutclass,
+                    'data-closable': '',
                 }).text(msg)
             );
         }
@@ -2371,9 +2371,9 @@ export class CipherHandler {
      */
     public UpdateReverseReplacements(): void {
         let charset = this.getSourceCharset().toUpperCase();
-        $("[id^=rf]").text("");
+        $('[id^=rf]').text('');
         for (let c of charset) {
-            $("#rf" + this.state.replacement[c]).text(c);
+            $('#rf' + this.state.replacement[c]).text(c);
         }
     }
     /**
@@ -2383,9 +2383,9 @@ export class CipherHandler {
     public getEditURL(state: IState): string {
         let lang;
         if (state.cipherType === undefined) {
-            return "";
+            return '';
         }
-        if (state.curlang !== undefined && state.curlang !== "en") {
+        if (state.curlang !== undefined && state.curlang !== 'en') {
             lang = state.curlang;
         }
         return JTGetURL(CipherMenu, state.cipherType, lang);
@@ -2397,11 +2397,11 @@ export class CipherHandler {
     public getEntryURL(entry: number): string {
         let state = this.getFileEntry(entry);
         let entryURL = this.getEditURL(state);
-        if (entryURL !== "") {
-            if (entryURL.indexOf("?") > -1) {
-                entryURL += "&editEntry=" + entry;
+        if (entryURL !== '') {
+            if (entryURL.indexOf('?') > -1) {
+                entryURL += '&editEntry=' + entry;
             } else {
-                entryURL += "?editEntry=" + entry;
+                entryURL += '?editEntry=' + entry;
             }
         }
         return entryURL;
@@ -2413,7 +2413,7 @@ export class CipherHandler {
     public getSolveURL(state: IState): string {
         let lang;
         if (state.cipherType === undefined) {
-            return "";
+            return '';
         }
         return JTGetSolveURL(CipherMenu, state.cipherType);
     }
@@ -2421,17 +2421,17 @@ export class CipherHandler {
      * Create the hidden dialog for selecting a cipher to open
      */
     private createOpenFileDlg(): JQElement {
-        let dlgContents = $("<select/>", {
-            id: "files",
-            class: "filelist",
-            size: 10
+        let dlgContents = $('<select/>', {
+            id: 'files',
+            class: 'filelist',
+            size: 10,
         });
         let openFileDlg = JTFDialog(
-            "OpenFile",
-            "Select File to Open",
+            'OpenFile',
+            'Select File to Open',
             dlgContents,
-            "okopen",
-            "OK"
+            'okopen',
+            'OK'
         );
         return openFileDlg;
     }
@@ -2439,45 +2439,45 @@ export class CipherHandler {
      * Creates the hidden dialog for selecting an XML file to import
      */
     private createImportFileDlg(): JQElement {
-        let dlgContents = $("<div/>", {
-            id: "importstatus",
-            class: "callout secondary"
+        let dlgContents = $('<div/>', {
+            id: 'importstatus',
+            class: 'callout secondary',
         })
             .append(
-                $("<label/>", {
-                    for: "xmlFile",
-                    class: "impfile button"
-                }).text("Select File")
+                $('<label/>', {
+                    for: 'xmlFile',
+                    class: 'impfile button',
+                }).text('Select File')
             )
             .append(
-                $("<input/>", {
-                    type: "file",
-                    id: "xmlFile",
-                    accept: ".json",
-                    class: "impfile show-for-sr"
+                $('<input/>', {
+                    type: 'file',
+                    id: 'xmlFile',
+                    accept: '.json',
+                    class: 'impfile show-for-sr',
                 })
             )
             .append(
-                $("<span/>", {
-                    id: "xmltoimport",
-                    class: "impfile"
-                }).text("No File Selected")
+                $('<span/>', {
+                    id: 'xmltoimport',
+                    class: 'impfile',
+                }).text('No File Selected')
             )
             .append(
                 JTFLabeledInput(
-                    "URL",
-                    "text",
-                    "xmlurl",
-                    "",
-                    "impurl small-12 medium-6 large-6"
+                    'URL',
+                    'text',
+                    'xmlurl',
+                    '',
+                    'impurl small-12 medium-6 large-6'
                 )
             );
         let importDlg = JTFDialog(
-            "ImportFile",
-            "Import Test Data",
+            'ImportFile',
+            'Import Test Data',
             dlgContents,
-            "okimport",
-            "Import"
+            'okimport',
+            'Import'
         );
         return importDlg;
     }
@@ -2489,21 +2489,21 @@ export class CipherHandler {
         dlgContents.append(
             '<tr class="version"><td>Version:</td><td>' +
                 getVersion() +
-                "</td></tr>"
+                '</td></tr>'
         );
         dlgContents.append(
             '<tr class="latest-version"><td>Latest version:</td><td><span class="remote-version">Unknown</span></td></tr>'
         );
         dlgContents.append(
-            "<tr><td>Built  :</td><td>[AIV]{date}[/AIV]</td></tr>"
+            '<tr><td>Built  :</td><td>[AIV]{date}[/AIV]</td></tr>'
         );
 
         let aboutDlg = JTFDialog(
-            "About",
-            "Cipher Tools",
+            'About',
+            'Cipher Tools',
             dlgContents,
-            "okdownload",
-            "Download latest version"
+            'okdownload',
+            'Download latest version'
         );
         return aboutDlg;
     }
@@ -2512,8 +2512,8 @@ export class CipherHandler {
      * This also creates the hidden dialogs used for opening and importing files
      */
     public createMainMenu(): JQElement {
-        let result = $("<div/>");
-        result.append(JTCreateMenu(CipherMenu, "example-menu", "Cipher Tools"));
+        let result = $('<div/>');
+        result.append(JTCreateMenu(CipherMenu, 'example-menu', 'Cipher Tools'));
         // Create the dialog for selecting which cipher to load
         result.append(this.createOpenFileDlg());
         result.append(this.createImportFileDlg());
@@ -2524,17 +2524,17 @@ export class CipherHandler {
      * Preserve the current replacement order
      */
     public getReplacementOrder(): void {
-        let replOrder = "";
-        $("#freqtable")
+        let replOrder = '';
+        $('#freqtable')
             .children()
             .each((i, elem) => {
-                let eid = $(elem).attr("id");
+                let eid = $(elem).attr('id');
                 replOrder += eid.substr(eid.length - 1);
             });
         this.state.replOrder = replOrder;
     }
     public guidance(): void {
-        window.open(this.guidanceURL, "guidance");
+        window.open(this.guidanceURL, 'guidance');
     }
     /**
      * Show the about dialog.  If served from file:// (i.e. running
@@ -2544,37 +2544,37 @@ export class CipherHandler {
     public about(): void {
         let served_from = window.location.href;
         let local_version = getVersion();
-        console.log("Local version: " + local_version);
-        console.log("served from: " + served_from.substring(0, 4));
-        $(".version-table tr.latest-version").hide();
-        if (served_from.substring(0, 5) === "file:") {
+        console.log('Local version: ' + local_version);
+        console.log('served from: ' + served_from.substring(0, 4));
+        $('.version-table tr.latest-version').hide();
+        if (served_from.substring(0, 5) === 'file:') {
             this.getWebVersion(local_version);
-            $(".version-table tr.latest-version").show();
+            $('.version-table tr.latest-version').show();
         } else {
             // Enable the download button...
-            $("#okdownload").removeAttr("disabled");
+            $('#okdownload').removeAttr('disabled');
             this.download();
         }
 
-        $("#About").foundation("open");
+        $('#About').foundation('open');
     }
 
     /**
      * Download the zip file is the 'download' button is not disabled
      */
     public download(): void {
-        $("#okdownload")
-            .off("click")
-            .on("click", e => {
-                if (!$("#okdownload").prop("disabled")) {
+        $('#okdownload')
+            .off('click')
+            .on('click', e => {
+                if (!$('#okdownload').prop('disabled')) {
                     console.log(
-                        "disable download prop: >" +
-                            $("#okdownload").prop("disabled") +
-                            "<"
+                        'disable download prop: >' +
+                            $('#okdownload').prop('disabled') +
+                            '<'
                     );
                     e.preventDefault();
                     window.location.href =
-                        "https://toebes.com/codebusters/CipherTools.zip";
+                        'https://toebes.com/codebusters/CipherTools.zip';
                 }
             });
     }
@@ -2592,43 +2592,43 @@ export class CipherHandler {
      *   // = else - do the download
      */
     public getWebVersion(local_version: string): void {
-        console.log("Handle request to get Web version....");
-        let remote_version = "0.0.0";
+        console.log('Handle request to get Web version....');
+        let remote_version = '0.0.0';
         // Phone home
         // test from: "http://192.168.109.10:10980/dist/siteVersion.txt"
         $.ajax({
-            url: "https://toebes.com/codebusters/siteVersion.txt",
-            dataType: "jsonp",
-            jsonpCallback: "getVersion",
+            url: 'https://toebes.com/codebusters/siteVersion.txt',
+            dataType: 'jsonp',
+            jsonpCallback: 'getVersion',
             success: function(a: any, b: string, c: JQueryXHR): void {
-                console.log("A Success " + JSON.stringify(a));
-                console.log("B Success " + b);
-                console.log("C Success " + c);
-                remote_version = a["version"];
-                console.log("Set remote version to: " + remote_version);
+                console.log('A Success ' + JSON.stringify(a));
+                console.log('B Success ' + b);
+                console.log('C Success ' + c);
+                remote_version = a['version'];
+                console.log('Set remote version to: ' + remote_version);
             },
             error: function(a: JQueryXHR, b: string, c: string): void {
-                console.log("A Error " + JSON.stringify(a));
-                console.log("B Error " + b);
-                console.log("C Error " + c);
-                console.log("Disable the download button...");
-                $("#okdownload").prop("disabled", true);
-            }
+                console.log('A Error ' + JSON.stringify(a));
+                console.log('B Error ' + b);
+                console.log('C Error ' + c);
+                console.log('Disable the download button...');
+                $('#okdownload').prop('disabled', true);
+            },
         }).done(function(a: any, b: string, c: JQueryXHR): void {
-            $(".remote-version").html(remote_version);
+            $('.remote-version').html(remote_version);
             // enable the down load buttin if appropriate
-            console.log("Enable download button?");
+            console.log('Enable download button?');
             if (remote_version > local_version) {
-                console.log("remove disable attrib, to enable download button");
-                $("#okdownload").removeAttr("disabled");
+                console.log('remove disable attrib, to enable download button');
+                $('#okdownload').removeAttr('disabled');
             } else {
-                console.log("Disable the download button...");
-                $("#okdownload").prop("disabled", true);
+                console.log('Disable the download button...');
+                $('#okdownload').prop('disabled', true);
             }
         });
 
-        console.log("Remote version: " + remote_version);
-        console.log("Local version: " + local_version);
+        console.log('Remote version: ' + remote_version);
+        console.log('Local version: ' + local_version);
         this.download();
     }
     /**
@@ -2641,21 +2641,21 @@ export class CipherHandler {
     public sortTable(th: HTMLElement, n: number): void {
         let switchcount = 0;
         let switching = true;
-        let table = th.closest("table");
-        let thlist = table.getElementsByTagName("TH");
+        let table = th.closest('table');
+        let thlist = table.getElementsByTagName('TH');
         // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < thlist.length; i++) {
             let thc = thlist[i];
-            thc.classList.remove("asc", "desc");
+            thc.classList.remove('asc', 'desc');
         }
         // Set the sorting direction to ascending:
-        let dir = "asc";
+        let dir = 'asc';
         // Make a loop that will continue until no switching has been done:
         while (switching) {
             // Start by saying: no switching is done:
             let shouldSwitch = false;
             switching = false;
-            let rows = table.getElementsByTagName("TR");
+            let rows = table.getElementsByTagName('TR');
             let i;
             // Loop through all table rows (except the first, which contains table headers):
             for (i = 1; i < rows.length - 1; i++) {
@@ -2664,12 +2664,12 @@ export class CipherHandler {
                 // Get the two elements you want to compare, one from current row and one from the next:
                 let x, y;
                 // Check if the two rows should switch place, based on the direction, asc or desc:
-                if (dir === "asc") {
-                    x = rows[i].getElementsByTagName("TD")[n];
-                    y = rows[i + 1].getElementsByTagName("TD")[n];
+                if (dir === 'asc') {
+                    x = rows[i].getElementsByTagName('TD')[n];
+                    y = rows[i + 1].getElementsByTagName('TD')[n];
                 } else {
-                    y = rows[i].getElementsByTagName("TD")[n];
-                    x = rows[i + 1].getElementsByTagName("TD")[n];
+                    y = rows[i].getElementsByTagName('TD')[n];
+                    x = rows[i + 1].getElementsByTagName('TD')[n];
                 }
                 let a = x.innerHTML.toLowerCase();
                 let b = y.innerHTML.toLowerCase();
@@ -2700,8 +2700,8 @@ export class CipherHandler {
                 switchcount++;
             } else {
                 // If no switching has been done AND the direction is "asc", set the direction to "desc" and run the while loop again.
-                if (switchcount === 0 && dir === "asc") {
-                    dir = "desc";
+                if (switchcount === 0 && dir === 'asc') {
+                    dir = 'desc';
                     switching = true;
                 }
             }
@@ -2713,14 +2713,14 @@ export class CipherHandler {
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     public attachHandlers(): void {
-        $(".sli")
-            .off("keyup")
-            .on("keyup", event => {
+        $('.sli')
+            .off('keyup')
+            .on('keyup', event => {
                 let target = $(event.target);
-                let repchar = target.attr("data-char");
+                let repchar = target.attr('data-char');
                 let current;
                 let next;
-                let focusables = $(".sli");
+                let focusables = $('.sli');
 
                 if (event.keyCode === 37) {
                     // left
@@ -2740,29 +2740,29 @@ export class CipherHandler {
                     next.focus();
                 } else if (event.keyCode === 46 || event.keyCode === 8) {
                     this.markUndo(null);
-                    this.setChar(repchar, "", target);
+                    this.setChar(repchar, '', target);
                 }
                 event.preventDefault();
             })
-            .off("keypress")
-            .on("keypress", event => {
+            .off('keypress')
+            .on('keypress', event => {
                 let newchar;
                 let target = $(event.target);
-                let repchar = target.attr("data-char");
+                let repchar = target.attr('data-char');
                 let current;
                 let next;
-                let focusables = $(".sli");
-                if (typeof event.key === "undefined") {
+                let focusables = $('.sli');
+                if (typeof event.key === 'undefined') {
                     newchar = String.fromCharCode(event.keyCode).toUpperCase();
                 } else {
                     newchar = event.key.toUpperCase();
                 }
 
-                if (this.isValidChar(newchar) || newchar === " ") {
-                    if (newchar === " ") {
-                        newchar = "";
+                if (this.isValidChar(newchar) || newchar === ' ') {
+                    if (newchar === ' ') {
+                        newchar = '';
                     }
-                    console.log("Setting " + repchar + " to " + newchar);
+                    console.log('Setting ' + repchar + ' to ' + newchar);
                     this.markUndo(null);
                     this.setChar(repchar, newchar, target);
                     current = focusables.index(event.target);
@@ -2771,144 +2771,146 @@ export class CipherHandler {
                         : focusables.eq(0);
                     next.focus();
                 } else {
-                    console.log("Not valid:" + newchar);
+                    console.log('Not valid:' + newchar);
                 }
                 event.preventDefault();
             })
-            .off("blur")
-            .on("blur", e => {
-                let tohighlight = $(e.target).attr("data-char");
-                $("[data-char='" + tohighlight + "']").removeClass("allfocus");
-                let althighlight = $(e.target).attr("data-schar");
-                if (althighlight !== "") {
+            .off('blur')
+            .on('blur', e => {
+                let tohighlight = $(e.target).attr('data-char');
+                $("[data-char='" + tohighlight + "']").removeClass('allfocus');
+                let althighlight = $(e.target).attr('data-schar');
+                if (althighlight !== '') {
                     $("[data-schar='" + althighlight + "']").removeClass(
-                        "allfocus"
+                        'allfocus'
                     );
                 }
-                $(e.target).removeClass("focus");
+                $(e.target).removeClass('focus');
             })
-            .off("focus")
-            .on("focus", e => {
-                let tohighlight = $(e.target).attr("data-char");
-                $("[data-char='" + tohighlight + "']").addClass("allfocus");
-                let althighlight = $(e.target).attr("data-schar");
-                if (althighlight !== "") {
+            .off('focus')
+            .on('focus', e => {
+                let tohighlight = $(e.target).attr('data-char');
+                $("[data-char='" + tohighlight + "']").addClass('allfocus');
+                let althighlight = $(e.target).attr('data-schar');
+                if (althighlight !== '') {
                     $("[data-schar='" + althighlight + "']").addClass(
-                        "allfocus"
+                        'allfocus'
                     );
                 }
-                $(e.target).addClass("focus");
+                $(e.target).addClass('focus');
             });
         $('[name="operation"]')
-            .off("click")
-            .on("click", e => {
+            .off('click')
+            .on('click', e => {
                 $(e.target)
                     .siblings()
-                    .removeClass("is-active");
-                $(e.target).addClass("is-active");
+                    .removeClass('is-active');
+                $(e.target).addClass('is-active');
                 this.markUndo(null);
                 this.setOperation($(e.target).val() as IOperationType);
                 this.updateOutput();
             });
-        $(".input-number-increment")
-            .off("click")
-            .on("click", e => {
+        $('.input-number-increment')
+            .off('click')
+            .on('click', e => {
                 let $input = $(e.target)
-                    .parents(".input-group")
-                    .find(".input-number");
+                    .parents('.input-group')
+                    .find('.input-number');
                 let val = Number($input.val());
                 this.advancedir = 1;
                 $input.val(val + this.advancedir);
-                $input.trigger("input");
+                $input.trigger('input');
             });
-        $(".input-number-decrement")
-            .off("click")
-            .on("click", e => {
+        $('.input-number-decrement')
+            .off('click')
+            .on('click', e => {
                 let $input = $(e.target)
-                    .parents(".input-group")
-                    .find(".input-number");
+                    .parents('.input-group')
+                    .find('.input-number');
                 let val = Number($input.val());
                 this.advancedir = -1;
                 $input.val(val + this.advancedir);
-                $input.trigger("input");
+                $input.trigger('input');
             });
         $('[name="ciphertype"]')
-            .off("click")
-            .on("click", e => {
+            .off('click')
+            .on('click', e => {
                 $(e.target)
                     .siblings()
-                    .removeClass("is-active");
-                $(e.target).addClass("is-active");
+                    .removeClass('is-active');
+                $(e.target).addClass('is-active');
                 this.markUndo(null);
                 this.setCipherType($(e.target).val() as ICipherType);
                 this.updateOutput();
             });
-        $("#load")
-            .off("click")
-            .on("click", () => {
+        $('#load')
+            .off('click')
+            .on('click', () => {
                 this.markUndo(null);
                 this.load();
             });
-        $("#undo")
-            .off("click")
-            .on("click", () => {
+        $('#undo')
+            .off('click')
+            .on('click', () => {
                 this.unDo();
             });
-        $("#redo")
-            .off("click")
-            .on("click", () => {
+        $('#redo')
+            .off('click')
+            .on('click', () => {
                 this.reDo();
             });
-        $("#save")
-            .off("click")
-            .on("click", () => {
+        $('#save')
+            .off('click')
+            .on('click', () => {
                 this.saveCipher();
             });
-        $("#reset")
-            .off("click")
-            .on("click", () => {
+        $('#reset')
+            .off('click')
+            .on('click', () => {
                 this.markUndo(null);
                 this.reset();
             });
-        $("a[data-action]")
-            .off("click")
-            .on("click", e => {
-                if ($(e.target).hasClass("disabled_menu")) {
+        $('a[data-action]')
+            .off('click')
+            .on('click', e => {
+                if ($(e.target).hasClass('disabled_menu')) {
                     e.preventDefault();
                 } else {
-                    this.doAction($(e.target).attr("data-action"));
+                    this.doAction($(e.target).attr('data-action'));
                 }
             });
-        $(".msli")
-            .off("change")
-            .on("change", e => {
+        $('.msli')
+            .off('change')
+            .on('change', e => {
                 this.markUndo(null);
-                let toupdate = $(e.target).attr("data-char");
+                let toupdate = $(e.target).attr('data-char');
                 this.updateSel(toupdate, (e.target as HTMLInputElement).value);
             });
-        $(".lang")
-            .off("change")
-            .on("change", e => {
+        $('.lang')
+            .off('change')
+            .on('change', e => {
                 this.loadLanguage($(e.target).val() as string);
             });
-        $("#find")
-            .off("input")
-            .on("input", e => {
-                this.markUndo("find");
+        $('#find')
+            .off('input')
+            .on('input', e => {
+                this.markUndo('find');
                 let findStr = $(e.target).val() as string;
                 this.findPossible(findStr);
             });
-        $(".tablesort th[data-col]")
-            .off("click")
-            .on("click", e => {
-                let col = $(e.target).attr("data-col");
+        $('.tablesort th[data-col]')
+            .off('click')
+            .on('click', e => {
+                let col = $(e.target).attr('data-col');
                 if (col !== undefined) {
                     this.sortTable(e.target, Number(col));
                 }
             });
-        $(".moreprev").off("click").on("click", e => {
-            $(".prev").show();
-            $(".moreprev").hide();
-        })
+        $('.moreprev')
+            .off('click')
+            .on('click', e => {
+                $('.prev').show();
+                $('.moreprev').hide();
+            });
     }
 }

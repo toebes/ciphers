@@ -118,6 +118,7 @@ export class CipherEncoder extends CipherHandler {
         $('#shift').val(this.state.shift);
         $('#keyword2').val(this.state.keyword2);
         $('#offset2').val(this.state.offset2);
+        $('#translated').val(this.state.translation);
         if (this.state.curlang === 'en') {
             $('#translated')
                 .parent()

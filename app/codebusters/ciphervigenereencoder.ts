@@ -1,17 +1,17 @@
-import { cloneObject } from "../common/ciphercommon";
+import { cloneObject } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
     menuMode,
     toolMode,
-} from "../common/cipherhandler";
-import { ICipherType } from "../common/ciphertypes";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTFIncButton } from "../common/jtfIncButton";
-import { JTFLabeledInput } from "../common/jtflabeledinput";
-import { JTRadioButton, JTRadioButtonSet } from "../common/jtradiobutton";
-import { JTTable } from "../common/jttable";
-import { CipherEncoder } from "./cipherencoder";
+} from '../common/cipherhandler';
+import { ICipherType } from '../common/ciphertypes';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFIncButton } from '../common/jtfIncButton';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
+import { JTTable } from '../common/jttable';
+import { CipherEncoder } from './cipherencoder';
 
 interface IVigenereState extends IState {
     /** The type of operation */
@@ -27,25 +27,25 @@ interface IVigenereState extends IState {
  */
 export class CipherVigenereEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = "TestGuidance.html#Vigenere";
+    public guidanceURL: string = 'TestGuidance.html#Vigenere';
 
     public defaultstate: IVigenereState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.Vigenere,
         /** Currently selected keyword */
-        keyword: "",
+        keyword: '',
         /** The current cipher we are working on */
-        cipherString: "",
+        cipherString: '',
         /** The current string we are looking for */
-        findString: "",
-        operation: "encode",
+        findString: '',
+        operation: 'encode',
         blocksize: 0,
     };
     public state: IVigenereState = cloneObject(
         this.defaultstate
     ) as IVigenereState;
     public cmdButtons: JTButtonItem[] = [
-        { title: "Save", color: "primary", id: "save", class: "save" },
+        { title: 'Save', color: 'primary', id: 'save', class: 'save' },
         this.undocmdButton,
         this.redocmdButton,
     ];
@@ -81,57 +81,57 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public updateOutput(): void {
         this.updateQuestionsOutput();
         this.setMenuMode(menuMode.question);
-        if (this.state.operation === "encode") {
-            this.guidanceURL = "TestGuidance.html#Vigenere";
+        if (this.state.operation === 'encode') {
+            this.guidanceURL = 'TestGuidance.html#Vigenere';
             // Change the button label to 'Encode'
-            $("#load").val("Encode");
+            $('#load').val('Encode');
         } else {
-            this.guidanceURL = "TestGuidance.html#Vigenere_Decrypt";
+            this.guidanceURL = 'TestGuidance.html#Vigenere_Decrypt';
             // Change button label to 'Decode'
-            $("#load").val("Decode");
+            $('#load').val('Decode');
         }
-        $("#load").prop("disabled", this.state.keyword === "");
-        JTRadioButtonSet("operation", this.state.operation);
-        $("#toencode").val(this.state.cipherString);
-        $("#blocksize").val(this.state.blocksize);
-        $("#keyword").val(this.state.keyword);
+        $('#load').prop('disabled', this.state.keyword === '');
+        JTRadioButtonSet('operation', this.state.operation);
+        $('#toencode').val(this.state.cipherString);
+        $('#blocksize').val(this.state.blocksize);
+        $('#keyword').val(this.state.keyword);
         this.load();
     }
 
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         result.append(this.genTestUsage());
         let radiobuttons = [
-            { id: "wrow", value: "encode", title: "Encode" },
-            { id: "mrow", value: "decode", title: "Decode" },
+            { id: 'wrow', value: 'encode', title: 'Encode' },
+            { id: 'mrow', value: 'decode', title: 'Decode' },
         ];
         result.append(
-            JTRadioButton(6, "operation", radiobuttons, this.state.operation)
+            JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
         );
         result.append(this.genQuestionFields());
 
         result.append(
             JTFLabeledInput(
-                "Message",
-                "text",
-                "toencode",
+                'Message',
+                'text',
+                'toencode',
                 this.state.cipherString,
-                "small-12 medium-12 large-12"
+                'small-12 medium-12 large-12'
             )
         );
         result.append(
             JTFLabeledInput(
-                "Key",
-                "text",
-                "keyword",
+                'Key',
+                'text',
+                'keyword',
                 this.state.keyword,
-                "small-12 medium-12 large-12"
+                'small-12 medium-12 large-12'
             )
         );
 
-        let inputbox = $("<div/>", { class: "grid-x grid-margin-x blocksize" });
+        let inputbox = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
         inputbox.append(
-            JTFIncButton("Block Size", "blocksize", this.state.blocksize, "")
+            JTFIncButton('Block Size', 'blocksize', this.state.blocksize, '')
         );
         result.append(inputbox);
 
@@ -152,8 +152,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
     ): string[][] {
         let encoded = msg;
         let key = keystring;
-        if (key === "") {
-            key = "A";
+        if (key === '') {
+            key = 'A';
         }
         if (
             this.state.blocksize > 0 &&
@@ -163,10 +163,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
         let result: string[][] = [];
         let charset = this.getCharset();
-        let message = "";
+        let message = '';
         let keyIndex = 0;
-        let keyString = "";
-        let cipher = "";
+        let keyString = '';
+        let cipher = '';
         let msgLength = encoded.length;
         let keyLength = key.length;
         let lastSplit = -1;
@@ -201,8 +201,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
             if (message.length >= maxEncodeWidth) {
                 if (lastSplit === -1) {
                     result.push([cipher, message]);
-                    message = "";
-                    cipher = "";
+                    message = '';
+                    cipher = '';
                     lastSplit = -1;
                 } else {
                     let messagePart = message.substr(0, lastSplit);
@@ -220,10 +220,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
     }
 
     public buildVigenere(msg: string, key: string): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         let source = 1;
         let dest = 0;
-        if (this.state.operation === "decode") {
+        if (this.state.operation === 'decode') {
             source = 0;
             dest = 1;
         }
@@ -234,10 +234,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
         );
         for (let stringset of strings) {
             result.append(
-                $("<div/>", { class: "TOSOLVE" }).text(stringset[source])
+                $('<div/>', { class: 'TOSOLVE' }).text(stringset[source])
             );
             result.append(
-                $("<div/>", { class: "TOANSWER" }).text(stringset[dest])
+                $('<div/>', { class: 'TOANSWER' }).text(stringset[dest])
             );
         }
         return result;
@@ -247,10 +247,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public load(): void {
         let encoded = this.cleanString(this.state.cipherString);
-        /*
-        * If it is characteristic of the cipher type (e.g. patristocrat),
-        * rebuild the string to be encoded in to five character sized chunks.
-        */
+        /* If they want different sizes, rebuild the string in the chunk size */
         if (
             this.state.blocksize > 0 &&
             this.state.blocksize < this.maxEncodeWidth
@@ -258,10 +255,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
             encoded = this.chunk(encoded, this.state.blocksize);
         }
 
-        let key = this.cleanString(this.state.keyword);
-        $("#err").text("");
+        let key = this.minimizeString(this.state.keyword);
+        $('#err').text('');
         let res = this.buildVigenere(encoded, key);
-        $("#answer")
+        $('#answer')
             .empty()
             .append(res);
         this.attachHandlers();
@@ -271,9 +268,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
-        $("#blocksize")
-            .off("input")
-            .on("input", e => {
+        $('#blocksize')
+            .off('input')
+            .on('input', e => {
                 let blocksize = Number($(e.target).val());
                 if (blocksize !== this.state.blocksize) {
                     this.markUndo(null);
@@ -282,12 +279,12 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     }
                 }
             });
-        $("#keyword")
-            .off("input")
-            .on("input", e => {
+        $('#keyword')
+            .off('input')
+            .on('input', e => {
                 let newkeyword = $(e.target).val() as string;
                 if (newkeyword !== this.state.keyword) {
-                    this.markUndo("keyword");
+                    this.markUndo('keyword');
                     if (this.setKeyword(newkeyword)) {
                         this.updateOutput();
                     }
@@ -299,22 +296,22 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public genAnswer(): JQuery<HTMLElement> {
         let keypos = 0;
-        let result = $("<div/>", { class: "grid-x" });
+        let result = $('<div/>', { class: 'grid-x' });
         let strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
             40
         );
-        let keyword = "";
-        for (let c of this.state.keyword) {
+        let keyword = '';
+        for (let c of this.state.keyword.toUpperCase()) {
             if (this.isValidChar(c)) {
                 keyword += c;
             }
         }
 
-        let table = new JTTable({ class: "ansblock shrink cell unstriped" });
+        let table = new JTTable({ class: 'ansblock shrink cell unstriped' });
         for (let strset of strings) {
-            let keystring = "";
+            let keystring = '';
             for (let c of strset[0]) {
                 if (this.isValidChar(c)) {
                     keystring += keyword.substr(keypos, 1);
@@ -325,7 +322,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             }
             let source = 0;
             let dest = 1;
-            if (this.state.operation === "encode") {
+            if (this.state.operation === 'encode') {
                 source = 1;
                 dest = 0;
             }
@@ -344,19 +341,19 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div/>", { class: "grid-x" });
+        let result = $('<div/>', { class: 'grid-x' });
         let strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
             40
         );
-        let table = new JTTable({ class: "ansblock shrink cell unstriped" });
+        let table = new JTTable({ class: 'ansblock shrink cell unstriped' });
         let source = 0;
-        if (this.state.operation === "encode") {
+        if (this.state.operation === 'encode') {
             source = 1;
         }
         for (let strset of strings) {
-            this.addCipherTableRows(table, "", strset[source], undefined, true);
+            this.addCipherTableRows(table, '', strset[source], undefined, true);
         }
         result.append(table.generate());
         return result;

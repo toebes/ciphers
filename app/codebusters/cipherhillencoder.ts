@@ -211,7 +211,16 @@ export class CipherHillEncoder extends CipherEncoder {
 
         result.append($('<h3/>').text('How to solve'));
         if (this.state.operation === 'compute') {
-            result.append(this.genInverseMath(vals));
+            // For compute inverse, we only allow the 2x2 matrix
+            if (vals.length !== 2) {
+                result.append(
+                    $('<h3>').text(
+                        'Compute Decryption only supported for 2x2 matrix'
+                    )
+                );
+            } else {
+                result.append(this.genInverseMath(vals));
+            }
         } else {
             let encoded = this.computeHill(vals);
             if (this.state.operation === 'decode') {
@@ -267,6 +276,10 @@ export class CipherHillEncoder extends CipherEncoder {
         }
         if (key.length !== 4 && this.state.operation === 'decode') {
             $('#err').text('Decode operation only supports 2x2 matrix');
+            return undefined;
+        }
+        if (key.length !== 4 && this.state.operation === 'compute') {
+            $('#err').text('Compute Decryption only supports 2x2 matrix');
             return undefined;
         }
         // Figure out how big our array for encoding is
@@ -703,8 +716,19 @@ export class CipherHillEncoder extends CipherEncoder {
 
         result.append(this.genQuestionMath(vals));
         if (this.state.operation === 'compute') {
-            let modinv = mod26Inverse2x2(vals);
-            result.append($('<div/>').append(this.genAnswerMathMatrix(modinv)));
+            // For compute Decryption, we only allow the 2x2 matrix
+            if (vals.length !== 2) {
+                result.append(
+                    $('<h3>').text(
+                        'Compute Decryption only supported for 2x2 matrix'
+                    )
+                );
+            } else {
+                let modinv = mod26Inverse2x2(vals);
+                result.append(
+                    $('<div/>').append(this.genAnswerMathMatrix(modinv))
+                );
+            }
         } else {
             let encoded = this.computeHill(vals);
             let plaintext = this.minimizeString(this.state.cipherString);

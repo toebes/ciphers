@@ -41,3 +41,4 @@ dist/*
 pom.xml
 CipherTools*.zip
 quotes*.json
+tests/*

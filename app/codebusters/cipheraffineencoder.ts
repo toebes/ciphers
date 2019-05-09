@@ -1,17 +1,17 @@
-import { cloneObject, StringMap } from "../common/ciphercommon";
-import { IState, toolMode } from "../common/cipherhandler";
-import { ICipherType } from "../common/ciphertypes";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTFIncButton } from "../common/jtfIncButton";
-import { JTFLabeledInput } from "../common/jtflabeledinput";
-import { JTRadioButton, JTRadioButtonSet } from "../common/jtradiobutton";
-import { JTTable } from "../common/jttable";
-import { isCoPrime } from "../common/mathsupport";
-import { renderMath } from "../common/renderMath";
-import { CipherEncoder } from "./cipherencoder";
+import { cloneObject, StringMap } from '../common/ciphercommon';
+import { IState, toolMode } from '../common/cipherhandler';
+import { ICipherType } from '../common/ciphertypes';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFIncButton } from '../common/jtfIncButton';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
+import { JTTable } from '../common/jttable';
+import { isCoPrime } from '../common/mathsupport';
+import { renderMath } from '../common/renderMath';
+import { CipherEncoder } from './cipherencoder';
 
 // Configure how we want the multiplication to appear - either as a * or a dot
-const kmathMult = "*";
+const kmathMult = '*';
 // const kmathMult = ' \\cdot '
 
 interface IAffineState extends IState {
@@ -25,15 +25,18 @@ interface IAffineState extends IState {
     solclick2: number;
 }
 
+/**
+ * CipherAffineEncoder implements the Affine methods
+ */
 export class CipherAffineEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = "TestGuidance.html#Affine";
+    public guidanceURL: string = 'TestGuidance.html#Affine';
     public defaultstate: IAffineState = {
         /** The type of operation */
-        operation: "encode" /** a value */,
+        operation: 'encode' /** a value */,
         a: 1 /** b value */,
         b: 0,
-        cipherString: "" /** The type of cipher we are doing */,
+        cipherString: '' /** The type of cipher we are doing */,
         cipherType:
             ICipherType.Affine /** The first clicked number in the solution */,
         solclick1: -1 /** The second clicked number  */,
@@ -42,9 +45,10 @@ export class CipherAffineEncoder extends CipherEncoder {
     };
     public state: IAffineState = cloneObject(this.defaultstate) as IAffineState;
     public cmdButtons: JTButtonItem[] = [
-        { title: "Save", color: "primary", id: "save" },
+        { title: 'Save', color: 'primary', id: 'save' },
         this.undocmdButton,
         this.redocmdButton,
+        this.guidanceButton,
     ];
     /* We have identified a complete solution */
     public completeSolution: boolean = false;
@@ -67,24 +71,24 @@ export class CipherAffineEncoder extends CipherEncoder {
     }
     public updateOutput(): void {
         super.updateOutput();
-        $("#a").val(this.state.a);
-        $("#b").val(this.state.b);
+        $('#a').val(this.state.a);
+        $('#b').val(this.state.b);
 
-        JTRadioButtonSet("operation", this.state.operation);
+        JTRadioButtonSet('operation', this.state.operation);
 
-        if (this.state.operation === "encode") {
-            this.guidanceURL = "TestGuidance.html#Affine";
+        if (this.state.operation === 'encode') {
+            this.guidanceURL = 'TestGuidance.html#Affine';
         } else {
-            this.guidanceURL = "TestGuidance.html#Affine_Decrypt";
+            this.guidanceURL = 'TestGuidance.html#Affine_Decrypt';
         }
 
         if (this.state.solclick1 !== -1) {
-            $("td#m" + this.state.solclick1).addClass("TOSOLVECLICK");
-            $("td#p" + this.state.solclick1).addClass("TOSOLVECLICK");
+            $('td#m' + this.state.solclick1).addClass('TOSOLVECLICK');
+            $('td#p' + this.state.solclick1).addClass('TOSOLVECLICK');
         }
         if (this.state.solclick2 !== -1) {
-            $("td#m" + this.state.solclick2).addClass("TOSOLVECLICK");
-            $("td#p" + this.state.solclick2).addClass("TOSOLVECLICK");
+            $('td#m' + this.state.solclick2).addClass('TOSOLVECLICK');
+            $('td#p' + this.state.solclick2).addClass('TOSOLVECLICK');
         }
     }
     /**
@@ -109,15 +113,15 @@ export class CipherAffineEncoder extends CipherEncoder {
                 }
             }
             if (!isCoPrime(a, charset.length)) {
-                $("#err").text(
-                    "A value of " + a + " is not coprime with " + charset.length
+                $('#err').text(
+                    'A value of ' + a + ' is not coprime with ' + charset.length
                 );
             }
             if (a > charset.length) {
-                $("#err").text(
-                    "A value of " +
+                $('#err').text(
+                    'A value of ' +
                         a +
-                        " must be smaller than " +
+                        ' must be smaller than ' +
                         (charset.length + 1)
                 );
             }
@@ -158,15 +162,15 @@ export class CipherAffineEncoder extends CipherEncoder {
     }
     public buildReplacement(msg: string, maxEncodeWidth: number): string[][] {
         let result: string[][] = [];
-        let message = "";
-        let cipher = "";
+        let message = '';
+        let cipher = '';
         let msgLength = msg.length;
         let lastSplit = -1;
         let msgstr = msg.toUpperCase();
 
         for (let i = 0; i < msgLength; i++) {
             let messageChar = msgstr.substr(i, 1);
-            let cipherChar = "";
+            let cipherChar = '';
             if (this.isValidChar(messageChar)) {
                 message += messageChar;
                 cipherChar = this.affinechar(messageChar);
@@ -180,8 +184,8 @@ export class CipherAffineEncoder extends CipherEncoder {
             if (message.length >= maxEncodeWidth) {
                 if (lastSplit === -1) {
                     result.push([cipher, message]);
-                    message = "";
-                    cipher = "";
+                    message = '';
+                    cipher = '';
                     lastSplit = -1;
                 } else {
                     let messagePart = message.substr(0, lastSplit);
@@ -206,10 +210,10 @@ export class CipherAffineEncoder extends CipherEncoder {
     public build(): JQuery<HTMLElement> {
         let msg = this.minimizeString(this.state.cipherString);
         let strings = this.buildReplacement(msg, this.maxEncodeWidth);
-        let result = $("<div/>");
+        let result = $('<div/>');
         for (let strset of strings) {
             let table = new JTTable({
-                class: "cell shrink tfreq",
+                class: 'cell shrink tfreq',
             });
             let toprow = table.addBodyRow();
             let bottomrow = table.addBodyRow();
@@ -218,27 +222,27 @@ export class CipherAffineEncoder extends CipherEncoder {
                 let cipherchar = strset[0].substr(i, 1);
 
                 if (this.isValidChar(plainchar)) {
-                    if (this.state.operation === "encode") {
+                    if (this.state.operation === 'encode') {
                         toprow.add({
-                            settings: { class: "TOSOLVE" },
+                            settings: { class: 'TOSOLVE' },
                             content: plainchar,
                         });
                         bottomrow.add({
-                            settings: { class: "TOANSWER" },
+                            settings: { class: 'TOANSWER' },
                             content: cipherchar,
                         });
                     } else {
                         toprow.add({
                             settings: {
-                                class: "TOSOLVE",
-                                id: "m" + i,
+                                class: 'TOSOLVE',
+                                id: 'm' + i,
                             },
                             content: cipherchar,
                         });
                         bottomrow.add({
                             settings: {
-                                class: "TOANSWER",
-                                id: "p" + i,
+                                class: 'TOANSWER',
+                                id: 'p' + i,
                             },
                             content: plainchar,
                         });
@@ -253,17 +257,17 @@ export class CipherAffineEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(): JQuery<HTMLElement> {
-        let result = $("<div/>", { class: "grid-x" });
+        let result = $('<div/>', { class: 'grid-x' });
         let plainindex = 0;
         let cipherindex = 1;
-        if (this.state.operation === "encode") {
+        if (this.state.operation === 'encode') {
             plainindex = 1;
             cipherindex = 0;
         }
         this.genAlphabet();
         let strings = this.buildReplacement(this.state.cipherString, 40);
         let table = new JTTable({
-            class: "ansblock shrink cell unstriped",
+            class: 'ansblock shrink cell unstriped',
         });
         for (let strset of strings) {
             this.addCipherTableRows(
@@ -281,16 +285,16 @@ export class CipherAffineEncoder extends CipherEncoder {
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div/>", { class: "grid-x" });
+        let result = $('<div/>', { class: 'grid-x' });
         let plainindex = 0;
-        if (this.state.operation === "encode") {
+        if (this.state.operation === 'encode') {
             plainindex = 1;
         }
 
         this.genAlphabet();
         let strings = this.buildReplacement(this.state.cipherString, 40);
         let table = new JTTable({
-            class: "ansblock shrink cell unstriped",
+            class: 'ansblock shrink cell unstriped',
         });
         for (let strset of strings) {
             this.addCipherTableRows(
@@ -302,7 +306,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             );
         }
         result.append(table.generate());
-        result.append($("<div/>", { class: "cell affinework" }));
+        result.append($('<div/>', { class: 'cell affinework' }));
         return result;
     }
     public canSolve(m1: string, m2: string): boolean {
@@ -345,7 +349,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         b: number,
         letterString: string
     ): JQuery<HTMLElement> {
-        let encoding = "\\begin{array}{lcccrcl}";
+        let encoding = '\\begin{array}{lcccrcl}';
         let charset = this.getCharset();
         for (let m of letterString) {
             let mVal = charset.indexOf(m);
@@ -353,30 +357,30 @@ export class CipherAffineEncoder extends CipherEncoder {
             let c = charset.substr(cVal % 26, 1);
             encoding +=
                 m +
-                "(" +
+                '(' +
                 mVal +
-                ") & \\to & " +
+                ') & \\to & ' +
                 mVal +
-                " * " +
+                ' * ' +
                 a +
-                " + " +
+                ' + ' +
                 b +
-                " & \\to & " +
+                ' & \\to & ' +
                 cVal +
-                " \\mod{26} & \\to & " +
+                ' \\mod{26} & \\to & ' +
                 c +
-                "(" +
+                '(' +
                 (cVal % 26) +
-                ")\\\\";
+                ')\\\\';
         }
-        encoding += "\\end{array}";
-        return $("<div/>").append(renderMath(encoding));
+        encoding += '\\end{array}';
+        return $('<div/>').append(renderMath(encoding));
     }
     /**
      * Encode a string using the current replacement alphabet
      */
     public encodeString(s: string): string {
-        let encoded = "";
+        let encoded = '';
         for (let i = 0; i < s.length; i++) {
             encoded += this.state.replacement[s.substr(i, 1)];
         }
@@ -405,20 +409,20 @@ export class CipherAffineEncoder extends CipherEncoder {
         letters: string
     ): JQuery<HTMLElement> {
         let i;
-        let message = "";
+        let message = '';
         let msgLength = msg.length;
 
-        let table = $("<table/>").addClass("tfreq");
-        let tableBody = $("<tbody/>");
-        let messageRow = $("<tr/>");
-        let cipherRow = $("<tr/>");
+        let table = $('<table/>').addClass('tfreq');
+        let tableBody = $('<tbody/>');
+        let messageRow = $('<tr/>');
+        let cipherRow = $('<tr/>');
 
         // Assume that these letters complete the solution
         this.completeSolution = true;
 
         for (i = 0; i < msgLength; i++) {
             let messageChar = msg.substr(i, 1).toUpperCase();
-            let cipherChar = "";
+            let cipherChar = '';
             if (this.isValidChar(messageChar)) {
                 message += messageChar;
                 cipherChar = this.state.replacement[messageChar];
@@ -429,22 +433,22 @@ export class CipherAffineEncoder extends CipherEncoder {
 
             if (letters.indexOf(messageChar) !== -1) {
                 messageRow.append(
-                    $("<td/>")
-                        .addClass("TOANSWER")
+                    $('<td/>')
+                        .addClass('TOANSWER')
                         .text(messageChar)
                 );
             } else {
                 // Alas one of the letters is unresolved, to the solution is not complete
                 messageRow.append(
-                    $("<td/>")
-                        .addClass("TOANSWER")
-                        .text(" ")
+                    $('<td/>')
+                        .addClass('TOANSWER')
+                        .text(' ')
                 );
                 this.completeSolution = false;
             }
             cipherRow.append(
-                $("<td/>")
-                    .addClass("TOSOLVE")
+                $('<td/>')
+                    .addClass('TOSOLVE')
                     .text(cipherChar)
             );
         }
@@ -457,7 +461,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         return table;
     }
     public genSolution(): JQuery<HTMLElement> {
-        if (this.state.operation === "decode") {
+        if (this.state.operation === 'decode') {
             return this.genDecodeSolution();
         }
         return this.genEncodeSolution();
@@ -465,8 +469,8 @@ export class CipherAffineEncoder extends CipherEncoder {
     public genEncodeSolution(): JQuery<HTMLElement> {
         let msg = this.minimizeString(this.state.cipherString);
         let mapping: StringMap = {};
-        let result = $("<div/>", { id: "solution" });
-        result.append($("<h3/>").text("How to solve"));
+        let result = $('<div/>', { id: 'solution' });
+        result.append($('<h3/>').text('How to solve'));
 
         let showencmsg = true;
 
@@ -474,24 +478,24 @@ export class CipherAffineEncoder extends CipherEncoder {
             let c = this.affinechar(m);
             if (mapping[m] !== undefined) {
                 result.append(
-                    $("<p/>").text(
-                        "We already computed for " +
+                    $('<p/>').text(
+                        'We already computed for ' +
                             m +
-                            " and know that it is " +
+                            ' and know that it is ' +
                             c
                     )
                 );
             } else {
                 if (showencmsg) {
                     showencmsg = false; // Don't show it again
-                    let p = $("<p/>").text("Using the  given value of ");
-                    let formula = "\\colorbox{yellow}{a =" + this.state.a + "}";
+                    let p = $('<p/>').text('Using the  given value of ');
+                    let formula = '\\colorbox{yellow}{a =' + this.state.a + '}';
                     p.append(renderMath(formula));
-                    p.append(" and ");
-                    formula = "\\colorbox{yellow}{b =" + this.state.b + "}";
+                    p.append(' and ');
+                    formula = '\\colorbox{yellow}{b =' + this.state.b + '}';
                     p.append(renderMath(formula));
-                    p.append(" we can calcuate using the formula ");
-                    formula = "{a" + kmathMult + "x + b}\\mod{26}";
+                    p.append(' we can calcuate using the formula ');
+                    formula = '{a' + kmathMult + 'x + b}\\mod{26}';
                     p.append(renderMath(formula));
                     result.append(p);
                 }
@@ -505,23 +509,23 @@ export class CipherAffineEncoder extends CipherEncoder {
     }
 
     public genDecodeSolution(): JQuery<HTMLElement> {
-        let result = $("<div/>", { id: "solution" });
+        let result = $('<div/>', { id: 'solution' });
         if (this.state.solclick1 === -1 || this.state.solclick2 === -1) {
             result.append(
-                $("<p/>").text(
-                    "Click on any two columns to choose the decode problem"
+                $('<p/>').text(
+                    'Click on any two columns to choose the decode problem'
                 )
             );
         }
         let msg = this.minimizeString(this.state.cipherString);
         let m1 = msg.substr(this.state.solclick1, 1);
         let m2 = msg.substr(this.state.solclick2, 1);
-        result.append($("<h3/>").text("How to solve"));
+        result.append($('<h3/>').text('How to solve'));
 
         if (!this.canSolve(m1, m2)) {
             result.append(
-                $("<p/>").text(
-                    "Indeterminate Solution! Please choose other letters."
+                $('<p/>').text(
+                    'Indeterminate Solution! Please choose other letters.'
                 )
             );
             return result;
@@ -538,58 +542,58 @@ export class CipherAffineEncoder extends CipherEncoder {
         let c2Val = charset.indexOf(c2);
 
         result.append(
-            $("<p/>").text(
-                "Here is how we get the answer.  Since we are given that:"
+            $('<p/>').text(
+                'Here is how we get the answer.  Since we are given that:'
             )
         );
 
         let given =
-            "\\begin{aligned} " +
+            '\\begin{aligned} ' +
             m1 +
-            "(" +
+            '(' +
             m1Val +
-            ") & \\to " +
+            ') & \\to ' +
             c1 +
-            "(" +
+            '(' +
             c1Val +
-            ") \\\\ " +
+            ') \\\\ ' +
             m2 +
-            "(" +
+            '(' +
             m2Val +
-            ") & \\to " +
+            ') & \\to ' +
             c2 +
-            "(" +
+            '(' +
             c2Val +
-            ") \\end{aligned}";
+            ') \\end{aligned}';
         result.append(renderMath(given));
 
-        result.append($("<p/>").text("From this we know:"));
+        result.append($('<p/>').text('From this we know:'));
 
         let equation1 =
-            "\\left(a * " +
+            '\\left(a * ' +
             m1Val +
-            " + b\\right)\\;\\text{mod 26} & = " +
+            ' + b\\right)\\;\\text{mod 26} & = ' +
             c1Val +
-            " \\\\";
+            ' \\\\';
         let equation2 =
-            "\\left(a * " +
+            '\\left(a * ' +
             m2Val +
-            " + b\\right)\\;\\text{mod 26} & = " +
+            ' + b\\right)\\;\\text{mod 26} & = ' +
             c2Val +
-            " \\\\";
+            ' \\\\';
 
-        let solution = "\\begin{aligned}";
+        let solution = '\\begin{aligned}';
         if (m1Val > m2Val) {
             solution += equation1 + equation2;
         } else {
             solution += equation2 + equation1;
         }
-        solution += "\\end{aligned}";
+        solution += '\\end{aligned}';
         result.append(renderMath(solution));
-        result.append($("<p/>").text("Next, subtract the formulas:"));
+        result.append($('<p/>').text('Next, subtract the formulas:'));
 
-        let subtract1 = "";
-        let subtract2 = "";
+        let subtract1 = '';
+        let subtract2 = '';
         let mVal = 0;
         let cVal = 0;
         let mSubstitute = 0;
@@ -600,30 +604,30 @@ export class CipherAffineEncoder extends CipherEncoder {
             mVal = m1Val - m2Val;
             cVal = c1Val - c2Val;
             subtract1 =
-                "\\begin{aligned}" +
+                '\\begin{aligned}' +
                 equation1 +
-                " - " +
+                ' - ' +
                 equation2 +
-                " \\hline a * " +
+                ' \\hline a * ' +
                 mVal +
-                "\\;\\text{mod 26} & = " +
+                '\\;\\text{mod 26} & = ' +
                 cVal +
-                " ";
+                ' ';
             mSubstitute = m2Val;
             cSubstitute = c2Val;
         } else {
             mVal = m2Val - m1Val;
             cVal = c2Val - c1Val;
             subtract1 =
-                "\\begin{aligned}" +
+                '\\begin{aligned}' +
                 equation2 +
-                " - " +
+                ' - ' +
                 equation1 +
-                " \\hline a * " +
+                ' \\hline a * ' +
                 mVal +
-                "\\;\\text{mod 26} & = " +
+                '\\;\\text{mod 26} & = ' +
                 cVal +
-                " ";
+                ' ';
             mSubstitute = m1Val;
             cSubstitute = c1Val;
         }
@@ -632,30 +636,30 @@ export class CipherAffineEncoder extends CipherEncoder {
         if (cVal < 0) {
             cVal += 26;
             subtract2 =
-                " \\\\ a * " + mVal + "\\;\\text{mod 26} & = " + cVal + " ";
+                ' \\\\ a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' ';
             solution += subtract2;
         }
-        solution += " \\end{aligned}";
+        solution += ' \\end{aligned}';
         result.append(renderMath(solution));
 
         // solution for A
-        let message = "";
+        let message = '';
         let a = cVal / mVal;
         let aRemainder = cVal % mVal;
         if (a !== 0) {
             let cValOriginal = cVal;
             if (aRemainder !== 0) {
-                let p1 = $("<p/>").text("Since ");
+                let p1 = $('<p/>').text('Since ');
                 p1.append(
                     renderMath(
                         cVal +
-                            " \\div " +
+                            ' \\div ' +
                             mVal +
-                            " = " +
+                            ' = ' +
                             (cVal / mVal).toPrecision(5)
                     )
                 );
-                p1.append(" we have to find another value. ");
+                p1.append(' we have to find another value. ');
                 let count = 0;
 
                 while (aRemainder !== 0) {
@@ -667,15 +671,15 @@ export class CipherAffineEncoder extends CipherEncoder {
                 p1.append(
                     renderMath(
                         cValOriginal +
-                            " + (26 * " +
+                            ' + (26 * ' +
                             count +
-                            ") = " +
+                            ') = ' +
                             cVal +
-                            ".\\space\\space" +
+                            '.\\space\\space' +
                             cVal +
-                            " \\div " +
+                            ' \\div ' +
                             mVal +
-                            " = " +
+                            ' = ' +
                             a
                     )
                 );
@@ -683,65 +687,65 @@ export class CipherAffineEncoder extends CipherEncoder {
             }
         }
         result.append(renderMath(message));
-        message = "\\colorbox{yellow}{a =" + a + "}";
+        message = '\\colorbox{yellow}{a =' + a + '}';
         result.append(
-            $("<p/>")
-                .text("So we now know that ")
+            $('<p/>')
+                .text('So we now know that ')
                 .append(renderMath(message))
         );
 
         // solution for b
         result.append(
-            $("<p/>").text(
-                "To find b, substitute that back into the equation with the lowest multiplier. "
+            $('<p/>').text(
+                'To find b, substitute that back into the equation with the lowest multiplier. '
             )
         );
         let findingB =
-            "\\begin{aligned}(" +
+            '\\begin{aligned}(' +
             a +
-            " * " +
+            ' * ' +
             mSubstitute +
-            " + b)\\;\\text{mod 26} & = " +
+            ' + b)\\;\\text{mod 26} & = ' +
             cSubstitute +
-            "\\\\(" +
+            '\\\\(' +
             a * mSubstitute +
-            " + b)\\;\\text{mod 26} & = " +
+            ' + b)\\;\\text{mod 26} & = ' +
             cSubstitute +
-            "\\end{aligned}";
+            '\\end{aligned}';
         result.append(renderMath(findingB));
-        let p = $("<p/>").text("Subtract ");
+        let p = $('<p/>').text('Subtract ');
         p.append(renderMath(String(a * mSubstitute)));
-        p.append(" from both sides: ");
+        p.append(' from both sides: ');
         result.append(p);
         findingB =
-            "\\begin{aligned}(" +
+            '\\begin{aligned}(' +
             a * mSubstitute +
-            " +b)\\;\\text{mod 26} - " +
+            ' +b)\\;\\text{mod 26} - ' +
             a * mSubstitute +
-            " & = (" +
+            ' & = (' +
             cSubstitute +
-            " - " +
+            ' - ' +
             a * mSubstitute +
-            ")\\;\\text{mod 26}\\\\" +
-            "b\\;\\text{mod 26} & = " +
+            ')\\;\\text{mod 26}\\\\' +
+            'b\\;\\text{mod 26} & = ' +
             (cSubstitute - a * mSubstitute) +
-            "\\;\\text{mod 26}\\\\";
+            '\\;\\text{mod 26}\\\\';
 
         let b = cSubstitute - a * mSubstitute;
         while (b < 0) {
             b += 26;
         }
         findingB +=
-            "b\\;\\text{mod 26} & = " + b + "\\;\\text{mod 26}\\end{aligned}";
+            'b\\;\\text{mod 26} & = ' + b + '\\;\\text{mod 26}\\end{aligned}';
         result.append(renderMath(findingB));
         result.append(p);
-        p = $("<p/>").text("And we see that ");
-        p.append(renderMath("\\colorbox{yellow}{b =" + b + "}"));
+        p = $('<p/>').text('And we see that ');
+        p.append(renderMath('\\colorbox{yellow}{b =' + b + '}'));
         result.append(p);
 
         result.append(
-            $("<p/>").text(
-                "However, we only know a few of the letters in the cipher."
+            $('<p/>').text(
+                'However, we only know a few of the letters in the cipher.'
             )
         );
 
@@ -750,47 +754,47 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         let outData = [
             {
-                letters: "ETAOIN",
+                letters: 'ETAOIN',
                 prefix:
-                    "The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.",
-                suffix1: "Filling in the letter we found",
-                suffix2: ", we get a bit more of the answer.",
+                    'The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.',
+                suffix1: 'Filling in the letter we found',
+                suffix2: ', we get a bit more of the answer.',
             },
             {
-                letters: "SRHLD",
-                prefix: "Next, encode the next 5 common letters <b>SRHLD</b>.",
-                suffix1: "We know the reverse mapping of 5 more letters",
-                suffix2: ", which we can fill in.",
+                letters: 'SRHLD',
+                prefix: 'Next, encode the next 5 common letters <b>SRHLD</b>.',
+                suffix1: 'We know the reverse mapping of 5 more letters',
+                suffix2: ', which we can fill in.',
             },
             {
-                letters: "CUMFP",
+                letters: 'CUMFP',
                 prefix:
-                    "We will convert the next 5 most frequent letters <b>CUMFP</b>.",
-                suffix1: "The next 5 letters we know are",
-                suffix2: ", so we will fill those in.",
+                    'We will convert the next 5 most frequent letters <b>CUMFP</b>.',
+                suffix1: 'The next 5 letters we know are',
+                suffix2: ', so we will fill those in.',
             },
             {
-                letters: "GWYBV",
-                prefix: "Next, encode the next 5 common letters <b>GWYBV</b>.",
-                suffix1: "We know the reverse mapping of 5 more letters",
-                suffix2: ", which we can fill in.",
+                letters: 'GWYBV',
+                prefix: 'Next, encode the next 5 common letters <b>GWYBV</b>.',
+                suffix1: 'We know the reverse mapping of 5 more letters',
+                suffix2: ', which we can fill in.',
             },
             {
-                letters: "KXJQZ",
-                prefix: "We will convert the remaining 5 letters <b>KXJQZ</b>.",
-                suffix1: "The remaining 5 letters we know are",
-                suffix2: ", so we will fill those in.",
+                letters: 'KXJQZ',
+                prefix: 'We will convert the remaining 5 letters <b>KXJQZ</b>.',
+                suffix1: 'The remaining 5 letters we know are',
+                suffix2: ', so we will fill those in.',
             },
         ];
 
         for (let entry of outData) {
             if (!this.completeSolution) {
                 let found = this.encodeString(entry.letters);
-                result.append($("<p/>").html(entry.prefix));
+                result.append($('<p/>').html(entry.prefix));
                 result.append(this.encodeLetters(a, b, entry.letters));
                 result.append(
-                    $("<p/>").text(
-                        entry.suffix1 + " (" + found + ")" + entry.suffix2
+                    $('<p/>').text(
+                        entry.suffix1 + ' (' + found + ')' + entry.suffix2
                     )
                 );
                 l += entry.letters;
@@ -798,7 +802,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             }
         }
 
-        result.append($("<p/>").text("The solution is now complete!"));
+        result.append($('<p/>').text('The solution is now complete!'));
         return result;
     }
     /**
@@ -806,9 +810,9 @@ export class CipherAffineEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
-        $("#a")
-            .off("input")
-            .on("input", e => {
+        $('#a')
+            .off('input')
+            .on('input', e => {
                 let newa: number = Number($(e.target).val());
                 if (newa !== this.state.a) {
                     this.markUndo(null);
@@ -818,9 +822,9 @@ export class CipherAffineEncoder extends CipherEncoder {
                 }
                 this.advancedir = 0;
             });
-        $("#b")
-            .off("input")
-            .on("input", e => {
+        $('#b')
+            .off('input')
+            .on('input', e => {
                 let newb: number = Number($(e.target).val());
                 if (newb !== this.state.b) {
                     this.markUndo(null);
@@ -830,12 +834,12 @@ export class CipherAffineEncoder extends CipherEncoder {
                 }
                 this.advancedir = 0;
             });
-        $("td")
-            .off("click")
-            .on("click", e => {
-                let id = $(e.target).attr("id");
-                if (this.state.operation === "decode" && id !== "") {
-                    this.markUndo("solclick");
+        $('td')
+            .off('click')
+            .on('click', e => {
+                let id = $(e.target).attr('id');
+                if (this.state.operation === 'decode' && id !== '') {
+                    this.markUndo('solclick');
                     this.state.solclick1 = this.state.solclick2;
                     this.state.solclick2 = Number(id.substr(1));
                     this.updateOutput();
@@ -843,34 +847,34 @@ export class CipherAffineEncoder extends CipherEncoder {
             });
     }
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         result.append(this.genTestUsage());
         let radiobuttons = [
-            { id: "wrow", value: "encode", title: "Encode" },
-            { id: "mrow", value: "decode", title: "Decode" },
+            { id: 'wrow', value: 'encode', title: 'Encode' },
+            { id: 'mrow', value: 'decode', title: 'Decode' },
         ];
         result.append(
-            JTRadioButton(6, "operation", radiobuttons, this.state.operation)
+            JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
         );
 
         result.append(this.genQuestionFields());
         result.append(
             JTFLabeledInput(
-                "Plain Text",
-                "textarea",
-                "toencode",
+                'Plain Text',
+                'textarea',
+                'toencode',
                 this.state.cipherString,
-                "small-12 medium-12 large-12"
+                'small-12 medium-12 large-12'
             )
         );
-        let inputbox = $("<div/>", {
-            class: "grid-x grid-margin-x",
+        let inputbox = $('<div/>', {
+            class: 'grid-x grid-margin-x',
         });
         inputbox.append(
-            JTFIncButton("A", "a", this.state.a, "small-12 medium-4 large-4")
+            JTFIncButton('A', 'a', this.state.a, 'small-12 medium-4 large-4')
         );
         inputbox.append(
-            JTFIncButton("B", "b", this.state.b, "small-12 medium-4 large-4")
+            JTFIncButton('B', 'b', this.state.b, 'small-12 medium-4 large-4')
         );
         result.append(inputbox);
         return result;
@@ -881,22 +885,22 @@ export class CipherAffineEncoder extends CipherEncoder {
     public load(): void {
         this.genAlphabet();
         let res = this.build();
-        $("#answer")
+        $('#answer')
             .empty()
             .append(res);
         if (
-            this.state.operation === "decode" &&
+            this.state.operation === 'decode' &&
             (this.state.solclick1 === -1 || this.state.solclick2 === -1)
         ) {
-            res = $("<p/>").text(
-                "Click on any two columns to choose the decode problem"
+            res = $('<p/>').text(
+                'Click on any two columns to choose the decode problem'
             );
         } else {
             res = this.genSolution();
         }
-        $("#sol")
+        $('#sol')
             .empty()
-            .append("<hr/>")
+            .append('<hr/>')
             .append(res);
 
         this.attachHandlers();

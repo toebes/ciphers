@@ -172,6 +172,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         { title: 'Save', color: 'primary', id: 'save' },
         this.undocmdButton,
         this.redocmdButton,
+        this.guidanceButton,
     ];
     /**
      * Apply a range limit to a value, taking into account if they were using

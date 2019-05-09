@@ -651,6 +651,11 @@ export class CipherHandler {
         class: 'redo',
         disabled: true,
     };
+    public guidanceButton: JTButtonItem = {
+        title: 'Guidance',
+        id: 'guidance',
+        color: 'primary',
+    };
 
     public cmdButtons: JTButtonItem[] = [
         { title: 'Load', color: 'primary', id: 'load' },
@@ -2858,6 +2863,11 @@ export class CipherHandler {
             .off('click')
             .on('click', () => {
                 this.reDo();
+            });
+        $('#guidance')
+            .off('click')
+            .on('click', () => {
+                this.guidance();
             });
         $('#save')
             .off('click')

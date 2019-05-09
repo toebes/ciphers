@@ -48,6 +48,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         { title: 'Save', color: 'primary', id: 'save', class: 'save' },
         this.undocmdButton,
         this.redocmdButton,
+        this.guidanceButton,
     ];
 
     public restore(data: IState): void {

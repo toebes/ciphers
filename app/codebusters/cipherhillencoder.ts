@@ -20,6 +20,9 @@ const kmathEquiv = '\\equiv';
 // Configure how we want the multiplication to appear - either as a * or a dot
 const kmathMult = '*';
 // const kmathMult = ' \\cdot '
+/**
+ * CipherHillEncoder implements the Hill methods
+ */
 export class CipherHillEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL: string = 'TestGuidance.html#Hill_Matrix';
@@ -34,6 +37,7 @@ export class CipherHillEncoder extends CipherEncoder {
         { title: 'Save', color: 'primary', id: 'save' },
         this.undocmdButton,
         this.redocmdButton,
+        this.guidanceButton,
     ];
     public charset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     public padval: string = 'Z';

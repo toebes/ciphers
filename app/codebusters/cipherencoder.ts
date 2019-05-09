@@ -69,6 +69,7 @@ export class CipherEncoder extends CipherHandler {
         },
         this.undocmdButton,
         this.redocmdButton,
+        this.guidanceButton,
         { title: 'Reset', color: 'warning', id: 'reset' },
     ];
     /**

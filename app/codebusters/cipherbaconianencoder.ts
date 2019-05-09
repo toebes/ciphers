@@ -5,72 +5,72 @@ import {
     setCharAt,
     setDisabled,
     StringMap,
-} from "../common/ciphercommon";
-import { toolMode } from "../common/cipherhandler";
-import { ICipherType } from "../common/ciphertypes";
-import { fiveletterwords } from "../common/fiveletterwords";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTFIncButton } from "../common/jtfIncButton";
-import { JTFLabeledInput } from "../common/jtflabeledinput";
-import { JTRadioButton, JTRadioButtonSet } from "../common/jtradiobutton";
-import { JTTable } from "../common/jttable";
-import { CipherEncoder, IEncoderState } from "./cipherencoder";
+} from '../common/ciphercommon';
+import { toolMode } from '../common/cipherhandler';
+import { ICipherType } from '../common/ciphertypes';
+import { fiveletterwords } from '../common/fiveletterwords';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFIncButton } from '../common/jtfIncButton';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
+import { JTTable } from '../common/jttable';
+import { CipherEncoder, IEncoderState } from './cipherencoder';
 
 const baconMap: StringMap = {
-    A: "AAAAA",
-    B: "AAAAB",
-    C: "AAABA",
-    D: "AAABB",
-    E: "AABAA",
-    F: "AABAB",
-    G: "AABBA",
-    H: "AABBB",
-    I: "ABAAA",
-    J: "ABAAA",
-    K: "ABAAB",
-    L: "ABABA",
-    M: "ABABB",
-    N: "ABBAA",
-    O: "ABBAB",
-    P: "ABBBA",
-    Q: "ABBBB",
-    R: "BAAAA",
-    S: "BAAAB",
-    T: "BAABA",
-    U: "BAABB",
-    V: "BAABB",
-    W: "BABAA",
-    X: "BABAB",
-    Y: "BABBA",
-    Z: "BABBB",
+    A: 'AAAAA',
+    B: 'AAAAB',
+    C: 'AAABA',
+    D: 'AAABB',
+    E: 'AABAA',
+    F: 'AABAB',
+    G: 'AABBA',
+    H: 'AABBB',
+    I: 'ABAAA',
+    J: 'ABAAA',
+    K: 'ABAAB',
+    L: 'ABABA',
+    M: 'ABABB',
+    N: 'ABBAA',
+    O: 'ABBAB',
+    P: 'ABBBA',
+    Q: 'ABBBB',
+    R: 'BAAAA',
+    S: 'BAAAB',
+    T: 'BAABA',
+    U: 'BAABB',
+    V: 'BAABB',
+    W: 'BABAA',
+    X: 'BABAB',
+    Y: 'BABBA',
+    Z: 'BABBB',
 };
 const revBaconMap: StringMap = {
-    AAAAA: "A",
-    AAAAB: "B",
-    AAABA: "C",
-    AAABB: "D",
-    AABAA: "E",
-    AABAB: "F",
-    AABBA: "G",
-    AABBB: "H",
-    ABAAA: "I/J",
-    ABAAB: "K",
-    ABABA: "L",
-    ABABB: "M",
-    ABBAA: "N",
-    ABBAB: "O",
-    ABBBA: "P",
-    ABBBB: "Q",
-    BAAAA: "R",
-    BAAAB: "S",
-    BAABA: "T",
-    BAABB: "U/V",
-    BABAA: "W",
-    BABAB: "X",
-    BABBA: "Y",
-    BABBB: "Z",
+    AAAAA: 'A',
+    AAAAB: 'B',
+    AAABA: 'C',
+    AAABB: 'D',
+    AABAA: 'E',
+    AABAB: 'F',
+    AABBA: 'G',
+    AABBB: 'H',
+    ABAAA: 'I/J',
+    ABAAB: 'K',
+    ABABA: 'L',
+    ABABB: 'M',
+    ABBAA: 'N',
+    ABBAB: 'O',
+    ABBBA: 'P',
+    ABBBB: 'Q',
+    BAAAA: 'R',
+    BAAAB: 'S',
+    BAABA: 'T',
+    BAABB: 'U/V',
+    BABAA: 'W',
+    BABAB: 'X',
+    BABBA: 'Y',
+    BABBB: 'Z',
 };
-const punctuationChars = ".,;-!";
+const punctuationChars = '.,;-!';
 interface IBaconianState extends IEncoderState {
     /** Characters to use to represent the A value */
     texta: string;
@@ -90,15 +90,15 @@ interface IBaconianState extends IEncoderState {
  */
 export class CipherBaconianEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = "TestGuidance.html#Baconian";
+    public guidanceURL: string = 'TestGuidance.html#Baconian';
     public defaultstate: IBaconianState = {
-        cipherString: "",
+        cipherString: '',
         cipherType: ICipherType.Baconian,
         offset: 1,
-        operation: "let4let",
-        texta: "A",
-        textb: "B",
-        abMapping: "ABABABABABABABABABABABABAB",
+        operation: 'let4let',
+        texta: 'A',
+        textb: 'B',
+        abMapping: 'ABABABABABABABABABABABABAB',
         linewidth: this.maxEncodeWidth,
         words: [],
     };
@@ -106,9 +106,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.defaultstate
     ) as IBaconianState;
     public cmdButtons: JTButtonItem[] = [
-        { title: "Save", color: "primary", id: "save" },
+        { title: 'Save', color: 'primary', id: 'save' },
         this.undocmdButton,
         this.redocmdButton,
+        this.guidanceButton,
     ];
     /** Where we are in the editing of the words */
     public wordpos: number = 0;
@@ -171,10 +172,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let idx = charset.indexOf(c);
         if (idx >= 0) {
             let val = this.state.abMapping.substr(idx, 1);
-            if (val !== "A") {
-                val = "A";
+            if (val !== 'A') {
+                val = 'A';
             } else {
-                val = "B";
+                val = 'B';
             }
             this.state.abMapping = setCharAt(this.state.abMapping, idx, val);
         }
@@ -200,11 +201,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public buildWordMap(): void {
         this.wordlookup = {};
-        if (this.state.operation === "words") {
+        if (this.state.operation === 'words') {
             let ablookup = this.getABMap();
             for (let word of fiveletterwords) {
                 // Figure out what letter this word will map to
-                let mapping = "";
+                let mapping = '';
                 for (let c of word) {
                     if (ablookup[c] !== undefined) {
                         mapping += ablookup[c];
@@ -234,16 +235,16 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
     }
     public updateOutput(): void {
-        $(".opfield").hide();
-        $("." + this.state.operation).show();
-        $("#texta").val(this.state.texta);
-        $("#textb").val(this.state.textb);
-        $("#linewidth").val(this.state.linewidth);
+        $('.opfield').hide();
+        $('.' + this.state.operation).show();
+        $('#texta').val(this.state.texta);
+        $('#textb').val(this.state.textb);
+        $('#linewidth').val(this.state.linewidth);
         let abmap = this.getABMap();
         for (let c in abmap) {
-            $("#l" + c).text(abmap[c]);
+            $('#l' + c).text(abmap[c]);
         }
-        JTRadioButtonSet("operation", this.state.operation);
+        JTRadioButtonSet('operation', this.state.operation);
         super.updateOutput();
         this.updateWordSelects();
     }
@@ -256,29 +257,29 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public makeReplacement(str: string, maxEncodeWidth: number): string[][] {
         let langreplace = this.langreplace[this.state.curlang];
         // Since the word baconian is so different, we break it out to a different routine
-        if (this.state.operation === "words") {
+        if (this.state.operation === 'words') {
             return this.makeWordReplacement(str, maxEncodeWidth);
         }
-        let sourceline = "";
-        let baconline = "";
-        let encodeline = "";
+        let sourceline = '';
+        let baconline = '';
+        let encodeline = '';
         let result: string[][] = [];
         let letpos: NumberMap = { A: 0, B: 0 };
         let sharedpos = 0;
         for (let t of str) {
             // See if the character needs to be mapped.
-            if (typeof langreplace[t] !== "undefined") {
+            if (typeof langreplace[t] !== 'undefined') {
                 t = langreplace[t];
             }
             let bacontext = baconMap[t];
             // Make sure that this is a valid character to map from
             if (bacontext !== undefined) {
-                sourceline += "  " + t + "  ";
+                sourceline += '  ' + t + '  ';
                 baconline += bacontext;
                 for (let ab of bacontext) {
-                    if (this.state.operation === "let4let") {
+                    if (this.state.operation === 'let4let') {
                         let abstring = this.state.texta;
-                        if (ab !== "A") {
+                        if (ab !== 'A') {
                             abstring = this.state.textb;
                         }
                         let pos = letpos[ab];
@@ -288,9 +289,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
                         encodeline += abstring.substr(pos, 1);
                         pos++;
                         letpos[ab] = pos;
-                    } else if (this.state.operation === "sequence") {
+                    } else if (this.state.operation === 'sequence') {
                         let abstring = this.state.texta;
-                        if (ab !== "A") {
+                        if (ab !== 'A') {
                             abstring = this.state.textb;
                         }
                         if (sharedpos >= abstring.length) {
@@ -300,8 +301,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
                         sharedpos++;
                     } else {
                         // Words
-                        sourceline += " ";
-                        baconline += " ";
+                        sourceline += ' ';
+                        baconline += ' ';
                         encodeline += bacontext;
                     }
                 }
@@ -330,7 +331,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public getEncodeWidth(): number {
         let linewidth = this.maxEncodeWidth;
-        if (this.state.operation !== "words") {
+        if (this.state.operation !== 'words') {
             linewidth = this.state.linewidth;
         }
         return linewidth;
@@ -339,7 +340,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * Build the HTML that corresponds to the UI when creating a question
      */
     public build(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         result.append(this.genAnswer());
         return result;
     }
@@ -347,9 +348,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * Loads up the values for the encoder
      */
     public load(): void {
-        $(".err").text("");
+        $('.err').text('');
         let res = this.build();
-        $("#answer")
+        $('#answer')
             .empty()
             .append(res);
         // We need to attach handlers for any newly created input fields
@@ -359,77 +360,77 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * Generates the section above the command buttons
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         // Show them what tests the question is used on
         result.append(this.genTestUsage());
 
         let radiobuttons = [
-            { id: "wrow", value: "let4let", title: "Letter for letter" },
-            { id: "mrow", value: "sequence", title: "Sequence" },
-            { id: "words", value: "words", title: "Words" },
+            { id: 'wrow', value: 'let4let', title: 'Letter for letter' },
+            { id: 'mrow', value: 'sequence', title: 'Sequence' },
+            { id: 'words', value: 'words', title: 'Words' },
         ];
         result.append(
-            JTRadioButton(6, "operation", radiobuttons, this.state.operation)
+            JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
         );
 
         result.append(this.genQuestionFields());
         result.append(
             JTFLabeledInput(
-                "Plain Text",
-                "textarea",
-                "toencode",
+                'Plain Text',
+                'textarea',
+                'toencode',
                 this.state.cipherString,
-                "small-12 medium-12 large-12"
+                'small-12 medium-12 large-12'
             )
         );
         // Build a table so that they can click on letters to make A or B
         let table = new JTTable({
-            class: "cell shrink tfreq opfield words",
+            class: 'cell shrink tfreq opfield words',
         });
         let hrow = table.addHeaderRow();
         let brow = table.addBodyRow();
         for (let c of this.getCharset()) {
             hrow.add({
-                settings: { class: "abclick", id: "a" + c },
+                settings: { class: 'abclick', id: 'a' + c },
                 content: c,
             });
             brow.add({
-                settings: { class: "abclick", id: "l" + c },
-                content: "A",
+                settings: { class: 'abclick', id: 'l' + c },
+                content: 'A',
             });
         }
         result.append(table.generate());
-        let div = $("<div/>", { class: "grid-x opfield words" });
-        div.append(this.genShiftButtonGroup("left"));
+        let div = $('<div/>', { class: 'grid-x opfield words' });
+        div.append(this.genShiftButtonGroup('left'));
         for (let slot = 0; slot < 5; slot++) {
             div.append(this.genWordSelect(slot));
         }
-        div.append(this.genShiftButtonGroup("right"));
+        div.append(this.genShiftButtonGroup('right'));
         result.append(div);
         result.append(
             JTFLabeledInput(
-                "A Text",
-                "text",
-                "texta",
+                'A Text',
+                'text',
+                'texta',
                 this.state.texta,
-                "small-12 medium-6 large-6 opfield let4let sequence"
+                'small-12 medium-6 large-6 opfield let4let sequence'
             )
         );
         result.append(
             JTFLabeledInput(
-                "B Text",
-                "text",
-                "textb",
+                'B Text',
+                'text',
+                'textb',
                 this.state.textb,
-                "small-12 medium-6 large-6 opfield let4let sequence"
+                'small-12 medium-6 large-6 opfield let4let sequence'
             )
         );
         result.append(
             JTFIncButton(
-                "Line Width",
-                "linewidth",
+                'Line Width',
+                'linewidth',
                 this.state.linewidth,
-                "small-12 medium-6 large-6 opfield let4let sequence"
+                'small-12 medium-6 large-6 opfield let4let sequence'
             )
         );
 
@@ -440,29 +441,29 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * word editing group
      * @param dir direction "left" or "right" for the button group
      */
-    public genShiftButtonGroup(dir: "left" | "right"): JQuery<HTMLElement> {
-        let result = $("<div/>", {
-            class: "cell small-1 medium-1 flex-container flex-dir-column",
+    public genShiftButtonGroup(dir: 'left' | 'right'): JQuery<HTMLElement> {
+        let result = $('<div/>', {
+            class: 'cell small-1 medium-1 flex-container flex-dir-column',
         });
         let buttonConfigs = {
             left: [
-                { id: "", title: "<" },
-                { id: "3", title: "<<<" },
-                { id: "e", title: "|<" },
+                { id: '', title: '<' },
+                { id: '3', title: '<<<' },
+                { id: 'e', title: '|<' },
             ],
             right: [
-                { id: "", title: ">" },
-                { id: "3", title: ">>>" },
-                { id: "e", title: ">|" },
+                { id: '', title: '>' },
+                { id: '3', title: '>>>' },
+                { id: 'e', title: '>|' },
             ],
         };
         for (let config of buttonConfigs[dir]) {
             result.append(
-                $("<button/>", {
-                    id: "w" + dir + config.id,
-                    type: "button",
+                $('<button/>', {
+                    id: 'w' + dir + config.id,
+                    type: 'button',
                     class:
-                        "wshift flex-child-auto button small-1 medium-1 w" +
+                        'wshift flex-child-auto button small-1 medium-1 w' +
                         dir,
                 }).text(config.title)
             );
@@ -475,40 +476,40 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @param slot Which position to create the word select for
      */
     public genWordSelect(slot: number): JQuery<HTMLElement> {
-        let result = $("<div/>", {
-            class: "cell flex-dir-column small-2 medium-2 large-1",
+        let result = $('<div/>', {
+            class: 'cell flex-dir-column small-2 medium-2 large-1',
         });
         result.append(
-            $("<div/>", {
-                class: "flex-child-shrink",
+            $('<div/>', {
+                class: 'flex-child-shrink',
             })
                 .append(
-                    $("<button/>", {
-                        id: "p" + String(slot),
-                        "data-slot": slot,
-                        class: "psel button secondary float-right",
+                    $('<button/>', {
+                        id: 'p' + String(slot),
+                        'data-slot': slot,
+                        class: 'psel button secondary float-right',
                     }).text(punctuationChars)
                 )
                 .append(
-                    $("<div/>", {
-                        id: "v" + String(slot),
-                        class: "wtitle",
-                    }).text("X")
+                    $('<div/>', {
+                        id: 'v' + String(slot),
+                        class: 'wtitle',
+                    }).text('X')
                 )
         );
 
         result.append(
-            $("<select/>", {
-                id: "sel" + String(slot),
-                "data-slot": slot,
+            $('<select/>', {
+                id: 'sel' + String(slot),
+                'data-slot': slot,
                 size: 15,
-                class: "wsel flex-child-grow",
+                class: 'wsel flex-child-grow',
             })
         );
         return result;
     }
     public updateWordSelects(): void {
-        if (this.state.operation !== "words") {
+        if (this.state.operation !== 'words') {
             return;
         }
         let maxwords = this.baconianWords.length;
@@ -518,47 +519,47 @@ export class CipherBaconianEncoder extends CipherEncoder {
             this.wordpos = maxwords - 5;
         }
         // If we can't go any further left, disable the left button entries
-        setDisabled(".wleft", this.wordpos === 0);
-        setDisabled(".wright", this.wordpos >= maxwords - 5);
+        setDisabled('.wleft', this.wordpos === 0);
+        setDisabled('.wright', this.wordpos >= maxwords - 5);
         // Now we need to go through all of the entries
         for (let slot = 0; slot < 5; slot++) {
             let slotpos = this.wordpos + slot;
             if (slotpos < maxwords) {
-                setDisabled("#v" + slot, false);
-                setDisabled("#p" + slot, false);
-                setDisabled("#sel" + slot, false);
+                setDisabled('#v' + slot, false);
+                setDisabled('#p' + slot, false);
+                setDisabled('#sel' + slot, false);
                 // Now go through and repopulate all of the elements
-                let sel = $("#sel" + slot).empty();
-                let punctbutton = $("#p" + slot);
+                let sel = $('#sel' + slot).empty();
+                let punctbutton = $('#p' + slot);
                 let baconian = this.baconianWords[slotpos];
                 let [slotword, punctuation] = this.getSlotWord(slotpos);
-                $("#v" + slot).text(baconian);
+                $('#v' + slot).text(baconian);
                 if (this.wordlookup[baconian] === undefined) {
-                    setDisabled("#v" + slot, true);
-                    setDisabled("#p" + slot, true);
-                    setDisabled("#sel" + slot, true);
+                    setDisabled('#v' + slot, true);
+                    setDisabled('#p' + slot, true);
+                    setDisabled('#sel' + slot, true);
                 } else {
-                    if (punctuation !== "") {
+                    if (punctuation !== '') {
                         punctbutton
-                            .removeClass("secondary")
-                            .addClass("primary")
+                            .removeClass('secondary')
+                            .addClass('primary')
                             .text(punctuation);
                     } else {
                         punctbutton
-                            .removeClass("primary")
-                            .addClass("secondary")
+                            .removeClass('primary')
+                            .addClass('secondary')
                             .text(punctuationChars);
                     }
                     for (let word of this.wordlookup[baconian]) {
                         let option;
 
                         if (word === slotword) {
-                            option = $("<option/>", {
+                            option = $('<option/>', {
                                 val: word,
-                                selected: "selected",
+                                selected: 'selected',
                             }).text(word);
                         } else {
-                            option = $("<option/>", {
+                            option = $('<option/>', {
                                 val: word,
                             }).text(word);
                         }
@@ -566,23 +567,23 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     }
                 }
             } else {
-                setDisabled("#v" + slot, true);
-                setDisabled("#p" + slot, true);
-                setDisabled("#sel" + slot, true);
-                $("#v").text("");
-                $("#sel" + slot).empty();
+                setDisabled('#v' + slot, true);
+                setDisabled('#p' + slot, true);
+                setDisabled('#sel' + slot, true);
+                $('#v').text('');
+                $('#sel' + slot).empty();
             }
         }
     }
     private getSlotWord(slotpos: number): string[] {
         let slotword = this.state.words[slotpos];
         if (slotword === undefined) {
-            slotword = "";
+            slotword = '';
         }
 
         let punctuation = slotword.substr(slotword.length - 1);
         if (this.isValidChar(punctuation.toUpperCase())) {
-            punctuation = "";
+            punctuation = '';
         } else {
             slotword = slotword.substr(0, slotword.length - 1);
         }
@@ -593,29 +594,29 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         let cipherString = this.getEncodingString();
         let strings = this.makeReplacement(cipherString, this.getEncodeWidth());
         for (let strset of strings) {
             result.append(
-                $("<div/>", {
-                    class: "BACON TOSOLVE",
+                $('<div/>', {
+                    class: 'BACON TOSOLVE',
                 }).text(strset[2])
             );
             result.append(
-                $("<div/>", {
-                    class: "BACON TOSOLVE2",
+                $('<div/>', {
+                    class: 'BACON TOSOLVE2',
                 }).text(strset[1])
             );
             result.append(
-                $("<div/>", {
-                    class: "BACON TOANSWER",
+                $('<div/>', {
+                    class: 'BACON TOANSWER',
                 }).text(strset[0])
             );
         }
         result.append(
-            $("<div/>", {
-                class: "TOANSWER",
+            $('<div/>', {
+                class: 'TOANSWER',
             }).text(this.state.cipherString)
         );
 
@@ -633,10 +634,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let result: string[][] = [];
         this.buildWordMap();
         this.buildBaconianWordList(str);
-        let wordline = "";
-        let baconline = "";
-        let decodeline = "";
-        let prefix = "";
+        let wordline = '';
+        let baconline = '';
+        let decodeline = '';
+        let prefix = '';
         // Iterate through each letter and look it up in the map
         for (let i = 0; i < this.baconianWords.length; i++) {
             let baconian = this.baconianWords[i];
@@ -645,8 +646,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
             // Make sure that the alphabet actually gives us a match
             if (this.wordlookup[baconian] === undefined) {
                 // There were no words matching this
-                $("#err").text("Unable to find any words for " + baconian);
-                resword = "[" + baconian + "]";
+                $('#err').text('Unable to find any words for ' + baconian);
+                resword = '[' + baconian + ']';
             } else {
                 // If the word that they selected is still valid, use it
                 if (this.wordlookup[baconian].indexOf(selword) >= 0) {
@@ -662,17 +663,17 @@ export class CipherBaconianEncoder extends CipherEncoder {
             let decode = revBaconMap[baconian];
             baconian = padToMatch(baconian, resword);
             if (decode.length === 1) {
-                decode = padToMatch("  " + decode, resword);
+                decode = padToMatch('  ' + decode, resword);
             } else {
-                decode = padToMatch(" " + decode, resword);
+                decode = padToMatch(' ' + decode, resword);
             }
             if (
-                prefix === "." ||
+                prefix === '.' ||
                 wordline.length + resword.length + prefix.length >
                     maxEncodeWidth
             ) {
                 result.push([
-                    decodeline + padToMatch("", prefix),
+                    decodeline + padToMatch('', prefix),
                     baconline + prefix,
                     wordline + prefix,
                 ]);
@@ -680,17 +681,17 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 baconline = baconian;
                 decodeline = decode;
             } else {
-                decodeline += padToMatch("", prefix) + decode;
+                decodeline += padToMatch('', prefix) + decode;
                 baconline += prefix + baconian;
                 wordline += prefix + resword;
             }
-            if (punctuation === "." || punctuation === "-") {
+            if (punctuation === '.' || punctuation === '-') {
                 prefix = punctuation;
             } else {
-                prefix = punctuation + " ";
+                prefix = punctuation + ' ';
             }
         }
-        if (wordline !== "") {
+        if (wordline !== '') {
             result.push([decodeline, baconline, wordline]);
         }
         return result;
@@ -700,38 +701,38 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         let strings = this.makeReplacement(
             this.getEncodingString(),
             this.getEncodeWidth()
         );
         for (let strset of strings) {
             result.append(
-                $("<div/>", {
-                    class: "BACON TOSOLVEQ",
+                $('<div/>', {
+                    class: 'BACON TOSOLVEQ',
                 }).text(strset[2])
             );
         }
         return result;
     }
     public genSolution(): JQuery<HTMLElement> {
-        let result = $("<div/>");
-        if (this.state.operation === "words") {
-            result.append($("<h3/>").text("The letters are mapped as:"));
-            let table = new JTTable({ class: "cell shrink ansblock" });
+        let result = $('<div/>');
+        if (this.state.operation === 'words') {
+            result.append($('<h3/>').text('The letters are mapped as:'));
+            let table = new JTTable({ class: 'cell shrink ansblock' });
             let row = table.addHeaderRow();
 
             for (let c of this.getCharset()) {
-                row.add({ settings: { class: "v" }, content: c });
+                row.add({ settings: { class: 'v' }, content: c });
             }
             row = table.addBodyRow();
             for (let c of this.state.abMapping) {
-                row.add({ settings: { class: "v" }, content: c });
+                row.add({ settings: { class: 'v' }, content: c });
             }
             result.append(table.generate());
         } else {
             result.append(
-                $("<p/>").text(
+                $('<p/>').text(
                     "The A letters are represented by '" +
                         this.state.texta +
                         "' and the B letters by '" +
@@ -747,65 +748,65 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
-        $("#texta")
-            .off("input")
-            .on("input", e => {
+        $('#texta')
+            .off('input')
+            .on('input', e => {
                 let texta = $(e.target).val() as string;
                 this.markUndo(null);
                 if (this.setTexta(texta)) {
                     this.updateOutput();
                 }
             });
-        $("#textb")
-            .off("input")
-            .on("input", e => {
+        $('#textb')
+            .off('input')
+            .on('input', e => {
                 let textb = $(e.target).val() as string;
                 this.markUndo(null);
                 if (this.setTextb(textb)) {
                     this.updateOutput();
                 }
             });
-        $(".abclick")
-            .off("click")
-            .on("click", e => {
-                let id = $(e.target).attr("id") as string;
+        $('.abclick')
+            .off('click')
+            .on('click', e => {
+                let id = $(e.target).attr('id') as string;
                 let c = id.substr(1, 1);
                 this.markUndo(null);
                 this.toggleAB(c);
                 this.updateOutput();
             });
-        $("#linewidth")
-            .off("input")
-            .on("input", e => {
+        $('#linewidth')
+            .off('input')
+            .on('input', e => {
                 let linewidth = $(e.target).val() as number;
                 this.markUndo(null);
                 if (this.setLineWidth(linewidth)) {
                     this.updateOutput();
                 }
             });
-        $(".wshift")
-            .off("click")
-            .on("click", e => {
-                let id = $(e.target).attr("id") as string;
+        $('.wshift')
+            .off('click')
+            .on('click', e => {
+                let id = $(e.target).attr('id') as string;
                 let type = id.substr(id.length - 1);
                 let shift = 1;
-                if (type === "3") {
+                if (type === '3') {
                     shift = 3;
-                } else if (type === "e") {
+                } else if (type === 'e') {
                     shift = 999999;
                 }
-                if (id.substr(1, 1) === "l") {
+                if (id.substr(1, 1) === 'l') {
                     shift = -shift;
                 }
                 this.wordpos += shift;
                 this.updateWordSelects();
             });
-        $(".wsel")
-            .off("change")
-            .on("change", e => {
+        $('.wsel')
+            .off('change')
+            .on('change', e => {
                 let newword = $(e.target).val() as string;
-                let slot = $(e.target).attr("data-slot");
-                if (slot !== "") {
+                let slot = $(e.target).attr('data-slot');
+                if (slot !== '') {
                     let wordslot = this.wordpos + Number(slot);
                     if (
                         wordslot >= 0 &&
@@ -816,15 +817,15 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     }
                 }
             });
-        $(".psel")
-            .off("click")
-            .on("click", e => {
-                let slot = $(e.target).attr("data-slot");
-                if (slot !== "") {
+        $('.psel')
+            .off('click')
+            .on('click', e => {
+                let slot = $(e.target).attr('data-slot');
+                if (slot !== '') {
                     let wordslot = this.wordpos + Number(slot);
                     let [slotword, punctuation] = this.getSlotWord(wordslot);
                     let punctpos = punctuationChars.indexOf(punctuation) + 1;
-                    if (punctuation === "") {
+                    if (punctuation === '') {
                         punctpos = 0;
                     }
                     punctuation = punctuationChars.substr(punctpos, 1);

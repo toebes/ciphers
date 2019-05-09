@@ -1,10 +1,10 @@
-import { cloneObject, StringMap } from "../common/ciphercommon";
-import { toolMode } from "../common/cipherhandler";
-import { ICipherType } from "../common/ciphertypes";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTFLabeledInput } from "../common/jtflabeledinput";
-import { JTTable } from "../common/jttable";
-import { CipherEncoder, IEncoderState } from "./cipherencoder";
+import { cloneObject, StringMap } from '../common/ciphercommon';
+import { toolMode } from '../common/cipherhandler';
+import { ICipherType } from '../common/ciphertypes';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { JTTable } from '../common/jttable';
+import { CipherEncoder, IEncoderState } from './cipherencoder';
 
 /**
  * CipherPigPenEncoder - This class handles all of the actions associated with encoding
@@ -12,20 +12,21 @@ import { CipherEncoder, IEncoderState } from "./cipherencoder";
  */
 export class CipherPigPenEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = "TestGuidance.html#PigPen";
+    public guidanceURL: string = 'TestGuidance.html#PigPen';
 
     public defaultstate: IEncoderState = {
-        cipherString: "",
+        cipherString: '',
         cipherType: ICipherType.PigPen,
-        replacement: {}
+        replacement: {},
     };
     public state: IEncoderState = cloneObject(
         this.defaultstate
     ) as IEncoderState;
     public cmdButtons: JTButtonItem[] = [
-        { title: "Save", color: "primary", id: "save" },
+        { title: 'Save', color: 'primary', id: 'save' },
         this.undocmdButton,
-        this.redocmdButton
+        this.redocmdButton,
+        this.guidanceButton,
     ];
     /** Save and Restore are done on the CipherEncoder Class */
 
@@ -33,10 +34,10 @@ export class CipherPigPenEncoder extends CipherEncoder {
      * Loads up the values for the encoder
      */
     public load(): void {
-        $(".err").text("");
+        $('.err').text('');
         this.genAlphabet();
         let res = this.build();
-        $("#answer")
+        $('#answer')
             .empty()
             .append(res);
 
@@ -46,16 +47,16 @@ export class CipherPigPenEncoder extends CipherEncoder {
         this.attachHandlers();
     }
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         result.append(this.genTestUsage());
         result.append(this.genQuestionFields());
         result.append(
             JTFLabeledInput(
-                "Plain Text",
-                "textarea",
-                "toencode",
+                'Plain Text',
+                'textarea',
+                'toencode',
                 this.state.cipherString,
-                "small-12 medium-12 large-12"
+                'small-12 medium-12 large-12'
             )
         );
         return result;
@@ -73,11 +74,11 @@ export class CipherPigPenEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(): JQuery<HTMLElement> {
-        let result = $("<div/>", { class: "grid-x" });
+        let result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
         let strings = this.makeReplacement(this.state.cipherString, 40);
         let table = new JTTable({
-            class: "ansblock shrink cell unstriped pigpen"
+            class: 'ansblock shrink cell unstriped pigpen',
         });
         let tosolve = 0;
         let toanswer = 1;
@@ -97,14 +98,14 @@ export class CipherPigPenEncoder extends CipherEncoder {
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(): JQuery<HTMLElement> {
-        let result = $("<div/>", { class: "grid-x" });
+        let result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
         let strings = this.makeReplacement(this.state.cipherString, 40);
         let table = new JTTable({
-            class: "ansblock shrink cell unstriped pigpen"
+            class: 'ansblock shrink cell unstriped pigpen',
         });
         let tosolve = 0;
-        if (this.state.operation === "encode") {
+        if (this.state.operation === 'encode') {
             tosolve = 1;
         }
         for (let strset of strings) {
@@ -120,7 +121,7 @@ export class CipherPigPenEncoder extends CipherEncoder {
         return result;
     }
     public genSolution(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        let result = $('<div/>');
         return result;
     }
 }

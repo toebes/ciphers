@@ -29,8 +29,6 @@
         "style-loader": "^0.21.0",
         "ts-loader": "^4.5.0",
         "tslint": "^5.17.0",
-        "typedoc": "^0.14.2",
-        "typedoc-webpack-plugin": "^1.1.4",
         "typescript": "^2.9.2",
         "typings-for-css-modules-loader": "^1.7.0",
         "uglify-es": "^3.3.9",
@@ -39,7 +37,7 @@
         "webpack": "^4.33.0",
         "webpack-auto-inject-version": "^1.2.2",
         "webpack-bundle-analyzer": "^3.3.2",
-        "webpack-cli": "^3.3.2",
+        "webpack-cli": "^3.3.3",
         "webpack-shell-plugin": "^0.5.0"
     },
     "dependencies": {
@@ -55,6 +53,6 @@
         "jquery": "^3.4.1",
         "js-cookie": "^2.2.0",
         "katex": "^0.10.2",
-        "what-input": "^5.2.1"
+        "what-input": "^5.2.3"
     }
 }

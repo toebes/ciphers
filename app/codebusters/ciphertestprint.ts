@@ -29,6 +29,7 @@ export class CipherTestPrint extends CipherTest {
         this.updateOutput();
     }
     public updateOutput(): void {
+        super.updateOutput();
         this.setMenuMode(menuMode.test);
         $('.testcontent').each((i, elem) => {
             this.genTestQuestions($(elem));
@@ -128,10 +129,10 @@ export class CipherTestPrint extends CipherTest {
             accumulated += thisheight;
             console.log(
                 qnum +
-                    ': height=' +
-                    thisquestion.outerHeight() +
-                    ' bodyheight=' +
-                    document.body.clientHeight
+                ': height=' +
+                thisquestion.outerHeight() +
+                ' bodyheight=' +
+                document.body.clientHeight
             );
         }
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
@@ -177,7 +178,7 @@ export class CipherTestPrint extends CipherTest {
             } else {
                 qtitle = String(qitem.qnum);
             }
-            table
+            let trow = table
                 .addBodyRow()
                 .add({
                     settings: { class: 't' },
@@ -186,11 +187,19 @@ export class CipherTestPrint extends CipherTest {
                 .add({
                     settings: { class: 'v' },
                     content: String(qitem.points),
-                })
-                .add('')
+                });
+            //             if (this.) {
+            //     trow.                .add({
+            //         settings: { colspan: 2, class: 'grey' },
+            //         content: '',
+            //     }).add('');
+
+            // } else {
+            trow.add('')
                 .add('')
                 .add('');
         }
+        // }
         // If we had a timed question, we put in the slot for the bonus
         if (hastimed) {
             table

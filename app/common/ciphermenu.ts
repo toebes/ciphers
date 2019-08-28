@@ -60,6 +60,11 @@ export const CipherMenu: menuItem[] = [
                 cipherType: ICipherType.Hill
             },
             {
+                title: "Morbit",
+                href: "MorbitEncrypt.html",
+                cipherType: ICipherType.Morbit
+            },
+            {
                 title: "PigPen/Masonic",
                 href: "PigPenEncrypt.html",
                 cipherType: ICipherType.PigPen
@@ -68,6 +73,16 @@ export const CipherMenu: menuItem[] = [
                 title: "Patristocrat",
                 href: "PatristocratEncrypt.html",
                 cipherType: ICipherType.Patristocrat
+            },
+            {
+                title: "Pollux",
+                href: "PolluxEncrypt.html",
+                cipherType: ICipherType.Pollux
+            },
+            {
+                title: "Rail Fence",
+                href: "RailFenceEncrypt.html",
+                cipherType: ICipherType.Railfence
             },
             {
                 title: "Running Key",
@@ -84,6 +99,11 @@ export const CipherMenu: menuItem[] = [
                 href: "AristocratSpanishEncrypt.html",
                 cipherType: ICipherType.Aristocrat,
                 lang: "es"
+            },
+            {
+                title: "Tap Code",
+                href: "TapCodeEncrypt.html",
+                cipherType: ICipherType.TapCode
             },
             {
                 title: "Vigen&egrave;re",

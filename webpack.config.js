@@ -578,6 +578,62 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'MorbitEncrypt.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'StdEncoder.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'Morbit',
+            title: 'Morbit Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'PolluxEncrypt.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'StdEncoder.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'Pollux',
+            title: 'Pollux Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'RailFenceEncrypt.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'StdEncoder.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'RailFence',
+            title: 'RailFence Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'TapCodeEncrypt.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'StdEncoder.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TapCode',
+            title: 'Tap Code Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'AristocratSpanishEncrypt.html',
             template: path.join(
                 __dirname,

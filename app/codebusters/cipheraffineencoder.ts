@@ -1,5 +1,5 @@
 import { cloneObject, StringMap } from '../common/ciphercommon';
-import { IState, toolMode } from '../common/cipherhandler';
+import { IState, ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
@@ -31,6 +31,10 @@ interface IAffineState extends IState {
 export class CipherAffineEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL: string = 'TestGuidance.html#Affine';
+    public validTests: ITestType[] = [ITestType.None,
+    ITestType.cregional, ITestType.cstate,
+    ITestType.bregional, ITestType.bstate];
+
     public defaultstate: IAffineState = {
         /** The type of operation */
         operation: 'encode' /** a value */,
@@ -120,9 +124,9 @@ export class CipherAffineEncoder extends CipherEncoder {
             if (a > charset.length) {
                 $('#err').text(
                     'A value of ' +
-                        a +
-                        ' must be smaller than ' +
-                        (charset.length + 1)
+                    a +
+                    ' must be smaller than ' +
+                    (charset.length + 1)
                 );
             }
         }
@@ -480,9 +484,9 @@ export class CipherAffineEncoder extends CipherEncoder {
                 result.append(
                     $('<p/>').text(
                         'We already computed for ' +
-                            m +
-                            ' and know that it is ' +
-                            c
+                        m +
+                        ' and know that it is ' +
+                        c
                     )
                 );
             } else {
@@ -653,10 +657,10 @@ export class CipherAffineEncoder extends CipherEncoder {
                 p1.append(
                     renderMath(
                         cVal +
-                            ' \\div ' +
-                            mVal +
-                            ' = ' +
-                            (cVal / mVal).toPrecision(5)
+                        ' \\div ' +
+                        mVal +
+                        ' = ' +
+                        (cVal / mVal).toPrecision(5)
                     )
                 );
                 p1.append(' we have to find another value. ');
@@ -671,16 +675,16 @@ export class CipherAffineEncoder extends CipherEncoder {
                 p1.append(
                     renderMath(
                         cValOriginal +
-                            ' + (26 * ' +
-                            count +
-                            ') = ' +
-                            cVal +
-                            '.\\space\\space' +
-                            cVal +
-                            ' \\div ' +
-                            mVal +
-                            ' = ' +
-                            a
+                        ' + (26 * ' +
+                        count +
+                        ') = ' +
+                        cVal +
+                        '.\\space\\space' +
+                        cVal +
+                        ' \\div ' +
+                        mVal +
+                        ' = ' +
+                        a
                     )
                 );
                 result.append(p1);

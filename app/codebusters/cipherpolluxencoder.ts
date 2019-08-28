@@ -7,18 +7,46 @@ import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 
 /**
- * CipherPigPenEncoder - This class handles all of the actions associated with encoding
- * a PigPen cipher.
+ * CipherPolluxEncoder - This class handles all of the actions associated with encoding
+ * a Pollux cipher.
  */
-export class CipherPigPenEncoder extends CipherEncoder {
+export class CipherPolluxEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = 'TestGuidance.html#PigPen';
+    public guidanceURL: string = 'TestGuidance.html#Pollux';
 
     public validTests: ITestType[] = [ITestType.None,
         ITestType.aregional];
+    public readonly PolluxMap: StringMap = {
+        A: '. . ',
+        B: '. .. ',
+        C: '. ... ',
+        D: '. .... ',
+        E: '. ..... ',
+        F: '.. . ',
+        G: '.. .. ',
+        H: '.. ... ',
+        I: '.. .... ',
+        J: '.. ..... ',
+        K: '. ... ',
+        L: '... . ',
+        M: '... .. ',
+        N: '... ... ',
+        O: '... .... ',
+        P: '... ..... ',
+        Q: '.... . ',
+        R: '.... .. ',
+        S: '.... ... ',
+        T: '.... .... ',
+        U: '.... ..... ',
+        V: '..... . ',
+        W: '..... .. ',
+        X: '..... ... ',
+        Y: '..... .... ',
+        Z: '..... ..... ',
+    };
     public defaultstate: IEncoderState = {
         cipherString: '',
-        cipherType: ICipherType.PigPen,
+        cipherType: ICipherType.Pollux,
         replacement: {},
     };
     public state: IEncoderState = cloneObject(
@@ -64,23 +92,22 @@ export class CipherPigPenEncoder extends CipherEncoder {
         return result;
     }
     public getReverseReplacement(): StringMap {
-        let revRepl: StringMap = {};
-        // Build a normal replacement map so that we can encode the string
-        let charset = this.getSourceCharset();
-        for (let c of charset) {
-            revRepl[c] = c;
-        }
-        return revRepl;
+        return this.PolluxMap;
     }
+    /**
+     * Fills in the frequency portion of the frequency table.  For the Ragbaby
+     * we don't have the frequency table, so this doesn't need to do anything
+     */
+    public displayFreq(): void { }
     /**
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, 40);
+        let strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
         let table = new JTTable({
-            class: 'ansblock shrink cell unstriped pigpen',
+            class: 'ansblock shrink cell unstriped Pollux',
         });
         let tosolve = 0;
         let toanswer = 1;
@@ -102,9 +129,9 @@ export class CipherPigPenEncoder extends CipherEncoder {
     public genQuestion(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, 40);
+        let strings = this.makeReplacement(this.state.cipherString, 60);
         let table = new JTTable({
-            class: 'ansblock shrink cell unstriped pigpen',
+            class: 'ansblock shrink cell unstriped Pollux',
         });
         let tosolve = 0;
         if (this.state.operation === 'encode') {

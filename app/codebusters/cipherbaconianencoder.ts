@@ -6,7 +6,7 @@ import {
     setDisabled,
     StringMap,
 } from '../common/ciphercommon';
-import { toolMode } from '../common/cipherhandler';
+import { ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { fiveletterwords } from '../common/fiveletterwords';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -91,6 +91,10 @@ interface IBaconianState extends IEncoderState {
 export class CipherBaconianEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL: string = 'TestGuidance.html#Baconian';
+
+    public validTests: ITestType[] = [ITestType.None,
+    ITestType.cregional, ITestType.cstate,
+    ITestType.bregional, ITestType.bstate];
     public defaultstate: IBaconianState = {
         cipherString: '',
         cipherType: ICipherType.Baconian,
@@ -670,7 +674,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             if (
                 prefix === '.' ||
                 wordline.length + resword.length + prefix.length >
-                    maxEncodeWidth
+                maxEncodeWidth
             ) {
                 result.push([
                     decodeline + padToMatch('', prefix),
@@ -734,10 +738,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
             result.append(
                 $('<p/>').text(
                     "The A letters are represented by '" +
-                        this.state.texta +
-                        "' and the B letters by '" +
-                        this.state.textb +
-                        "'"
+                    this.state.texta +
+                    "' and the B letters by '" +
+                    this.state.textb +
+                    "'"
                 )
             );
         }

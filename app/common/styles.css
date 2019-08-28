@@ -1021,6 +1021,9 @@ div.vsolv {
 .pigpen.ansblock td.a {
     border: 1px solid block;
 }
+.TapCode td {
+    padding: 0.1rem;
+}
 
 .formulabox {
     height: 3rem;

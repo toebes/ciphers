@@ -44,6 +44,7 @@ export class CipherTestQuestions extends CipherTest {
         this.updateOutput();
     }
     public updateOutput(): void {
+        super.updateOutput();
         this.setMenuMode(menuMode.test);
         $(".precmds").each((i, elem) => {
             $(elem).replaceWith(this.genPreCommands());
@@ -112,9 +113,9 @@ export class CipherTestQuestions extends CipherTest {
             class: "callout alert",
         }).text(
             "This will delete all questions! " +
-                "This operation can not be undone. " +
-                "Please make sure you have saved a copy in case you need them. " +
-                "  Are you sure you want to do this?"
+            "This operation can not be undone. " +
+            "Please make sure you have saved a copy in case you need them. " +
+            "  Are you sure you want to do this?"
         );
         let DeleteAllDlg = JTFDialog(
             "delalldlg",

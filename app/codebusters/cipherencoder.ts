@@ -4,6 +4,7 @@ import {
     CipherHandler,
     IEncodeType,
     IState,
+    ITestType,
     menuMode,
     toolMode,
 } from '../common/cipherhandler';
@@ -52,6 +53,12 @@ export class CipherEncoder extends CipherHandler {
         curlang: 'en',
         replacement: {},
     };
+
+    public validTests: ITestType[] = [ITestType.None,
+    ITestType.cregional, ITestType.cstate,
+    ITestType.bregional, ITestType.bstate,
+    ITestType.aregional];
+
     public state: IEncoderState = cloneObject(this.defaultstate) as IState;
     /**
      * This is a cache of all active editors on the page.
@@ -113,6 +120,7 @@ export class CipherEncoder extends CipherHandler {
     public updateOutput(): void {
         this.setMenuMode(menuMode.question);
         this.updateQuestionsOutput();
+        this.updateTestUsage();
         $('#toencode').val(this.state.cipherString);
         $('#keyword').val(this.state.keyword);
         $('#offset').val(this.state.offset);
@@ -526,6 +534,19 @@ export class CipherEncoder extends CipherHandler {
             replacement += this.unasigned;
         }
         this.setReplacement(this.getSourceCharset(), replacement);
+    }
+    /**
+     * Determines if this generator is appropriate for a given test
+     * type.  This default implementation just checks against the
+     * list of valid tests declared by the class.
+     * @param testType Test type to compare against
+     * @returns String indicating error or blank for success
+     */
+    public IsAppropriate(testType: ITestType): string {
+        if (this.validTests.indexOf(testType) >= 0) {
+            return "";
+        }
+        return "Not valid for this type of test";
     }
     /**
      * Generate the HTML to display the answer for a cipher

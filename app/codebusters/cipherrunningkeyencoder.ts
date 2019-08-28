@@ -1,4 +1,4 @@
-import { toolMode } from "../common/cipherhandler";
+import { ITestType, toolMode } from "../common/cipherhandler";
 import { JTFIncButton } from "../common/jtfIncButton";
 import { JTFLabeledInput } from "../common/jtflabeledinput";
 import { JTRadioButton } from "../common/jtradiobutton";
@@ -13,6 +13,7 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL: string = "TestGuidance.html#RunningKey";
 
+    public validTests: ITestType[] = [ITestType.None];
     public usesRunningKey: boolean = true;
     public getRunningKeyIndex(): number {
         // See if the current keyword is one of the valid options

@@ -1,6 +1,6 @@
 import "foundation-sites";
 import { cloneObject } from "../common/ciphercommon";
-import { IState, menuMode, toolMode } from "../common/cipherhandler";
+import { IState, ITest, menuMode, toolMode } from "../common/cipherhandler";
 import { getCipherTitle, ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTFLabeledInput } from "../common/jtflabeledinput";
@@ -51,7 +51,7 @@ export class CipherTestGenerator extends CipherTest {
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genTestEditState("testedit");
     }
-    public genTestQuestions(): JQuery<HTMLElement> {
+    public genTestQuestions(test: ITest): JQuery<HTMLElement> {
         let result = $("<div/>", { class: "testdata" });
         let testcount = this.getTestCount();
         if (testcount === 0) {
@@ -62,7 +62,6 @@ export class CipherTestGenerator extends CipherTest {
             result.append($("<h3>").text("Test not found"));
             return result;
         }
-        let test = this.getTestEntry(this.state.test);
 
         let testdiv = $("<div/>", { class: "callout primary" });
 
@@ -75,6 +74,9 @@ export class CipherTestGenerator extends CipherTest {
                 "small-12 medium-12 large-12"
             )
         );
+
+        testdiv.append(
+            this.genTestTypeDropdown("testtype", "Test Type", test.testtype));
 
         let table = new JTTable({ class: "cell stack queslist" });
         let row = table.addHeaderRow();
@@ -102,6 +104,7 @@ export class CipherTestGenerator extends CipherTest {
             test.timed,
             buttons,
             this.showPlain,
+            test.testtype,
             undefined
         );
         for (let entry = 0; entry < test.count; entry++) {
@@ -121,6 +124,7 @@ export class CipherTestGenerator extends CipherTest {
                 test.questions[entry],
                 buttons2,
                 this.showPlain,
+                test.testtype,
                 undefined
             );
         }
@@ -191,16 +195,23 @@ export class CipherTestGenerator extends CipherTest {
         }
     }
     public updateOutput(): void {
+        super.updateOutput();
+        let test = this.getTestEntry(this.state.test);
         this.setMenuMode(menuMode.test);
         $(".testdata").each((i, elem) => {
-            $(elem).replaceWith(this.genTestQuestions());
+            $(elem).replaceWith(this.genTestQuestions(test));
         });
         this.attachHandlers();
     }
-    public setTitle(title: string): void {
+    public setTitle(title: string): boolean {
+        let changed = false;
         let test = this.getTestEntry(this.state.test);
-        test.title = title;
-        this.setTestEntry(this.state.test, test);
+        if (test.title !== title) {
+            changed = true;
+            test.title = title;
+            this.setTestEntry(this.state.test, test);
+        }
+        return changed;
     }
     public gotoAddCipher(entry: number): void {
         let test = this.getTestEntry(this.state.test);
@@ -470,6 +481,15 @@ export class CipherTestGenerator extends CipherTest {
                 } else {
                     this.createEmptyQuestion(cipherType, lang, false);
                 }
+            });
+        $("#testtype")
+            .off('change')
+            .on('change', e => {
+                // We need to lookup the id and convert it to a test type
+                if (this.setTestType(this.mapTestTypeString($(e.target).val() as string))) {
+                    this.updateOutput();
+                }
+                e.preventDefault();
             });
         $("#title")
             .off("input")

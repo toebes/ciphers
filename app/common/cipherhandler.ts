@@ -1,4 +1,5 @@
 import 'foundation-sites';
+import { CipherPrintFactory } from '../codebusters/cipherfactory';
 import {
     BoolMap,
     cloneObject,
@@ -87,6 +88,19 @@ export interface IState {
     //  any?: any
 }
 /**
+ * The types of tests that can be generated
+ */
+export const enum ITestType {
+    None = '',
+    cregional = 'cregional',
+    cstate = 'cstate',
+    bregional = 'bregional',
+    bstate = 'bstate',
+    aregional = 'aregional',
+    astate = 'astate',
+}
+
+/**
  * The save file format of a test
  */
 export interface ITest {
@@ -100,6 +114,8 @@ export interface ITest {
     count: number;
     /** Array of which corresponding test elements to use. */
     questions: number[];
+    /** Which type of test this */
+    testtype: ITestType;
 }
 
 export interface IRunningKey {
@@ -155,46 +171,46 @@ export class CipherHandler {
     public readonly langreplace: {
         [key: string]: { [key1: string]: string };
     } = {
-        en: {},
-        nl: {},
-        de: {},
-        eo: {},
-        es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
-        fr: {
-            Ç: 'C',
-            Â: 'A',
-            À: 'A',
-            É: 'E',
-            Ê: 'E',
-            È: 'E',
-            Ë: 'E',
-            Î: 'I',
-            Ï: 'I',
-            Ô: 'O',
-            Û: 'U',
-            Ù: 'U',
-            Ü: 'U',
-        },
-        it: { À: 'A', É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
-        no: {},
-        pt: {
-            Á: 'A',
-            Â: 'A',
-            Ã: 'A',
-            À: 'A',
-            Ç: 'C',
-            È: 'E',
-            Ê: 'E',
-            Í: 'I',
-            Ó: 'O',
-            Ô: 'O',
-            Õ: 'O',
-            Ú: 'U',
-        },
-        sv: {},
-        ia: {},
-        la: {},
-    };
+            en: {},
+            nl: {},
+            de: {},
+            eo: {},
+            es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
+            fr: {
+                Ç: 'C',
+                Â: 'A',
+                À: 'A',
+                É: 'E',
+                Ê: 'E',
+                È: 'E',
+                Ë: 'E',
+                Î: 'I',
+                Ï: 'I',
+                Ô: 'O',
+                Û: 'U',
+                Ù: 'U',
+                Ü: 'U',
+            },
+            it: { À: 'A', É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
+            no: {},
+            pt: {
+                Á: 'A',
+                Â: 'A',
+                Ã: 'A',
+                À: 'A',
+                Ç: 'C',
+                È: 'E',
+                Ê: 'E',
+                Í: 'I',
+                Ó: 'O',
+                Ô: 'O',
+                Õ: 'O',
+                Ú: 'U',
+            },
+            sv: {},
+            ia: {},
+            la: {},
+        };
     /**
      * This maps which characters are to be used when encoding an ACA cipher
      */
@@ -233,46 +249,46 @@ export class CipherHandler {
     public readonly acalangreplace: {
         [key: string]: { [key1: string]: string };
     } = {
-        en: {},
-        nl: {},
-        de: { Ä: 'A', Ö: 'O', ß: 'SS', Ü: 'U' },
-        eo: { Ĉ: 'C', Ĝ: 'G', Ĥ: 'H', Ĵ: 'J', Ŝ: 'S', Ŭ: 'U' },
-        es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
-        fr: {
-            Ç: 'C',
-            Â: 'A',
-            À: 'A',
-            É: 'E',
-            Ê: 'E',
-            È: 'E',
-            Ë: 'E',
-            Î: 'I',
-            Ï: 'I',
-            Ô: 'O',
-            Û: 'U',
-            Ù: 'U',
-            Ü: 'U',
-        },
-        it: { É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
-        no: {},
-        pt: {
-            Á: 'A',
-            Â: 'A',
-            Ã: 'A',
-            À: 'A',
-            Ç: 'C',
-            È: 'E',
-            Ê: 'E',
-            Í: 'I',
-            Ó: 'O',
-            Ô: 'O',
-            Õ: 'O',
-            Ú: 'U',
-        },
-        sv: {},
-        ia: {},
-        la: {},
-    };
+            en: {},
+            nl: {},
+            de: { Ä: 'A', Ö: 'O', ß: 'SS', Ü: 'U' },
+            eo: { Ĉ: 'C', Ĝ: 'G', Ĥ: 'H', Ĵ: 'J', Ŝ: 'S', Ŭ: 'U' },
+            es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
+            fr: {
+                Ç: 'C',
+                Â: 'A',
+                À: 'A',
+                É: 'E',
+                Ê: 'E',
+                È: 'E',
+                Ë: 'E',
+                Î: 'I',
+                Ï: 'I',
+                Ô: 'O',
+                Û: 'U',
+                Ù: 'U',
+                Ü: 'U',
+            },
+            it: { É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
+            no: {},
+            pt: {
+                Á: 'A',
+                Â: 'A',
+                Ã: 'A',
+                À: 'A',
+                Ç: 'C',
+                È: 'E',
+                Ê: 'E',
+                Í: 'I',
+                Ó: 'O',
+                Ô: 'O',
+                Õ: 'O',
+                Ú: 'U',
+            },
+            sv: {},
+            ia: {},
+            la: {},
+        };
     /**
      * Language character frequency
      */
@@ -806,6 +822,7 @@ export class CipherHandler {
             title: 'Invalid Test',
             count: 0,
             questions: [],
+            testtype: ITestType.None,
         };
         if (this.storage.isAvailable()) {
             let testCount = this.getTestCount();
@@ -1082,7 +1099,7 @@ export class CipherHandler {
     /**
      * Process imported XML
      */
-    public importXML(data: any): void {}
+    public importXML(data: any): void { }
     /**
      * Put up a dialog to select an XML file to import
      */
@@ -1312,16 +1329,35 @@ export class CipherHandler {
         }
         return table.generate();
     }
+    /**
+     * Determines if this generator is appropriate for a given test
+     * type.  In the base class shared by everyone, everything is
+     * appropriate.
+     * @param testType Test type to compare against
+     * @returns String indicating error or blank for success
+     */
+    public IsAppropriate(testType: ITestType): string {
+        return "";
+    }
+
     public genTestUsage(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'testuse' });
+        return result;
+    }
+    public updateTestUsage(): void {
+        let result = $(".testuse");
+        result.empty().removeClass('alert primary');
         let prefix = 'Used on test(s): ';
         if (this.savefileentry !== -1) {
             // Find out what tests this is a part of
             let testCount = this.getTestCount();
             for (let entry = 0; entry < testCount; entry++) {
                 let test = this.getTestEntry(entry);
-                let use;
+                let use = '';
                 let prevq, nextq, prevtxt, nexttxt;
+                // If this is the timed question, we will have a next question
+                // but obviously it is the first question so we don't have a
+                // previous question
                 if (test.timed === this.savefileentry) {
                     use = 'Timed Question';
                     if (test.questions.length > 0) {
@@ -1329,27 +1365,42 @@ export class CipherHandler {
                         nexttxt = '#1';
                     }
                 } else {
+                    // See if this is one of the questions on the test
                     let qnum = test.questions.indexOf(this.savefileentry);
                     if (qnum !== -1) {
+                        // It is, so find the previous question.
                         use = 'Question #' + String(qnum + 1);
                         if (qnum > 0) {
+                            // It is not the first, use the previous entry.
                             prevq = test.questions[qnum - 1];
                             prevtxt = '#' + String(qnum);
                         } else if (test.timed !== -1) {
+                            // Since this is the first,
+                            // it will be the timed question if there is one
                             prevq = test.timed;
                             prevtxt = 'Timed';
                         }
+                        // If it isn't the last, the next is the one after it
                         if (qnum < test.questions.length) {
                             nextq = test.questions[qnum + 1];
                             nexttxt = '#' + String(qnum + 2);
                         }
                     }
                 }
-                if (use !== undefined) {
+                if (use !== '') {
+                    let calloutclass = 'primary';
+                    // It is used on a test.  First we need to find out if the
+                    // question is actually appropriate for the test.
+                    // To do this we need to load the class for the question
+                    let usemsg = this.IsAppropriate(test.testtype);
+                    if (usemsg !== '') {
+                        calloutclass = 'alert';
+                        usemsg = ' - ' + usemsg;
+                    }
                     let link = $('<a/>', {
                         href: 'TestGenerator.html?test=' + String(entry),
-                    }).text(test.title + ' ' + use);
-                    result.addClass('callout primary');
+                    }).text(test.title + ' ' + use + usemsg);
+                    result.addClass('callout ' + calloutclass);
                     result.append(prefix);
                     if (prevq !== undefined) {
                         let linkprev = $('<a/>', {
@@ -1370,16 +1421,15 @@ export class CipherHandler {
                 }
             }
         }
-        return result;
     }
     /**
      * Loads new data into a solver, preserving all solving matches made
      */
-    public load(): void {}
+    public load(): void { }
     /**
      * Loads new data into a solver, resetting any solving matches made
      */
-    public reset(): void {}
+    public reset(): void { }
 
     public genCmdButtons(): JQElement {
         return JTButtonGroup(this.cmdButtons);
@@ -1440,7 +1490,7 @@ export class CipherHandler {
             $(elem).replaceWith(this.getLangDropdown());
         });
     }
-    public restore(data: IState): void {}
+    public restore(data: IState): void { }
     public save(): IState {
         return { cipherType: ICipherType.None, cipherString: '' };
     }
@@ -1611,12 +1661,12 @@ export class CipherHandler {
      * values are legitimate for the cipher handler
      * Generally you will call updateOutput() after calling setUIDefaults()
      */
-    public setUIDefaults(): void {}
+    public setUIDefaults(): void { }
     /**
      * Update the output based on current state settings.  This propagates
      * All values to the UI
      */
-    public updateOutput(): void {}
+    public updateOutput(): void { }
     /**
      * Builds the output for the current state data.
      */
@@ -1635,7 +1685,7 @@ export class CipherHandler {
      * Process the change, but first we need to swap around any other character which
      * is using what we are changing to.
      */
-    public updateSel(item: string, val: string): void {}
+    public updateSel(item: string, val: string): void { }
     /**
      * Adds a set of answer rows to a table.
      *   overline specifies answer characters (typically from a vigenere or running key)
@@ -1748,15 +1798,15 @@ export class CipherHandler {
     /**
      * Change multiple characters at once.
      */
-    public setMultiChars(reqstr: string): void {}
+    public setMultiChars(reqstr: string): void { }
     /**
      * Update all of the match dropdowns in response to a change in the cipher mapping
      */
-    public updateMatchDropdowns(reqstr: string): void {}
+    public updateMatchDropdowns(reqstr: string): void { }
     /**
      * Locate a string and update the results
      */
-    public findPossible(str: string): void {}
+    public findPossible(str: string): void { }
     /**
      * Generate a solving aid for a cipher
      */
@@ -1908,6 +1958,12 @@ export class CipherHandler {
                 lastsplit = decodeline.length;
             }
             encodeline += t;
+            // When the encoded character is longer than the character
+            // we encode (like the Tap Code Cipher) we need to pad the
+            // original string
+            if (t.length > 1) {
+                decodeline += this.repeatStr(" ", t.length - 1);
+            }
             // See if we have to split the line now
             if (encodeline.length >= maxEncodeWidth) {
                 if (lastsplit === -1) {
@@ -2274,7 +2330,7 @@ export class CipherHandler {
      * lang Language to load (2 character abbreviation)
      */
     public loadRawLanguage(lang: string): void {
-        let jqxhr = $.get('Languages/' + lang + '.txt', () => {}).done(data => {
+        let jqxhr = $.get('Languages/' + lang + '.txt', () => { }).done(data => {
             // empty out all the frequent words
             this.showLangStatus(
                 'warning',
@@ -2301,11 +2357,11 @@ export class CipherHandler {
                         if (typeof langreplace[c] === 'undefined') {
                             console.log(
                                 'skipping out on ' +
-                                    pieces[0] +
-                                    ' for ' +
-                                    c +
-                                    ' against ' +
-                                    charset
+                                pieces[0] +
+                                ' for ' +
+                                c +
+                                ' against ' +
+                                charset
                             );
                             legal = false;
                             break;
@@ -2493,8 +2549,8 @@ export class CipherHandler {
         let dlgContents = $('<table class="version-table"/>');
         dlgContents.append(
             '<tr class="version"><td>Version:</td><td>' +
-                getVersion() +
-                '</td></tr>'
+            getVersion() +
+            '</td></tr>'
         );
         dlgContents.append(
             '<tr class="latest-version"><td>Latest version:</td><td><span class="remote-version">Unknown</span></td></tr>'
@@ -2574,8 +2630,8 @@ export class CipherHandler {
                 if (!$('#okdownload').prop('disabled')) {
                     console.log(
                         'disable download prop: >' +
-                            $('#okdownload').prop('disabled') +
-                            '<'
+                        $('#okdownload').prop('disabled') +
+                        '<'
                     );
                     e.preventDefault();
                     window.location.href =
@@ -2605,21 +2661,21 @@ export class CipherHandler {
             url: 'https://toebes.com/codebusters/siteVersion.txt',
             dataType: 'jsonp',
             jsonpCallback: 'getVersion',
-            success: function(a: any, b: string, c: JQueryXHR): void {
+            success: function (a: any, b: string, c: JQueryXHR): void {
                 console.log('A Success ' + JSON.stringify(a));
                 console.log('B Success ' + b);
                 console.log('C Success ' + c);
                 remote_version = a['version'];
                 console.log('Set remote version to: ' + remote_version);
             },
-            error: function(a: JQueryXHR, b: string, c: string): void {
+            error: function (a: JQueryXHR, b: string, c: string): void {
                 console.log('A Error ' + JSON.stringify(a));
                 console.log('B Error ' + b);
                 console.log('C Error ' + c);
                 console.log('Disable the download button...');
                 $('#okdownload').prop('disabled', true);
             },
-        }).done(function(a: any, b: string, c: JQueryXHR): void {
+        }).done(function (a: any, b: string, c: JQueryXHR): void {
             $('.remote-version').html(remote_version);
             // enable the down load buttin if appropriate
             console.log('Enable download button?');

@@ -4,6 +4,7 @@ import {
     IRunningKey,
     IState,
     ITest,
+    ITestType,
     toolMode,
 } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
@@ -27,6 +28,8 @@ export interface ITestState extends IState {
     sols?: string;
     /** A URL to to import test date from on load */
     importURL?: string;
+    /** Which division they are doing the test for */
+    testtype?: ITestType;
 }
 interface IQuestionData {
     /** Which question this is associated with.  -1 indicates timed */
@@ -41,6 +44,13 @@ interface INewCipherEntry {
     /** Optional title to override the default title */
     title?: string;
 }
+
+interface ITestTypeInfo {
+    title: string;
+    type: ITestType;
+    id: string;
+}
+
 export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols';
 /**
  * Base support for all the test generation handlers
@@ -84,6 +94,7 @@ export class CipherTest extends CipherHandler {
     public defaultstate: ITestState = {
         cipherString: '',
         cipherType: ICipherType.None,
+        testtype: ITestType.None,
     };
     public state: ITestState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [
@@ -97,6 +108,33 @@ export class CipherTest extends CipherHandler {
         { title: 'Import Tests from File', color: 'primary', id: 'import' },
         { title: 'Import Tests from URL', color: 'primary', id: 'importurl' },
     ];
+
+    public testTypeMap: ITestTypeInfo[] = [
+        {
+            title: 'C (High School) - Invitational/Regional',
+            type: ITestType.cregional,
+            id: 'cregional'
+        },
+        {
+            title: 'C (High School) - State/National',
+            type: ITestType.cstate,
+            id: 'cstate'
+        },
+        {
+            title: 'B (Middle School) - Invitational/Regional',
+            type: ITestType.bregional,
+            id: 'bregional'
+        },
+        {
+            title: 'B (Middle School) - State/National',
+            type: ITestType.bstate,
+            id: 'bstate'
+        },
+        {
+            title: 'A (Elementary School) - Invitational/Regional',
+            type: ITestType.aregional,
+            id: 'aregional'
+        }];
     public cipherChoices: INewCipherEntry[] = [
         { cipherType: ICipherType.Affine },
         { cipherType: ICipherType.Caesar },
@@ -114,6 +152,10 @@ export class CipherTest extends CipherHandler {
         { cipherType: ICipherType.Baconian },
         { cipherType: ICipherType.RSA },
         { cipherType: ICipherType.PigPen },
+        { cipherType: ICipherType.TapCode },
+        { cipherType: ICipherType.Morbit },
+        { cipherType: ICipherType.Pollux },
+        { cipherType: ICipherType.Railfence },
     ];
     /**
      * Stash of the current questions
@@ -143,6 +185,36 @@ export class CipherTest extends CipherHandler {
     public setTestEditState(testdisp: ITestDisp): void {
         JTRadioButtonSet('testdisp', testdisp);
     }
+    public mapTestTypeString(id: string): ITestType {
+        let result = ITestType.None;
+        for (let entry of this.testTypeMap) {
+            if (entry.id === id) {
+                result = entry.type;
+                break;
+            }
+        }
+        return result;
+    }
+    public mapTestTypeID(testtype: ITestType): string {
+        let result = "";
+        for (let entry of this.testTypeMap) {
+            if (entry.type === testtype) {
+                result = entry.id;
+                break;
+            }
+        }
+        return result;
+    }
+    public setTestType(testtype: ITestType): boolean {
+        let changed = false;
+        let test = this.getTestEntry(this.state.test);
+        if (testtype !== test.testtype) {
+            changed = true;
+            test.testtype = testtype;
+            this.setTestEntry(this.state.test, test);
+        }
+        return changed;
+    }
     public checkXMLImport(): void {
         if (this.state.importURL !== undefined) {
             if (this.state.importURL !== '') {
@@ -161,10 +233,11 @@ export class CipherTest extends CipherHandler {
             count: 0,
             questions: [],
             title: 'New Test',
+            testtype: ITestType.None,
         });
         location.reload();
     }
-    public exportTests(): void {}
+    public exportTests(): void { }
     public importTests(useLocalData: boolean): void {
         this.openXMLImport(useLocalData);
     }
@@ -307,16 +380,64 @@ export class CipherTest extends CipherHandler {
                         entry,
                         buttons,
                         true,
+                        ITestType.None,
                         testuse[entry]
                     );
                 } else {
-                    this.addQuestionRow(table, entry, entry, buttons, true, '');
+                    this.addQuestionRow(table, entry, entry, buttons, true, ITestType.None, '');
                 }
             }
         }
         result.append(table.generate());
         return result;
     }
+    /**
+     * Generate a dropdown for the type of test
+     * @param id HTML id of the generated dropdown
+     * @param title Title text for the generated dropdown
+     */
+    public genTestTypeDropdown(
+        id: string,
+        title: string,
+        testtype: ITestType
+    ): JQuery<HTMLElement> {
+        let inputgroup = $('<div/>', {
+            class: 'input-group cell small-12 medium-12 large-12',
+        });
+        $('<span/>', { class: 'input-group-label' })
+            .text(title)
+            .appendTo(inputgroup);
+        let select = $('<select/>', {
+            id: id,
+            class: 'input-group-field',
+        });
+        let option = $('<option />', {
+            value: '',
+            disabled: 'disabled',
+        }).text('--Select a Test Type--');
+
+        if (testtype === ITestType.None) {
+            option.attr('selected', 'selected');
+        }
+        select.append(option);
+
+        for (let entry of this.testTypeMap) {
+            option = $('<option />', {
+                value: entry.id,
+            }).html(entry.title);
+            if (testtype === entry.type) {
+                option.attr('selected', 'selected');
+            }
+            select.append(option);
+        }
+        inputgroup.append(select);
+        return inputgroup;
+    }
+    /**
+     * Create a dropdown to allow inserting a new cipher type
+     * @param id HTML id of the generated dropdown
+     * @param title Title text for the generated dropdown
+     */
     public genNewCipherDropdown(
         id: string,
         title: string
@@ -375,6 +496,7 @@ export class CipherTest extends CipherHandler {
         qnum: number,
         buttons: buttonInfo[],
         showPlain: boolean,
+        testtype: ITestType,
         prevuse: any
     ): void {
         let ordertext = 'Timed';
@@ -390,7 +512,8 @@ export class CipherTest extends CipherHandler {
             ordertext = String(order);
         }
         let row = table.addBodyRow();
-        if (order === -1 && qnum === -1) {
+        // We have a timed question on everything except the A Division
+        if (order === -1 && qnum === -1 && testtype !== ITestType.aregional) {
             let callout = $('<div/>', {
                 class: 'callout warning',
             }).text('No Timed Question!  Add one from below');
@@ -403,6 +526,7 @@ export class CipherTest extends CipherHandler {
                 content: callout,
             });
         } else {
+            let qerror = '';
             row.add(ordertext);
             let state = this.getFileEntry(qnum);
             if (state === null) {
@@ -411,6 +535,20 @@ export class CipherTest extends CipherHandler {
                     points: 0,
                     cipherString: '',
                 };
+            }
+            if (testtype === ITestType.aregional && order === -1) {
+                qerror = 'Timed question not allowed for this type of test';
+            } else {
+                let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
+                cipherhandler.restore(state);
+                qerror = cipherhandler.IsAppropriate(testtype);
+                if (qerror !== '') {
+                    if (order === -1) {
+                        qerror = 'Timed question: ' + qerror;
+                    } else {
+                        qerror = 'Question ' + ordertext + ': ' + qerror;
+                    }
+                }
             }
             let buttonset = $('<div/>', {
                 class: 'button-group round shrink',
@@ -443,8 +581,37 @@ export class CipherTest extends CipherHandler {
                         class: plainclass,
                     }).text(state.cipherString)
                 );
+            if (qerror !== '') {
+                row = table.addBodyRow();
+                let callout = $('<div/>', {
+                    class: 'callout alert',
+                }).text(qerror);
+                row.add({
+                    celltype: 'td',
+                    settings: { colspan: 6 },
+                    content: callout,
+                });
+            }
         }
         return;
+    }
+    public AddTestError(qnum: number, message: string): void {
+        if (message !== "") {
+            let qtxt = 'Timed Question: ';
+            if (qnum !== -1) {
+                qtxt = "Question " + String(qnum) + ": ";
+            }
+            let callout = $('<div/>', {
+                class: 'callout alert',
+            }).text(qtxt + message);
+            $(".testerrors").append(callout);
+        }
+    }
+    public GetPrintFactory(question: number): CipherHandler {
+        let state = this.getFileEntry(question);
+        let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
+        cipherhandler.restore(state);
+        return cipherhandler;
     }
     /**
      * Generate a printable answer for a test entry.
@@ -452,11 +619,11 @@ export class CipherTest extends CipherHandler {
      */
     public printTestAnswer(
         qnum: number,
-        question: number,
+        handler: CipherHandler,
         extraclass: string,
         printSolution: boolean
     ): JQuery<HTMLElement> {
-        let state = this.getFileEntry(question);
+        let state = handler.state;
         let extratext = '';
         let result = $('<div/>', {
             class: 'question ' + extraclass,

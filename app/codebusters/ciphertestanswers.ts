@@ -1,8 +1,9 @@
 import { cloneObject } from "../common/ciphercommon";
-import { menuMode, toolMode } from "../common/cipherhandler";
+import { ITestType, menuMode, toolMode } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTTable } from "../common/jttable";
+import { CipherPrintFactory } from "./cipherfactory";
 import { CipherTest, ITestDisp, ITestState } from "./ciphertest";
 
 /**
@@ -62,6 +63,7 @@ export class CipherTestAnswers extends CipherTest {
      * All values to the UI
      */
     public updateOutput(): void {
+        super.updateOutput();
         this.setMenuMode(menuMode.test);
         this.setTestEditState(this.getTestEditState());
 
@@ -95,6 +97,7 @@ export class CipherTestAnswers extends CipherTest {
             // Empty the instructions so that they don't print
             $(".instructions").empty();
         }
+        $(".testerrors").empty();
         let testcount = this.getTestCount();
         if (testcount === 0) {
             return $("<h3/>").text("No Tests Created Yet");
@@ -111,29 +114,43 @@ export class CipherTestAnswers extends CipherTest {
         let dt = new Date();
         $(".testyear").text(dt.getFullYear());
         if (test.timed === -1) {
-            result.append(
-                $("<p/>", {
-                    class: "noprint",
-                }).text("No timed question")
-            );
+            // A Division doesn't have a timed quesiton, so don't print out
+            // a message if it isn't there.
+            if (test.testtype !== ITestType.aregional) {
+                result.append(
+                    $("<p/>", {
+                        class: "noprint",
+                    }).text("No timed question")
+                );
+            }
         } else {
+            let cipherhandler = this.GetPrintFactory(test.timed);
             result.append(
-                this.printTestAnswer(-1, test.timed, "pagebreak", printSolution)
+                this.printTestAnswer(-1, cipherhandler, "pagebreak", printSolution)
             );
+            // A Division doesn't have a timed question, but if one was
+            // there, print it out, but generate an error message
+            if (test.testtype === ITestType.aregional) {
+                let qerror = 'Timed question not allowed for A Division';
+            } else {
+                let qerror = cipherhandler.IsAppropriate(test.testtype);
+            }
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
             let breakclass = "";
             if (qnum % 2 === 0) {
                 breakclass = "pagebreak";
             }
+            let cipherhandler = this.GetPrintFactory(test.questions[qnum]);
             result.append(
                 this.printTestAnswer(
                     qnum + 1,
-                    test.questions[qnum],
+                    cipherhandler,
                     breakclass,
                     printSolution
                 )
             );
+            let qerror = cipherhandler.IsAppropriate(test.testtype);
         }
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
         this.setMenuMode(menuMode.test);

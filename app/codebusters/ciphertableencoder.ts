@@ -1,5 +1,5 @@
 import { BoolMap, cloneObject, StringMap } from '../common/ciphercommon';
-import { toolMode } from '../common/cipherhandler';
+import { ITestType, toolMode } from '../common/cipherhandler';
 import { CipherTypeButtonItem, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
@@ -18,6 +18,25 @@ export class CipherTableEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL: string = 'TestGuidance.html#Baconian';
 
+    /** Which tests allow these ciphers on them */
+    public validTests: ITestType[] = [ITestType.None,
+    ITestType.cregional, ITestType.cstate,
+    ITestType.bregional, ITestType.bstate,
+    ITestType.aregional];
+
+    public validAtBashTests: ITestType[] = [ITestType.None,
+    ITestType.bregional, ITestType.bstate,
+    ITestType.aregional];
+    /**
+     * Special case: for A Regional tests:
+     *   The Caesar Cipher, also called a shift cipher, with a shift of
+     *   no more than 3 characters in either direction.
+     *    E.g. a can map to x,y,z,b,c,d,
+     */
+    public validCaesarTests: ITestType[] = [ITestType.None,
+    ITestType.cregional, ITestType.cstate,
+    ITestType.bregional, ITestType.bstate,
+    ITestType.aregional];
     public defaultstate: IEncoderState = {
         cipherString: '',
         cipherType: ICipherType.Caesar,
@@ -46,6 +65,28 @@ export class CipherTableEncoder extends CipherEncoder {
     public setUIDefaults(): void {
         super.setUIDefaults();
         this.setOperation(this.state.operation);
+    }
+    public IsAppropriate(testType: ITestType): string {
+        let result = super.IsAppropriate(testType);
+        if (result === "") {
+            if (testType === ITestType.aregional &&
+                this.state.cipherType === ICipherType.Caesar &&
+                (this.state.offset > 3 && this.state.offset < 23)) {
+                result = "Offset too large for this type of test";
+            }
+        }
+        return result;
+    }
+    public setCipherType(cipherType: ICipherType): boolean {
+        let changed = super.setCipherType(cipherType);
+        if (changed) {
+            if (cipherType === ICipherType.Caesar) {
+                this.validTests = this.validCaesarTests;
+            } else {
+                this.validTests = this.validAtBashTests;
+            }
+        }
+        return changed;
     }
     public setOffset(offset: number): boolean {
         let changed = false;
@@ -308,18 +349,18 @@ export class CipherTableEncoder extends CipherEncoder {
                 );
                 p.append(
                     'Since we have a single letter word, we try out ' +
-                        let1word +
-                        '=A and ' +
-                        let1word +
-                        '=I.'
+                    let1word +
+                    '=A and ' +
+                    let1word +
+                    '=I.'
                 );
                 result.append(p);
                 p = $('<p/>').text(
                     'With ' +
-                        let1word +
-                        '=A we look in the decoding table for a ' +
-                        let1word +
-                        ' in the A column'
+                    let1word +
+                    '=A we look in the decoding table for a ' +
+                    let1word +
+                    ' in the A column'
                 );
                 p.append(' and see that it is the ' + akey + ' row');
                 result.append(p);
@@ -328,16 +369,16 @@ export class CipherTableEncoder extends CipherEncoder {
                 );
                 p.append(
                     ", it comes out as '" +
-                        this.decodeCaesar(longword, akey) +
-                        "'"
+                    this.decodeCaesar(longword, akey) +
+                    "'"
                 );
                 result.append(p);
                 p = $('<p/>').text(
                     'With ' +
-                        let1word +
-                        '=I we look in the decoding table for a ' +
-                        let1word +
-                        ' in the I column'
+                    let1word +
+                    '=I we look in the decoding table for a ' +
+                    let1word +
+                    ' in the I column'
                 );
                 p.append(' and see that it is the ' + ikey + ' row');
                 result.append(p);
@@ -346,16 +387,16 @@ export class CipherTableEncoder extends CipherEncoder {
                 );
                 p.append(
                     ", it comes out as '" +
-                        this.decodeCaesar(longword, ikey) +
-                        "'"
+                    this.decodeCaesar(longword, ikey) +
+                    "'"
                 );
                 result.append(p);
                 if (ikey === realkey || akey === realkey) {
                     result.append(
                         $('<p/>').text(
                             'Based on this, we believe that the key row is ' +
-                                realkey +
-                                ' which we can use to decode the remaining letters'
+                            realkey +
+                            ' which we can use to decode the remaining letters'
                         )
                     );
                 } else {
@@ -493,20 +534,20 @@ export class CipherTableEncoder extends CipherEncoder {
                     result.append(
                         $('<p/>').text(
                             'Based on this, we believe that the key row is ' +
-                                goodkeys[0] +
-                                ' which we can use to decode the remaining letters'
+                            goodkeys[0] +
+                            ' which we can use to decode the remaining letters'
                         )
                     );
                     p = $('<p/>').text(
                         'We can confirm it by using the ' +
-                            goodkeys[0] +
-                            ' row to decode ' +
-                            todecode
+                        goodkeys[0] +
+                        ' row to decode ' +
+                        todecode
                     );
                     p.append(
                         ", we see it comes out as '" +
-                            this.decodeCaesar(longword, goodkeys[0]) +
-                            "'"
+                        this.decodeCaesar(longword, goodkeys[0]) +
+                        "'"
                     );
                     if (goodkeys[0] === realkey) {
                         p.append(
@@ -518,7 +559,7 @@ export class CipherTableEncoder extends CipherEncoder {
                     result.append(
                         $('<p/>').text(
                             'Since we have several possible choices, we have to try them out on ' +
-                                todecode
+                            todecode
                         )
                     );
                     for (let key of goodkeys) {
@@ -527,8 +568,8 @@ export class CipherTableEncoder extends CipherEncoder {
                         );
                         p.append(
                             ", it comes out as '" +
-                                this.decodeCaesar(longword, key) +
-                                "'"
+                            this.decodeCaesar(longword, key) +
+                            "'"
                         );
                         result.append(p);
                     }
@@ -536,8 +577,8 @@ export class CipherTableEncoder extends CipherEncoder {
                         result.append(
                             $('<p/>').text(
                                 'Based on this, we believe that the key row is ' +
-                                    realkey +
-                                    ' which we can use to decode the remaining letters'
+                                realkey +
+                                ' which we can use to decode the remaining letters'
                             )
                         );
                     } else {
@@ -559,16 +600,16 @@ export class CipherTableEncoder extends CipherEncoder {
                     );
                     p.append(
                         ", it comes out as '" +
-                            this.decodeCaesar(longword, key) +
-                            "'"
+                        this.decodeCaesar(longword, key) +
+                        "'"
                     );
                     result.append(p);
                     if (key === realkey) {
                         result.append(
                             $('<p/>').text(
                                 'Based on this, we believe that the key row is ' +
-                                    key +
-                                    ' which we can use to decode the remaining letters'
+                                key +
+                                ' which we can use to decode the remaining letters'
                             )
                         );
                         break;

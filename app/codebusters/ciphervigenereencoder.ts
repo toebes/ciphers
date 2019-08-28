@@ -2,6 +2,7 @@ import { cloneObject } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
+    ITestType,
     menuMode,
     toolMode,
 } from '../common/cipherhandler';
@@ -29,6 +30,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL: string = 'TestGuidance.html#Vigenere';
 
+    public validTests: ITestType[] = [ITestType.None,
+        ITestType.cregional, ITestType.cstate,
+        ITestType.bregional, ITestType.bstate,
+        ITestType.aregional];
     public defaultstate: IVigenereState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.Vigenere,

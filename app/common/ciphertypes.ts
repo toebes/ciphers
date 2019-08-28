@@ -67,6 +67,7 @@ export const enum ICipherType {
     Standard = "standard",
     Swagman = "swagman",
     Syllabary = "syllabary",
+    TapCode = "tapcode",
     Test = "test",
     Tridigital = "tridigital",
     Trifid = "trifid",
@@ -593,6 +594,14 @@ let cipherTypeConfig = new Map(<[ICipherType, any][]>[
             title: "Syllabary",
             id: "syllabary",
             equiv: [ICipherType.Syllabary]
+        }
+    ],
+    [
+        ICipherType.TapCode,
+        {
+            title: "Tap Code",
+            id: "tapcode",
+            equiv: [ICipherType.TapCode]
         }
     ],
     [

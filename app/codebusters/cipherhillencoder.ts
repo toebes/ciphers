@@ -1,5 +1,5 @@
 import { cloneObject } from '../common/ciphercommon';
-import { IState, toolMode } from '../common/cipherhandler';
+import { IState, ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
@@ -26,6 +26,9 @@ const kmathMult = '*';
 export class CipherHillEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL: string = 'TestGuidance.html#Hill_Matrix';
+
+    public validTests: ITestType[] = [ITestType.None,
+    ITestType.cregional, ITestType.cstate];
     public defaultstate: IState = {
         cipherString: '',
         keyword: '' /** The type of cipher we are doing */,
@@ -314,9 +317,9 @@ export class CipherHillEncoder extends CipherEncoder {
         if (!isCoPrime(detval, charset.length)) {
             $('#err').text(
                 'Matrix is not invertable.  Determinant ' +
-                    mod26(detval) +
-                    ' is not coprime with ' +
-                    charset.length
+                mod26(detval) +
+                ' is not coprime with ' +
+                charset.length
             );
             return undefined;
         }
@@ -408,8 +411,8 @@ export class CipherHillEncoder extends CipherEncoder {
 
         p = $('<p/>').text(
             'Looking up ' +
-                detmod26 +
-                ' in the table supplied with the test (or by computing it with the '
+            detmod26 +
+            ' in the table supplied with the test (or by computing it with the '
         );
         p.append(
             $('<a/>', {
@@ -419,8 +422,8 @@ export class CipherHillEncoder extends CipherEncoder {
         );
         p.append(
             ') we find that it is ' +
-                detinv +
-                ' which we substitute into the formula to compute the matrix:'
+            detinv +
+            ' which we substitute into the formula to compute the matrix:'
         );
         result.append(p);
         equation =

@@ -1,5 +1,5 @@
 import { cloneObject } from '../common/ciphercommon';
-import { IState, menuMode, toolMode } from '../common/cipherhandler';
+import { IState, ITestType, menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
@@ -43,6 +43,7 @@ export class CipherTestManage extends CipherTest {
         this.updateOutput();
     }
     public updateOutput(): void {
+        super.updateOutput();
         this.setMenuMode(menuMode.test);
         $('.testlist').each((i, elem) => {
             $(elem).replaceWith(this.genTestList());
@@ -126,6 +127,7 @@ export class CipherTestManage extends CipherTest {
             count: 0,
             questions: [],
             title: 'New Test',
+            testtype: ITestType.None
         });
         this.gotoEditTest(test);
     }

@@ -7,18 +7,46 @@ import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 
 /**
- * CipherPigPenEncoder - This class handles all of the actions associated with encoding
- * a PigPen cipher.
+ * CipherTapCodeEncoder - This class handles all of the actions associated with encoding
+ * a TapCode cipher.
  */
-export class CipherPigPenEncoder extends CipherEncoder {
+export class CipherTapCodeEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = 'TestGuidance.html#PigPen';
+    public guidanceURL: string = 'TestGuidance.html#TapCode';
 
     public validTests: ITestType[] = [ITestType.None,
         ITestType.aregional];
+    public readonly TapCodeMap: StringMap = {
+        A: '. . ',
+        B: '. .. ',
+        C: '. ... ',
+        D: '. .... ',
+        E: '. ..... ',
+        F: '.. . ',
+        G: '.. .. ',
+        H: '.. ... ',
+        I: '.. .... ',
+        J: '.. ..... ',
+        K: '. ... ',
+        L: '... . ',
+        M: '... .. ',
+        N: '... ... ',
+        O: '... .... ',
+        P: '... ..... ',
+        Q: '.... . ',
+        R: '.... .. ',
+        S: '.... ... ',
+        T: '.... .... ',
+        U: '.... ..... ',
+        V: '..... . ',
+        W: '..... .. ',
+        X: '..... ... ',
+        Y: '..... .... ',
+        Z: '..... ..... ',
+    };
     public defaultstate: IEncoderState = {
         cipherString: '',
-        cipherType: ICipherType.PigPen,
+        cipherType: ICipherType.TapCode,
         replacement: {},
     };
     public state: IEncoderState = cloneObject(
@@ -64,23 +92,22 @@ export class CipherPigPenEncoder extends CipherEncoder {
         return result;
     }
     public getReverseReplacement(): StringMap {
-        let revRepl: StringMap = {};
-        // Build a normal replacement map so that we can encode the string
-        let charset = this.getSourceCharset();
-        for (let c of charset) {
-            revRepl[c] = c;
-        }
-        return revRepl;
+        return this.TapCodeMap;
     }
+    /**
+     * Fills in the frequency portion of the frequency table.  For the Ragbaby
+     * we don't have the frequency table, so this doesn't need to do anything
+     */
+    public displayFreq(): void { }
     /**
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, 40);
+        let strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
         let table = new JTTable({
-            class: 'ansblock shrink cell unstriped pigpen',
+            class: 'ansblock shrink cell unstriped TapCode',
         });
         let tosolve = 0;
         let toanswer = 1;
@@ -102,9 +129,9 @@ export class CipherPigPenEncoder extends CipherEncoder {
     public genQuestion(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, 40);
+        let strings = this.makeReplacement(this.state.cipherString, 60);
         let table = new JTTable({
-            class: 'ansblock shrink cell unstriped pigpen',
+            class: 'ansblock shrink cell unstriped TapCode',
         });
         let tosolve = 0;
         if (this.state.operation === 'encode') {

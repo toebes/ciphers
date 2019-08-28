@@ -4,18 +4,22 @@ import { CipherAffineEncoder } from "./cipheraffineencoder";
 import { CipherBaconianEncoder } from "./cipherbaconianencoder";
 import { CipherEncoder } from "./cipherencoder";
 import { CipherHillEncoder } from "./cipherhillencoder";
+import { CipherMorbitEncoder } from "./ciphermorbitencoder";
+import { CipherPigPenEncoder } from "./cipherpigpenencoder";
+import { CipherPolluxEncoder } from "./cipherpolluxencoder";
 import { CipherQuoteAnalyze } from "./cipherquoteanalyze";
+import { CipherRailFenceEncoder } from "./cipherrailfenceencoder";
 import { CipherRSAEncoder } from "./cipherrsaencoder";
 import { CipherRunningKeyEdit } from "./cipherrunningkeyedit";
 import { CipherRunningKeyEncoder } from "./cipherrunningkeyencoder";
 import { CipherTableEncoder } from "./ciphertableencoder";
+import { CipherTapCodeEncoder } from "./ciphertapcodeencoder";
 import { CipherTestAnswers } from "./ciphertestanswers";
 import { CipherTestGenerator } from "./ciphertestgenerator";
 import { CipherTestManage } from "./ciphertestmanage";
 import { CipherTestPrint } from "./ciphertestprint";
 import { CipherTestQuestions } from "./ciphertestquestions";
 import { CipherVigenereEncoder } from "./ciphervigenereencoder";
-import { CipherPigPenEncoder } from "./cipherpigpenencoder";
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -58,6 +62,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherClass: CipherHillEncoder,
         canPrint: true
     },
+    Morbit: {
+        cipherType: ICipherType.Morbit,
+        cipherClass: CipherMorbitEncoder,
+        canPrint: true
+    },
     Patristocrat: {
         cipherType: ICipherType.Patristocrat,
         cipherClass: CipherEncoder,
@@ -68,10 +77,20 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherClass: CipherPigPenEncoder,
         canPrint: true
     },
+    Pollux: {
+        cipherType: ICipherType.Pollux,
+        cipherClass: CipherPolluxEncoder,
+        canPrint: true
+    },
     QuoteAnalyze: {
         cipherType: ICipherType.None,
         cipherClass: CipherQuoteAnalyze,
         canPrint: false
+    },
+    RailFence: {
+        cipherType: ICipherType.Railfence,
+        cipherClass: CipherRailFenceEncoder,
+        canPrint: true
     },
     RunningKeyEdit: {
         cipherType: ICipherType.None,
@@ -86,6 +105,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     RSA: {
         cipherType: ICipherType.RSA,
         cipherClass: CipherRSAEncoder,
+        canPrint: true
+    },
+    TapCode: {
+        cipherType: ICipherType.TapCode,
+        cipherClass: CipherTapCodeEncoder,
         canPrint: true
     },
     TestAnswers: {

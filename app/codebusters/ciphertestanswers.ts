@@ -114,7 +114,7 @@ export class CipherTestAnswers extends CipherTest {
         let dt = new Date();
         $(".testyear").text(dt.getFullYear());
         if (test.timed === -1) {
-            // A Division doesn't have a timed quesiton, so don't print out
+            // Division A doesn't have a timed quesiton, so don't print out
             // a message if it isn't there.
             if (test.testtype !== ITestType.aregional) {
                 result.append(
@@ -129,12 +129,12 @@ export class CipherTestAnswers extends CipherTest {
             result.append(
                 this.printTestAnswer(-1, cipherhandler, "pagebreak", printSolution)
             );
-            // A Division doesn't have a timed question, but if one was
+            // Division A doesn't have a timed question, but if one was
             // there, print it out, but generate an error message
             if (test.testtype === ITestType.aregional) {
-                qerror = 'Not allowed for A Division';
+                qerror = 'Not allowed for Division A';
             } else {
-                qerror = cipherhandler.IsAppropriate(test.testtype);
+                qerror = cipherhandler.CheckAppropriate(test.testtype);
             }
             if (qerror !== '') {
                 $(".testerrors").append($('<div/>', {
@@ -156,7 +156,7 @@ export class CipherTestAnswers extends CipherTest {
                     printSolution
                 )
             );
-            let qerror = cipherhandler.IsAppropriate(test.testtype);
+            let qerror = cipherhandler.CheckAppropriate(test.testtype);
             if (qerror !== '') {
                 $(".testerrors").append($('<div/>', {
                     class: 'callout alert',

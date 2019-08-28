@@ -440,7 +440,8 @@ export class CipherTest extends CipherHandler {
      */
     public genNewCipherDropdown(
         id: string,
-        title: string
+        title: string,
+        testtype: ITestType
     ): JQuery<HTMLElement> {
         let inputgroup = $('<div/>', {
             class: 'input-group cell small-12 medium-12 large-12',
@@ -460,18 +461,22 @@ export class CipherTest extends CipherHandler {
             }).text('--Select a Cipher Type to add--')
         );
         for (let entry of this.cipherChoices) {
-            let option = $('<option />', {
-                value: entry.cipherType,
-            });
-            if (entry.lang !== undefined) {
-                option.attr('data-lang', entry.lang);
+            // Make sure that this type of cipher is legal for this type of test
+            let cipherhandler = CipherPrintFactory(entry.cipherType, entry.lang);
+            if (cipherhandler.CheckAppropriate(testtype) === '') {
+                let option = $('<option />', {
+                    value: entry.cipherType,
+                });
+                if (entry.lang !== undefined) {
+                    option.attr('data-lang', entry.lang);
+                }
+                let cipherTitle = getCipherTitle(entry.cipherType);
+                if (entry.title !== undefined) {
+                    cipherTitle = entry.title;
+                }
+                option.html(cipherTitle);
+                select.append(option);
             }
-            let cipherTitle = getCipherTitle(entry.cipherType);
-            if (entry.title !== undefined) {
-                cipherTitle = entry.title;
-            }
-            option.html(cipherTitle);
-            select.append(option);
         }
         // See if we need to add the ability to add existing ciphers
         let cipherCount = this.getCipherCount();
@@ -512,13 +517,14 @@ export class CipherTest extends CipherHandler {
             ordertext = String(order);
         }
         let row = table.addBodyRow();
-        // We have a timed question on everything except the A Division
+        // We have a timed question on everything except the Division A
         if (order === -1 && qnum === -1 && testtype !== ITestType.aregional) {
             let callout = $('<div/>', {
                 class: 'callout warning',
             }).text('No Timed Question!  Add one from below');
             callout.append(
-                this.genNewCipherDropdown('addnewtimed', 'New Timed Question')
+                this.genNewCipherDropdown('addnewtimed',
+                    'New Timed Question', testtype)
             );
             row.add({
                 celltype: 'td',
@@ -541,7 +547,7 @@ export class CipherTest extends CipherHandler {
             } else {
                 let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
                 cipherhandler.restore(state);
-                qerror = cipherhandler.IsAppropriate(testtype);
+                qerror = cipherhandler.CheckAppropriate(testtype);
                 if (qerror !== '') {
                     if (order === -1) {
                         qerror = 'Timed question: ' + qerror;

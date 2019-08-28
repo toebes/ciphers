@@ -16,7 +16,8 @@ export class CipherMorbitEncoder extends CipherEncoder {
     public guidanceURL: string = 'TestGuidance.html#Morbit';
 
     public validTests: ITestType[] = [ITestType.None,
-    ITestType.aregional];
+    ITestType.cregional, ITestType.cstate,
+    ITestType.bregional, ITestType.bstate];
     public defaultstate: IEncoderState = {
         cipherString: '',
         cipherType: ICipherType.Morbit,

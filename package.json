@@ -49,10 +49,14 @@
         "@types/mathjs": "^4.4.5",
         "es5-shim": "^4.5.13",
         "es6-shim": "^0.35.5",
+        "eslint-config-prettier": "^6.1.0",
+        "eslint-plugin-prettier": "^3.1.0",
         "foundation-sites": "^6.5.3",
         "jquery": "^3.4.1",
         "js-cookie": "^2.2.1",
         "katex": "^0.10.2",
+        "tslint-config-prettier": "^1.18.0",
+        "tslint-plugin-prettier": "^2.0.1",
         "what-input": "^5.2.3"
     }
 }

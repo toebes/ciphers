@@ -15,7 +15,8 @@ export class CipherPolluxEncoder extends CipherEncoder {
     public guidanceURL: string = 'TestGuidance.html#Pollux';
 
     public validTests: ITestType[] = [ITestType.None,
-        ITestType.aregional];
+    ITestType.cregional, ITestType.cstate,
+    ITestType.bregional, ITestType.bstate];
     public readonly PolluxMap: StringMap = {
         A: '. . ',
         B: '. .. ',

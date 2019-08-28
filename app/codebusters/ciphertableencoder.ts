@@ -66,8 +66,8 @@ export class CipherTableEncoder extends CipherEncoder {
         super.setUIDefaults();
         this.setOperation(this.state.operation);
     }
-    public IsAppropriate(testType: ITestType): string {
-        let result = super.IsAppropriate(testType);
+    public CheckAppropriate(testType: ITestType): string {
+        let result = super.CheckAppropriate(testType);
         if (result === "") {
             if (testType === ITestType.aregional &&
                 this.state.cipherType === ICipherType.Caesar &&

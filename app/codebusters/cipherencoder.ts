@@ -542,7 +542,15 @@ export class CipherEncoder extends CipherHandler {
      * @param testType Test type to compare against
      * @returns String indicating error or blank for success
      */
-    public IsAppropriate(testType: ITestType): string {
+    public CheckAppropriate(testType: ITestType): string {
+        if (testType === ITestType.aregional) {
+            if (this.state.cipherType === ICipherType.Patristocrat) {
+                return "Patristocrats not appropriate for Division A tests";
+            }
+            if (this.state.curlang === 'es') {
+                return "Xenocrypts not appropriate for Division A tests";
+            }
+        }
         if (this.validTests.indexOf(testType) >= 0) {
             return "";
         }

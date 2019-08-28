@@ -1,6 +1,6 @@
 import "foundation-sites";
 import { cloneObject } from "../common/ciphercommon";
-import { IState, ITest, menuMode, toolMode } from "../common/cipherhandler";
+import { IState, ITest, ITestType, menuMode, toolMode } from "../common/cipherhandler";
 import { getCipherTitle, ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTFLabeledInput } from "../common/jtflabeledinput";
@@ -98,15 +98,20 @@ export class CipherTestGenerator extends CipherTest {
             { title: "Edit", btnClass: "quesedit" },
             { title: "Remove", btnClass: "quesremove alert" },
         ];
-        this.addQuestionRow(
-            table,
-            -1,
-            test.timed,
-            buttons,
-            this.showPlain,
-            test.testtype,
-            undefined
-        );
+        // If the test has a timed question, then put it.  Note that
+        // The Division A doesn't have a timed question, but if someone
+        // snuck one in, we have to show it.
+        if (test.timed !== -1 || test.testtype !== ITestType.aregional) {
+            this.addQuestionRow(
+                table,
+                -1,
+                test.timed,
+                buttons,
+                this.showPlain,
+                test.testtype,
+                undefined
+            );
+        }
         for (let entry = 0; entry < test.count; entry++) {
             let buttons2: buttonInfo[] = [
                 { title: "&uarr;", btnClass: "quesup", disabled: entry === 0 },
@@ -138,7 +143,8 @@ export class CipherTestGenerator extends CipherTest {
                 content: callout,
             });
         }
-        let dropdown = this.genNewCipherDropdown("addnewques", "New Question");
+        let dropdown = this.genNewCipherDropdown("addnewques",
+            "New Question", test.testtype);
         table.addBodyRow().add({
             celltype: "td",
             settings: { colspan: 6 },

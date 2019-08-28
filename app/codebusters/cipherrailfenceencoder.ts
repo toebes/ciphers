@@ -15,7 +15,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public guidanceURL: string = 'TestGuidance.html#RailFence';
 
     public validTests: ITestType[] = [ITestType.None,
-        ITestType.aregional];
+    ITestType.bregional, ITestType.bstate];
     public readonly RailFenceMap: StringMap = {
         A: '. . ',
         B: '. .. ',

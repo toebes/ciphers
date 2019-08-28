@@ -1336,7 +1336,7 @@ export class CipherHandler {
      * @param testType Test type to compare against
      * @returns String indicating error or blank for success
      */
-    public IsAppropriate(testType: ITestType): string {
+    public CheckAppropriate(testType: ITestType): string {
         return "";
     }
 
@@ -1392,7 +1392,7 @@ export class CipherHandler {
                     // It is used on a test.  First we need to find out if the
                     // question is actually appropriate for the test.
                     // To do this we need to load the class for the question
-                    let usemsg = this.IsAppropriate(test.testtype);
+                    let usemsg = this.CheckAppropriate(test.testtype);
                     if (usemsg !== '') {
                         calloutclass = 'alert';
                         usemsg = ' - ' + usemsg;

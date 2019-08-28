@@ -125,15 +125,21 @@ export class CipherTestAnswers extends CipherTest {
             }
         } else {
             let cipherhandler = this.GetPrintFactory(test.timed);
+            let qerror = '';
             result.append(
                 this.printTestAnswer(-1, cipherhandler, "pagebreak", printSolution)
             );
             // A Division doesn't have a timed question, but if one was
             // there, print it out, but generate an error message
             if (test.testtype === ITestType.aregional) {
-                let qerror = 'Timed question not allowed for A Division';
+                qerror = 'Not allowed for A Division';
             } else {
-                let qerror = cipherhandler.IsAppropriate(test.testtype);
+                qerror = cipherhandler.IsAppropriate(test.testtype);
+            }
+            if (qerror !== '') {
+                $(".testerrors").append($('<div/>', {
+                    class: 'callout alert',
+                }).text('Timed Question: ' + qerror));
             }
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
@@ -151,6 +157,11 @@ export class CipherTestAnswers extends CipherTest {
                 )
             );
             let qerror = cipherhandler.IsAppropriate(test.testtype);
+            if (qerror !== '') {
+                $(".testerrors").append($('<div/>', {
+                    class: 'callout alert',
+                }).text('Question' + String(qnum + 1) + ': ' + qerror));
+            }
         }
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
         this.setMenuMode(menuMode.test);

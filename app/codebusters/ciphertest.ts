@@ -672,10 +672,10 @@ export class CipherTest extends CipherHandler {
      */
     public printTestQuestion(
         qnum: number,
-        question: number,
+        handler: CipherHandler,
         extraclass: string
     ): JQuery<HTMLElement> {
-        let state = this.getFileEntry(question);
+        let state = handler.state;
         let extratext = '';
         let result = $('<div/>', {
             class: 'question ' + extraclass,

@@ -1,5 +1,5 @@
 import { cloneObject } from '../common/ciphercommon';
-import { menuMode, toolMode } from '../common/cipherhandler';
+import { ITestType, menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
@@ -96,24 +96,43 @@ export class CipherTestPrint extends CipherTest {
         let page = this.genPage(test.title);
         result.append(page);
         if (test.timed === -1) {
-            result.append(
-                $('<p/>', {
-                    class: 'noprint',
-                }).text('No timed question')
-            );
+            // A Division doesn't have a timed quesiton, so don't print out
+            // a message if it isn't there.
+            if (test.testtype !== ITestType.aregional) {
+                result.append(
+                    $('<p/>', {
+                        class: 'noprint',
+                    }).text('No timed question')
+                );
+            }
         } else {
+            let cipherhandler = this.GetPrintFactory(test.timed);
+            let qerror = '';
             let timedquestion = this.printTestQuestion(
                 -1,
-                test.timed,
+                cipherhandler,
                 'pagebreak'
             );
             page.append(timedquestion);
             qcount = 99;
+            // A Division doesn't have a timed question, but if one was
+            // there, print it out, but generate an error message
+            if (test.testtype === ITestType.aregional) {
+                qerror = 'Not allowed for A Division';
+            } else {
+                qerror = cipherhandler.IsAppropriate(test.testtype);
+            }
+            if (qerror !== '') {
+                $(".testerrors").append($('<div/>', {
+                    class: 'callout alert',
+                }).text('Timed Question: ' + qerror));
+            }
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
+            let cipherhandler = this.GetPrintFactory(test.questions[qnum]);
             let thisquestion = this.printTestQuestion(
                 qnum + 1,
-                test.questions[qnum],
+                cipherhandler,
                 ''
             );
             page.append(thisquestion);
@@ -134,6 +153,12 @@ export class CipherTestPrint extends CipherTest {
                 ' bodyheight=' +
                 document.body.clientHeight
             );
+            let qerror = cipherhandler.IsAppropriate(test.testtype);
+            if (qerror !== '') {
+                $(".testerrors").append($('<div/>', {
+                    class: 'callout alert',
+                }).text('Question' + String(qnum + 1) + ': ' + qerror));
+            }
         }
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
         this.setMenuMode(menuMode.test);

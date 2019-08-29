@@ -31,9 +31,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public guidanceURL: string = 'TestGuidance.html#Vigenere';
 
     public validTests: ITestType[] = [ITestType.None,
-        ITestType.cregional, ITestType.cstate,
-        ITestType.bregional, ITestType.bstate,
-        ITestType.aregional];
+    ITestType.cregional, ITestType.cstate,
+    ITestType.bregional, ITestType.bstate,
+    ITestType.aregional];
     public defaultstate: IVigenereState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.Vigenere,
@@ -71,6 +71,23 @@ export class CipherVigenereEncoder extends CipherEncoder {
         return savestate;
     }
     /**
+     * Determines if this generator is appropriate for a given test
+     * type.  For Division A, only decode is allowed
+     * @param testType Test type to compare against
+     * @returns String indicating error or blank for success
+     */
+    public CheckAppropriate(testType: ITestType): string {
+        let result = super.CheckAppropriate(testType);
+        if (result === "") {
+            if (testType !== ITestType.cregional &&
+                testType !== ITestType.cstate &&
+                this.state.operation === 'encode') {
+                result = "Only Decode allowed for this type of test";
+            }
+        }
+        return result;
+    }
+    /**
      * Cleans up any settings, range checking and normalizing any values.
      * This doesn't actually update the UI directly but ensures that all the
      * values are legitimate for the cipher handler
@@ -85,23 +102,14 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
-        this.updateQuestionsOutput();
-        this.setMenuMode(menuMode.question);
         if (this.state.operation === 'encode') {
             this.guidanceURL = 'TestGuidance.html#Vigenere';
-            // Change the button label to 'Encode'
-            $('#load').val('Encode');
         } else {
             this.guidanceURL = 'TestGuidance.html#Vigenere_Decrypt';
-            // Change button label to 'Decode'
-            $('#load').val('Decode');
         }
-        $('#load').prop('disabled', this.state.keyword === '');
         JTRadioButtonSet('operation', this.state.operation);
-        $('#toencode').val(this.state.cipherString);
         $('#blocksize').val(this.state.blocksize);
-        $('#keyword').val(this.state.keyword);
-        this.load();
+        super.updateOutput();
     }
 
     public genPreCommands(): JQuery<HTMLElement> {

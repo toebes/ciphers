@@ -66,6 +66,12 @@ export class CipherTableEncoder extends CipherEncoder {
         super.setUIDefaults();
         this.setOperation(this.state.operation);
     }
+    /**
+     * Determines if this generator is appropriate for a given test
+     * type.  For Division A, the Caesar is limited to an offset +- 3
+     * @param testType Test type to compare against
+     * @returns String indicating error or blank for success
+     */
     public CheckAppropriate(testType: ITestType): string {
         let result = super.CheckAppropriate(testType);
         if (result === "") {

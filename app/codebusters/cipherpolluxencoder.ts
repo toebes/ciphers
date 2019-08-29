@@ -24,34 +24,6 @@ export class CipherPolluxEncoder extends CipherEncoder {
     public validTests: ITestType[] = [ITestType.None,
     ITestType.cregional, ITestType.cstate,
     ITestType.bregional, ITestType.bstate];
-    public readonly PolluxMap: StringMap = {
-        A: '. . ',
-        B: '. .. ',
-        C: '. ... ',
-        D: '. .... ',
-        E: '. ..... ',
-        F: '.. . ',
-        G: '.. .. ',
-        H: '.. ... ',
-        I: '.. .... ',
-        J: '.. ..... ',
-        K: '. ... ',
-        L: '... . ',
-        M: '... .. ',
-        N: '... ... ',
-        O: '... .... ',
-        P: '... ..... ',
-        Q: '.... . ',
-        R: '.... .. ',
-        S: '.... ... ',
-        T: '.... .... ',
-        U: '.... ..... ',
-        V: '..... . ',
-        W: '..... .. ',
-        X: '..... ... ',
-        Y: '..... .... ',
-        Z: '..... ..... ',
-    };
     public defaultstate: IPolluxState = {
         cipherString: '',
         cipherType: ICipherType.Pollux,
@@ -134,13 +106,6 @@ export class CipherPolluxEncoder extends CipherEncoder {
         }
         JTRadioButtonSet('operation', this.state.operation);
         super.updateOutput();
-        // Check to see if we have any duplicated characters
-        let morseletmap: StringMap = this.buildMorseletMap();
-        for (let c in morseletmap) {
-            if (morseletmap[c].length > 1) {
-                this.addErrorMsg(c + " used for more than one letter: " + morseletmap[c]);
-            }
-        }
     }
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
@@ -216,47 +181,19 @@ export class CipherPolluxEncoder extends CipherEncoder {
 
         return result;
     }
-    public getReverseReplacement(): StringMap {
-        return this.PolluxMap;
-    }
     /**
      * Fills in the frequency portion of the frequency table.  For the Ragbaby
      * we don't have the frequency table, so this doesn't need to do anything
      */
     public displayFreq(): void { }
     /**
-     * Generate the HTML to display the answer for a cipher
+     * Using the currently selected replacement set, encodes a string
+     * This breaks it up into lines of maxEncodeWidth characters or less so that
+     * it can be output properly.
+     * This returns the strings as an array of pairs of strings with
+     * the encode and decode parts delivered together.  As a side effect
+     * it also updates the frequency table
      */
-    public genAnswer(): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        this.genAlphabet();
-        let strings = this.makeReplacement(
-            this.state.cipherString,
-            this.maxEncodeWidth);
-        let tosolve = 0;
-        let toanswer = 1;
-        for (let strset of strings) {
-            result.append(
-                $('<div/>', {
-                    class: 'TOSOLVE',
-                }).text(strset[tosolve])
-            );
-            result.append(
-                $('<div/>', {
-                    class: 'TOANSWER',
-                }).text(strset[toanswer])
-            );
-        }
-        return result;
-    }
-    /**
- * Using the currently selected replacement set, encodes a string
- * This breaks it up into lines of maxEncodeWidth characters or less so that
- * it can be output properly.
- * This returns the strings as an array of pairs of strings with
- * the encode and decode parts delivered together.  As a side effect
- * it also updates the frequency table
- */
     public makeReplacement(str: string, maxEncodeWidth: number): string[][] {
         let sourcecharset = this.getSourceCharset();
         let langreplace = this.langreplace[this.state.curlang];
@@ -268,9 +205,38 @@ export class CipherPolluxEncoder extends CipherEncoder {
         let opos = 0;
         let extra = "";
         let encoded = '';
+        let failed = false;
         // Build out a mapping of the replacement characters to their morselet
         // value so we can figure out if we can reuse it.
         let morseletmap: StringMap = this.buildMorseletMap();
+
+        if (this.state.dotchars.length === 0) {
+            this.addErrorMsg('No characters specified for O');
+            failed = true;
+        }
+        if (this.state.dashchars.length === 0) {
+            this.addErrorMsg('No characters specified for -');
+            failed = true;
+        }
+        if (this.state.xchars.length === 0) {
+            this.addErrorMsg('No characters specified for X');
+            failed = true;
+        }
+        // Check to see if we have any duplicated characters
+        for (let c in morseletmap) {
+            if (c < '0' || c > '9') {
+                this.addErrorMsg(c + ' is not a valid digit');
+                failed = true;
+            }
+            if (morseletmap[c].length > 1) {
+                this.addErrorMsg(c + " used for more than one letter: " + morseletmap[c]);
+                failed = true;
+            }
+        }
+        if (failed) {
+            return result;
+        }
+
         let mapstr: StringMap = {
             'O': this.state.dotchars,
             '-': this.state.dashchars,
@@ -373,7 +339,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'grid-x' });
+        let result = $('<div/>');
         this.genAlphabet();
         let strings = this.makeReplacement(this.state.cipherString, 60);
 
@@ -382,11 +348,15 @@ export class CipherPolluxEncoder extends CipherEncoder {
                 $('<div/>', {
                     class: 'TOSOLVEQ',
                 }).text(strset[0])
+                    .append($("<br/><br/>"))
             );
         }
         return result;
     }
-    public genSolution(): JQuery<HTMLElement> {
+    /**
+     * Generate the HTML to display the answer for a cipher
+     */
+    public genAnswer(): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genAlphabet();
         let strings = this.makeReplacement(
@@ -413,6 +383,10 @@ export class CipherPolluxEncoder extends CipherEncoder {
             );
         }
         return result;
+    }
+    public genSolution(): JQuery<HTMLElement> {
+        // TODO: Write solving code here.
+        return null;
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions

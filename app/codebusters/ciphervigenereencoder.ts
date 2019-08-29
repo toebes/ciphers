@@ -82,7 +82,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             if (testType !== ITestType.cregional &&
                 testType !== ITestType.cstate &&
                 this.state.operation === 'encode') {
-                result = "Only Decode allowed for this type of test";
+                result = "Only Decode problems are allowed on this type of test";
             }
         }
         return result;

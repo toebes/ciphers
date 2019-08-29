@@ -71,8 +71,9 @@ export class CipherTestPrint extends CipherTest {
 
     public genTestQuestions(elem: JQuery<HTMLElement>): void {
         let testcount = this.getTestCount();
+        let errors: string[] = [];
         let usesMorseTable = false;
-        let usesSpanish = false;
+        let SpanishCount = 0;
         elem.empty();
         if (testcount === 0) {
             elem.append($('<h3>').text('No Tests Created Yet'));
@@ -125,9 +126,7 @@ export class CipherTestPrint extends CipherTest {
                 qerror = cipherhandler.CheckAppropriate(test.testtype);
             }
             if (qerror !== '') {
-                $(".testerrors").append($('<div/>', {
-                    class: 'callout alert',
-                }).text('Timed Question: ' + qerror));
+                errors.push('Timed Question: ' + qerror);
             }
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
@@ -139,7 +138,7 @@ export class CipherTestPrint extends CipherTest {
             );
             /* Is this a xenocrypt?  if so we need the Spanish frequency */
             if (cipherhandler.state.curlang === 'es') {
-                usesSpanish = true;
+                SpanishCount++;
             }
             /* Does this cipher involve morse code? */
             if (cipherhandler.usesMorseTable) {
@@ -165,9 +164,7 @@ export class CipherTestPrint extends CipherTest {
             );
             let qerror = cipherhandler.CheckAppropriate(test.testtype);
             if (qerror !== '') {
-                $(".testerrors").append($('<div/>', {
-                    class: 'callout alert',
-                }).text('Question' + String(qnum + 1) + ': ' + qerror));
+                errors.push('Question ' + String(qnum + 1) + ': ' + qerror);
             }
         }
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
@@ -194,14 +191,38 @@ export class CipherTestPrint extends CipherTest {
         /**
          * See if we need to show/hide the Spanish Hints
          */
-        if (usesSpanish) {
+        if (SpanishCount > 0) {
+            if (SpanishCount > 1 &&
+                test.testtype !== ITestType.bstate &&
+                test.testtype !== ITestType.cstate) {
+                errors.push('Only one Spanish Xenocrypt allowed for this type of test.');
+            }
             $('.xenocryptfreq').show();
         } else {
+            if (test.testtype === ITestType.bstate ||
+                test.testtype !== ITestType.cstate) {
+                errors.push('This test type is supposed to have at least one Spanish Xenocrypt.');
+            }
             $('.xenocryptfreq').hide();
         }
+        if (errors.length === 1) {
+            $(".testerrors").append($('<div/>', {
+                class: 'callout alert',
+            }).text(errors[0]));
+        } else if (errors.length > 1) {
+
+            let ul = $("<ul/>");
+            for (let msg of errors) {
+                ul.append($("<li/>").text(msg));
+            }
+            $(".testerrors").append($('<div/>', {
+                class: 'callout alert',
+            }).text("The following errors were found:")
+                .append(ul));
+        }
         /**
-     * See if we need to show/hide the Morse Code Table
-     */
+         * See if we need to show/hide the Morse Code Table
+         */
         if (usesMorseTable) {
             $('.morsetable').show();
         } else {

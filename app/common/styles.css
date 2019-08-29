@@ -404,6 +404,11 @@ table.tfreq,
                                   supported by Chrome and Opera */
 }
 
+.rtab th {
+    white-space: nowrap;
+    border: 1px solid black;
+}
+
 table.tfreq,
 table.satable {
     border-collapse: collapse;

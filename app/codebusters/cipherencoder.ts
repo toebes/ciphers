@@ -29,6 +29,10 @@ export interface IEncoderState extends IState {
     alphabetDest?: string;
     /** Optional translation string for non-english ciphers */
     translation?: string;
+    /** Optional hint tracking string */
+    hint?: string;
+    /** Optional crib tracking string */
+    crib?: string;
 }
 
 /**
@@ -292,6 +296,33 @@ export class CipherEncoder extends CipherHandler {
         return changed;
     }
     /**
+     * Sets the hint value (state.hint)
+     * @param hint new hint string
+     * @returns Boolean indicating if the value actually changed
+    */
+    public setHint(hint: string): boolean {
+        let changed = false;
+        if (this.state.hint !== hint) {
+            this.state.hint = hint;
+            changed = true;
+        }
+        return changed;
+    }
+    /**
+     * Sets the crib value (state.crib)
+     * @param crib new hint string
+     * @returns Boolean indicating if the value actually changed
+    */
+    public setCrib(crib: string): boolean {
+        let changed = false;
+        if (this.state.crib !== crib) {
+            this.state.crib = crib;
+            changed = true;
+        }
+        return changed;
+    }
+
+    /**
      * Loads a language in response to a dropdown event
      * @param lang New language string
      */
@@ -382,8 +413,7 @@ export class CipherEncoder extends CipherHandler {
             }
         }
         if (errors !== '') {
-            console.log(errors);
-            $('.err').text('Bad keyword/offset combo for letters: ' + errors);
+            this.addErrorMsg('Bad keyword/offset combo for letters: ' + errors);
         }
     }
     /**
@@ -417,8 +447,7 @@ export class CipherEncoder extends CipherHandler {
     public genAlphabetK3(keyword: string, offset: number, shift: number): void {
         if (this.getCharset() !== this.getSourceCharset()) {
             let error = 'Source and encoding character sets must be the same';
-            console.log(error);
-            $('.err').text(error);
+            this.addErrorMsg(error);
             return;
         }
         let repl = this.genKstring(keyword, offset, this.getCharset());
@@ -441,8 +470,7 @@ export class CipherEncoder extends CipherHandler {
         if (this.getCharset().length !== this.getSourceCharset().length) {
             let error =
                 'Source and encoding character sets must be the same length';
-            console.log(error);
-            $('.err').text(error);
+            this.addErrorMsg(error);
             return;
         }
         let cset = this.genKstring(keyword, offset, this.getCharset());
@@ -745,13 +773,24 @@ export class CipherEncoder extends CipherHandler {
         );
         return result;
     }
+    public clearErrors(): void {
+        $(".err").empty();
+    }
+    public addErrorMsg(message: string): void {
+        if (message !== '') {
+            $(".err").append($('<div/>', {
+                class: 'callout alert',
+            }).text(message));
+            console.log("Error:" + message);
+        }
+    }
     /**
      * Loads up the values for the encoder
      */
     public load(): void {
         // this.hideRevReplace = true
         let encoded = this.cleanString(this.state.cipherString);
-        $('.err').text('');
+        this.clearErrors();
         this.genAlphabet();
         let res = this.build();
         $('#answer')

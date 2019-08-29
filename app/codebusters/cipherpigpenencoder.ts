@@ -15,7 +15,7 @@ export class CipherPigPenEncoder extends CipherEncoder {
     public guidanceURL: string = 'TestGuidance.html#PigPen';
 
     public validTests: ITestType[] = [ITestType.None,
-        ITestType.aregional];
+    ITestType.aregional];
     public defaultstate: IEncoderState = {
         cipherString: '',
         cipherType: ICipherType.PigPen,
@@ -36,7 +36,7 @@ export class CipherPigPenEncoder extends CipherEncoder {
      * Loads up the values for the encoder
      */
     public load(): void {
-        $('.err').text('');
+        this.clearErrors();
         this.genAlphabet();
         let res = this.build();
         $('#answer')

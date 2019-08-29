@@ -166,7 +166,7 @@ export class CipherHillEncoder extends CipherEncoder {
 
         let radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
-            { id: 'wrow', value: 'compute', title: 'Compute Decryption' },
+            { id: 'drow', value: 'compute', title: 'Compute Decryption' },
             { id: 'mrow', value: 'decode', title: 'Decode' },
         ];
         result.append(

@@ -6,6 +6,7 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
 import { ConvertToMorse, tomorse } from '../common/morse';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
+import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 
 /**
  * CipherMorbitEncoder - This class handles all of the actions associated with encoding
@@ -22,6 +23,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
         cipherString: '',
         cipherType: ICipherType.Morbit,
         replacement: {},
+        operation: 'decode',
     };
     public state: IEncoderState = cloneObject(
         this.defaultstate
@@ -38,7 +40,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
      * Loads up the values for the encoder
      */
     public load(): void {
-        $('.err').text('');
+        this.clearErrors();
         this.genAlphabet();
         let res = this.build();
         $('#answer')
@@ -50,9 +52,34 @@ export class CipherMorbitEncoder extends CipherEncoder {
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
     }
+    public setUIDefaults(): void {
+        super.setUIDefaults();
+        this.setOperation(this.state.operation);
+    }
+    public updateOutput(): void {
+        this.guidanceURL = 'TestGuidance.html#morbit' + this.state.operation;
+        if (this.state.operation === 'decode') {
+            $('.hint').show();
+            $('.crib').hide();
+        } else {
+            $('.hint').hide();
+            $('.crib').show();
+        }
+        JTRadioButtonSet('operation', this.state.operation);
+        super.updateOutput();
+    }
+
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
         result.append(this.genTestUsage());
+        let radiobuttons = [
+            { id: 'mrow', value: 'decode', title: 'Decode' },
+            { id: 'crow', value: 'crypt', title: 'Cryptanalysis' },
+        ];
+        result.append(
+            JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
+        );
+
         result.append(this.genQuestionFields());
         result.append(
             JTFLabeledInput(
@@ -61,6 +88,24 @@ export class CipherMorbitEncoder extends CipherEncoder {
                 'toencode',
                 this.state.cipherString,
                 'small-12 medium-12 large-12'
+            )
+        );
+        result.append(
+            JTFLabeledInput(
+                'Hint Characters',
+                'text',
+                'hint',
+                this.state.hint,
+                'hint small-12 medium-12 large-12'
+            )
+        );
+        result.append(
+            JTFLabeledInput(
+                'Crib Text',
+                'text',
+                'crib',
+                this.state.crib,
+                'crib small-12 medium-12 large-12'
             )
         );
         return result;

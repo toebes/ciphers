@@ -158,7 +158,7 @@ export class CipherTableEncoder extends CipherEncoder {
      * Loads up the values for the encoder
      */
     public load(): void {
-        $('.err').text('');
+        this.clearErrors();
         this.genAlphabet();
         let res = this.build();
         $('#answer')

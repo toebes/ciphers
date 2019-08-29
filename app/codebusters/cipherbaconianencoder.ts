@@ -352,7 +352,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * Loads up the values for the encoder
      */
     public load(): void {
-        $('.err').text('');
+        this.clearErrors();
         let res = this.build();
         $('#answer')
             .empty()

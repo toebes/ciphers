@@ -15,7 +15,7 @@ export class CipherTapCodeEncoder extends CipherEncoder {
     public guidanceURL: string = 'TestGuidance.html#TapCode';
 
     public validTests: ITestType[] = [ITestType.None,
-        ITestType.aregional];
+    ITestType.aregional];
     public readonly TapCodeMap: StringMap = {
         A: '. . ',
         B: '. .. ',
@@ -64,7 +64,7 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      * Loads up the values for the encoder
      */
     public load(): void {
-        $('.err').text('');
+        this.clearErrors();
         this.genAlphabet();
         let res = this.build();
         $('#answer')

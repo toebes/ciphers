@@ -68,6 +68,23 @@ export class CipherAffineEncoder extends CipherEncoder {
         this.setUIDefaults();
         this.updateOutput();
     }
+    /**
+     * Determines if this generator is appropriate for a given test
+     * type.  For Division B, only decode is allowed
+     * @param testType Test type to compare against
+     * @returns String indicating error or blank for success
+     */
+    public CheckAppropriate(testType: ITestType): string {
+        let result = super.CheckAppropriate(testType);
+        if (result === "") {
+            if (testType !== ITestType.cregional &&
+                testType !== ITestType.cstate &&
+                this.state.operation === 'encode') {
+                result = "Only Decode allowed for this type of test";
+            }
+        }
+        return result;
+    }
     public setUIDefaults(): void {
         this.seta(this.state.a);
         this.setb(this.state.b);

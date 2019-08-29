@@ -72,7 +72,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     }
     /**
      * Determines if this generator is appropriate for a given test
-     * type.  For Division A, only decode is allowed
+     * type.  For Division A and B, only decode is allowed
      * @param testType Test type to compare against
      * @returns String indicating error or blank for success
      */

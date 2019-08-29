@@ -27,6 +27,8 @@ export class CipherMorbitEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL: string = 'TestGuidance.html#Morbit';
 
+    public usesMorseTable: boolean = true;
+
     public validTests: ITestType[] = [ITestType.None,
     ITestType.cregional, ITestType.cstate,
     ITestType.bregional, ITestType.bstate];

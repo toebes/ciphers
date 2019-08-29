@@ -20,7 +20,7 @@ interface IPolluxState extends IEncoderState {
 export class CipherPolluxEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL: string = 'TestGuidance.html#Pollux';
-
+    public usesMorseTable: boolean = true;
     public validTests: ITestType[] = [ITestType.None,
     ITestType.cregional, ITestType.cstate,
     ITestType.bregional, ITestType.bstate];

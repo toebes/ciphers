@@ -719,6 +719,8 @@ export class CipherHandler {
     public extraRunningKey: string;
     /** Indicates that the cipher uses a running key */
     public usesRunningKey: boolean = false;
+    /** Indicates that the cupher uses a morse code table */
+    public usesMorseTable: boolean = false;
     /** The direction of the last advance */
     public advancedir: number = 0;
     /** The Jquery element associated with a keypress */

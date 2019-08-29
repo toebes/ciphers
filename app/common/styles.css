@@ -1428,6 +1428,40 @@ table.nameline td.u {
 .sizeset table.hillans .big2 {
     font-size: 60px;
 }
+
+table.morsemap {
+    border: none;
+    border-collapse: collapse;
+}
+
+table.morsemap td {
+    padding: 10px;
+}
+
+table.morsemap td.m,
+table.morsemap td.mr {
+    border: 1px solid black;
+    padding: 1px 5px;
+    font-family: Courier New, Courier, monospace;
+}
+
+table.morsemap td.l,
+table.morsemap td.ll {
+    border: 1px solid black;
+    white-space: nowrap;
+    padding: 1px 5px;
+}
+
+table.morsemap td.m,
+table.morsemap td.ll {
+    text-align: left;
+}
+
+table.morsemap td.mr,
+table.morsemap td.l {
+    text-align: right;
+}
+
 @media print {
     .title-bar,
     .top-bar,

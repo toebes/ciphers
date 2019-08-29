@@ -71,6 +71,8 @@ export class CipherTestPrint extends CipherTest {
 
     public genTestQuestions(elem: JQuery<HTMLElement>): void {
         let testcount = this.getTestCount();
+        let usesMorseTable = false;
+        let usesSpanish = false;
         elem.empty();
         if (testcount === 0) {
             elem.append($('<h3>').text('No Tests Created Yet'));
@@ -135,6 +137,14 @@ export class CipherTestPrint extends CipherTest {
                 cipherhandler,
                 ''
             );
+            /* Is this a xenocrypt?  if so we need the Spanish frequency */
+            if (cipherhandler.state.curlang === 'es') {
+                usesSpanish = true;
+            }
+            /* Does this cipher involve morse code? */
+            if (cipherhandler.usesMorseTable) {
+                usesMorseTable = true;
+            }
             page.append(thisquestion);
             let thisheight = thisquestion.outerHeight();
             if (thisheight + accumulated > pagesize || qcount > 1) {
@@ -180,6 +190,22 @@ export class CipherTestPrint extends CipherTest {
                     }).text(ent.text)
                 );
             }
+        }
+        /**
+         * See if we need to show/hide the Spanish Hints
+         */
+        if (usesSpanish) {
+            $('.xenocryptfreq').show();
+        } else {
+            $('.xenocryptfreq').hide();
+        }
+        /**
+     * See if we need to show/hide the Morse Code Table
+     */
+        if (usesMorseTable) {
+            $('.morsetable').show();
+        } else {
+            $('.morsetable').hide();
         }
         /**
          * Lastly we need to print out the score table

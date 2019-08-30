@@ -1462,6 +1462,16 @@ table.morsemap td.l {
     text-align: right;
 }
 
+table.known td,
+table.known th {
+    border: 1px solid black;
+}
+table.known {
+    border-collapse: collapse;
+    width: auto;
+    margin-left: 50px;
+}
+
 @media print {
     .title-bar,
     .top-bar,

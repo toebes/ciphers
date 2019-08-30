@@ -661,7 +661,6 @@ export class CipherPolluxEncoder extends CipherEncoder {
         let found = false;
         let lastc = '';
         let gathered = '';
-        let droplen = 0;
         let prefix = "Looking at the ciphertext, ";
         for (let strset of working) {
             for (let i = 0, len = strset[morseindex].length; i < len; i++) {
@@ -669,29 +668,24 @@ export class CipherPolluxEncoder extends CipherEncoder {
                 let c = strset[ctindex][i];
                 // Check to see if this is one that we had to replace because
                 // we figured it out in an earlier pass
-                if (m === ' ') {
-                    if (knownmap[c] === 'X') {
-                        m = 'X';
-                    }
+                if (m === ' ' && knownmap[c] === 'X') {
+                    m = 'X';
                 }
                 if (m === 'X') {
                     // We hit a hard break so we can start again
                     gathered = '';
                     lastc = '';
-                    droplen = 0;
                 }
                 else {
                     if (m === ' ') {
                         // This is an unknown.  See if it is the same as any
                         // prevailing candidate (or the first candidate)
-                        if (c === lastc || lastc === '') {
-                            droplen = gathered.length;
-                        } else {
+                        if (c !== lastc && lastc !== '') {
                             // New candidate, so drop everything up to the the last
                             // candidate that we found
-                            gathered = gathered.substr(droplen);
+                            gathered = gathered.substr(gathered.lastIndexOf(lastc) + 1);
+                            lastc = c;
                         }
-                        lastc = c;
                     }
                     gathered += c;
                 }
@@ -704,7 +698,6 @@ export class CipherPolluxEncoder extends CipherEncoder {
                     knownmap[lastc] = "X";
                     gathered = '';
                     lastc = '';
-                    droplen = 0;
                     found = true;
                 }
             }
@@ -837,7 +830,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
                             invalid + " which is not a legal morse code character, " +
                             "so we can eliminate it as a possibility.";
                         result.append(prefix + this.normalizeHTML(msg));
-                        prefix = " Also,";
+                        prefix = " Also, ";
                     } else {
                         legal += mc;
                     }
@@ -890,8 +883,8 @@ export class CipherPolluxEncoder extends CipherEncoder {
         return plaintext;
     }
     /**
-     * Look through all the unknowns to see if they would generate illegal
-     * Morse code based on being a dot or dash for tne entire string.
+     * Look through all the unknowns to see if we can find a long string that
+     * looks promising.
      * @param result Place to output any messages
      * @param knownmap Map of current cipher strings
      * @param working Current mapping strings
@@ -900,6 +893,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
     public testSingleMorse(result: JQuery<HTMLElement>,
         knownmap: StringMap,
         working: string[][]): boolean {
+        let mincipher = this.minimizeString(this.state.cipherString);
         for (let c in knownmap) {
             // Is this a candiate to try replacement for?
             if (knownmap[c].length > 1) {
@@ -911,10 +905,19 @@ export class CipherPolluxEncoder extends CipherEncoder {
                 for (let mc of savemap) {
                     knownmap[c] = mc;
                     let plaintext = this.applyKnownmap(knownmap, working);
+                    // Now split it on all the unknowns to find the longest 
+                    // contiguous string
+                    let chunks = plaintext.split('?');
+                    let longest = chunks[0];
+                    for (let chunk of chunks) {
+                        if (chunk.length > longest.length) {
+                            longest = chunk;
+                        }
+                    }
                     msg += "Trying " + mc + " for " + c +
-                        " produces: " + plaintext.substr(0, 20) + ". ";
-                    if (this.minimizeString(plaintext).substr(0, 20) ===
-                        this.minimizeString(this.state.cipherString).substr(0, 20)) {
+                        " gives us a chunk: " + longest + ". ";
+                    longest = this.minimizeString(longest);
+                    if (mincipher.indexOf(this.minimizeString(longest)) >= 0) {
                         legal += mc;
                     }
                 }

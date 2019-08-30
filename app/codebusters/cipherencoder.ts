@@ -619,7 +619,10 @@ export class CipherEncoder extends CipherHandler {
                 }).text(this.state.cipherString)
             );
         }
-        result.append(this.genFreqTable(true, this.state.encodeType));
+        // Tapcode does not need a frequency table (and periods can not be raised to upper case).
+        if (this.state.cipherType !== ICipherType.TapCode) {
+            result.append(this.genFreqTable(true, this.state.encodeType));
+        }
         // If this is a xenocrypt and they provided us a translation, display it
         if (
             this.state.curlang !== 'en' &&

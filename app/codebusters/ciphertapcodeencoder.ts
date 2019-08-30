@@ -100,30 +100,6 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      */
     public displayFreq(): void { }
     /**
-     * Generate the HTML to display the answer for a cipher
-     */
-    public genAnswer(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'grid-x' });
-        this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
-        let table = new JTTable({
-            class: 'ansblock shrink cell unstriped TapCode',
-        });
-        let tosolve = 0;
-        let toanswer = 1;
-        for (let strset of strings) {
-            this.addCipherTableRows(
-                table,
-                undefined,
-                strset[tosolve],
-                strset[toanswer],
-                true
-            );
-        }
-        result.append(table.generate());
-        return result;
-    }
-    /**
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(): JQuery<HTMLElement> {

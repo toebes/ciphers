@@ -20,6 +20,8 @@ import { JTCreateMenu, JTGetSolveURL, JTGetURL } from './jtmenu';
 import { InitStorage, JTStorage } from './jtstore';
 import { JTTable } from './jttable';
 import { parseQueryString } from './parsequerystring';
+import { textStandard } from '../common/readability';
+
 export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
     test, // Test generation Tools - No file or Edit menu
@@ -1343,9 +1345,8 @@ export class CipherHandler {
         return "";
     }
 
-    public genTestUsage(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'testuse' });
-        return result;
+    public genTestUsage(result: JQuery<HTMLElement>): void {
+        result.append($('<div/>', { class: 'testuse' }));
     }
     public updateTestUsage(): void {
         let result = $(".testuse");
@@ -1490,7 +1491,7 @@ export class CipherHandler {
             $(elem).replaceWith(this.genCmdButtons());
         });
         $('.langsel').each((i: number, elem: HTMLElement) => {
-            $(elem).replaceWith(this.getLangDropdown());
+            this.genLangDropdown($(elem));
         });
     }
     public restore(data: IState): void { }
@@ -2194,6 +2195,10 @@ export class CipherHandler {
         if (this.state.cipherString !== cipherString) {
             this.state.cipherString = cipherString;
             changed = true;
+            let fs = textStandard(cipherString);
+            let msg = 'Estimated readability score =' + fs;
+            $(".difficulty").text(msg)
+                .addClass('callout primary small');
         }
         return changed;
     }
@@ -2281,10 +2286,10 @@ export class CipherHandler {
     /**
      * Fills in the language choices on an HTML Select
      */
-    public getLangDropdown(): JQElement {
+    public genLangDropdown(result: JQuery<HTMLElement>): void {
         $('#loadeng').hide();
-        let result = $('<div/>', { class: 'cell input-group' });
-        result.append(
+        let inputgroup = $('<div/>', { class: 'cell input-group' });
+        inputgroup.append(
             $('<span/>', {
                 class: 'input-group-label',
             }).text('Language')
@@ -2306,8 +2311,8 @@ export class CipherHandler {
                 );
             }
         }
-        result.append(select);
-        return result;
+        inputgroup.append(select);
+        result.append(inputgroup);
     }
     /**
      * Loads a language in response to a dropdown event

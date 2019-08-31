@@ -177,7 +177,7 @@ export class CipherHillEncoder extends CipherEncoder {
                 }).text('Known Valid Keys')
             )
         );
-        result.append(this.genTestUsage());
+        this.genTestUsage(result);
 
         let radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
@@ -188,16 +188,8 @@ export class CipherHillEncoder extends CipherEncoder {
             JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
         );
 
-        result.append(this.genQuestionFields());
-        result.append(
-            JTFLabeledInput(
-                'Plain Text',
-                'textarea',
-                'toencode',
-                this.state.cipherString,
-                'encbox small-12 medium-12 large-12'
-            )
-        );
+        this.genQuestionFields(result);
+        this.genEncodeField(result);
         result.append(
             JTFLabeledInput(
                 'Keyword',

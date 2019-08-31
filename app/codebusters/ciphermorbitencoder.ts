@@ -103,7 +103,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
     }
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
-        result.append(this.genTestUsage());
+        this.genTestUsage(result);
         let radiobuttons = [
             { id: 'mrow', value: 'decode', title: 'Decode' },
             { id: 'crow', value: 'crypt', title: 'Cryptanalysis' },
@@ -112,16 +112,9 @@ export class CipherMorbitEncoder extends CipherEncoder {
             JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
         );
 
-        result.append(this.genQuestionFields());
-        result.append(
-            JTFLabeledInput(
-                'Plain Text',
-                'textarea',
-                'toencode',
-                this.state.cipherString,
-                'small-12 medium-12 large-12'
-            )
-        );
+        this.genQuestionFields(result);
+        this.genEncodeField(result);
+
         let table = new JTTable({ class: 'tfreq rtab shrink cell' });
         let headrow = table.addHeaderRow();
         let bodyrow = table.addBodyRow();

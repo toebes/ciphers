@@ -187,7 +187,7 @@ export class CipherTableEncoder extends CipherEncoder {
     }
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
-        result.append(this.genTestUsage());
+        this.genTestUsage(result);
 
         let radiobuttons = [
             CipherTypeButtonItem(ICipherType.Caesar),
@@ -205,16 +205,8 @@ export class CipherTableEncoder extends CipherEncoder {
             JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
         );
 
-        result.append(this.genQuestionFields());
-        result.append(
-            JTFLabeledInput(
-                'Plain Text',
-                'textarea',
-                'toencode',
-                this.state.cipherString,
-                'small-12 medium-12 large-12'
-            )
-        );
+        this.genQuestionFields(result);
+        this.genEncodeField(result);
         result.append(
             JTFIncButton(
                 'Caesar Offset',

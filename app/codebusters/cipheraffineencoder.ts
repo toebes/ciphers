@@ -869,7 +869,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     }
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
-        result.append(this.genTestUsage());
+        this.genTestUsage(result);
         let radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
             { id: 'mrow', value: 'decode', title: 'Decode' },
@@ -878,16 +878,8 @@ export class CipherAffineEncoder extends CipherEncoder {
             JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
         );
 
-        result.append(this.genQuestionFields());
-        result.append(
-            JTFLabeledInput(
-                'Plain Text',
-                'textarea',
-                'toencode',
-                this.state.cipherString,
-                'small-12 medium-12 large-12'
-            )
-        );
+        this.genQuestionFields(result);
+        this.genEncodeField(result);
         let inputbox = $('<div/>', {
             class: 'grid-x grid-margin-x',
         });

@@ -277,7 +277,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      */
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
-        result.append(this.genTestUsage());
+        this.genTestUsage(result);
 
         let radiobuttons = [
             { value: 'rsa1', title: 'Safe Combo' },
@@ -290,16 +290,9 @@ export class CipherRSAEncoder extends CipherEncoder {
             JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
         );
 
-        result.append(this.genQuestionFields());
-        result.append(
-            JTFLabeledInput(
-                'Value to encode',
-                'number',
-                'toencode',
-                this.state.cipherString,
-                'small-12 medium-12 large-12 opfield'
-            )
-        );
+        this.genQuestionFields(result);
+        this.genEncodeField(result);
+
         result.append(
             JTFIncButton(
                 'Prime Digits',

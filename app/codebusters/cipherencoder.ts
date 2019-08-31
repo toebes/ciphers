@@ -848,8 +848,7 @@ export class CipherEncoder extends CipherHandler {
         });
         return einput;
     }
-    public genQuestionFields(): JQuery<HTMLElement> {
-        let result = $('<div/>');
+    public genQuestionFields(result: JQuery<HTMLElement>): void {
         result.append(
             JTFLabeledInput(
                 'Points',
@@ -868,25 +867,28 @@ export class CipherEncoder extends CipherHandler {
                 'small-12 medium-12 large-12'
             )
         );
-        return result.children();
     }
-    /**
-     * Generate HTML for any UI elements that go above the command bar
-     */
-    public genPreCommands(): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        result.append(this.genTestUsage());
-        result.append(this.genQuestionFields());
-        result.append(this.getLangDropdown());
+    public genEncodeField(result: JQuery<HTMLElement>): void {
         result.append(
             JTFLabeledInput(
                 'Plain Text',
                 'textarea',
                 'toencode',
                 this.state.cipherString,
-                'small-12 medium-12 large-12'
+                'small-12 medium-12 large-12 opfield'
             )
         );
+        result.append($("<div/>", { class: "difficulty" }));
+    }
+    /**
+     * Generate HTML for any UI elements that go above the command bar
+     */
+    public genPreCommands(): JQuery<HTMLElement> {
+        let result = $('<div/>');
+        this.genTestUsage(result);
+        this.genQuestionFields(result);
+        this.genLangDropdown(result);
+        this.genEncodeField(result);
         result.append(
             JTFLabeledInput(
                 'Translation',

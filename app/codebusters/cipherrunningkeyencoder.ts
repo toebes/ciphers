@@ -49,7 +49,7 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
 
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
-        result.append(this.genTestUsage());
+        this.genTestUsage(result);
         let runningKeys = this.getRunningKeyStrings();
         let radiobuttons = [
             { id: "wrow", value: "encode", title: "Encode" },
@@ -58,17 +58,8 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
         result.append(
             JTRadioButton(6, "operation", radiobuttons, this.state.operation)
         );
-        result.append(this.genQuestionFields());
-
-        result.append(
-            JTFLabeledInput(
-                "Message",
-                "text",
-                "toencode",
-                this.state.cipherString,
-                "small-12 medium-12 large-12"
-            )
-        );
+        this.genQuestionFields(result);
+        this.genEncodeField(result);
 
         let inputgroup = $("<div/>", {
             class: "input-group cell small-12 medium-12 large-12",

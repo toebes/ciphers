@@ -731,10 +731,25 @@ export class CipherPolluxEncoder extends CipherEncoder {
                         let legal = 0;
                         let replacem = '';
                         for (let tc of knownmap[unknownc]) {
-                            let trymorse = gathered.replace('#', tc);
-                            if (frommorse[trymorse] !== undefined) {
-                                legal++;
-                                replacem = tc;
+                            if (tc === 'X') {
+                                let morseset = gathered.split('#');
+                                let allok = true;
+                                for (let morseitem of morseset) {
+                                    if (morseitem !== '' &&
+                                        frommorse[morseitem] === undefined) {
+                                        allok = false;
+                                    }
+                                }
+                                if (allok) {
+                                    legal++;
+                                    replacem = tc;
+                                }
+                            } else {
+                                let trymorse = gathered.replace('#', tc);
+                                if (frommorse[trymorse] !== undefined) {
+                                    legal++;
+                                    replacem = tc;
+                                }
                             }
                         }
                         if (legal === 1) {
@@ -937,6 +952,9 @@ export class CipherPolluxEncoder extends CipherEncoder {
      */
     public genSolution(): JQuery<HTMLElement> {
         let result = $("<div/>");
+        if (this.state.cipherString === '') {
+            return result;
+        }
         let hint = this.state.hint;
         let morseletmap = this.buildMorseletMap();
         let strings = this.makeReplacement(
@@ -953,6 +971,11 @@ export class CipherPolluxEncoder extends CipherEncoder {
         // Assume we don't know what anything is
         for (let c of "0123456789") {
             knownmap[c] = "O-X";
+        }
+        if (hint === undefined || hint.length < 3) {
+            result.append($("<h4/>")
+                .text("At least 3 hint characters are needed to generate a solution"));
+            return result;
         }
         // And then fill it in with what we do know.
         for (let c of hint) {

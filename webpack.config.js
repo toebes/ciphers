@@ -879,8 +879,8 @@ module.exports = {
             'require.specified': 'require.resolve',
         }),
         // The webpack-shell-plugin is installed with "npm install --save-dev webpack-shell-plugin"
-        new WebpackShellPlugin({
-            onBuildExit: ['python zip-ct.py ' + toolsVersion],
-        }),
+        // new WebpackShellPlugin({
+        //     onBuildExit: ['python zip-ct.py ' + toolsVersion],
+        // }),
     ],
 };

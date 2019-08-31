@@ -59,6 +59,21 @@ export class CipherHillEncoder extends CipherEncoder {
         return savestate;
     }
     /**
+     * Determines if this generator is appropriate for a given test
+     * type.  For Division A and B, only decode is allowed
+     * @param testType Test type to compare against
+     * @returns String indicating error or blank for success
+     */
+    public CheckAppropriate(testType: ITestType): string {
+        let result = super.CheckAppropriate(testType);
+        if (result === "") {
+            if (testType !== ITestType.cstate && this.state.keyword.length === 9) {
+                result = "3x3 Hill Cipher problems are not allowed on this type of test";
+            }
+        }
+        return result;
+    }
+    /**
      * Cleans up any settings, range checking and normalizing any values.
      * This doesn't actually update the UI directly but ensures that all the
      * values are legitimate for the cipher handler

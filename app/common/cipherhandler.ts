@@ -36,6 +36,7 @@ export const enum toolMode {
 export type IOperationType =
     | 'encode' // Test question involves encoding
     | 'decode' // Test question involves decoding
+    | 'crypt' // Test question involves decrypting with a crib
     | 'compute' // Test question involves computing a math result
     | 'let4let' // Baconian individual letter substitition
     | 'sequence' // Baconian sequence substitition

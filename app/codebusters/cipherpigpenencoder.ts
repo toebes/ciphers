@@ -119,7 +119,7 @@ export class CipherPigPenEncoder extends CipherEncoder {
         let result = $('<div/>');
         result.append($("<h3/>").text("How to Solve"));
         result.append($("<p/>").text("First you want to create the lookup table " +
-            "by wrting two tic-tac-toe boards followed by two big Xs. "));
+            "by drawing two tic-tac-toe boards followed by two big Xs. "));
         result.append($("<img/>", { src: pigpen1 }));
         result.append($("<p/>").text("Then write the alphabet in the tic-tac-toe " +
             "boards across and then down " +

@@ -876,6 +876,12 @@ table.found tr th:nth-child(odd) {
     display: block;
     margin: 0;
 }
+.input-group-button.checkbox {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #cacaca;
+    border-radius: 0;
+}
 
 .input-group .input-number,
 .input-group .input-number-decrement,

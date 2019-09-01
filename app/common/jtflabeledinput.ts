@@ -29,7 +29,7 @@ export function JTFLabeledInput(
     } else if (type === "checkbox") {
         $("<input/>", {
             id: id,
-            class: "input-group-button",
+            class: "input-group-button checkbox",
             type: type,
             value: value,
         }).appendTo(inputgroup);

@@ -2,9 +2,10 @@ import { cloneObject, StringMap } from '../common/ciphercommon';
 import { ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
-import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
+const pigpen1 = require('../images/pigpen1.png');
+const pigpen2 = require('../images/pigpen2.png');
 
 /**
  * CipherPigPenEncoder - This class handles all of the actions associated with encoding
@@ -38,10 +39,10 @@ export class CipherPigPenEncoder extends CipherEncoder {
     public load(): void {
         this.clearErrors();
         this.genAlphabet();
-        let res = this.build();
         $('#answer')
             .empty()
-            .append(res);
+            .append(this.build())
+            .append(this.genSolution());
 
         // Show the update frequency values
         this.displayFreq();
@@ -50,17 +51,9 @@ export class CipherPigPenEncoder extends CipherEncoder {
     }
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
-        result.append(this.genTestUsage());
-        result.append(this.genQuestionFields());
-        result.append(
-            JTFLabeledInput(
-                'Plain Text',
-                'textarea',
-                'toencode',
-                this.state.cipherString,
-                'small-12 medium-12 large-12'
-            )
-        );
+        this.genTestUsage(result);
+        this.genQuestionFields(result);
+        this.genEncodeField(result);
         return result;
     }
     public getReverseReplacement(): StringMap {
@@ -124,6 +117,20 @@ export class CipherPigPenEncoder extends CipherEncoder {
     }
     public genSolution(): JQuery<HTMLElement> {
         let result = $('<div/>');
+        result.append($("<h3/>").text("How to Solve"));
+        result.append($("<p/>").text("First you want to create the lookup table " +
+            "by drawing two tic-tac-toe boards followed by two big Xs. "));
+        result.append($("<img/>", { src: pigpen1 }));
+        result.append($("<p/>").text("Then write the alphabet in the tic-tac-toe " +
+            "boards across and then down " +
+            "putting dots on the letters in the second board."));
+        result.append($("<p/>").text("Then fill up the two big Xs starting " +
+            "at the top and going clockwise putting dots on the letters in the " +
+            "second X. like:"));
+        result.append($("<img/>", { src: pigpen2 }));
+        result.append($("<p/>").text("With that decode table, it should be quick " +
+            "decode the characters by looking at the shapes and whether or not " +
+            "the shape has a dot in it or not."));
         return result;
     }
 }

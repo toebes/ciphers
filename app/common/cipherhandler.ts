@@ -20,6 +20,8 @@ import { JTCreateMenu, JTGetSolveURL, JTGetURL } from './jtmenu';
 import { InitStorage, JTStorage } from './jtstore';
 import { JTTable } from './jttable';
 import { parseQueryString } from './parsequerystring';
+import { textStandard } from '../common/readability';
+
 export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
     test, // Test generation Tools - No file or Edit menu
@@ -100,7 +102,15 @@ export const enum ITestType {
     aregional = 'aregional',
     astate = 'astate',
 }
-
+export const testTypeNames: { [key in keyof typeof ITestType]: string } = {
+    None: "unspecified test type",
+    cregional: "Division C (High School) Regional/Invitational",
+    cstate: "Division C (High School) State/National",
+    bregional: "Division B (Middle School) Regional/Invitational",
+    bstate: "Division B (Middle School) State/National",
+    aregional: "Division A (Elementary School) Regional/Invitational",
+    astate: "Division A (Elementary School) State/National"
+}
 /**
  * The save file format of a test
  */
@@ -810,6 +820,9 @@ export class CipherHandler {
         this.storage.set(this.storageTestCountName, String(count));
         return '';
     }
+    public getTestTypeName(testtype: ITestType): string {
+        return testTypeNames[testtype];
+    }
     /**
      * Gets the string that corresponds to a test in local storage
      */
@@ -1343,9 +1356,8 @@ export class CipherHandler {
         return "";
     }
 
-    public genTestUsage(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'testuse' });
-        return result;
+    public genTestUsage(result: JQuery<HTMLElement>): void {
+        result.append($('<div/>', { class: 'testuse' }));
     }
     public updateTestUsage(): void {
         let result = $(".testuse");
@@ -1490,7 +1502,7 @@ export class CipherHandler {
             $(elem).replaceWith(this.genCmdButtons());
         });
         $('.langsel').each((i: number, elem: HTMLElement) => {
-            $(elem).replaceWith(this.getLangDropdown());
+            this.genLangDropdown($(elem));
         });
     }
     public restore(data: IState): void { }
@@ -2194,6 +2206,16 @@ export class CipherHandler {
         if (this.state.cipherString !== cipherString) {
             this.state.cipherString = cipherString;
             changed = true;
+            // The estimation for strings < 15 characters is wildly inaccurate
+            // so we don't bother to tell them anything
+            if (cipherString.length < 15) {
+                $(".difficulty").empty().removeClass('callout primary small');
+            } else {
+                let fs = textStandard(cipherString);
+                let msg = 'Estimated readability score between ' + fs;
+                $(".difficulty").text(msg)
+                    .addClass('callout primary small');
+            }
         }
         return changed;
     }
@@ -2281,10 +2303,10 @@ export class CipherHandler {
     /**
      * Fills in the language choices on an HTML Select
      */
-    public getLangDropdown(): JQElement {
+    public genLangDropdown(result: JQuery<HTMLElement>): void {
         $('#loadeng').hide();
-        let result = $('<div/>', { class: 'cell input-group' });
-        result.append(
+        let inputgroup = $('<div/>', { class: 'cell input-group' });
+        inputgroup.append(
             $('<span/>', {
                 class: 'input-group-label',
             }).text('Language')
@@ -2306,8 +2328,8 @@ export class CipherHandler {
                 );
             }
         }
-        result.append(select);
-        return result;
+        inputgroup.append(select);
+        result.append(inputgroup);
     }
     /**
      * Loads a language in response to a dropdown event

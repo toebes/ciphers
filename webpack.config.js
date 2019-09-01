@@ -56,6 +56,25 @@ module.exports = {
                 'dist',
                 'katex.css'
             ),
+            'syllable.js': path.join(
+                __dirname,
+                'node_modules',
+                'syllable',
+                'index.js'
+            ),
+            'charmap.js': path.join(
+                __dirname,
+                'node_modules',
+                'charmap',
+                'src',
+                'index.js'
+            ),
+            'charmap.json': path.join(
+                __dirname,
+                'node_modules',
+                'normalize-strings',
+                'charmap.json'
+            ),
         },
         modules: [__dirname, path.join(__dirname, 'node_modules')],
         extensions: [
@@ -68,6 +87,7 @@ module.exports = {
             '.woff2',
             '.png',
             '.svg',
+            '.json'
         ],
     },
     module: {

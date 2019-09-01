@@ -366,7 +366,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
         // Show them what tests the question is used on
-        result.append(this.genTestUsage());
+        this.genTestUsage(result);
 
         let radiobuttons = [
             { id: 'wrow', value: 'let4let', title: 'Letter for letter' },
@@ -377,16 +377,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
             JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
         );
 
-        result.append(this.genQuestionFields());
-        result.append(
-            JTFLabeledInput(
-                'Plain Text',
-                'textarea',
-                'toencode',
-                this.state.cipherString,
-                'small-12 medium-12 large-12'
-            )
-        );
+        this.genQuestionFields(result);
+        this.genEncodeField(result);
         // Build a table so that they can click on letters to make A or B
         let table = new JTTable({
             class: 'cell shrink tfreq opfield words',

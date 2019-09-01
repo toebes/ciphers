@@ -68,7 +68,8 @@ export class CipherHillEncoder extends CipherEncoder {
         let result = super.CheckAppropriate(testType);
         if (result === "") {
             if (testType !== ITestType.cstate && this.state.keyword.length === 9) {
-                result = "3x3 Hill Cipher problems are not allowed on this type of test";
+                result = "3x3 Hill Cipher problems are not allowed on " +
+                    this.getTestTypeName(testType);
             }
         }
         return result;
@@ -177,7 +178,7 @@ export class CipherHillEncoder extends CipherEncoder {
                 }).text('Known Valid Keys')
             )
         );
-        result.append(this.genTestUsage());
+        this.genTestUsage(result);
 
         let radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
@@ -188,16 +189,8 @@ export class CipherHillEncoder extends CipherEncoder {
             JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
         );
 
-        result.append(this.genQuestionFields());
-        result.append(
-            JTFLabeledInput(
-                'Plain Text',
-                'textarea',
-                'toencode',
-                this.state.cipherString,
-                'encbox small-12 medium-12 large-12'
-            )
-        );
+        this.genQuestionFields(result);
+        this.genEncodeField(result);
         result.append(
             JTFLabeledInput(
                 'Keyword',

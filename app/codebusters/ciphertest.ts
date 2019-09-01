@@ -543,7 +543,8 @@ export class CipherTest extends CipherHandler {
                 };
             }
             if (testtype === ITestType.aregional && order === -1) {
-                qerror = 'Timed question not allowed for this type of test';
+                qerror = 'Timed question not allowed for ' +
+                    this.getTestTypeName(testtype);
             } else {
                 let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
                 cipherhandler.restore(state);

@@ -49,7 +49,7 @@ export class CipherQuoteAnalyze extends CipherHandler {
      */
     public genPostCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
-        result.append(this.getLangDropdown());
+        this.genLangDropdown(result);
         result.append($("<div/>", { class: "analysis", id: "quotes" }));
         return result;
     }

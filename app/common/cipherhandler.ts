@@ -2195,10 +2195,16 @@ export class CipherHandler {
         if (this.state.cipherString !== cipherString) {
             this.state.cipherString = cipherString;
             changed = true;
-            let fs = textStandard(cipherString);
-            let msg = 'Estimated readability score =' + fs;
-            $(".difficulty").text(msg)
-                .addClass('callout primary small');
+            // The estimation for strings < 15 characters is wildly inaccurate
+            // so we don't bother to tell them anything
+            if (cipherString.length < 15) {
+                $(".difficulty").empty().removeClass('callout primary small');
+            } else {
+                let fs = textStandard(cipherString);
+                let msg = 'Estimated readability score between ' + fs;
+                $(".difficulty").text(msg)
+                    .addClass('callout primary small');
+            }
         }
         return changed;
     }

@@ -17,6 +17,7 @@ interface IPolluxState extends IEncoderState {
 const morseindex = 1;
 const ctindex = 0;
 const ptindex = 2;
+
 /**
  * CipherPolluxEncoder - This class handles all of the actions associated with encoding
  * a Pollux cipher.
@@ -41,6 +42,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
     public state: IPolluxState = cloneObject(
         this.defaultstate
     ) as IPolluxState;
+    public encodecharset = "0123456789";
     public cmdButtons: JTButtonItem[] = [
         { title: 'Save', color: 'primary', id: 'save' },
         { title: 'Randomize', color: 'primary', id: 'randomize' },
@@ -191,6 +193,13 @@ export class CipherPolluxEncoder extends CipherEncoder {
      * This returns the strings as an array of pairs of strings with
      * the encode and decode parts delivered together.  As a side effect
      * it also updates the frequency table
+     * The result is an array of array of three rows:
+     *   [ctindex=0] The cipher text
+     *   [morseindex=1] The morse mapping characters
+     *   [ptindex=2] The decoded plain text characters
+     * @param str  Plain text to encode
+     * @param maxEncodeWidth How wide to encoder it as
+     * @returns String array
      */
     public makeReplacement(str: string, maxEncodeWidth: number): string[][] {
         let sourcecharset = this.getSourceCharset();
@@ -401,18 +410,18 @@ export class CipherPolluxEncoder extends CipherEncoder {
      * Generates displayable table of mappings of cipher characters
      * @param knownmap Current mapping of cipher characters to morse
      */
-    public genKnownTable(knownmap: StringMap): JQuery<HTMLElement> {
+    public genKnownTable(result: JQuery<HTMLElement>, knownmap: StringMap): void {
         let table = new JTTable({ class: "known" });
         let headrow = table.addHeaderRow();
         let bodyrow = table.addBodyRow();
-        for (let c of "0123456789") {
+        for (let c of this.encodecharset) {
             headrow.add(c);
             bodyrow.add({ content: this.normalizeHTML(knownmap[c]) });
         }
-        return table.generate();
+        result.append(table.generate());
     }
     /**
-     * Generats a displayable state of the currently decoded morse string.
+     * Generates a displayable state of the currently decoded morse string.
      * There are three rows:
      *   [ctindex=0] The cipher text
      *   [morseindex=1] The known morse mapping characters (? means it could be - or O)
@@ -491,27 +500,27 @@ export class CipherPolluxEncoder extends CipherEncoder {
      * @param working Current mapping strings
      * @returns HTML of output text
      */
-    public genMapping(working: string[][]): JQuery<HTMLElement> {
-        let result = $('<div/>');
+    public genMapping(result: JQuery<HTMLElement>, working: string[][]): void {
+        let ansdiv = $('<div/>');
 
         for (let strset of working) {
-            result.append(
+            ansdiv.append(
                 $('<div/>', {
                     class: 'TOSOLVE',
                 }).text(strset[ctindex])
             );
-            result.append(
+            ansdiv.append(
                 $('<div/>', {
                     class: 'TOSOLVE',
                 }).text(strset[morseindex])
             );
-            result.append(
+            ansdiv.append(
                 $('<div/>', {
                     class: 'TOANSWER',
                 }).text(strset[ptindex])
             );
         }
-        return result;
+        result.append(ansdiv);
     }
     /**
      * Determines if the entire cipher mapping is known
@@ -958,10 +967,11 @@ export class CipherPolluxEncoder extends CipherEncoder {
             // We are told the mapping of at least 6 letters
             // this.state.crib
         }
-        result.append("Since we are told the mapping of " + hint + " ciphertext, we can build the following table:");
+        result.append("Since we are told the mapping of " + hint +
+            " ciphertext, we can build the following table:");
 
         // Assume we don't know what anything is
-        for (let c of "0123456789") {
+        for (let c of this.encodecharset) {
             knownmap[c] = "O-X";
         }
         if (hint === undefined || hint.length < 3) {
@@ -973,10 +983,10 @@ export class CipherPolluxEncoder extends CipherEncoder {
         for (let c of hint) {
             knownmap[c] = morseletmap[c];
         }
-        result.append(this.genKnownTable(knownmap));
+        this.genKnownTable(result, knownmap);
         result.append("Based on that information we can map the cipher text as:");
         let working = this.genKnownMapping(strings, knownmap);
-        result.append(this.genMapping(working));
+        this.genMapping(result, working);
         let limit = 20;
         while (limit > 0) {
             // The first character is never an X
@@ -1001,9 +1011,9 @@ export class CipherPolluxEncoder extends CipherEncoder {
                 limit = 0;
             }
             working = this.genKnownMapping(strings, knownmap);
-            result.append(this.genKnownTable(knownmap));
+            this.genKnownTable(result, knownmap);
             result.append("Based on that information we can map the cipher text as:");
-            result.append(this.genMapping(working));
+            this.genMapping(result, working);
             if (this.hasUnknowns(result, knownmap, working)) {
                 limit--;
             } else {

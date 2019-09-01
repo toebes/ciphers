@@ -1465,6 +1465,7 @@ table.morsemap td.l {
 table.known td,
 table.known th {
     border: 1px solid black;
+    vertical-align: top;
 }
 table.known {
     border-collapse: collapse;

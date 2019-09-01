@@ -195,13 +195,15 @@ export class CipherTestPrint extends CipherTest {
             if (SpanishCount > 1 &&
                 test.testtype !== ITestType.bstate &&
                 test.testtype !== ITestType.cstate) {
-                errors.push('Only one Spanish Xenocrypt allowed for this type of test.');
+                errors.push('Only one Spanish Xenocrypt allowed for ' +
+                    this.getTestTypeName(test.testtype) + '.');
             }
             $('.xenocryptfreq').show();
         } else {
             if (test.testtype === ITestType.bstate ||
                 test.testtype !== ITestType.cstate) {
-                errors.push('This test type is supposed to have at least one Spanish Xenocrypt.');
+                errors.push(this.getTestTypeName(test.testtype) +
+                    ' is supposed to have at least one Spanish Xenocrypt.');
             }
             $('.xenocryptfreq').hide();
         }

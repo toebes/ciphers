@@ -80,7 +80,8 @@ export class CipherAffineEncoder extends CipherEncoder {
             if (testType !== ITestType.cregional &&
                 testType !== ITestType.cstate &&
                 this.state.operation === 'encode') {
-                result = "Only Decode problems are allowed on this type of test";
+                result = "Only Decode problems are allowed on " +
+                    this.getTestTypeName(testType);
             }
         }
         return result;

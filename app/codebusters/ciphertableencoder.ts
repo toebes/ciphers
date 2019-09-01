@@ -78,7 +78,7 @@ export class CipherTableEncoder extends CipherEncoder {
             if (testType === ITestType.aregional &&
                 this.state.cipherType === ICipherType.Caesar &&
                 (this.state.offset > 3 && this.state.offset < 23)) {
-                result = "Offset too large for this type of test";
+                result = "Offset too large for " + this.getTestTypeName(testType);
             }
         }
         return result;

@@ -582,7 +582,7 @@ export class CipherEncoder extends CipherHandler {
         if (this.validTests.indexOf(testType) >= 0) {
             return "";
         }
-        return "Not valid for this type of test";
+        return "Not valid for " + this.getTestTypeName(testType);
     }
     /**
      * Generate the HTML to display the answer for a cipher

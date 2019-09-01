@@ -102,7 +102,15 @@ export const enum ITestType {
     aregional = 'aregional',
     astate = 'astate',
 }
-
+export const testTypeNames: { [key in keyof typeof ITestType]: string } = {
+    None: "unspecified test type",
+    cregional: "Division C (High School) Regional/Invitational",
+    cstate: "Division C (High School) State/National",
+    bregional: "Division B (Middle School) Regional/Invitational",
+    bstate: "Division B (Middle School) State/National",
+    aregional: "Division A (Elementary School) Regional/Invitational",
+    astate: "Division A (Elementary School) State/National"
+}
 /**
  * The save file format of a test
  */
@@ -811,6 +819,9 @@ export class CipherHandler {
         }
         this.storage.set(this.storageTestCountName, String(count));
         return '';
+    }
+    public getTestTypeName(testtype: ITestType): string {
+        return testTypeNames[testtype];
     }
     /**
      * Gets the string that corresponds to a test in local storage

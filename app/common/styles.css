@@ -33,18 +33,60 @@ body.txt {
     font-family: Helvetica Neue, Helvetica, Roboto, Arial, sans-serif;
     background-color: #e6e6e6;
 }
-.quser {
+
+.quseall,
+.qusea,
+.quseb,
+.qusebs,
+.qusec,
+.qusecs {
     float: right;
-    background-color: lightgreen;
+    display: block;
+    margin-left: 10px;
+    font-size: 20px;
 }
-.qusen {
-    float: right;
-    background-color: lightblue;
+
+.quseall::after,
+.qusea::after,
+.quseb::after,
+.qusebs::after,
+.qusec::after,
+.qusecs::after {
+    border-radius: 0 0 10px 10px;
+    padding: 2px;
 }
-.quseb {
-    float: right;
-    background-color: lightcoral;
+
+.quseall::after {
+    content: 'All events';
+    background-color: #90be3f;
+    border: 2px solid #0a8b45;
 }
+.qusea::after {
+    content: 'Div A';
+    background-color: #f5ae31;
+    border: 2px solid #d67f28;
+}
+.quseb::after {
+    content: 'Div B';
+    background-color: #ac6dab;
+    border: 2px solid #854887;
+}
+.qusebs::after {
+    content: 'Div B State/National Only';
+    background-color: #ac6dab;
+    border: 2px solid #854887;
+}
+.qusec::after {
+    content: 'Div C';
+    background-color: #00a2d8;
+    border: 2px solid #008cba;
+}
+.qusecs::after {
+    content: 'Div C State/National Only';
+    background-color: #00a2d8;
+    border: 2px solid #008cba;
+}
+
 .fq {
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;

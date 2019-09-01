@@ -3,9 +3,9 @@
  */
 export function JTFLabeledInput(
     title: string,
-    type: "text" | "number" | "file" | "textarea" | "richtext",
+    type: "text" | "number" | "file" | "textarea" | "richtext" | "checkbox",
     id: string,
-    value: number | string,
+    value: number | string | boolean,
     sizeClass: string
 ): JQuery<HTMLElement> {
     let inputgroup = $("<div/>", { class: "input-group" });
@@ -26,6 +26,13 @@ export function JTFLabeledInput(
         })
             .text(value)
             .appendTo(inputgroup);
+    } else if (type === "checkbox") {
+        $("<input/>", {
+            id: id,
+            class: "input-group-button",
+            type: type,
+            value: value,
+        }).appendTo(inputgroup);
     } else {
         $("<input/>", {
             id: id,

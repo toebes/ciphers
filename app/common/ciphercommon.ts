@@ -66,6 +66,18 @@ export function padToMatch(c: string, m: string): string {
     return c + repeatStr(" ", m.length - c.length);
 }
 /**
+ * Remove all whitespace from a string and convert it to all upper case.
+ * @param text String to remove whitespace from
+ * @param keepCase Boolean indicating you want the string back without bein coverted to upper case
+ */
+export function sanitizeString(text: string, keepCase: boolean = false): string {
+    let returnValue: string = text.replace(/[\s,.?'";:!$&-+=]/g, "");
+    if (!keepCase) {
+        returnValue = returnValue.toUpperCase();
+    }
+    return returnValue;
+}
+/**
  * Set the disabled state on a JQuery selected set of elements
  * @param sel JQuery Selector string to select elements to affect
  * @param disabled Boolean indicating whether to disable or enable

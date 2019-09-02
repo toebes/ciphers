@@ -9,8 +9,9 @@ import {JTFIncButton} from "../common/jtfIncButton";
 
 
 interface IRailFenceState extends IState {
-    /** Railfence rows value */
-    rows: number;
+    /** Railfence railss value */
+    rails: number;
+    isRailRange: boolean;
 }
 
 /**
@@ -27,7 +28,8 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public defaultstate: IRailFenceState = {
         cipherString: '',
         cipherType: ICipherType.Railfence,
-        rows: 2,
+        rails: 2,
+        isRailRange: false,
         replacement: {},
     };
     public state: IRailFenceState = cloneObject(
@@ -41,17 +43,31 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     ];
     /** Save and Restore are done on the CipherEncoder Class */
 
+        /**
+     * Determines if this generator is appropriate for a given test
+     * type.  For Division A, the Caesar is limited to an offset +- 3
+     * @param testType Test type to compare against
+     * @returns String indicating error or blank for success
+     */
+    public CheckAppropriate(testType: ITestType): string {
+        let result = super.CheckAppropriate(testType);
+        if (result === "") {
+            // Additional checks are TBD
+        }
+        return result;
+    }
+
 
     /**
-     * Set the number of rail fence rows.
-     * @param rows The number of rows selected on the spinner.
+     * Set the number of rail fence rails.
+     * @param rails The number of rails selected on the spinner.
      */
-    public setRows(rows: number): boolean {
+    public setRails(rails: number): boolean {
         let changed = false;
-        if (rows !== this.state.rows) {
+        if (rails !== this.state.rails) {
             // TODO: the min and max should probably be made to CONSTANTS.
-            if (rows >= 2 && rows <= 6) {
-                this.state.rows = rows;
+            if (rails >= 2 && rails <= 6) {
+                this.state.rails = rails;
                 changed = true;
             }
             else {
@@ -61,6 +77,9 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             }
         }
         return changed;
+    }
+    public setRailRange(isRailRange: boolean): void {
+        this.state.isRailRange = isRailRange;
     }
     /**
      * Loads up the values for the encoder
@@ -86,27 +105,35 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
     public attachHandlers(): void {
         super.attachHandlers();
-        $('#rows')
+        $('#rails')
         .off('input')
         .on('input', e => {
-            let newRows: number = Number($(e.target).val());
-            if (newRows !== this.state.rows) {
+            let newRails: number = Number($(e.target).val());
+            if (newRails !== this.state.rails) {
                 this.markUndo(null);
-                if (this.setRows(newRows)) {
+                if (this.setRails(newRails)) {
                     this.updateOutput();
                 }
             }
             this.advancedir = 0;
         });
-
+        $('#isRailRange')
+        .off('input')
+        .on('click', e => {
+            let isRailRange: boolean = Boolean($(e.target:checked).val());
+            this.setRailRange(isRailRange);
+            this.updateOutput();
+        });
     }
 
     public setUIDefaults(): void {
-        this.setRows(this.state.rows);
+        this.setRails(this.state.rails);
     }
     public updateOutput(): void {
         super.updateOutput();
-        $('#rows').val(this.state.rows);
+        $('#rails').val(this.state.rails);
+        let v: string = String(this.state.isRailRange);
+        $('#isRailRange').val(v);
     }
 
     public genPreCommands(): JQuery<HTMLElement> {
@@ -114,26 +141,34 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         this.genTestUsage(result);
         this.genQuestionFields(result);
         this.genEncodeField(result);
-        
-        // Create a spinner for the number or rows
+
+        // Create a spinner for the number or rails
         let inputbox = $('<div/>', {
             class: 'grid-x grid-margin-x',
         });
         inputbox.append(
-            JTFIncButton('Rows', 'rows', this.state.rows, 'small-12 medium-4 large-4')
+            JTFIncButton('Rails', 'rails', this.state.rails, 'small-12 medium-4 large-4')
         );
         result.append(inputbox);
-        inputbox = $('<div/>', {
-            class: 'grid-x grid-margin-x',            
-        });
-        // Create a check box to indicate they are not given the number or rows.
+
+        // **********************************************************************************
+        // TODO:  The whole check box is for tailoring the solution output for either
+        // rails is given or the range of rails is given.  Range of rails is for the state
+        // test, so put this on hold for right now....I think we need a handler for the
+        // new 'checkbox' input.  The handler would go in ciperhandler.ts, attachHandlers()
+        // method.  Then this class will set the boolean isRailRange in its attachHandlers().
+        // inputbox = $('<div/>', {
+        //     class: 'grid-x grid-margin-x',            
+        // });
+        // Create a check box to indicate they are not given the number or rails.
         // TODO: unsure of how to get test version and how this will beused.
         // if ('test is div b, state') {
-        inputbox.append(
-            JTFLabeledInput("Variable rails", "checkbox", "variableRails", false, 'small-12 medium-4 large-4')
-        );
-        result.append(inputbox);
+        // inputbox.append(
+        //     JTFLabeledInput("Variable rails", "checkbox", "isRailRange", this.state.isRailRange, 'small-12 medium-4 large-4')
+        // );
+        // result.append(inputbox);
         // }
+        // **********************************************************************************
         return result;
     }
     /**
@@ -141,19 +176,67 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * we don't have the frequency table, so this doesn't need to do anything
      */
     public displayFreq(): void { }
+
+    public makeReplacement(text: string, maxEncodeWidth: number): string[][] {
+        let encodeline = '';
+        let lastsplit = -1;
+        let result: string[][] = [];
+
+        // Now go through the string to encode and compute the character
+        // to map to as well as update the frequency of the match
+        for (let t of text) {
+            // Make sure that this is a valid character to map from
+            encodeline += t;
+            lastsplit = encodeline.length;
+            // See if we have to split the line now
+            if (encodeline.length >= maxEncodeWidth) {
+                let encodepart = encodeline.substr(0, lastsplit);
+                encodeline = encodeline.substr(lastsplit);
+                result.push([encodepart]);
+            }
+        }
+        // And put together any residual parts
+        if (encodeline.length > 0) {
+            result.push([encodeline]);
+        }
+        return result;
+    }
+
     /**
      * Generate the HTML to display the answer for a cipher.
      * It is just the ciper text formatted with TOANSWER.
      */
     public genAnswer(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'grid-x' });
+        let result = $('<div/>'/*, { class: 'grid-x' }*/);
 
-        result.append(this.genQuestion());
+        let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
 
-        let answer = $('<div/>', { class: 'TOANSWER'});
-        answer.append(this.state.cipherString);
+        // Get the text characters from each rail, concatenated together
+        //result.append($('<p/>').text(rfs.getRailFenceEncoding()));
 
-        result.append(answer);
+        let encodedText = $('<div/>', {class: 'TOSOLVE'});
+        let strings: string[][] = this.makeReplacement(rfs.getRailFenceEncoding(), 45);
+        for (let strset of strings) {
+            encodedText.append($('<p/>').text(strset[0]));
+        }
+        result.append(encodedText);
+
+        result.append(rfs.getRailFenceSolution());
+
+        let answer = $('<div/>', { class: "grid-x"});
+        let ap1 = $('<span/>', { class: "TOSOLVE"});
+        ap1.append("Answer: ___");
+        let ap2 = $('<span/>', { class: 'TOANSWER'});
+        ap2.append(this.state.cipherString.toUpperCase());
+        let ap3 = $('<span/>', { class: "TOSOLVE"});
+        ap3.append("___");
+        ap1.append(ap2, ap3);
+        answer.append(ap1);
+        
+        // let answer = $('<div/>', { class: 'TOANSWER'});
+        // answer.append(this.state.cipherString);
+
+        result.append(answer, '<p/>');
 
         return result;
     }
@@ -163,10 +246,15 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public genQuestion(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'TOSOLVE' });
 
-        let rfs: RailFenceSolver = new RailFenceSolver(this.state.rows, sanitizeString(this.state.cipherString));
+        let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
 
-        // Get the text characters from each row, concatenated together
-        result.append($('<p/>').text(rfs.getRailFenceEncoding()));
+        // Get the text characters from each rail, concatenated together
+        //result.append($('<p/>').text(rfs.getRailFenceEncoding()));
+
+        let strings: string[][] = this.makeReplacement(rfs.getRailFenceEncoding(), 45);
+        for (let strset of strings) {
+            result.append($('<p/>').text(strset[0]));
+        }
 
         // TODO: I want the 'work space' section to print in the 'Test Packet', not in 
         // 'Answer Key' or 'Answers and Solutions'.
@@ -175,6 +263,12 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             workSpace.append($("<p/>").text("\n"));
         }
         result.append(workSpace);
+
+        let answerLine = $("<div/>", {class: "TOSOLVE"});
+        answerLine.append('Answer: _______________________________________________');
+        answerLine.append('<p/>');
+        result.append(answerLine);
+
         return result;
     }
     /**
@@ -194,13 +288,19 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public genSolution(): JQuery<HTMLElement> {
         let result = $('<div/>');
 
+        let solutionText: string = "This is how you solve it for " + this.state.rails + " rails.";
+        if (this.state.isRailRange) {
+            solutionText = "This is how you solve it for a range of rails...";
+        }
+
         result.append($('<h3/>').text('How to solve'));
         // TODO: Add more solutioning text...
-        result.append($('<p/>').text("This is how you solve it..."));
+        result.append($('<p/>').text(solutionText));
 
-        let rfs: RailFenceSolver = new RailFenceSolver(this.state.rows, sanitizeString(this.state.cipherString));
-        // Get the 'W' solution
-        result.append(rfs.getRailFenceSolution());
+
+        // let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
+        // // Get the 'W' solution
+        // result.append(rfs.getRailFenceSolution());
 
         return result;
     }
@@ -212,34 +312,34 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 class RailFenceSolver {
     // Array to hold the rail fence encoding
     private solution: string[][];
-    // The number of rows in the rail fence
-    private rowCount: number;
+    // The number of rails in the rail fence
+    private railCount: number;
     // Length of text to encode.
     private textLength: number;
     // Number of characters in each 'period'
-    private itemsPerPeriod: number;
+    private itemsPerCycle: number;
 
     /**
      * Creates a Rail Fence solver.  Every character in the passed in text will
      * be placed in a unique position in the array.
-     * @param rows The number of rows in the rail fence
+     * @param rails The number of rails in the rail fence
      * @param text The text to be encoded
      */
-    constructor(rows: number, text: string) {
+    constructor(rails: number, text: string) {
 
-        this.rowCount = rows;
+        this.railCount = rails;
         this.textLength = text.length;
-        this.itemsPerPeriod = 2 * (this.rowCount - 1);
+        this.itemsPerCycle = 2 * (this.railCount - 1);
 
         this.solution = [];
 
-        // Loop over the rows to place characters
-        for (var rowIndex: number = 1; rowIndex <= this.rowCount; rowIndex++ ) {
+        // Loop over the rails to place characters
+        for (var railIndex: number = 1; railIndex <= this.railCount; railIndex++ ) {
 
             // Adjust for computer zero-based arrays
-            let rowArrayIndex = rowIndex - 1;
+            let railArrayIndex = railIndex - 1;
             // Add a second dimention to the array
-            this.solution[rowArrayIndex] = [];
+            this.solution[railArrayIndex] = [];
 
             // Go thru the string to be encoded
             for (var columnIndex: number = 1; columnIndex <= this.textLength; columnIndex++) {
@@ -248,11 +348,11 @@ class RailFenceSolver {
                 let colArrayIndex = columnIndex - 1;
 
                 // Test if a character should be placed in the array location
-                if (this.placeCharacter(rowIndex, colArrayIndex)) {
-                    this.solution[rowArrayIndex][colArrayIndex] = text.charAt(colArrayIndex);
+                if (this.placeCharacter(railIndex, colArrayIndex)) {
+                    this.solution[railArrayIndex][colArrayIndex] = text.charAt(colArrayIndex);
                 }
                 else {
-                    this.solution[rowArrayIndex][colArrayIndex] = "";
+                    this.solution[railArrayIndex][colArrayIndex] = "";
                 }
             }
         }
@@ -261,12 +361,12 @@ class RailFenceSolver {
     public getRailFenceEncoding(): string {
         var returnValue: string = "";
 
-        // Loop over each column, row after row and build a string of the non-blank characters.
-        for (var i: number = 0; i < this.rowCount; i++) {
-            var row: string[] = this.solution[i];
-            for (var j: number = 0; j < this.solution[i].length; j++) {
-                if (this.solution[i][j].length > 0) {
-                    returnValue = returnValue.concat(this.solution[i][j]);
+        // Loop over each column, rail after rail and build a string of the non-blank characters.
+        for (var i: number = 0; i < this.railCount; i++) {
+            var rail: string[] = this.solution[i];
+            for (var j: number = 0; j < rail.length; j++) {
+                if (rail[j].length > 0) {
+                    returnValue = returnValue.concat(rail[j]);
                 }
             }
         }
@@ -276,51 +376,63 @@ class RailFenceSolver {
      * Create a formatted div which shows the Rail Fence solution.
      */
     public getRailFenceSolution(): JQuery<HTMLElement> {
-        let returnValue = $('<div/>');
+        let returnValue = $('<div/>', { class: 'TOSOLVE'});
 
-        // Loop thru each row
-        for (var i: number = 0; i < this.rowCount; i++) {
+        // TODO: These font sizes are hard-coded, but there should/could probably
+        // be some CSS magic here...
+        let fontSize: string = "16px";
+        if (this.textLength > 90) {
+            fontSize = "10px";
+        }
+        else if (this.textLength > 45) {
+            fontSize = "14px";
+        }
+
+        // Loop thru each rail
+        for (var i: number = 0; i < this.railCount; i++) {
             var encodedText: string = "";
-            var row: string[] = this.solution[i];
+            var rail: string[] = this.solution[i];
             // Loop thru each column
-            for (var j: number = 0; j < this.solution[i].length; j++) {
+            for (var j: number = 0; j < rail.length; j++) {
                 // Check for a character
-                if (this.solution[i][j].length > 0) {
+                if (rail[j].length > 0) {
                     // Add the character
-                    encodedText = encodedText.concat(this.solution[i][j]);
+                    encodedText = encodedText.concat(rail[j]);
                 }
                 else {
                     // Add white space filler
                     encodedText = encodedText.concat(' ');
                 }
             }
-            // Add the next row, using <pre> to maintain white space width.
-            returnValue.append($('<pre/>').text(encodedText));
+            // Add the next rail, using <pre> to maintain white space width.
+            returnValue.append($('<pre/>').text(encodedText).css("font-size", fontSize));
         }
+        // Adds some space at the bottom...
+        returnValue.append('<p/>');
 
         return returnValue;
     }
 
     /**
      * The method return true if a character should be placed at the given
-     * row and column for the current railfence.
-     * @param row of the railfence to test
+     * rail and column for the current railfence.
+     * @param rail of the railfence to test
      * @param column of the railfence to test
      */
-    private placeCharacter(row: number, column: number): boolean {
+    private placeCharacter(rail: number, column: number): boolean {
 
         let returnValue: boolean = false;
-        let periodPosition = (column % this.itemsPerPeriod) + 1;
+        let cyclePosition = (column % this.itemsPerCycle) + 1;
 
-        if (periodPosition <= (this.itemsPerPeriod /2) + 1) {
+        if (cyclePosition <= (this.itemsPerCycle /2) + 1) {
             // this is the down slope, includeing the very top and the bottom
-            if (periodPosition === row) {
+            if (cyclePosition === rail) {
                 returnValue = true;
             }
         }
         else {
             // this is the up slope
-            if ((periodPosition - ((periodPosition - this.rowCount) * 2)) === row) {
+            if ((cyclePosition - ((cyclePosition - this.railCount) * 2)) === rail) {
                 returnValue = true;
             }
         }

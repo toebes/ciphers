@@ -87,6 +87,17 @@ body.txt {
     border: 2px solid #008cba;
 }
 
+.usedon {
+    float: left;
+}
+.testset {
+    margin-left: 120px;
+}
+
+.usemsg {
+    display: inline;
+    color: red;
+}
 .fq {
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;

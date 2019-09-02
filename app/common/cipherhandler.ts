@@ -1362,7 +1362,7 @@ export class CipherHandler {
     public updateTestUsage(): void {
         let result = $(".testuse");
         result.empty().removeClass('alert primary');
-        let prefix = 'Used on test(s): ';
+        let prefix = 'Used on test(s):';
         if (this.savefileentry !== -1) {
             // Find out what tests this is a part of
             let testCount = this.getTestCount();
@@ -1414,25 +1414,33 @@ export class CipherHandler {
                     }
                     let link = $('<a/>', {
                         href: 'TestGenerator.html?test=' + String(entry),
-                    }).text(test.title + ' ' + use + usemsg);
+                    }).text(test.title + ' ' + use);
+                    if (usemsg !== '') {
+                        link.append($("<span/>", { class: 'usemsg' }).text(usemsg));
+                    }
                     result.addClass('callout ' + calloutclass);
-                    result.append(prefix);
+                    if (prefix !== '') {
+                        result.append($("<div/>", { class: "usedon" }).text("Used on test(s):"));
+                        prefix = '';
+                    }
+                    let testset = $("<div/>", { class: "testset" });
+
                     if (prevq !== undefined) {
                         let linkprev = $('<a/>', {
                             class: 'prevnav',
                             href: this.getEntryURL(prevq),
                         }).text(prevtxt);
-                        result.append(linkprev).append(' ');
+                        testset.append(linkprev).append(' ');
                     }
-                    result.append(link);
+                    testset.append(link);
                     if (nextq !== undefined) {
                         let linknext = $('<a/>', {
                             class: 'nxtnav',
                             href: this.getEntryURL(nextq),
                         }).text(nexttxt);
-                        result.append(linknext).append(' ');
+                        testset.append(linknext).append(' ');
                     }
-                    prefix = ', ';
+                    result.append(testset);
                 }
             }
         }

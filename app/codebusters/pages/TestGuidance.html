@@ -598,8 +598,78 @@
         for a 2x2 Hill with a 26
         character
         alphabet.</p>
+    <h2 class="ol" id="Morbitdecode">
+        <div class="qusec"></div>
+        <div class="quseb"></div>Morbit Cipher Decode {3.e.viii}
+    </h2>
+    <p>The Morbit Cipher encodes text by first converting the plain text into morse
+        code with the space between characters represented by an
+        <span class="fq">&times;</span> and the space between
+        words represented by two <span class="fq">&times;</span> characters. The resulting morse code is then
+        broken into pairs of characters (adding an <span class="fq">&times;</span> at the end if necessary).
+        The numbers 1-9 are randomly assigned to the unique pairs of characters
+        (<span class="fq">&#9679;&#9679;</span>,
+        <span class="fq">&#9679;&ndash;</span>,
+        <span class="fq">&#9679;&times;</span>,
+        <span class="fq">&ndash;&#9679;</span>,
+        <span class="fq">&ndash;&ndash;</span>,
+        <span class="fq">&ndash;&times;</span>,
+        <span class="fq">&times;&#9679;</span>,
+        <span class="fq">&times;&ndash;</span>,
+        <span class="fq">&times;&times;</span>,). The pairs of morse
+        characters are then replaced with the corresponding number to generate
+        the final cipher string. Decoding is done by reversing the process.
+    </p>
+    <span class="ht">Setting Difficulty:</span>
+    <p class="in">The dificulty is driven by the number of letters and the
+        variety of morse code combined with which letters are chosen. Looking
+        at the generated solving guide can help guide the question writing. Not telling
+        them which digit corresponds to &times;&times; increases the difficulty.
+    </p>
+    <span class="ht">Points:</span>
+    <p class="in">100-150.</p>
+    <span class="ht">Question Text:</span>
+    <p class="in">The question should be around 40 characters.</p>
+    <p class="ex callout small secondary ">Solve this quote from <em>&lt;person&gt;</em> which
+        has been encoded using the Morbit Cipher. You are told that <span class="fq">2=&#9679;&#9679;,
+            4=&#9679;&ndash;, 6=&#9679;&times;,
+            9=&ndash;&#9679;, 1=&ndash;&ndash;, and 7=&ndash;&times;</span> </p>
+    <h2 class="ol" id="Polluxdecode">
+        <div class="qusec"></div>
+        <div class="quseb"></div>Pollux Cipher Decode {3.e.viii}
+    </h2>
+    <p>The Pollux Cipher encodes text by first converting the plain text into morse
+        code with the space between characters represented by an <span class="fq">&times;</span> and the space between
+        words represented by two <span class="fq">&times;</span> characters. The resulting morse code is then
+        randomly assigned to digits (0-9) chosen to represent the morse characters:
+        (<span class="fq">&#9679;</span>,
+        <span class="fq">&ndash;</span>,
+        <span class="fq">&times;</span>)
+        The pairs of morse
+        characters are then replaced with the corresponding number to generate
+        the final cipher string. Decoding is done by reversing the process.
+        Note that because one or more digits may represent a morse character piece,
+        the mapping can be somewhat random.
+    </p>
+    <span class="ht">Setting Difficulty:</span>
+    <p class="in">The dificulty is driven by the number of letters and the
+        variety of morse code combined with which letters are chosen. Looking
+        at the generated solving guide can help guide the question writing.
+        Not telling them all the
+        hint characters which correspond to
+        <span class="fq">&times;</span>
+        increases the difficulty. Assigning more characters for one morse digit,
+        thereby reducing another, also increases the difficulty.
+    </p>
+    <span class="ht">Points:</span>
+    <p class="in">100-150.</p>
+    <span class="ht">Question Text:</span>
+    <p class="in">The question should be around 40 characters.</p>
+    <p class="ex callout small secondary ">Solve this quote from <em>&lt;person&gt;</em> which
+        has been encoded using the Pollux Cipher. You are told that <span class="fq">2,3=&#9679;,
+            4,7=&ndash;, 9,1=&times;</span> </p>
     <h2 class="ol" id="RunningKey">
-        Running Key Cipher {3.f.ii.}
+        Running Key Cipher [NOT USED THIS YEAR]
     </h2>
     <p>Pick a phrase which is approximately 80 characters long. The actual content has little
         impact on the difficulty. By default there are four encoding texts (Gettysburg address, Declaration
@@ -818,21 +888,93 @@
     <h2 class="ol" id="RailFence">
         <div class="quseb"></div>Rail Fence Cipher
     </h2>
-    <p>The rail fence cipher encodes messages by 'zig-zagging' the letters along 2 to 6 'rails'.  The cipher can
-        be decoded by brute force; trial and error; or procedurally by applying some simple math and 
+    <p>The rail fence cipher encodes messages by 'zig-zagging' the letters along 2 to 6 'rails'. The cipher can
+        be decoded by brute force; trial and error; or procedurally by applying some simple math and
         understanding spacing of characters in the rail patterns.
     </p>
     <span class="ht">Setting Difficulty:</span>
     <p class="in">The difficulty gets slightly higher with more rails because it requires more diligence when
-        solving.  
+        solving.
     </p>
     <span class="ht">Points:</span>
-    <p class="in">100-150.  A rule of thumb: 2 rails = 100; 3 rails = 110; 4 rails = 120; 5 rails = 130; 
-        6 rails = 140 points.  150 points for when only the range of rails is given.</p>
+    <p class="in">100-150. A rule of thumb: 2 rails = 100; 3 rails = 110; 4 rails = 120; 5 rails = 130;
+        6 rails = 140 points. 150 points for when only the range of rails is given.</p>
     <span class="ht">Question Text:</span>
     <p class="in">The question should be around 75 characters.</p>
     <p class="ex callout small secondary ">Solve this quote from <em>&lt;person&gt;</em> which
-        has been encoded with the rail fence cipher.  The message was encoded with <em>&lt;rail count&gt;</em> rails.</p>
+        has been encoded with the rail fence cipher. The message was encoded with <em>&lt;rail count&gt;</em> rails.</p>
+
+    <h2 class="ol" id="Morbitcrypt">
+        <div class="qusecs"></div>
+        <div class="qusebs"></div>Morbit Cipher Cryptanalysis {3.f.vii}
+    </h2>
+    <p>The Morbit Cipher encodes text by first converting the plain text into morse
+        code with the space between characters represented by an <span class="fq">&times;</span> and the space between
+        words represented by two <span class="fq">&times;</span> characters. The resulting morse code is then
+        broken into pairs of characters (adding an <span class="fq">&times;</span> at the end if necessary).
+        The numbers 1-9 are randomly assigned to the unique pairs of characters
+        (<span class="fq">&#9679;&#9679;</span>,
+        <span class="fq">&#9679;&ndash;</span>,
+        <span class="fq">&#9679;&times;</span>,
+        <span class="fq">&ndash;&#9679;</span>,
+        <span class="fq">&ndash;&ndash;</span>,
+        <span class="fq">&ndash;&times;</span>,
+        <span class="fq">&times;&#9679;</span>,
+        <span class="fq">&times;&ndash;</span>,
+        <span class="fq">&times;&times;</span>,). The pairs of morse
+        characters are then replaced with the corresponding number to generate
+        the final cipher string. Decoding is done by reversing the process.
+    </p>
+    <span class="ht">Setting Difficulty:</span>
+    <p class="in">The dificulty is driven by the number of letters and the
+        variety of morse code combined with which letters are chosen. Looking
+        at the generated solving guide can help guide the question writing. Not giving them
+        hint characters which exposes the digit corresponding to
+        <span class="fq">&times;&times;</span>
+        increases the difficulty.
+    </p>
+    <span class="ht">Points:</span>
+    <p class="in">150-200.</p>
+    <span class="ht">Question Text:</span>
+    <p class="in">The question should be around 40 characters.</p>
+    <p class="ex callout small secondary ">Solve this quote from <em>&lt;person&gt;</em> which
+        has been encoded using the Morbit Cipher. You are told that the first
+        four letters are <span class="fq">SOME</span>.</p>
+
+    <h2 class="ol" id="Polluxcrypt">
+        <div class="qusecs"></div>
+        <div class="qusebs"></div>Pollux Cipher Cryptanalysis {3.f.vii}
+    </h2>
+    <p>The Pollux Cipher encodes text by first converting the plain text into morse
+        code with the space between characters represented by an <span class="fq">&times;</span> and the space between
+        words represented by two <span class="fq">&times;</span> characters. The resulting morse code is then
+        randomly assigned to digits (0-9) chosen to represent the morse characters:
+        (<span class="fq">&#9679;</span>,
+        <span class="fq">&ndash;</span>,
+        <span class="fq">&times;</span>)
+        The pairs of morse
+        characters are then replaced with the corresponding number to generate
+        the final cipher string. Decoding is done by reversing the process.
+        Note that because one or more digits may represent a morse character piece,
+        the mapping can be somewhat random.
+    </p>
+    <span class="ht">Setting Difficulty:</span>
+    <p class="in">The dificulty is driven by the number of letters and the
+        variety of morse code combined with which letters are chosen. Looking
+        at the generated solving guide can help guide the question writing. Not giving them
+        hint characters which exposes all the digits corresponding to
+        <span class="fq">&times;</span>
+        increases the difficulty. Assigning more characters for one morse digit,
+        thereby reducing another, also increases the difficulty.
+    </p>
+    <span class="ht">Points:</span>
+    <p class="in">150-200.</p>
+    <span class="ht">Question Text:</span>
+    <p class="in">The question should be around 40 characters.</p>
+    <p class="ex callout small secondary ">Solve this quote from <em>&lt;person&gt;</em> which
+        has been encoded using the Pollux Cipher. You are told that the first
+        four letters are <span class="fq">SOME</span>.</p>
+
 </body>
 
 </html>

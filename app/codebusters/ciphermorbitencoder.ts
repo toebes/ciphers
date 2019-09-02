@@ -1036,15 +1036,6 @@ export class CipherMorbitEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
-        // $('.mchar')
-        //     .off('input')
-        //     .on('input', e => {
-        //         let char = $(e.target).val() as string;
-        //         this.markUndo(null);
-        //         if (this.setmChar(char)) {
-        //             this.updateOutput();
-        //         }
-        //     });
         $('#hint')
             .off('input')
             .on('input', e => {

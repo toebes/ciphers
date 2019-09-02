@@ -1,4 +1,4 @@
-import { cloneObject, StringMap } from '../common/ciphercommon';
+import { cloneObject, StringMap, BoolMap, NumberMap } from '../common/ciphercommon';
 import { ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -119,6 +119,8 @@ export class CipherMorbitEncoder extends CipherEncoder {
             $('.hint').hide();
             $('.crib').show();
         }
+        $("#hint").val(this.state.hint);
+        $("#crib").val(this.state.crib);
         JTRadioButtonSet('operation', this.state.operation);
         for (let i in morbitmap) {
             $("input[data-char='" + i + "']")
@@ -458,11 +460,9 @@ export class CipherMorbitEncoder extends CipherEncoder {
      */
     public genKnownMapping(strings: string[][], knownmap: MorbitKnownMap): string[][] {
         let working: string[][] = [];
-        let current = "";
         for (let ctset of strings) {
             let morse = "";
             let plaintext = "";
-            let index = 0;
             for (let c of ctset[ctindex]) {
                 // See if we know what this character maps to exactly
                 let possibilities = knownmap[c];
@@ -486,6 +486,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
                     if (lastc === 'X') {
                         plaintext += '/ ';
                         lastc = '';
+                        morsepart = "";
                     } else {
                         let pt = frommorse[morsepart];
                         if (pt === undefined) {
@@ -493,17 +494,21 @@ export class CipherMorbitEncoder extends CipherEncoder {
                         }
                         plaintext += pt + this.repeatStr(' ', morsepart.length - 1);
                         lastc = c;
+                        morsepart = "";
                     }
                 } else {
                     if (lastc === 'X') {
                         plaintext += ' ';
-                    } else {
-                        morsepart += c;
                     }
+                    morsepart += c;
                     lastc = c;
                 }
             }
-            working.push([ctindex[ctindex], morse, plaintext]);
+            // Did we have anything left over?
+            if (morsepart !== '' && frommorse[morsepart] !== undefined) {
+                plaintext += frommorse[morsepart];
+            }
+            working.push([ctset[ctindex], morse, plaintext]);
         }
         return working;
     }
@@ -533,6 +538,162 @@ export class CipherMorbitEncoder extends CipherEncoder {
             );
         }
         result.append(ansdiv);
+    }
+    /**
+     * Determines if the entire cipher mapping is known
+     * @param knownmap Map of current cipher strings
+     * @returns Boolean indicating that there are unknowns
+     */
+    public hasUnknowns(result: JQuery<HTMLElement>, knownmap: MorbitKnownMap, working: string[][]): boolean {
+        // Figure out what letters were actually used
+        let used: BoolMap = {};
+        let unknowns = 0;
+        for (let strset of working) {
+            for (let c of strset[ctindex]) {
+                if (c !== ' ') {
+                    used[c] = true;
+                }
+            }
+        }
+        // If one of the used letters doesn't have a mapping then we aren't done
+        for (let e in knownmap) {
+            if (knownmap[e].length > 1 && used[e] === true) {
+                unknowns++;
+            }
+        }
+        if (unknowns > 0) {
+            result.append("At this point in time, " + String(unknowns) +
+                " ciphertext characters still need to be mapped. ");
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Scan all the choices, if a morselet only appears on one choice,
+     * assign it.
+     * @param result Place to output any messages
+     * @param knownmap Map of current cipher strings
+     * @param working Current mapping strings
+     * @returns Boolean indicating that any were found
+     */
+    public checkSolo(result: JQuery<HTMLElement>,
+        knownmap: MorbitKnownMap,
+        working: string[][]): boolean {
+        let condensed = false;
+        let prefix = "Looking for unique mappings, ";
+        let counts: NumberMap = {};
+        let usage: StringMap = {};
+        for (let e in knownmap) {
+            if (knownmap[e].length > 1) {
+                for (let entry of knownmap[e]) {
+                    if (counts[entry] === undefined) {
+                        counts[entry] = 0;
+                    }
+                    counts[entry]++;
+                    usage[entry] = e;
+                }
+            }
+        }
+        for (let e in counts) {
+            if (counts[e] === 1) {
+                knownmap[usage[e]] = [e];
+                let msg = usage[e] + " is the only cipher text character that" +
+                    " can map to " + this.normalizeHTML(e) +
+                    " so we mark it as such.";
+                result.append(prefix + msg);
+                prefix = " Also, ";
+                condensed = true;
+            }
+        }
+        return condensed;
+    }
+    /**
+     * If xx is known, find all cipher characters before and after
+     * and eliminate the choices with x at the end for before and
+     * beginning for after.
+     * @param result Place to output any messages
+     * @param knownmap Map of current cipher strings
+     * @param working Current mapping strings
+     * @returns Boolean indicating that any were found
+     */
+    public eliminateXXNeighbors(result: JQuery<HTMLElement>,
+        knownmap: MorbitKnownMap,
+        working: string[][]): boolean {
+        let xxct = '';
+        let prex: BoolMap = {};
+        let postx: BoolMap = {};
+        let prefix = "Looking for unknowns next to " + this.normalizeHTML('XX') +
+            "which would result in three in a row,";
+        let eliminated = false;
+        for (let e in knownmap) {
+            prex[e] = false;
+            postx[e] = false;
+            // If this is our XX known spot, remember it
+            if (knownmap[e].length === 1 && knownmap[e][0] === 'XX') {
+                xxct = e;
+                // Otherwise see if this has an X that could be before or after it
+            } else if (knownmap[e].length > 1) {
+                for (let ent of knownmap[e]) {
+                    if (ent[0] === 'X') {
+                        postx[e] = true;
+                    } else if (ent[1] === 'X') {
+                        prex[e] = true;
+                    }
+                }
+            }
+        }
+        // We don't know which is XX, so we can't do anything.
+        if (xxct === '') {
+            return false;
+        }
+        // Bubble through the cipher text looking for anything next to it
+        let lastc = '';
+        for (let strset of working) {
+            for (let c of strset[ctindex]) {
+                let msg = "";
+                if (c === ' ') {
+                    continue;
+                }
+                if (c === xxct && postx[lastc]) {
+                    // We can eliminate it from ending in X
+                    msg = "we find the sequence " + lastc + c +
+                        " where we know that " + c + " is " + this.normalizeHTML('XX') +
+                        " which means that " + lastc +
+                        " cannot end in " + this.normalizeHTML('X') +
+                        ", so we can eliminate those possibilities";
+                    // Drop the potential ones that end in X
+                    for (let i = knownmap[lastc].length - 1; i >= 0; i--) {
+                        if (knownmap[lastc][i][1] === 'X') {
+                            knownmap[lastc].splice(i, 1);
+                        }
+                    }
+                    // And keep us from processing it again.
+                    postx[lastc] = false;
+                } else if (prex[c] && lastc === xxct) {
+                    msg = "we find the sequence " + lastc + c +
+                        " where we know that " + lastc + " is " + this.normalizeHTML('XX') +
+                        " which means that " + c +
+                        " cannot start with " + this.normalizeHTML('X') +
+                        ", so we can eliminate those possibilities";
+                    // Drop the ones that start with X
+                    for (let i = knownmap[c].length - 1; i >= 0; i--) {
+                        if (knownmap[c][i][0] === 'X') {
+                            knownmap[c].splice(i, 1);
+                        }
+                    }
+                    // And keep us from processing it again
+                    prex[c] = false;
+                }
+                if (msg !== '') {
+                    eliminated = true;
+                    result.append(prefix + msg);
+                    prefix = ' Also,';
+                }
+                lastc = c;
+            }
+        }
+        return eliminated;
     }
     /**
      * Generates the solving guide for the cipher
@@ -573,66 +734,70 @@ export class CipherMorbitEncoder extends CipherEncoder {
         this.genKnownTable(result, knownmap);
         result.append("Based on that information we can map the cipher text as:");
         let working = this.genKnownMapping(strings, knownmap);
+        if (working.length <= 0) {
+            return result;
+        }
+
         this.genMapping(result, working);
         let limit = 20;
         while (limit > 0) {
             // 1. Scan all the choices, if a morselet only appears on one choice,
             //    assign it.
-            // 2. If xx is known, find all cipher characters before and after
-            //    and eliminate the choices with x at the end for before and
-            //    beginning for after.
-            // 3. If xx is not known, find all cipher characters after mapping to
-            //    x at the end and eliminate xx from them.
-            //    Do the same for x at the beginning for followers.
-            // 4. If xx is not known, find all double characters and eliminate
-            //    xx from their choices 
-            // 5. Find spans of 7 characters with an unknown in them and
-            //    eliminate choices which don’t have an X.
-            // 6. Find span of characters between Xs with a single unknown.
-            //    Try all choices for the unknown and eliminate any illegal options.
-            // 7. Try all values of an unknown and eliminate any which generate
-            //    an illegal Morse code sequence
-            //     // The first character is never an X
-            //     if (this.checkFirstCT(result, knownmap, working)) {
-            //         // We eliminated at least one letter from being an X
-            //     } else if (this.findTriples(result, knownmap, working)) {
-            //         // We eliminated at least one letter from being an X
-            //     } else if (this.findSpacers(result, knownmap, working)) {
-            //         // We found at least one new letter that must be an X
-            //     } else if (this.findInvalidMorse(result, knownmap, working)) {
-            //         // We found at least one morse code that invalidated a choice
-            //     } else if (this.findSingleMorse(result, knownmap, working)) {
-            //         // We found at least one morse code that invalidated a choice
-            //     } else if (this.testSingleMorse(result, knownmap, working)) {
-            //         // We found at least one morse code that invalidated a choice
-            //     } else {
-            //         // Nothing more that we can do..
-            //         result.append($("<h4.>").
-            //             text("There are no more automated solving techniques, " +
-            //                 "so you need to do some trial and error with the remaining unknowns. " +
-            //                 "Please feel free to submit an issue with the example so we can improve this."));
-            //         limit = 0;
-            //     }
-            //     working = this.genKnownMapping(strings, knownmap);
-            //     result.append(this.genKnownTable(knownmap));
-            //     result.append("Based on that information we can map the cipher text as:");
-            //     result.append(this.genMapping(working));
-            //     if (this.hasUnknowns(result, knownmap, working)) {
-            //         limit--;
-            //     } else {
-            //         let answer = '';
-            //         for (let strset of working) {
-            //             answer += strset[ptindex].replace(/ /g, '').replace(/\//g, ' ');
-            //         }
-            //         result.append($("<h4/>")
-            //             .text("Now that we have mapped all the ciphertext characters, the decoded morse code is the answer:"));
-            //         result.append(
-            //             $('<div/>', {
-            //                 class: 'TOANSWER',
-            //             }).text(answer)
-            //         );
-            limit = 0;
-            //     }
+            if (this.checkSolo(result, knownmap, working)) {
+                // We consolidated at least one choice
+            } else if (this.eliminateXXNeighbors(result, knownmap, working)) {
+                // 2. If xx is known, find all cipher characters before and after
+                //    and eliminate the choices with x at the end for before and
+                //    beginning for after.
+                // 3. If xx is not known, find all cipher characters after mapping to
+                //    x at the end and eliminate xx from them.
+                //    Do the same for x at the beginning for followers.
+                // 4. If xx is not known, find all double characters and eliminate
+                //    xx from their choices 
+                // 5. Find spans of 7 characters with an unknown in them and
+                //    eliminate choices which don’t have an X.
+                // 6. Find span of characters between Xs with a single unknown.
+                //    Try all choices for the unknown and eliminate any illegal options.
+                // 7. Try all values of an unknown and eliminate any which generate
+                //    an illegal Morse code sequence
+
+                //         // We eliminated at least one letter from being an X
+                //     } else if (this.findSpacers(result, knownmap, working)) {
+                //         // We found at least one new letter that must be an X
+                //     } else if (this.findInvalidMorse(result, knownmap, working)) {
+                //         // We found at least one morse code that invalidated a choice
+                //     } else if (this.findSingleMorse(result, knownmap, working)) {
+                //         // We found at least one morse code that invalidated a choice
+                //     } else if (this.testSingleMorse(result, knownmap, working)) {
+                //         // We found at least one morse code that invalidated a choice
+            } else {
+                // Nothing more that we can do..
+                result.append($("<h4.>").
+                    text("There are no more automated solving techniques, " +
+                        "so you need to do some trial and error with the remaining unknowns. " +
+                        "Please feel free to submit an issue with the example so we can improve this."));
+                limit = 0;
+            }
+            working = this.genKnownMapping(strings, knownmap);
+            this.genKnownTable(result, knownmap);
+            result.append("Based on that information we can map the cipher text as:");
+            this.genMapping(result, working);
+            if (this.hasUnknowns(result, knownmap, working)) {
+                limit--;
+            } else {
+                let answer = '';
+                for (let strset of working) {
+                    answer += strset[ptindex].replace(/ /g, '').replace(/\//g, ' ');
+                }
+                result.append($("<h4/>")
+                    .text("Now that we have mapped all the ciphertext characters, the decoded morse code is the answer:"));
+                result.append(
+                    $('<div/>', {
+                        class: 'TOANSWER',
+                    }).text(answer)
+                );
+                limit = 0;
+            }
         }
         return result;
     }

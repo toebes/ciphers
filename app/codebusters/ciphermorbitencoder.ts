@@ -622,7 +622,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
         let prex: BoolMap = {};
         let postx: BoolMap = {};
         let prefix = "Looking for unknowns next to " + this.normalizeHTML('XX') +
-            " which would result in three in a row,";
+            " which would result in three in a row, ";
         let eliminated = false;
         for (let e in knownmap) {
             prex[e] = false;
@@ -702,7 +702,6 @@ export class CipherMorbitEncoder extends CipherEncoder {
         }
         return eliminated;
     }
-
     /**
      * If xx is not known, find all cipher characters after mapping to
      * x at the end and eliminate xx from them.
@@ -715,13 +714,12 @@ export class CipherMorbitEncoder extends CipherEncoder {
     public eliminateXXOptions(result: JQuery<HTMLElement>,
         knownmap: MorbitKnownMap,
         working: string[][]): boolean {
-        let xxct = '';
         let prex: BoolMap = {};
         let postx: BoolMap = {};
         let hasxx: BoolMap = {};
         let prefix = "With " + this.normalizeHTML('XX') + " unknown, looking " +
             " at unknowns which are next to " + this.normalizeHTML('X') +
-            " which would result in three in a row,";
+            " which would result in three in a row, ";
         let eliminated = false;
         for (let e in knownmap) {
             prex[e] = false;
@@ -797,6 +795,146 @@ export class CipherMorbitEncoder extends CipherEncoder {
         return eliminated;
     }
     /**
+     * If xx is not known, find all double characters and eliminate
+     * xx from their choices 
+     * @param result Place to output any messages
+     * @param knownmap Map of current cipher strings
+     * @param working Current mapping strings
+     * @returns Boolean indicating that any were found
+     */
+    public eliminateXXDoubles(result: JQuery<HTMLElement>,
+        knownmap: MorbitKnownMap,
+        working: string[][]): boolean {
+        let hasxx: BoolMap = {};
+        let prefix = "With " + this.normalizeHTML('XX') + " unknown, looking " +
+            " at unknowns which are doubled " + this.normalizeHTML('X') +
+            " which would result in four in a row, ";
+        let eliminated = false;
+        for (let e in knownmap) {
+            hasxx[e] = false;
+            if (knownmap[e].length >= 1) {
+                if (knownmap[e].indexOf('XX') >= 0) {
+                    // If this is our XX known spot, then we can do nothing else
+                    if (knownmap[e].length === 1) {
+                        return false;
+                    }
+                    hasxx[e] = true;
+                }
+            }
+        }
+        // Bubble through the cipher text looking for anything next to it
+        let lastc = '';
+        for (let strset of working) {
+            for (let c of strset[ctindex]) {
+                let msg = "";
+                if (c === ' ') {
+                    continue;
+                }
+                if (c == lastc && hasxx[c]) {
+                    // We can eliminate it from ending in X
+                    msg = "we find a double sequence " + c + c +
+                        " which cannot be " + this.normalizeHTML('XX') +
+                        ", so we can eliminate that possibility";
+                    // Drop the XX entry
+                    let index = knownmap[c].indexOf('XX');
+                    if (index >= 0) {
+                        knownmap[c].splice(index, 1);
+                    }
+                    eliminated = true;
+                    result.append(prefix + msg);
+                    prefix = ' Also,';
+                    // And keep us from processing it again.
+                    hasxx[c] = false;
+                }
+                lastc = c;
+            }
+        }
+        return eliminated;
+    }
+    /**
+     * Find spans of 7 characters with an unknown in them and
+     * eliminate choices which don’t have an X.
+     * @param result Place to output any messages
+     * @param knownmap Map of current cipher strings
+     * @param working Current mapping strings
+     * @returns Boolean indicating that any were found
+     */
+    public eliminateMissingXInSpan(result: JQuery<HTMLElement>,
+        knownmap: MorbitKnownMap,
+        working: string[][]): boolean {
+        let hasxx: BoolMap = {};
+        let prefix = "With " + this.normalizeHTML('XX') + " unknown, looking " +
+            " at unknowns which are doubled " + this.normalizeHTML('X') +
+            " which would result in four in a row, ";
+        let eliminated = false;
+        for (let e in knownmap) {
+            hasxx[e] = false;
+            if (knownmap[e].length >= 1) {
+                if (knownmap[e].indexOf('XX') >= 0) {
+                    // If this is our XX known spot, then we can do nothing else
+                    if (knownmap[e].length === 1) {
+                        return false;
+                    }
+                    hasxx[e] = true;
+                }
+            }
+        }
+        // Bubble through the cipher text looking for anything next to it
+        let lastc = '';
+        for (let strset of working) {
+            for (let c of strset[ctindex]) {
+                let msg = "";
+                if (c === ' ') {
+                    continue;
+                }
+                if (c == lastc && hasxx[c]) {
+                    // We can eliminate it from ending in X
+                    msg = "we find a double sequence " + c + c +
+                        " which cannot be " + this.normalizeHTML('XX') +
+                        ", so we can eliminate that possibility";
+                    // Drop the XX entry
+                    let index = knownmap[c].indexOf('XX');
+                    if (index >= 0) {
+                        knownmap[c].splice(index, 1);
+                    }
+                    eliminated = true;
+                    result.append(prefix + msg);
+                    prefix = ' Also,';
+                    // And keep us from processing it again.
+                    hasxx[c] = false;
+                }
+                lastc = c;
+            }
+        }
+        return eliminated;
+    }
+    /**
+     * Find span of characters between Xs with a single unknown.
+     * Try all choices for the unknown and eliminate any illegal options.
+     * @param result Place to output any messages
+     * @param knownmap Map of current cipher strings
+     * @param working Current mapping strings
+     * @returns Boolean indicating that any were found
+     */
+    public eliminateInvalidInSpan(result: JQuery<HTMLElement>,
+        knownmap: MorbitKnownMap,
+        working: string[][]): boolean {
+        return false;
+    }
+    /**
+     * Try all values of an unknown and eliminate any which generate
+     * an illegal Morse code sequence 
+     * @param result Place to output any messages
+     * @param knownmap Map of current cipher strings
+     * @param working Current mapping strings
+     * @returns Boolean indicating that any were found
+     */
+    public eliminateInvalidMorse(result: JQuery<HTMLElement>,
+        knownmap: MorbitKnownMap,
+        working: string[][]): boolean {
+        return false;
+    }
+    /**
      * Generates the solving guide for the cipher
      * @returns DOM to insert into the web page
      */
@@ -850,21 +988,14 @@ export class CipherMorbitEncoder extends CipherEncoder {
                 // We eliminated options touching XX
             } else if (this.eliminateXXOptions(result, knownmap, working)) {
                 // We found at least one new letter that must be an X
-                // 4. If xx is not known, find all double characters and eliminate
-                //    xx from their choices 
-                // 5. Find spans of 7 characters with an unknown in them and
-                //    eliminate choices which don’t have an X.
-                // 6. Find span of characters between Xs with a single unknown.
-                //    Try all choices for the unknown and eliminate any illegal options.
-                // 7. Try all values of an unknown and eliminate any which generate
-                //    an illegal Morse code sequence
-
-                //     } else if (this.findInvalidMorse(result, knownmap, working)) {
-                //         // We found at least one morse code that invalidated a choice
-                //     } else if (this.findSingleMorse(result, knownmap, working)) {
-                //         // We found at least one morse code that invalidated a choice
-                //     } else if (this.testSingleMorse(result, knownmap, working)) {
-                //         // We found at least one morse code that invalidated a choice
+            } else if (this.eliminateXXDoubles(result, knownmap, working)) {
+                // We found at least one doubled letter that can't be XX
+            } else if (this.eliminateMissingXInSpan(result, knownmap, working)) {
+                // We found an unknown that had to have an X
+            } else if (this.eliminateInvalidInSpan(result, knownmap, working)) {
+                // We eliminated a invalid choices in a span
+            } else if (this.eliminateInvalidMorse(result, knownmap, working)) {
+                // We eliminated invalid choice across whole sequence
             } else {
                 // Nothing more that we can do..
                 result.append($("<h4.>").

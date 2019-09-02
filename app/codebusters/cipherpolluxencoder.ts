@@ -134,7 +134,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
         inputbox.append(
             JTFLabeledInput(
                 'O',
-                'text',
+                'number',
                 'dotchar',
                 this.state.dotchars,
                 'small-12 medium-4 large-4'
@@ -143,7 +143,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
         inputbox.append(
             JTFLabeledInput(
                 '-',
-                'text',
+                'number',
                 'dashchar',
                 this.state.dashchars,
                 'small-12 medium-4 large-4'
@@ -152,7 +152,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
         inputbox.append(
             JTFLabeledInput(
                 'X',
-                'text',
+                'number',
                 'xchar',
                 this.state.xchars,
                 'small-12 medium-4 large-4'
@@ -163,7 +163,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
         result.append(
             JTFLabeledInput(
                 'Hint Characters',
-                'text',
+                'number',
                 'hint',
                 this.state.hint,
                 'hint small-12 medium-12 large-12'

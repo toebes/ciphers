@@ -163,7 +163,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
         result.append(
             JTFLabeledInput(
                 'Hint Characters',
-                'text',
+                'number',
                 'hint',
                 this.state.hint,
                 'hint small-12 medium-12 large-12'
@@ -195,6 +195,10 @@ export class CipherMorbitEncoder extends CipherEncoder {
         // console.log("handler setChar data-char=" + repchar + " newchar=" + newchar)
         // See if any other slots have this character and reset it
         // Note that repchar is the index into the morbitmap array
+        if (newchar === '' || this.encodecharset.indexOf(newchar) < 0) {
+            return;
+        }
+
         let repmorselet = morbitmap[repchar];
         let oldchar = this.state.replacement[repmorselet];
 

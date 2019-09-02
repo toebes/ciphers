@@ -340,7 +340,6 @@ export class CipherMorbitEncoder extends CipherEncoder {
         return morseletmap;
     }
     public updateKnownmap(knownmap: MorbitKnownMap, c: string, morselet: string): void {
-
         for (let m in knownmap) {
             let index = knownmap[m].indexOf(morselet);
             if (index > -1) {
@@ -350,7 +349,6 @@ export class CipherMorbitEncoder extends CipherEncoder {
         }
         knownmap[c] = [morselet];
     }
-
     /**
      * Generate the HTML to display the question for a cipher
      */
@@ -624,7 +622,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
         let prex: BoolMap = {};
         let postx: BoolMap = {};
         let prefix = "Looking for unknowns next to " + this.normalizeHTML('XX') +
-            "which would result in three in a row,";
+            " which would result in three in a row,";
         let eliminated = false;
         for (let e in knownmap) {
             prex[e] = false;
@@ -652,10 +650,11 @@ export class CipherMorbitEncoder extends CipherEncoder {
         for (let strset of working) {
             for (let c of strset[ctindex]) {
                 let msg = "";
+                let fixed = '';
                 if (c === ' ') {
                     continue;
                 }
-                if (c === xxct && postx[lastc]) {
+                if (c === xxct && prex[lastc]) {
                     // We can eliminate it from ending in X
                     msg = "we find the sequence " + lastc + c +
                         " where we know that " + c + " is " + this.normalizeHTML('XX') +
@@ -668,9 +667,10 @@ export class CipherMorbitEncoder extends CipherEncoder {
                             knownmap[lastc].splice(i, 1);
                         }
                     }
+                    fixed = lastc;
                     // And keep us from processing it again.
                     postx[lastc] = false;
-                } else if (prex[c] && lastc === xxct) {
+                } else if (postx[c] && lastc === xxct) {
                     msg = "we find the sequence " + lastc + c +
                         " where we know that " + lastc + " is " + this.normalizeHTML('XX') +
                         " which means that " + c +
@@ -682,8 +682,109 @@ export class CipherMorbitEncoder extends CipherEncoder {
                             knownmap[c].splice(i, 1);
                         }
                     }
+                    fixed = c;
                     // And keep us from processing it again
                     prex[c] = false;
+                }
+                if (fixed !== '' && knownmap[fixed].length === 1) {
+                    this.updateKnownmap(knownmap, fixed, knownmap[fixed][0]);
+                    msg += ' That leaves ' + this.normalizeHTML(knownmap[fixed][0]) +
+                        " as the only option for " + fixed + ", so we eliminate it from" +
+                        " all the other options."
+                }
+                if (msg !== '') {
+                    eliminated = true;
+                    result.append(prefix + msg);
+                    prefix = ' Also,';
+                }
+                lastc = c;
+            }
+        }
+        return eliminated;
+    }
+
+    /**
+     * If xx is not known, find all cipher characters after mapping to
+     * x at the end and eliminate xx from them.
+     * Do the same for x at the beginning for followers.
+     * @param result Place to output any messages
+     * @param knownmap Map of current cipher strings
+     * @param working Current mapping strings
+     * @returns Boolean indicating that any were found
+     */
+    public eliminateXXOptions(result: JQuery<HTMLElement>,
+        knownmap: MorbitKnownMap,
+        working: string[][]): boolean {
+        let xxct = '';
+        let prex: BoolMap = {};
+        let postx: BoolMap = {};
+        let hasxx: BoolMap = {};
+        let prefix = "With " + this.normalizeHTML('XX') + " unknown, looking " +
+            " at unknowns which are next to " + this.normalizeHTML('X') +
+            " which would result in three in a row,";
+        let eliminated = false;
+        for (let e in knownmap) {
+            prex[e] = false;
+            postx[e] = false;
+            hasxx[e] = false;
+            // If this is our XX known spot, then we can do nothing else
+            if (knownmap[e].length === 1 && knownmap[e][0] === 'XX') {
+                return false;
+            }
+            if (knownmap[e].length >= 1) {
+                prex[e] = true;
+                postx[e] = true;
+                for (let ent of knownmap[e]) {
+                    if (ent === 'XX') {
+                        hasxx[e] = true;
+                    } else {
+                        // If any of the possibilities don't start/end with X
+                        // then we can't use it as an elimination
+                        if (ent[1] !== 'X') {
+                            postx[e] = false;
+                        }
+                        if (ent[0] !== 'X') {
+                            prex[e] = false;
+                        }
+                    }
+                }
+            }
+        }
+        // Bubble through the cipher text looking for anything next to it
+        let lastc = '';
+        for (let strset of working) {
+            for (let c of strset[ctindex]) {
+                let msg = "";
+                if (c === ' ') {
+                    continue;
+                }
+                if (hasxx[c] && postx[lastc]) {
+                    // We can eliminate it from ending in X
+                    msg = "we find the sequence " + lastc + c +
+                        " where we know that " + lastc + " ends with " + this.normalizeHTML('X') +
+                        " which means that " + c +
+                        " cannot be " + this.normalizeHTML('XX') +
+                        ", so we can eliminate that possibility";
+                    // Drop the XX entry
+                    let index = knownmap[c].indexOf('XX');
+                    if (index >= 0) {
+                        knownmap[c].splice(index, 1);
+                    }
+                    // And keep us from processing it again.
+                    hasxx[c] = false;
+                } else if (prex[c] && hasxx[lastc]) {
+                    msg = "we find the sequence " + lastc + c +
+                        " where we know that " + c + " starts with " + this.normalizeHTML('X') +
+                        " which means that " + lastc +
+                        " cannot be " + this.normalizeHTML('XX') +
+                        ", so we can eliminate that possibility";
+                    // Drop the XX entry
+                    let index = knownmap[lastc].indexOf('XX');
+                    if (index >= 0) {
+                        knownmap[lastc].splice(index, 1);
+                    }
+                    // And keep us from processing it again
+                    hasxx[lastc] = false;
                 }
                 if (msg !== '') {
                     eliminated = true;
@@ -746,12 +847,9 @@ export class CipherMorbitEncoder extends CipherEncoder {
             if (this.checkSolo(result, knownmap, working)) {
                 // We consolidated at least one choice
             } else if (this.eliminateXXNeighbors(result, knownmap, working)) {
-                // 2. If xx is known, find all cipher characters before and after
-                //    and eliminate the choices with x at the end for before and
-                //    beginning for after.
-                // 3. If xx is not known, find all cipher characters after mapping to
-                //    x at the end and eliminate xx from them.
-                //    Do the same for x at the beginning for followers.
+                // We eliminated options touching XX
+            } else if (this.eliminateXXOptions(result, knownmap, working)) {
+                // We found at least one new letter that must be an X
                 // 4. If xx is not known, find all double characters and eliminate
                 //    xx from their choices 
                 // 5. Find spans of 7 characters with an unknown in them and
@@ -761,9 +859,6 @@ export class CipherMorbitEncoder extends CipherEncoder {
                 // 7. Try all values of an unknown and eliminate any which generate
                 //    an illegal Morse code sequence
 
-                //         // We eliminated at least one letter from being an X
-                //     } else if (this.findSpacers(result, knownmap, working)) {
-                //         // We found at least one new letter that must be an X
                 //     } else if (this.findInvalidMorse(result, knownmap, working)) {
                 //         // We found at least one morse code that invalidated a choice
                 //     } else if (this.findSingleMorse(result, knownmap, working)) {

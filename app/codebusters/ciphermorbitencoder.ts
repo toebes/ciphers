@@ -306,7 +306,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
             // See if we have to split the line now
             if (encodeline.length >= maxEncodeWidth) {
                 if (lastsplit === -1) {
-                    result.push([encodeline, decodeline, morseline]);
+                    result.push([encodeline, morseline, decodeline]);
                     encodeline = '';
                     decodeline = '';
                     morseline = '';
@@ -318,14 +318,14 @@ export class CipherMorbitEncoder extends CipherEncoder {
                     encodeline = encodeline.substr(lastsplit);
                     decodeline = decodeline.substr(lastsplit);
                     morseline = morseline.substr(lastsplit);
-                    result.push([encodepart, decodepart, morsepart]);
+                    result.push([encodepart, morsepart, decodepart]);
                 }
             }
         }
 
         // And put together any residual parts
         if (encodeline.length > 0) {
-            result.push([encodeline, decodeline, morseline]);
+            result.push([encodeline, morseline, decodeline]);
         }
         return result;
     }
@@ -531,7 +531,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
             ansdiv.append(
                 $('<div/>', {
                     class: 'TOSOLVE',
-                }).text(strset[morseindex])
+                }).html(this.normalizeHTML(strset[morseindex]))
             );
             ansdiv.append(
                 $('<div/>', {
@@ -766,7 +766,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
                         " where we know that " + lastc + " ends with " + this.normalizeHTML('X') +
                         " which means that " + c +
                         " cannot be " + this.normalizeHTML('XX') +
-                        ", so we can eliminate that possibility";
+                        ", so we can eliminate that possibility.";
                     // Drop the XX entry
                     let index = knownmap[c].indexOf('XX');
                     if (index >= 0) {
@@ -779,7 +779,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
                         " where we know that " + c + " starts with " + this.normalizeHTML('X') +
                         " which means that " + lastc +
                         " cannot be " + this.normalizeHTML('XX') +
-                        ", so we can eliminate that possibility";
+                        ", so we can eliminate that possibility.";
                     // Drop the XX entry
                     let index = knownmap[lastc].indexOf('XX');
                     if (index >= 0) {

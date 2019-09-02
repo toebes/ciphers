@@ -396,7 +396,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
             result.append(
                 $('<div/>', {
                     class: 'TOSOLVE',
-                }).text(strset[morseline])
+                }).html(this.normalizeHTML(strset[morseline]))
             );
             result.append(
                 $('<div/>', {
@@ -512,7 +512,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
             ansdiv.append(
                 $('<div/>', {
                     class: 'TOSOLVE',
-                }).text(strset[morseindex])
+                }).html(this.normalizeHTML(strset[morseindex]))
             );
             ansdiv.append(
                 $('<div/>', {
@@ -916,7 +916,8 @@ export class CipherPolluxEncoder extends CipherEncoder {
             if (knownmap[c].length > 1) {
                 let savemap = knownmap[c];
                 let legal = '';
-                let msg = "Since " + c + " can still map to " + savemap +
+                let msg = "Since " + c + " can still map to " +
+                    this.normalizeHTML(savemap) +
                     " we simply try them and look at the first word or two" +
                     " to see if it makes sense."
                 for (let mc of savemap) {
@@ -931,8 +932,8 @@ export class CipherPolluxEncoder extends CipherEncoder {
                             longest = chunk;
                         }
                     }
-                    msg += "Trying " + mc + " for " + c +
-                        " gives us a chunk: " + longest + ". ";
+                    msg += " Trying " + this.normalizeHTML(mc) + " for " + c +
+                        " gives us a chunk: " + longest + ".";
                     longest = this.minimizeString(longest);
                     if (mincipher.indexOf(this.minimizeString(longest)) >= 0) {
                         legal += mc;
@@ -940,8 +941,9 @@ export class CipherPolluxEncoder extends CipherEncoder {
                 }
                 if (legal.length === 1) {
                     knownmap[c] = legal;
-                    msg += "Which means we know that " + c + " must map to " + legal;
-                    result.append(this.normalizeHTML(msg));
+                    msg += " Which means we know that " + c +
+                        " must map to " + this.normalizeHTML(legal);
+                    result.append(msg);
                     return true;
                 }
                 knownmap[c] = savemap;
@@ -1009,7 +1011,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
                     text("There are no more automated solving techniques, " +
                         "so you need to do some trial and error with the remaining unknowns. " +
                         "Please feel free to submit an issue with the example so we can improve this."));
-                limit = 0;
+                break;
             }
             working = this.genKnownMapping(strings, knownmap);
             this.genKnownTable(result, knownmap);
@@ -1029,7 +1031,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
                         class: 'TOANSWER',
                     }).text(answer)
                 );
-                limit = 0;
+                break;
             }
         }
         return result;

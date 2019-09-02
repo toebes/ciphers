@@ -767,6 +767,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
                             return true;
                         }
                     }
+                    unknownc = '';
                     gathered = '';
                     sequence = '';
                     tryit = false;

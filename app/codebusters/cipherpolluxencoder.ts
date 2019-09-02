@@ -162,7 +162,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
 
         result.append(
             JTFLabeledInput(
-                'Hint Characters',
+                'Hint Digits',
                 'number',
                 'hint',
                 this.state.hint,

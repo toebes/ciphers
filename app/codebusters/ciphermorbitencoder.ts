@@ -162,7 +162,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
         result.append(table.generate());
         result.append(
             JTFLabeledInput(
-                'Hint Characters',
+                'Hint Digits',
                 'number',
                 'hint',
                 this.state.hint,

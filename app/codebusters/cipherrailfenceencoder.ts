@@ -1,11 +1,11 @@
 import { cloneObject, StringMap, sanitizeString } from '../common/ciphercommon';
-import {IState, ITestType, toolMode} from '../common/cipherhandler';
+import { IState, ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
-import {JTFIncButton} from "../common/jtfIncButton";
+import { JTFIncButton } from "../common/jtfIncButton";
 
 
 interface IRailFenceState extends IState {
@@ -24,7 +24,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
     public validTests: ITestType[] = [ITestType.None,
     ITestType.bregional, ITestType.bstate];
- 
+
     public defaultstate: IRailFenceState = {
         cipherString: '',
         cipherType: ICipherType.Railfence,
@@ -43,15 +43,15 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     ];
     /** Save and Restore are done on the CipherEncoder Class */
 
-        /**
-     * Determines if this generator is appropriate for a given test
-     * type.  For Division A, the Caesar is limited to an offset +- 3
-     * @param testType Test type to compare against
-     * @returns String indicating error or blank for success
-     */
+    /**
+ * Determines if this generator is appropriate for a given test
+ * type.  For Division A, the Caesar is limited to an offset +- 3
+ * @param testType Test type to compare against
+ * @returns String indicating error or blank for success
+ */
     public CheckAppropriate(testType: ITestType): string {
         let result = super.CheckAppropriate(testType);
-        if (result === "") {
+        if (result === "" && testType !== undefined) {
             // Additional checks are TBD
         }
         return result;
@@ -97,7 +97,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             .append('<hr/>')
             .append(res);
 
-            // Show the update frequency values
+        // Show the update frequency values
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
@@ -106,17 +106,17 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public attachHandlers(): void {
         super.attachHandlers();
         $('#rails')
-        .off('input')
-        .on('input', e => {
-            let newRails: number = Number($(e.target).val());
-            if (newRails !== this.state.rails) {
-                this.markUndo(null);
-                if (this.setRails(newRails)) {
-                    this.updateOutput();
+            .off('input')
+            .on('input', e => {
+                let newRails: number = Number($(e.target).val());
+                if (newRails !== this.state.rails) {
+                    this.markUndo(null);
+                    if (this.setRails(newRails)) {
+                        this.updateOutput();
+                    }
                 }
-            }
-            this.advancedir = 0;
-        });
+                this.advancedir = 0;
+            });
         // $('#isRailRange')
         // .off('input')
         // .on('click', e => {
@@ -214,7 +214,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         // Get the text characters from each rail, concatenated together
         //result.append($('<p/>').text(rfs.getRailFenceEncoding()));
 
-        let encodedText = $('<div/>', {class: 'TOSOLVE'});
+        let encodedText = $('<div/>', { class: 'TOSOLVE' });
         let strings: string[][] = this.makeReplacement(rfs.getRailFenceEncoding(), 45);
         for (let strset of strings) {
             encodedText.append($('<p/>').text(strset[0]));
@@ -223,16 +223,16 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
         result.append(rfs.getRailFenceSolution());
 
-        let answer = $('<div/>', { class: "grid-x"});
-        let ap1 = $('<span/>', { class: "TOSOLVE"});
+        let answer = $('<div/>', { class: "grid-x" });
+        let ap1 = $('<span/>', { class: "TOSOLVE" });
         ap1.append("Answer: ___");
-        let ap2 = $('<span/>', { class: 'TOANSWER'});
+        let ap2 = $('<span/>', { class: 'TOANSWER' });
         ap2.append(this.state.cipherString.toUpperCase());
-        let ap3 = $('<span/>', { class: "TOSOLVE"});
+        let ap3 = $('<span/>', { class: "TOSOLVE" });
         ap3.append("___");
         ap1.append(ap2, ap3);
         answer.append(ap1);
-        
+
         // let answer = $('<div/>', { class: 'TOANSWER'});
         // answer.append(this.state.cipherString);
 
@@ -258,13 +258,13 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
         // TODO: I want the 'work space' section to print in the 'Test Packet', not in 
         // 'Answer Key' or 'Answers and Solutions'.
-        let workSpace = $('<div/>', {class: 'instructions'});
+        let workSpace = $('<div/>', { class: 'instructions' });
         for (var i: number = 0; i < 6; i++) {
             workSpace.append($("<p/>").text("\n"));
         }
         result.append(workSpace);
 
-        let answerLine = $("<div/>", {class: "TOSOLVE"});
+        let answerLine = $("<div/>", { class: "TOSOLVE" });
         answerLine.append('Answer: _______________________________________________');
         answerLine.append('<p/>');
         result.append(answerLine);
@@ -278,7 +278,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         let result = $('<div/>');
 
         result.append(this.genAnswer());
-        
+
         return result;
     }
 
@@ -334,7 +334,7 @@ class RailFenceSolver {
         this.solution = [];
 
         // Loop over the rails to place characters
-        for (var railIndex: number = 1; railIndex <= this.railCount; railIndex++ ) {
+        for (var railIndex: number = 1; railIndex <= this.railCount; railIndex++) {
 
             // Adjust for computer zero-based arrays
             let railArrayIndex = railIndex - 1;
@@ -376,7 +376,7 @@ class RailFenceSolver {
      * Create a formatted div which shows the Rail Fence solution.
      */
     public getRailFenceSolution(): JQuery<HTMLElement> {
-        let returnValue = $('<div/>', { class: 'TOSOLVE'});
+        let returnValue = $('<div/>', { class: 'TOSOLVE' });
 
         // TODO: These font sizes are hard-coded, but there should/could probably
         // be some CSS magic here...
@@ -424,7 +424,7 @@ class RailFenceSolver {
         let returnValue: boolean = false;
         let cyclePosition = (column % this.itemsPerCycle) + 1;
 
-        if (cyclePosition <= (this.itemsPerCycle /2) + 1) {
+        if (cyclePosition <= (this.itemsPerCycle / 2) + 1) {
             // this is the down slope, includeing the very top and the bottom
             if (cyclePosition === rail) {
                 returnValue = true;

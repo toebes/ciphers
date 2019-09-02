@@ -74,7 +74,7 @@ export class CipherTableEncoder extends CipherEncoder {
      */
     public CheckAppropriate(testType: ITestType): string {
         let result = super.CheckAppropriate(testType);
-        if (result === "") {
+        if (result === "" && testType !== undefined) {
             if (testType === ITestType.aregional &&
                 this.state.cipherType === ICipherType.Caesar &&
                 (this.state.offset > 3 && this.state.offset < 23)) {

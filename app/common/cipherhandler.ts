@@ -821,7 +821,11 @@ export class CipherHandler {
         return '';
     }
     public getTestTypeName(testtype: ITestType): string {
-        return testTypeNames[testtype];
+        let result = testTypeNames[testtype];
+        if (result === undefined) {
+            result = "this type of test";
+        }
+        return result;
     }
     /**
      * Gets the string that corresponds to a test in local storage

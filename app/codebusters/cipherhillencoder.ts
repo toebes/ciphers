@@ -66,7 +66,7 @@ export class CipherHillEncoder extends CipherEncoder {
      */
     public CheckAppropriate(testType: ITestType): string {
         let result = super.CheckAppropriate(testType);
-        if (result === "") {
+        if (result === "" && testType !== undefined) {
             if (testType !== ITestType.cstate && this.state.keyword.length === 9) {
                 result = "3x3 Hill Cipher problems are not allowed on " +
                     this.getTestTypeName(testType);

@@ -373,19 +373,12 @@ export class CipherTest extends CipherHandler {
 
         for (let entry = 0; entry < cipherCount; entry++) {
             if (!useditems[entry]) {
+                let prevuse: any = '';
                 if (entry in testuse) {
-                    this.addQuestionRow(
-                        table,
-                        entry,
-                        entry,
-                        buttons,
-                        true,
-                        ITestType.None,
-                        testuse[entry]
-                    );
-                } else {
-                    this.addQuestionRow(table, entry, entry, buttons, true, ITestType.None, '');
+                    prevuse = testuse[entry];
                 }
+                this.addQuestionRow(table, entry, entry, buttons, true, undefined, prevuse);
+
             }
         }
         result.append(table.generate());
@@ -545,7 +538,8 @@ export class CipherTest extends CipherHandler {
             if (testtype === ITestType.aregional && order === -1) {
                 qerror = 'Timed question not allowed for ' +
                     this.getTestTypeName(testtype);
-            } else {
+            } else if (testtype !== undefined) {
+                // If we know the type of test, see if it has any problems with the question
                 let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
                 cipherhandler.restore(state);
                 qerror = cipherhandler.CheckAppropriate(testtype);

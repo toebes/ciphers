@@ -76,7 +76,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      */
     public CheckAppropriate(testType: ITestType): string {
         let result = super.CheckAppropriate(testType);
-        if (result === "") {
+        if (result === "" && testType !== undefined) {
             if (testType !== ITestType.cregional &&
                 testType !== ITestType.cstate &&
                 this.state.operation === 'encode') {

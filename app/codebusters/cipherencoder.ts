@@ -579,7 +579,7 @@ export class CipherEncoder extends CipherHandler {
                 return "Xenocrypts not appropriate for Division A tests";
             }
         }
-        if (this.validTests.indexOf(testType) >= 0) {
+        if (testType === undefined || this.validTests.indexOf(testType) >= 0) {
             return "";
         }
         return "Not valid for " + this.getTestTypeName(testType);

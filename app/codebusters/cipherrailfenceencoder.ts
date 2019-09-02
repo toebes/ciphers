@@ -117,13 +117,13 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             }
             this.advancedir = 0;
         });
-        $('#isRailRange')
-        .off('input')
-        .on('click', e => {
-            let isRailRange: boolean = Boolean($(e.target:checked).val());
-            this.setRailRange(isRailRange);
-            this.updateOutput();
-        });
+        // $('#isRailRange')
+        // .off('input')
+        // .on('click', e => {
+        //     let isRailRange: boolean = Boolean($(e.target:checked).val());
+        //     this.setRailRange(isRailRange);
+        //     this.updateOutput();
+        // });
     }
 
     public setUIDefaults(): void {

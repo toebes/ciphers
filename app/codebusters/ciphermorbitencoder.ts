@@ -913,6 +913,43 @@ export class CipherMorbitEncoder extends CipherEncoder {
         return eliminated;
     }
     /**
+     * Test a mapping to see if it generates a completely legal string
+     * @param knownmap Map of current cipher strings
+     * @param working Current mapping strings
+     * @returns string blank = success, otherwise bad sequence to print
+     */
+    public findInvalidMorseChar(knownmap: MorbitKnownMap, working: string[][]): string {
+        let morsestr = '';
+        let sequence = '';
+        let tryit = true;
+        for (let strset of working) {
+            for (let c of strset[ctindex]) {
+                if (c === ' ') {
+                    continue;
+                }
+                let morsec = knownmap[c];
+                if (morsec.length != 1) {
+                    tryit = false;
+                } else {
+                    morsestr += morsec;
+                    sequence += c;
+                    let endx = morsestr.indexOf('X');
+                    if (endx > 0) {
+                        if (tryit) {
+                            if (frommorse[morsestr.substr(0, endx)] === undefined) {
+                                return sequence + ' as ' + morsestr;
+                            }
+                        }
+                        sequence = c;
+                        morsestr = morsestr.substr(endx + 1);
+                        tryit = true;
+                    }
+                }
+            }
+        }
+        return "";
+    }
+    /**
      * Find span of characters between Xs with a single unknown.
      * Try all choices for the unknown and eliminate any illegal options.
      * @param result Place to output any messages
@@ -923,8 +960,112 @@ export class CipherMorbitEncoder extends CipherEncoder {
     public eliminateInvalidInSpan(result: JQuery<HTMLElement>,
         knownmap: MorbitKnownMap,
         working: string[][]): boolean {
+        let prefix = "Trying our remaining candidates on the ciphertext, ";
+        for (let c in knownmap) {
+            if (knownmap[c].length > 1) {
+                let savemap = knownmap[c];
+                let legal: string[] = [];
+                for (let mc of savemap) {
+                    let testmap = cloneObject(knownmap) as MorbitKnownMap;
+                    this.updateKnownmap(testmap, c, mc);
+                    let invalid = this.findInvalidMorseChar(testmap, working);
+                    if (invalid !== '') {
+                        let msg = "Attempting to substutite " + mc + " for " + c +
+                            " doesn't work because we end up with the sequence " +
+                            invalid + " which is not a legal morse code character, " +
+                            "so we can eliminate it as a possibility.";
+                        result.append(prefix + this.normalizeHTML(msg));
+                        prefix = " Also, ";
+                    } else {
+                        legal.push(mc);
+                    }
+                }
+                if (legal.length === 1) {
+                    this.updateKnownmap(knownmap, c, legal[0]);
+                    let msg = " Which means we know that " + c + " must map to " + legal;
+                    result.append(this.normalizeHTML(msg));
+                    return true;
+                }
+                knownmap[c] = legal;
+            }
+        }
         return false;
     }
+    /**
+     * Generates a test plaintext from a map
+     * @param knownmap Map of current cipher strings
+     * @param working Current mapping strings
+     * @returns Converted plaintext string
+     */
+    public applyKnownmap(knownmap: MorbitKnownMap, working: string[][]): string {
+        let plaintext = '';
+        let morsestr = '';
+        let xcount = 0;
+        let tryit = true;
+        for (let strset of working) {
+            for (let c of strset[ctindex]) {
+                if (c === ' ') {
+                    continue;
+                }
+                let morsec = knownmap[c];
+                if (morsec.length != 1) {
+                    tryit = false;
+                    xcount = 0;
+                } else {
+                    morsestr += morsec[0];
+                    // Now see what kind of morse code we can generate from it
+                    let xindex = morsestr.indexOf('X');
+                    while (xindex === 0) {
+                        if (xcount === 1) {
+                            plaintext += ' '
+                            xcount = 0;
+                        }
+                        morsestr = morsestr.substr(1);
+                        xindex = morsestr.indexOf('X');
+                        xcount++;
+                    }
+                    // If we have some morse code to check, see if we can map it
+                    if (xindex >= 0) {
+                        if (tryit) {
+                            let p = frommorse[morsestr.substr(0, xindex)];
+                            if (p !== undefined) {
+                                plaintext += p;
+                            } else if (xcount === 1) {
+                                plaintext += ' ';
+                            } else {
+                                plaintext += '?';
+                            }
+                        } else {
+                            plaintext += '?';
+                        }
+                        tryit = true;
+                        xcount++;
+                        morsestr = morsestr.substr(xindex + 1);
+                        // If we have another X, take it off
+                        xindex = morsestr.indexOf('X');
+                        while (xindex === 0) {
+                            if (xcount === 1) {
+                                plaintext += ' '
+                                xcount = 0;
+                            }
+                            morsestr = morsestr.substr(1);
+                            xindex = morsestr.indexOf('X');
+                            xcount++;
+                        }
+                    }
+                }
+            }
+        }
+        if (morsestr != '') {
+            let p = frommorse[morsestr];
+            if (p === undefined) {
+                p = '?';
+            }
+            plaintext += p
+        }
+        return plaintext;
+    }
+
     /**
      * Try all values of an unknown and eliminate any which generate
      * an illegal Morse code sequence 
@@ -936,6 +1077,46 @@ export class CipherMorbitEncoder extends CipherEncoder {
     public eliminateInvalidMorse(result: JQuery<HTMLElement>,
         knownmap: MorbitKnownMap,
         working: string[][]): boolean {
+        let prefix = "Looking to see what is readable, ";
+        let mincipher = this.minimizeString(this.state.cipherString);
+        for (let c in knownmap) {
+            if (knownmap[c].length > 1) {
+                let testmap = cloneObject(knownmap) as MorbitKnownMap;
+                let savemap = knownmap[c];
+                let legal: string[] = [];
+                let msg = "Since " + c + " has several options " +
+                    " we simply try them and look at the first word or two" +
+                    " to see if it makes sense."
+                for (let mc of savemap) {
+                    this.updateKnownmap(testmap, c, mc);
+
+                    let plaintext = this.applyKnownmap(testmap, working);
+                    // Now split it on all the unknowns to find the longest 
+                    // contiguous string
+                    let chunks = plaintext.split('?');
+                    let longest = chunks[0];
+                    for (let chunk of chunks) {
+                        if (chunk.length > longest.length) {
+                            longest = chunk;
+                        }
+                    }
+                    msg += " Trying " + this.normalizeHTML(mc) + " for " + c +
+                        " gives us a chunk: " + longest + ".";
+                    longest = this.minimizeString(longest);
+                    if (mincipher.indexOf(this.minimizeString(longest)) >= 0) {
+                        legal.push(mc);
+                    }
+                }
+                if (legal.length === 1) {
+                    this.updateKnownmap(knownmap, c, legal[0]);
+                    msg += " Which means we know that " + c +
+                        " must map to " + this.normalizeHTML(legal[0]);
+                    result.append(msg);
+                    return true;
+                }
+                knownmap[c] = legal;
+            }
+        }
         return false;
     }
     /**

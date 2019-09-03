@@ -778,6 +778,13 @@ export class CipherPolluxEncoder extends CipherEncoder {
                         tryit = true;
                     } else {
                         tryit = false;
+                        // Make unknownc something other than blank
+                        // or a character that we could match against
+                        // so we don't try to attack in the situation
+                        // 139438
+                        // O  - X
+                        // where both 3 and 9 are unknowns.
+                        unknownc = "XX";
                     }
                     gathered += '#';
                     sequence += c;

@@ -221,15 +221,15 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         }
         result.append(encodedText);
 
-        result.append(rfs.getRailFenceSolution());
+        result.append(rfs.getRailFenceAnswer());
 
         let answer = $('<div/>', { class: "grid-x" });
         let ap1 = $('<span/>', { class: "TOSOLVE" });
-        ap1.append("Answer: ___");
+        ap1.append("Answer: _");
         let ap2 = $('<span/>', { class: 'TOANSWER' });
         ap2.append(this.state.cipherString.toUpperCase());
         let ap3 = $('<span/>', { class: "TOSOLVE" });
-        ap3.append("___");
+        ap3.append("_");
         ap1.append(ap2, ap3);
         answer.append(ap1);
 
@@ -297,6 +297,30 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         // TODO: Add more solutioning text...
         result.append($('<p/>').text(solutionText));
 
+        let rfs:RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
+        let cipherTextLength: number = rfs.getTextLength();
+        let rails = this.state.rails;
+
+        let intro: string = "The encrypted text is <code>"+cipherTextLength+"</code> characters long.  There are <code>"+rails+"</code> rails.";
+        // Therefore, each zig-zag will have <code></code> characters.
+
+        let solutionIntro = $('<p/>');
+
+        //'The encrypted text is ', $('<code/>').append(cipherTextLength.toString()),
+        //' characters long.
+
+        solutionIntro.append('There are ', $('<code/>').append(rails.toString()),
+                             ' rails in this problem.  Therefore, each zig-zag will have ',
+                             $('<code/>').append(rfs.getCharsPerZigzag().toString()) ,
+                             ' characters (A single zig-zag starts with the character from the top row, goes '+
+                             'down each row and back up ending one character before the top row.).  '+
+                             'The encrypted text is ', $('<code/>').append(rfs.getTextLength().toString()),
+                             'characters long, so there are ', $('<code/>').append(rfs.getCountZigzag().toString()),
+                             'complete zig zags in the solution, with ', $('<code/>').append(rfs.getCharsLeftover().toString()),
+                             ' characters left over in an incomplete zig-zag.');
+
+        result.append(solutionIntro, rfs.getRailFenceSolution());
+
 
         // let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
         // // Get the 'W' solution
@@ -314,10 +338,18 @@ class RailFenceSolver {
     private solution: string[][];
     // The number of rails in the rail fence
     private railCount: number;
+    // Array with the number of characters per rails.
+    private charactersInRails: number[];
+    // Array with the number of leftover characters (0, 1 or 2).
+    private charactersLeftover: number[];
     // Length of text to encode.
     private textLength: number;
-    // Number of characters in each 'period'
-    private itemsPerCycle: number;
+    // Number of characters in each zigzag period
+    private charsPerZigzag: number;
+    // Number of zigzag periods in this solution
+    private countZigzag: number;
+    // Number of characters left over in this solution
+    private charsLeftover: number;
 
     /**
      * Creates a Rail Fence solver.  Every character in the passed in text will
@@ -329,7 +361,12 @@ class RailFenceSolver {
 
         this.railCount = rails;
         this.textLength = text.length;
-        this.itemsPerCycle = 2 * (this.railCount - 1);
+
+        this.charsPerZigzag = 2 * (this.railCount - 1);
+        this.countZigzag = Math.floor(this.textLength / this.charsPerZigzag);
+        this.charsLeftover = this.textLength % this.charsPerZigzag;
+        this.charactersInRails = [];
+        this.charactersLeftover = [];
 
         this.solution = [];
 
@@ -338,7 +375,12 @@ class RailFenceSolver {
 
             // Adjust for computer zero-based arrays
             let railArrayIndex = railIndex - 1;
-            // Add a second dimention to the array
+
+            // Initialize character per rail counts
+            this.charactersInRails[railArrayIndex] = 0;
+            this.charactersLeftover[railArrayIndex] = 0;
+
+            // Add a second dimension to the array
             this.solution[railArrayIndex] = [];
 
             // Go thru the string to be encoded
@@ -350,6 +392,13 @@ class RailFenceSolver {
                 // Test if a character should be placed in the array location
                 if (this.placeCharacter(railIndex, colArrayIndex)) {
                     this.solution[railArrayIndex][colArrayIndex] = text.charAt(colArrayIndex);
+                    // Update counts for complete zigzag or leftovers -- this is used in solution table.
+                    if (columnIndex <= this.getCharsPerZigzag() * this.getCountZigzag() ) {
+                        this.charactersInRails[railArrayIndex]++;
+                    }
+                    else {
+                        this.charactersLeftover[railArrayIndex]++;
+                    }
                 }
                 else {
                     this.solution[railArrayIndex][colArrayIndex] = "";
@@ -358,6 +407,20 @@ class RailFenceSolver {
         }
     }
 
+    public getTextLength(): number {
+        return this.textLength;
+    }
+
+    public getCharsPerZigzag(): number {
+        return this.charsPerZigzag;
+    }
+
+    public getCountZigzag(): number {
+        return this.countZigzag;
+    }
+    public getCharsLeftover(): number {
+        return this.charsLeftover;
+    }
     public getRailFenceEncoding(): string {
         var returnValue: string = "";
 
@@ -375,7 +438,7 @@ class RailFenceSolver {
     /**
      * Create a formatted div which shows the Rail Fence solution.
      */
-    public getRailFenceSolution(): JQuery<HTMLElement> {
+    public getRailFenceAnswer(): JQuery<HTMLElement> {
         let returnValue = $('<div/>', { class: 'TOSOLVE' });
 
         // TODO: These font sizes are hard-coded, but there should/could probably
@@ -413,6 +476,70 @@ class RailFenceSolver {
         return returnValue;
     }
 
+
+    public getRailFenceSolution(): JQuery<HTMLElement> {
+        let returnValue = $('<div/>');
+
+        // Counter for a partial zigzag.
+        var leftover: number = 1;
+        if ((this.getCharsLeftover() === 0)) {
+            leftover = 0;
+        }
+
+        let solutionTable = $('<table/>', { class: "railfence" }).attr("width", "15px");
+
+        let tableHeader = $('<tr/>').append($('<th/>').attr("colspan", 4),
+                          $('<th/>', { class: "rail-info" }).attr("colspan", this.getCountZigzag()+leftover).text('Zigzags'));
+        solutionTable.append(tableHeader);
+
+        tableHeader = $('<tr/>').append($('<th/>').text("Rail"), $('<th/>').text("Num zigzag chars"), $('<th/>').text("Num leftover chars"), $('<th/>').text('Chars in rail'));
+
+        for (var zz: number = 1; zz <= (this.getCountZigzag()+leftover); zz++ ) {
+            tableHeader.append($('<th/>').text(zz.toString()));
+        }
+        solutionTable.append(tableHeader);
+
+        for (var i: number = 1; i <= this.railCount; i++) {
+            let tableRow = $('<tr/>');
+
+            tableRow.append($('<td/>', { class: "rail-info" }).text(i.toString()),
+                            $('<td/>', { class: "rail-info" }).text(this.charactersInRails[i-1].toString()),
+                            $('<td/>', { class: "rail-info" }).text(this.charactersLeftover[i-1].toString()),
+                            $('<td/>', { class: "rail-info" }).text((this.charactersInRails[i-1]+this.charactersLeftover[i-1]).toString()));
+
+            var data: string = '';
+            for (var col: number = 0; col < this.getTextLength(); col++ ) {
+                // Get all the characters from each zigzag. for this row and put it in a table cell.
+                if ((col % this.getCharsPerZigzag()) === 0) {
+                    // start a new string...
+                    if (data.length > 0) {
+                        tableRow.append($('<td/>', { class: "rail-data" }).text(data));
+                    }
+                    let char:string = this.solution[i-1][col];
+                    if (char.length === 0) {
+                        char = '.';
+                    }
+                    data = char;
+                }
+                else {
+                    let char:string = this.solution[i-1][col];
+                    if (char.length === 0) {
+                        char = '.';
+                    }
+                    data = data.concat(char);
+                }
+            }
+            // Finish the partial...
+            if (data.length > 0) {
+                tableRow.append($('<td/>', { class: "rail-data" }).text(data));
+            }
+            solutionTable.append(tableRow);
+        }
+
+        returnValue.append(solutionTable);
+
+        return returnValue;
+    }
     /**
      * The method return true if a character should be placed at the given
      * rail and column for the current railfence.
@@ -422,9 +549,9 @@ class RailFenceSolver {
     private placeCharacter(rail: number, column: number): boolean {
 
         let returnValue: boolean = false;
-        let cyclePosition = (column % this.itemsPerCycle) + 1;
+        let cyclePosition = (column % this.charsPerZigzag) + 1;
 
-        if (cyclePosition <= (this.itemsPerCycle / 2) + 1) {
+        if (cyclePosition <= (this.charsPerZigzag / 2) + 1) {
             // this is the down slope, includeing the very top and the bottom
             if (cyclePosition === rail) {
                 returnValue = true;

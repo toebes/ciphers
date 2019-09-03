@@ -1532,6 +1532,30 @@ table.known {
     margin-left: 50px;
 }
 
+table.railfence {
+    min-width: 50px;
+    font-size: 10px;
+    font-family: 'Courier New', Courier, monospace;
+}
+table.railfence th,
+table.railfence td {
+    word-wrap: break-word;
+}
+table.railfence td.rail-data {
+    min-width: 5px;
+    padding: 0px;
+    text-align: center;
+}
+table.railfence th.rail-info,
+table.railfence td.rail-info {
+    width: 15px;
+    padding: 3px;
+    text-align: center;
+}
+table.railfence tr:hover {
+    background-color: #d0d0d0;
+}
+
 @media print {
     .title-bar,
     .top-bar,

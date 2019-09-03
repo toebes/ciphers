@@ -56,35 +56,58 @@ body.txt {
     padding: 2px;
 }
 
+.divb,
+.divc,
+.diva,
+.divall {
+    display: inline;
+    margin-left: 4px;
+    padding: 2px;
+    border-radius: 5px;
+    color: black;
+}
+
+.divall,
 .quseall::after {
-    content: 'All events';
     background-color: #90be3f;
     border: 2px solid #0a8b45;
 }
+.diva,
+.qusea::after {
+    background-color: #ffc400;
+    border: 2px solid #cc9c00;
+}
+.divb,
+.quseb::after,
+.qusebs::after {
+    background-color: #d30d2b;
+    border: 2px solid #99091f;
+}
+/* Official color for Division C was #0a7eca; */
+.divc,
+.qusec::after,
+.qusecs::after {
+    background-color: #0b91ea;
+    border: 2px solid #064f80;
+}
+
+.quseall::after {
+    content: 'All events';
+}
 .qusea::after {
     content: 'Div A';
-    background-color: #f5ae31;
-    border: 2px solid #d67f28;
 }
 .quseb::after {
     content: 'Div B';
-    background-color: #ac6dab;
-    border: 2px solid #854887;
 }
 .qusebs::after {
     content: 'Div B State/National Only';
-    background-color: #ac6dab;
-    border: 2px solid #854887;
 }
 .qusec::after {
     content: 'Div C';
-    background-color: #00a2d8;
-    border: 2px solid #008cba;
 }
 .qusecs::after {
     content: 'Div C State/National Only';
-    background-color: #00a2d8;
-    border: 2px solid #008cba;
 }
 
 .usedon {

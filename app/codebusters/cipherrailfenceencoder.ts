@@ -311,14 +311,63 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
         solutionIntro.append('There are ', $('<code/>').append(rails.toString()),
                              ' rails in this problem.  Therefore, each zig-zag will have ',
+                             $('<code/>').append("(2 * #rails) - 2 = (2 * "+rails.toString()+") - 2 = "),
                              $('<code/>').append(rfs.getCharsPerZigzag().toString()) ,
                              ' characters (A single zig-zag starts with the character from the top row, goes '+
                              'down each row and back up ending one character before the top row.).  '+
                              'The encrypted text is ', $('<code/>').append(rfs.getTextLength().toString()),
                              'characters long, so there are ', $('<code/>').append(rfs.getCountZigzag().toString()),
-                             'complete zig zags in the solution, with ', $('<code/>').append(rfs.getCharsLeftover().toString()),
+                             'complete zig-zags in the solution, with ', $('<code/>').append(rfs.getCharsLeftover().toString()),
                              ' characters left over in an incomplete zig-zag.');
+        solutionIntro.append($('<p/>').append('All spaces and punctuation have been removed from the message.  To decode it, fill in each rail as described below.  The message can be read along the zig-zags.  Spaces between words can be added based on context.'));
 
+        // 2 rails, 1 space
+        // 3 rails, 3 spaces
+        // 4 rails, 5 spaces
+        // 5 rails, 7 spaces
+        // 6 rails, 9 spaces
+        let spacesBetween = (2 * rails) - 3;
+        // First rail
+        solutionIntro.append($('<h5/>').text('Rail 1'));
+        let charsInRail = rfs.getCharactersInRail(1);
+        solutionIntro.append('Copy the first ', $('<code/>').append(charsInRail.toString()), 
+                             ' characters from the cipher text along the first rail, with ',
+                             $('<code/>').append(spacesBetween.toString()),
+                             ' spaces between each character.  Each letter is the first character of a zig-zag.  ');
+
+        // middle rails
+        for (var r: number = 2; r < rails; r++) {
+
+            let firstSpacesCount = (2 * (rails)) - ((2*(r-1))+3);  //5, -7, -9;
+            let secondSpacesCount = rfs.getCharsPerZigzag() - 2 - firstSpacesCount;
+
+
+            solutionIntro.append($('<h5/>').text('Rail '.concat(r.toString())));
+            solutionIntro.append('Copy the next ', $('<code/>').append(rfs.getCharactersInRail(r).toString()), 
+                                 ' characters of the cipher string along rail ', $('<code/>').append(r.toString()), ', starting at position ',
+                                 $('<code/>').append(r.toString()), '.  ');
+            if (firstSpacesCount === secondSpacesCount) {
+                solutionIntro.append('Put ',
+                    $('<code/>').append(firstSpacesCount.toString()), ' space between each character along this rail.');
+            }
+            else {
+                solutionIntro.append('Alternate between ',
+                    $('<code/>').append(firstSpacesCount.toString()), ' and ',
+                    $('<code/>').append(secondSpacesCount.toString()), ' spaces between characters, starting with ',
+                    $('<code/>').append(firstSpacesCount.toString()), ' spaces.');
+            }
+        }
+
+        // Last rail                             
+        solutionIntro.append($('<h5/>').text('Rail '.concat(r.toString())));
+        charsInRail = rfs.getCharactersInRail(rails);
+        solutionIntro.append('Copy the last ', $('<code/>').append(charsInRail.toString()), 
+                             ' characters from the cipher text along the last rail, starting at position ', 
+                             $('<code/>').append(r.toString()), ' with ',
+                             $('<code/>').append(spacesBetween.toString()),
+                             ' spaces between each character.');
+
+        solutionIntro.append('Read the decrypted message along the diagonals!');
         result.append(solutionIntro, rfs.getRailFenceSolution());
 
 
@@ -420,6 +469,14 @@ class RailFenceSolver {
     }
     public getCharsLeftover(): number {
         return this.charsLeftover;
+    }
+    public getCharactersInRail(rail: number): number {
+        let returnValue = -1;
+        if (rail >= 1 && rail <= this.railCount) {
+            returnValue = this.charactersInRails[rail - 1] + this.charactersLeftover[rail - 1];
+        }
+
+        return returnValue;
     }
     public getRailFenceEncoding(): string {
         var returnValue: string = "";

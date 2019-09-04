@@ -301,7 +301,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    public genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let keypos = 0;
         let result = $('<div/>', { class: 'grid-x' });
         let strings = this.buildReplacementVigenere(
@@ -347,7 +347,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQuery<HTMLElement> {
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
         let strings = this.buildReplacementVigenere(
             this.state.cipherString,

@@ -112,6 +112,7 @@ export class CipherTestPrint extends CipherTest {
             let cipherhandler = this.GetPrintFactory(test.timed);
             let qerror = '';
             let timedquestion = this.printTestQuestion(
+                test.testtype,
                 -1,
                 cipherhandler,
                 'pagebreak'
@@ -132,6 +133,7 @@ export class CipherTestPrint extends CipherTest {
         for (let qnum = 0; qnum < test.count; qnum++) {
             let cipherhandler = this.GetPrintFactory(test.questions[qnum]);
             let thisquestion = this.printTestQuestion(
+                test.testtype,
                 qnum + 1,
                 cipherhandler,
                 ''
@@ -201,7 +203,7 @@ export class CipherTestPrint extends CipherTest {
             $('.xenocryptfreq').show();
         } else {
             if (test.testtype === ITestType.bstate ||
-                test.testtype !== ITestType.cstate) {
+                test.testtype === ITestType.cstate) {
                 errors.push(this.getTestTypeName(test.testtype) +
                     ' is supposed to have at least one Spanish Xenocrypt.');
             }

@@ -1777,7 +1777,7 @@ export class CipherHandler {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    public genAnswer(): JQElement {
+    public genAnswer(testType: ITestType): JQElement {
         return $('<h3>').text(
             'This cipher does not support printing the Answer yet'
         );
@@ -1785,7 +1785,7 @@ export class CipherHandler {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQElement {
+    public genQuestion(testType: ITestType): JQElement {
         return $('<h3>').text(
             'This cipher does not support printing the Question yet'
         );
@@ -1837,7 +1837,7 @@ export class CipherHandler {
     /**
      * Generate a solving aid for a cipher
      */
-    public genSolution(): JQElement {
+    public genSolution(testType: ITestType): JQElement {
         return null;
     }
     /**

@@ -127,7 +127,13 @@ export class CipherTestAnswers extends CipherTest {
             let cipherhandler = this.GetPrintFactory(test.timed);
             let qerror = '';
             result.append(
-                this.printTestAnswer(-1, cipherhandler, "pagebreak", printSolution)
+                this.printTestAnswer(
+                    test.testtype,
+                    -1,
+                    cipherhandler,
+                    "pagebreak",
+                    printSolution
+                )
             );
             // Division A doesn't have a timed question, but if one was
             // there, print it out, but generate an error message
@@ -150,6 +156,7 @@ export class CipherTestAnswers extends CipherTest {
             let cipherhandler = this.GetPrintFactory(test.questions[qnum]);
             result.append(
                 this.printTestAnswer(
+                    test.testtype,
                     qnum + 1,
                     cipherhandler,
                     breakclass,

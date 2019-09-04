@@ -75,10 +75,16 @@ export class CipherTableEncoder extends CipherEncoder {
     public CheckAppropriate(testType: ITestType): string {
         let result = super.CheckAppropriate(testType);
         if (result === "" && testType !== undefined) {
-            if (testType === ITestType.aregional &&
-                this.state.cipherType === ICipherType.Caesar &&
-                (this.state.offset > 3 && this.state.offset < 23)) {
-                result = "Offset too large for " + this.getTestTypeName(testType);
+            if (testType === ITestType.aregional) {
+                if (this.state.operation !== 'decode') {
+                    result = "Only decode is allowed for " +
+                        this.getTestTypeName(testType);
+                }
+                else if (this.state.cipherType === ICipherType.Caesar &&
+                    (this.state.offset > 3 && this.state.offset < 23)) {
+                    result = "Offset too large for " +
+                        this.getTestTypeName(testType);
+                }
             }
         }
         return result;
@@ -220,11 +226,17 @@ export class CipherTableEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    public genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, 40);
-        let table = new JTTable({ class: 'ansblock shrink cell unstriped' });
+        let width = 40;
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            width = 30;
+            extraclass = ' atest';
+        }
+        let strings = this.makeReplacement(this.state.cipherString, width);
+        let table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
         let tosolve = 0;
         let toanswer = 1;
         if (this.state.operation === 'encode') {
@@ -246,11 +258,17 @@ export class CipherTableEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQuery<HTMLElement> {
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, 40);
-        let table = new JTTable({ class: 'ansblock shrink cell unstriped' });
+        let width = 40;
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            width = 30;
+            extraclass = ' atest';
+        }
+        let strings = this.makeReplacement(this.state.cipherString, width);
+        let table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
         let tosolve = 0;
         if (this.state.operation === 'encode') {
             tosolve = 1;
@@ -312,7 +330,7 @@ export class CipherTableEncoder extends CipherEncoder {
         return result;
     }
     // tslint:disable-next-line:cyclomatic-complexity
-    public genSolution(): JQuery<HTMLElement> {
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         let needsbrute = false;
         this.genAlphabet();

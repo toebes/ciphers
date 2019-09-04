@@ -278,7 +278,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    public genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
         let plainindex = 0;
         let cipherindex = 1;
@@ -306,7 +306,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQuery<HTMLElement> {
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
         let plainindex = 0;
         if (this.state.operation === 'encode') {
@@ -482,13 +482,13 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         return table;
     }
-    public genSolution(): JQuery<HTMLElement> {
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
         if (this.state.operation === 'decode') {
-            return this.genDecodeSolution();
+            return this.genDecodeSolution(testType);
         }
-        return this.genEncodeSolution();
+        return this.genEncodeSolution(testType);
     }
-    public genEncodeSolution(): JQuery<HTMLElement> {
+    public genEncodeSolution(testType: ITestType): JQuery<HTMLElement> {
         let msg = this.minimizeString(this.state.cipherString);
         let mapping: StringMap = {};
         let result = $('<div/>', { id: 'solution' });
@@ -530,7 +530,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         return result;
     }
 
-    public genDecodeSolution(): JQuery<HTMLElement> {
+    public genDecodeSolution(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { id: 'solution' });
         if (this.state.solclick1 === -1 || this.state.solclick2 === -1) {
             result.append(
@@ -910,7 +910,7 @@ export class CipherAffineEncoder extends CipherEncoder {
                 'Click on any two columns to choose the decode problem'
             );
         } else {
-            res = this.genSolution();
+            res = this.genSolution(ITestType.None);
         }
         $('#sol')
             .empty()

@@ -42,7 +42,7 @@ export class CipherPigPenEncoder extends CipherEncoder {
         $('#answer')
             .empty()
             .append(this.build())
-            .append(this.genSolution());
+            .append(this.genSolution(ITestType.None));
 
         // Show the update frequency values
         this.displayFreq();
@@ -68,12 +68,18 @@ export class CipherPigPenEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    public genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, 40);
+        let width = 40;
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            width = 30;
+            extraclass = ' atest';
+        }
+        let strings = this.makeReplacement(this.state.cipherString, width);
         let table = new JTTable({
-            class: 'ansblock shrink cell unstriped pigpen',
+            class: 'ansblock shrink cell unstriped pigpen' + extraclass,
         });
         let tosolve = 0;
         let toanswer = 1;
@@ -92,12 +98,18 @@ export class CipherPigPenEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQuery<HTMLElement> {
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, 40);
+        let width = 40;
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            width = 30;
+            extraclass = ' atest';
+        }
+        let strings = this.makeReplacement(this.state.cipherString, width);
         let table = new JTTable({
-            class: 'ansblock shrink cell unstriped pigpen',
+            class: 'ansblock shrink cell unstriped pigpen' + extraclass,
         });
         let tosolve = 0;
         if (this.state.operation === 'encode') {
@@ -115,7 +127,7 @@ export class CipherPigPenEncoder extends CipherEncoder {
         result.append(table.generate());
         return result;
     }
-    public genSolution(): JQuery<HTMLElement> {
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         result.append($("<h3/>").text("How to Solve"));
         result.append($("<p/>").text("First you want to create the lookup table " +
@@ -125,11 +137,11 @@ export class CipherPigPenEncoder extends CipherEncoder {
             "boards across and then down " +
             "putting dots on the letters in the second board."));
         result.append($("<p/>").text("Then fill up the two big Xs starting " +
-            "at the top and going clockwise putting dots on the letters in the " +
+            "at the top then left, right and finally bottom, putting dots on the letters in the " +
             "second X. like:"));
         result.append($("<img/>", { src: pigpen2 }));
         result.append($("<p/>").text("With that decode table, it should be quick " +
-            "decode the characters by looking at the shapes and whether or not " +
+            "decode the characters by looking at the shapes and whether " +
             "the shape has a dot in it or not."));
         return result;
     }

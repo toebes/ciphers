@@ -213,9 +213,9 @@ export class CipherHillEncoder extends CipherEncoder {
         $('#sol')
             .empty()
             .append('<hr/>')
-            .append(this.genSolution());
+            .append(this.genSolution(ITestType.None));
     }
-    public genSolution(): JQuery<HTMLElement> {
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         let key = this.state.keyword.toUpperCase();
         let toencode = this.minimizeString(this.state.cipherString);
@@ -719,7 +719,7 @@ export class CipherHillEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    public genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         let vals = this.getValidKey(this.state.keyword);
         if (vals === undefined) {
@@ -782,7 +782,7 @@ export class CipherHillEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQuery<HTMLElement> {
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         let vals = this.getValidKey(this.state.keyword);
         if (vals === undefined) {

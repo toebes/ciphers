@@ -345,7 +345,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public build(): JQuery<HTMLElement> {
         let result = $('<div/>');
-        result.append(this.genAnswer());
+        result.append(this.genAnswer(ITestType.None));
         return result;
     }
     /**
@@ -589,7 +589,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    public genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         let cipherString = this.getEncodingString();
         let strings = this.makeReplacement(cipherString, this.getEncodeWidth());
@@ -696,7 +696,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQuery<HTMLElement> {
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         let strings = this.makeReplacement(
             this.getEncodingString(),
@@ -711,7 +711,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         return result;
     }
-    public genSolution(): JQuery<HTMLElement> {
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         if (this.state.operation === 'words') {
             result.append($('<h3/>').text('The letters are mapped as:'));

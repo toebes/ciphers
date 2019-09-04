@@ -59,8 +59,8 @@ export class CipherPolluxEncoder extends CipherEncoder {
         this.clearErrors();
         $('#answer')
             .empty()
-            .append(this.genAnswer())
-            .append(this.genSolution());
+            .append(this.genAnswer(ITestType.None))
+            .append(this.genSolution(ITestType.None));
 
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
@@ -349,7 +349,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQuery<HTMLElement> {
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genAlphabet();
         let strings = this.makeReplacement(this.state.cipherString, 60);
@@ -378,7 +378,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    public genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genAlphabet();
         let strings = this.makeReplacement(
@@ -961,7 +961,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
     /**
      * Display how to solve the cipher.
      */
-    public genSolution(): JQuery<HTMLElement> {
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
         let result = $("<div/>");
         if (this.state.cipherString === '') {
             return result;

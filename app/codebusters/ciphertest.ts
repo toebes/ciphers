@@ -619,6 +619,7 @@ export class CipherTest extends CipherHandler {
      * An entry value of -1 is for the timed question
      */
     public printTestAnswer(
+        testType: ITestType,
         qnum: number,
         handler: CipherHandler,
         extraclass: string,
@@ -661,9 +662,9 @@ export class CipherTest extends CipherHandler {
         cipherhandler.restore(state);
         // Remember this question points so we can generate the tiebreaker order
         this.qdata.push({ qnum: qnum, points: state.points });
-        result.append(cipherhandler.genAnswer());
+        result.append(cipherhandler.genAnswer(testType));
         if (printSolution) {
-            result.append(cipherhandler.genSolution());
+            result.append(cipherhandler.genSolution(testType));
         }
         return result;
     }
@@ -672,6 +673,7 @@ export class CipherTest extends CipherHandler {
      * An entry value of -1 is for the timed question.
      */
     public printTestQuestion(
+        testType: ITestType,
         qnum: number,
         handler: CipherHandler,
         extraclass: string
@@ -729,7 +731,7 @@ export class CipherTest extends CipherHandler {
         }
         // Remember this question points so we can generate the score sheet
         this.qdata.push({ qnum: qnum, points: state.points });
-        result.append(cipherhandler.genQuestion());
+        result.append(cipherhandler.genQuestion(testType));
         return result;
     }
     /**

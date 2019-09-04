@@ -587,7 +587,7 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    public genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genAlphabet();
         let strings = this.makeReplacement(
@@ -640,7 +640,7 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQuery<HTMLElement> {
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genAlphabet();
         let strings = this.makeReplacement(
@@ -694,7 +694,7 @@ export class CipherEncoder extends CipherHandler {
                     }).text('highlighted')
                 )
         );
-        result.append(this.genAnswer());
+        result.append(this.genAnswer(ITestType.None));
         return result;
     }
     public getEncodingString(): string {

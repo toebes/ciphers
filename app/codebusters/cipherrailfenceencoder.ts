@@ -91,7 +91,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             .empty()
             .append(res);
 
-        res = this.genSolution();
+        res = this.genSolution(ITestType.None);
         $('#sol')
             .empty()
             .append('<hr/>')
@@ -206,7 +206,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher.
      * It is just the ciper text formatted with TOANSWER.
      */
-    public genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>'/*, { class: 'grid-x' }*/);
 
         let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
@@ -243,7 +243,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQuery<HTMLElement> {
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'TOSOLVE' });
 
         let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
@@ -277,7 +277,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public build(): JQuery<HTMLElement> {
         let result = $('<div/>');
 
-        result.append(this.genAnswer());
+        result.append(this.genAnswer(ITestType.None));
 
         return result;
     }
@@ -285,7 +285,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     /**
      * Generate the HTML that shows the 'W' rail fence solution.
      */
-    public genSolution(): JQuery<HTMLElement> {
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
 
         let solutionText: string = "This is how you solve it for " + this.state.rails + " rails.";

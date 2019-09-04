@@ -1095,6 +1095,24 @@ div.vsolv {
 .ansblock td.e {
     height: 3rem;
 }
+
+/* Extra size for elementary school */
+.ansblock.atest td.o.v {
+    height: 3rem !important;
+    padding: 1rem;
+}
+.ansblock.atest td.a {
+    height: 3.5rem !important;
+    padding: 1rem;
+}
+.ansblock.atest td.e {
+    height: 3.5rem !important;
+    padding: 1rem;
+}
+.ansblock.atest .q.v {
+    font-size: 16px;
+}
+
 @font-face {
     font-family: pigpen;
     src: url(fonts/PigpenCipher.woff);

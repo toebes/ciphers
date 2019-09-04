@@ -112,19 +112,19 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
                 }
             });
     }
-    public genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         if (this.getRunningKeyIndex() === -1) {
             this.extraRunningKey = this.state.keyword;
         }
-        return super.genAnswer();
+        return super.genAnswer(testType);
     }
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQuery<HTMLElement> {
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         if (this.getRunningKeyIndex() === -1) {
             this.extraRunningKey = this.state.keyword;
         }
-        return super.genQuestion();
+        return super.genQuestion(testType);
     }
 }

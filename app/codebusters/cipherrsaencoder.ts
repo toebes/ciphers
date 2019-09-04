@@ -357,8 +357,8 @@ export class CipherRSAEncoder extends CipherEncoder {
                 break;
         }
         let result = $('<div/>')
-            .append(this.genAnswer())
-            .append(this.genSolution());
+            .append(this.genAnswer(ITestType.None))
+            .append(this.genSolution(ITestType.None));
         return result;
     }
     public genQuestionAnswer(showanswers: boolean): JQuery<HTMLElement> {
@@ -381,16 +381,16 @@ export class CipherRSAEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    public genAnswer(): JQuery<HTMLElement> {
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         return this.genQuestionAnswer(true);
     }
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQuery<HTMLElement> {
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         return this.genQuestionAnswer(false);
     }
-    public genSolution(): JQuery<HTMLElement> {
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
         switch (this.state.operation) {
             case 'rsa1':
                 return this.genSolution1();

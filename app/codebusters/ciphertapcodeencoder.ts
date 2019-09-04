@@ -15,33 +15,45 @@ export class CipherTapCodeEncoder extends CipherEncoder {
 
     public validTests: ITestType[] = [ITestType.None,
     ITestType.aregional];
+
+    public maxEncodeWidth: number = 65;
+    /**
+     * Generates an HTML representation of a string for display.  Replaces the X, O and -
+     * with more visible HTML equivalents
+     * str String to normalize (with - X and O representing morese characters)
+    */
+    public normalizeHTML(str: string): string {
+        return str
+            .replace(/O/g, "&#9679;")
+    }
+
     public readonly TapCodeMap: StringMap = {
-        A: '. . ',
-        B: '. .. ',
-        C: '. ... ',
-        D: '. .... ',
-        E: '. ..... ',
-        F: '.. . ',
-        G: '.. .. ',
-        H: '.. ... ',
-        I: '.. .... ',
-        J: '.. ..... ',
-        K: '. ... ',
-        L: '... . ',
-        M: '... .. ',
-        N: '... ... ',
-        O: '... .... ',
-        P: '... ..... ',
-        Q: '.... . ',
-        R: '.... .. ',
-        S: '.... ... ',
-        T: '.... .... ',
-        U: '.... ..... ',
-        V: '..... . ',
-        W: '..... .. ',
-        X: '..... ... ',
-        Y: '..... .... ',
-        Z: '..... ..... ',
+        A: 'O O ',
+        B: 'O OO ',
+        C: 'O OOO ',
+        D: 'O OOOO ',
+        E: 'O OOOOO ',
+        F: 'OO O ',
+        G: 'OO OO ',
+        H: 'OO OOO ',
+        I: 'OO OOOO ',
+        J: 'OO OOOOO ',
+        K: 'O OOO ',
+        L: 'OOO O ',
+        M: 'OOO OO ',
+        N: 'OOO OOO ',
+        O: 'OOO OOOO ',
+        P: 'OOO OOOOO ',
+        Q: 'OOOO O ',
+        R: 'OOOO OO ',
+        S: 'OOOO OOO ',
+        T: 'OOOO OOOO ',
+        U: 'OOOO OOOOO ',
+        V: 'OOOOO O ',
+        W: 'OOOOO OO ',
+        X: 'OOOOO OOO ',
+        Y: 'OOOOO OOOO ',
+        Z: 'OOOOO OOOOO ',
     };
     public defaultstate: IEncoderState = {
         cipherString: '',
@@ -68,7 +80,7 @@ export class CipherTapCodeEncoder extends CipherEncoder {
         $('#answer')
             .empty()
             .append(this.build())
-            .append(this.genSolution());
+            .append(this.genSolution(ITestType.None));
 
         // Show the update frequency values
         this.displayFreq();
@@ -93,33 +105,51 @@ export class CipherTapCodeEncoder extends CipherEncoder {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'grid-x' });
-        this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, 60);
-        let table = new JTTable({
-            class: 'ansblock shrink cell unstriped TapCode',
-        });
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
+        let result = $('<div/>');
+        let strings = this.makeReplacement(
+            this.state.cipherString,
+            this.maxEncodeWidth);
         let tosolve = 0;
-        if (this.state.operation === 'encode') {
-            tosolve = 1;
-        }
         for (let strset of strings) {
-            this.addCipherTableRows(
-                table,
-                undefined,
-                strset[tosolve],
-                undefined,
-                true
+            result.append(
+                $('<div/>', {
+                    class: 'TOSOLVEQ',
+                }).html(this.normalizeHTML(strset[tosolve]))
+                    .append($("<br/>"))
             );
         }
-        result.append(table.generate());
         return result;
     }
     /**
+     * Generate the HTML to display the answer for a cipher
+     */
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
+        let result = $('<div/>');
+        let strings = this.makeReplacement(
+            this.state.cipherString,
+            this.maxEncodeWidth);
+        let tosolve = 0;
+        let toanswer = 1;
+        for (let strset of strings) {
+            result.append(
+                $('<div/>', {
+                    class: 'TOSOLVE',
+                }).html(this.normalizeHTML(strset[tosolve]))
+            );
+            result.append(
+                $('<div/>', {
+                    class: 'TOANSWER',
+                }).text(strset[toanswer])
+            );
+        }
+        return result;
+    }
+
+    /**
      * Generate the HTML to display the solution for a cipher
      */
-    public genSolution(): JQuery<HTMLElement> {
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         result.append($("<h3/>").text("How to Solve"));
         result.append($("<p/>").text("First you want to create the lookup table " +
@@ -130,7 +160,7 @@ export class CipherTapCodeEncoder extends CipherEncoder {
             "Once you have filled in all 25 cells, go back and add K to the cell " +
             "with C in it giving you a table like:"));
         result.append($("<img/>", { src: tapcode }));
-        result.append($("<p/>").text("Then go through the cipher text and put a " +
+        result.append($("<p/>").text("Then go through the cipher text and put " +
             "a mark between each two groups of dots. " +
             "To decode, count the number of dots in the first group to pick the " +
             "row in the table and the number of dots in the second group to pick " +

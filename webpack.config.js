@@ -7,6 +7,8 @@ const WebpackAutoInject = require('webpack-auto-inject-version');
 const WebpackShellPlugin = require('webpack-shell-plugin');
 const package = require('./package.json');
 var toolsVersion = package.version;
+const argv = require('yargs').argv;
+var ZIP = argv.zip || false;
 
 module.exports = {
     //    mode: "development", // "production" | "development" | "none"
@@ -898,9 +900,16 @@ module.exports = {
         new webpack.DefinePlugin({
             'require.specified': 'require.resolve',
         }),
+    ],
+};
+
+// The concept for this was taken from https://stackoverflow.com/questions/28572380/conditional-build-based-on-environment-using-webpack
+// 'offhouse' answer.
+if (ZIP) {
+    module.exports.plugins.push(
         // The webpack-shell-plugin is installed with "npm install --save-dev webpack-shell-plugin"
         new WebpackShellPlugin({
             onBuildExit: ['python zip-ct.py ' + toolsVersion],
         }),
-    ],
-};
+    );
+}

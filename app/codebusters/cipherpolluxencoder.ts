@@ -50,13 +50,55 @@ export class CipherPolluxEncoder extends CipherEncoder {
         this.redocmdButton,
         this.guidanceButton,
     ];
+
+    public setQuestionText(question: string): void {
+        super.setQuestionText(question);
+        this.validateQuestion();
+    }
+
     /** Save and Restore are done on the CipherEncoder Class */
 
+    public validateQuestion(): void {
+        let msg = '';
+        let questionText = this.state.question.toUpperCase();
+        if (this.state.operation === 'decode') {
+            // Look to see if the hint characters appear in the question text
+            let notfound = '';
+            if (this.state.hint === undefined || this.state.hint === '') {
+                msg = "No Hint Digits provided";
+            } else {
+                for (let c of this.state.hint) {
+                    if (questionText.indexOf(c) < 0) {
+                        notfound += c;
+                    }
+                }
+                if (notfound !== '') {
+                    if (notfound.length === 1) {
+                        msg = "The hint digit " + notfound +
+                            " doesn't appear to be mentioned in the Question Text.";
+                    } else {
+                        msg = "The hint digits " + notfound +
+                            " don't appear to be mentioned in the Question Text.";
+
+                    }
+                }
+            }
+        } else {
+            // Look to see if the crib appears in the quesiton text
+            let crib = this.minimizeString(this.state.crib);
+            if (questionText.indexOf(crib) < 0) {
+                msg = "The Crib Text " + this.state.crib +
+                    " doesn't appear to be mentioned in the Question Text.";
+            }
+        }
+        this.setErrorMsg(msg, 'polvq');
+    }
     /**
      * Loads up the values for the encoder
      */
     public load(): void {
         this.clearErrors();
+        this.validateQuestion();
         $('#answer')
             .empty()
             .append(this.genAnswer(ITestType.None))
@@ -213,33 +255,35 @@ export class CipherPolluxEncoder extends CipherEncoder {
         let extra = "";
         let encoded = '';
         let failed = false;
+        let msg = '';
         // Build out a mapping of the replacement characters to their morselet
         // value so we can figure out if we can reuse it.
         let morseletmap: StringMap = this.buildMorseletMap();
 
         if (this.state.dotchars.length === 0) {
-            this.addErrorMsg('No characters specified for O');
+            msg += 'No characters specified for O. ';
             failed = true;
         }
         if (this.state.dashchars.length === 0) {
-            this.addErrorMsg('No characters specified for -');
+            msg += 'No characters specified for -. ';
             failed = true;
         }
         if (this.state.xchars.length === 0) {
-            this.addErrorMsg('No characters specified for X');
+            msg += 'No characters specified for X. ';
             failed = true;
         }
         // Check to see if we have any duplicated characters
         for (let c in morseletmap) {
             if (c < '0' || c > '9') {
-                this.addErrorMsg(c + ' is not a valid digit');
+                msg += c + ' is not a valid digit. ';
                 failed = true;
             }
             if (morseletmap[c].length > 1) {
-                this.addErrorMsg(c + " used for more than one letter: " + morseletmap[c]);
+                msg += c + " used for more than one letter: " + morseletmap[c];
                 failed = true;
             }
         }
+        this.setErrorMsg(msg, 'polmr');
         if (failed) {
             return result;
         }
@@ -295,7 +339,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
             // See if we have to split the line now
             if (encodeline.length >= maxEncodeWidth) {
                 if (lastsplit === -1) {
-                    result.push([encodeline, decodeline, morseline]);
+                    result.push([encodeline, morseline, decodeline]);
                     encodeline = '';
                     decodeline = '';
                     morseline = '';
@@ -307,14 +351,14 @@ export class CipherPolluxEncoder extends CipherEncoder {
                     encodeline = encodeline.substr(lastsplit);
                     decodeline = decodeline.substr(lastsplit);
                     morseline = morseline.substr(lastsplit);
-                    result.push([encodepart, decodepart, morsepart]);
+                    result.push([encodepart, morsepart, decodepart]);
                 }
             }
         }
 
         // And put together any residual parts
         if (encodeline.length > 0) {
-            result.push([encodeline, decodeline, morseline]);
+            result.push([encodeline, morseline, decodeline]);
         }
         this.state.encoded = encoded;
         return result;
@@ -384,24 +428,22 @@ export class CipherPolluxEncoder extends CipherEncoder {
         let strings = this.makeReplacement(
             this.state.cipherString,
             this.maxEncodeWidth);
-        let tosolve = 0;
-        let toanswer = 1;
-        let morseline = 2;
+
         for (let strset of strings) {
             result.append(
                 $('<div/>', {
                     class: 'TOSOLVE',
-                }).text(strset[tosolve])
+                }).text(strset[ctindex])
             );
             result.append(
                 $('<div/>', {
                     class: 'TOSOLVE',
-                }).html(this.normalizeHTML(strset[morseline]))
+                }).html(this.normalizeHTML(strset[morseindex]))
             );
             result.append(
                 $('<div/>', {
                     class: 'TOANSWER',
-                }).text(strset[toanswer])
+                }).text(strset[ptindex])
             );
         }
         return result;
@@ -958,12 +1000,54 @@ export class CipherPolluxEncoder extends CipherEncoder {
         }
         return false;
     }
+    public findCrib(strings: string[][], crib: string): string {
+        let cribmatch = crib;
+        let ciphermatch = '';
+        let backtracki = 0;
+        if (crib === undefined) {
+            return '';
+        }
+
+        for (let strset of strings) {
+            for (let i = 0, len = strset[ctindex].length; i < len; i++) {
+                let p = strset[ptindex][i];
+                let c = strset[ctindex][i];
+                ciphermatch += c;
+                if (p !== ' ' && p !== '/') {
+                    if (p === cribmatch[0]) {
+                        if (cribmatch === crib) {
+                            // We are starting a match.  Remember where we we began
+                            // so that we can backtrack to it if we fail along the
+                            // way.
+                            backtracki = i;
+                        }
+                        cribmatch = cribmatch.substr(1);
+                        if (cribmatch === '') {
+                            return ciphermatch;
+                        }
+                    } else {
+                        // If we didn't match, we need to start over again
+                        // looking for the crib, but we have to backtrack to
+                        // where we first attempted to match the crib.
+                        if (cribmatch !== crib) {
+                            i = backtracki;
+                        }
+                        cribmatch = crib;
+                        ciphermatch = '';
+                    }
+                }
+            }
+        }
+        return '';
+    }
     /**
      * Display how to solve the cipher.
      */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
         let result = $("<div/>");
+        let msg = '';
         if (this.state.cipherString === '') {
+            this.setErrorMsg(msg, 'polgs');
             return result;
         }
         let hint = this.state.hint;
@@ -976,9 +1060,25 @@ export class CipherPolluxEncoder extends CipherEncoder {
         if (this.state.operation === 'crypt') {
             // We are told the mapping of at least 6 letters
             // this.state.crib
+            if (this.state.crib === undefined || this.state.crib.length < 4) {
+                result.append($("<h4/>")
+                    .text("At least 4 crib characters are needed to generate a solution"));
+                this.setErrorMsg("The crib should be at least 4 characters", 'polgs');
+                return result;
+            }
+            hint = this.findCrib(strings, this.minimizeString(this.state.crib));
+            if (hint === '') {
+                msg = "Unable to find placement of the crib";
+                result.append($("<h4/>")
+                    .text("Unable to find placement of the crib: " + this.state.crib));
+            }
+        } else if (this.state.hint == undefined || this.state.hint.length < 4) {
+            msg = "The hint should contain least 4 characters (6 is expected for a test)";
         }
         result.append("Since we are told the mapping of " + hint +
             " ciphertext, we can build the following table:");
+
+        this.setErrorMsg(msg, 'polgs');
 
         // Assume we don't know what anything is
         for (let c of this.encodecharset) {

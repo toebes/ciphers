@@ -1844,6 +1844,9 @@ export class CipherHandler {
      * Eliminate the non displayable characters and replace them with a space
      */
     public cleanString(str: string): string {
+        if (str === undefined) {
+            return "";
+        }
         let pattern: string = '[\r\n ]+';
         let re = new RegExp(pattern, 'g');
         return str.replace(re, ' ');
@@ -1853,9 +1856,11 @@ export class CipherHandler {
      */
     public minimizeString(str: string): string {
         let res: string = '';
-        for (let c of str.toUpperCase()) {
-            if (this.isValidChar(c)) {
-                res += c;
+        if (str !== undefined) {
+            for (let c of str.toUpperCase()) {
+                if (this.isValidChar(c)) {
+                    res += c;
+                }
             }
         }
         return res;

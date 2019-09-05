@@ -247,10 +247,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
         let spaceextra = "XX";
         let decodeextra = "";
         let failed = false;
-
-        if (failed) {
-            return result;
-        }
+        let msg = '';
 
         // Zero out the frequency table
         this.freq = {};
@@ -297,7 +294,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
                     /// Otherwise we have to pick one of the letters randomly.
                     let c = this.state.replacement[m];
                     if (c.length != 1) {
-                        this.addErrorMsg('Invalid Morse piece:' + m);
+                        msg += 'Invalid Morse piece:' + m + ". ";
                         c = '?';
                     }
                     encodeline += c + " ";
@@ -327,6 +324,7 @@ export class CipherMorbitEncoder extends CipherEncoder {
         if (encodeline.length > 0) {
             result.push([encodeline, morseline, decodeline]);
         }
+        this.setErrorMsg(msg, 'morrepl');
         return result;
     }
     /**

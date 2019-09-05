@@ -146,6 +146,10 @@ export class CipherEncoder extends CipherHandler {
         this.setkvalinputs();
         this.load();
     }
+    public setQuestionText(question: string): void {
+        this.state.question = question;
+    }
+
     /**
      * Set the value of a rich text element.  Note that some editors may not
      * be fully initialized, so we may have to stash it for when it does get
@@ -395,6 +399,7 @@ export class CipherEncoder extends CipherHandler {
      */
     public setReplacement(cset: string, repl: string): void {
         let errors = '';
+        let msg = '';
         this.state.alphabetSource = cset;
         this.state.alphabetDest = repl;
         // console.log("Set Replacement cset=" + cset + " repl=" + repl);
@@ -413,8 +418,9 @@ export class CipherEncoder extends CipherHandler {
             }
         }
         if (errors !== '') {
-            this.addErrorMsg('Bad keyword/offset combo for letters: ' + errors);
+            msg = 'Bad keyword/offset combo for letters: ' + errors;
         }
+        this.setErrorMsg(msg, 'setrepl');
     }
     /**
      * Generate a K1 alphabet where the keyword is in the source alphabet
@@ -447,9 +453,10 @@ export class CipherEncoder extends CipherHandler {
     public genAlphabetK3(keyword: string, offset: number, shift: number): void {
         if (this.getCharset() !== this.getSourceCharset()) {
             let error = 'Source and encoding character sets must be the same';
-            this.addErrorMsg(error);
+            this.setErrorMsg(error, 'genk3');
             return;
         }
+        this.setErrorMsg('', 'genk3');
         let repl = this.genKstring(keyword, offset, this.getCharset());
         let cset = repl.substr(shift) + repl.substr(0, shift);
         this.setReplacement(cset, repl);
@@ -470,9 +477,10 @@ export class CipherEncoder extends CipherHandler {
         if (this.getCharset().length !== this.getSourceCharset().length) {
             let error =
                 'Source and encoding character sets must be the same length';
-            this.addErrorMsg(error);
+            this.setErrorMsg(error, 'genk4');
             return;
         }
+        this.setErrorMsg('', 'genk4');
         let cset = this.genKstring(keyword, offset, this.getCharset());
         let repl = this.genKstring(keyword2, offset2, this.getSourceCharset());
         this.setReplacement(cset, repl);
@@ -777,14 +785,37 @@ export class CipherEncoder extends CipherHandler {
         return result;
     }
     public clearErrors(): void {
-        $(".err").empty();
+        //     $(".err").empty();
     }
-    public addErrorMsg(message: string): void {
-        if (message !== '') {
-            $(".err").append($('<div/>', {
-                class: 'callout alert',
-            }).text(message));
-            console.log("Error:" + message);
+    public setErrorMsg(message: string, id: string): void {
+        let espot = $(".err").find('[data-msg=' + id + ']');
+        if (message === '') {
+            // We are removing the message
+            if (espot.length !== 0) {
+                // It did exist so make it go away
+                espot.remove();
+                let children = $(".err").children();
+                // Did that empty out the error section?
+                if ((children.length === 0) ||
+                    (children.length === 1 && children.children().length === 0)) {
+                    // If so, then wipe it out completely.
+                    $(".err").empty();
+                }
+            }
+        } else {
+            // We are setting the message
+            if (espot.length === 0) {
+                // See if we need to create the alert div
+                if ($(".err").children().length === 0) {
+                    $(".err").append($('<div/>', {
+                        class: 'callout alert',
+                    }));
+                }
+                espot = $(".err").children()
+                    .append($('<div/>', { 'data-msg': id }).text(message));
+            } else {
+                espot.text(message);
+            }
         }
     }
     /**
@@ -1027,7 +1058,7 @@ export class CipherEncoder extends CipherHandler {
                     if (question !== '<p>' + this.state.question + '</p>') {
                         this.markUndo('question');
                     }
-                    this.state.question = question;
+                    this.setQuestionText(question);
                 }
             });
         $('#translated')

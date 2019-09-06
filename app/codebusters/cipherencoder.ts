@@ -787,7 +787,7 @@ export class CipherEncoder extends CipherHandler {
     public clearErrors(): void {
         //     $(".err").empty();
     }
-    public setErrorMsg(message: string, id: string): void {
+    public setErrorMsg(message: string, id: string, extra?: JQuery<HTMLElement>): void {
         let espot = $(".err").find('[data-msg=' + id + ']');
         if (message === '') {
             // We are removing the message
@@ -812,9 +812,13 @@ export class CipherEncoder extends CipherHandler {
                     }));
                 }
                 espot = $(".err").children()
-                    .append($('<div/>', { 'data-msg': id }).text(message));
+                    .append($('<div/>', { 'data-msg': id })
+                        .text(message)
+                        .append(extra));
             } else {
-                espot.text(message);
+                espot
+                    .empty()
+                    .text(message).append(extra);
             }
         }
     }

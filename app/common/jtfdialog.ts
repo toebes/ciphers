@@ -5,8 +5,8 @@ export function JTFDialog(
     id: string,
     title: string,
     content: JQuery<HTMLElement>,
-    okid: string,
-    oktitle: string
+    okid?: string,
+    oktitle?: string
 ): JQuery<HTMLElement> {
     // The dialog has a top bar with a title indicating the purpose of the dialog
     // The data-reveal class keeps it hidden
@@ -25,7 +25,7 @@ export function JTFDialog(
     dlg.append(content);
     // With a Cancel and an ok button
     let buttongroup = $("<div/>", { class: "expanded button-group" });
-    if (oktitle == null) {
+    if (oktitle === null || oktitle === undefined) {
         buttongroup.append(
             $("<a/>", { class: "secondary button", "data-close": "" }).text(
                 "Close"

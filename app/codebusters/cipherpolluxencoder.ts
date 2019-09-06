@@ -1,12 +1,11 @@
 import { cloneObject, StringMap, BoolMap } from '../common/ciphercommon';
 import { ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
-import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import { CipherEncoder, IEncoderState } from './cipherencoder';
-import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
+import { IEncoderState } from './cipherencoder';
 import { tomorse, frommorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
+import { CipherMorseEncoder, ctindex, morseindex, ptindex } from './ciphermorseencoder';
 
 interface IPolluxState extends IEncoderState {
     dotchars: string;
@@ -14,18 +13,15 @@ interface IPolluxState extends IEncoderState {
     xchars: string;
     encoded: string;
 }
-const morseindex = 1;
-const ctindex = 0;
-const ptindex = 2;
 
 /**
  * CipherPolluxEncoder - This class handles all of the actions associated with encoding
  * a Pollux cipher.
  */
-export class CipherPolluxEncoder extends CipherEncoder {
+export class CipherPolluxEncoder extends CipherMorseEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
+    public cipherName: string = 'Pollux';
     public guidanceURL: string = 'TestGuidance.html#Pollux';
-    public usesMorseTable: boolean = true;
     public validTests: ITestType[] = [ITestType.None,
     ITestType.cregional, ITestType.cstate,
     ITestType.bregional, ITestType.bstate];
@@ -43,74 +39,57 @@ export class CipherPolluxEncoder extends CipherEncoder {
         this.defaultstate
     ) as IPolluxState;
     public encodecharset = "0123456789";
-    public cmdButtons: JTButtonItem[] = [
-        { title: 'Save', color: 'primary', id: 'save' },
-        { title: 'Randomize', color: 'primary', id: 'randomize' },
-        this.undocmdButton,
-        this.redocmdButton,
-        this.guidanceButton,
-    ];
 
-    public setQuestionText(question: string): void {
-        super.setQuestionText(question);
-        this.validateQuestion();
-    }
-
-    /** Save and Restore are done on the CipherEncoder Class */
-
-    public validateQuestion(): void {
-        let msg = '';
-        let questionText = this.state.question.toUpperCase();
-        if (this.state.operation === 'decode') {
-            // Look to see if the hint characters appear in the question text
-            let notfound = '';
-            if (this.state.hint === undefined || this.state.hint === '') {
-                msg = "No Hint Digits provided";
-            } else {
-                for (let c of this.state.hint) {
-                    if (questionText.indexOf(c) < 0) {
-                        notfound += c;
-                    }
-                }
-                if (notfound !== '') {
-                    if (notfound.length === 1) {
-                        msg = "The hint digit " + notfound +
-                            " doesn't appear to be mentioned in the Question Text.";
-                    } else {
-                        msg = "The hint digits " + notfound +
-                            " don't appear to be mentioned in the Question Text.";
-
-                    }
-                }
-            }
-        } else {
-            // Look to see if the crib appears in the quesiton text
-            let crib = this.minimizeString(this.state.crib);
-            if (questionText.indexOf(crib) < 0) {
-                msg = "The Crib Text " + this.state.crib +
-                    " doesn't appear to be mentioned in the Question Text.";
-            }
-        }
-        this.setErrorMsg(msg, 'polvq');
-    }
-    /**
-     * Loads up the values for the encoder
-     */
-    public load(): void {
-        this.clearErrors();
-        this.validateQuestion();
-        $('#answer')
-            .empty()
-            .append(this.genAnswer(ITestType.None))
-            .append(this.genSolution(ITestType.None));
-
-        // We need to attach handlers for any newly created input fields
-        this.attachHandlers();
-    }
     public setUIDefaults(): void {
         super.setUIDefaults();
         this.setCharset("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
         this.setOperation(this.state.operation);
+    }
+    public genSampleHint(): string {
+        let hint = '';
+        if (this.state.operation === 'crypt') {
+            let crib = this.minimizeString(this.state.crib);
+            let plaintext = this.minimizeString(this.state.cipherString);
+            if (crib !== '') {
+                let cribtext = this.genMonoText(this.state.crib.toUpperCase());
+
+                if (plaintext.substr(0, crib.length) === crib) {
+                    hint = "the quote starts with " + cribtext + ".";
+                } else if (plaintext.substr(plaintext.length - crib.length) === crib) {
+                    hint = "the quote ends with " + cribtext + ".";
+                } else {
+                    let strings = this.makeReplacement(
+                        this.state.cipherString,
+                        this.maxEncodeWidth);
+                    let ciphercrib = this.findCrib(strings, crib);
+                    if (ciphercrib !== '') {
+                        hint = "the quote has " + cribtext +
+                            " in it corresponding to the encoded text " +
+                            this.genMonoText(ciphercrib) + ".";
+                    } else {
+                        hint = "the quote has " + cribtext +
+                            " somewhere in it.";
+                    }
+                }
+            }
+        } else {
+            let hintchars = this.state.hint;
+            if (hintchars === undefined || hintchars === '') {
+                hint = "hint characters need to be defined";
+            } else {
+                let morseletmap = this.buildMorseletMap();
+                let extra = "";
+                for (let e of hintchars) {
+                    hint += extra + this.genMonoText(e) + "=" +
+                        this.genMonoText(this.normalizeHTML(morseletmap[e]));
+                    extra = ", ";
+                }
+            }
+        }
+        if (hint === '') {
+            hint = 'the hint needs to be defined';
+        }
+        return hint;
     }
 
     public setDotChars(dotchars: string): boolean {
@@ -141,35 +120,15 @@ export class CipherPolluxEncoder extends CipherEncoder {
         this.state.encoded = "";
     }
     public updateOutput(): void {
-        this.guidanceURL = 'TestGuidance.html#pollux' + this.state.operation;
-        if (this.state.operation === 'decode') {
-            $('.hint').show();
-            $('.crib').hide();
-        } else {
-            $('.hint').hide();
-            $('.crib').show();
-        }
-        $("#hint").val(this.state.hint);
-        $("#crib").val(this.state.crib);
+        this.guidanceURL = 'TestGuidance.html#' + this.cipherName + this.state.operation;
         $("#dotchar").val(this.state.dotchars);
         $("#dashchar").val(this.state.dashchars);
         $("#xchar").val(this.state.xchars);
-        JTRadioButtonSet('operation', this.state.operation);
         super.updateOutput();
     }
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        this.genTestUsage(result);
-        let radiobuttons = [
-            { id: 'mrow', value: 'decode', title: 'Decode' },
-            { id: 'crow', value: 'crypt', title: 'Cryptanalysis' },
-        ];
-        result.append(
-            JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
-        );
+        let result = super.genPreCommands();
 
-        this.genQuestionFields(result);
-        this.genEncodeField(result);
         let inputbox = $("<div/>", {
             class: "grid-x grid-margin-x",
         });
@@ -201,33 +160,10 @@ export class CipherPolluxEncoder extends CipherEncoder {
             )
         );
         result.append(inputbox);
-
-        result.append(
-            JTFLabeledInput(
-                'Hint Digits',
-                'number',
-                'hint',
-                this.state.hint,
-                'hint small-12 medium-12 large-12'
-            )
-        );
-        result.append(
-            JTFLabeledInput(
-                'Crib Text',
-                'text',
-                'crib',
-                this.state.crib,
-                'crib small-12 medium-12 large-12'
-            )
-        );
+        this.addHintCrib(result);
 
         return result;
     }
-    /**
-     * Fills in the frequency portion of the frequency table.  For the Ragbaby
-     * we don't have the frequency table, so this doesn't need to do anything
-     */
-    public displayFreq(): void { }
     /**
      * Using the currently selected replacement set, encodes a string
      * This breaks it up into lines of maxEncodeWidth characters or less so that
@@ -390,64 +326,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
         return morseletmap;
     }
 
-    /**
-     * Generate the HTML to display the question for a cipher
-     */
-    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, 60);
 
-        for (let strset of strings) {
-            result.append(
-                $('<div/>', {
-                    class: 'TOSOLVEQ',
-                }).text(strset[ctindex])
-                    .append($("<br/><br/>"))
-            );
-        }
-        return result;
-    }
-    /**
-     * Generates an HTML representation of a string for display.  Replaces the X, O and -
-     * with more visible HTML equivalents
-     * str String to normalize (with - X and O representing morese characters)
-     */
-    public normalizeHTML(str: string): string {
-        return str
-            .replace(/O/g, "&#9679;")
-            .replace(/-/g, "&ndash;")
-            .replace(/X/g, "&times;");
-    }
-    /**
-     * Generate the HTML to display the answer for a cipher
-     */
-    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        this.genAlphabet();
-        let strings = this.makeReplacement(
-            this.state.cipherString,
-            this.maxEncodeWidth);
-
-        for (let strset of strings) {
-            result.append(
-                $('<div/>', {
-                    class: 'TOSOLVE',
-                }).text(strset[ctindex])
-            );
-            result.append(
-                $('<div/>', {
-                    class: 'TOSOLVE',
-                }).html(this.normalizeHTML(strset[morseindex]))
-            );
-            result.append(
-                $('<div/>', {
-                    class: 'TOANSWER',
-                }).text(strset[ptindex])
-            );
-        }
-        return result;
-    }
     /**
      * Generates displayable table of mappings of cipher characters
      * @param knownmap Current mapping of cipher characters to morse
@@ -536,33 +415,6 @@ export class CipherPolluxEncoder extends CipherEncoder {
             working.push([ctset[ctindex], morse, plaintext]);
         }
         return working;
-    }
-    /**
-     * Generates a displayable state of the current known decoding
-     * @param working Current mapping strings
-     * @returns HTML of output text
-     */
-    public genMapping(result: JQuery<HTMLElement>, working: string[][]): void {
-        let ansdiv = $('<div/>');
-
-        for (let strset of working) {
-            ansdiv.append(
-                $('<div/>', {
-                    class: 'TOSOLVE',
-                }).text(strset[ctindex])
-            );
-            ansdiv.append(
-                $('<div/>', {
-                    class: 'TOSOLVE',
-                }).html(this.normalizeHTML(strset[morseindex]))
-            );
-            ansdiv.append(
-                $('<div/>', {
-                    class: 'TOANSWER',
-                }).text(strset[ptindex])
-            );
-        }
-        result.append(ansdiv);
     }
     /**
      * Determines if the entire cipher mapping is known
@@ -788,7 +640,7 @@ export class CipherPolluxEncoder extends CipherEncoder {
                                     replacem = tc;
                                 }
                             } else {
-                                let trymorse = gathered.replace('#', tc);
+                                let trymorse = gathered.replace(/#/g, tc);
                                 if (frommorse[trymorse] !== undefined) {
                                     legal++;
                                     replacem = tc;
@@ -1000,46 +852,6 @@ export class CipherPolluxEncoder extends CipherEncoder {
         }
         return false;
     }
-    public findCrib(strings: string[][], crib: string): string {
-        let cribmatch = crib;
-        let ciphermatch = '';
-        let backtracki = 0;
-        if (crib === undefined) {
-            return '';
-        }
-
-        for (let strset of strings) {
-            for (let i = 0, len = strset[ctindex].length; i < len; i++) {
-                let p = strset[ptindex][i];
-                let c = strset[ctindex][i];
-                ciphermatch += c;
-                if (p !== ' ' && p !== '/') {
-                    if (p === cribmatch[0]) {
-                        if (cribmatch === crib) {
-                            // We are starting a match.  Remember where we we began
-                            // so that we can backtrack to it if we fail along the
-                            // way.
-                            backtracki = i;
-                        }
-                        cribmatch = cribmatch.substr(1);
-                        if (cribmatch === '') {
-                            return ciphermatch;
-                        }
-                    } else {
-                        // If we didn't match, we need to start over again
-                        // looking for the crib, but we have to backtrack to
-                        // where we first attempted to match the crib.
-                        if (cribmatch !== crib) {
-                            i = backtracki;
-                        }
-                        cribmatch = crib;
-                        ciphermatch = '';
-                    }
-                }
-            }
-        }
-        return '';
-    }
     /**
      * Display how to solve the cipher.
      */
@@ -1050,95 +862,77 @@ export class CipherPolluxEncoder extends CipherEncoder {
             this.setErrorMsg(msg, 'polgs');
             return result;
         }
-        let hint = this.state.hint;
         let morseletmap = this.buildMorseletMap();
         let strings = this.makeReplacement(
             this.state.cipherString,
             this.maxEncodeWidth);
         let knownmap: StringMap = {};
-        result.append($("<h3/>").text("How to solve"));
-        if (this.state.operation === 'crypt') {
-            // We are told the mapping of at least 6 letters
-            // this.state.crib
-            if (this.state.crib === undefined || this.state.crib.length < 4) {
-                result.append($("<h4/>")
-                    .text("At least 4 crib characters are needed to generate a solution"));
-                this.setErrorMsg("The crib should be at least 4 characters", 'polgs');
-                return result;
-            }
-            hint = this.findCrib(strings, this.minimizeString(this.state.crib));
-            if (hint === '') {
-                msg = "Unable to find placement of the crib";
-                result.append($("<h4/>")
-                    .text("Unable to find placement of the crib: " + this.state.crib));
-            }
-        } else if (this.state.hint == undefined || this.state.hint.length < 4) {
-            msg = "The hint should contain least 4 characters (6 is expected for a test)";
-        }
-        result.append("Since we are told the mapping of " + hint +
-            " ciphertext, we can build the following table:");
 
-        this.setErrorMsg(msg, 'polgs');
+        let hint = this.checkHintCrib(result, strings);
+        if (hint === undefined) {
+            return result;
+        }
 
         // Assume we don't know what anything is
         for (let c of this.encodecharset) {
             knownmap[c] = "O-X";
         }
-        if (hint === undefined || hint.length < 3) {
-            result.append($("<h4/>")
-                .text("At least 3 hint characters are needed to generate a solution"));
-            return result;
-        }
         // And then fill it in with what we do know.
         for (let c of hint) {
             knownmap[c] = morseletmap[c];
         }
+
         this.genKnownTable(result, knownmap);
         result.append("Based on that information we can map the cipher text as:");
         let working = this.genKnownMapping(strings, knownmap);
         this.genMapping(result, working);
-        let limit = 20;
-        while (limit > 0) {
-            // The first character is never an X
-            if (this.checkFirstCT(result, knownmap, working)) {
-                // We eliminated at least one letter from being an X
-            } else if (this.findTriples(result, knownmap, working)) {
-                // We eliminated at least one letter from being an X
-            } else if (this.findSpacers(result, knownmap, working)) {
-                // We found at least one new letter that must be an X
-            } else if (this.findInvalidMorse(result, knownmap, working)) {
-                // We found at least one morse code that invalidated a choice
-            } else if (this.findSingleMorse(result, knownmap, working)) {
-                // We found at least one morse code that invalidated a choice
-            } else if (this.testSingleMorse(result, knownmap, working)) {
-                // We found at least one morse code that invalidated a choice
-            } else {
-                // Nothing more that we can do..
-                result.append($("<h4.>").
-                    text("There are no more automated solving techniques, " +
-                        "so you need to do some trial and error with the remaining unknowns. " +
-                        "Please feel free to submit an issue with the example so we can improve this."));
-                break;
-            }
-            working = this.genKnownMapping(strings, knownmap);
-            this.genKnownTable(result, knownmap);
-            result.append("Based on that information we can map the cipher text as:");
-            this.genMapping(result, working);
-            if (this.hasUnknowns(result, knownmap, working)) {
-                limit--;
-            } else {
-                let answer = '';
-                for (let strset of working) {
-                    answer += strset[ptindex].replace(/ /g, '').replace(/\//g, ' ');
+        if (!this.hasUnknowns(result, knownmap, working)) {
+            result.append("Which means that the hint has provide all of the" +
+                " cipher digit mapping and there is no work to solve it");
+        } else {
+            let limit = 20;
+            while (limit > 0) {
+                // The first character is never an X
+                if (this.checkFirstCT(result, knownmap, working)) {
+                    // We eliminated at least one letter from being an X
+                } else if (this.findTriples(result, knownmap, working)) {
+                    // We eliminated at least one letter from being an X
+                } else if (this.findSpacers(result, knownmap, working)) {
+                    // We found at least one new letter that must be an X
+                } else if (this.findInvalidMorse(result, knownmap, working)) {
+                    // We found at least one morse code that invalidated a choice
+                } else if (this.findSingleMorse(result, knownmap, working)) {
+                    // We found at least one morse code that invalidated a choice
+                } else if (this.testSingleMorse(result, knownmap, working)) {
+                    // We found at least one morse code that invalidated a choice
+                } else {
+                    // Nothing more that we can do..
+                    result.append($("<h4.>").
+                        text("There are no more automated solving techniques, " +
+                            "so you need to do some trial and error with the remaining unknowns. " +
+                            "Please feel free to submit an issue with the example so we can improve this."));
+                    break;
                 }
-                result.append($("<h4/>")
-                    .text("Now that we have mapped all the ciphertext characters, the decoded morse code is the answer:"));
-                result.append(
-                    $('<div/>', {
-                        class: 'TOANSWER',
-                    }).text(answer)
-                );
-                break;
+                working = this.genKnownMapping(strings, knownmap);
+                this.genKnownTable(result, knownmap);
+                result.append("Based on that information we can map the cipher text as:");
+                this.genMapping(result, working);
+                if (this.hasUnknowns(result, knownmap, working)) {
+                    limit--;
+                } else {
+                    let answer = '';
+                    for (let strset of working) {
+                        answer += strset[ptindex].replace(/ /g, '').replace(/\//g, ' ');
+                    }
+                    result.append($("<h4/>")
+                        .text("Now that we have mapped all the ciphertext characters, the decoded morse code is the answer:"));
+                    result.append(
+                        $('<div/>', {
+                            class: 'TOANSWER',
+                        }).text(answer)
+                    );
+                    break;
+                }
             }
         }
         return result;
@@ -1174,31 +968,6 @@ export class CipherPolluxEncoder extends CipherEncoder {
                 if (this.setXChars(chars)) {
                     this.updateOutput();
                 }
-            });
-        $('#hint')
-            .off('input')
-            .on('input', e => {
-                let chars = $(e.target).val() as string;
-                this.markUndo('hint');
-                if (this.setHint(chars)) {
-                    this.updateOutput();
-                }
-            });
-        $('#crib')
-            .off('input')
-            .on('input', e => {
-                let chars = $(e.target).val() as string;
-                this.markUndo('crib');
-                if (this.setCrib(chars)) {
-                    this.updateOutput();
-                }
-            });
-        $('#randomize')
-            .off('click')
-            .on('click', () => {
-                this.markUndo(null);
-                this.randomize();
-                this.updateOutput();
             });
     }
 }

@@ -1573,28 +1573,48 @@ table.known {
     margin-left: 50px;
 }
 
-table.railfence {
-    min-width: 50px;
-    font-size: 10px;
+table.railfence-lg {
+    width: 50px;
+    font-size: 14pt;
     font-family: 'Courier New', Courier, monospace;
 }
-table.railfence th,
-table.railfence td {
-    word-wrap: break-word;
+table.railfence-md {
+    width: 50px;
+    font-size: 11pt;
+    font-family: 'Courier New', Courier, monospace;
 }
-table.railfence td.rail-data {
-    min-width: 5px;
+table.railfence-sm {
+    width: 50px;
+    font-size: 9pt;
+    font-family: 'Courier New', Courier, monospace;
+}
+table th.rail-data,
+table td.rail-data {
+    width: 10px;
     padding: 0px;
     text-align: center;
 }
-table.railfence th.rail-info,
-table.railfence td.rail-info {
+table th.rail-info,
+table td.rail-info {
     width: 15px;
     padding: 3px;
     text-align: center;
+    white-space: nowrap;
+    border: 1px solid black;
 }
-table.railfence tr:hover {
+table.railfence-lg tbody tr:hover,
+table.railfence-md tbody tr:hover,
+table.railfence-sm tbody tr:hover {
     background-color: #d0d0d0;
+}
+table.railfence-lg thead,
+table.railfence-md thead,
+table.railfence-sm thead,
+table.railfence-lg tbody,
+table.railfence-md tbody,
+table.railfence-sm tbody {
+    background: transparent;
+    border: none;
 }
 
 @media print {

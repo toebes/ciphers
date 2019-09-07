@@ -313,10 +313,15 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
     }
     public updateKnownmap(knownmap: MorbitKnownMap, c: string, morselet: string): void {
         for (let m in knownmap) {
-            let index = knownmap[m].indexOf(morselet);
-            if (index > -1) {
-                knownmap[m].splice(index, 1);
-
+            // Protect against eliminating all possibilities in the map.  While
+            // this can leave us with a duplicate entry, it is better than having
+            // a completely empty entry which causes other problems.  Ultimately
+            // we need to find out how someone is creating a duplicate entry.
+            if (knownmap[m].length > 1) {
+                let index = knownmap[m].indexOf(morselet);
+                if (index > -1) {
+                    knownmap[m].splice(index, 1);
+                }
             }
         }
         knownmap[c] = [morselet];

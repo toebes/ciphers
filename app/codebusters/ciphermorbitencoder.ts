@@ -1005,7 +1005,11 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
                     msg += " Trying " + this.normalizeHTML(mc) + " for " + c +
                         " gives us a chunk: " + longest + ".";
                     longest = this.minimizeString(longest);
-                    if (mincipher.indexOf(this.minimizeString(longest)) >= 0) {
+                    if (chunks.length === 1) {
+                        if (mincipher === this.minimizeString(plaintext)) {
+                            legal.push(mc);
+                        }
+                    } else if (mincipher.indexOf(this.minimizeString(longest)) >= 0) {
                         legal.push(mc);
                     }
                 }
@@ -1016,9 +1020,14 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
                     result.append(msg);
                     return true;
                 }
-                if (legal.length > 0) {
-                    knownmap[c] = legal;
-                }
+                // While we know to eliminate a couple of characters, pushing
+                // it here means they would be eliminated silently and there
+                // is nothing output to the solving log.  For now we leave
+                // the code in the off chance we decide to add it back to the
+                // solver when we output the message stored in msg.
+                // if (legal.length > 0) {
+                //     knownmap[c] = legal;
+                // }
             }
         }
         return false;

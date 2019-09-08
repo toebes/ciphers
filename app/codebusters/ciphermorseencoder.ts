@@ -3,7 +3,6 @@ import { JTButtonItem } from "../common/jtbuttongroup";
 import { ITestType } from "../common/cipherhandler";
 import { JTRadioButtonSet, JTRadioButton } from "../common/jtradiobutton";
 import { JTFLabeledInput } from "../common/jtflabeledinput";
-import { JTFDialog } from "../common/jtfdialog";
 export const morseindex = 1;
 export const ctindex = 0;
 export const ptindex = 2;
@@ -26,6 +25,7 @@ export class CipherMorseEncoder extends CipherEncoder {
     }
     public validateQuestion(): void {
         let msg = '';
+        let showsample = false;
         let sampleLink: JQuery<HTMLElement> = undefined;
         let questionText = this.minimizeString(this.state.question);
         if (this.state.operation === 'decode') {
@@ -47,8 +47,7 @@ export class CipherMorseEncoder extends CipherEncoder {
                         msg = "The Hint Digits " + notfound +
                             " don't appear to be mentioned in the Question Text.";
                     }
-                    sampleLink = $("<a/>", { class: "sampq" }).
-                        text(" See a sample question");
+                    showsample = true;
                 }
             }
         } else {
@@ -57,9 +56,12 @@ export class CipherMorseEncoder extends CipherEncoder {
             if (questionText.indexOf(crib) < 0) {
                 msg = "The Crib Text " + this.state.crib +
                     " doesn't appear to be mentioned in the Question Text.";
-                sampleLink = $("<a/>", { class: "sampq" }).
-                    text(" Show suggested Question Text");
+                showsample = true;
             }
+        }
+        if (showsample) {
+            sampleLink = $("<a/>", { class: "sampq" }).
+                text(" Show suggested Question Text");
         }
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
@@ -88,56 +90,6 @@ export class CipherMorseEncoder extends CipherEncoder {
         JTRadioButtonSet('operation', this.state.operation);
         super.updateOutput();
     }
-    public copyToClip(str: string): void {
-        function listener(e) {
-            e.clipboardData.setData("text/html", str);
-            e.clipboardData.setData("text/plain", str);
-            e.preventDefault();
-        }
-        document.addEventListener("copy", listener);
-        document.execCommand("copy");
-        document.removeEventListener("copy", listener);
-    };
-
-    /**
-     * Generates a dialog showing the sample question text
-     */
-    public createQuestionTextDlg(): JQuery<HTMLElement> {
-        let dlgContents = $("<div/>");
-        dlgContents.append(
-            $('<div/>', { id: 'sqtext', class: '' }));
-        dlgContents
-            .append($("<a/>", { class: "sqtcpy button" }).text("Copy to Clipboard"))
-            .append(" ")
-            .append($("<a/>", { class: "sqtins button" }).text("Replace Question Text"));
-
-        let questionTextDlg = JTFDialog(
-            'SampleQText',
-            'Sample Question Text',
-            dlgContents
-        );
-        return questionTextDlg;
-    }
-    public genSampleHint(): string {
-        return "nothing is known";
-    }
-    public showSampleQuestionText(): void {
-        $("#sqtext")
-            .empty().append($("<p>A quote has been encoded using the " +
-                this.cipherName + " Cipher for you to decode. " +
-                "You are told that " + this.genSampleHint() + "</p>"));
-        $("#SampleQText").foundation('open');
-    }
-    public copySampleQuestionText(): void {
-        this.copyToClip($("#sqtext").html());
-        $("#SampleQText").foundation('close');
-    }
-    public replaceQuestionText(): void {
-        this.setQuestionText($("#sqtext").html());
-        this.updateQuestionsOutput();
-        $("#SampleQText").foundation('close');
-    }
-
     /**
     * Generates the section above the command buttons
     */
@@ -181,6 +133,7 @@ export class CipherMorseEncoder extends CipherEncoder {
      * we don't have the frequency table, so this doesn't need to do anything
      */
     public displayFreq(): void { }
+    public genAlphabet(): void { }
     /**
      * Generates an HTML representation of a string for display.  Replaces the X, O and -
      * with more visible HTML equivalents
@@ -316,10 +269,6 @@ export class CipherMorseEncoder extends CipherEncoder {
         }
         return '';
     }
-    public genMonoText(str: string): string {
-        return "<span style=\"font-family:'Courier New', Courier, monospace;\">" +
-            "<strong>" + str + "</strong></span>";
-    }
     /**
      * Check the 
      * @param result Hint characters or undefined on error
@@ -401,21 +350,6 @@ export class CipherMorseEncoder extends CipherEncoder {
                 this.markUndo(null);
                 this.randomize();
                 this.updateOutput();
-            });
-        $(".sampq")
-            .off('click')
-            .on('click', e => {
-                this.showSampleQuestionText();
-            });
-        $(".sqtcpy")
-            .off('click')
-            .on('click', e => {
-                this.copySampleQuestionText();
-            });
-        $(".sqtins")
-            .off('click')
-            .on('click', e => {
-                this.replaceQuestionText();
             });
     }
 }

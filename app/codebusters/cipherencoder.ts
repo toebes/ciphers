@@ -13,6 +13,7 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
+import { JTFDialog } from '../common/jtfdialog';
 
 export interface IEncoderState extends IState {
     /** K1/K2/K3/K4 Keyword */
@@ -69,6 +70,7 @@ export class CipherEncoder extends CipherHandler {
      * It is indexed by the id of the HTML element
      */
     public editor: { [key: string]: InlineEditor } = {};
+    public cipherName = 'Aristocrat';
 
     public cmdButtons: JTButtonItem[] = [
         { title: 'Save', color: 'primary', id: 'save' },
@@ -787,9 +789,15 @@ export class CipherEncoder extends CipherHandler {
     public clearErrors(): void {
         //     $(".err").empty();
     }
+    /**
+     * Updates/clears a specific message on the output. If 
+     * @param message Message to set (blank to clear the message)
+     * @param id ID of the message to update/clear
+     * @param extra Additional data for the messge if not blank
+     */
     public setErrorMsg(message: string, id: string, extra?: JQuery<HTMLElement>): void {
         let espot = $(".err").find('[data-msg=' + id + ']');
-        if (message === '') {
+        if (message === undefined || message === '' || message === null) {
             // We are removing the message
             if (espot.length !== 0) {
                 // It did exist so make it go away
@@ -939,6 +947,62 @@ export class CipherEncoder extends CipherHandler {
         result.append(this.createAlphabetType());
         return result;
     }
+    public copyToClip(str: string): void {
+        function listener(e) {
+            e.clipboardData.setData("text/html", str);
+            e.clipboardData.setData("text/plain", str);
+            e.preventDefault();
+        }
+        document.addEventListener("copy", listener);
+        document.execCommand("copy");
+        document.removeEventListener("copy", listener);
+    };
+
+    /**
+     * Generates a dialog showing the sample question text
+     */
+    public createQuestionTextDlg(): JQuery<HTMLElement> {
+        let dlgContents = $("<div/>");
+        dlgContents.append(
+            $('<div/>', { id: 'sqtext', class: '' }));
+        dlgContents
+            .append($("<a/>", { class: "sqtcpy button" }).text("Copy to Clipboard"))
+            .append(" ")
+            .append($("<a/>", { class: "sqtins button" }).text("Replace Question Text"));
+
+        let questionTextDlg = JTFDialog(
+            'SampleQText',
+            'Sample Question Text',
+            dlgContents
+        );
+        return questionTextDlg;
+    }
+    public genSampleHint(): string {
+        return "nothing is known";
+    }
+    public genSampleQuestionText(): string {
+        return "<p>A quote has been encoded using the " +
+            this.cipherName + " Cipher for you to decode. " +
+            "You are told that " + this.genSampleHint() + "</p>";
+    }
+    public showSampleQuestionText(): void {
+        $("#sqtext").empty().append($(this.genSampleQuestionText()));
+        $("#SampleQText").foundation('open');
+    }
+    public genMonoText(str: string): string {
+        return "<span style=\"font-family:'Courier New', Courier, monospace;\">" +
+            "<strong>" + str + "</strong></span>";
+    }
+
+    public copySampleQuestionText(): void {
+        this.copyToClip($("#sqtext").html());
+        $("#SampleQText").foundation('close');
+    }
+    public replaceQuestionText(): void {
+        this.setQuestionText($("#sqtext").html());
+        this.updateQuestionsOutput();
+        $("#SampleQText").foundation('close');
+    }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
@@ -1064,6 +1128,21 @@ export class CipherEncoder extends CipherHandler {
                     }
                     this.setQuestionText(question);
                 }
+            });
+        $(".sampq")
+            .off('click')
+            .on('click', e => {
+                this.showSampleQuestionText();
+            });
+        $(".sqtcpy")
+            .off('click')
+            .on('click', e => {
+                this.copySampleQuestionText();
+            });
+        $(".sqtins")
+            .off('click')
+            .on('click', e => {
+                this.replaceQuestionText();
             });
         $('#translated')
             .off('input')

@@ -369,11 +369,42 @@
         has been
         encoded as
         a Patristocrat using a K2 alphabet. What did they say?</p>
-    <h2 class="ol" id="Affine">
+    <h2 class="ol" id="Affinedecode">
+        <span id="Affine"></span>
         <div class="qusec"></div>
-        <div class="quseb"></div>Affine Cipher encrypt {3.e.iv}
+        <div class="quseb"></div>Affine Cipher decrypt B{3.e.iv} C{3.e.iii}
     </h2>
     <p>There should be a single one of these on the test. It should use a phrase about 25
+        characters long that doesn't have too many occurrences of the letter <span class="fq">A</span> in
+        it, preferably with as large a variety of letters as possible&hellip; (e.g. <span class="fq">The
+            quick brown fox jumps over the lazy dog</span> isn't actually bad). </p>
+    <p>Pick a value for <em>a</em> which is not coprime with 26
+        (1,3,5,7,9,11,15,17,19,21,23 or 25). The actual value doesn't matter, but larger ones tend to
+        be slightly harder. If you are generating tests for multiple regions, pick numbers that are near
+        each other. I.e. 7, 9 and 11 would be good to have as equivalent <em>a</em> values.</p>
+    <p>Pick a value for <em>b</em> between 1 and 25 inclusive.
+        Unlike <em>a</em> where the larger values become slightly
+        harder, the value of <em>b</em> can truly be any number
+        and be the same level of difficulty.</p>
+    <span class="ht">Setting Difficulty:</span>
+    <p class="in">There is very little variability in the
+        difficulty other than the length of the string. Larger values of <em>a</em> are
+        only slightly harder while the value of <em>b</em> has no real
+        impact on the difficulty.</p>
+    <span class="ht">Points:</span>
+    <p class="in">100.</p>
+    <span class="ht">Question Text:</span>
+    <p class="in">The question should state to use the Affine Cipher and
+        with the values of <em>a</em> and
+        <em>b</em> for them to use (note that <em>a</em> and
+        <em>b</em> are italicized).
+        For example:</p>
+    <p class="ex callout small secondary ">Encode the following cipher text which was encoded using
+        the Affine Cipher with a=<em>5</em> and b=<em>9</em>>.</p>
+    <h2 class="ol" id="Affineencode">
+        <div class="qusec"></div>Affine Cipher encrypt {3.e.iii}
+    </h2>
+    <p>There should be at most a single one of these on the test. It should use a phrase about 25
         characters long that doesn't have too many occurrences of the letter <span class="fq">A</span> in
         it, preferably with as large a variety of letters as possible&hellip; (e.g. <span class="fq">The
             quick brown fox jumps over the lazy dog</span> isn't actually bad). </p>
@@ -398,7 +429,7 @@
         <em>b</em> for them to use (note that <em>a</em> and
         <em>b</em> are italicized).
         For example:</p>
-    <p class="ex callout small secondary ">Encode the common phrase <span class="fq">The quick brown fox jumps over the
+    <p class="ex callout small secondary ">Decode the common phrase <span class="fq">The quick brown fox jumps over the
             lazy dog</span> using
         the Affine Cipher with a=5 and b=9.</p>
     <h2 class="ol" id="Vigenere">
@@ -836,7 +867,7 @@
         using
         the Hill Cipher with a 26 character
         alphabet.</p>
-    <h2 class="ol" id="Affine_Decrypt">
+    <h2 class="ol" id="Affinecrypt">
         <div class="qusecs"></div>Affine decryption {3.f.vii}
     </h2>
     <p>There should be a single one of these on the State/National test. It should use a

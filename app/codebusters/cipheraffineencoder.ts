@@ -71,16 +71,26 @@ export class CipherAffineEncoder extends CipherEncoder {
     /**
      * Determines if this generator is appropriate for a given test
      * type.  For Division B, only decode is allowed
+     * Cryptanalysis is only allowed at the state level
+     *   decode - cregional/cstate/bregional/bstate
+     *   encode - cregional/cstate
+     *   crypt - cstate/bstate
      * @param testType Test type to compare against
      * @returns String indicating error or blank for success
      */
     public CheckAppropriate(testType: ITestType): string {
         let result = super.CheckAppropriate(testType);
         if (result === "" && testType !== undefined) {
+
             if (testType !== ITestType.cregional &&
                 testType !== ITestType.cstate &&
                 this.state.operation === 'encode') {
-                result = "Only Decode problems are allowed on " +
+                result = "Encode problems are not allowed on " +
+                    this.getTestTypeName(testType);
+            } else if (testType !== ITestType.bstate &&
+                testType !== ITestType.cstate &&
+                this.state.operation === 'crypt') {
+                result = "Cryptanalysis problems are not allowed on " +
                     this.getTestTypeName(testType);
             }
         }
@@ -98,11 +108,7 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         JTRadioButtonSet('operation', this.state.operation);
 
-        if (this.state.operation === 'encode') {
-            this.guidanceURL = 'TestGuidance.html#Affine';
-        } else {
-            this.guidanceURL = 'TestGuidance.html#Affine_Decrypt';
-        }
+        this.guidanceURL = 'TestGuidance.html#Affine' + this.state.operation;
 
         if (this.state.solclick1 !== -1) {
             $('td#m' + this.state.solclick1).addClass('TOSOLVECLICK');
@@ -483,11 +489,15 @@ export class CipherAffineEncoder extends CipherEncoder {
         return table;
     }
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
+        if (this.state.operation === 'crypt') {
+            return this.genCryptanalysisSolution(testType);
+        }
         if (this.state.operation === 'decode') {
             return this.genDecodeSolution(testType);
         }
         return this.genEncodeSolution(testType);
     }
+
     public genEncodeSolution(testType: ITestType): JQuery<HTMLElement> {
         let msg = this.minimizeString(this.state.cipherString);
         let mapping: StringMap = {};
@@ -531,6 +541,26 @@ export class CipherAffineEncoder extends CipherEncoder {
     }
 
     public genDecodeSolution(testType: ITestType): JQuery<HTMLElement> {
+        let msg = this.minimizeString(this.state.cipherString);
+        let mapping: StringMap = {};
+        let result = $('<div/>', { id: 'solution' });
+        result.append($('<h3/>').text('How to solve'));
+        let p = $('<p/>').text('Using the  given value of ');
+        let formula = '\\colorbox{yellow}{a =' + this.state.a + '}';
+        p.append(renderMath(formula));
+        p.append(' and ');
+        formula = '\\colorbox{yellow}{b =' + this.state.b + '}';
+        p.append(renderMath(formula));
+        p.append(' we can calcuate using the formula ');
+        formula = '{a' + kmathMult + 'x + b}\\mod{26}';
+        p.append(renderMath(formula));
+        result.append(p);
+
+        this.showDecodeSteps(result, msg, this.state.a, this.state.b, "");
+        return result;
+    }
+
+    public genCryptanalysisSolution(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { id: 'solution' });
         if (this.state.solclick1 === -1 || this.state.solclick2 === -1) {
             result.append(
@@ -771,14 +801,23 @@ export class CipherAffineEncoder extends CipherEncoder {
             )
         );
 
-        let l = m1 + m2;
-        result.append(this.genDecodeProgress(msg, l));
-
+        this.showDecodeSteps(result, msg, a, b, m1 + m2);
+        return result;
+    }
+    /**
+     * Show the process of decoding given a and b
+     * @param result Section to append output to
+     * @param msg String to decode
+     * @param a value of a in formula
+     * @param b value of b in formula
+     * @param known Letters which are known at the start
+     */
+    public showDecodeSteps(result: JQuery<HTMLElement>, msg: string, a: number, b: number, known: string) {
+        result.append(this.genDecodeProgress(msg, known));
         let outData = [
             {
                 letters: 'ETAOIN',
-                prefix:
-                    'The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.',
+                prefix: 'The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.',
                 suffix1: 'Filling in the letter we found',
                 suffix2: ', we get a bit more of the answer.',
             },
@@ -790,8 +829,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             },
             {
                 letters: 'CUMFP',
-                prefix:
-                    'We will convert the next 5 most frequent letters <b>CUMFP</b>.',
+                prefix: 'We will convert the next 5 most frequent letters <b>CUMFP</b>.',
                 suffix1: 'The next 5 letters we know are',
                 suffix2: ', so we will fill those in.',
             },
@@ -808,25 +846,20 @@ export class CipherAffineEncoder extends CipherEncoder {
                 suffix2: ', so we will fill those in.',
             },
         ];
-
         for (let entry of outData) {
             if (!this.completeSolution) {
                 let found = this.encodeString(entry.letters);
                 result.append($('<p/>').html(entry.prefix));
                 result.append(this.encodeLetters(a, b, entry.letters));
-                result.append(
-                    $('<p/>').text(
-                        entry.suffix1 + ' (' + found + ')' + entry.suffix2
-                    )
-                );
-                l += entry.letters;
-                result.append(this.genDecodeProgress(msg, l));
+                result.append($('<p/>').text(entry.suffix1 + ' (' + found + ')' + entry.suffix2));
+                known += entry.letters;
+                result.append(this.genDecodeProgress(msg, known));
             }
         }
-
         result.append($('<p/>').text('The solution is now complete!'));
         return result;
     }
+
     /**
      *
      */
@@ -860,7 +893,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             .off('click')
             .on('click', e => {
                 let id = $(e.target).attr('id');
-                if (this.state.operation === 'decode' && id !== '') {
+                if (this.state.operation === 'crypt' && id !== '') {
                     this.markUndo('solclick');
                     this.state.solclick1 = this.state.solclick2;
                     this.state.solclick2 = Number(id.substr(1));
@@ -874,6 +907,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         let radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
             { id: 'mrow', value: 'decode', title: 'Decode' },
+            { id: 'crow', value: 'crypt', title: 'Cryptanalysis' },
         ];
         result.append(
             JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
@@ -903,7 +937,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             .empty()
             .append(res);
         if (
-            this.state.operation === 'decode' &&
+            this.state.operation === 'crypt' &&
             (this.state.solclick1 === -1 || this.state.solclick2 === -1)
         ) {
             res = $('<p/>').text(

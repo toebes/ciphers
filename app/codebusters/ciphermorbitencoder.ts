@@ -1100,6 +1100,8 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
                             "so you need to do some trial and error with the remaining unknowns. " +
                             "Please feel free to submit an issue with the example so we can improve this."));
                     limit = 0;
+                    msg = "Automated solver is unable to find an automatic solution.";
+                    break;
                 }
                 working = this.genKnownMapping(strings, knownmap);
                 this.genKnownTable(result, knownmap);
@@ -1123,6 +1125,7 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
                 }
             }
         }
+        this.setErrorMsg(msg, 'morgs');
         return result;
     }
 }

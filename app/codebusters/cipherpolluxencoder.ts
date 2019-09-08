@@ -911,6 +911,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                         text("There are no more automated solving techniques, " +
                             "so you need to do some trial and error with the remaining unknowns. " +
                             "Please feel free to submit an issue with the example so we can improve this."));
+                    msg = "Automated solver is unable to find an automatic solution.";
                     break;
                 }
                 working = this.genKnownMapping(strings, knownmap);
@@ -935,6 +936,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                 }
             }
         }
+        this.setErrorMsg(msg, 'polgs');
         return result;
     }
     /**

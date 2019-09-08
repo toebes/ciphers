@@ -913,7 +913,7 @@ export class CipherEncoder extends CipherHandler {
                 'textarea',
                 'toencode',
                 this.state.cipherString,
-                'small-12 medium-12 large-12 opfield'
+                'small-12 medium-12 large-12'
             )
         );
         result.append($("<div/>", { class: "difficulty" }));

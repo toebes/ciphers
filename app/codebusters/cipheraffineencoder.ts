@@ -3,7 +3,6 @@ import { IState, ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
-import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { isCoPrime } from '../common/mathsupport';
@@ -25,6 +24,11 @@ interface IAffineState extends IState {
     solclick2: number;
 }
 
+interface ICribPos {
+    plaintext: string;
+    ciphertext: string;
+    position: number;
+}
 /**
  * CipherAffineEncoder implements the Affine methods
  */
@@ -118,7 +122,226 @@ export class CipherAffineEncoder extends CipherEncoder {
             $('td#m' + this.state.solclick2).addClass('TOSOLVECLICK');
             $('td#p' + this.state.solclick2).addClass('TOSOLVECLICK');
         }
+        this.validateQuestion();
+        this.attachHandlers();
     }
+    public setQuestionText(question: string): void {
+        super.setQuestionText(question);
+        this.validateQuestion();
+        this.attachHandlers();
+    }
+    /**
+     * Figure out where the crib characters are (and if they are together)
+     * as well as the corresponding plain text character
+     */
+    public placeCrib(): ICribPos[] {
+        let result: ICribPos[] = undefined;
+        if (this.state.solclick1 !== -1 && this.state.solclick2 !== -1) {
+            let msg = this.minimizeString(this.state.cipherString);
+            let pt1 = msg.substr(this.state.solclick1, 1);
+            let pt2 = msg.substr(this.state.solclick2, 1);
+            let ct1 = this.affinechar(pt1);
+            let ct2 = this.affinechar(pt2);
+
+            if (this.state.solclick2 === (this.state.solclick1 + 1)) {
+                result = [{
+                    plaintext: pt1 + pt2,
+                    ciphertext: ct1 + ct2,
+                    position: this.state.solclick1
+                }];
+            } else if (this.state.solclick2 === (this.state.solclick1 + 1)) {
+                result = [{
+                    plaintext: pt2 + pt1,
+                    ciphertext: ct2 + ct1,
+                    position: this.state.solclick2
+                }];
+            } else {
+                // They aren't next to each other
+                result = [{
+                    plaintext: pt1,
+                    ciphertext: ct1,
+                    position: this.state.solclick1
+                }, {
+                    plaintext: pt2,
+                    ciphertext: ct2,
+                    position: this.state.solclick2
+                }];
+            }
+        }
+        return result;
+    }
+    public findQuestionMatch(questionText, pt, ct, pos): boolean {
+        let rep = new RegExp("\\b" + pt + "\\b");
+        // If the plain text is not mentioned in the question, then they have
+        // a problem to fix.
+        if (questionText.match(rep) === null) {
+            return false;
+        }
+        // If the crib is at the beginning, look for something in the
+        // question that says something like "Starts with XX" or
+        // XX can be found at the start
+        if (pos === 0 &&
+            (questionText.indexOf("START") >= 0 ||
+                questionText.indexOf("BEGIN") >= 0 ||
+                questionText.indexOf("FIRST") >= 0)) {
+            return true;
+        }
+
+        let ptstring = this.minimizeString(this.state.cipherString);
+
+        // If the crib is at the end, look for something in the
+        // question that says something like "Ends with XX" or
+        // XX can be found at the end
+        if (pos === (ptstring.length - 2) &&
+            (questionText.indexOf("END") >= 0 ||
+                questionText.indexOf("FINAL") >= 0 ||
+                questionText.indexOf("LAST") >= 0)) {
+            return true;
+        }
+
+        // If the crib is at the end, look for something in the
+        // question that says something like "Ends with XX" or
+        // XX can be found at the end
+        if (pos === (ptstring.length - 2) &&
+            (questionText.indexOf("2") >= 0 ||
+                questionText.indexOf("2ND") >= 0 ||
+                questionText.indexOf("SECOND") >= 0)) {
+            return true;
+        }
+
+        let rec = new RegExp("\\b" + ct + "\\b");
+        if (questionText.match(rec) !== null) {
+            return true;
+        }
+        return false;
+    }
+    public validateQuestion(): void {
+        let msg = '';
+        let sampleLink: JQuery<HTMLElement> = undefined;
+        let questionText = this.state.question.toUpperCase();
+        if (this.state.operation === 'crypt') {
+            let cribpos = this.placeCrib();
+            if (cribpos === undefined) {
+                msg = 'Not enough hint digits selected';
+            } else {
+                if (cribpos.length === 1) {
+                    msg = "The Question Text does not specify how the Crib letters " +
+                        cribpos[0].plaintext + " are mapped";
+                    // See if they mention both letters at once
+                    if (this.findQuestionMatch(questionText,
+                        cribpos[0].plaintext,
+                        cribpos[0].ciphertext,
+                        cribpos[0].position)) {
+                        msg = '';
+                        // If not, see if they are mentioned one at a time.
+                    } else if (this.findQuestionMatch(questionText,
+                        cribpos[0].plaintext[0],
+                        cribpos[0].ciphertext[0],
+                        cribpos[0].position) &&
+                        this.findQuestionMatch(questionText,
+                            cribpos[0].plaintext[1],
+                            cribpos[0].ciphertext[1],
+                            cribpos[0].position + 1)) {
+                        msg = '';
+                    }
+                } else {
+                    // crib letters are not adjacent.  Look for them both separately
+                    for (let cribent of cribpos) {
+                        if (!this.findQuestionMatch(questionText,
+                            cribent.plaintext,
+                            cribent.ciphertext,
+                            cribent.position)) {
+                            msg = "The Question Text does not specify how the Crib letter " +
+                                cribent.plaintext + " is mapped";
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            // Look to see if they specify a and b
+            var rea = new RegExp("A.*" + String(this.state.a));
+            var reb = new RegExp("B.*" + String(this.state.b));
+            if (!questionText.match(rea)) {
+                if (!questionText.match(reb)) {
+                    msg = "The Question Text doesn't appear to mention the value of A or B. ";
+                } else {
+                    msg = "The Question Text doesn't appear to mention the value of A. ";
+                }
+            } else if (!questionText.match(reb)) {
+                msg = "The Question Text doesn't appear to mention the value of B. ";
+            }
+            // Check to see if they specified encode/encryption
+            //    for an encode type problem or 
+            //   decode/decryption for a decode type problem
+            if (this.state.operation === 'encode') {
+                if (questionText.indexOf("ENCRY") < 0 && questionText.indexOf("ENCOD") < 0) {
+                    msg += "The Question Text doesn't indicate that the text should be encoded.";
+                }
+            }
+            else {
+                if (questionText.indexOf("DECRY") < 0 && questionText.indexOf("DECOD") < 0) {
+                    msg += "The Question Text doesn't indicate that the text should be decoded.";
+                }
+            }
+        }
+        if (msg !== '') {
+            sampleLink = $("<a/>", { class: "sampq" }).
+                text(" Show suggested Question Text");
+        }
+
+        this.setErrorMsg(msg, 'vq', sampleLink);
+    }
+
+    public genSampleQuestionText(): string {
+        let msg = "";
+        if (this.state.operation === 'crypt') {
+            msg = "<p>The following quote has been encoded using the Affine Cipher. ";
+            let cribpos = this.placeCrib();
+            let ptstring = this.minimizeString(this.state.cipherString);
+            if (cribpos === undefined) {
+                msg += 'But not enough hint digits have been selected';
+            } else if (cribpos.length === 1) {
+                if (cribpos[0].position === 0) {
+                    msg += "You are told that the deciphered text starts with " +
+                        this.genMonoText(cribpos[0].plaintext);
+                } else if (cribpos[0].position === (ptstring.length - 2)) {
+                    msg += "You are told that the deciphered text ends with " +
+                        this.genMonoText(cribpos[0].plaintext);
+                } else {
+                    msg += "You are told that the cipher text " +
+                        this.genMonoText(cribpos[0].ciphertext) + " decodes to be ";
+                    this.genMonoText(cribpos[0].plaintext);
+                }
+            } else {
+                // Crib characters aren't together
+                let extra = "You are told that ";
+                for (let cribent of cribpos) {
+                    msg += extra +
+                        this.genMonoText(cribent.ciphertext) +
+                        " decodes to be " +
+                        this.genMonoText(cribent.plaintext);
+                    extra = " and ";
+                }
+            }
+            msg += ".";
+        } else {
+            if (this.state.operation === 'encode') {
+                msg = "<p>The following quote needs to be encoded " +
+                    " with the Affine Cipher using ";
+
+            } else {
+                msg = "<p>The following quote needs to be decoded " +
+                    " with the Affine Cipher where ";
+            }
+            msg += "<strong><i>a</i>=" + this.genMonoText(String(this.state.a)) +
+                " </strong> and <strong><i>b</i>=" + this.genMonoText(String(this.state.b)) +
+                "</strong>.";
+            msg += "</p>";
+        }
+        return msg;
+    }
+
     /**
      * Make a copy of the current state
      */
@@ -475,8 +698,8 @@ export class CipherAffineEncoder extends CipherEncoder {
                 this.completeSolution = false;
             }
             cipherRow.append(
-                $('<td/>')
-                    .addClass('TOSOLVE')
+                $("<td/>")
+                    .addClass("TOSOLVE")
                     .text(cipherChar)
             );
         }
@@ -489,20 +712,20 @@ export class CipherAffineEncoder extends CipherEncoder {
         return table;
     }
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
-        if (this.state.operation === 'crypt') {
-            return this.genCryptanalysisSolution(testType);
+        if (this.state.operation === "crypt") {
+            return this.genCryptanalysisSolution();
         }
-        if (this.state.operation === 'decode') {
-            return this.genDecodeSolution(testType);
+        if (this.state.operation === "decode") {
+            return this.genDecodeSolution();
         }
-        return this.genEncodeSolution(testType);
+        return this.genEncodeSolution();
     }
 
-    public genEncodeSolution(testType: ITestType): JQuery<HTMLElement> {
+    public genEncodeSolution(): JQuery<HTMLElement> {
         let msg = this.minimizeString(this.state.cipherString);
         let mapping: StringMap = {};
-        let result = $('<div/>', { id: 'solution' });
-        result.append($('<h3/>').text('How to solve'));
+        let result = $("<div/>", { id: "solution" });
+        result.append($("<h3/>").text("How to solve"));
 
         let showencmsg = true;
 
@@ -510,49 +733,43 @@ export class CipherAffineEncoder extends CipherEncoder {
             let c = this.affinechar(m);
             if (mapping[m] !== undefined) {
                 result.append(
-                    $('<p/>').text(
-                        'We already computed for ' +
-                        m +
-                        ' and know that it is ' +
-                        c
+                    $("<p/>").text(
+                        "We already computed for " + m + " and know that it is " + c
                     )
                 );
             } else {
                 if (showencmsg) {
                     showencmsg = false; // Don't show it again
-                    let p = $('<p/>').text('Using the  given value of ');
-                    let formula = '\\colorbox{yellow}{a =' + this.state.a + '}';
+                    let p = $("<p/>").text("Using the  given value of ");
+                    let formula = "\\colorbox{yellow}{a =" + this.state.a + "}";
                     p.append(renderMath(formula));
-                    p.append(' and ');
-                    formula = '\\colorbox{yellow}{b =' + this.state.b + '}';
+                    p.append(" and ");
+                    formula = "\\colorbox{yellow}{b =" + this.state.b + "}";
                     p.append(renderMath(formula));
-                    p.append(' we can calcuate using the formula ');
-                    formula = '{a' + kmathMult + 'x + b}\\mod{26}';
+                    p.append(" we can calcuate using the formula ");
+                    formula = "{a" + kmathMult + "x + b}\\mod{26}";
                     p.append(renderMath(formula));
                     result.append(p);
                 }
-                result.append(
-                    this.encodeLetters(this.state.a, this.state.b, m)
-                );
+                result.append(this.encodeLetters(this.state.a, this.state.b, m));
                 mapping[m] = c;
             }
         }
         return result;
     }
 
-    public genDecodeSolution(testType: ITestType): JQuery<HTMLElement> {
+    public genDecodeSolution(): JQuery<HTMLElement> {
         let msg = this.minimizeString(this.state.cipherString);
-        let mapping: StringMap = {};
-        let result = $('<div/>', { id: 'solution' });
-        result.append($('<h3/>').text('How to solve'));
-        let p = $('<p/>').text('Using the  given value of ');
-        let formula = '\\colorbox{yellow}{a =' + this.state.a + '}';
+        let result = $("<div/>", { id: "solution" });
+        result.append($("<h3/>").text("How to solve"));
+        let p = $("<p/>").text("Using the  given value of ");
+        let formula = "\\colorbox{yellow}{a =" + this.state.a + "}";
         p.append(renderMath(formula));
-        p.append(' and ');
-        formula = '\\colorbox{yellow}{b =' + this.state.b + '}';
+        p.append(" and ");
+        formula = "\\colorbox{yellow}{b =" + this.state.b + "}";
         p.append(renderMath(formula));
-        p.append(' we can calcuate using the formula ');
-        formula = '{a' + kmathMult + 'x + b}\\mod{26}';
+        p.append(" we can calcuate using the formula ");
+        formula = "{a" + kmathMult + "x + b}\\mod{26}";
         p.append(renderMath(formula));
         result.append(p);
 
@@ -560,25 +777,21 @@ export class CipherAffineEncoder extends CipherEncoder {
         return result;
     }
 
-    public genCryptanalysisSolution(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>', { id: 'solution' });
+    public genCryptanalysisSolution(): JQuery<HTMLElement> {
+        let result = $("<div/>", { id: "solution" });
         if (this.state.solclick1 === -1 || this.state.solclick2 === -1) {
             result.append(
-                $('<p/>').text(
-                    'Click on any two columns to choose the decode problem'
-                )
+                $("<p/>").text("Click on any two columns to choose the decode problem")
             );
         }
         let msg = this.minimizeString(this.state.cipherString);
         let m1 = msg.substr(this.state.solclick1, 1);
         let m2 = msg.substr(this.state.solclick2, 1);
-        result.append($('<h3/>').text('How to solve'));
+        result.append($("<h3/>").text("How to solve"));
 
         if (!this.canSolve(m1, m2)) {
             result.append(
-                $('<p/>').text(
-                    'Indeterminate Solution! Please choose other letters.'
-                )
+                $("<p/>").text("Indeterminate Solution! Please choose other letters.")
             );
             return result;
         }
@@ -594,58 +807,56 @@ export class CipherAffineEncoder extends CipherEncoder {
         let c2Val = charset.indexOf(c2);
 
         result.append(
-            $('<p/>').text(
-                'Here is how we get the answer.  Since we are given that:'
-            )
+            $("<p/>").text("Here is how we get the answer.  Since we are given that:")
         );
 
         let given =
-            '\\begin{aligned} ' +
+            "\\begin{aligned} " +
             m1 +
-            '(' +
+            "(" +
             m1Val +
-            ') & \\to ' +
+            ") & \\to " +
             c1 +
-            '(' +
+            "(" +
             c1Val +
-            ') \\\\ ' +
+            ") \\\\ " +
             m2 +
-            '(' +
+            "(" +
             m2Val +
-            ') & \\to ' +
+            ") & \\to " +
             c2 +
-            '(' +
+            "(" +
             c2Val +
-            ') \\end{aligned}';
+            ") \\end{aligned}";
         result.append(renderMath(given));
 
-        result.append($('<p/>').text('From this we know:'));
+        result.append($("<p/>").text("From this we know:"));
 
         let equation1 =
-            '\\left(a * ' +
+            "\\left(a * " +
             m1Val +
-            ' + b\\right)\\;\\text{mod 26} & = ' +
+            " + b\\right)\\;\\text{mod 26} & = " +
             c1Val +
-            ' \\\\';
+            " \\\\";
         let equation2 =
-            '\\left(a * ' +
+            "\\left(a * " +
             m2Val +
-            ' + b\\right)\\;\\text{mod 26} & = ' +
+            " + b\\right)\\;\\text{mod 26} & = " +
             c2Val +
-            ' \\\\';
+            " \\\\";
 
-        let solution = '\\begin{aligned}';
+        let solution = "\\begin{aligned}";
         if (m1Val > m2Val) {
             solution += equation1 + equation2;
         } else {
             solution += equation2 + equation1;
         }
-        solution += '\\end{aligned}';
+        solution += "\\end{aligned}";
         result.append(renderMath(solution));
-        result.append($('<p/>').text('Next, subtract the formulas:'));
+        result.append($("<p/>").text("Next, subtract the formulas:"));
 
-        let subtract1 = '';
-        let subtract2 = '';
+        let subtract1 = "";
+        let subtract2 = "";
         let mVal = 0;
         let cVal = 0;
         let mSubstitute = 0;
@@ -656,30 +867,30 @@ export class CipherAffineEncoder extends CipherEncoder {
             mVal = m1Val - m2Val;
             cVal = c1Val - c2Val;
             subtract1 =
-                '\\begin{aligned}' +
+                "\\begin{aligned}" +
                 equation1 +
-                ' - ' +
+                " - " +
                 equation2 +
-                ' \\hline a * ' +
+                " \\hline a * " +
                 mVal +
-                '\\;\\text{mod 26} & = ' +
+                "\\;\\text{mod 26} & = " +
                 cVal +
-                ' ';
+                " ";
             mSubstitute = m2Val;
             cSubstitute = c2Val;
         } else {
             mVal = m2Val - m1Val;
             cVal = c2Val - c1Val;
             subtract1 =
-                '\\begin{aligned}' +
+                "\\begin{aligned}" +
                 equation2 +
-                ' - ' +
+                " - " +
                 equation1 +
-                ' \\hline a * ' +
+                " \\hline a * " +
                 mVal +
-                '\\;\\text{mod 26} & = ' +
+                "\\;\\text{mod 26} & = " +
                 cVal +
-                ' ';
+                " ";
             mSubstitute = m1Val;
             cSubstitute = c1Val;
         }
@@ -687,31 +898,26 @@ export class CipherAffineEncoder extends CipherEncoder {
         solution = subtract1;
         if (cVal < 0) {
             cVal += 26;
-            subtract2 =
-                ' \\\\ a * ' + mVal + '\\;\\text{mod 26} & = ' + cVal + ' ';
+            subtract2 = " \\\\ a * " + mVal + "\\;\\text{mod 26} & = " + cVal + " ";
             solution += subtract2;
         }
-        solution += ' \\end{aligned}';
+        solution += " \\end{aligned}";
         result.append(renderMath(solution));
 
         // solution for A
-        let message = '';
+        let message = "";
         let a = cVal / mVal;
         let aRemainder = cVal % mVal;
         if (a !== 0) {
             let cValOriginal = cVal;
             if (aRemainder !== 0) {
-                let p1 = $('<p/>').text('Since ');
+                let p1 = $("<p/>").text("Since ");
                 p1.append(
                     renderMath(
-                        cVal +
-                        ' \\div ' +
-                        mVal +
-                        ' = ' +
-                        (cVal / mVal).toPrecision(5)
+                        cVal + " \\div " + mVal + " = " + (cVal / mVal).toPrecision(5)
                     )
                 );
-                p1.append(' we have to find another value. ');
+                p1.append(" we have to find another value. ");
                 let count = 0;
 
                 while (aRemainder !== 0) {
@@ -723,15 +929,15 @@ export class CipherAffineEncoder extends CipherEncoder {
                 p1.append(
                     renderMath(
                         cValOriginal +
-                        ' + (26 * ' +
+                        " + (26 * " +
                         count +
-                        ') = ' +
+                        ") = " +
                         cVal +
-                        '.\\space\\space' +
+                        ".\\space\\space" +
                         cVal +
-                        ' \\div ' +
+                        " \\div " +
                         mVal +
-                        ' = ' +
+                        " = " +
                         a
                     )
                 );
@@ -739,65 +945,65 @@ export class CipherAffineEncoder extends CipherEncoder {
             }
         }
         result.append(renderMath(message));
-        message = '\\colorbox{yellow}{a =' + a + '}';
+        message = "\\colorbox{yellow}{a =" + a + "}";
         result.append(
-            $('<p/>')
-                .text('So we now know that ')
+            $("<p/>")
+                .text("So we now know that ")
                 .append(renderMath(message))
         );
 
         // solution for b
         result.append(
-            $('<p/>').text(
-                'To find b, substitute that back into the equation with the lowest multiplier. '
+            $("<p/>").text(
+                "To find b, substitute that back into the equation with the lowest multiplier. "
             )
         );
         let findingB =
-            '\\begin{aligned}(' +
+            "\\begin{aligned}(" +
             a +
-            ' * ' +
+            " * " +
             mSubstitute +
-            ' + b)\\;\\text{mod 26} & = ' +
+            " + b)\\;\\text{mod 26} & = " +
             cSubstitute +
-            '\\\\(' +
+            "\\\\(" +
             a * mSubstitute +
-            ' + b)\\;\\text{mod 26} & = ' +
+            " + b)\\;\\text{mod 26} & = " +
             cSubstitute +
-            '\\end{aligned}';
+            "\\end{aligned}";
         result.append(renderMath(findingB));
-        let p = $('<p/>').text('Subtract ');
+        let p = $("<p/>").text("Subtract ");
         p.append(renderMath(String(a * mSubstitute)));
-        p.append(' from both sides: ');
+        p.append(" from both sides: ");
         result.append(p);
         findingB =
-            '\\begin{aligned}(' +
+            "\\begin{aligned}(" +
             a * mSubstitute +
-            ' +b)\\;\\text{mod 26} - ' +
+            " +b)\\;\\text{mod 26} - " +
             a * mSubstitute +
-            ' & = (' +
+            " & = (" +
             cSubstitute +
-            ' - ' +
+            " - " +
             a * mSubstitute +
-            ')\\;\\text{mod 26}\\\\' +
-            'b\\;\\text{mod 26} & = ' +
+            ")\\;\\text{mod 26}\\\\" +
+            "b\\;\\text{mod 26} & = " +
             (cSubstitute - a * mSubstitute) +
-            '\\;\\text{mod 26}\\\\';
+            "\\;\\text{mod 26}\\\\";
 
         let b = cSubstitute - a * mSubstitute;
         while (b < 0) {
             b += 26;
         }
         findingB +=
-            'b\\;\\text{mod 26} & = ' + b + '\\;\\text{mod 26}\\end{aligned}';
+            "b\\;\\text{mod 26} & = " + b + "\\;\\text{mod 26}\\end{aligned}";
         result.append(renderMath(findingB));
         result.append(p);
-        p = $('<p/>').text('And we see that ');
-        p.append(renderMath('\\colorbox{yellow}{b =' + b + '}'));
+        p = $("<p/>").text("And we see that ");
+        p.append(renderMath("\\colorbox{yellow}{b =" + b + "}"));
         result.append(p);
 
         result.append(
-            $('<p/>').text(
-                'However, we only know a few of the letters in the cipher.'
+            $("<p/>").text(
+                "However, we only know a few of the letters in the cipher."
             )
         );
 
@@ -812,51 +1018,61 @@ export class CipherAffineEncoder extends CipherEncoder {
      * @param b value of b in formula
      * @param known Letters which are known at the start
      */
-    public showDecodeSteps(result: JQuery<HTMLElement>, msg: string, a: number, b: number, known: string) {
+    public showDecodeSteps(
+        result: JQuery<HTMLElement>,
+        msg: string,
+        a: number,
+        b: number,
+        known: string
+    ) {
         result.append(this.genDecodeProgress(msg, known));
         let outData = [
             {
-                letters: 'ETAOIN',
-                prefix: 'The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.',
-                suffix1: 'Filling in the letter we found',
-                suffix2: ', we get a bit more of the answer.',
+                letters: "ETAOIN",
+                prefix:
+                    "The first step is to encode the common letters <b>ETAOIN</b> to see what they would map to.",
+                suffix1: "Filling in the letter we found",
+                suffix2: ", we get a bit more of the answer."
             },
             {
-                letters: 'SRHLD',
-                prefix: 'Next, encode the next 5 common letters <b>SRHLD</b>.',
-                suffix1: 'We know the reverse mapping of 5 more letters',
-                suffix2: ', which we can fill in.',
+                letters: "SRHLD",
+                prefix: "Next, encode the next 5 common letters <b>SRHLD</b>.",
+                suffix1: "We know the reverse mapping of 5 more letters",
+                suffix2: ", which we can fill in."
             },
             {
-                letters: 'CUMFP',
-                prefix: 'We will convert the next 5 most frequent letters <b>CUMFP</b>.',
-                suffix1: 'The next 5 letters we know are',
-                suffix2: ', so we will fill those in.',
+                letters: "CUMFP",
+                prefix:
+                    "We will convert the next 5 most frequent letters <b>CUMFP</b>.",
+                suffix1: "The next 5 letters we know are",
+                suffix2: ", so we will fill those in."
             },
             {
-                letters: 'GWYBV',
-                prefix: 'Next, encode the next 5 common letters <b>GWYBV</b>.',
-                suffix1: 'We know the reverse mapping of 5 more letters',
-                suffix2: ', which we can fill in.',
+                letters: "GWYBV",
+                prefix: "Next, encode the next 5 common letters <b>GWYBV</b>.",
+                suffix1: "We know the reverse mapping of 5 more letters",
+                suffix2: ", which we can fill in."
             },
             {
-                letters: 'KXJQZ',
-                prefix: 'We will convert the remaining 5 letters <b>KXJQZ</b>.',
-                suffix1: 'The remaining 5 letters we know are',
-                suffix2: ', so we will fill those in.',
-            },
+                letters: "KXJQZ",
+                prefix: "We will convert the remaining 5 letters <b>KXJQZ</b>.",
+                suffix1: "The remaining 5 letters we know are",
+                suffix2: ", so we will fill those in."
+            }
         ];
         for (let entry of outData) {
             if (!this.completeSolution) {
                 let found = this.encodeString(entry.letters);
-                result.append($('<p/>').html(entry.prefix));
+                result.append($("<p/>").html(entry.prefix));
                 result.append(this.encodeLetters(a, b, entry.letters));
-                result.append($('<p/>').text(entry.suffix1 + ' (' + found + ')' + entry.suffix2));
+                result.append(
+                    $("<p/>").text(entry.suffix1 + " (" + found + ")" + entry.suffix2)
+                );
                 known += entry.letters;
                 result.append(this.genDecodeProgress(msg, known));
             }
         }
-        result.append($('<p/>').text('The solution is now complete!'));
+        result.append($("<p/>").text("The solution is now complete!"));
         return result;
     }
 
@@ -865,9 +1081,9 @@ export class CipherAffineEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
-        $('#a')
-            .off('input')
-            .on('input', e => {
+        $("#a")
+            .off("input")
+            .on("input", e => {
                 let newa: number = Number($(e.target).val());
                 if (newa !== this.state.a) {
                     this.markUndo(null);
@@ -877,9 +1093,9 @@ export class CipherAffineEncoder extends CipherEncoder {
                 }
                 this.advancedir = 0;
             });
-        $('#b')
-            .off('input')
-            .on('input', e => {
+        $("#b")
+            .off("input")
+            .on("input", e => {
                 let newb: number = Number($(e.target).val());
                 if (newb !== this.state.b) {
                     this.markUndo(null);
@@ -889,12 +1105,12 @@ export class CipherAffineEncoder extends CipherEncoder {
                 }
                 this.advancedir = 0;
             });
-        $('td')
-            .off('click')
-            .on('click', e => {
-                let id = $(e.target).attr('id');
-                if (this.state.operation === 'crypt' && id !== '') {
-                    this.markUndo('solclick');
+        $("td")
+            .off("click")
+            .on("click", e => {
+                let id = $(e.target).attr("id");
+                if (this.state.operation === "crypt" && id !== "") {
+                    this.markUndo("solclick");
                     this.state.solclick1 = this.state.solclick2;
                     this.state.solclick2 = Number(id.substr(1));
                     this.updateOutput();
@@ -902,27 +1118,28 @@ export class CipherAffineEncoder extends CipherEncoder {
             });
     }
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        let result = $("<div/>");
         this.genTestUsage(result);
         let radiobuttons = [
-            { id: 'wrow', value: 'encode', title: 'Encode' },
-            { id: 'mrow', value: 'decode', title: 'Decode' },
-            { id: 'crow', value: 'crypt', title: 'Cryptanalysis' },
+            { id: "wrow", value: "encode", title: "Encode" },
+            { id: "mrow", value: "decode", title: "Decode" },
+            { id: "crow", value: "crypt", title: "Cryptanalysis" }
         ];
         result.append(
-            JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
+            JTRadioButton(6, "operation", radiobuttons, this.state.operation)
         );
 
+        result.append(this.createQuestionTextDlg());
         this.genQuestionFields(result);
         this.genEncodeField(result);
-        let inputbox = $('<div/>', {
-            class: 'grid-x grid-margin-x',
+        let inputbox = $("<div/>", {
+            class: "grid-x grid-margin-x"
         });
         inputbox.append(
-            JTFIncButton('A', 'a', this.state.a, 'small-12 medium-4 large-4')
+            JTFIncButton("A", "a", this.state.a, "small-12 medium-4 large-4")
         );
         inputbox.append(
-            JTFIncButton('B', 'b', this.state.b, 'small-12 medium-4 large-4')
+            JTFIncButton("B", "b", this.state.b, "small-12 medium-4 large-4")
         );
         result.append(inputbox);
         return result;
@@ -933,22 +1150,22 @@ export class CipherAffineEncoder extends CipherEncoder {
     public load(): void {
         this.genAlphabet();
         let res = this.build();
-        $('#answer')
+        $("#answer")
             .empty()
             .append(res);
         if (
-            this.state.operation === 'crypt' &&
+            this.state.operation === "crypt" &&
             (this.state.solclick1 === -1 || this.state.solclick2 === -1)
         ) {
-            res = $('<p/>').text(
-                'Click on any two columns to choose the decode problem'
+            res = $("<p/>").text(
+                "Click on any two columns to choose the decode problem"
             );
         } else {
             res = this.genSolution(ITestType.None);
         }
-        $('#sol')
+        $("#sol")
             .empty()
-            .append('<hr/>')
+            .append("<hr/>")
             .append(res);
 
         this.attachHandlers();

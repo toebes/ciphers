@@ -3,7 +3,6 @@ import { ITestType, menuMode, toolMode } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTTable } from "../common/jttable";
-import { CipherPrintFactory } from "./cipherfactory";
 import { CipherTest, ITestDisp, ITestState } from "./ciphertest";
 
 /**
@@ -126,15 +125,22 @@ export class CipherTestAnswers extends CipherTest {
         } else {
             let cipherhandler = this.GetPrintFactory(test.timed);
             let qerror = '';
-            result.append(
-                this.printTestAnswer(
-                    test.testtype,
-                    -1,
-                    cipherhandler,
-                    "pagebreak",
-                    printSolution
-                )
-            );
+            try {
+                result.append(
+                    this.printTestAnswer(
+                        test.testtype,
+                        -1,
+                        cipherhandler,
+                        "pagebreak",
+                        printSolution
+                    )
+                );
+            }
+            catch (e) {
+                let msg = "Something went wrong generating the Timed Question." +
+                    " Error =" + e;
+                result.append($("<h1>").text(msg));
+            }
             // Division A doesn't have a timed question, but if one was
             // there, print it out, but generate an error message
             if (test.testtype === ITestType.aregional) {
@@ -154,15 +160,21 @@ export class CipherTestAnswers extends CipherTest {
                 breakclass = "pagebreak";
             }
             let cipherhandler = this.GetPrintFactory(test.questions[qnum]);
-            result.append(
-                this.printTestAnswer(
-                    test.testtype,
-                    qnum + 1,
-                    cipherhandler,
-                    breakclass,
-                    printSolution
-                )
-            );
+            try {
+                result.append(
+                    this.printTestAnswer(
+                        test.testtype,
+                        qnum + 1,
+                        cipherhandler,
+                        breakclass,
+                        printSolution
+                    )
+                );
+            } catch (e) {
+                let msg = "Something went wrong generating Question #" +
+                    +String(qnum + 1) + ". Error =" + e;
+                result.append($("<h1>").text(msg));
+            }
             let qerror = cipherhandler.CheckAppropriate(test.testtype);
             if (qerror !== '') {
                 $(".testerrors").append($('<div/>', {

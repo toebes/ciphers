@@ -111,13 +111,20 @@ export class CipherTestPrint extends CipherTest {
         } else {
             let cipherhandler = this.GetPrintFactory(test.timed);
             let qerror = '';
-            let timedquestion = this.printTestQuestion(
-                test.testtype,
-                -1,
-                cipherhandler,
-                'pagebreak'
-            );
-            page.append(timedquestion);
+            try {
+                let timedquestion = this.printTestQuestion(
+                    test.testtype,
+                    -1,
+                    cipherhandler,
+                    'pagebreak'
+                );
+                page.append(timedquestion);
+            }
+            catch (e) {
+                let msg = "Something went wrong generating the Timed Question." +
+                    " Error =" + e;
+                page.append($("<h1>").text(msg));
+            }
             qcount = 99;
             // Division A doesn't have a timed question, but if one was
             // there, print it out, but generate an error message
@@ -132,12 +139,20 @@ export class CipherTestPrint extends CipherTest {
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
             let cipherhandler = this.GetPrintFactory(test.questions[qnum]);
-            let thisquestion = this.printTestQuestion(
-                test.testtype,
-                qnum + 1,
-                cipherhandler,
-                ''
-            );
+            let thisquestion: JQuery<HTMLElement> = null;
+            try {
+                thisquestion = this.printTestQuestion(
+                    test.testtype,
+                    qnum + 1,
+                    cipherhandler,
+                    ''
+                );
+            }
+            catch (e) {
+                let msg = "Something went wrong generating Question #" +
+                    +String(qnum + 1) + ". Error =" + e;
+                thisquestion = $("<h1>").text(msg);
+            }
             /* Is this a xenocrypt?  if so we need the Spanish frequency */
             if (cipherhandler.state.curlang === 'es') {
                 SpanishCount++;

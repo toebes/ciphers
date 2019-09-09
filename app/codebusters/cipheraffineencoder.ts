@@ -292,7 +292,10 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
-
+    /**
+     * Generates the sample question text for a cipher
+     * @returns HTML as a string
+     */
     public genSampleQuestionText(): string {
         let msg = "";
         if (this.state.operation === 'crypt') {

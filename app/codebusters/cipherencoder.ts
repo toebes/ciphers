@@ -1129,6 +1129,15 @@ export class CipherEncoder extends CipherHandler {
                     this.setQuestionText(question);
                 }
             });
+        $('#crib')
+            .off('input')
+            .on('input', e => {
+                let chars = $(e.target).val() as string;
+                this.markUndo('crib');
+                if (this.setCrib(chars)) {
+                    this.updateOutput();
+                }
+            });
         $(".sampq")
             .off('click')
             .on('click', e => {

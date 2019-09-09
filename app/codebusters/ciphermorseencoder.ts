@@ -27,7 +27,7 @@ export class CipherMorseEncoder extends CipherEncoder {
         let msg = '';
         let showsample = false;
         let sampleLink: JQuery<HTMLElement> = undefined;
-        let questionText = this.minimizeString(this.state.question);
+        let questionText = this.state.question.toUpperCase();
         if (this.state.operation === 'decode') {
             // Look to see if the Hint Digits appear in the Question Text
             let notfound = '';
@@ -332,15 +332,6 @@ export class CipherMorseEncoder extends CipherEncoder {
                 let chars = $(e.target).val() as string;
                 this.markUndo('hint');
                 if (this.setHint(chars)) {
-                    this.updateOutput();
-                }
-            });
-        $('#crib')
-            .off('input')
-            .on('input', e => {
-                let chars = $(e.target).val() as string;
-                this.markUndo('crib');
-                if (this.setCrib(chars)) {
                     this.updateOutput();
                 }
             });

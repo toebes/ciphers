@@ -3,7 +3,6 @@ import {
     IOperationType,
     IState,
     ITestType,
-    menuMode,
     toolMode,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
@@ -12,15 +11,22 @@ import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
-import { CipherEncoder } from './cipherencoder';
+import { CipherEncoder, IEncoderState } from './cipherencoder';
 
-interface IVigenereState extends IState {
+interface IVigenereState extends IEncoderState {
     /** The type of operation */
     operation: IOperationType;
     /** The size of the chunking blocks for output - 0 means respect the spaces */
     blocksize: number;
 }
 
+interface ICribInfo {
+    plaintext: string;
+    ciphertext: string;
+    position: number;
+    criblen: number;
+    cipherlen: number;
+}
 /**
  *
  * Vigenere Encoder
@@ -82,12 +88,165 @@ export class CipherVigenereEncoder extends CipherEncoder {
             if (testType !== ITestType.cregional &&
                 testType !== ITestType.cstate &&
                 this.state.operation === 'encode') {
-                result = "Only Decode problems are allowed on " +
+                result = "Encode problems are not allowed on " +
+                    this.getTestTypeName(testType);
+            }
+            if (testType !== ITestType.bstate &&
+                testType !== ITestType.cstate &&
+                this.state.operation === 'crypt') {
+                result = "Cryptanalysis problems are not allowed on " +
                     this.getTestTypeName(testType);
             }
         }
         return result;
     }
+    public setQuestionText(question: string): void {
+        super.setQuestionText(question);
+        this.validateQuestion();
+        this.attachHandlers();
+    }
+    /**
+     * Determine if the question text references the right pieces of this cipher
+     */
+    public validateQuestion(): void {
+        let msg = '';
+
+        let questionText = this.state.question.toUpperCase();
+        if (this.state.operation === 'crypt') {
+            if (questionText.indexOf('DECOD') < 0 &&
+                questionText.indexOf('DECRY') < 0 &&
+                questionText.indexOf('WAS ENC') < 0 &&
+                questionText.indexOf('BEEN ENC') < 0) {
+                msg += "The Question Text doesn't appear to mention that " +
+                    "the cipher needs to be decrypted.";
+            }
+            // Look to see if the crib appears in the question text
+            let crib = this.minimizeString(this.state.crib);
+            if (crib !== '' && questionText.indexOf(crib) < 0) {
+                msg += "The Crib Text '" + this.state.crib +
+                    "' doesn't appear to be mentioned in the Question Text.";
+            }
+        } else {
+            // For an encode or decode, they need to mention the key 
+            let key = this.minimizeString(this.state.keyword);
+            if (key !== '' && questionText.indexOf(key) < 0) {
+                msg += "The Key '" + this.state.keyword +
+                    "' doesn't appear to be mentioned in the Question Text.";
+            }
+            if (this.state.operation === 'encode') {
+                if (questionText.indexOf('ENCOD') < 0 &&
+                    questionText.indexOf('ENCRY') < 0) {
+                    msg += "The Question Text doesn't appear to mention that " +
+                        "the cipher needs to be encoded.";
+                }
+                else if (questionText.indexOf('WAS ENCOD') > 0 ||
+                    questionText.indexOf('BEEN ENCOD') > 0 ||
+                    questionText.indexOf('WAS ENCRY') > 0 ||
+                    questionText.indexOf('BEEN ENCRY') > 0) {
+                    msg += "The Question Text appears to mention that the " +
+                        "cipher needs to be decoded, but this is an encode problem";
+                }
+            } else {
+                if (questionText.indexOf('DECOD') < 0 &&
+                    questionText.indexOf('DECRY') < 0 &&
+                    questionText.indexOf('WAS ENC') < 0 &&
+                    questionText.indexOf('BEEN ENC') < 0) {
+                    msg += "The Question Text doesn't appear to mention that " +
+                        "the cipher needs to be decrypted.";
+                }
+            }
+        }
+        let sampleLink = $("<a/>", { class: "sampq" }).
+            text(" Show suggested Question Text");
+
+        this.setErrorMsg(msg, 'vq', sampleLink);
+    }
+    public placeCrib(): ICribInfo {
+        let crib = this.minimizeString(this.state.crib);
+        let strings = this.buildReplacementVigenere(
+            this.minimizeString(this.state.cipherString),
+            this.minimizeString(this.state.keyword),
+            9999
+        );
+        if (strings.length !== 1) {
+            return undefined;
+        }
+        let cribpos = strings[0][1].indexOf(crib);
+        if (cribpos < 0) {
+            return undefined;
+        }
+        return {
+            plaintext: strings[0][1].substr(cribpos, crib.length),
+            ciphertext: strings[0][0].substr(cribpos, crib.length),
+            position: cribpos,
+            criblen: crib.length,
+            cipherlen: strings[0][0].length
+        };
+    }
+    /**
+     * Converts a number to corresponding to the positional text version of
+     *  the number like 2nd, 55th, etc.
+     * @param val Number to generate string for
+     * @returns Positional text version of string
+     */
+    public getPositionText(val: number): string {
+        let suffix = 'th';
+        if (val < 4 || val > 20) {
+            let ones = val % 10;
+            if (ones === 1) {
+                suffix = 'st';
+            } else if (ones === 2) {
+                suffix = 'nd';
+            } else if (ones === 3) {
+                suffix = 'rd';
+            }
+        }
+        return String(val) + '<sup>' + suffix + '</sup>';
+    }
+    /**
+     * Generates the sample question text for a cipher
+     * @returns HTML as a string
+     */
+    public genSampleQuestionText(): string {
+        let msg = "";
+        if (this.state.operation === 'crypt') {
+            msg = "<p>The following quote has been encoded with the " +
+                "Vigen&egrave;re Cipher using a very common word for the key. ";
+
+            let cribpos = this.placeCrib();
+            if (cribpos === undefined) {
+                msg += 'But <strong>the crib can not be found in the Plain Text</strong>. ';
+            } else if (cribpos.position === 0) {
+                msg += "The deciphered text starts with " +
+                    this.genMonoText(cribpos.plaintext) + ". ";
+            } else if (cribpos.position === cribpos.cipherlen - cribpos.criblen) {
+                msg += "The deciphered text ends with " +
+                    this.genMonoText(cribpos.plaintext) + ". ";
+            } else {
+                let startpos = this.getPositionText(cribpos.position + 1);
+                let endpos = this.getPositionText(cribpos.position + cribpos.criblen);
+                msg += "The " + startpos + " through " + endpos +
+                    " cipher characters (" +
+                    this.genMonoText(cribpos.ciphertext) +
+                    ") decode to be " +
+                    this.genMonoText(cribpos.plaintext);
+            }
+        } else {
+            let keyword = this.genMonoText(this.minimizeString(this.state.keyword));
+            if (this.state.operation === 'encode') {
+                msg = "<p>The following quote needs to be encoded " +
+                    " with the Vigen&egrave;re Cipher with a keyword of " +
+                    keyword;
+            } else {
+                msg = "<p>The following quote needs to be decoded " +
+                    " with the AffVigen&egrave;re Cipher with a keywoord of " +
+                    keyword;
+            }
+        }
+        msg += "</p>";
+        return msg;
+    }
+
     /**
      * Cleans up any settings, range checking and normalizing any values.
      * This doesn't actually update the UI directly but ensures that all the
@@ -103,13 +262,16 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
-        if (this.state.operation === 'encode') {
+        if (this.state.operation !== 'crypt') {
             this.guidanceURL = 'TestGuidance.html#Vigenere';
+            $(".crib").hide();
         } else {
             this.guidanceURL = 'TestGuidance.html#Vigenere_Decrypt';
+            $(".crib").show();
         }
         JTRadioButtonSet('operation', this.state.operation);
         $('#blocksize').val(this.state.blocksize);
+        $("#crib").val(this.state.crib);
         super.updateOutput();
     }
 
@@ -119,10 +281,12 @@ export class CipherVigenereEncoder extends CipherEncoder {
         let radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
             { id: 'mrow', value: 'decode', title: 'Decode' },
+            { id: 'crow', value: 'crypt', title: 'Cryptanalysis' },
         ];
         result.append(
             JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
         );
+        result.append(this.createQuestionTextDlg());
         this.genQuestionFields(result);
         this.genEncodeField(result);
 
@@ -133,6 +297,16 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 'keyword',
                 this.state.keyword,
                 'small-12 medium-12 large-12'
+            )
+        );
+
+        result.append(
+            JTFLabeledInput(
+                'Crib Text',
+                'text',
+                'crib',
+                this.state.crib,
+                'crib small-12 medium-12 large-12'
             )
         );
 
@@ -230,10 +404,30 @@ export class CipherVigenereEncoder extends CipherEncoder {
         let result = $('<div/>');
         let source = 1;
         let dest = 0;
-        if (this.state.operation === 'decode') {
+        let emsg = '';
+        if (this.state.operation !== 'encode') {
             source = 0;
             dest = 1;
         }
+
+        // Check to make sure that they provided a Key
+        if (this.minimizeString(key) === '') {
+            emsg = 'No Key provided.';
+        }
+        this.setErrorMsg(emsg, 'vkey');
+
+        // If we are doing Cryptanalysis, we need tthe Crib text
+        emsg = '';
+        if (this.state.operation === 'crypt') {
+            let crib = this.minimizeString(this.state.crib);
+            if (crib === '') {
+                emsg = 'No Crib Text provided for Cryptanalysis.';
+            } else if (this.minimizeString(msg).indexOf(crib) < 0) {
+                emsg = 'Crib Text ' + this.state.crib + ' not found in Plain Text';
+            }
+        }
+        this.setErrorMsg(emsg, 'vcrib');
+
         let strings = this.buildReplacementVigenere(
             msg,
             key,
@@ -263,7 +457,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
 
         let key = this.minimizeString(this.state.keyword);
-        $('#err').text('');
+        this.clearErrors();
+        this.validateQuestion();
         let res = this.buildVigenere(encoded, key);
         $('#answer')
             .empty()

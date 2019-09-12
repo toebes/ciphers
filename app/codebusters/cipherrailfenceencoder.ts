@@ -36,7 +36,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         this.defaultstate
     ) as IRailFenceState;
     public cmdButtons: JTButtonItem[] = [
-        { title: 'Save', color: 'primary', id: 'save' },
+        this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
         this.guidanceButton,
@@ -294,7 +294,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
         let r: number;
         let result = $('<div/>');
-        if (this.state.cipherString.length === 0){
+        if (this.state.cipherString.length === 0) {
             return result;
         }
 
@@ -307,7 +307,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         // TODO: Add more solutioning text...
         result.append($('<p/>').text(solutionText));
 
-        let rfs:RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
+        let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
         let rails = this.state.rails;
 
         let solutionIntro = $('<p/>');
@@ -316,17 +316,17 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         //' characters long.
 
         solutionIntro.append('There are ', $('<code/>').append(rails.toString()),
-                             ' rails in this problem.  Therefore, each zig-zag will have ',
-                             $('<code/>').append('(2 * #rails) - 2 = (2 * '+rails.toString()+') - 2 = '),
-                             $('<code/>').append(rfs.getCharsPerZigzag().toString()) ,
-                             ' characters (A single zig-zag starts with the character from the top row, goes '+
-                             'down each row and back up ending one character before the top row.).  '+
-                             'The encrypted text is ', $('<code/>').append(rfs.getTextLength().toString()),
-                             'characters long, so there are ', $('<code/>').append(rfs.getCountZigzag().toString()),
-                             'complete zig-zags in the solution, with ', $('<code/>').append(rfs.getCharsLeftover().toString()),
-                             ' characters left over in an incomplete zig-zag.');
+            ' rails in this problem.  Therefore, each zig-zag will have ',
+            $('<code/>').append('(2 * #rails) - 2 = (2 * ' + rails.toString() + ') - 2 = '),
+            $('<code/>').append(rfs.getCharsPerZigzag().toString()),
+            ' characters (A single zig-zag starts with the character from the top row, goes ' +
+            'down each row and back up ending one character before the top row.).  ' +
+            'The encrypted text is ', $('<code/>').append(rfs.getTextLength().toString()),
+            'characters long, so there are ', $('<code/>').append(rfs.getCountZigzag().toString()),
+            'complete zig-zags in the solution, with ', $('<code/>').append(rfs.getCharsLeftover().toString()),
+            ' characters left over in an incomplete zig-zag.');
         solutionIntro.append($('<p/>').append('All spaces and punctuation have been removed from the message.  To decode it, fill ' +
-        'in each rail as described below.  The message can be read along the zig-zags.  Spaces between words can be added based on context.'));
+            'in each rail as described below.  The message can be read along the zig-zags.  Spaces between words can be added based on context.'));
 
         // 2 rails, 1 space
         // 3 rails, 3 spaces
@@ -337,23 +337,23 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         // First rail
         solutionIntro.append($('<h5/>').text('Rail 1'));
         let charsInRail = rfs.getCharactersInRail(1);
-        solutionIntro.append('Copy the first ', $('<code/>').append(charsInRail.toString()), 
-                             ' characters from the cipher text along the first rail, with ',
-                             $('<code/>').append(spacesBetween.toString()),
-            CipherRailFenceEncoder.getPluralityString(spacesBetween, [' space between each character',' spaces between each character.']),
-                             '  Each of these letter is the first character of a zig-zag.');
+        solutionIntro.append('Copy the first ', $('<code/>').append(charsInRail.toString()),
+            ' characters from the cipher text along the first rail, with ',
+            $('<code/>').append(spacesBetween.toString()),
+            CipherRailFenceEncoder.getPluralityString(spacesBetween, [' space between each character', ' spaces between each character.']),
+            '  Each of these letter is the first character of a zig-zag.');
 
         // middle rails
         for (r = 2; r < rails; r++) {
 
-            let firstSpacesCount = (2 * rails) - ((2*(r-1))+3);  //-5, -7, -9;
+            let firstSpacesCount = (2 * rails) - ((2 * (r - 1)) + 3);  //-5, -7, -9;
             let secondSpacesCount = rfs.getCharsPerZigzag() - 2 - firstSpacesCount;
 
 
             solutionIntro.append($('<h5/>').text('Rail '.concat(r.toString())));
-            solutionIntro.append('Copy the next ', $('<code/>').append(rfs.getCharactersInRail(r).toString()), 
-                                 ' characters of the cipher string along rail ', $('<code/>').append(r.toString()), ', starting at position ',
-                                 $('<code/>').append(r.toString()), '.  ');
+            solutionIntro.append('Copy the next ', $('<code/>').append(rfs.getCharactersInRail(r).toString()),
+                ' characters of the cipher string along rail ', $('<code/>').append(r.toString()), ', starting at position ',
+                $('<code/>').append(r.toString()), '.  ');
             if (firstSpacesCount === secondSpacesCount) {
                 solutionIntro.append('Put ',
                     $('<code/>').append(firstSpacesCount.toString()),
@@ -372,10 +372,10 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         solutionIntro.append($('<h5/>').text('Rail '.concat(r.toString())));
         charsInRail = rfs.getCharactersInRail(rails);
         solutionIntro.append('Copy the last ', $('<code/>').append(charsInRail.toString()),
-                             ' characters from the cipher text along the last rail, starting at position ',
-                             $('<code/>').append(r.toString()), ' with ',
-                             $('<code/>').append(spacesBetween.toString()),
-                             CipherRailFenceEncoder.getPluralityString(spacesBetween, [' space between each character.',' spaces between each character.']));
+            ' characters from the cipher text along the last rail, starting at position ',
+            $('<code/>').append(r.toString()), ' with ',
+            $('<code/>').append(spacesBetween.toString()),
+            CipherRailFenceEncoder.getPluralityString(spacesBetween, [' space between each character.', ' spaces between each character.']));
 
         solutionIntro.append($('<p/>').append('Read the decrypted message along the diagonals!'));
         result.append(solutionIntro, rfs.getRailFenceSolution());
@@ -389,7 +389,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     }
 
     private static getPluralityString(n: number, strings: string[]) {
-        return (n === 1) ? strings[0] : strings [1];
+        return (n === 1) ? strings[0] : strings[1];
     }
 }
 
@@ -420,7 +420,7 @@ class RailFenceSolver {
      * @param rails The number of rails in the rail fence
      * @param text The text to be encoded
      */
-    constructor(rails: number, text: string) {
+    constructor (rails: number, text: string) {
 
         this.railCount = rails;
         this.textLength = text.length;
@@ -456,7 +456,7 @@ class RailFenceSolver {
                 if (this.placeCharacter(railIndex, colArrayIndex)) {
                     this.solution[railArrayIndex][colArrayIndex] = text.charAt(colArrayIndex);
                     // Update counts for complete zigzag or leftovers -- this is used in solution table.
-                    if (columnIndex <= this.getCharsPerZigzag() * this.getCountZigzag() ) {
+                    if (columnIndex <= this.getCharsPerZigzag() * this.getCountZigzag()) {
                         this.charactersInRails[railArrayIndex]++;
                     }
                     else {
@@ -569,14 +569,14 @@ class RailFenceSolver {
 
         let tableHeader = $('<thead/>');
         tableHeader.append($('<tr/>').append($('<th/>', { class: 'rail-info' }).attr('colspan', 1).attr('rowspan', 2).text('Rail'),
-                          $('<th/>', { class: 'rail-info' }).attr('colspan', 3).text('Counts'),
-                          $('<th/>', { class: 'rail-data' }).attr('colspan', this.getCountZigzag()+leftover).text('Zigzag')));
+            $('<th/>', { class: 'rail-info' }).attr('colspan', 3).text('Counts'),
+            $('<th/>', { class: 'rail-data' }).attr('colspan', this.getCountZigzag() + leftover).text('Zigzag')));
         //solutionTable.append(tableHeader);
 
         let zigZagRow = $('<tr/>');
         tableHeader.append(zigZagRow.append($('<td/>', { class: 'rail-info' }).text('zz'), $('<td/>', { class: 'rail-info' }).text('l/o'), $('<td/>', { class: 'rail-info' }).text('Tot')));
 
-        for (let zz: number = 1; zz <= (this.getCountZigzag()+leftover); zz++ ) {
+        for (let zz: number = 1; zz <= (this.getCountZigzag() + leftover); zz++) {
             zigZagRow.append($('<th/>', { class: 'rail-data' }).text(zz.toString()));
         }
         solutionTable.append(tableHeader);
@@ -587,26 +587,26 @@ class RailFenceSolver {
             let tableRow = $('<tr/>');
 
             tableRow.append($('<td/>', { class: 'rail-info' }).text(i.toString()),
-                            $('<td/>', { class: 'rail-info' }).text(this.charactersInRails[i-1].toString()),
-                            $('<td/>', { class: 'rail-info' }).text(this.charactersLeftover[i-1].toString()),
-                            $('<td/>', { class: 'rail-info' }).text((this.charactersInRails[i-1]+this.charactersLeftover[i-1]).toString()));
+                $('<td/>', { class: 'rail-info' }).text(this.charactersInRails[i - 1].toString()),
+                $('<td/>', { class: 'rail-info' }).text(this.charactersLeftover[i - 1].toString()),
+                $('<td/>', { class: 'rail-info' }).text((this.charactersInRails[i - 1] + this.charactersLeftover[i - 1]).toString()));
 
             let data: string = '';
-            for (let col: number = 0; col < this.getTextLength(); col++ ) {
+            for (let col: number = 0; col < this.getTextLength(); col++) {
                 // Get all the characters from each zigzag. for this row and put it in a table cell.
                 if ((col % this.getCharsPerZigzag()) === 0) {
                     // start a new string...
                     if (data.length > 0) {
                         tableRow.append($('<td/>', { class: 'rail-data' }).text(data));
                     }
-                    let char:string = this.solution[i-1][col];
+                    let char: string = this.solution[i - 1][col];
                     if (char.length === 0) {
                         char = '.';
                     }
                     data = char;
                 }
                 else {
-                    let char:string = this.solution[i-1][col];
+                    let char: string = this.solution[i - 1][col];
                     if (char.length === 0) {
                         char = '.';
                     }

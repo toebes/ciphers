@@ -127,6 +127,8 @@ export class CipherTestManage extends CipherTest {
             count: 0,
             questions: [],
             title: 'New Test',
+            useCustomHeader: false,
+            customHeader: '',
             testtype: ITestType.None
         });
         this.gotoEditTest(test);

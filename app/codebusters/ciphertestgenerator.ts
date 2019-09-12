@@ -34,6 +34,8 @@ export class CipherTestGenerator extends CipherTest {
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [
         { title: "Randomize Order", color: "primary", id: "randomize" },
+        { title: "Hide Custom Header", color: "primary", id: "hide-custom-header" },
+        { title: "Show Custom Header", color: "primary", id: "show-custom-header" },
         { title: "Export Test", color: "primary", id: "export" },
         { title: "Import Tests from File", color: "primary", id: "import" },
         { title: "Import Tests from URL", color: "primary", id: "importurl" },
@@ -74,6 +76,18 @@ export class CipherTestGenerator extends CipherTest {
                 "small-12 medium-12 large-12"
             )
         );
+
+        if (test.useCustomHeader) {
+            testdiv.append(
+                JTFLabeledInput(
+                    "Custom Header",
+                    "textarea",
+                    "custom-header-input",
+                    test.customHeader,
+                    "small-12 medium-12 large-12"
+                )
+            );
+        }
 
         testdiv.append(
             this.genTestTypeDropdown("testtype", "Test Type", test.testtype));
@@ -204,6 +218,16 @@ export class CipherTestGenerator extends CipherTest {
         super.updateOutput();
         let test = this.getTestEntry(this.state.test);
         this.setMenuMode(menuMode.test);
+        if (test.useCustomHeader) {
+            $("#show-custom-header").hide();
+            $("#hide-custom-header").show();
+            $("#custom-header-input").show();
+        }
+        else {
+            $("#show-custom-header").show();
+            $("#hide-custom-header").hide();
+            $("#custom-header-input").hide();
+        }
         $(".testdata").each((i, elem) => {
             $(elem).replaceWith(this.genTestQuestions(test));
         });
@@ -218,6 +242,28 @@ export class CipherTestGenerator extends CipherTest {
             this.setTestEntry(this.state.test, test);
         }
         return changed;
+    }
+    public setCustomHeader(customHeader: string): boolean {
+        let changed = false;
+        let test = this.getTestEntry(this.state.test);
+        if (test.customHeader !== customHeader) {
+            changed = true;
+            test.customHeader = customHeader;
+            this.setTestEntry(this.state.test, test);
+        }
+        return changed;
+    }
+    public manageCustomHeaderButtons(e: string): void {
+        let test = this.getTestEntry(this.state.test);
+        if (e === 'default')
+        {
+            test.useCustomHeader = false;
+        }
+        else {
+            test.useCustomHeader = true;
+        }
+        this.setTestEntry(this.state.test, test);
+        this.updateOutput();
     }
     public gotoAddCipher(entry: number): void {
         let test = this.getTestEntry(this.state.test);
@@ -502,6 +548,22 @@ export class CipherTestGenerator extends CipherTest {
             .on("input", e => {
                 let title = $(e.target).val() as string;
                 this.setTitle(title);
+            });
+        $("#custom-header-input")
+            .off("input")
+            .on("input", e => {
+                let userTestHeader = $(e.target).val() as string;
+                this.setCustomHeader(userTestHeader);
+            });
+        $("#show-custom-header")
+            .off("click")
+            .on("click", e => {
+                this.manageCustomHeaderButtons('custom');
+            });
+        $("#hide-custom-header")
+            .off("click")
+            .on("click", e => {
+                this.manageCustomHeaderButtons('default');
             });
     }
 }

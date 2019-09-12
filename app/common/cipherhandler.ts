@@ -117,6 +117,10 @@ export const testTypeNames: { [key in keyof typeof ITestType]: string } = {
 export interface ITest {
     /** Title of the test */
     title: string;
+    /** Flag indicating to use custom test header */
+    useCustomHeader: boolean;
+    /** User specified info for test header instead of tournament header */
+    customHeader: string;
     /** Which Cipher-Data.n element corresponds to the timed question.
      * If the value is blank, there is no timed question.
      */
@@ -840,6 +844,8 @@ export class CipherHandler {
         let result: ITest = {
             timed: -1,
             title: 'Invalid Test',
+            useCustomHeader: false,
+            customHeader: '',
             count: 0,
             questions: [],
             testtype: ITestType.None,

@@ -233,6 +233,8 @@ export class CipherTest extends CipherHandler {
             count: 0,
             questions: [],
             title: 'New Test',
+            useCustomHeader: false,
+            customHeader: '',
             testtype: ITestType.None,
         });
         location.reload();

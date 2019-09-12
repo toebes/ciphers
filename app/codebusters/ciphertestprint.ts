@@ -91,6 +91,26 @@ export class CipherTestPrint extends CipherTest {
         // If we are at the end of the year, display the following year for tests.
         dt.setDate(dt.getDate() + 6);
         $('.testyear').text(dt.getFullYear());
+
+        // Print custom header or default header on tests
+        if (test.useCustomHeader) {
+            $('.custom-header').html(test.customHeader);
+            if (! $('.default-header').hasClass('noprint')) {
+                $('.default-header').addClass('noprint');
+            }
+            if ($('.custom-header').hasClass('noprint')) {
+                $('.custom-header').removeClass('noprint');
+            }
+        }
+        else {
+            if (! $('.custom-header').hasClass('noprint')){
+                $('.custom-header').addClass('noprint');
+            }
+            if ($('default-header').hasClass('noprint')) {
+                $('.default-header').removeClass('noprint');
+            }
+        }
+
         this.runningKeys = undefined;
         this.qdata = [];
         let accumulated = 0;

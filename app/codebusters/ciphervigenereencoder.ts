@@ -239,7 +239,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     keyword;
             } else {
                 msg = "<p>The following quote needs to be decoded " +
-                    " with the AffVigen&egrave;re Cipher with a keywoord of " +
+                    " with the Vigen&egrave;re Cipher with a keyword of " +
                     keyword;
             }
         }

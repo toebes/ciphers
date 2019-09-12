@@ -5,6 +5,9 @@
     margin-bottom: 10px;
     width: 600px;
 }
+:target {
+    background-color: #ffffcc !important;
+}
 .qplain {
     display: none;
 }
@@ -142,11 +145,19 @@ h2.ol {
     border-top: 1px solid black;
     background-color: rgb(240, 240, 240);
 }
+h2.ol:target {
+    background-color: rgb(204, 204, 166) !important;
+}
+
 h3.ol {
     border-top: 1px solid black;
     background-color: rgb(240, 240, 240);
     padding-left: 2rem;
 }
+h3.ol:target {
+    background-color: rgb(204, 204, 166) !important;
+}
+
 .in {
     margin-left: 10rem;
     border-top: 1px solid lightgrey;

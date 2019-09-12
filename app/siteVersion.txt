@@ -1,1 +1,1 @@
-getVersion({ "version": "2.0.0" });
+getVersion({ "version": "2.1.0" });

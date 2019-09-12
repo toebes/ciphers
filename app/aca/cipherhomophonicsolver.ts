@@ -26,7 +26,7 @@ export class CipherHomophonicSolver extends CipherSolver {
     }
     public state: IState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [
-        { title: 'Save', color: 'primary', id: 'save' },
+        this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
         { title: 'Reset', color: 'warning', id: 'reset' },

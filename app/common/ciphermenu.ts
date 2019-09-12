@@ -32,88 +32,99 @@ export const CipherMenu: menuItem[] = [
             {
                 title: "Affine",
                 href: "AffineEncrypt.html",
-                cipherType: ICipherType.Affine
+                cipherType: ICipherType.Affine,
+                classname: 'chkmod menub menuc'
             },
             {
                 title: "Aristocrat",
                 href: "AristocratEncrypt.html",
-                cipherType: ICipherType.Aristocrat
+                cipherType: ICipherType.Aristocrat,
+                classname: 'chkmod menua menub menuc'
             },
             {
                 title: "Atbash",
                 href: "Atbash.html",
-                cipherType: ICipherType.Atbash
+                cipherType: ICipherType.Atbash,
+                classname: 'chkmod menua menub'
             },
             {
                 title: "Baconian",
                 href: "Baconian.html",
-                cipherType: ICipherType.Baconian
+                cipherType: ICipherType.Baconian,
+                classname: 'chkmod menub menuc'
             },
             {
                 title: "Caesar",
                 href: "Caesar.html",
-                cipherType: ICipherType.Caesar
+                cipherType: ICipherType.Caesar,
+                classname: 'chkmod menua menub menuc'
             },
             {
                 title: "Hill (2x2 and 3x3)",
                 href: "HillEncrypt.html",
-                cipherType: ICipherType.Hill
+                cipherType: ICipherType.Hill,
+                classname: 'chkmod menuc'
             },
             {
                 title: "Morbit",
                 href: "MorbitEncrypt.html",
-                cipherType: ICipherType.Morbit
-            },
-            {
-                title: "PigPen/Masonic",
-                href: "PigPenEncrypt.html",
-                cipherType: ICipherType.PigPen
+                cipherType: ICipherType.Morbit,
+                classname: 'chkmod menub menuc'
             },
             {
                 title: "Patristocrat",
                 href: "PatristocratEncrypt.html",
-                cipherType: ICipherType.Patristocrat
+                cipherType: ICipherType.Patristocrat,
+                classname: 'chkmod menub menuc'
+            },
+            {
+                title: "PigPen/Masonic",
+                href: "PigPenEncrypt.html",
+                cipherType: ICipherType.PigPen,
+                classname: 'chkmod menua'
             },
             {
                 title: "Pollux",
                 href: "PolluxEncrypt.html",
-                cipherType: ICipherType.Pollux
+                cipherType: ICipherType.Pollux,
+                classname: 'chkmod menub menuc'
             },
             {
                 title: "Rail Fence",
                 href: "RailFenceEncrypt.html",
-                cipherType: ICipherType.Railfence
-            },
-            {
-                title: "Running Key",
-                href: "RunningKeyEncoder.html",
-                cipherType: ICipherType.RunningKey
+                cipherType: ICipherType.Railfence,
+                classname: 'chkmod menub'
             },
             {
                 title: "RSA",
                 href: "RSAEncrypt.html",
-                cipherType: ICipherType.RSA
+                cipherType: ICipherType.RSA,
+                classname: 'chkmod menuc'
             },
-            {
-                title: "Spanish Aristocrat",
-                href: "AristocratSpanishEncrypt.html",
-                cipherType: ICipherType.Aristocrat,
-                lang: "es"
-            },
+            // {
+            //     title: "Running Key",
+            //     href: "RunningKeyEncoder.html",
+            //     cipherType: ICipherType.RunningKey,
+            //     classname: 'chkmod menua menub menuc'
+            // },
             {
                 title: "Tap Code",
                 href: "TapCodeEncrypt.html",
-                cipherType: ICipherType.TapCode
+                cipherType: ICipherType.TapCode,
+                classname: 'chkmod menua'
             },
             {
                 title: "Vigen&egrave;re",
                 href: "VigenereEncrypt.html",
-                cipherType: ICipherType.Vigenere
+                cipherType: ICipherType.Vigenere,
+                classname: 'chkmod menua menub menuc'
             },
             {
                 title: "Xenocrypt",
                 href: "XenocryptEncrypt.html",
-                cipherType: ICipherType.Xenocrypt
+                cipherType: ICipherType.Aristocrat,
+                lang: "es",
+                classname: 'chkmod menub menuc'
             },
             { title: "", classname: "divider" },
             {

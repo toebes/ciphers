@@ -10,7 +10,7 @@ export class CipherMorseEncoder extends CipherEncoder {
     public usesMorseTable: boolean = true;
     public cipherName = 'Morse';
     public cmdButtons: JTButtonItem[] = [
-        { title: 'Save', color: 'primary', id: 'save' },
+        this.saveButton,
         { title: 'Randomize', color: 'primary', id: 'randomize' },
         this.undocmdButton,
         this.redocmdButton,

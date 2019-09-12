@@ -87,8 +87,6 @@ export interface IState {
     solution?: string;
     /** Is the problem solved? */
     solved?: boolean;
-    /** Any other extensions not yet thought of */
-    //  any?: any
 }
 /**
  * The types of tests that can be generated
@@ -664,6 +662,13 @@ export class CipherHandler {
         curlang: '',
     };
     public state: IState = cloneObject(this.defaultstate) as IState;
+    public saveButton: JTButtonItem = {
+        title: 'Save',
+        id: 'save',
+        color: 'primary',
+        class: 'save'
+    };
+
     public undocmdButton: JTButtonItem = {
         title: 'Undo',
         id: 'undo',
@@ -741,6 +746,10 @@ export class CipherHandler {
     public sourcecharset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     public unasigned: string = '';
     public holdupdates: boolean = false;
+    /** A modification to the current cipher has not been saved */
+    public isModified: boolean = false;
+    /** Position on the save stack where the current cipher was loaded/saved */
+    public savedPosition: number = -1;
     /** Stack of current Undo/Redo operations */
     public undoStack: IState[] = [];
     /** We can merge the next operation */
@@ -777,7 +786,7 @@ export class CipherHandler {
     public freq: { [key: string]: number } = {};
     public savefileentry: number = -1;
     public storage: JTStorage;
-    constructor() {
+    constructor () {
         this.storage = InitStorage();
     }
     public initToolModeSettings(): void {
@@ -1110,8 +1119,10 @@ export class CipherHandler {
             .on('click', e => {
                 this.savefileentry = Number($('#files option:selected').val());
                 $('#OpenFile').foundation('close');
+                this.markSaved();
                 this.markUndo(null);
                 this.updateSaveEntryURL();
+                this.showModified();
                 this.restore(this.getFileEntry(this.savefileentry));
             });
         $('#OpenFile').foundation('open');
@@ -1200,7 +1211,9 @@ export class CipherHandler {
      *  Save the current cipher to the current file
      */
     public saveCipher(): void {
+        this.undoCanMerge = false;
         let state = this.save();
+        this.markSaved();
         this.savefileentry = this.setFileEntry(this.savefileentry, state);
 
         // We need to update the URL to indicate which entry they saved
@@ -1417,6 +1430,7 @@ export class CipherHandler {
                         usemsg = ' - ' + usemsg;
                     }
                     let link = $('<a/>', {
+                        class: 'chkmod',
                         href: 'TestGenerator.html?test=' + String(entry),
                     }).text(test.title + ' ' + use);
                     if (usemsg !== '') {
@@ -1431,7 +1445,7 @@ export class CipherHandler {
 
                     if (prevq !== undefined) {
                         let linkprev = $('<a/>', {
-                            class: 'prevnav',
+                            class: 'prevnav chkmod',
                             href: this.getEntryURL(prevq),
                         }).text(prevtxt);
                         testset.append(linkprev).append(' ');
@@ -1439,7 +1453,7 @@ export class CipherHandler {
                     testset.append(link);
                     if (nextq !== undefined) {
                         let linknext = $('<a/>', {
-                            class: 'nxtnav',
+                            class: 'nxtnav  chkmod',
                             href: this.getEntryURL(nextq),
                         }).text(nexttxt);
                         testset.append(linknext).append(' ');
@@ -1521,6 +1535,11 @@ export class CipherHandler {
     public save(): IState {
         return { cipherType: ICipherType.None, cipherString: '' };
     }
+    public markSaved(): void {
+        this.savedPosition = this.undoPosition;
+        this.isModified = false;
+        this.showModified();
+    }
     /**
      * Saves the current state of the cipher work so that it can be undone
      * This code will attempt to merge named operations when pushing a second
@@ -1529,10 +1548,16 @@ export class CipherHandler {
      * null indicates that the operation is not mergable.
      */
     public markUndo(undotype: string): void {
+        this.isModified = true;
         // See if we are trying to do an undo after we had popped some undo
         // operations off the stack.  In that case, we simply truncate the stack
         if (this.undoPosition < this.undoStack.length - 1) {
             this.undoStack.splice(this.undoPosition);
+            // If we had restored from a position that has been deleted from the
+            // stack, then we need to forgot the savedPosition
+            if (this.savedPosition > this.undoPosition) {
+                this.savedPosition = -1;
+            }
         }
         this.pushUndo(undotype);
         // If we attempt to do an undo after we pushed this operation of the stack
@@ -1586,11 +1611,55 @@ export class CipherHandler {
         this.lastUndoRequest = undefined;
         if (this.undoPosition > 0) {
             this.undoPosition--;
-            this.restore(this.undoStack[this.undoPosition]);
+            let state = this.undoStack[this.undoPosition];
+            this.restore(state);
+            this.isModified = (this.undoPosition !== this.savedPosition);
             this.markUndoUI(this.undoPosition <= 0, false);
         }
     }
+    /** 
+     * Update the UI to indicate whether or not the current cipher has 
+     * been modified and needs to be saved.
+     */
+    public showModified(): void {
+        if (this.isModified) {
+            $(".save").removeClass('primary').addClass('alert');
+        } else {
+            $(".save").removeClass('alert').addClass('primary');
+        }
+    }
+    /**
+     * Check to see if the current cipher has been modified and give them
+     * an opportunity to save if it has.
+     * @param targetURL URL to jump to if not modified
+     * @returns boolean indicating whether or not it is modified.
+     */
+    public checkModified(targetURL: string): boolean {
+        return false;
+    }
+    /**
+     * Save the current Cipher and jump to a new URL
+     * @param targetURL new URL to jump to
+     */
+    public saveAndContinue(targetURL: string): void {
+        this.saveCipher();
+        location.assign(targetURL);
+    }
+    /**
+     * Abandon any changes on the current cipher and jump to a new URL
+     * @param targetURL new URL to jump to
+     */
+    public abandonAndContinue(targetURL: string): void {
+        location.assign(targetURL);
+
+    }
+    /**
+     * Update the UI to indicate the state of the Undo/Redo buttons
+     * @param undostate Boolean indicated that the undo is enabled
+     * @param redostate Boolean indicated that redo is enabled
+     */
     public markUndoUI(undostate: boolean, redostate: boolean): void {
+        this.showModified();
         if (redostate) {
             $('.redo').addClass('disabled_menu');
             $('.redo').attr('disabled', 'disabled');
@@ -1613,12 +1682,14 @@ export class CipherHandler {
     public reDo(): void {
         if (this.undoPosition < this.undoStack.length - 1) {
             this.undoPosition++;
-            this.restore(this.undoStack[this.undoPosition]);
+            let state = this.undoStack[this.undoPosition];
+            this.restore(state);
             this.undoNeeded = undefined;
             // Prevent creating a new entry on the stack since it will match
             // what we have currently
             this.undoCanMerge = true;
             this.lastUndoRequest = undefined;
+            this.isModified = (this.undoPosition !== this.savedPosition);
             this.markUndoUI(
                 false,
                 this.undoPosition >= this.undoStack.length - 1
@@ -1680,6 +1751,7 @@ export class CipherHandler {
         this.buildCustomUI();
         this.setMenuMode(menuMode.none);
         this.restore(saveSet);
+        this.savedPosition = this.undoPosition;
         this.attachHandlers();
     }
     /**
@@ -2616,7 +2688,7 @@ export class CipherHandler {
      */
     public createMainMenu(): JQElement {
         let result = $('<div/>');
-        result.append(JTCreateMenu(CipherMenu, 'example-menu', 'Cipher Tools'));
+        result.append(JTCreateMenu(CipherMenu, 'cmainmenu', 'Cipher Tools'));
         // Create the dialog for selecting which cipher to load
         result.append(this.createOpenFileDlg());
         result.append(this.createImportFileDlg());

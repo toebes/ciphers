@@ -110,7 +110,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.defaultstate
     ) as IBaconianState;
     public cmdButtons: JTButtonItem[] = [
-        { title: 'Save', color: 'primary', id: 'save' },
+        this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
         this.guidanceButton,

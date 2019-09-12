@@ -170,7 +170,7 @@ export class CipherRSAEncoder extends CipherEncoder {
     public state: IRSAState = cloneObject(this.defaultstate) as IRSAState;
     public cmdButtons: JTButtonItem[] = [
         { title: 'Randomize', color: 'primary', id: 'randomize' },
-        { title: 'Save', color: 'primary', id: 'save' },
+        this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
         this.guidanceButton,

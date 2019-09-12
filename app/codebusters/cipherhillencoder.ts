@@ -37,7 +37,7 @@ export class CipherHillEncoder extends CipherEncoder {
     };
     public state: IState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [
-        { title: 'Save', color: 'primary', id: 'save' },
+        this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
         this.guidanceButton,

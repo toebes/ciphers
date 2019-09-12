@@ -49,7 +49,7 @@ export class CipherTableEncoder extends CipherEncoder {
         this.defaultstate
     ) as IEncoderState;
     public cmdButtons: JTButtonItem[] = [
-        { title: 'Save', color: 'primary', id: 'save' },
+        this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
         this.guidanceButton,

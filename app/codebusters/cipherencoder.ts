@@ -73,7 +73,7 @@ export class CipherEncoder extends CipherHandler {
     public cipherName = 'Aristocrat';
 
     public cmdButtons: JTButtonItem[] = [
-        { title: 'Save', color: 'primary', id: 'save' },
+        this.saveButton,
         {
             title: 'Randomize',
             color: 'primary',
@@ -895,6 +895,7 @@ export class CipherEncoder extends CipherHandler {
         return einput;
     }
     public genQuestionFields(result: JQuery<HTMLElement>): void {
+        result.append(this.createIsModifiedDlg());
         result.append(
             JTFLabeledInput(
                 'Points',
@@ -966,10 +967,14 @@ export class CipherEncoder extends CipherHandler {
         dlgContents.append(
             $('<div/>', { id: 'sqtext', class: '' }));
         dlgContents
-            .append($("<a/>", { class: "sqtcpy button" }).text("Copy to Clipboard"))
-            .append(" ")
-            .append($("<a/>", { class: "sqtins button" }).text("Replace Question Text"));
-
+            .append($("<div/>", { class: "expanded button-group" })
+                .append($("<a/>", { class: "sqtcpy button" })
+                    .text("Copy to Clipboard"))
+                .append($("<a/>", { class: "sqtins button" })
+                    .text("Replace Question Text"))
+                .append($("<a/>", { class: "secondary button", "data-close": "" })
+                    .text("Close"))
+            );
         let questionTextDlg = JTFDialog(
             'SampleQText',
             'Sample Question Text',
@@ -977,6 +982,49 @@ export class CipherEncoder extends CipherHandler {
         );
         return questionTextDlg;
     }
+    /**
+     * Generates a dialog showing the sample question text
+     */
+    public createIsModifiedDlg(): JQuery<HTMLElement> {
+        let dlgContents = $("<div/>");
+        dlgContents.append($('<input>').attr({
+            type: 'hidden',
+            id: 'targeturl',
+            name: 'targeturl'
+        }));
+        dlgContents.append(
+            $('<div/>', { id: 'sqtext', class: '' }));
+        dlgContents
+            .append($("<div/>", { class: "expanded button-group" })
+                .append($("<a/>", { class: "msave button" })
+                    .text("Save and Continue"))
+                .append($("<a/>", { class: "mlose button" })
+                    .text("Abandon Changes"))
+                .append($("<a/>", { class: "secondary button", "data-close": "" })
+                    .text("Continue Editing"))
+            );
+        let questionTextDlg = JTFDialog(
+            'modifiedDLG',
+            'You have made changes!',
+            dlgContents
+        );
+        return questionTextDlg;
+    }
+    /**
+     * Check to see if the current cipher has been modified and give them
+     * an opportunity to save if it has.
+     * @param targetURL URL to jump to if not modified
+     * @returns boolean indicating whether or not it is modified.
+     */
+    public checkModified(targetURL: string): boolean {
+        if (this.isModified) {
+            $("#targeturl").val(targetURL);
+            $("#modifiedDLG").foundation('open');
+            return true;
+        }
+        return false;
+    }
+
     public genSampleHint(): string {
         return "nothing is known";
     }
@@ -1120,10 +1168,19 @@ export class CipherEncoder extends CipherHandler {
             .off('richchange')
             .on('richchange', (e, newtext) => {
                 let question = newtext;
-                if (question !== this.state.question) {
+                let oldquestion = this.state.question;
+                if (oldquestion === undefined) {
+                    oldquestion = '';
+                }
+                if (question !== oldquestion) {
+                    let oldquestion2 = oldquestion;
+                    if (oldquestion === '') {
+                        oldquestion2 = '&nbsp;';
+                    }
                     // Don't push an undo operation if all that happend was that the
                     // rich text editor put a paragraph around our text
-                    if (question !== '<p>' + this.state.question + '</p>') {
+                    if ((question !== '<p>' + oldquestion + '</p>') &&
+                        (question !== '<p>' + oldquestion2 + '</p>')) {
                         this.markUndo('question');
                     }
                     this.setQuestionText(question);
@@ -1170,6 +1227,23 @@ export class CipherEncoder extends CipherHandler {
                 this.markUndo(null);
                 this.resetAlphabet();
                 this.updateOutput();
+            });
+        $('.chkmod')
+            .off('click')
+            .on('click', e => {
+                if (this.checkModified($(e.target).attr('href'))) {
+                    e.preventDefault();
+                }
+            });
+        $('.msave')
+            .off('click')
+            .on('click', e => {
+                this.saveAndContinue($("#targeturl").val() as string);
+            });
+        $('.mlose')
+            .off('click')
+            .on('click', e => {
+                this.abandonAndContinue($("#targeturl").val() as string);
             });
     }
 }

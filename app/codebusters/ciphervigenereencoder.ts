@@ -56,7 +56,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.defaultstate
     ) as IVigenereState;
     public cmdButtons: JTButtonItem[] = [
-        { title: 'Save', color: 'primary', id: 'save', class: 'save' },
+        this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
         this.guidanceButton,

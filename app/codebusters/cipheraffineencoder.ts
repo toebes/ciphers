@@ -53,7 +53,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     };
     public state: IAffineState = cloneObject(this.defaultstate) as IAffineState;
     public cmdButtons: JTButtonItem[] = [
-        { title: 'Save', color: 'primary', id: 'save' },
+        this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
         this.guidanceButton,

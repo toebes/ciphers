@@ -37,6 +37,10 @@ body.txt {
     background-color: #e6e6e6;
 }
 
+.printbtn {
+    border-radius: 10px;
+    margin: 15px 50px;
+}
 .quseall,
 .qusea,
 .quseb,

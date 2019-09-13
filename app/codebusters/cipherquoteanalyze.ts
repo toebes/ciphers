@@ -3,6 +3,7 @@ import { CipherHandler, IState, toolMode } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTTable } from "../common/jttable";
+import { textStandard } from "../common/readability";
 
 export interface ITestState extends IState {
     /** A URL to to import test date from on load */
@@ -51,6 +52,17 @@ export class CipherQuoteAnalyze extends CipherHandler {
         let result = $("<div/>");
         this.genLangDropdown(result);
         result.append($("<div/>", { class: "analysis", id: "quotes" }));
+        result.append(
+            $('<div/>', {
+                class: 'callout primary',
+            }).append(
+                $('<a/>', {
+                    href: 'HowTo.html#QuoteAnalyzeFormat',
+                    target: 'new',
+                }).text('Quote Analyzer File Documentation')
+            )
+        );
+
         return result;
     }
     public processTestXML(data: any): void {
@@ -59,14 +71,11 @@ export class CipherQuoteAnalyze extends CipherHandler {
             "Length",
             "Chi-Squared",
             "Unique",
+            "Grade Level",
             "Likes",
             "Author",
             "Source",
             "Quote",
-            "Use",
-            "Test",
-            "Question",
-            "Count",
             "Notes",
         ]);
         // First we get all the ciphers defined and add them to the list of ciphers
@@ -76,6 +85,7 @@ export class CipherQuoteAnalyze extends CipherHandler {
             /* testStrings */
             let chi = this.CalculateChiSquare(teststr);
             teststr = this.cleanString(teststr);
+            let grade = textStandard(teststr);
             let minstr = this.minimizeString(teststr);
             let mina = minstr.split("");
 
@@ -85,6 +95,7 @@ export class CipherQuoteAnalyze extends CipherHandler {
             let likes = "";
             let author = "";
             let source = "";
+            let notes = "";
             if (ent.likes !== undefined) {
                 likes = ent.likes;
             }
@@ -94,20 +105,20 @@ export class CipherQuoteAnalyze extends CipherHandler {
             if (ent.source !== undefined) {
                 source = ent.source;
             }
+            if (ent.notes !== undefined) {
+                source = ent.notes;
+            }
             table
                 .addBodyRow()
                 .add(String(l)) /* Length */
                 .add(String(chi)) /* Chi-Squared */
                 .add(String(unique))
+                .add(grade) /* Grade level */
                 .add(likes) /* Likes */
                 .add(author) /* Author */
                 .add(source) /* Source */
                 .add(teststr) /* Quote */
-                .add("") /* Use */
-                .add("") /* Test */
-                .add("") /* Question */
-                .add("") /* Count */
-                .add(""); /* Notes */
+                .add(notes); /* Notes */
         }
         $("#quotes")
             .empty()

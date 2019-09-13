@@ -530,6 +530,20 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'HowTo.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'HowTo.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: '',
+            title: 'How To',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TestGuidance.html',
             template: path.join(
                 __dirname,
@@ -788,7 +802,7 @@ module.exports = {
                 'app',
                 'codebusters',
                 'pages',
-                'PatristocratEncrypt.html'
+                'AristocratEncrypt.html'
             ),
             chunks: ['codebusters'],
             cipher: 'Patristocrat',

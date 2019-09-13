@@ -670,7 +670,7 @@
                     href="https://toebes.com/codebusters/HillKeys.html">https://toebes.com/codebusters/HillKeys.html</a>
                 (which is linked to at the top of the tool) for both the 2x2. Note that there are other
                 keys that can be
-                used which are not words, it is more likely to be invertible if you use the letters
+                used which are not words, it is more likely to be invertible if you use the odd letters
                 <span class="fq">B</span>,
                 <span class="fq">D</span>, <span class="fq">F</span>, <span class="fq">H</span>,
                 <span class="fq">L</span>, <span class="fq">N</span>, <span class="fq">R</span>,
@@ -680,6 +680,10 @@
                 that the keyword is not an inappropriate phrase. A total non-sense
                 phrase is perfectly acceptable,
                 but it helps the style of the test if it looks like a word.</p>
+        <p>for both 2x2 and 3x3 matrices, we can improve the likelihood that
+            the determinant is invertible if half to three-quarters of the letters are odd;
+        </p>
+
         <span class="ht">Setting Difficulty:</span>
         <p class="in">There is little variability in the
             difficulty although letters at the end of the alphabet generate larger numbers.</p>
@@ -692,6 +696,66 @@
             for a 2x2 Hill with a 26
             character
             alphabet.</p>
+        <span class="ht">Details on picking a key</span>
+        <p>For a 2x2 matrix we can be explicit.
+            Since it is very likely that we will want either the 2nd or 3rd letter to be a vowel,
+            The more useful advice would be that one or both of the 2nd and 3rd letters should be vowels,
+            while both the first and last letters come from the set of odd letters listed above.
+            This would guarantee that the determinant is odd,
+            and then we only need to check to make sure it isn't 0 (mod 13),
+            which means we would succeed with probability 12/13.</p>
+        <p>
+            For a 3x3 matrix it isn't as easy, but if we ask for about half the letters to be odd (same set as before),
+            then there is a good chance that the determinant will be odd. In fact, assuming random placement of the odd
+            letters, the exact odds for each possible number of odd letters is as follows:
+        </p>
+        <table>
+            <tr>
+                <td>0</td>
+                <td>0.000</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>0.000</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>0.000</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>0.071</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>0.286</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>0.571</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>0.426</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>0.500</td>
+            </tr>
+            <tr>
+                <td>8</td>
+                <td>0.000</td>
+            </tr>
+            <tr>
+                <td> 9</td>
+                <td>0.000 </td>
+            </tr>
+        </table>
+        <p>
+            Basically, we want 5, 6, or 7 odd letters in the mix in order to have a decent shot at being invertible mod
+            2. If we are lucky, we may get by with 4 odd letters; with only 3 odd letters we need to be extremely lucky;
+            and for any other number of odd letters, it is simply impossible.
+        </p>
     </div>
     <div id="Morbitdecode">
         <h2 class="ol">

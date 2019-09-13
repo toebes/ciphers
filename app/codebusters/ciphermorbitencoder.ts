@@ -311,7 +311,10 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
         }
         return morseletmap;
     }
-    public updateKnownmap(knownmap: MorbitKnownMap, c: string, morselet: string): void {
+    public updateKnownmap(knownmap: MorbitKnownMap, c: string, morselet: string): string {
+        let result = '';
+        // Take it out of the list to start with.
+        knownmap[c] = [morselet];
         for (let m in knownmap) {
             // Protect against eliminating all possibilities in the map.  While
             // this can leave us with a duplicate entry, it is better than having
@@ -321,10 +324,16 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
                 let index = knownmap[m].indexOf(morselet);
                 if (index > -1) {
                     knownmap[m].splice(index, 1);
+                    if (knownmap[m].length === 1) {
+                        result += ' Eliminating ' + this.normalizeHTML(morselet) +
+                            " as an option for " + m + " means that " + m +
+                            " must be " + this.normalizeHTML(knownmap[m][0]) + ".";
+                        result += this.updateKnownmap(knownmap, m, knownmap[m][0]);
+                    }
                 }
             }
         }
-        knownmap[c] = [morselet];
+        return result;
     }
     /**
      * Generates displayable table of mappings of cipher characters
@@ -593,10 +602,10 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
                     prex[c] = false;
                 }
                 if (fixed !== '' && knownmap[fixed].length === 1) {
-                    this.updateKnownmap(knownmap, fixed, knownmap[fixed][0]);
                     msg += ' That leaves ' + this.normalizeHTML(knownmap[fixed][0]) +
                         " as the only option for " + fixed + ", so we eliminate it from" +
-                        " all the other options."
+                        " all the other options.";
+                    msg += this.updateKnownmap(knownmap, fixed, knownmap[fixed][0]);
                 }
                 if (msg !== '') {
                     eliminated = true;
@@ -883,8 +892,9 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
                     }
                 }
                 if (legal.length === 1) {
-                    this.updateKnownmap(knownmap, c, legal[0]);
-                    let msg = " Which means we know that " + c + " must map to " + legal;
+                    let msg = " Which means we know that " + c +
+                        " must map to " + legal;
+                    msg += this.updateKnownmap(knownmap, c, legal[0]);
                     result.append(this.normalizeHTML(msg));
                     return true;
                 }
@@ -1014,9 +1024,9 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
                     }
                 }
                 if (legal.length === 1) {
-                    this.updateKnownmap(knownmap, c, legal[0]);
                     msg += " Which means we know that " + c +
                         " must map to " + this.normalizeHTML(legal[0]);
+                    msg += this.updateKnownmap(knownmap, c, legal[0]);
                     result.append(msg);
                     return true;
                 }

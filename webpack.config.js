@@ -9,6 +9,7 @@ const package = require('./package.json');
 var toolsVersion = package.version;
 const argv = require('yargs').argv;
 var ZIP = argv.zip || false;
+process.traceDeprecation = true;
 
 module.exports = {
     //    mode: "development", // "production" | "development" | "none"

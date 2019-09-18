@@ -3,7 +3,6 @@ import { IState, ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 import { JTFIncButton } from '../common/jtfIncButton';
 
@@ -20,6 +19,8 @@ interface IRailFenceState extends IState {
  */
 export class CipherRailFenceEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
+    public cipherName = 'Rail Fence';
+
     public guidanceURL: string = 'TestGuidance.html#RailFence';
 
     public validTests: ITestType[] = [ITestType.None,
@@ -72,20 +73,21 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             }
             else {
                 $('#err').text(
-                    'You must specify between 2 and 6 rails.'
+                    'The number of rails must be between 2 and 6.'
                 );
             }
         }
         return changed;
     }
-    public setRailRange(isRailRange: boolean): void {
-        this.state.isRailRange = isRailRange;
+    public toggleRailRange(): void {
+        this.state.isRailRange = !this.state.isRailRange;
     }
     /**
      * Loads up the values for the encoder
      */
     public load(): void {
         this.clearErrors();
+        this.validateQuestion();
         let res = this.build();
         $('#answer')
             .empty()
@@ -103,6 +105,72 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         this.attachHandlers();
     }
 
+    setQuestionText(question: string): void {
+        super.setQuestionText(question);
+        this.validateQuestion();
+        this.attachHandlers();
+    }
+
+    public validateQuestion(): void {
+        let msg = '';
+        let showsample = false;
+        let sampleLink: JQuery<HTMLElement> = undefined;
+        let questionText = this.state.question.toUpperCase();
+        let rails = this.state.rails.toString();
+
+        if (this.state.isRailRange) {
+
+        } else {
+            if (questionText.indexOf(rails) < 0) {
+                msg = "The number (" + rails +") of rails does not appear to be mentioned in the Question Text."
+                showsample = true;
+            }
+        }
+
+        // if (this.state.rails === 'decode') {
+        //     // Look to see if the Hint Digits appear in the Question Text
+        //     let notfound = '';
+        //     if (this.state.hint === undefined || this.state.hint === '') {
+        //         msg = "No Hint Digits provided";
+        //     } else {
+        //         for (let c of this.state.hint) {
+        //             if (questionText.indexOf(c) < 0) {
+        //                 notfound += c;
+        //             }
+        //         }
+        //         if (notfound !== '') {
+        //             if (notfound.length === 1) {
+        //                 msg = "The Hint Digit " + notfound +
+        //                     " doesn't appear to be mentioned in the Question Text.";
+        //             } else {
+        //                 msg = "The Hint Digits " + notfound +
+        //                     " don't appear to be mentioned in the Question Text.";
+        //             }
+        //             showsample = true;
+        //         }
+        //     }
+        // } else {
+        //     // Look to see if the crib appears in the quesiton text
+        //     let crib = this.minimizeString(this.state.crib);
+        //     if (questionText.indexOf(crib) < 0) {
+        //         msg = "The Crib Text " + this.state.crib +
+        //             " doesn't appear to be mentioned in the Question Text.";
+        //         showsample = true;
+        //     }
+        // }
+        if (showsample) {
+            sampleLink = $("<a/>", { class: "sampq" }).
+            text(" Show suggested Question Text");
+        }
+        this.setErrorMsg(msg, 'vq', sampleLink);
+    }
+
+    public genSampleHint(): string {
+        let rails: string = this.state.rails.toString();
+        return rails + ' rails were used to encode it.';
+
+    }
+
     public attachHandlers(): void {
         super.attachHandlers();
         $('#rails')
@@ -117,13 +185,13 @@ export class CipherRailFenceEncoder extends CipherEncoder {
                 }
                 this.advancedir = 0;
             });
-        // $('#isRailRange')
-        // .off('input')
-        // .on('click', e => {
-        //     let isRailRange: boolean = Boolean($(e.target:checked).val());
-        //     this.setRailRange(isRailRange);
-        //     this.updateOutput();
-        // });
+        $('#isRailRange')
+        .off('click')
+        .on('click', e => {
+            //let isRailRange: boolean = Boolean($(e.target).val());
+            this.toggleRailRange();
+            this.updateOutput();
+        });
     }
 
     public setUIDefaults(): void {
@@ -139,6 +207,8 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genTestUsage(result);
+        result.append(this.createQuestionTextDlg());
+
         this.genQuestionFields(result);
         this.genEncodeField(result);
 
@@ -163,10 +233,10 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         // Create a check box to indicate they are not given the number or rails.
         // TODO: unsure of how to get test version and how this will beused.
         // if ('test is div b, state') {
-        // inputbox.append(
-        //     JTFLabeledInput('Variable rails', 'checkbox', 'isRailRange', this.state.isRailRange, 'small-12 medium-4 large-4')
-        // );
-        // result.append(inputbox);
+        inputbox.append(
+            JTFLabeledInput('Variable rails', 'checkbox', 'isRailRange', this.state.isRailRange, 'small-12 medium-4 large-4')
+        );
+        result.append(inputbox);
         // }
         // **********************************************************************************
         return result;
@@ -209,7 +279,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>'/*, { class: 'grid-x' }*/);
 
-        let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
+        let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.cipherString);
 
         // Get the text characters from each rail, concatenated together
         //result.append($('<p/>').text(rfs.getRailFenceEncoding()));
@@ -252,7 +322,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'TOSOLVE' });
 
-        let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
+        let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.cipherString);
 
         // Get the text characters from each rail, concatenated together
         //result.append($('<p/>').text(rfs.getRailFenceEncoding()));
@@ -297,18 +367,39 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         if (this.state.cipherString.length === 0) {
             return result;
         }
+        result.append($('<h3/>').text('How to solve'));
 
-        let solutionText: string = 'This is how you solve it for ' + this.state.rails + ' rails.';
+        let rails = this.state.rails;
+
+        let rfs: RailFenceSolver = new RailFenceSolver(rails, this.state.cipherString);
+
         if (this.state.isRailRange) {
-            solutionText = 'This is how you solve it for a range of rails...';
+            let solutionText = 'To solve this problem for a range of rails, apply the rail fence to decode the first ' +
+                'several letters of the cipher text for the possible rails.  Here, we will decode all the letters, ' +
+                'starting with 2 rails.';
+
+            let startRail: number = 2;
+            let endRail: number = 6;
+
+            let trials = $('<div/>');
+            for (let rail = startRail; rail <= endRail; rail++) {
+                trials.append($('<h5/>').text("Try " + rail.toString() + " rails..."));
+                let testRfs = new RailFenceSolver(rail, rfs.getRailFenceEncoding());
+                trials.append(rfs.swizzle(rail));
+//                trials.append(testRfs.getRailFenceT2(rfs.getRailFenceEncoding(), rail));
+                if (rail === rails ) {
+                    break;
+                }
+            }
+            let  found = $('<p/>').text('This looks promising, so we conclude ' + rails + ' rails will decode the message.');
+
+            result.append(solutionText, trials, found);
+
+            // we we conclude there are x rails
         }
 
-        result.append($('<h3/>').text('How to solve'));
-        // TODO: Add more solutioning text...
-        result.append($('<p/>').text(solutionText));
-
-        let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
-        let rails = this.state.rails;
+        let solutionText: string = 'This is how you solve it for ' + this.state.rails + ' rails.';
+        result.append($('<h4/>').text(solutionText));
 
         let solutionIntro = $('<p/>');
 
@@ -348,7 +439,6 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
             let firstSpacesCount = (2 * rails) - ((2 * (r - 1)) + 3);  //-5, -7, -9;
             let secondSpacesCount = rfs.getCharsPerZigzag() - 2 - firstSpacesCount;
-
 
             solutionIntro.append($('<h5/>').text('Rail '.concat(r.toString())));
             solutionIntro.append('Copy the next ', $('<code/>').append(rfs.getCharactersInRail(r).toString()),
@@ -413,16 +503,20 @@ class RailFenceSolver {
     private readonly countZigzag: number;
     // Number of characters left over in this solution
     private readonly charsLeftover: number;
+    // Solution, but with different number of rails.
+    private readonly swizzledSolution: string[][];
+
 
     /**
-     * Creates a Rail Fence solver.  Every character in the passed in text will
+     * Creates a Rail Fence solver.  Every character in the passed in inputText will
      * be placed in a unique position in the array.
      * @param rails The number of rails in the rail fence
-     * @param text The text to be encoded
+     * @param inputText The inputText to be encoded
      */
-    constructor (rails: number, text: string) {
+    constructor (rails: number, inputText: string) {
 
         this.railCount = rails;
+        let text = sanitizeString(inputText);
         this.textLength = text.length;
 
         this.charsPerZigzag = 2 * (this.railCount - 1);
@@ -432,6 +526,7 @@ class RailFenceSolver {
         this.charactersLeftover = [];
 
         this.solution = [];
+        this.swizzledSolution = [];
 
         // Loop over the rails to place characters
         for (let railIndex: number = 1; railIndex <= this.railCount; railIndex++) {
@@ -453,7 +548,7 @@ class RailFenceSolver {
                 let colArrayIndex = columnIndex - 1;
 
                 // Test if a character should be placed in the array location
-                if (this.placeCharacter(railIndex, colArrayIndex)) {
+                if (this.placeCharacter(railIndex, colArrayIndex, this.railCount, this.charsPerZigzag)) {
                     this.solution[railArrayIndex][colArrayIndex] = text.charAt(colArrayIndex);
                     // Update counts for complete zigzag or leftovers -- this is used in solution table.
                     if (columnIndex <= this.getCharsPerZigzag() * this.getCountZigzag()) {
@@ -468,6 +563,101 @@ class RailFenceSolver {
                 }
             }
         }
+    }
+
+    public swizzle(rails: number): JQuery<HTMLElement> {
+
+        let swizzledCharsPerZigzag = 2 * (rails - 1);
+        let swizzledCharsLeftover = this.textLength % swizzledCharsPerZigzag;
+
+        let cipherText = this.getRailFenceEncoding();
+
+        let nextCharIndex: number = 0;
+        for (let railIndex: number = 1; railIndex <= rails; railIndex++) {
+            let railArrayIndex = railIndex - 1;
+            this.swizzledSolution[railArrayIndex] = [];
+            for (let columnIndex: number = 1; columnIndex <= this.textLength; columnIndex++) {
+                let colArrayIndex = columnIndex - 1;
+                if (this.placeCharacter(railIndex, colArrayIndex, rails, swizzledCharsPerZigzag)) {
+                    this.swizzledSolution[railArrayIndex][colArrayIndex] = this.getRailFenceEncoding().charAt(nextCharIndex);
+                    nextCharIndex++;
+                }
+                else {
+                    this.swizzledSolution[railArrayIndex][colArrayIndex] = '';
+                }
+            }
+        }
+
+        let tableClass: string = 'railfence-lg';
+        if (this.textLength > 90) {
+            tableClass = 'railfence-sm';
+        }
+        else if (this.textLength > 45) {
+            tableClass = 'railfence-md';
+        }
+
+        let returnValue = $('<div/>');
+        // Counter for a partial zigzag.
+        let leftover: number = 1;
+        if ((swizzledCharsLeftover === 0)) {
+            leftover = 0;
+        }
+
+        let solutionTable = $('<table/>', { class: tableClass }).attr('width', '15px');
+        let tableBody = $('<tbody/>');
+
+        for (let i: number = 1; i <= rails; i++) {
+            let tableRow = $('<tr/>');
+
+           let data: string = '';
+            for (let col: number = 0; col < this.getTextLength(); col++) {
+                // Get all the characters from each zigzag. for this row and put it in a table cell.
+                if ((col % swizzledCharsLeftover) === 0) {
+                    // start a new string...
+                    if (data.length > 0) {
+                        tableRow.append($('<td/>', { class: 'rail-data' }).text(data));
+                    }
+                    let char: string = this.swizzledSolution[i - 1][col];
+                    if (char.length === 0) {
+                        char = '.';
+                    }
+                    data = char;
+                }
+                else {
+                    let char: string = this.swizzledSolution[i - 1][col];
+                    if (char.length === 0) {
+                        char = '.';
+                    }
+                    data = data.concat(char);
+                }
+            }
+            // Finish the partial...
+            if (data.length > 0) {
+                tableRow.append($('<td/>', { class: 'rail-data' }).text(data));
+            }
+            tableBody.append(tableRow);
+        }
+        solutionTable.append(tableBody);
+
+        returnValue.append(solutionTable);
+
+        // Get the solution for these rails
+        let decoded: string = '';
+        for (let i = 0; i < this.textLength; i++) {
+            for (let j = 0; j < rails; j++) {
+                if (this.swizzledSolution[j][i] !== '.') {
+                    decoded = decoded.concat(this.swizzledSolution[j][i]);
+                }
+            }
+        }
+
+        returnValue.append($('<p/>').text('Using ' + rails.toString() +
+            ' rails, the cipher text decodes to: '));
+        returnValue.append($('<p/>', { class: 'TOANSWER' }).text(decoded))
+
+        return returnValue;
+
+
     }
 
     public getTextLength(): number {
@@ -546,7 +736,6 @@ class RailFenceSolver {
 
         return returnValue;
     }
-
 
     public getRailFenceSolution(): JQuery<HTMLElement> {
         let tableClass: string = 'railfence-lg';
@@ -631,20 +820,20 @@ class RailFenceSolver {
      * @param rail of the railfence to test
      * @param column of the railfence to test
      */
-    private placeCharacter(rail: number, column: number): boolean {
+    private placeCharacter(rail: number, column: number, railCount: number, charsPerZigZag: number): boolean {
 
         let returnValue: boolean = false;
-        let zigzagPosition = (column % this.charsPerZigzag) + 1;
+        let zigzagPosition = (column % charsPerZigZag) + 1;
 
-        if (zigzagPosition <= (this.charsPerZigzag / 2) + 1) {
-            // this is the down slope, includeing the very top and the bottom
+        if (zigzagPosition <= (charsPerZigZag / 2) + 1) {
+            // this is the down slope, including the very top and the bottom
             if (zigzagPosition === rail) {
                 returnValue = true;
             }
         }
         else {
             // this is the up slope
-            if ((zigzagPosition - ((zigzagPosition - this.railCount) * 2)) === rail) {
+            if ((zigzagPosition - ((zigzagPosition - railCount) * 2)) === rail) {
                 returnValue = true;
             }
         }

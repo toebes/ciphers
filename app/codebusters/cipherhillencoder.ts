@@ -10,6 +10,9 @@ import {
     isCoPrime,
     mod26,
     mod26Inverse2x2,
+    mod26InverseMatrix,
+    determinant3x3,
+    mod26Inverse3x3,
     modInverse26,
     multarray,
 } from '../common/mathsupport';
@@ -128,28 +131,22 @@ export class CipherHillEncoder extends CipherEncoder {
         } else {
             let encoded = this.computeHill(vals);
             if (this.state.operation === 'decode') {
-                // For decode, we only allow the 2x2 matrix
-                if (vals.length !== 2) {
-                    result.append(
-                        $('<h3>').text('Decode only supported for 2x2 matrix')
-                    );
-                } else {
-                    result.append(this.genInverseFormula(vals));
-                    toencode += this.repeatStr(
-                        this.padval,
-                        encoded.length - toencode.length
-                    );
-                    result.append(
-                        $('<div/>', {
-                            class: 'TOSOLVE',
-                        }).text(encoded)
-                    );
-                    result.append(
-                        $('<div/>', {
-                            class: 'TOANSWER',
-                        }).text(toencode)
-                    );
-                }
+                // For decode, we allow the 2x2 or 3x3 matrix
+                result.append(this.genInverseFormula(vals));
+                toencode += this.repeatStr(
+                    this.padval,
+                    encoded.length - toencode.length
+                );
+                result.append(
+                    $('<div/>', {
+                        class: 'TOSOLVE',
+                    }).text(encoded)
+                );
+                result.append(
+                    $('<div/>', {
+                        class: 'TOANSWER',
+                    }).text(toencode)
+                );
             } else {
                 result.append(
                     $('<div/>', {
@@ -226,34 +223,19 @@ export class CipherHillEncoder extends CipherEncoder {
 
         result.append($('<h3/>').text('How to solve'));
         if (this.state.operation === 'compute') {
-            // For compute inverse, we only allow the 2x2 matrix
-            if (vals.length !== 2) {
-                result.append(
-                    $('<h3>').text(
-                        'Compute Decryption only supported for 2x2 matrix'
-                    )
-                );
-            } else {
-                result.append(this.genInverseMath(vals));
-            }
+            result.append(this.genInverseMath(vals));
         } else {
             let encoded = this.computeHill(vals);
             if (this.state.operation === 'decode') {
-                // For decode, we only allow the 2x2 matrix
-                if (vals.length !== 2) {
-                    result.append(
-                        $('<h3>').text('Decode only supported for 2x2 matrix')
-                    );
-                } else {
-                    result.append(this.genInverseMath(vals));
-                    result.append(
-                        $('<p/>').text(
-                            'With the inverse matrix we can now decode'
-                        )
-                    );
-                    let modinv = mod26Inverse2x2(vals);
-                    result.append(this.genEncodeMath(modinv, encoded));
-                }
+                // For decode, we allow the 2x2 or 3x3 matrix
+                result.append(this.genInverseMath(vals));
+                result.append(
+                    $('<p/>').text(
+                        'With the inverse matrix we can now decode'
+                    )
+                );
+                let modinv = mod26InverseMatrix(vals);
+                result.append(this.genEncodeMath(modinv, encoded));
             } else {
                 result.append(this.genEncodeMath(vals, toencode));
             }
@@ -287,14 +269,6 @@ export class CipherHillEncoder extends CipherEncoder {
             $('#err').text(
                 'Invalid key.  It must be either 4 or 9 characters long'
             );
-            return undefined;
-        }
-        if (key.length !== 4 && this.state.operation === 'decode') {
-            $('#err').text('Decode operation only supports 2x2 matrix');
-            return undefined;
-        }
-        if (key.length !== 4 && this.state.operation === 'compute') {
-            $('#err').text('Compute Decryption only supports 2x2 matrix');
             return undefined;
         }
         // Figure out how big our array for encoding is
@@ -334,18 +308,40 @@ export class CipherHillEncoder extends CipherEncoder {
         return vals;
     }
     /**
-     * Show the inverse matrix for a 2x2 matrix
+     * Show the inverse matrix for a 2x2 or 3x3 matrix
      */
     public genInverseFormula(vals: number[][]): JQuery<HTMLElement> {
-        let modinv = mod26Inverse2x2(vals);
+        let modinv = [];
+        if (vals[0].length === 2) {
+            modinv = mod26Inverse2x2(vals);
+        }
+        else if (vals[0].length === 3) {
+            modinv = mod26Inverse3x3(vals);
+        }
         let kmath =
             this.getKmathMatrix(vals) + '^{-1}=' + this.getKmathMatrix(modinv);
         return renderMath(kmath);
     }
+
+    /**
+     * Wrapper for generating inverse math for 2x2 or 3x3 matrices.
+     * @param vals
+     */
+    public genInverseMath(vals: number[][]): JQuery<HTMLElement> {
+        if (vals[0].length === 2) {
+            return this.genInverseMath2x2(vals);
+        }
+        else if (vals[0].length === 3) {
+            return this.genInverseMath3x3(vals);
+        }
+        else {
+            return undefined;
+        }
+    }
     /**
      * Show the math for generating the inverse
      */
-    public genInverseMath(vals: number[][]): JQuery<HTMLElement> {
+    public genInverseMath2x2(vals: number[][]): JQuery<HTMLElement> {
         // let result: number[][] = []
         let a = vals[0][0];
         let b = vals[0][1];
@@ -483,6 +479,199 @@ export class CipherHillEncoder extends CipherEncoder {
         // this.getKmathMatrix(aResultMod26) + '\\text{(mod 26)}' +
         // kmathEquiv +
         // this.getKmathMatrixChars(aResultMod26)
+        return result;
+    }
+
+    /**
+     * Show the math for generating the inverse of a 3x3.  From
+     * https://en.wikipedia.org/wiki/Invertible_matrix under the
+     * section 'Inversion of 3 x 3 matrices'
+     * @param vals
+     */
+    public genInverseMath3x3(vals: number[][]): JQuery<HTMLElement> {
+        let a = vals[0][0];
+        let b = vals[0][1];
+        let c = vals[0][2];
+        let d = vals[1][0];
+        let e = vals[1][1];
+        let f = vals[1][2];
+        let g = vals[2][0];
+        let h = vals[2][1];
+        let i = vals[2][2];
+        let A = e*i - f*h;
+        let B = -(d*i - f*g);
+        let C = d*h - e*g;
+        let D = -(b*i - c*h);
+        let E = a*i - c*g;
+        let F = -(a*h - b*g);
+        let G = b*f - c*e;
+        let H = -(a*f - c*d);
+        let I = a*e - b*d;
+
+        let modinv = mod26Inverse3x3(vals);
+        let determinant = determinant3x3(vals);
+        let determinantMod26 = mod26(determinant);
+        if (typeof modInverse26[determinantMod26] === undefined) {
+            return $('<p/>').text('Matrix invalid - not invertable');
+        }
+        let determinantInverse = modInverse26[determinantMod26];
+        
+        // Since we use this matrix a few times, cache creating it
+        let matrixIntermediate = this.getKmathMatrix([[A, B, C], [D, E, F], [G, H, I]]);
+        // let matrixTransposed = this.getKmathMatrix([[mod26(A), mod26(D), mod26(G)],
+        //                                                    [mod26(B), mod26(E), mod26(H)],
+        //                                                    [mod26(C), mod26(F), mod26(I)]]);
+        let matrixTransposed = this.getKmathMatrix([[A, D, G],
+                                                           [B, E, H],
+                                                           [C, F, I]]);
+
+        let result = $('<div/>');
+        result.append(
+            $('<p/>').text(
+                'The inverse of the matrix can be computed using the formula:'
+            )
+        );
+        let equation =
+            '{M^{{-1}}=\\begin{pmatrix}a&b&c\\\\d&e&f\\\\g&h&i\\end{pmatrix}}^{{-1}}=det(M)^{{-1}}\\begin{pmatrix}A&B&C\\\\D&E&F\\\\G&H&I\\end{pmatrix}^{{T}}=det(M)^{{-1}}\\begin{pmatrix}A&D&G\\\\B&E&H\\\\C&F&I\\end{pmatrix}';//     {\\begin{pmatrix}d&-b\\\\-c&a\\end{pmatrix}}';
+        result.append(renderMath(equation));
+        let p = $('<p/>').text('Where:');
+        result.append(p);
+
+        p = $('<p/>');
+        equation = 'A=(ei - fh), D=-(bi - ch), G=(bf - ce),';
+        p.append(renderMath(equation));
+        result.append(p);
+
+        p = $('<p/>');
+        equation = 'B = -(di - fg), E = (ai - cg), H = -(af - cd),';
+        p.append(renderMath(equation));
+        result.append(p);
+
+        p = $('<p/>');
+        equation = 'C = (dh - eg), F = -(ah - bg), I = (ae - bd),';
+        p.append(renderMath(equation));
+        result.append(p);
+
+        p = $('<p/>').text('and,');
+        result.append(p);
+
+        p = $('<p/>');
+        equation = 'det(M) = aA + bB + cC';
+        p.append(renderMath(equation));
+        result.append(p);
+
+        p = $('<p/>').text('In this case we will compute ');
+        equation = 'det(M)^{{-1}}';
+        p.append(renderMath(equation)).append(' Using ');
+        p.append(
+            $('<a/>', {
+                href:
+                    'https://en.wikipedia.org/wiki/Invertible_matrix',
+            }).text('modular multiplicative inverse')
+        );
+        p.append(' math.');
+        result.append(p);
+
+        result.append(
+            $('<p/>').text(
+                'We start by finding the modulo 26 value of the determinant:'
+            )
+        );
+        equation =
+            'det(M) = (' +
+            a +
+            kmathMult +
+            A +
+            '+' +
+            b +
+            kmathMult +
+            B +
+            '+' +
+            c +
+            kmathMult +
+            C +
+            ')\\mod{26}=' +
+            determinant +
+            '\\mod{26}=' +
+            determinantMod26;
+        result.append(renderMath(equation));
+        p = $('<p/>').text(
+            'Looking up ' +
+            determinantMod26 +
+            ' in the table supplied with the test (or by computing it with the '
+        );
+        p.append(
+            $('<a/>', {
+                href:
+                    'https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm',
+            }).text('Extended Euclidean algorithm')
+        );
+        p.append(
+            ') we find that the inverse is ' +
+            determinantInverse +
+            ' which we substitute into the formula to compute the matrix:'
+        );
+        result.append(p);
+
+
+        equation =
+            this.getKmathMatrix(vals) +
+            '^{-1}' +
+            kmathEquiv +
+            determinantInverse +
+            matrixIntermediate +
+            '^{{T}}\\mod{26}' +
+            kmathEquiv +
+            determinantInverse +
+            matrixTransposed +
+            '\\mod{26}';
+        result.append(renderMath(equation));
+
+        result.append(
+            $('<p/>').text(
+                'Completing the calculation, we get:'
+            )
+        );
+        equation = this.getKmathMatrix(
+            [[determinantInverse + kmathMult + A,
+                     determinantInverse + kmathMult + D,
+                     determinantInverse + kmathMult + G],
+                    [determinantInverse + kmathMult + b,
+                     determinantInverse + kmathMult + E,
+                     determinantInverse + kmathMult + H],
+                    [determinantInverse + kmathMult + C,
+                     determinantInverse + kmathMult + F,
+                     determinantInverse + kmathMult + I]]) +
+            '\\mod{26}' +
+            kmathEquiv +
+            this.getKmathMatrix(
+                [[determinantInverse * A,
+                         determinantInverse * D,
+                         determinantInverse * G],
+                        [determinantInverse * B,
+                         determinantInverse * E,
+                         determinantInverse * H],
+                        [determinantInverse * C,
+                         determinantInverse * F,
+                         determinantInverse * I]]
+            ) +
+            '\\mod{26}' +
+            kmathEquiv +
+            this.getKmathMatrix(
+                [[determinantInverse * A + '\\mod{26}',
+                         determinantInverse * D + '\\mod{26}',
+                         determinantInverse * G + '\\mod{26}'],
+                        [determinantInverse * B + '\\mod{26}',
+                         determinantInverse * E + '\\mod{26}',
+                         determinantInverse * H + '\\mod{26}'],
+                        [determinantInverse * C + '\\mod{26}',
+                         determinantInverse * F + '\\mod{26}',
+                         determinantInverse * I + '\\mod{26}']]
+            ) +
+            kmathEquiv +
+            this.getKmathMatrix(modinv);
+        result.append(renderMath(equation));
+
         return result;
     }
 
@@ -731,19 +920,10 @@ export class CipherHillEncoder extends CipherEncoder {
 
         result.append(this.genQuestionMath(vals));
         if (this.state.operation === 'compute') {
-            // For compute Decryption, we only allow the 2x2 matrix
-            if (vals.length !== 2) {
-                result.append(
-                    $('<h3>').text(
-                        'Compute Decryption only supported for 2x2 matrix'
-                    )
-                );
-            } else {
-                let modinv = mod26Inverse2x2(vals);
-                result.append(
-                    $('<div/>').append(this.genAnswerMathMatrix(modinv))
-                );
-            }
+           let modinv = mod26InverseMatrix(vals);
+            result.append(
+                $('<div/>').append(this.genAnswerMathMatrix(modinv))
+            );
         } else {
             let encoded = this.computeHill(vals);
             let plaintext = this.minimizeString(this.state.cipherString);

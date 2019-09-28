@@ -68,12 +68,28 @@ export const modInverse26 = {
     23: 17,
     25: 25,
 };
+
+/**
+ * Wrapper for 2x2 and 3x3 matrix inverse methods.
+ * @param matrix
+ */
+export function mod26InverseMatrix(matrix: number[][]): number[][] {
+    if (matrix[0].length === 2) {
+        return this.mod26Inverse2x2(matrix);
+    }
+    else if (matrix[0].length === 3) {
+        return this.mod26Inverse3x3(matrix);
+    }
+    else {
+        return undefined;
+    }
+
+}
 /**
  * Compute the modular 26 inverse of a matrix
  * @param matrix 2x2 matrix of numbers
  */
 export function mod26Inverse2x2(matrix: number[][]): number[][] {
-    let result: number[][] = [];
     let a = matrix[0][0];
     let b = matrix[0][1];
     let c = matrix[1][0];
@@ -88,7 +104,64 @@ export function mod26Inverse2x2(matrix: number[][]): number[][] {
         [mod26(d * inv), mod26(-b * inv)],
         [mod26(-c * inv), mod26(a * inv)],
     ];
-    return result;
+}
+
+/**
+ * Compute the determinant of a 3x3 matrix.
+ * Use https://en.wikipedia.org/wiki/Invertible_matrix under the
+ * 'Inversion of 3x3 matrices' section.
+ * @param matrix
+ */
+export function determinant3x3(matrix: number[][]): number {
+    let a = matrix[0][0];
+    let b = matrix[0][1];
+    let c = matrix[0][2];
+    let d = matrix[1][0];
+    let e = matrix[1][1];
+    let f = matrix[1][2];
+    let g = matrix[2][0];
+    let h = matrix[2][1];
+    let i = matrix[2][2];
+
+    return a * (e * i - h * f) - b * (d * i - g * f) + c * (d * h - g * e);
+}
+/**
+ * Compute the modular 26 inverse of a 3x3 matrix
+ * @param matrix 3x3 matrix of numbers
+ */
+export function mod26Inverse3x3(matrix: number[][]): number[][] {
+    let a = matrix[0][0];
+    let b = matrix[0][1];
+    let c = matrix[0][2];
+    let d = matrix[1][0];
+    let e = matrix[1][1];
+    let f = matrix[1][2];
+    let g = matrix[2][0];
+    let h = matrix[2][1];
+    let i = matrix[2][2];
+
+    let A = e * i - f * h;
+    let B = -(d * i - f * g);
+    let C = d * h - e * g;
+    let D = -(b * i - c * h);
+    let E = a * i - c * g;
+    let F = -(a * h - b * g);
+    let G = b * f - c * e;
+    let H = -(a * f - c * d);
+    let I = a * e - b * d;
+
+    let determinant = mod26(determinant3x3(matrix));
+    if (!modInverse26.hasOwnProperty(determinant)) {
+        return [[]];
+    }
+    let inverseDeterminant = modInverse26[mod26(determinant)];
+
+    return (
+        [[mod26(inverseDeterminant * A), mod26(inverseDeterminant * D), mod26(inverseDeterminant * G)],
+         [mod26(inverseDeterminant * B), mod26(inverseDeterminant * E), mod26(inverseDeterminant * H)],
+         [mod26(inverseDeterminant * C), mod26(inverseDeterminant * F), mod26(inverseDeterminant * I)]]
+    );
+
 }
 /**
  * I would really like to use: http://www.javascripter.net/faq/primefactors.txt

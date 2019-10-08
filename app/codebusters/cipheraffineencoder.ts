@@ -86,7 +86,8 @@ export class CipherAffineEncoder extends CipherEncoder {
         let result = super.CheckAppropriate(testType);
         if (result === "" && testType !== undefined) {
 
-            if (testType !== ITestType.cregional &&
+            if (testType !== '' &&
+                testType !== ITestType.cregional &&
                 testType !== ITestType.cstate &&
                 this.state.operation === 'encode') {
                 result = "Encode problems are not allowed on " +

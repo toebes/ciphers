@@ -2080,7 +2080,6 @@ export class CipherHandler {
                     result.push([encodeline, decodeline]);
                     encodeline = '';
                     decodeline = '';
-                    lastsplit = -1;
                 } else {
                     let encodepart = encodeline.substr(0, lastsplit);
                     let decodepart = decodeline.substr(0, lastsplit);
@@ -2088,6 +2087,7 @@ export class CipherHandler {
                     decodeline = decodeline.substr(lastsplit);
                     result.push([encodepart, decodepart]);
                 }
+                lastsplit = -1;
             }
         }
         // And put together any residual parts

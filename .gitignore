@@ -14,3 +14,4 @@ pom.xml
 CipherTools*.zip
 quotes*.json
 tests/*
+node_modules

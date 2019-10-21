@@ -399,6 +399,7 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
      */
     public genKnownMapping(strings: string[][], knownmap: MorbitKnownMap): string[][] {
         let working: string[][] = [];
+        let lastc = '';
         for (let ctset of strings) {
             let morse = "";
             let plaintext = "";
@@ -418,7 +419,6 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
             // We have built up the morse string, now convert it to the proper
             // characters by breaking on the Xs
             let morsepart = '';
-            let lastc = '';
             for (let c of morse) {
                 if (c === 'X') {
                     // XX generates 
@@ -993,13 +993,13 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
         let mincipher = this.minimizeString(this.state.cipherString);
         for (let c in knownmap) {
             if (knownmap[c].length > 1) {
-                let testmap = cloneObject(knownmap) as MorbitKnownMap;
                 let savemap = knownmap[c];
                 let legal: string[] = [];
                 let msg = "Since " + c + " has several options " +
                     " we simply try them and look at the first word or two" +
                     " to see if it makes sense."
                 for (let mc of savemap) {
+                    let testmap = cloneObject(knownmap) as MorbitKnownMap;
                     this.updateKnownmap(testmap, c, mc);
 
                     let plaintext = this.applyKnownmap(testmap, working);

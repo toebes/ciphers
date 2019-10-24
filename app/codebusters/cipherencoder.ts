@@ -365,7 +365,8 @@ export class CipherEncoder extends CipherHandler {
             this.state.alphabetSource !== '' &&
             this.state.alphabetSource !== undefined &&
             this.state.alphabetDest !== '' &&
-            this.state.alphabetDest !== undefined
+            this.state.alphabetDest !== undefined &&
+            this.state.alphabetDest.length === this.state.alphabetSource.length
         ) {
             this.setReplacement(
                 this.state.alphabetSource,
@@ -516,10 +517,18 @@ export class CipherEncoder extends CipherHandler {
                     unasigned.substr(0, pos) + unasigned.substr(pos + 1);
             }
         }
-        repl =
-            unasigned.substr(unasigned.length - offset) +
-            repl +
-            unasigned.substr(0, unasigned.length - offset);
+        // See if the replacement string happens to wrap around.
+        if (repl.length + offset > alphabet.length) {
+            let off = alphabet.length - offset;
+            repl = repl.substr(off) +
+                unasigned +
+                repl.substr(0, off);
+        } else {
+            repl =
+                unasigned.substr(unasigned.length - offset) +
+                repl +
+                unasigned.substr(0, unasigned.length - offset);
+        }
         return repl;
     }
     /**

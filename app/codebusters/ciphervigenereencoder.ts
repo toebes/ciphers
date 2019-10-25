@@ -49,7 +49,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         cipherString: '',
         /** The current string we are looking for */
         findString: '',
-        operation: 'encode',
+        operation: 'decode',
         blocksize: 0,
     };
     public state: IVigenereState = cloneObject(

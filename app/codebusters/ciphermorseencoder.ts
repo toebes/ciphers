@@ -152,13 +152,14 @@ export class CipherMorseEncoder extends CipherEncoder {
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, 60);
+        let strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
 
         for (let strset of strings) {
+            let ctext = strset[ctindex].replace(/ /g, "&nbsp;&nbsp;");
             result.append(
                 $('<div/>', {
                     class: 'TOSOLVEQ',
-                }).text(strset[ctindex])
+                }).html(ctext)
                     .append($("<br/><br/>"))
             );
         }

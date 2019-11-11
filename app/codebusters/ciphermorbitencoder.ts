@@ -42,6 +42,7 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
         this.defaultstate
     ) as IEncoderState;
     public encodecharset = "123456789";
+    public maxEncodeWidth: number = 50;
 
     public setUIDefaults(): void {
         super.setUIDefaults();

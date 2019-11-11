@@ -531,6 +531,34 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'samples.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'samples.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestManage',
+            title: 'Science Olympiad Code Busters Samples',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'versions.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'versions.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestManage',
+            title: 'Science Olympiad Code Busters Version History',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'HowTo.html',
             template: path.join(
                 __dirname,

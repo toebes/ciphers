@@ -861,6 +861,109 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
         return "";
     }
     /**
+     * Find span of at least four knowns dots/dashes next to an unknown which
+     * has at least one X in it and eliminate all the non-X options from that
+     * choice
+     * @param result Place to output any messages
+     * @param knownmap Map of current cipher strings
+     * @param working Current mapping strings
+     * @returns Boolean indicating that any were found
+     */
+    public eliminateNonXInSpan(result: JQuery<HTMLElement>,
+        knownmap: MorbitKnownMap,
+        working: string[][]): boolean {
+        let prefix = "Looking for spans of at least four " + this.normalizeHTML("Os and -s") +
+            " next to an unknown, ";
+        let lastunknown = "";
+        let morse = "";
+
+        for (let strset of working) {
+            for (let c of strset[ctindex]) {
+                if (c === ' ') {
+                    continue;
+                }
+                let morsec = knownmap[c];
+                if (morsec.length == 1) {
+                    morse += morsec[0];
+                    let parts = morse.split("X");
+                    let check = parts[0];
+                    morse = parts[parts.length - 1];
+                    if (check.length > 3 && lastunknown !== "") {
+                        // We have at least 4 morse characters after an unknown
+                        // See if we can eliminate anything from it.
+                        let oldset = knownmap[lastunknown];
+                        // We have at least 4 morse characters, so the previous
+                        // unknown MUST have an X in it
+                        let legal: string[] = [];
+                        for (let choice of oldset) {
+                            if (choice.indexOf("X") >= 0) {
+                                legal.push(choice);
+                            }
+                        }
+                        if (legal.length === 0) {
+                            // Something is definitely wrong.. we have to have at least
+                            // one X in the set to be able to match it.  However, we can't
+                            // stop for it.  Just log a message and continue on
+                            console.log('No legal choices for previous ' + lastunknown + ' which contain an X');
+                        } else if (legal.length === 1) {
+                            // There is only one answer, so we can update the map with it
+                            let msg = "We see the morse sequence " + this.normalizeHTML(check) +
+                                " preceeded by the unknown " + lastunknown + " which can only map to " + this.normalizeHTML(legal[0]) +
+                                " since that is the only option which has an " + this.normalizeHTML("X") + " in it.";
+                            result.append(prefix + msg);
+                            this.updateKnownmap(knownmap, check, legal[0]);
+                            return true;
+                        } else if (legal.length !== morsec.length) {
+                            let msg = "We see the morse sequence " + this.normalizeHTML(check) +
+                                " preceeded by the unknown " + lastunknown +
+                                " for which we can eliminate the options which do not have an " + this.normalizeHTML("X") + " in them.";
+                            knownmap[check] = legal;
+                            return true;
+                        }
+                    }
+                    if (parts.length > 1) {
+                        lastunknown = "";
+                    }
+                } else {
+                    if (morse.length > 3) {
+                        // We have at least 4 morse characters, so the current
+                        // unknown MUST have an X in it
+                        let legal: string[] = [];
+                        for (let choice of morsec) {
+                            if (choice.indexOf("X") >= 0) {
+                                legal.push(choice);
+                            }
+                        }
+                        if (legal.length === 0) {
+                            // Something is definitely wrong.. we have to have at least
+                            // one X in the set to be able to match it.  However, we can't
+                            // stop for it.  Just log a message and continue on
+                            console.log('No legal choices for ' + c + ' which contain an X');
+                        } else if (legal.length === 1) {
+                            // There is only one answer, so we can update the map with it
+                            let msg = "We see the morse sequence " + this.normalizeHTML(morse) +
+                                " followed by the unknown " + c + " which can only map to " + this.normalizeHTML(legal[0]) +
+                                " since that is the only option which has an " + this.normalizeHTML("X") + " in it.";
+                            result.append(prefix + msg);
+                            this.updateKnownmap(knownmap, c, legal[0]);
+                            return true;
+                        } else if (legal.length !== morsec.length) {
+                            let msg = "We see the morse sequence " + this.normalizeHTML(morse) +
+                                " followed by the unknown " + c +
+                                " for which we can eliminate the options which do not have an " + this.normalizeHTML("X") + " in them.";
+                            knownmap[c] = legal;
+                            return true;
+                        }
+                    }
+                    morse = "";
+                    lastunknown = c;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Find span of characters between Xs with a single unknown.
      * Try all choices for the unknown and eliminate any illegal options.
      * @param result Place to output any messages
@@ -1099,6 +1202,8 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
                     // We found at least one doubled letter that can't be XX
                 } else if (this.eliminateMissingXInSpan(result, knownmap, working)) {
                     // We found an unknown that had to have an X
+                } else if (this.eliminateNonXInSpan(result, knownmap, working)) {
+                    // We found an unknown next to 4 non unknonwns.
                 } else if (this.eliminateInvalidInSpan(result, knownmap, working)) {
                     // We eliminated a invalid choices in a span
                 } else if (this.eliminateInvalidMorse(result, knownmap, working)) {

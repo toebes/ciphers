@@ -216,7 +216,7 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
         let lastsplit = -1;
         let result: string[][] = [];
         let extra = "";
-        let spaceextra = "XX";
+        let spaceextra = "";
         let decodeextra = "";
         let msg = '';
 

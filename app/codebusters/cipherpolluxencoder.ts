@@ -192,6 +192,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         let encoded = '';
         let failed = false;
         let msg = '';
+        let spaceextra = "";
         // Build out a mapping of the replacement characters to their morselet
         // value so we can figure out if we can reuse it.
         let morseletmap: StringMap = this.buildMorseletMap();
@@ -245,7 +246,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
             }
             // Spaces between words use two separator characters
             if (!this.isValidChar(t)) {
-                extra = "XX";
+                extra = spaceextra;
             } else if (typeof tomorse[t] !== 'undefined') {
                 let morselet = tomorse[t];
                 // Spaces between letters use one separator character
@@ -271,6 +272,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                 // We have finished the letter, so next we will continue with
                 // an X
                 extra = "X";
+                spaceextra = "XX";
             }
             // See if we have to split the line now
             if (encodeline.length >= maxEncodeWidth) {

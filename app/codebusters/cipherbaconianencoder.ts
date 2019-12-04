@@ -573,7 +573,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     }
     private getSlotWord(slotpos: number): string[] {
         let slotword = this.state.words[slotpos];
-        if (slotword === undefined) {
+        if (slotword === undefined || slotword === null) {
             slotword = '';
         }
 

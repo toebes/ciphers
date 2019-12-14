@@ -834,6 +834,19 @@ export class CipherHillEncoder extends CipherEncoder {
             this.getKmathMatrixChars(vals) +
             kmathEquiv +
             this.getKmathMatrix(vals);
+
+        // Provide the decryption matrix if the question is
+        // decode a message using a 3x3 matrix.
+        if (this.state.operation === 'decode' &&
+            this.state.keyword.length === 9) {
+            let decrypt3x3 = '\\qquad Decode ' +
+                this.getKmathMatrixChars(vals) + '^{{-1}}' +
+                kmathEquiv +
+                this.getKmathMatrix(mod26InverseMatrix(vals))
+
+            kmath += decrypt3x3
+        }
+
         return renderMath(kmath);
     }
     public genAnswerMathMatrix(matrix: any[][]): JQuery<HTMLElement> {
@@ -972,12 +985,12 @@ export class CipherHillEncoder extends CipherEncoder {
             return result;
         }
 
-        let outMatrix: string[][] = this.makeMatrixFromString(
-            this.repeatStr(' ', this.state.keyword.length)
-        );
         result.append(this.genQuestionMath(vals));
 
         if (this.state.operation === 'compute') {
+            let outMatrix: string[][] = this.makeMatrixFromString(
+                this.repeatStr(' ', this.state.keyword.length)
+            );
             result.append(
                 $('<div/>').append(this.genAnswerMathMatrix(outMatrix))
             );

@@ -1,7 +1,7 @@
 {
     "name": "ciphers",
     "description": "Cipher Tools",
-    "version": "2.3.1",
+    "version": "2.3.2",
     "homepage": "http://toebes.com/Ciphers/index.html",
     "license": "BSD-3-Clause",
     "repository": {

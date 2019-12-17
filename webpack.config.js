@@ -26,6 +26,7 @@ module.exports = {
         libraryTarget: 'umd',
         library: 'MyLib',
         umdNamedDefine: true,
+        devtoolModuleFilenameTemplate: "[absolute-resource-path]"
     },
     resolve: {
         alias: {
@@ -942,6 +943,10 @@ module.exports = {
         }),
         new webpack.DefinePlugin({
             'require.specified': 'require.resolve',
+        }),
+        // see https://intellij-support.jetbrains.com/hc/en-us/community/posts/206339799-Webstorm-Webpack-debugging
+        new webpack.SourceMapDevToolPlugin({
+            filename: "[file].map",
         }),
     ],
 };

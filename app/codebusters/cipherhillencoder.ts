@@ -318,7 +318,8 @@ export class CipherHillEncoder extends CipherEncoder {
         else if (vals[0].length === 3) {
             modinv = mod26Inverse3x3(vals);
         }
-        let kmath =
+        // add a bit of whitespace with \qquad
+        let kmath = '\\qquad' +
             this.getKmathMatrix(vals) + '^{-1}=' + this.getKmathMatrix(modinv);
         return renderMath(kmath);
     }
@@ -826,10 +827,15 @@ export class CipherHillEncoder extends CipherEncoder {
         }
         return result;
     }
+
     /**
-     * Generate the html that shows the key calcuation for the problem
+     * Generate the html that shows the key calculation for the problem
+     * @param vals input matrix values
+     * @param showDecryptionMatrix - whether to show the 'hint' inverse matrix
+     *                               (used when displaying/printing the test question).
      */
-    public genQuestionMath(vals: number[][]): JQuery<HTMLElement> {
+    public genQuestionMath(vals: number[][],
+                           showDecryptionMatrix: boolean = false): JQuery<HTMLElement> {
         let kmath =
             this.getKmathMatrixChars(vals) +
             kmathEquiv +
@@ -837,7 +843,8 @@ export class CipherHillEncoder extends CipherEncoder {
 
         // Provide the decryption matrix if the question is
         // decode a message using a 3x3 matrix.
-        if (this.state.operation === 'decode' &&
+        if (showDecryptionMatrix &&
+            this.state.operation === 'decode' &&
             this.state.keyword.length === 9) {
             let decrypt3x3 = '\\qquad Decode ' +
                 this.getKmathMatrixChars(vals) + '^{{-1}}' +
@@ -931,7 +938,7 @@ export class CipherHillEncoder extends CipherEncoder {
             return result;
         }
 
-        result.append(this.genQuestionMath(vals));
+        result.append(this.genQuestionMath(vals, true));
         if (this.state.operation === 'compute') {
            let modinv = mod26InverseMatrix(vals);
             result.append(
@@ -985,7 +992,7 @@ export class CipherHillEncoder extends CipherEncoder {
             return result;
         }
 
-        result.append(this.genQuestionMath(vals));
+        result.append(this.genQuestionMath(vals, true));
 
         if (this.state.operation === 'compute') {
             let outMatrix: string[][] = this.makeMatrixFromString(

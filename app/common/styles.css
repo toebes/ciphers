@@ -240,7 +240,7 @@ input.cb {
 }
 .tword td.ke {
     font-style: italic;
-    font-weight: bolt;
+    font-weight: bold;
     background-color: red;
     width: 1rem;
     text-align: center;
@@ -1640,6 +1640,10 @@ table.railfence-md tbody,
 table.railfence-sm tbody {
     background: transparent;
     border: none;
+}
+
+.testyear {
+    display: none;
 }
 
 @media print {

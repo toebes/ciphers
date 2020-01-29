@@ -1112,20 +1112,24 @@ div.vsolv {
 }
 
 /* Extra size for elementary school */
+.ansblock.atest tbody td,
+.ansblock.atest tbody th {
+    padding: 0.4rem !important;
+}
 .ansblock.atest td.o.v {
     height: 3rem !important;
-    padding: 1rem;
+    padding: .75rem;
 }
 .ansblock.atest td.a {
     height: 3.5rem !important;
-    padding: 1rem;
+    padding: .75rem;
 }
 .ansblock.atest td.e {
     height: 3.5rem !important;
-    padding: 1rem;
+    padding: .75rem;
 }
 .ansblock.atest .q.v {
-    font-size: 16px;
+    font-size: 14px;
 }
 
 @font-face {
@@ -1512,6 +1516,12 @@ table.nameline td.u {
 .sizeset .TOSOLVEQ,
 .sizeset .TOANSWER {
     font-size: 15px;
+}
+.sizeset .TOSOLVE.atest,
+.sizeset .TOSOLVE2.atest,
+.sizeset .TOSOLVEQ.atest,
+.sizeset .TOANSWER.atest {
+    font-size: 24px !important;
 }
 .sizeset .wsel {
     height: 10rem;

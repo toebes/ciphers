@@ -609,9 +609,16 @@ export class CipherEncoder extends CipherHandler {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genAlphabet();
+        let width = this.maxEncodeWidth;
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            width -= 20;
+            extraclass = ' atest';
+        }
+
         let strings = this.makeReplacement(
             this.getEncodingString(),
-            this.maxEncodeWidth
+            width
         );
         let tosolve = 0;
         let toanswer = 1;
@@ -622,12 +629,12 @@ export class CipherEncoder extends CipherHandler {
         for (let strset of strings) {
             result.append(
                 $('<div/>', {
-                    class: 'TOSOLVE',
+                    class: 'TOSOLVE' + extraclass,
                 }).text(strset[tosolve])
             );
             result.append(
                 $('<div/>', {
-                    class: 'TOANSWER',
+                    class: 'TOANSWER' + extraclass,
                 }).text(strset[toanswer])
             );
         }
@@ -640,7 +647,7 @@ export class CipherEncoder extends CipherHandler {
         }
         // Tapcode does not need a frequency table (and periods can not be raised to upper case).
         if (this.state.cipherType !== ICipherType.TapCode) {
-            result.append(this.genFreqTable(true, this.state.encodeType));
+            result.append(this.genFreqTable(true, this.state.encodeType, extraclass));
         }
         // If this is a xenocrypt and they provided us a translation, display it
         if (
@@ -662,18 +669,25 @@ export class CipherEncoder extends CipherHandler {
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genAlphabet();
+        let width = this.maxEncodeWidth;
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            width -= 20;
+            extraclass = ' atest';
+        }
+
         let strings = this.makeReplacement(
             this.getEncodingString(),
-            this.maxEncodeWidth
+            width
         );
         for (let strset of strings) {
             result.append(
                 $('<div/>', {
-                    class: 'TOSOLVEQ',
+                    class: 'TOSOLVEQ' + extraclass,
                 }).text(strset[0])
             );
         }
-        result.append(this.genFreqTable(false, this.state.encodeType));
+        result.append(this.genFreqTable(false, this.state.encodeType, extraclass));
         return result;
     }
     /**

@@ -790,7 +790,7 @@ export class CipherHandler {
     public freq: { [key: string]: number } = {};
     public savefileentry: number = -1;
     public storage: JTStorage;
-    constructor () {
+    constructor() {
         this.storage = InitStorage();
     }
     public initToolModeSettings(): void {
@@ -1320,9 +1320,9 @@ export class CipherHandler {
      * encodeType tells the type of encoding to print.  If it is 'random' then
      * we leave it blank.
      */
-    public genFreqTable(showanswers: boolean, encodeType: string): JQElement {
+    public genFreqTable(showanswers: boolean, encodeType: string, extraclass: string): JQElement {
         let table = new JTTable({
-            class: 'prfreq shrink cell unstriped',
+            class: 'prfreq shrink cell unstriped' + extraclass,
         });
         let charset = this.getSourceCharset();
         let replalphabet = this.state.replacement;

@@ -74,7 +74,7 @@ export class CipherPigPenEncoder extends CipherEncoder {
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width = 30;
+            width = 29;
             extraclass = ' atest';
         }
         let strings = this.makeReplacement(this.state.cipherString, width);

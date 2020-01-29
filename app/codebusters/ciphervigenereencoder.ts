@@ -499,10 +499,17 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let keypos = 0;
         let result = $('<div/>', { class: 'grid-x' });
+        let width = 40;
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            width = 30;
+            extraclass = ' atest';
+        }
+
         let strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
-            40
+            width
         );
         let keyword = '';
         for (let c of this.state.keyword.toUpperCase()) {
@@ -511,7 +518,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             }
         }
 
-        let table = new JTTable({ class: 'ansblock shrink cell unstriped' });
+        let table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
         for (let strset of strings) {
             let keystring = '';
             for (let c of strset[0]) {
@@ -544,12 +551,18 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
+        let width = 40;
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            width = 30;
+            extraclass = ' atest';
+        }
         let strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
-            40
+            width
         );
-        let table = new JTTable({ class: 'ansblock shrink cell unstriped' });
+        let table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
         let source = 0;
         if (this.state.operation === 'encode') {
             source = 1;

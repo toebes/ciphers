@@ -925,6 +925,54 @@ export class CipherHillEncoder extends CipherEncoder {
         }
         return result;
     }
+
+    /**
+     * Splits plaintext and ciphertext into a fixed width (default 26) so when
+     * tests are printed, question/answer text does not run over the page.
+     * Based on cipherhandler.makeReplacement(str, maxWidth), but both strings
+     * are passed in and assumed to be equal in length.
+     * 
+     * Users (other programmers using this method in their code) need to beware
+     * of which line is plaintext and which is encoded, to match their question.
+     * 
+     * @param firstLine plaintext or encoded line of characters
+     * @param secondLine encoded or plaintext line of characters
+     * @param width number of characters per table line.
+     */
+    public splitToFit(firstLine: string, secondLine: string, width= 26): string[][] {
+        let lastsplit = -1;
+        let lineOne = "";
+        let lineTwo = "";
+        let count = 0;
+        let theLines: string[][] = [];
+        for (let t of firstLine) {
+            lineOne += t;
+
+            if (t !== "'")
+                lastsplit = lineOne.length;
+            lineTwo += secondLine.charAt(count);
+            if (lineTwo.length >= width) {
+                if (lastsplit === -1) {
+                    theLines.push([lineTwo, lineOne]);
+                    lineTwo = '';
+                    lineOne = '';
+                } else {
+                    let encodepart = lineTwo.substr(0, lastsplit);
+                    let decodepart = lineOne.substr(0, lastsplit);
+                    lineTwo = lineTwo.substr(lastsplit);
+                    lineOne = lineOne.substr(lastsplit);
+                    theLines.push([encodepart, decodepart]);
+                }
+                lastsplit = -1;
+            }
+            count += 1;
+        }
+        if (lineTwo.length > 0) {
+            theLines.push([lineTwo, lineOne])
+        }
+        return theLines
+    }
+
     /**
      * Generate the HTML to display the answer for a cipher
      */
@@ -964,16 +1012,23 @@ export class CipherHillEncoder extends CipherEncoder {
                 );
             }
 
+            // Split up the text so it fits on a page when printed (default split is 26 characters)
+            let strings = this.splitToFit(encoded, plaintext);
+
             let table = new JTTable({
                 class: 'hillblock ansblock shrink cell unstriped',
             });
-            this.addCipherTableRows(
-                table,
-                undefined,
-                plaintext,
-                encoded,
-                false
-            );
+
+            // Add the split up lines to the output table.
+            for (let splitLines of strings) {
+                this.addCipherTableRows(
+                    table,
+                    undefined,
+                    splitLines[0],
+                    splitLines[1],
+                    true
+                );
+            }
             result.append(table.generate());
             this.setCharset(charset);
         }
@@ -1014,16 +1069,24 @@ export class CipherHillEncoder extends CipherEncoder {
                     encoded.length - decodetext.length
                 );
             }
+
+            // Split up the text so it fits on a page when printed (default split is 26 characters)
+            let strings = this.splitToFit(decodetext, encoded);
+
             let table = new JTTable({
                 class: 'hillblock ansblock shrink cell unstriped',
             });
+            
+            // Add the split up lines to the output table.
+            for (let splitLines of strings) {
             this.addCipherTableRows(
                 table,
                 undefined,
-                decodetext,
+                splitLines[1],
                 undefined,
                 false
             );
+            }
             result.append(table.generate());
             this.setCharset(charset);
         }

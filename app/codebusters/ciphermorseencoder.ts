@@ -1,8 +1,10 @@
-import { CipherEncoder } from "./cipherencoder";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { ITestType } from "../common/cipherhandler";
-import { JTRadioButtonSet, JTRadioButton } from "../common/jtradiobutton";
-import { JTFLabeledInput } from "../common/jtflabeledinput";
+import {CipherEncoder} from "./cipherencoder";
+import {JTButtonItem} from "../common/jtbuttongroup";
+import {ITestType} from "../common/cipherhandler";
+import {JTRadioButton, JTRadioButtonSet} from "../common/jtradiobutton";
+import {JTFLabeledInput} from "../common/jtflabeledinput";
+import {ICipherType} from "../common/ciphertypes";
+
 export const morseindex = 1;
 export const ctindex = 0;
 export const ptindex = 2;
@@ -331,8 +333,23 @@ export class CipherMorseEncoder extends CipherEncoder {
             .off('input')
             .on('input', e => {
                 let chars = $(e.target).val() as string;
+
+                let updateHint = false;
+                // '0' can not be a hint digit in Morbit, so if it was entered, remove it...
+                if (this.state.cipherType === ICipherType.Morbit) {
+                    let tempHint = '';
+                    for (let c of chars) {
+                        if (c != '0')
+                            tempHint += c
+                    }
+                    // Update field if a '0' was removed.
+                    if (chars.length != tempHint.length)
+                        updateHint = true;
+                    chars = tempHint
+                }
+
                 this.markUndo('hint');
-                if (this.setHint(chars)) {
+                if (this.setHint(chars) || updateHint) {
                     this.updateOutput();
                 }
             });

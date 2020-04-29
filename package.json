@@ -62,7 +62,7 @@
         "es6-shim": "^0.35.5",
         "eslint-plugin-prettier": "^3.1.2",
         "foundation-sites": "^6.6.1",
-        "jquery": "^3.4.1",
+        "jquery": "^3.5.0",
         "js-cookie": "^2.2.1",
         "katex": "^0.10.2",
         "text-readability": "^1.0.4",

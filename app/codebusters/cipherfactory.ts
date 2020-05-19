@@ -4,6 +4,7 @@ import { CipherAffineEncoder } from "./cipheraffineencoder";
 import { CipherBaconianEncoder } from "./cipherbaconianencoder";
 import { CipherEncoder } from "./cipherencoder";
 import { CipherHillEncoder } from "./cipherhillencoder";
+import { CipherGenerateHomophone } from "./cipherhomophones"
 import { CipherMorbitEncoder } from "./ciphermorbitencoder";
 import { CipherPigPenEncoder } from "./cipherpigpenencoder";
 import { CipherPolluxEncoder } from "./cipherpolluxencoder";
@@ -56,6 +57,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherType: ICipherType.Aristocrat,
         cipherClass: CipherEncoder,
         canPrint: true
+    },
+    GenerateHomophone: {
+        cipherType: ICipherType.None,
+        cipherClass: CipherGenerateHomophone,
+        canPrint: false
     },
     Hill: {
         cipherType: ICipherType.Hill,

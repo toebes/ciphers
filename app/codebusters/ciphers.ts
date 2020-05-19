@@ -26,9 +26,9 @@
  * Main CipherTool class object
  * @type {Object.<string, function>}
  */
-import "foundation-sites";
-import "foundation.css";
 import * as $ from "jquery";
+import "foundation.css";
+import "foundation-sites";
 import "katex.css";
 import "../common/styles.css";
 
@@ -39,7 +39,7 @@ let cipherTool: CipherHandler = new CipherHandler();
 declare let window: any;
 window.cipherTool = cipherTool;
 
-$(function(): void {
+$(function (): void {
     // Patch for a Foundation Bug in v6.3.1
     $(window).on("changed.zf.mediaquery", () => {
         $(".is-dropdown-submenu.invisible").removeClass("invisible");

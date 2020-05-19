@@ -602,6 +602,20 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'GenerateHomophones.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'StdEncoder.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'GenerateHomophone',
+            title: 'Homophone Generator',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'AffineEncrypt.html',
             template: path.join(
                 __dirname,

@@ -910,6 +910,20 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'TestInteractive.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'TestInteractive.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestInteractive',
+            title: 'Interactive Test',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TestQuestions.html',
             template: path.join(
                 __dirname,

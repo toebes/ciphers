@@ -19,6 +19,7 @@ import { CipherTestAnswers } from "./ciphertestanswers";
 import { CipherTestGenerator } from "./ciphertestgenerator";
 import { CipherTestManage } from "./ciphertestmanage";
 import { CipherTestPrint } from "./ciphertestprint";
+import { CipherTestInteractive } from "./ciphertestinteractive";
 import { CipherTestQuestions } from "./ciphertestquestions";
 import { CipherVigenereEncoder } from "./ciphervigenereencoder";
 
@@ -141,6 +142,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     TestQuestions: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestQuestions,
+        canPrint: false
+    },
+    TestInteractive: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestInteractive,
         canPrint: false
     },
     Vigenere: {

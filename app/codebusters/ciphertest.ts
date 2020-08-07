@@ -51,7 +51,7 @@ interface ITestTypeInfo {
     id: string;
 }
 
-export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols';
+export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols' | 'testint';
 /**
  * Base support for all the test generation handlers
  * There are five pages that need to be created
@@ -179,6 +179,7 @@ export class CipherTest extends CipherHandler {
             { title: 'Test Packet', value: 'testprint' },
             { title: 'Answer Key', value: 'testans' },
             { title: 'Answers and Solutions', value: 'testsols' },
+            { title: 'Interactive Test', value: 'testint' },
         ];
         return JTRadioButton(8, 'testdisp', radiobuttons, testdisp);
     }
@@ -279,6 +280,9 @@ export class CipherTest extends CipherHandler {
     public gotoPrintTestSols(test: number): void {
         location.assign('TestAnswers.html?test=' + String(test) + '&sols=y');
     }
+    public gotoInteractiveTest(test: number): void {
+        location.assign('TestInteractive.html?test=' + String(test));
+    }
     public gotoTestDisplay(testdisp: ITestDisp): void {
         switch (testdisp) {
             case 'testans':
@@ -293,6 +297,9 @@ export class CipherTest extends CipherHandler {
                 break;
             case 'testsols':
                 this.gotoPrintTestSols(this.state.test);
+                break;
+            case 'testint':
+                this.gotoInteractiveTest(this.state.test);
                 break;
         }
     }

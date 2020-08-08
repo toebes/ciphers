@@ -39,19 +39,6 @@ export class CipherTestInteractive extends CipherTest {
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genTestEditState('testint');
     }
-    public ComputePageHeight(): Number {
-        let dpi = $('<div/>', {
-            id: 'dpi',
-            style:
-                'height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;',
-        });
-        dpi.appendTo('body');
-        let dpi_x = dpi[0].offsetWidth;
-        let dpi_y = dpi[0].offsetHeight;
-        dpi.remove();
-        console.log('dpi_x=' + dpi_x + ' dpi_y=' + dpi_y);
-        return dpi_y * 9.5;
-    }
     public genPage(title: string): JQuery<HTMLElement> {
         let page = $('<div/>', { class: 'page' });
         page.append($('<div/>', { class: 'head' }).text(title));
@@ -82,34 +69,13 @@ export class CipherTestInteractive extends CipherTest {
             elem.append($('<h3>').text('Test not found'));
         }
         let test = this.getTestEntry(this.state.test);
-        let pagesize = this.ComputePageHeight();
         let result = $('<div/>');
         elem.append(result);
-        console.log('Page Height is ' + pagesize + ' pixels.');
         $('.testtitle').text(test.title);
         let dt = new Date();
         // If we are at the end of the year, display the following year for tests.
         dt.setDate(dt.getDate() + 6);
         $('.testyear').text(dt.getFullYear());
-
-        // Print custom header or default header on tests
-        if (test.useCustomHeader) {
-            $('.custom-header').html(test.customHeader);
-            if (!$('.default-header').hasClass('noprint')) {
-                $('.default-header').addClass('noprint');
-            }
-            if ($('.custom-header').hasClass('noprint')) {
-                $('.custom-header').removeClass('noprint');
-            }
-        }
-        else {
-            if (!$('.custom-header').hasClass('noprint')) {
-                $('.custom-header').addClass('noprint');
-            }
-            if ($('default-header').hasClass('noprint')) {
-                $('.default-header').removeClass('noprint');
-            }
-        }
 
         this.runningKeys = undefined;
         this.qdata = [];
@@ -132,7 +98,7 @@ export class CipherTestInteractive extends CipherTest {
             let cipherhandler = this.GetPrintFactory(test.timed);
             let qerror = '';
             try {
-                let timedquestion = this.printTestQuestion(
+                let timedquestion = this.printTestInteractive(
                     test.testtype,
                     -1,
                     cipherhandler,
@@ -182,23 +148,6 @@ export class CipherTestInteractive extends CipherTest {
                 usesMorseTable = true;
             }
             page.append(thisquestion);
-            let thisheight = thisquestion.outerHeight();
-            if (thisheight + accumulated > pagesize || qcount > 1) {
-                page = this.genPage(test.title);
-                result.append(page);
-                thisquestion.detach().appendTo(page);
-                accumulated = 0;
-                qcount = 0;
-            }
-            qcount++;
-            accumulated += thisheight;
-            console.log(
-                qnum +
-                ': height=' +
-                thisquestion.outerHeight() +
-                ' bodyheight=' +
-                document.body.clientHeight
-            );
             let qerror = cipherhandler.CheckAppropriate(test.testtype);
             if (qerror !== '') {
                 errors.push('Question ' + String(qnum + 1) + ': ' + qerror);

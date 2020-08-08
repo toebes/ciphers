@@ -677,6 +677,69 @@ export class CipherTest extends CipherHandler {
         }
         return result;
     }
+    public printTestInteractive(
+        testType: ITestType,
+        qnum: number,
+        handler: CipherHandler,
+        extraclass: string
+    ): JQuery<HTMLElement> {
+        let state = handler.state;
+        let extratext = '';
+        let result = $('<div/>', {
+            class: 'question ' + extraclass,
+        });
+        let qtext = $('<div/>', { class: 'qtext' });
+        if (qnum === -1) {
+            qtext.append(
+                $('<span/>', {
+                    class: 'timed',
+                }).text('Timed Question')
+            );
+            extratext =
+                '  When you have solved it, click the <b>Checked Timed Question</b> button so that the time can be recorded and the solution checked.';
+        } else {
+            qtext.append(
+                $('<span/>', {
+                    class: 'qnum',
+                }).text(String(qnum) + ')')
+            );
+        }
+        qtext.append(
+            $('<span/>', {
+                class: 'points',
+            }).text(' [' + String(state.points) + ' points] ')
+        );
+        qtext.append(
+            $('<span/>', {
+                class: 'qbody',
+            }).html(state.question + extratext)
+        );
+        result.append(qtext);
+        let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
+        cipherhandler.restore(state);
+        // Did the handler use a running key
+        if (cipherhandler.usesRunningKey) {
+            // If we haven't gotten any running keys then get the defaults
+            if (this.runningKeys === undefined) {
+                this.runningKeys = this.getRunningKeyStrings();
+            }
+            // Add this one to the list of running keys used.  Note that we don't
+            // have a title, so we have to just make it up.  In theory this shouldn't
+            // happen because we would expect that all the running keys were defined before
+            // creating the test.
+            if (cipherhandler.extraRunningKey !== undefined) {
+                this.runningKeys.push({
+                    title: 'Unknown',
+                    text: cipherhandler.extraRunningKey,
+                });
+            }
+        }
+        // Remember this question points so we can generate the score sheet
+        this.qdata.push({ qnum: qnum, points: state.points });
+        result.append(cipherhandler.genInteractive(testType));
+        return result;
+    }
+
     /**
      * Generate a printable answer key for a test entry.
      * An entry value of -1 is for the timed question.

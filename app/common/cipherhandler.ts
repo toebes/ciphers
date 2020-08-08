@@ -1869,6 +1869,12 @@ export class CipherHandler {
         );
     }
     /**
+     * Generate the HTML to display the question for a cipher
+     */
+    public genInteractive(testType: ITestType): JQElement {
+        return this.genQuestion(testType)
+    }
+    /**
      * Change the encrypted character.  Note that when we change one, we have
      * to swap it with the one which we are replacing
      * @param repchar Character that is being replaced

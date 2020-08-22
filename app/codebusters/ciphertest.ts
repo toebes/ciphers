@@ -6,6 +6,7 @@ import {
     ITest,
     ITestType,
     toolMode,
+    IQuestionData,
 } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -31,12 +32,7 @@ export interface ITestState extends IState {
     /** Which division they are doing the test for */
     testtype?: ITestType;
 }
-interface IQuestionData {
-    /** Which question this is associated with.  -1 indicates timed */
-    qnum: number;
-    /** The number of points for the question */
-    points: number;
-}
+
 interface INewCipherEntry {
     cipherType: ICipherType;
     /** Optional language string */
@@ -736,7 +732,8 @@ export class CipherTest extends CipherHandler {
         }
         // Remember this question points so we can generate the score sheet
         this.qdata.push({ qnum: qnum, points: state.points });
-        result.append(cipherhandler.genInteractive(testType));
+        result.append(cipherhandler.genInteractive(qnum, testType));
+        cipherhandler.attachInteractivehandlers()
         return result;
     }
 

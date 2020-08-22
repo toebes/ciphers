@@ -171,30 +171,36 @@ module.exports = {
         ],
     },
     plugins: [
-        new CopyWebpackPlugin([
-            {
-                from: path.join(__dirname, 'Languages', '*.js'),
-                to: path.resolve(__dirname, 'dist'),
-            },
-            {
-                from: path.join(__dirname, 'Languages', '*.txt'),
-                to: path.resolve(__dirname, 'dist'),
-            },
-        ]),
-        new CopyWebpackPlugin([
-            {
-                from: path.join(__dirname, 'app/images', '*.png'),
-                to: path.resolve(__dirname, 'dist'),
-                flatten: true,
-            },
-        ]),
-        new CopyWebpackPlugin([
-            {
-                from: path.join(__dirname, 'app/common/fonts', '*.txt'),
-                to: path.resolve(__dirname, 'dist/font'),
-                flatten: true,
-            },
-        ]),
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: path.join(__dirname, 'Languages', '*.js'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', '*.txt'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+            ]
+        }),
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: path.join(__dirname, 'app/images', '*.png'),
+                    to: path.resolve(__dirname, 'dist'),
+                    flatten: true,
+                },
+            ]
+        }),
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: path.join(__dirname, 'app/common/fonts', '*.txt'),
+                    to: path.resolve(__dirname, 'dist/font'),
+                    flatten: true,
+                },
+            ]
+        }),
         new WebpackAutoInject({
             // specify the name of the tag in the outputed files eg
             // bundle.js: [SHORT]  Version: 0.13.36 ...
@@ -223,13 +229,15 @@ module.exports = {
                 },
             },
         }),
-        new CopyWebpackPlugin([
-            {
-                from: path.join(__dirname, 'app', 'siteVersion.txt'),
-                to: path.resolve(__dirname, 'dist', 'siteVersion.txt'),
-                flatten: true,
-            },
-        ]),
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: path.join(__dirname, 'app', 'siteVersion.txt'),
+                    to: path.resolve(__dirname, 'dist', 'siteVersion.txt'),
+                    flatten: true,
+                },
+            ]
+        }),
         // new HardSourceWebpackPlugin(),
         //=====================================================================
         //

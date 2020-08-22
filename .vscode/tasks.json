@@ -12,12 +12,17 @@
             "windows": {
                 "command": "${workspaceRoot}/node_modules/.bin/webpack"
             },
-            "args": ["-d"],
+            "args": [
+                "-d"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": ["$tsc", "$jshint"]
+            "problemMatcher": [
+                "$tsc",
+                "$jshint"
+            ]
         },
         {
             "label": "webpack dist",
@@ -26,14 +31,22 @@
             "windows": {
                 "command": "${workspaceRoot}/node_modules/.bin/webpack"
             },
-            "args": ["-p", "--zip"],
+            "args": [
+                "-p",
+                "--zip"
+            ],
             "group": "build",
-            "problemMatcher": ["$tsc", "$jshint"]
+            "problemMatcher": [
+                "$tsc",
+                "$jshint"
+            ]
         },
         {
             "type": "typescript",
             "tsconfig": "tsconfig.json",
-            "problemMatcher": ["$tsc"],
+            "problemMatcher": [
+                "$tsc"
+            ],
             "group": "build"
         }
     ]

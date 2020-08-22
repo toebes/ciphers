@@ -1,9 +1,12 @@
 import { cloneObject } from '../common/ciphercommon';
-import { ITestType, menuMode, toolMode } from '../common/cipherhandler';
+import { ITestType, menuMode, toolMode, CipherHandler, IState, IInteractiveTest } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { CipherTest, ITestState } from './ciphertest';
+import { RealTimeString, RealTimeArray, ConvergenceDomain, ModelService, RealTimeModel } from "@convergence/convergence";
+import { Convergence } from "@convergence/convergence";
+import { CipherInteractiveFactory, CipherFactory } from './cipherfactory';
 
 /**
  * CipherTestInteractive
@@ -56,10 +59,56 @@ export class CipherTestInteractive extends CipherTest {
         return page;
     }
 
+    public makeInteractive(elem: JQuery<HTMLElement>, state: IState, qnum: number, testtype: ITestType) {
+        let ihandler = CipherInteractiveFactory(state.cipherType, state.curlang);
+        ihandler.restore(state);
+
+        let extratext = '';
+        let result = $('<div/>', {
+            class: 'question ',
+        });
+        let qtext = $('<div/>', { class: 'qtext' });
+        if (qnum === -1) {
+            qtext.append(
+                $('<span/>', {
+                    class: 'timed',
+                }).text('Timed Question')
+            );
+            extratext =
+                '  When you have solved it, click the <b>Checked Timed Question</b> button so that the time can be recorded and the solution checked.';
+        } else {
+            qtext.append(
+                $('<span/>', {
+                    class: 'qnum',
+                }).text(String(qnum+1) + ')')
+            );
+        }
+        qtext.append(
+            $('<span/>', {
+                class: 'points',
+            }).text(' [' + String(state.points) + ' points] ')
+        );
+        qtext.append(
+            $('<span/>', {
+                class: 'qbody',
+            }).html(state.question + extratext)
+        );
+        result.append(qtext);
+        result.append(ihandler.genInteractive(qnum, testtype));
+        elem.append(result);
+        ihandler.attachInteractivehandlers();
+    }
+
+    public GetFactory(question: number): CipherHandler {
+        let state = this.getFileEntry(question);
+        let cipherhandler = CipherFactory(state.cipherType, state.curlang);
+        cipherhandler.restore(state);
+        return cipherhandler;
+    }
+
     public genTestQuestions(elem: JQuery<HTMLElement>): void {
         let testcount = this.getTestCount();
         let errors: string[] = [];
-        let usesMorseTable = false;
         let SpanishCount = 0;
         elem.empty();
         if (testcount === 0) {
@@ -72,22 +121,25 @@ export class CipherTestInteractive extends CipherTest {
         let result = $('<div/>');
         elem.append(result);
         $('.testtitle').text(test.title);
-        let dt = new Date();
-        // If we are at the end of the year, display the following year for tests.
-        dt.setDate(dt.getDate() + 6);
-        $('.testyear').text(dt.getFullYear());
 
+        // Gather up the data so that we don't have to go back to the database.
+        // This simulates how we will be running with the runtime version
+        let interactive: IInteractiveTest = {
+            title: test.title,
+            useCustomHeader: test.useCustomHeader,
+            customHeader: test.customHeader,
+            count: 0,
+            questions: [],
+            testtype: test.testtype,
+            hasSpanish: false,
+            hasMorse: false,
+            qdata: [],
+        }
         this.runningKeys = undefined;
-        this.qdata = [];
-        let accumulated = 0;
-        let qcount = 0;
-        this.pageNumber = 1;
-        let page = this.genPage(test.title);
-        result.append(page);
         if (test.timed === -1) {
             // Division A doesn't have a timed quesiton, so don't print out
             // a message if it isn't there.
-            if (test.testtype !== ITestType.aregional) {
+            if (interactive.testtype !== ITestType.aregional) {
                 result.append(
                     $('<p/>', {
                         class: 'noprint',
@@ -95,71 +147,95 @@ export class CipherTestInteractive extends CipherTest {
                 );
             }
         } else {
-            let cipherhandler = this.GetPrintFactory(test.timed);
-            let qerror = '';
-            try {
-                let timedquestion = this.printTestInteractive(
-                    test.testtype,
-                    -1,
-                    cipherhandler,
-                    'pagebreak'
-                );
-                page.append(timedquestion);
-            }
-            catch (e) {
-                let msg = "Something went wrong generating the Timed Question." +
-                    " Error =" + e;
-                page.append($("<h1>").text(msg));
-            }
-            qcount = 99;
+            let cipherhandler = this.GetFactory(test.timed);
+            let qerror = ''
             // Division A doesn't have a timed question, but if one was
             // there, print it out, but generate an error message
-            if (test.testtype === ITestType.aregional) {
+            if (interactive.testtype === ITestType.aregional) {
                 qerror = 'Not allowed for Division A';
             } else {
-                qerror = cipherhandler.CheckAppropriate(test.testtype);
+                qerror = cipherhandler.CheckAppropriate(interactive.testtype);
             }
             if (qerror !== '') {
                 errors.push('Timed Question: ' + qerror);
             }
+            // Save the Interactive portion of the test
+            interactive.timed = cipherhandler.saveInteractive(interactive.testtype);
+            interactive.qdata.push({ qnum: -1, points: interactive.timed.points });
         }
+        // Go through all the questions and generate the interactive portion
         for (let qnum = 0; qnum < test.count; qnum++) {
-            let cipherhandler = this.GetPrintFactory(test.questions[qnum]);
-            let thisquestion: JQuery<HTMLElement> = null;
-            try {
-                thisquestion = this.printTestQuestion(
-                    test.testtype,
-                    qnum + 1,
-                    cipherhandler,
-                    ''
-                );
-            }
-            catch (e) {
-                let msg = "Something went wrong generating Question #" +
-                    +String(qnum + 1) + ". Error =" + e;
-                thisquestion = $("<h1>").text(msg);
-            }
-            /* Is this a xenocrypt?  if so we need the Spanish frequency */
+            let cipherhandler = this.GetFactory(test.questions[qnum]);
+            // Is this a xenocrypt?  if so we need the Spanish frequency table on the final test
             if (cipherhandler.state.curlang === 'es') {
                 SpanishCount++;
+                interactive.hasSpanish = true;
             }
             /* Does this cipher involve morse code? */
             if (cipherhandler.usesMorseTable) {
-                usesMorseTable = true;
+                interactive.hasMorse = true;
             }
-            page.append(thisquestion);
-            let qerror = cipherhandler.CheckAppropriate(test.testtype);
+            let qerror = cipherhandler.CheckAppropriate(interactive.testtype);
             if (qerror !== '') {
                 errors.push('Question ' + String(qnum + 1) + ': ' + qerror);
             }
+            // We have the question, so save the interactive data for it
+            let idata = cipherhandler.saveInteractive(interactive.testtype);
+            interactive.questions.push(idata);
+            interactive.qdata.push({ qnum: qnum, points: idata.points });
+            interactive.count++;
+
+            // Capture any running keys for the interactive test
+            if (cipherhandler.usesRunningKey) {
+                // If we haven't gotten any running keys then get the defaults
+                if (interactive.runningKeys === undefined) {
+                    interactive.runningKeys = this.getRunningKeyStrings();
+                }
+                // Add this one to the list of running keys used.  Note that we don't
+                // have a title, so we have to just make it up.  In theory this shouldn't
+                // happen because we would expect that all the running keys were defined before
+                // creating the test.
+                if (cipherhandler.extraRunningKey !== undefined) {
+                    interactive.runningKeys.push({
+                        title: 'Unknown',
+                        text: cipherhandler.extraRunningKey,
+                    });
+                }
+            }
         }
+
+        // All the interactive data has been captured.  Display any errors that we encountered in the
+        // process of generating it.
+        if (errors.length === 1) {
+            $(".testerrors").append($('<div/>', {
+                class: 'callout alert',
+            }).text(errors[0]));
+        } else if (errors.length > 1) {
+            let ul = $("<ul/>");
+            for (let msg of errors) {
+                ul.append($("<li/>").text(msg));
+            }
+            $(".testerrors").append($('<div/>', {
+                class: 'callout alert',
+            }).text("The following errors were found:")
+                .append(ul));
+        }
+
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
         this.setMenuMode(menuMode.test);
 
+        // We have all the data, so we can run the interactive test
+        this.displayInteractiveTest(result, interactive);
+    }
+
+    public displayInteractiveTest(elem: JQuery<HTMLElement>, interactive: IInteractiveTest) {
+        let page = this.genPage(interactive.title);
+        elem.append(page);
+        console.log(interactive);
         /**
-         * Now that we have generated the data for the test, output any running keys used
+         * Output any running keys used
          */
-        if (this.runningKeys !== undefined) {
+        if (interactive.runningKeys !== undefined) {
             $('#runningkeys').append($('<h2/>').text('Famous Phrases'));
             for (let ent of this.runningKeys) {
                 $('#runningkeys').append(
@@ -177,41 +253,15 @@ export class CipherTestInteractive extends CipherTest {
         /**
          * See if we need to show/hide the Spanish Hints
          */
-        if (SpanishCount > 0) {
-            if (SpanishCount > 1 &&
-                test.testtype !== ITestType.bstate &&
-                test.testtype !== ITestType.cstate) {
-                errors.push('Only one Spanish Xenocrypt allowed for ' +
-                    this.getTestTypeName(test.testtype) + '.');
-            }
+        if (interactive.hasSpanish) {
             $('.xenocryptfreq').show();
         } else {
-            if (test.testtype === ITestType.bstate ||
-                test.testtype === ITestType.cstate) {
-                errors.push(this.getTestTypeName(test.testtype) +
-                    ' is supposed to have at least one Spanish Xenocrypt.');
-            }
             $('.xenocryptfreq').hide();
-        }
-        if (errors.length === 1) {
-            $(".testerrors").append($('<div/>', {
-                class: 'callout alert',
-            }).text(errors[0]));
-        } else if (errors.length > 1) {
-
-            let ul = $("<ul/>");
-            for (let msg of errors) {
-                ul.append($("<li/>").text(msg));
-            }
-            $(".testerrors").append($('<div/>', {
-                class: 'callout alert',
-            }).text("The following errors were found:")
-                .append(ul));
         }
         /**
          * See if we need to show/hide the Morse Code Table
          */
-        if (usesMorseTable) {
+        if (interactive.hasMorse) {
             $('.morsetable').show();
         } else {
             $('.morsetable').hide();
@@ -230,7 +280,7 @@ export class CipherTestInteractive extends CipherTest {
             .add('Incorrect letters')
             .add('Deduction')
             .add('Score');
-        for (let qitem of this.qdata) {
+        for (let qitem of interactive.qdata) {
             let qtitle = '';
             if (qitem.qnum === -1) {
                 qtitle = 'Timed';
@@ -277,5 +327,37 @@ export class CipherTestInteractive extends CipherTest {
             .add('Final Score')
             .add({ settings: { colspan: 4 }, content: '' });
         $('#scoretable').append(table.generate());
+
+        // Now go through and generate all the test questions
+        if (interactive.timed !== undefined) {
+            this.makeInteractive(elem, interactive.timed, -1, interactive.testtype);
+        }
+        for (let qnum = 0; qnum < interactive.count; qnum++) {
+            this.makeInteractive(elem, interactive.questions[qnum], qnum, interactive.testtype);
+        }
+
+        // let DOMAIN_URL = "http://192.168.1.11/api/realtime/convergence/default";
+
+        // // 1. Connect to the domain anonymously.
+        // Convergence.connectAnonymously(DOMAIN_URL)
+        //     .then((domain: ConvergenceDomain) => {
+        //         // 2. Initializes the application after connecting by opening a model.
+        //         const modelService = domain.models();
+        //         modelService.openAutoCreate({
+        //             collection: "test3",
+        //             id: "test3",
+        //             data: modelData,
+        //         })
+        //             .then((model: RealTimeModel) => {
+        //                 console.log('Initializing realtime model')
+        //             })
+        //             .catch((error) => {
+        //                 console.log("Could not open model: " + error);
+        //             });
+        //     })
+        //     .catch((error) => {
+        //         console.log("Could not connect: " + error);
+        //     });
+
     }
 }

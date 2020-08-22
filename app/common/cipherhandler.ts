@@ -87,6 +87,12 @@ export interface IState {
     solution?: string;
     /** Is the problem solved? */
     solved?: boolean;
+    /** The test strings **/
+    testLines?: string[];
+    /** Frequency of source characters **/
+    testFreq?: { [key: string]: number };
+    /** Source character set */
+    sourceCharset?: string;    
 }
 /**
  * The types of tests that can be generated
@@ -137,6 +143,40 @@ export interface IRunningKey {
     /** The text of the key */
     text: string;
 }
+
+export interface IQuestionData {
+    /** Which question this is associated with.  -1 indicates timed */
+    qnum: number;
+    /** The number of points for the question */
+    points: number;
+}
+export interface IInteractiveTest {
+    /** Title of the test */
+    title: string;
+    /** Flag indicating to use custom test header */
+    useCustomHeader: boolean;
+    /** User specified info for test header instead of tournament header */
+    customHeader: string;
+    /** Which Cipher-Data.n element corresponds to the timed question.
+     * If the value is blank, there is no timed question.
+     */
+    timed?: IState;
+    /** The number of questions on the test */
+    count: number;
+    /** Array of which corresponding test elements to use. */
+    questions: IState[];
+    /** Which type of test this */
+    testtype: ITestType;
+    /** There is a spanish question on the test **/
+    hasSpanish: boolean;
+    /** There is a cipher which uses Morse code on the test **/
+    hasMorse: boolean;
+    /** Any running keys used **/
+    runningKeys?: IRunningKey[];
+    /** Score values for all the questions **/
+    qdata: IQuestionData[];
+}
+
 type patelem = [string, number, number, number];
 type JQElement = JQuery<HTMLElement>;
 /**
@@ -1320,13 +1360,67 @@ export class CipherHandler {
      * encodeType tells the type of encoding to print.  If it is 'random' then
      * we leave it blank.
      */
+    public genInteractiveFreqTable(qnum: number, encodeType: string, extraclass: string): JQElement {
+        let table = new JTTable({
+            class: 'shrink unstriped intfreq' + extraclass,
+        });
+        let charset = this.getSourceCharset();
+        if (encodeType === 'random' || encodeType === undefined) {
+            encodeType = '';
+        }
+        // For a K2 cipher, the replacement row goes above the header row
+        let replrow;
+        if (encodeType === 'k2') {
+            replrow = table.addHeaderRow();
+        }
+        let headrow = table.addHeaderRow();
+        let freqrow = table.addBodyRow();
+        // For all other cipher types, the replacement row is below the frequency
+        if (encodeType !== 'k2') {
+            replrow = table.addBodyRow();
+        }
+
+        headrow.add({
+            settings: { class: 'topleft ' + encodeType },
+            content: encodeType.toUpperCase(),
+        });
+        freqrow.add({ celltype: 'th', content: 'Frequency' });
+        replrow.add({ celltype: 'th', content: 'Replacement' });
+
+        let pos = 0
+        for (let c of charset.toUpperCase()) {
+            let repl = '';
+            headrow.add(c);
+            let freq = String(this.state.testFreq[c]);
+            if (freq === '0') {
+                freq = '';
+            }
+            freqrow.add(freq);
+            pos++;
+            replrow.add({
+                celltype: 'td', content: $("<input/>", {
+                    id: "R" + String(qnum) + "_" + pos,
+                    class: "awr",
+                    type: "text",
+                })
+            });
+        }
+        return table.generate();
+    }
+    /**
+     * Creates an HTML table to display the frequency of characters for printing
+     * on the test and answer key
+     * showanswers controls whether we display the answers or just the key
+     * encodeType tells the type of encoding to print.  If it is 'random' then
+     * we leave it blank.
+     */
     public genFreqTable(showanswers: boolean, encodeType: string, extraclass: string): JQElement {
         let table = new JTTable({
             class: 'prfreq shrink cell unstriped' + extraclass,
         });
         let charset = this.getSourceCharset();
         let replalphabet = this.state.replacement;
-        if (encodeType === 'random') {
+        if (encodeType === 'random' || encodeType === undefined) {
             encodeType = '';
         } else if (encodeType === 'k2') {
             replalphabet = {};
@@ -1541,6 +1635,10 @@ export class CipherHandler {
     public save(): IState {
         return { cipherType: ICipherType.None, cipherString: '' };
     }
+    public saveInteractive(testType: ITestType): IState {
+        return this.save();
+    }
+
     public markSaved(): void {
         this.savedPosition = this.undoPosition;
         this.isModified = false;
@@ -1871,7 +1969,7 @@ export class CipherHandler {
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genInteractive(testType: ITestType): JQElement {
+    public genInteractive(qnum: number, testType: ITestType): JQElement {
         return this.genQuestion(testType)
     }
     /**
@@ -2896,6 +2994,26 @@ export class CipherHandler {
         th.classList.add(dir);
     }
 
+    public setAns(id: string,
+        newchar: string,
+        elem?: JQuery<HTMLElement>) {
+        let c = newchar.toUpperCase()
+        if (!this.isValidChar(c)) {
+            c = " "
+        }
+        $("#" + id).val(c)
+    }
+
+    public setRepl(id: string,
+        newchar: string,
+        elem?: JQuery<HTMLElement>) {
+        let c = newchar.toUpperCase()
+        if (!this.isValidChar(c)) {
+            c = " "
+        }
+        $("#" + id).val(c)
+    }
+
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
@@ -3104,5 +3222,148 @@ export class CipherHandler {
                 $('.prev').show();
                 $('.moreprev').hide();
             });
+    }
+    public attachInteractivehandlers() {
+        $('.awc')
+            .off('keyup')
+            .on('keyup', event => {
+                let target = $(event.target);
+                let id = target.attr("id");
+                // The ID should be of the form Dx_y where x is the question number and y is the offset of the string
+                let current;
+                let next;
+                let focusables = target.closest(".question").find('.awc');
+
+                if (event.keyCode === 37) {
+                    // left
+                    current = focusables.index(event.target);
+                    if (current === 0) {
+                        next = focusables.last();
+                    } else {
+                        next = focusables.eq(current - 1);
+                    }
+                    next.focus();
+                } else if (event.keyCode === 39) {
+                    // right
+                    current = focusables.index(event.target);
+                    next = focusables.eq(current + 1).length
+                        ? focusables.eq(current + 1)
+                        : focusables.eq(0);
+                    next.focus();
+                } else if (event.keyCode === 46 || event.keyCode === 8) {
+                    this.markUndo(null);
+                    this.setAns(id, ' ', target);
+                    current = focusables.index(event.target);
+                    if (current === 0) {
+                        next = focusables.last();
+                    } else {
+                        next = focusables.eq(current - 1);
+                    }
+                    next.focus();
+                }
+                event.preventDefault();
+            })
+            .off('keypress')
+            .on('keypress', event => {
+                let newchar;
+                let target = $(event.target);
+                let id = target.attr("id");
+                let current;
+                let next;
+                let focusables = target.closest(".question").find('.awc');
+                if (typeof event.key === 'undefined') {
+                    newchar = String.fromCharCode(event.keyCode).toUpperCase();
+                } else {
+                    newchar = event.key.toUpperCase();
+                }
+
+                if (this.isValidChar(newchar) || newchar === ' ') {
+                    if (newchar === ' ') {
+                        newchar = '';
+                    }
+                    console.log('Setting ' + id + ' to ' + newchar);
+                    this.markUndo(null);
+                    this.setAns(id, newchar, target);
+                    current = focusables.index(event.target);
+                    next = focusables.eq(current + 1).length
+                        ? focusables.eq(current + 1)
+                        : focusables.eq(0);
+                    next.focus();
+                } else {
+                    console.log('Not valid:' + newchar);
+                }
+                event.preventDefault();
+            });
+        $('.awr')
+            .off('keyup')
+            .on('keyup', event => {
+                let target = $(event.target);
+                let id = target.attr("id");
+                // The ID should be of the form Dx_y where x is the question number and y is the offset of the string
+                let current;
+                let next;
+                let focusables = target.closest(".question").find('.awr');
+
+                if (event.keyCode === 37) {
+                    // left
+                    current = focusables.index(event.target);
+                    if (current === 0) {
+                        next = focusables.last();
+                    } else {
+                        next = focusables.eq(current - 1);
+                    }
+                    next.focus();
+                } else if (event.keyCode === 39) {
+                    // right
+                    current = focusables.index(event.target);
+                    next = focusables.eq(current + 1).length
+                        ? focusables.eq(current + 1)
+                        : focusables.eq(0);
+                    next.focus();
+                } else if (event.keyCode === 46 || event.keyCode === 8) {
+                    this.markUndo(null);
+                    this.setRepl(id, ' ', target);
+                    current = focusables.index(event.target);
+                    if (current === 0) {
+                        next = focusables.last();
+                    } else {
+                        next = focusables.eq(current - 1);
+                    }
+                    next.focus();
+                }
+                event.preventDefault();
+            })
+            .off('keypress')
+            .on('keypress', event => {
+                let newchar;
+                let target = $(event.target);
+                let id = target.attr("id");
+                let current;
+                let next;
+                let focusables = target.closest(".question").find('.awr');
+                if (typeof event.key === 'undefined') {
+                    newchar = String.fromCharCode(event.keyCode).toUpperCase();
+                } else {
+                    newchar = event.key.toUpperCase();
+                }
+
+                if (this.isValidChar(newchar) || newchar === ' ') {
+                    if (newchar === ' ') {
+                        newchar = '';
+                    }
+                    console.log('Setting ' + id + ' to ' + newchar);
+                    this.markUndo(null);
+                    this.setRepl(id, newchar, target);
+                    current = focusables.index(event.target);
+                    next = focusables.eq(current + 1).length
+                        ? focusables.eq(current + 1)
+                        : focusables.eq(0);
+                    next.focus();
+                } else {
+                    console.log('Not valid:' + newchar);
+                }
+                event.preventDefault();
+            });
+
     }
 }

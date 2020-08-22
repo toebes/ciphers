@@ -22,10 +22,12 @@ import { CipherTestPrint } from "./ciphertestprint";
 import { CipherTestInteractive } from "./ciphertestinteractive";
 import { CipherTestQuestions } from "./ciphertestquestions";
 import { CipherVigenereEncoder } from "./ciphervigenereencoder";
+import { InteractiveEncoder } from "./interactiveencoder";
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
     cipherClass: typeof CipherHandler;
+    interactiveClass: typeof CipherHandler;
     canPrint: boolean;
 }
 
@@ -37,125 +39,150 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Affine: {
         cipherType: ICipherType.Affine,
         cipherClass: CipherAffineEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     },
     Atbash: {
         cipherType: ICipherType.Atbash,
         cipherClass: CipherTableEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     },
     Baconian: {
         cipherType: ICipherType.Baconian,
         cipherClass: CipherBaconianEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     },
     Caesar: {
         cipherType: ICipherType.Caesar,
         cipherClass: CipherTableEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     },
     Encoder: {
         cipherType: ICipherType.Aristocrat,
         cipherClass: CipherEncoder,
+        interactiveClass: InteractiveEncoder,
         canPrint: true
     },
     GenerateHomophone: {
         cipherType: ICipherType.None,
         cipherClass: CipherGenerateHomophone,
+        interactiveClass: CipherHandler,
         canPrint: false
     },
     Hill: {
         cipherType: ICipherType.Hill,
         cipherClass: CipherHillEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     },
     Morbit: {
         cipherType: ICipherType.Morbit,
         cipherClass: CipherMorbitEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     },
     Patristocrat: {
         cipherType: ICipherType.Patristocrat,
         cipherClass: CipherEncoder,
+        interactiveClass: InteractiveEncoder,
         canPrint: true
     },
     PigPen: {
         cipherType: ICipherType.PigPen,
         cipherClass: CipherPigPenEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     },
     Pollux: {
         cipherType: ICipherType.Pollux,
         cipherClass: CipherPolluxEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     },
     QuoteAnalyze: {
         cipherType: ICipherType.None,
         cipherClass: CipherQuoteAnalyze,
+        interactiveClass: CipherHandler,
         canPrint: false
     },
     RailFence: {
         cipherType: ICipherType.Railfence,
         cipherClass: CipherRailFenceEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     },
     RunningKeyEdit: {
         cipherType: ICipherType.None,
         cipherClass: CipherRunningKeyEdit,
+        interactiveClass: CipherHandler,
         canPrint: false
     },
     RunningKey: {
         cipherType: ICipherType.RunningKey,
         cipherClass: CipherRunningKeyEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     },
     RSA: {
         cipherType: ICipherType.RSA,
         cipherClass: CipherRSAEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     },
     TapCode: {
         cipherType: ICipherType.TapCode,
         cipherClass: CipherTapCodeEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     },
     TestAnswers: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestAnswers,
+        interactiveClass: CipherHandler,
         canPrint: false
     },
     TestGenerator: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestGenerator,
+        interactiveClass: CipherHandler,
         canPrint: false
     },
     TestManage: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestManage,
+        interactiveClass: CipherHandler,
         canPrint: false
     },
     TestPrint: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestPrint,
+        interactiveClass: CipherHandler,
         canPrint: false
     },
     TestQuestions: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestQuestions,
+        interactiveClass: CipherHandler,
         canPrint: false
     },
     TestInteractive: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestInteractive,
+        interactiveClass: CipherHandler,
         canPrint: false
     },
     Vigenere: {
         cipherType: ICipherType.Vigenere,
         cipherClass: CipherVigenereEncoder,
+        interactiveClass: CipherHandler,
         canPrint: true
     }
 };
 
+// CipherFactory returns a handler for a particular cipher type string and language
 export function CipherFactory(
     ciphertypestr: string,
     reqlang: string
@@ -167,6 +194,7 @@ export function CipherFactory(
     }
     let entry: ICipherFactoryEntry = {
         cipherType: ICipherType.None,
+        interactiveClass: CipherHandler,
         cipherClass: CipherEncoder,
         canPrint: false
     };
@@ -179,6 +207,32 @@ export function CipherFactory(
     return cipherTool;
 }
 
+// CipherInteractiveFactory returns a handler for a particular cipher type string and language
+export function CipherInteractiveFactory(
+    ciphertypestr: string,
+    reqlang: string
+): CipherHandler {
+    let lang = "en";
+    console.log("Selecting:" + ciphertypestr + " lang=" + lang);
+    if (typeof reqlang !== "undefined") {
+        lang = reqlang.toLowerCase();
+    }
+    let entry: ICipherFactoryEntry = {
+        cipherType: ICipherType.None,
+        interactiveClass: InteractiveEncoder,
+        cipherClass: CipherEncoder,
+        canPrint: false
+    };
+    if (typeof cipherFactoryMap[ciphertypestr] !== "undefined") {
+        entry = cipherFactoryMap[ciphertypestr];
+    }
+    let cipherTool: CipherHandler = new entry.interactiveClass();
+    cipherTool.setDefaultCipherType(entry.cipherType);
+    cipherTool.init(lang);
+    return cipherTool;
+}
+
+// CipherPrintFactory returns a handler for a particular cipher type string and language
 export function CipherPrintFactory(
     ciphertype: ICipherType,
     reqlang: string

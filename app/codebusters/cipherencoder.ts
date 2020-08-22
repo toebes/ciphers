@@ -92,6 +92,24 @@ export class CipherEncoder extends CipherHandler {
         let result: IEncoderState = cloneObject(this.state) as IState;
         return result;
     }
+    public saveInteractive(testType: ITestType): IEncoderState {
+        let result: IState = {
+            cipherType: this.state.cipherType,
+            cipherString: "",
+            curlang: this.state.curlang,
+            points: this.state.points,
+            question: this.state.question,
+            encodeType: this.state.encodeType,
+            sourceCharset: this.getSourceCharset(),
+        };
+        let strings = this.genTestStrings(testType);
+        result.testLines = []
+        for (let strset of strings) {
+            result.testLines.push(strset[0])
+        }
+        result.testFreq = this.freq;
+        return result;
+    }
     /**
      * Restore a saved state or undo state
      * @param data Previous state to restore
@@ -608,18 +626,11 @@ export class CipherEncoder extends CipherHandler {
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
-        this.genAlphabet();
-        let width = this.maxEncodeWidth;
+        let strings = this.genTestStrings(testType);
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width -= 20;
             extraclass = ' atest';
         }
-
-        let strings = this.makeReplacement(
-            this.getEncodingString(),
-            width
-        );
         let tosolve = 0;
         let toanswer = 1;
         if (this.state.operation === 'encode') {
@@ -668,18 +679,12 @@ export class CipherEncoder extends CipherHandler {
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
-        this.genAlphabet();
-        let width = this.maxEncodeWidth;
+        let strings = this.genTestStrings(testType);
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width -= 20;
             extraclass = ' atest';
         }
 
-        let strings = this.makeReplacement(
-            this.getEncodingString(),
-            width
-        );
         for (let strset of strings) {
             result.append(
                 $('<div/>', {
@@ -690,6 +695,21 @@ export class CipherEncoder extends CipherHandler {
         result.append(this.genFreqTable(false, this.state.encodeType, extraclass));
         return result;
     }
+
+    public genTestStrings(testType: ITestType) {
+        this.genAlphabet();
+        let width = this.maxEncodeWidth;
+        if (testType === ITestType.aregional) {
+            width -= 20;
+        }
+
+        let strings = this.makeReplacement(
+            this.getEncodingString(),
+            width
+        );
+        return strings;
+    }
+
     /**
      * Using the currently selected replacement set, encodes a string
      * This breaks it up into lines of maxEncodeWidth characters or less so that

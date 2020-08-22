@@ -541,6 +541,8 @@ table.tfreq td.rep,
 table.tfreq th.rep {
     height: 4rem;
 }
+.intfreq td,
+.intfreq th,
 .prfreq td,
 .prfreq th,
 .ckfreq td,
@@ -566,6 +568,7 @@ table.mfind td.chi {
     text-align: right;
 }
 
+.intfreq th,
 .prfreq th,
 .ckfreq th,
 .tfreq thead th,
@@ -574,6 +577,7 @@ table.mfind th {
     text-align: center;
     background-color: #d3d3d3;
 }
+.intfreq th,
 .prfreq th {
     width: 2rem;
 }
@@ -585,6 +589,7 @@ table.mfind th {
     font-style: italic;
 }
 
+.intfreq thead .topleft,
 .prfreq thead .topleft,
 .ckfreq thead .topleft,
 .tfreq thead .topleft {
@@ -638,6 +643,57 @@ input[type='radio'] {
     float: none;
 }
 
+table.intfreq,
+table.SOLVER {
+    border-collapse: collapse;
+    margin: 0px;
+    padding: 0px;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+table.intfreq td,
+table.SOLVER td {
+    text-align:center;
+    vertical-align: top;
+    margin: 0px;
+    padding: 0px;
+    background-color: white;
+}
+
+table.SOLVER td {
+    border: none;
+}
+
+input.awc {
+    width: 100%;
+    background-color: #ffffe0;
+    margin-bottom:30px;
+}
+
+input.awr {
+    width: 100%;
+    background-color: #ffffe0;
+}
+
+.TOSOLVEC,
+.awr,
+.awc{
+    font-family: Courier New, Courier, monospace;
+    font-weight: bold;
+    margin-bottom: 0pt;
+    line-height: 100%;
+    white-space: pre-wrap;
+    text-align: center;
+}
+
+textarea.intnote {
+    margin-top: 10px;
+    height: 200px;
+    width: 100%;
+    border: 2px solid green;
+    border-style: inset;
+}
+
 .TOSOLVE,
 .TOSOLVE2,
 .TOSOLVEQ,
@@ -675,7 +731,7 @@ input[type='radio'] {
 }
 
 .TOSOLVECLICK,
-.TOANSWERCLICK {
+.TOawcLICK {
     background-color: #74a4eb;
 }
 
@@ -1074,6 +1130,7 @@ div.tn {
     border: 1px solid rgb(200, 200, 200);
 }
 
+.intfreq,
 .prfreq,
 .ansblock {
     border-collapse: collapse;
@@ -1090,6 +1147,7 @@ div.vsolv {
     white-space: pre;
 }
 
+.intfreq td,
 .prfreq td,
 .ansblock td {
     text-align: center;
@@ -1511,12 +1569,21 @@ table.nameline td.u {
 .sizeset {
     font-size: 12px;
 }
+.awc {
+    display:block;
+    width: 16px;
+    padding: 0px;
+    border: none;
+}
+
+.TOSOLVEC,
 .sizeset .TOSOLVE,
 .sizeset .TOSOLVE2,
 .sizeset .TOSOLVEQ,
 .sizeset .TOANSWER {
     font-size: 15px;
 }
+.TOSOLVEC.atest,
 .sizeset .TOSOLVE.atest,
 .sizeset .TOSOLVE2.atest,
 .sizeset .TOSOLVEQ.atest,

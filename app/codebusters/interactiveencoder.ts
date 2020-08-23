@@ -112,8 +112,19 @@ export class InteractiveEncoder extends CipherHandler {
         let qdivid = "#Q" + qnumdisp + " ";
         let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;
         realtimeAnswer.on("set", (event: ArraySetEvent) => { this.propagateAns(qnumdisp, event.index, event.value.value()); });
+
+        // Propagate the initial values into the fields
+        let answers = realtimeAnswer.value();
+        for (var i in answers) {
+            this.propagateAns(qnumdisp, Number(i), answers[i]);
+        }
         let realtimeReplacement = realTimeElement.elementAt("replacements") as RealTimeArray;
         realtimeReplacement.on("set", (event: ArraySetEvent) => { this.propagateRepl(qnumdisp, event.index, event.value.value()); });
+        // Propagate the initial values into the fields
+        let replacements = realtimeReplacement.value();
+        for (var i in replacements) {
+            this.propagateRepl(qnumdisp, Number(i), replacements[i]);
+        }
 
         const textArea = $("#in" + qnumdisp)[0] as HTMLTextAreaElement; // document.getElementById('#in' + qnumdisp) as HTMLTextAreaElement;
         bindTextInput(textArea, realTimeElement.elementAt("notes") as RealTimeString);

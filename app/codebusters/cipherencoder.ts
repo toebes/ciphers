@@ -7,6 +7,7 @@ import {
     ITestType,
     menuMode,
     toolMode,
+    ITestQuestionFields,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -110,6 +111,22 @@ export class CipherEncoder extends CipherHandler {
         result.testFreq = this.freq;
         return result;
     }
+    public getInteractiveTemplate(): ITestQuestionFields {
+        let result = super.getInteractiveTemplate();
+        let replen = this.getSourceCharset().length;
+        result.replacements = new Array(replen);
+        for (let i = 0; i < replen; ++i) {
+            result.replacements[i] = " ";
+        }
+        let cipherlen = this.cleanString(this.state.cipherString).length;
+        result.answer = new Array(cipherlen);
+        for (let i = 0; i < cipherlen; ++i) {
+            result.answer[i] = " ";
+        }
+
+        return result;
+    }
+
     /**
      * Restore a saved state or undo state
      * @param data Previous state to restore

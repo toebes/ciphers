@@ -1,5 +1,4 @@
 import 'foundation-sites';
-import { CipherPrintFactory } from '../codebusters/cipherfactory';
 import {
     BoolMap,
     cloneObject,
@@ -21,6 +20,7 @@ import { InitStorage, JTStorage } from './jtstore';
 import { JTTable } from './jttable';
 import { parseQueryString } from './parsequerystring';
 import { textStandard } from '../common/readability';
+import { RealTimeObject } from '@convergence/convergence';
 
 export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
@@ -92,7 +92,7 @@ export interface IState {
     /** Frequency of source characters **/
     testFreq?: { [key: string]: number };
     /** Source character set */
-    sourceCharset?: string;    
+    sourceCharset?: string;
 }
 /**
  * The types of tests that can be generated
@@ -135,6 +135,22 @@ export interface ITest {
     questions: number[];
     /** Which type of test this */
     testtype: ITestType;
+}
+
+export interface ITestQuestionFields {
+    /** The current solution represented as an array of characters to map to a realtime model better
+     *  Each spot is a single character.  This only includes the answer characters.  So if the cipher
+     *  was  X PDR'M AXVC and the answer typed was:
+     *       I DON'T LIKE 
+     *  Then the answer array will be {"I", "D", "O", "N", "T", "L", "I", "K", "E"}
+     **/
+    answer: string[],
+    /** The replacement choices that has been entered on the test. 
+     *  This is applicable to the Aristocrat/Patristocrat/Xenocrypt ciphers and may
+     *  be useful for the Morbit/Pollux ciphers */
+    replacements?: string[],
+    /** Any notes typed in the work section below the cipher */
+    notes: string,
 }
 
 export interface IRunningKey {
@@ -911,6 +927,31 @@ export class CipherHandler {
         return result;
     }
     /**
+     * Writes a configuration entry to local storage.
+     * @param config Configuration value to set
+     * @param value Value to set
+     */
+    public setConfigString(config: string, value: string) {
+        if (this.storage.isAvailable()) {
+            this.storage.set("config_" + config, value);
+        }
+    }
+    /**
+     * Get a stored configuration string (returning a default value if not found)
+     * @param config Configuration value to retrieve
+     * @param defaultVal Default value to be returned if not found
+     */
+    public getConfigString(config: string, defaultVal: string): string {
+        let result = "";
+        if (this.storage.isAvailable()) {
+            result = this.storage.get("config_" + config);
+        }
+        if (result === null || result === undefined || !this.storage.isAvailable()) {
+            result = defaultVal;
+        }
+        return result;
+    }
+    /**
      * Writes a test entry to local storage.  An entry of -1 or
      * greater than the number of entries just writes as a new entry
      * @param entry Entry to store test as (-1 for a new entry)
@@ -1353,6 +1394,10 @@ export class CipherHandler {
     public createFreqEditTable(): JQElement {
         return null;
     }
+    public getInteractiveTemplate(): ITestQuestionFields {
+        let result: ITestQuestionFields = { answer: [], notes: "" }
+        return result;
+    }
     /**
      * Creates an HTML table to display the frequency of characters for printing
      * on the test and answer key
@@ -1396,14 +1441,14 @@ export class CipherHandler {
                 freq = '';
             }
             freqrow.add(freq);
-            pos++;
             replrow.add({
                 celltype: 'td', content: $("<input/>", {
-                    id: "R" + String(qnum) + "_" + pos,
+                    id: "R" + String(qnum+1) + "_" + pos,
                     class: "awr",
                     type: "text",
                 })
             });
+            pos++;
         }
         return table.generate();
     }
@@ -2994,26 +3039,6 @@ export class CipherHandler {
         th.classList.add(dir);
     }
 
-    public setAns(id: string,
-        newchar: string,
-        elem?: JQuery<HTMLElement>) {
-        let c = newchar.toUpperCase()
-        if (!this.isValidChar(c)) {
-            c = " "
-        }
-        $("#" + id).val(c)
-    }
-
-    public setRepl(id: string,
-        newchar: string,
-        elem?: JQuery<HTMLElement>) {
-        let c = newchar.toUpperCase()
-        if (!this.isValidChar(c)) {
-            c = " "
-        }
-        $("#" + id).val(c)
-    }
-
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
@@ -3223,147 +3248,13 @@ export class CipherHandler {
                 $('.moreprev').hide();
             });
     }
-    public attachInteractivehandlers() {
-        $('.awc')
-            .off('keyup')
-            .on('keyup', event => {
-                let target = $(event.target);
-                let id = target.attr("id");
-                // The ID should be of the form Dx_y where x is the question number and y is the offset of the string
-                let current;
-                let next;
-                let focusables = target.closest(".question").find('.awc');
 
-                if (event.keyCode === 37) {
-                    // left
-                    current = focusables.index(event.target);
-                    if (current === 0) {
-                        next = focusables.last();
-                    } else {
-                        next = focusables.eq(current - 1);
-                    }
-                    next.focus();
-                } else if (event.keyCode === 39) {
-                    // right
-                    current = focusables.index(event.target);
-                    next = focusables.eq(current + 1).length
-                        ? focusables.eq(current + 1)
-                        : focusables.eq(0);
-                    next.focus();
-                } else if (event.keyCode === 46 || event.keyCode === 8) {
-                    this.markUndo(null);
-                    this.setAns(id, ' ', target);
-                    current = focusables.index(event.target);
-                    if (current === 0) {
-                        next = focusables.last();
-                    } else {
-                        next = focusables.eq(current - 1);
-                    }
-                    next.focus();
-                }
-                event.preventDefault();
-            })
-            .off('keypress')
-            .on('keypress', event => {
-                let newchar;
-                let target = $(event.target);
-                let id = target.attr("id");
-                let current;
-                let next;
-                let focusables = target.closest(".question").find('.awc');
-                if (typeof event.key === 'undefined') {
-                    newchar = String.fromCharCode(event.keyCode).toUpperCase();
-                } else {
-                    newchar = event.key.toUpperCase();
-                }
-
-                if (this.isValidChar(newchar) || newchar === ' ') {
-                    if (newchar === ' ') {
-                        newchar = '';
-                    }
-                    console.log('Setting ' + id + ' to ' + newchar);
-                    this.markUndo(null);
-                    this.setAns(id, newchar, target);
-                    current = focusables.index(event.target);
-                    next = focusables.eq(current + 1).length
-                        ? focusables.eq(current + 1)
-                        : focusables.eq(0);
-                    next.focus();
-                } else {
-                    console.log('Not valid:' + newchar);
-                }
-                event.preventDefault();
-            });
-        $('.awr')
-            .off('keyup')
-            .on('keyup', event => {
-                let target = $(event.target);
-                let id = target.attr("id");
-                // The ID should be of the form Dx_y where x is the question number and y is the offset of the string
-                let current;
-                let next;
-                let focusables = target.closest(".question").find('.awr');
-
-                if (event.keyCode === 37) {
-                    // left
-                    current = focusables.index(event.target);
-                    if (current === 0) {
-                        next = focusables.last();
-                    } else {
-                        next = focusables.eq(current - 1);
-                    }
-                    next.focus();
-                } else if (event.keyCode === 39) {
-                    // right
-                    current = focusables.index(event.target);
-                    next = focusables.eq(current + 1).length
-                        ? focusables.eq(current + 1)
-                        : focusables.eq(0);
-                    next.focus();
-                } else if (event.keyCode === 46 || event.keyCode === 8) {
-                    this.markUndo(null);
-                    this.setRepl(id, ' ', target);
-                    current = focusables.index(event.target);
-                    if (current === 0) {
-                        next = focusables.last();
-                    } else {
-                        next = focusables.eq(current - 1);
-                    }
-                    next.focus();
-                }
-                event.preventDefault();
-            })
-            .off('keypress')
-            .on('keypress', event => {
-                let newchar;
-                let target = $(event.target);
-                let id = target.attr("id");
-                let current;
-                let next;
-                let focusables = target.closest(".question").find('.awr');
-                if (typeof event.key === 'undefined') {
-                    newchar = String.fromCharCode(event.keyCode).toUpperCase();
-                } else {
-                    newchar = event.key.toUpperCase();
-                }
-
-                if (this.isValidChar(newchar) || newchar === ' ') {
-                    if (newchar === ' ') {
-                        newchar = '';
-                    }
-                    console.log('Setting ' + id + ' to ' + newchar);
-                    this.markUndo(null);
-                    this.setRepl(id, newchar, target);
-                    current = focusables.index(event.target);
-                    next = focusables.eq(current + 1).length
-                        ? focusables.eq(current + 1)
-                        : focusables.eq(0);
-                    next.focus();
-                } else {
-                    console.log('Not valid:' + newchar);
-                }
-                event.preventDefault();
-            });
+    /**
+     * attachInteractiveHandlers attaches the realtime updates to all of the fields
+     * @param qnum Question number to set handler for
+     * @param realTimeElement RealTimeObject for synchronizing the contents
+    */
+    public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject) {
 
     }
 }

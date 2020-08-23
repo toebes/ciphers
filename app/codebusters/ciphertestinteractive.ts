@@ -1,10 +1,10 @@
 import { cloneObject } from '../common/ciphercommon';
-import { ITestType, menuMode, toolMode, CipherHandler, IState, IInteractiveTest } from '../common/cipherhandler';
+import { ITestType, menuMode, toolMode, CipherHandler, IState, IInteractiveTest, ITestQuestionFields } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { CipherTest, ITestState } from './ciphertest';
-import { RealTimeString, RealTimeArray, ConvergenceDomain, ModelService, RealTimeModel } from "@convergence/convergence";
+import { RealTimeString, RealTimeArray, ConvergenceDomain, ModelService, RealTimeModel, LogLevel, RealTimeElement, RealTimeObject } from "@convergence/convergence";
 import { Convergence } from "@convergence/convergence";
 import { CipherInteractiveFactory, CipherFactory } from './cipherfactory';
 
@@ -34,10 +34,16 @@ export class CipherTestInteractive extends CipherTest {
     public updateOutput(): void {
         super.updateOutput();
         this.setMenuMode(menuMode.test);
-        $('.testcontent').each((i, elem) => {
-            this.genTestQuestions($(elem));
-        });
-        this.attachHandlers();
+        if (this.state.testID != undefined) {
+            $('.testcontent').each((i, elem) => {
+                this.displayInteractiveTest($(elem), this.state.testID);
+            });
+        } else {
+            $('.testcontent').each((i, elem) => {
+                this.genTestQuestions($(elem));
+            });
+            this.attachHandlers();
+        }
     }
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genTestEditState('testint');
@@ -58,45 +64,55 @@ export class CipherTestInteractive extends CipherTest {
         this.pageNumber++;
         return page;
     }
+    public getInteractiveDomain(): string {
+        return this.getConfigString("domain", "http://toebeshome.myqnapcloud.com:7630/") + "api/realtime/convergence/scienceolympiad";
+    }
 
-    public makeInteractive(elem: JQuery<HTMLElement>, state: IState, qnum: number, testtype: ITestType) {
-        let ihandler = CipherInteractiveFactory(state.cipherType, state.curlang);
-        ihandler.restore(state);
+    public makeInteractive(elem: JQuery<HTMLElement>, state: IState, qnum: number, testtype: ITestType, realTimeObject: RealTimeObject) {
+        try {
+            let ihandler = CipherInteractiveFactory(state.cipherType, state.curlang);
+            ihandler.restore(state);
 
-        let extratext = '';
-        let result = $('<div/>', {
-            class: 'question ',
-        });
-        let qtext = $('<div/>', { class: 'qtext' });
-        if (qnum === -1) {
+            let extratext = '';
+            let result = $('<div/>', {
+                class: 'question ',
+            });
+            let qtext = $('<div/>', { class: 'qtext' });
+            if (qnum === -1) {
+                qtext.append(
+                    $('<span/>', {
+                        class: 'timed',
+                    }).text('Timed Question')
+                );
+                extratext =
+                    '  When you have solved it, click the <b>Checked Timed Question</b> button so that the time can be recorded and the solution checked.';
+            } else {
+                qtext.append(
+                    $('<span/>', {
+                        class: 'qnum',
+                    }).text(String(qnum + 1) + ')')
+                );
+            }
             qtext.append(
                 $('<span/>', {
-                    class: 'timed',
-                }).text('Timed Question')
+                    class: 'points',
+                }).text(' [' + String(state.points) + ' points] ')
             );
-            extratext =
-                '  When you have solved it, click the <b>Checked Timed Question</b> button so that the time can be recorded and the solution checked.';
-        } else {
             qtext.append(
                 $('<span/>', {
-                    class: 'qnum',
-                }).text(String(qnum+1) + ')')
+                    class: 'qbody',
+                }).html(state.question + extratext)
             );
+            result.append(qtext);
+            result.append(ihandler.genInteractive(qnum, testtype));
+            elem.append(result);
+            ihandler.attachInteractiveHandlers(qnum, realTimeObject);
         }
-        qtext.append(
-            $('<span/>', {
-                class: 'points',
-            }).text(' [' + String(state.points) + ' points] ')
-        );
-        qtext.append(
-            $('<span/>', {
-                class: 'qbody',
-            }).html(state.question + extratext)
-        );
-        result.append(qtext);
-        result.append(ihandler.genInteractive(qnum, testtype));
-        elem.append(result);
-        ihandler.attachInteractivehandlers();
+        catch (e) {
+            let msg = "Something went wrong generating the Timed Question." +
+                " Error =" + e;
+            elem.append($("<h1>").text(msg));
+        }
     }
 
     public GetFactory(question: number): CipherHandler {
@@ -135,6 +151,15 @@ export class CipherTestInteractive extends CipherTest {
             hasMorse: false,
             qdata: [],
         }
+        // Clean up the custom header if it came in blank so we don't have anything undefined in the data structure
+        if (!interactive.useCustomHeader) {
+            interactive.useCustomHeader = false;
+            interactive.customHeader = "";
+        }
+        if (interactive.testtype === undefined) {
+            interactive.testtype = ITestType.cregional;
+        }
+        let answerdata: ITestQuestionFields[] = [];
         this.runningKeys = undefined;
         if (test.timed === -1) {
             // Division A doesn't have a timed quesiton, so don't print out
@@ -146,6 +171,7 @@ export class CipherTestInteractive extends CipherTest {
                     }).text('No timed question')
                 );
             }
+            answerdata.push({ answer: [], notes: "" });
         } else {
             let cipherhandler = this.GetFactory(test.timed);
             let qerror = ''
@@ -161,6 +187,7 @@ export class CipherTestInteractive extends CipherTest {
             }
             // Save the Interactive portion of the test
             interactive.timed = cipherhandler.saveInteractive(interactive.testtype);
+            answerdata.push(cipherhandler.getInteractiveTemplate())
             interactive.qdata.push({ qnum: -1, points: interactive.timed.points });
         }
         // Go through all the questions and generate the interactive portion
@@ -181,6 +208,7 @@ export class CipherTestInteractive extends CipherTest {
             }
             // We have the question, so save the interactive data for it
             let idata = cipherhandler.saveInteractive(interactive.testtype);
+            answerdata.push(cipherhandler.getInteractiveTemplate());
             interactive.questions.push(idata);
             interactive.qdata.push({ qnum: qnum, points: idata.points });
             interactive.count++;
@@ -224,11 +252,104 @@ export class CipherTestInteractive extends CipherTest {
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
         this.setMenuMode(menuMode.test);
 
-        // We have all the data, so we can run the interactive test
-        this.displayInteractiveTest(result, interactive);
+        this.saveModels(elem, interactive, answerdata);
+    }
+    public postErrorMessage(elem: JQuery<HTMLElement>, message: string) {
+        let callout = $('<div/>', {
+            class: 'callout alert',
+        }).text(message);
+        console.log(message);
+        elem.append(callout);
+    }
+    public saveModels(elem: JQuery<HTMLElement>, interactive: IInteractiveTest, answerdata: ITestQuestionFields[]) {
+        // Now that we have the model of the test and the model of the answers,
+        //  we need to create two models.  
+        // The interactive test is what we pull down to create the test
+        // the answerdata is what is shared between the test takers
+        //
+        // Convergence.configureLogging({
+        //     root: LogLevel.DEBUG
+        // });
+
+        // this.setConfigString("domain", "http://192.168.1.11/");
+
+        // 1. Connect to the domain anonymously.
+        Convergence.connectAnonymously(this.getInteractiveDomain())
+            .then((domain: ConvergenceDomain) => {
+                // 2. Initializes the application after connecting by opening a model.
+                const modelService = domain.models();
+                modelService.openAutoCreate({
+                    collection: "codebusters_tests",
+                    // id: "test_data",
+                    data: interactive,
+                })
+                    .then((testmodel: RealTimeModel) => {
+                        var testModelID = testmodel.modelId();
+                        modelService.openAutoCreate({
+                            collection: "codebusters_answers",
+                            data: {
+                                testid: testModelID,
+                                answers: answerdata
+                            }
+                        })
+                            .then((datamodel: RealTimeModel) => {
+                                var dataModelID = datamodel.modelId();
+                                let callout = $('<div/>', {
+                                    class: 'callout success',
+                                }).append($("<a/>", { href: "TestInteractive.html?testID=" + dataModelID, target: "_blank" }).text("Open Interactive test"))
+                                elem.append(callout);
+                            })
+                            .catch((error) => {
+                                this.postErrorMessage(elem, "Convergence API could not open data model: " + error);
+                            })
+                    })
+                    .catch((error) => {
+                        this.postErrorMessage(elem, "Convergence API could not open test model: " + error);
+                    });
+            })
+            .catch((error) => {
+                this.postErrorMessage(elem, "Convergence API could not connect: " + error);
+            });
     }
 
-    public displayInteractiveTest(elem: JQuery<HTMLElement>, interactive: IInteractiveTest) {
+
+
+    public loadAndDisplayModels(elem: JQuery<HTMLElement>, testUID: string) {
+        // If there are no more domains to try then we just get out of here
+        // 1. Connect to the domain anonymously.
+        Convergence.connectAnonymously(this.getInteractiveDomain())
+            .then((domain: ConvergenceDomain) => {
+                // 2. Initializes the application after connecting by opening a model.
+                const modelService = domain.models();
+                modelService.open(testUID)
+                    .then((datamodel: RealTimeModel) => {
+                        console.log('opened test model')
+                        let testid = datamodel.elementAt("testid").value()
+                        modelService.open(testid)
+                            .then((testmodel: RealTimeModel) => {
+                                console.log("Fully opened: testmodel");
+                                this.deferredInteractiveTest(elem, testmodel, datamodel);
+                            })
+                            .catch((error) => {
+                                this.postErrorMessage(elem, "Convergence API could not open data model: " + error);
+                            })
+                    })
+                    .catch((error) => {
+                        this.postErrorMessage(elem, "Convergence API could not open test model: " + error);
+                    });
+            })
+            .catch((error) => {
+                this.postErrorMessage(elem, "Convergence API could not connect: " + error);
+            });
+    }
+
+    public displayInteractiveTest(elem: JQuery<HTMLElement>, testUID: string) {
+        this.loadAndDisplayModels(elem, testUID);
+    }
+
+    public deferredInteractiveTest(elem: JQuery<HTMLElement>, testmodel: RealTimeModel, datamodel: RealTimeModel) {
+        let interactive = testmodel.root().value();
+        let answerdata = datamodel.root().value();
         let page = this.genPage(interactive.title);
         elem.append(page);
         console.log(interactive);
@@ -328,36 +449,15 @@ export class CipherTestInteractive extends CipherTest {
             .add({ settings: { colspan: 4 }, content: '' });
         $('#scoretable').append(table.generate());
 
+
         // Now go through and generate all the test questions
         if (interactive.timed !== undefined) {
-            this.makeInteractive(elem, interactive.timed, -1, interactive.testtype);
+            this.makeInteractive(elem, interactive.timed, -1, interactive.testtype, datamodel.elementAt("answers", 0) as RealTimeObject);
         }
         for (let qnum = 0; qnum < interactive.count; qnum++) {
-            this.makeInteractive(elem, interactive.questions[qnum], qnum, interactive.testtype);
+            this.makeInteractive(elem, interactive.questions[qnum], qnum, interactive.testtype, datamodel.elementAt("answers", qnum+1) as RealTimeObject);
         }
 
-        // let DOMAIN_URL = "http://192.168.1.11/api/realtime/convergence/default";
-
-        // // 1. Connect to the domain anonymously.
-        // Convergence.connectAnonymously(DOMAIN_URL)
-        //     .then((domain: ConvergenceDomain) => {
-        //         // 2. Initializes the application after connecting by opening a model.
-        //         const modelService = domain.models();
-        //         modelService.openAutoCreate({
-        //             collection: "test3",
-        //             id: "test3",
-        //             data: modelData,
-        //         })
-        //             .then((model: RealTimeModel) => {
-        //                 console.log('Initializing realtime model')
-        //             })
-        //             .catch((error) => {
-        //                 console.log("Could not open model: " + error);
-        //             });
-        //     })
-        //     .catch((error) => {
-        //         console.log("Could not connect: " + error);
-        //     });
 
     }
 }

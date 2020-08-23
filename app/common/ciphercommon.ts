@@ -32,6 +32,27 @@ export function cloneObject(source: object): object {
     return clone;
 }
 /**
+ * Makes a deep copy of any object ignoring any undefined elements
+ * @param source Object to copy
+ */
+export function cloneObjectClean(source: object): object {
+    let clone = {};
+    if (source !== null) {
+        for (let elem of Object.keys(source)) {
+            if (source[elem] === null) {
+                clone[elem] = null;
+            } else if (Array.isArray(source[elem])) {
+                clone[elem] = source[elem].slice();
+            } else if (typeof source[elem] === "object") {
+                clone[elem] = cloneObjectClean(source[elem]);
+            } else if (source[elem] !== undefined){
+                clone[elem] = source[elem];
+            }
+        }
+    }
+    return clone;
+}
+/**
  * Replaces a character in a string at a given position
  * (The reverse of substr)
  * @param str String to update

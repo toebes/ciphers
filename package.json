@@ -42,7 +42,7 @@
         "typescript": "^3.9.7",
         "typings-for-css-modules-loader": "^1.7.0",
         "uglify-es": "^3.3.9",
-        "uglify-js": "^3.10.1",
+        "uglify-js": "^3.10.2",
         "url-loader": "^1.1.2",
         "webpack": "^4.44.1",
         "webpack-auto-inject-version": "^1.2.2",

@@ -1,14 +1,16 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const WebpackAutoInject = require('webpack-auto-inject-version');
 const WebpackShellPlugin = require('webpack-shell-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+
 const package = require('./package.json');
 var toolsVersion = package.version;
 const argv = require('yargs').argv;
 var ZIP = argv.zip || false;
+var ANALYZE = argv.analyze || false;
 process.traceDeprecation = true;
 
 module.exports = {
@@ -238,7 +240,6 @@ module.exports = {
                 },
             ]
         }),
-        // new HardSourceWebpackPlugin(),
         //=====================================================================
         //
         // ACA HTML Files
@@ -996,4 +997,11 @@ if (ZIP) {
             onBuildExit: ['python zip-ct.py ' + toolsVersion],
         }),
     );
+}
+
+if (ANALYZE) {
+    module.exports.plugins.push(
+        new BundleAnalyzerPlugin(),
+    )
+
 }

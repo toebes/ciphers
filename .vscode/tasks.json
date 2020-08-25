@@ -42,6 +42,24 @@
             ]
         },
         {
+            "label": "webpack dist analyze",
+            "type": "shell",
+            "command": "${workspaceRoot}/node_modules/.bin/webpack",
+            "windows": {
+                "command": "${workspaceRoot}/node_modules/.bin/webpack"
+            },
+            "args": [
+                "-p",
+                "--analyze",
+                "--zip"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$tsc",
+                "$jshint"
+            ]
+        },
+        {
             "type": "typescript",
             "tsconfig": "tsconfig.json",
             "problemMatcher": [

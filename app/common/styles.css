@@ -1121,6 +1121,16 @@ table.found tr th:nth-child(odd) {
     display: inline;
 }
 
+.timer {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 200px;
+    height: 50px;
+    border: 1px solid green;
+    background: white;
+}
+
 div.rn,
 div.sn,
 div.tn {

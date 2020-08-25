@@ -115,6 +115,11 @@ export class CipherTestInteractive extends CipherTest {
         }
     }
 
+    /**
+     * GetFactory returns an initialized CipherHandler associated with a question entry
+     * @param question Which entry to get the factory for
+     * @returns CipherHandler
+     */
     public GetFactory(question: number): CipherHandler {
         let state = this.getFileEntry(question);
         let cipherhandler = CipherFactory(state.cipherType, state.curlang);
@@ -122,6 +127,10 @@ export class CipherTestInteractive extends CipherTest {
         return cipherhandler;
     }
 
+    /**
+     * 
+     * @param elem Element 
+     */
     public genTestQuestions(elem: JQuery<HTMLElement>): void {
         let testcount = this.getTestCount();
         let errors: string[] = [];
@@ -289,6 +298,7 @@ export class CipherTestInteractive extends CipherTest {
                             collection: "codebusters_answers",
                             data: {
                                 testid: testModelID,
+                                starttime: Date.now(),
                                 answers: answerdata
                             }
                         })
@@ -311,8 +321,6 @@ export class CipherTestInteractive extends CipherTest {
                 this.postErrorMessage(elem, "Convergence API could not connect: " + error);
             });
     }
-
-
 
     public loadAndDisplayModels(elem: JQuery<HTMLElement>, testUID: string) {
         // If there are no more domains to try then we just get out of here

@@ -273,7 +273,8 @@ export class CipherRSAEncoder extends CipherEncoder {
         super.updateOutput();
     }
     /**
-     * Generate HTML for any UI elements that go above the command bar
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');

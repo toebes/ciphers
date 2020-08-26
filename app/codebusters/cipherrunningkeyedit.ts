@@ -18,6 +18,10 @@ export class CipherRunningKeyEdit extends CipherHandler {
         { title: "Save", color: "primary", id: "save" },
         { title: "Load Defaults", color: "primary", id: "defaults" },
     ];
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: IState): void {
         this.state = cloneObject(this.defaultstate) as IState;
         this.copyState(this.state, data);
@@ -51,10 +55,18 @@ export class CipherRunningKeyEdit extends CipherHandler {
         }
         return result;
     }
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genKeyData(this.getRunningKeyStrings());
     }
 
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
     public updateOutput(): void {
         this.setMenuMode(menuMode.test);
         $(".precmds").each((i, elem) => {
@@ -84,7 +96,7 @@ export class CipherRunningKeyEdit extends CipherHandler {
         super.attachHandlers();
         $(".runedit")
             .off("input")
-            .on("input", () => {});
+            .on("input", () => { });
         $("#save")
             .off("click")
             .on("click", () => {

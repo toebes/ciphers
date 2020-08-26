@@ -1,9 +1,9 @@
-import {CipherEncoder} from "./cipherencoder";
-import {JTButtonItem} from "../common/jtbuttongroup";
-import {ITestType} from "../common/cipherhandler";
-import {JTRadioButton, JTRadioButtonSet} from "../common/jtradiobutton";
-import {JTFLabeledInput} from "../common/jtflabeledinput";
-import {ICipherType} from "../common/ciphertypes";
+import { CipherEncoder } from "./cipherencoder";
+import { JTButtonItem } from "../common/jtbuttongroup";
+import { ITestType } from "../common/cipherhandler";
+import { JTRadioButton, JTRadioButtonSet } from "../common/jtradiobutton";
+import { JTFLabeledInput } from "../common/jtflabeledinput";
+import { ICipherType } from "../common/ciphertypes";
 
 export const morseindex = 1;
 export const ctindex = 0;
@@ -79,6 +79,10 @@ export class CipherMorseEncoder extends CipherEncoder {
             .append(this.genSolution(ITestType.None));
         this.attachHandlers();
     }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
     public updateOutput(): void {
         if (this.state.operation === 'decode') {
             $('.hint').show();
@@ -93,8 +97,9 @@ export class CipherMorseEncoder extends CipherEncoder {
         super.updateOutput();
     }
     /**
-    * Generates the section above the command buttons
-    */
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genTestUsage(result);

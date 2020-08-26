@@ -238,6 +238,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
     }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
     public updateOutput(): void {
         $('.opfield').hide();
         $('.' + this.state.operation).show();
@@ -361,7 +365,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.attachHandlers();
     }
     /**
-     * Generates the section above the command buttons
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');

@@ -21,6 +21,10 @@ export class CipherTestPrint extends CipherTest {
     public cmdButtons: JTButtonItem[] = [];
     public pageNumber: number = 0;
 
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as ITestState;
@@ -28,6 +32,10 @@ export class CipherTestPrint extends CipherTest {
         this.copyState(this.state, data);
         this.updateOutput();
     }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
     public updateOutput(): void {
         super.updateOutput();
         this.setMenuMode(menuMode.test);
@@ -36,6 +44,10 @@ export class CipherTestPrint extends CipherTest {
         });
         this.attachHandlers();
     }
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genTestEditState('testprint');
     }
@@ -95,7 +107,7 @@ export class CipherTestPrint extends CipherTest {
         // Print custom header or default header on tests
         if (test.useCustomHeader) {
             $('.custom-header').html(test.customHeader);
-            if (! $('.default-header').hasClass('noprint')) {
+            if (!$('.default-header').hasClass('noprint')) {
                 $('.default-header').addClass('noprint');
             }
             if ($('.custom-header').hasClass('noprint')) {
@@ -103,7 +115,7 @@ export class CipherTestPrint extends CipherTest {
             }
         }
         else {
-            if (! $('.custom-header').hasClass('noprint')){
+            if (!$('.custom-header').hasClass('noprint')) {
                 $('.custom-header').addClass('noprint');
             }
             if ($('default-header').hasClass('noprint')) {

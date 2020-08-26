@@ -12,6 +12,10 @@ export class CipherACASubmit extends CipherTest {
     public cmdButtons: JTButtonItem[] = [
         { title: "Problems Management", color: "primary", id: "probman" },
     ];
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as ITestState;
@@ -124,7 +128,7 @@ export class CipherACASubmit extends CipherTest {
         $("#probman")
             .off("click")
             .on("click", () => {
-                    this.gotoProblemManagement();
-                });
+                this.gotoProblemManagement();
+            });
     }
 }

@@ -163,6 +163,10 @@ export class CipherTest extends CipherHandler {
      * Any running keys used for the test
      */
     public runningKeys: IRunningKey[];
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;
@@ -244,6 +248,25 @@ export class CipherTest extends CipherHandler {
     }
     public gotoEditTest(test: number): void {
         location.assign('TestGenerator.html?test=' + String(test));
+    }
+    /**
+     * generateTestJSON converts the current test information to a JSON string
+     * @param test Test to generate data for
+     * @returns string form of the JSON for the test
+     */
+    public generateTestJSON(test: ITest): string {
+        let result = {};
+        result["TEST.0"] = test;
+
+        if (test.timed !== -1) {
+            result["CIPHER." + String(test.timed)] = this.getFileEntry(
+                test.timed
+            );
+        }
+        for (let entry of test.questions) {
+            result["CIPHER." + String(entry)] = this.getFileEntry(entry);
+        }
+        return JSON.stringify(result)
     }
     /**
      * Make a copy of a test

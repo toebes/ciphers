@@ -122,7 +122,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
         } else {
             if (questionText.indexOf(rails) < 0) {
-                msg = "The number (" + rails +") of rails does not appear to be mentioned in the Question Text."
+                msg = "The number (" + rails + ") of rails does not appear to be mentioned in the Question Text."
                 showsample = true;
             }
         }
@@ -160,7 +160,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         // }
         if (showsample) {
             sampleLink = $("<a/>", { class: "sampq" }).
-            text(" Show suggested Question Text");
+                text(" Show suggested Question Text");
         }
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
@@ -186,24 +186,31 @@ export class CipherRailFenceEncoder extends CipherEncoder {
                 this.advancedir = 0;
             });
         $('#isRailRange')
-        .off('click')
-        .on('click', e => {
-            //let isRailRange: boolean = Boolean($(e.target).val());
-            this.toggleRailRange();
-            this.updateOutput();
-        });
+            .off('click')
+            .on('click', e => {
+                //let isRailRange: boolean = Boolean($(e.target).val());
+                this.toggleRailRange();
+                this.updateOutput();
+            });
     }
 
     public setUIDefaults(): void {
         this.setRails(this.state.rails);
     }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
     public updateOutput(): void {
         super.updateOutput();
         $('#rails').val(this.state.rails);
         let v: string = String(this.state.isRailRange);
         $('#isRailRange').val(v);
     }
-
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genTestUsage(result);
@@ -386,12 +393,12 @@ export class CipherRailFenceEncoder extends CipherEncoder {
                 trials.append($('<h5/>').text("Try " + rail.toString() + " rails..."));
                 let testRfs = new RailFenceSolver(rail, rfs.getRailFenceEncoding());
                 trials.append(rfs.swizzle(rail));
-//                trials.append(testRfs.getRailFenceT2(rfs.getRailFenceEncoding(), rail));
-                if (rail === rails ) {
+                //                trials.append(testRfs.getRailFenceT2(rfs.getRailFenceEncoding(), rail));
+                if (rail === rails) {
                     break;
                 }
             }
-            let  found = $('<p/>').text('This looks promising, so we conclude ' + rails + ' rails will decode the message.');
+            let found = $('<p/>').text('This looks promising, so we conclude ' + rails + ' rails will decode the message.');
 
             result.append(solutionText, trials, found);
 
@@ -513,7 +520,7 @@ class RailFenceSolver {
      * @param rails The number of rails in the rail fence
      * @param inputText The inputText to be encoded
      */
-    constructor (rails: number, inputText: string) {
+    constructor(rails: number, inputText: string) {
 
         this.railCount = rails;
         let text = sanitizeString(inputText);
@@ -609,7 +616,7 @@ class RailFenceSolver {
         for (let i: number = 1; i <= rails; i++) {
             let tableRow = $('<tr/>');
 
-           let data: string = '';
+            let data: string = '';
             for (let col: number = 0; col < this.getTextLength(); col++) {
                 // Get all the characters from each zigzag. for this row and put it in a table cell.
                 if ((col % swizzledCharsLeftover) === 0) {

@@ -126,6 +126,10 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         $("#xchar").val(this.state.xchars);
         super.updateOutput();
     }
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         let result = super.genPreCommands();
 

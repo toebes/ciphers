@@ -49,6 +49,10 @@ export class CipherPigPenEncoder extends CipherEncoder {
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
     }
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genTestUsage(result);

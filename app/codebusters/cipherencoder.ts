@@ -128,8 +128,8 @@ export class CipherEncoder extends CipherHandler {
     }
 
     /**
-     * Restore a saved state or undo state
-     * @param data Previous state to restore
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
      */
     public restore(data: IEncoderState): void {
         this.state = cloneObject(this.defaultstate) as IState;
@@ -988,7 +988,8 @@ export class CipherEncoder extends CipherHandler {
         result.append($("<div/>", { class: "difficulty" }));
     }
     /**
-     * Generate HTML for any UI elements that go above the command bar
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');

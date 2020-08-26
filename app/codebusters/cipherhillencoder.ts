@@ -47,6 +47,10 @@ export class CipherHillEncoder extends CipherEncoder {
     ];
     public charset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     public padval: string = 'Z';
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: IState): void {
         this.state = cloneObject(this.defaultstate) as IState;
         this.copyState(this.state, data);
@@ -162,7 +166,10 @@ export class CipherHillEncoder extends CipherEncoder {
         }
         return result;
     }
-
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
         result.append(
@@ -499,15 +506,15 @@ export class CipherHillEncoder extends CipherEncoder {
         let g = vals[2][0];
         let h = vals[2][1];
         let i = vals[2][2];
-        let A = e*i - f*h;
-        let B = -(d*i - f*g);
-        let C = d*h - e*g;
-        let D = -(b*i - c*h);
-        let E = a*i - c*g;
-        let F = -(a*h - b*g);
-        let G = b*f - c*e;
-        let H = -(a*f - c*d);
-        let I = a*e - b*d;
+        let A = e * i - f * h;
+        let B = -(d * i - f * g);
+        let C = d * h - e * g;
+        let D = -(b * i - c * h);
+        let E = a * i - c * g;
+        let F = -(a * h - b * g);
+        let G = b * f - c * e;
+        let H = -(a * f - c * d);
+        let I = a * e - b * d;
 
         let modinv = mod26Inverse3x3(vals);
         let determinant = determinant3x3(vals);
@@ -516,15 +523,15 @@ export class CipherHillEncoder extends CipherEncoder {
             return $('<p/>').text('Matrix invalid - not invertable');
         }
         let determinantInverse = modInverse26[determinantMod26];
-        
+
         // Since we use this matrix a few times, cache creating it
         let matrixIntermediate = this.getKmathMatrix([[A, B, C], [D, E, F], [G, H, I]]);
         // let matrixTransposed = this.getKmathMatrix([[mod26(A), mod26(D), mod26(G)],
         //                                                    [mod26(B), mod26(E), mod26(H)],
         //                                                    [mod26(C), mod26(F), mod26(I)]]);
         let matrixTransposed = this.getKmathMatrix([[A, D, G],
-                                                           [B, E, H],
-                                                           [C, F, I]]);
+        [B, E, H],
+        [C, F, I]]);
 
         let result = $('<div/>');
         result.append(
@@ -635,39 +642,39 @@ export class CipherHillEncoder extends CipherEncoder {
         );
         equation = this.getKmathMatrix(
             [[determinantInverse + kmathMult + A,
-                     determinantInverse + kmathMult + D,
-                     determinantInverse + kmathMult + G],
-                    [determinantInverse + kmathMult + b,
-                     determinantInverse + kmathMult + E,
-                     determinantInverse + kmathMult + H],
-                    [determinantInverse + kmathMult + C,
-                     determinantInverse + kmathMult + F,
-                     determinantInverse + kmathMult + I]]) +
+            determinantInverse + kmathMult + D,
+            determinantInverse + kmathMult + G],
+            [determinantInverse + kmathMult + b,
+            determinantInverse + kmathMult + E,
+            determinantInverse + kmathMult + H],
+            [determinantInverse + kmathMult + C,
+            determinantInverse + kmathMult + F,
+            determinantInverse + kmathMult + I]]) +
             '\\mod{26}' +
             kmathEquiv +
             this.getKmathMatrix(
                 [[determinantInverse * A,
-                         determinantInverse * D,
-                         determinantInverse * G],
-                        [determinantInverse * B,
-                         determinantInverse * E,
-                         determinantInverse * H],
-                        [determinantInverse * C,
-                         determinantInverse * F,
-                         determinantInverse * I]]
+                determinantInverse * D,
+                determinantInverse * G],
+                [determinantInverse * B,
+                determinantInverse * E,
+                determinantInverse * H],
+                [determinantInverse * C,
+                determinantInverse * F,
+                determinantInverse * I]]
             ) +
             '\\mod{26}' +
             kmathEquiv +
             this.getKmathMatrix(
                 [[determinantInverse * A + '\\mod{26}',
-                         determinantInverse * D + '\\mod{26}',
-                         determinantInverse * G + '\\mod{26}'],
-                        [determinantInverse * B + '\\mod{26}',
-                         determinantInverse * E + '\\mod{26}',
-                         determinantInverse * H + '\\mod{26}'],
-                        [determinantInverse * C + '\\mod{26}',
-                         determinantInverse * F + '\\mod{26}',
-                         determinantInverse * I + '\\mod{26}']]
+                determinantInverse * D + '\\mod{26}',
+                determinantInverse * G + '\\mod{26}'],
+                [determinantInverse * B + '\\mod{26}',
+                determinantInverse * E + '\\mod{26}',
+                determinantInverse * H + '\\mod{26}'],
+                [determinantInverse * C + '\\mod{26}',
+                determinantInverse * F + '\\mod{26}',
+                determinantInverse * I + '\\mod{26}']]
             ) +
             kmathEquiv +
             this.getKmathMatrix(modinv);
@@ -835,7 +842,7 @@ export class CipherHillEncoder extends CipherEncoder {
      *                               (used when displaying/printing the test question).
      */
     public genQuestionMath(vals: number[][],
-                           showDecryptionMatrix: boolean = false): JQuery<HTMLElement> {
+        showDecryptionMatrix: boolean = false): JQuery<HTMLElement> {
         let kmath =
             this.getKmathMatrixChars(vals) +
             kmathEquiv +
@@ -939,7 +946,7 @@ export class CipherHillEncoder extends CipherEncoder {
      * @param secondLine encoded or plaintext line of characters
      * @param width number of characters per table line.
      */
-    public splitToFit(firstLine: string, secondLine: string, width= 26): string[][] {
+    public splitToFit(firstLine: string, secondLine: string, width = 26): string[][] {
         let lastsplit = -1;
         let lineOne = "";
         let lineTwo = "";
@@ -988,7 +995,7 @@ export class CipherHillEncoder extends CipherEncoder {
 
         result.append(this.genQuestionMath(vals, true));
         if (this.state.operation === 'compute') {
-           let modinv = mod26InverseMatrix(vals);
+            let modinv = mod26InverseMatrix(vals);
             result.append(
                 $('<div/>').append(this.genAnswerMathMatrix(modinv))
             );
@@ -1076,16 +1083,16 @@ export class CipherHillEncoder extends CipherEncoder {
             let table = new JTTable({
                 class: 'hillblock ansblock shrink cell unstriped',
             });
-            
+
             // Add the split up lines to the output table.
             for (let splitLines of strings) {
-            this.addCipherTableRows(
-                table,
-                undefined,
-                splitLines[1],
-                undefined,
-                false
-            );
+                this.addCipherTableRows(
+                    table,
+                    undefined,
+                    splitLines[1],
+                    undefined,
+                    false
+                );
             }
             result.append(table.generate());
             this.setCharset(charset);

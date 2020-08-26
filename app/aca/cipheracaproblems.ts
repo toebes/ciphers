@@ -34,6 +34,10 @@ export class CipherACAProblems extends CipherTest {
         },
         { title: "Delete All Problems", color: "alert", id: "delall" },
     ];
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as ITestState;

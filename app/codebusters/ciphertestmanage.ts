@@ -32,6 +32,10 @@ export class CipherTestManage extends CipherTest {
         { title: 'Import Tests from File', color: 'primary', id: 'import' },
         { title: 'Import Tests from URL', color: 'primary', id: 'importurl' },
     ];
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;
@@ -42,6 +46,10 @@ export class CipherTestManage extends CipherTest {
         this.setUIDefaults();
         this.updateOutput();
     }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
     public updateOutput(): void {
         super.updateOutput();
         this.setMenuMode(menuMode.test);

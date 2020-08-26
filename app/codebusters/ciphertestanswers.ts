@@ -19,6 +19,10 @@ export class CipherTestAnswers extends CipherTest {
     };
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genTestEditState(this.getTestEditState());
     }

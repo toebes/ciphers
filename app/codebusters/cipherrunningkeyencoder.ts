@@ -46,7 +46,10 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
             "selected"
         );
     }
-
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         this.genTestUsage(result);
@@ -78,9 +81,9 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
             select.append(
                 $("<option />", { value: entry }).text(
                     runningKeys[entry].title +
-                        " - " +
-                        runningKeys[entry].text.substr(0, 50) +
-                        "..."
+                    " - " +
+                    runningKeys[entry].text.substr(0, 50) +
+                    "..."
                 )
             );
         }

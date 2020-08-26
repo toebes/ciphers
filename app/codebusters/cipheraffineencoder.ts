@@ -60,6 +60,10 @@ export class CipherAffineEncoder extends CipherEncoder {
     ];
     /* We have identified a complete solution */
     public completeSolution: boolean = false;
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: IAffineState): void {
         this.state = cloneObject(this.defaultstate) as IAffineState;
         this.copyState(this.state, data);
@@ -106,6 +110,10 @@ export class CipherAffineEncoder extends CipherEncoder {
         this.setb(this.state.b);
         this.setOperation(this.state.operation);
     }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
     public updateOutput(): void {
         super.updateOutput();
         $('#a').val(this.state.a);
@@ -1125,6 +1133,10 @@ export class CipherAffineEncoder extends CipherEncoder {
                 }
             });
     }
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $("<div/>");
         this.genTestUsage(result);

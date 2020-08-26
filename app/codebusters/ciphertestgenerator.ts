@@ -50,6 +50,10 @@ export class CipherTestGenerator extends CipherTest {
         this.setUIDefaults();
         this.updateOutput();
     }
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genTestEditState("testedit");
     }
@@ -171,19 +175,8 @@ export class CipherTestGenerator extends CipherTest {
         return result;
     }
     public exportTest(link: JQuery<HTMLElement>): void {
-        let result = {};
         let test = this.getTestEntry(this.state.test);
-        result["TEST.0"] = test;
-
-        if (test.timed !== -1) {
-            result["CIPHER." + String(test.timed)] = this.getFileEntry(
-                test.timed
-            );
-        }
-        for (let entry of test.questions) {
-            result["CIPHER." + String(entry)] = this.getFileEntry(entry);
-        }
-        let blob = new Blob([JSON.stringify(result)], {
+        let blob = new Blob([this.generateTestJSON(test)], {
             type: "text/json",
         });
         let url = URL.createObjectURL(blob);
@@ -214,6 +207,10 @@ export class CipherTestGenerator extends CipherTest {
             this.gotoAddCipher(entry);
         }
     }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
     public updateOutput(): void {
         super.updateOutput();
         let test = this.getTestEntry(this.state.test);
@@ -255,8 +252,7 @@ export class CipherTestGenerator extends CipherTest {
     }
     public manageCustomHeaderButtons(e: string): void {
         let test = this.getTestEntry(this.state.test);
-        if (e === 'default')
-        {
+        if (e === 'default') {
             test.useCustomHeader = false;
         }
         else {

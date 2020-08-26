@@ -47,7 +47,7 @@ export class CipherMorseSolver extends CipherSolver {
         }
     }
     /**
-     * Restore from an UNDO or saved state
+     * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
     public restore(data: IState): void {

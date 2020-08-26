@@ -33,6 +33,10 @@ export class CipherTestQuestions extends CipherTest {
         },
         { title: "Delete All Problems", color: "alert", id: "delall" },
     ];
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as ITestState;
@@ -43,6 +47,10 @@ export class CipherTestQuestions extends CipherTest {
         this.setUIDefaults();
         this.updateOutput();
     }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
     public updateOutput(): void {
         super.updateOutput();
         this.setMenuMode(menuMode.test);

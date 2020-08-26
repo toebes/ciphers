@@ -6,6 +6,10 @@ import { RealTimeObject, RealTimeString, RealTimeArray, ArrayInsertEvent, ArrayS
 import { bindTextInput } from '@convergence/input-element-bindings'
 
 export class InteractiveEncoder extends CipherHandler {
+    /**
+     * Restore the state from a stored record
+     * @param data Saved state to restore
+     */
     public restore(data: IEncoderState): void {
         this.state = cloneObject(this.defaultstate) as IState;
         this.setSourceCharset(data.sourceCharset);

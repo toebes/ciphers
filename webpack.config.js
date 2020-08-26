@@ -11,7 +11,7 @@ var toolsVersion = package.version;
 const argv = require('yargs').argv;
 var ZIP = argv.zip || false;
 var ANALYZE = argv.analyze || false;
-process.traceDeprecation = true;
+// process.traceDeprecation = true;
 
 module.exports = {
     //    mode: "development", // "production" | "development" | "none"
@@ -176,29 +176,131 @@ module.exports = {
         new CopyWebpackPlugin({
             patterns: [
                 {
-                    from: path.join(__dirname, 'Languages', '*.js'),
+                    from: path.join(__dirname, 'Languages', 'de.js'),
                     to: path.resolve(__dirname, 'dist'),
                 },
                 {
-                    from: path.join(__dirname, 'Languages', '*.txt'),
+                    from: path.join(__dirname, 'Languages', 'en.js'),
                     to: path.resolve(__dirname, 'dist'),
                 },
-            ]
-        }),
-        new CopyWebpackPlugin({
-            patterns: [
                 {
-                    from: path.join(__dirname, 'app/images', '*.png'),
+                    from: path.join(__dirname, 'Languages', 'eo.js'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'es.js'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'fr.js'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'it.js'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'la.js'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'nl.js'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'no.js'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'pt.js'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'sv.js'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'de.txt'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'en.txt'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'eo.txt'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'es.txt'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'fr.txt'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'it.txt'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'la.txt'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'nl.txt'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'no.txt'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'pt.txt'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'Languages', 'sv.txt'),
+                    to: path.resolve(__dirname, 'dist'),
+                },
+                {
+                    from: path.join(__dirname, 'app', 'images', 'BaconianA.png'),
                     to: path.resolve(__dirname, 'dist'),
                     flatten: true,
                 },
-            ]
-        }),
-        new CopyWebpackPlugin({
-            patterns: [
                 {
-                    from: path.join(__dirname, 'app/common/fonts', '*.txt'),
+                    from: path.join(__dirname, 'app', 'images', 'BaconianB.png'),
+                    to: path.resolve(__dirname, 'dist'),
+                    flatten: true,
+                },
+                {
+                    from: path.join(__dirname, 'app', 'images', 'pigpen1.png'),
+                    to: path.resolve(__dirname, 'dist'),
+                    flatten: true,
+                },
+                {
+                    from: path.join(__dirname, 'app', 'images', 'pigpen2.png'),
+                    to: path.resolve(__dirname, 'dist'),
+                    flatten: true,
+                },
+                {
+                    from: path.join(__dirname, 'app', 'images', 'tapcode.png'),
+                    to: path.resolve(__dirname, 'dist'),
+                    flatten: true,
+                },
+                {
+                    from: path.join(__dirname, 'app', 'images', 'Twitter_Logo.png'),
+                    to: path.resolve(__dirname, 'dist'),
+                    flatten: true,
+                },
+                {
+                    from: path.join(__dirname, 'app', 'common', 'fonts', 'OFL.txt'),
                     to: path.resolve(__dirname, 'dist/font'),
+                    flatten: true,
+                },
+                {
+                    from: path.join(__dirname, 'app', 'siteVersion.txt'),
+                    to: path.resolve(__dirname, 'dist', 'siteVersion.txt'),
                     flatten: true,
                 },
             ]
@@ -230,15 +332,6 @@ module.exports = {
                     dateFormat: 'mmm d, yyyy @ HH:MM:ss o',
                 },
             },
-        }),
-        new CopyWebpackPlugin({
-            patterns: [
-                {
-                    from: path.join(__dirname, 'app', 'siteVersion.txt'),
-                    to: path.resolve(__dirname, 'dist', 'siteVersion.txt'),
-                    flatten: true,
-                },
-            ]
         }),
         //=====================================================================
         //

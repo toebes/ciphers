@@ -1443,7 +1443,7 @@ export class CipherHandler {
             freqrow.add(freq);
             replrow.add({
                 celltype: 'td', content: $("<input/>", {
-                    id: "R" + String(qnum+1) + "_" + pos,
+                    id: "R" + String(qnum + 1) + "_" + pos,
                     class: "awr",
                     type: "text",
                 })
@@ -1647,6 +1647,10 @@ export class CipherHandler {
         );
         return buttons.children();
     }
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQElement {
         return null;
     }
@@ -1676,6 +1680,10 @@ export class CipherHandler {
             this.genLangDropdown($(elem));
         });
     }
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: IState): void { }
     public save(): IState {
         return { cipherType: ICipherType.None, cipherString: '' };

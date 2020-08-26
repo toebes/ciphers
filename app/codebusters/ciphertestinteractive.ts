@@ -4,14 +4,13 @@ import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { CipherTest, ITestState } from './ciphertest';
-import { RealTimeString, RealTimeArray, ConvergenceDomain, ModelService, RealTimeModel, LogLevel, RealTimeElement, RealTimeObject } from "@convergence/convergence";
+import { ConvergenceDomain, RealTimeModel, RealTimeObject } from "@convergence/convergence";
 import { Convergence } from "@convergence/convergence";
 import { CipherInteractiveFactory, CipherFactory } from './cipherfactory';
 
 /**
  * CipherTestInteractive
- *  Displays a printable version of test <n> if it exists (default 0).
- *  Otherwise it provies a link back to TestManage.html
+ *  Creates the interactive version of a test.
  */
 export class CipherTestInteractive extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;
@@ -23,7 +22,10 @@ export class CipherTestInteractive extends CipherTest {
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
     public pageNumber: number = 0;
-
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as ITestState;
@@ -31,54 +33,72 @@ export class CipherTestInteractive extends CipherTest {
         this.copyState(this.state, data);
         this.updateOutput();
     }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
     public updateOutput(): void {
         super.updateOutput();
         this.setMenuMode(menuMode.test);
+        // Do we have a test id to display an interactive test for?
         if (this.state.testID != undefined) {
             $('.testcontent').each((i, elem) => {
                 this.displayInteractiveTest($(elem), this.state.testID);
             });
         } else {
+            // Not an interactive test, so we must be trying to create one from the current test
             $('.testcontent').each((i, elem) => {
-                this.genTestQuestions($(elem));
+                this.generateInteractiveModel($(elem));
             });
             this.attachHandlers();
         }
     }
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genTestEditState('testint');
     }
-    public genPage(title: string): JQuery<HTMLElement> {
-        let page = $('<div/>', { class: 'page' });
-        page.append($('<div/>', { class: 'head' }).text(title));
-        if (this.pageNumber % 2 === 1) {
-            page.append(
-                $('<div/>', { class: 'headright' }).text('School:__________')
-            );
-        }
-        page.append(
-            $('<div/>', { class: 'foot' }).text(
-                'Page ' + String(this.pageNumber)
-            )
-        );
-        this.pageNumber++;
-        return page;
+    /**
+     * getInteractiveURI gets the URI to call for the interactive collaboration.
+     * It defaults to a public server, but can be overridded with a local configuration value stored in "domain"
+     * @returns string corresponding to the interactive API to call
+     */
+    public getInteractiveURI(): string {
+        // return this.getConfigString("domain", "https://codebusters.alyzee.org/") +
+        return this.getConfigString("domain", "http://toebeshome.myqnapcloud.com:7630/") +
+            "api/realtime/convergence/scienceolympiad";
     }
-    public getInteractiveDomain(): string {
-        return this.getConfigString("domain", "http://toebeshome.myqnapcloud.com:7630/") + "api/realtime/convergence/scienceolympiad";
-    }
-
+    /**
+     * makeInteractive creates an interactive question by invoking the appropriate factory for the saved state
+     * @param elem HTML DOM element to append UI elements for the question
+     * @param state Saved state for the Interactive question to display
+     * @param qnum Question number, -1 indicated a timed question
+     * @param testtype The type of test that it is being generated for
+     * @param realTimeObject Realtime object to establish collaboration for
+     */
     public makeInteractive(elem: JQuery<HTMLElement>, state: IState, qnum: number, testtype: ITestType, realTimeObject: RealTimeObject) {
+        // Sometimes the handlers die because of insufficient data passed to them (or because they are accessing something that they shouldn't)
+        // We protect from this to also prevent it from popping back to the higher level try/catch which is dealing with any communication
+        // errors to the server
         try {
+            // Find the right class to render the cipher
             let ihandler = CipherInteractiveFactory(state.cipherType, state.curlang);
+            // and restore the state
             ihandler.restore(state);
 
+            // Figure out how to display the question text along with the score.  Timed questions will also have a button
+            // generated for them as part of the question, but we need to give text telling the test taker to press
+            // the button
             let extratext = '';
             let result = $('<div/>', {
                 class: 'question ',
             });
             let qtext = $('<div/>', { class: 'qtext' });
+            // Is this the timed question?
             if (qnum === -1) {
+                // Yes, the question number displays as Timed Question
                 qtext.append(
                     $('<span/>', {
                         class: 'timed',
@@ -87,34 +107,42 @@ export class CipherTestInteractive extends CipherTest {
                 extratext =
                     '  When you have solved it, click the <b>Checked Timed Question</b> button so that the time can be recorded and the solution checked.';
             } else {
+                // Normal question, just construct the question number (don't forget that we are zero based)
                 qtext.append(
                     $('<span/>', {
                         class: 'qnum',
                     }).text(String(qnum + 1) + ')')
                 );
             }
+            // Add the number of points 
             qtext.append(
                 $('<span/>', {
                     class: 'points',
                 }).text(' [' + String(state.points) + ' points] ')
             );
+            // And finally the question text (plus anything extra fro the timed question)
             qtext.append(
                 $('<span/>', {
                     class: 'qbody',
                 }).html(state.question + extratext)
             );
             result.append(qtext);
+            // Let the restored class generate the interactive content.
             result.append(ihandler.genInteractive(qnum, testtype));
+            // Put that into the DOM so that the browser makes it active
             elem.append(result);
+            // Now that it is active, we can attach all the handlers to it to process the data and keep
+            // it in sync with the realtime components
             ihandler.attachInteractiveHandlers(qnum, realTimeObject);
         }
         catch (e) {
-            let msg = "Something went wrong generating the Timed Question." +
+            // Hmm a bug in the lower code.. Just show it and don't generate this question but at least
+            // we can continue and generate the other questions.
+            let msg = "Something went wrong generating the Question." +
                 " Error =" + e;
             elem.append($("<h1>").text(msg));
         }
     }
-
     /**
      * GetFactory returns an initialized CipherHandler associated with a question entry
      * @param question Which entry to get the factory for
@@ -126,29 +154,35 @@ export class CipherTestInteractive extends CipherTest {
         cipherhandler.restore(state);
         return cipherhandler;
     }
-
     /**
-     * 
-     * @param elem Element 
+     * generateInteractiveModel takes the current test and constructs the interactive model
+     * to be stored on the server
+     * @param elem Element to place any output/errors/HTML
      */
-    public genTestQuestions(elem: JQuery<HTMLElement>): void {
+    public generateInteractiveModel(elem: JQuery<HTMLElement>): void {
         let testcount = this.getTestCount();
         let errors: string[] = [];
-        let SpanishCount = 0;
+        // Start out with a clean slate for our output (incase we are being invoked a second time)
         elem.empty();
+        // Make sure we actually have a test to generate the model from
         if (testcount === 0) {
             elem.append($('<h3>').text('No Tests Created Yet'));
+            return;
         }
         if (this.state.test > testcount) {
             elem.append($('<h3>').text('Test not found'));
+            return;
         }
+        // We have a test so get the base data for it.
         let test = this.getTestEntry(this.state.test);
         let result = $('<div/>');
         elem.append(result);
         $('.testtitle').text(test.title);
-
-        // Gather up the data so that we don't have to go back to the database.
-        // This simulates how we will be running with the runtime version
+        // We need to save away the JSON for the test so that it can be restored/recreated later
+        let testJSON = this.generateTestJSON(test);
+        // Create the base structure for the interactive test.  This will include
+        // a subset of the normal save data, only enough to present the test, but not enough
+        // that someone could hack the answers out of it.
         let interactive: IInteractiveTest = {
             title: test.title,
             useCustomHeader: test.useCustomHeader,
@@ -168,8 +202,13 @@ export class CipherTestInteractive extends CipherTest {
         if (interactive.testtype === undefined) {
             interactive.testtype = ITestType.cregional;
         }
+        // We also have the answer data.  The difference here is that the answerdata mirrors the interactive
+        // test, but is a series of blank fields for the test taker to put the answers into.  The system
+        // makes a copy of the answer data for each team taking the test
         let answerdata: ITestQuestionFields[] = [];
         this.runningKeys = undefined;
+        // See if we have a timed question to work from.  It always takes the first slot
+        // in the list of answers, even if there is no timed question.
         if (test.timed === -1) {
             // Division A doesn't have a timed quesiton, so don't print out
             // a message if it isn't there.
@@ -182,6 +221,7 @@ export class CipherTestInteractive extends CipherTest {
             }
             answerdata.push({ answer: [], notes: "" });
         } else {
+            // We do have a timed question, so get the handler for it (typcally an aristocrat)
             let cipherhandler = this.GetFactory(test.timed);
             let qerror = ''
             // Division A doesn't have a timed question, but if one was
@@ -204,7 +244,6 @@ export class CipherTestInteractive extends CipherTest {
             let cipherhandler = this.GetFactory(test.questions[qnum]);
             // Is this a xenocrypt?  if so we need the Spanish frequency table on the final test
             if (cipherhandler.state.curlang === 'es') {
-                SpanishCount++;
                 interactive.hasSpanish = true;
             }
             /* Does this cipher involve morse code? */
@@ -240,7 +279,6 @@ export class CipherTestInteractive extends CipherTest {
                 }
             }
         }
-
         // All the interactive data has been captured.  Display any errors that we encountered in the
         // process of generating it.
         if (errors.length === 1) {
@@ -257,12 +295,16 @@ export class CipherTestInteractive extends CipherTest {
             }).text("The following errors were found:")
                 .append(ul));
         }
-
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
         this.setMenuMode(menuMode.test);
-
-        this.saveModels(elem, interactive, answerdata);
+        // Now that we have all the data, we need to save it to the interactive server
+        this.saveModels(elem, interactive, answerdata, testJSON);
     }
+    /**
+     * postErrorMessage displays an error string in an alert on the page
+     * @param elem DOM location to put the error message
+     * @param message Text for the error message
+     */
     public postErrorMessage(elem: JQuery<HTMLElement>, message: string) {
         let callout = $('<div/>', {
             class: 'callout alert',
@@ -270,7 +312,14 @@ export class CipherTestInteractive extends CipherTest {
         console.log(message);
         elem.append(callout);
     }
-    public saveModels(elem: JQuery<HTMLElement>, interactive: IInteractiveTest, answerdata: ITestQuestionFields[]) {
+    /**
+     * Save the current test model to the server
+     * @param elem DOM location to put any output
+     * @param interactive Interactive test data
+     * @param answerdata Interactive test answer data
+     * @param testJSON JSON corresponding to the test
+     */
+    public saveModels(elem: JQuery<HTMLElement>, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testJSON: string) {
         // Now that we have the model of the test and the model of the answers,
         //  we need to create two models.  
         // The interactive test is what we pull down to create the test
@@ -281,51 +330,53 @@ export class CipherTestInteractive extends CipherTest {
         // });
 
         // this.setConfigString("domain", "http://192.168.1.11/");
+        // this.setConfigString("domain", "https://codebusters.alyzee.org/");
+
 
         // 1. Connect to the domain anonymously.
-        Convergence.connectAnonymously(this.getInteractiveDomain())
+        Convergence.connectAnonymously(this.getInteractiveURI())
             .then((domain: ConvergenceDomain) => {
                 // 2. Initializes the application after connecting by opening a model.
                 const modelService = domain.models();
                 modelService.openAutoCreate({
                     collection: "codebusters_tests",
-                    // id: "test_data",
                     data: interactive,
-                })
-                    .then((testmodel: RealTimeModel) => {
-                        var testModelID = testmodel.modelId();
-                        modelService.openAutoCreate({
-                            collection: "codebusters_answers",
-                            data: {
-                                testid: testModelID,
-                                starttime: Date.now(),
-                                answers: answerdata
-                            }
-                        })
-                            .then((datamodel: RealTimeModel) => {
-                                var dataModelID = datamodel.modelId();
-                                let callout = $('<div/>', {
-                                    class: 'callout success',
-                                }).append($("<a/>", { href: "TestInteractive.html?testID=" + dataModelID, target: "_blank" }).text("Open Interactive test"))
-                                elem.append(callout);
-                            })
-                            .catch((error) => {
-                                this.postErrorMessage(elem, "Convergence API could not open data model: " + error);
-                            })
+                }).then((testmodel: RealTimeModel) => {
+                    // It has been created, so 
+                    var testModelID = testmodel.modelId();
+                    testmodel.close();
+                    modelService.openAutoCreate({
+                        collection: "codebusters_answers",
+                        data: {
+                            testid: testModelID,
+                            starttime: Date.now(),
+                            answers: answerdata
+                        }
+                    }).then((datamodel: RealTimeModel) => {
+                        var dataModelID = datamodel.modelId();
+                        let callout = $('<div/>', {
+                            class: 'callout success',
+                        }).append($("<a/>", { href: "TestInteractive.html?testID=" + dataModelID, target: "_blank" }).text("Open Interactive test"));
+                        elem.append(callout);
+                        // We need to close all the models. now that they have been created
+                        datamodel.close();
+                    }).catch((error) => {
+                        this.postErrorMessage(elem, "Convergence API could not open data model: " + error);
                     })
-                    .catch((error) => {
-                        this.postErrorMessage(elem, "Convergence API could not open test model: " + error);
-                    });
-            })
-            .catch((error) => {
+                }).catch((error) => {
+                    this.postErrorMessage(elem, "Convergence API could not open test model: " + error);
+                });
+            }).catch((error) => {
                 this.postErrorMessage(elem, "Convergence API could not connect: " + error);
             });
     }
-
-    public loadAndDisplayModels(elem: JQuery<HTMLElement>, testUID: string) {
-        // If there are no more domains to try then we just get out of here
-        // 1. Connect to the domain anonymously.
-        Convergence.connectAnonymously(this.getInteractiveDomain())
+    /**
+     * 
+     * @param elem 
+     * @param testUID 
+     */
+    public displayInteractiveTest(elem: JQuery<HTMLElement>, testUID: string) {
+        Convergence.connectAnonymously(this.getInteractiveURI())
             .then((domain: ConvergenceDomain) => {
                 // 2. Initializes the application after connecting by opening a model.
                 const modelService = domain.models();
@@ -350,16 +401,15 @@ export class CipherTestInteractive extends CipherTest {
                 this.postErrorMessage(elem, "Convergence API could not connect: " + error);
             });
     }
-
-    public displayInteractiveTest(elem: JQuery<HTMLElement>, testUID: string) {
-        this.loadAndDisplayModels(elem, testUID);
-    }
-
-    public deferredInteractiveTest(elem: JQuery<HTMLElement>, testmodel: RealTimeModel, datamodel: RealTimeModel) {
+    /**
+     * 
+     * @param elem 
+     * @param testmodel 
+     * @param datamodel 
+     */
+     public deferredInteractiveTest(elem: JQuery<HTMLElement>, testmodel: RealTimeModel, datamodel: RealTimeModel) {
         let interactive = testmodel.root().value();
-        let answerdata = datamodel.root().value();
-        let page = this.genPage(interactive.title);
-        elem.append(page);
+        elem.append($('<div/>', { class: 'head' }).text(interactive.title));
         console.log(interactive);
         /**
          * Output any running keys used
@@ -463,7 +513,7 @@ export class CipherTestInteractive extends CipherTest {
             this.makeInteractive(elem, interactive.timed, -1, interactive.testtype, datamodel.elementAt("answers", 0) as RealTimeObject);
         }
         for (let qnum = 0; qnum < interactive.count; qnum++) {
-            this.makeInteractive(elem, interactive.questions[qnum], qnum, interactive.testtype, datamodel.elementAt("answers", qnum+1) as RealTimeObject);
+            this.makeInteractive(elem, interactive.questions[qnum], qnum, interactive.testtype, datamodel.elementAt("answers", qnum + 1) as RealTimeObject);
         }
 
 

@@ -44,6 +44,10 @@ export class CipherTest extends CipherHandler {
         { title: "Import Tests from File", color: "primary", id: "import" },
         { title: "Import Tests from URL", color: "primary", id: "importurl" }
     ];
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: ITestState): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;

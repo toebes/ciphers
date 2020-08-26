@@ -62,6 +62,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.guidanceButton,
     ];
 
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
     public restore(data: IState): void {
         this.state = cloneObject(this.defaultstate) as IVigenereState;
         this.copyState(this.state, data);
@@ -274,7 +278,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
         $("#crib").val(this.state.crib);
         super.updateOutput();
     }
-
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
     public genPreCommands(): JQuery<HTMLElement> {
         let result = $('<div/>');
         this.genTestUsage(result);

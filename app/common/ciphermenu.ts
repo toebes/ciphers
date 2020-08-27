@@ -229,7 +229,8 @@ export const CipherMenu: menuItem[] = [
                 title: "Test Question Guidance",
                 action: "guidance",
                 classname: "guidance menucb"
-            }
+            },
+            { title: "[TESTING] Register", action: "register", classname: "register menucb" }
         ]
     }
 ];

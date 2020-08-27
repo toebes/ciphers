@@ -2371,6 +2371,10 @@ export class CipherHandler {
                 this.guidance();
                 break;
 
+            case 'register':
+                this.register();
+                break;
+
             default:
                 console.log('Unknown action: ' + action);
                 break;
@@ -2822,6 +2826,28 @@ export class CipherHandler {
     /**
      * Creates the hidden dialog showing version/build information
      */
+    public createRegisterDlg(): JQElement {
+        let dlgContents = $('<div/>', {
+            id: 'register',
+            class: 'callout secondary'
+        })
+            .append("<div/>").text("This is only for testing, you can select any userid/name and it is not validated.")
+            .append(JTFLabeledInput("Userid:", "text", "reguserid", this.getConfigString("userid", ""), ""))
+            .append(JTFLabeledInput("First Name:", "text", "regfname", this.getConfigString("fname", ""), ""))
+            .append(JTFLabeledInput("Last Name:", "text", "reglname", this.getConfigString("lname", ""), ""));
+
+        let aboutDlg = JTFDialog(
+            'Register',
+            '[Testing] Register',
+            dlgContents,
+            'okregister',
+            'Register'
+        );
+        return aboutDlg;
+    }
+    /**
+     * Creates the hidden dialog showing version/build information
+     */
     public createAboutDlg(): JQElement {
         let dlgContents = $('<table class="version-table"/>');
         dlgContents.append(
@@ -2856,6 +2882,7 @@ export class CipherHandler {
         result.append(this.createOpenFileDlg());
         result.append(this.createImportFileDlg());
         result.append(this.createAboutDlg());
+        result.append(this.createRegisterDlg());
         return result;
     }
     /**
@@ -2895,6 +2922,25 @@ export class CipherHandler {
         }
 
         $('#About').foundation('open');
+    }
+
+    /**
+     * Show the testing register dialog.
+     */
+    public register(): void {
+        $("#reguserid").val(this.getConfigString("userid", ""));
+        $("#regfname").val(this.getConfigString("fname", ""));
+        $("#reglname").val(this.getConfigString("lname", ""));
+        $('#okregister')
+            .removeAttr('disabled')
+            .off('click')
+            .on('click', e => {
+                this.setConfigString("userid", $("#reguserid").val() as string);
+                this.setConfigString("fname", $("#regfname").val() as string);
+                this.setConfigString("lname", $("#reglname").val() as string);
+                $('#Register').foundation('close');
+            })
+        $('#Register').foundation('open');
     }
 
     /**
@@ -3201,6 +3247,11 @@ export class CipherHandler {
             .off('click')
             .on('click', () => {
                 this.guidance();
+            });
+        $('#register')
+            .off('click')
+            .on('click', () => {
+                this.register();
             });
         $('#save')
             .off('click')

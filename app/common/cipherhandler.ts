@@ -2828,7 +2828,7 @@ export class CipherHandler {
      */
     public createRegisterDlg(): JQElement {
         let dlgContents = $('<div/>', {
-            id: 'register',
+            id: 'registercont',
             class: 'callout secondary'
         })
             .append("<div/>").text("This is only for testing, you can select any userid/name and it is not validated.")
@@ -2837,7 +2837,7 @@ export class CipherHandler {
             .append(JTFLabeledInput("Last Name:", "text", "reglname", this.getConfigString("lname", ""), ""));
 
         let aboutDlg = JTFDialog(
-            'Register',
+            'Registerdlg',
             '[Testing] Register',
             dlgContents,
             'okregister',
@@ -2938,9 +2938,9 @@ export class CipherHandler {
                 this.setConfigString("userid", $("#reguserid").val() as string);
                 this.setConfigString("fname", $("#regfname").val() as string);
                 this.setConfigString("lname", $("#reglname").val() as string);
-                $('#Register').foundation('close');
+                $('#Registerdlg').foundation('close');
             })
-        $('#Register').foundation('open');
+        $('#Registerdlg').foundation('open');
     }
 
     /**

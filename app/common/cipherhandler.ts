@@ -1383,7 +1383,6 @@ export class CipherHandler {
      * @param alphabet Random alphabet to encode the string with
      */
     public encipherString(str: string, alphabet: string): string {
-        let working = this.minimizeString(str);
         // Build up a mapping of the charaters to the enciphered string
         let charset = this.getCharset();
         let replmap: StringMap = {};
@@ -1392,10 +1391,10 @@ export class CipherHandler {
         }
         // We have the map, so just map each of the characters one at a time
         let result = "";
-        for (let i = 0, len = working.length; i < len; i++) {
+        for (let i = 0, len = str.length; i < len; i++) {
             // Make sure the character is valid for mapping
-            if (replmap.hasOwnProperty(working[i])) {
-                result += replmap[working[i]];
+            if (replmap.hasOwnProperty(str[i])) {
+                result += replmap[str[i]];
             } else {
                 // If not it gets a ? to map against
                 result += "?";
@@ -1412,10 +1411,7 @@ export class CipherHandler {
      * @param answer Connonical answer that we are matching against
      * @param str Test string to see if it matches
      */
-    public countDifferences(answer: string, str: string): number {
-        // Get rid of any extraneous characters that don't participate in the match
-        let str1 = this.minimizeString(answer);
-        let str2 = this.minimizeString(str);
+    public countDifferences(str1: string, str2: string): number {
         // Anything from the longer string counts as differences.  In theory
         // this should never happen, but just in case we don't want to be
         // comparing beyond the end of the sting

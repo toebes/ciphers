@@ -194,7 +194,11 @@ export class InteractiveEncoder extends CipherHandler {
     public checkAnswer(answer: string[]) {
         let answertest = "";
         for (let c of answer) {
-            answertest += c;
+            if (c !== "" && this.isValidChar(c)) {
+                answertest += c;
+            } else {
+                answertest += "?";
+            }
         }
         let check = this.encipherString(answertest, this.state.solMap);
         let diffs = this.countDifferences(check, this.state.solCheck);
@@ -301,9 +305,6 @@ export class InteractiveEncoder extends CipherHandler {
                 }
 
                 if (this.isValidChar(newchar) || newchar === ' ') {
-                    if (newchar === ' ') {
-                        newchar = '';
-                    }
                     console.log('Setting ' + id + ' to ' + newchar);
                     this.markUndo(null);
                     this.setAns(id, newchar, realtimeAnswer, target);
@@ -371,9 +372,6 @@ export class InteractiveEncoder extends CipherHandler {
                 }
 
                 if (this.isValidChar(newchar) || newchar === ' ') {
-                    if (newchar === ' ') {
-                        newchar = '';
-                    }
                     console.log('Setting ' + id + ' to ' + newchar);
                     this.markUndo(null);
                     this.setRepl(id, newchar, realtimeReplacement, target);

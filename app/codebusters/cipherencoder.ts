@@ -117,7 +117,7 @@ export class CipherEncoder extends CipherHandler {
         // Do we need to save information for testing the solution?
         if (isTimed) {
             result.solMap = this.getRandomAlphabet();
-            result.solCheck = this.encipherString(this.state.cipherString, result.solMap);
+            result.solCheck = this.encipherString(this.state.cipherString.toUpperCase(), result.solMap);
         }
         return result;
     }

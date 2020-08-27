@@ -93,6 +93,10 @@ export interface IState {
     testFreq?: { [key: string]: number };
     /** Source character set */
     sourceCharset?: string;
+    /** Maping to check the solution with */
+    solMap?: string;
+    /** Encoded solution to match against */
+    solCheck?: string;
 }
 /**
  * The types of tests that can be generated
@@ -149,6 +153,8 @@ export interface ITestQuestionFields {
      *  This is applicable to the Aristocrat/Patristocrat/Xenocrypt ciphers and may
      *  be useful for the Morbit/Pollux ciphers */
     replacements?: string[],
+    /** Deliberate separators between letters to aid in solving a Patristocrat  */
+    separators?: string[],
     /** Any notes typed in the work section below the cipher */
     notes: string,
 }
@@ -804,7 +810,7 @@ export class CipherHandler {
     public cipherWidth: number = 1;
     public charset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     public sourcecharset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    public unasigned: string = '';
+    public unassigned: string = '';
     public holdupdates: boolean = false;
     /** A modification to the current cipher has not been saved */
     public isModified: boolean = false;
@@ -1371,6 +1377,61 @@ export class CipherHandler {
         return changed;
     }
     /**
+     * Encipher a string using an alphabet.
+     * This is primarily used for testing the timed question answer.
+     * @param str String to be encoded
+     * @param alphabet Random alphabet to encode the string with
+     */
+    public encipherString(str: string, alphabet: string): string {
+        let working = this.minimizeString(str);
+        // Build up a mapping of the charaters to the enciphered string
+        let charset = this.getCharset();
+        let replmap: StringMap = {};
+        for (let i = charset.length - 1; i >= 0; i--) {
+            replmap[charset[i]] = alphabet[i];
+        }
+        // We have the map, so just map each of the characters one at a time
+        let result = "";
+        for (let i = 0, len = working.length; i < len; i++) {
+            // Make sure the character is valid for mapping
+            if (replmap.hasOwnProperty(working[i])) {
+                result += replmap[working[i]];
+            } else {
+                // If not it gets a ? to map against
+                result += "?";
+            }
+        }
+        return result;
+    }
+    /**
+     * Count the number of differences between two strings.
+     * This is used for verifying the answer to a timed question
+     * Note that we ignore spaces for purposes of comparison.  In the
+     * case of an Aristocrat, spaces are already known and for a Patristocrat
+     * we don't care about spaces.
+     * @param answer Connonical answer that we are matching against
+     * @param str Test string to see if it matches
+     */
+    public countDifferences(answer: string, str: string): number {
+        // Get rid of any extraneous characters that don't participate in the match
+        let str1 = this.minimizeString(answer);
+        let str2 = this.minimizeString(str);
+        // Anything from the longer string counts as differences.  In theory
+        // this should never happen, but just in case we don't want to be
+        // comparing beyond the end of the sting
+        let differences = Math.abs(str1.length - str2.length);
+        // We want to compare only characters that exist.  We could use the
+        // min of the lengths, but since we know the difference... just calculate it
+        let len = (str1.length + str2.length - differences) / 2;
+        // Go though letter by letter comparing, recording anything that doesn't match
+        for (let i = 0; i < len; i++) {
+            if (str1[i] != str2[i]) {
+                differences++;
+            }
+        }
+        return differences;
+    }
+    /**
      * Initializes the encoder/decoder.
      * Select the character sets based on the language and initialize the
      * current state
@@ -1390,10 +1451,15 @@ export class CipherHandler {
     }
     /**
      * Creates an HTML table to display the frequency of characters
+     * @returns DOM elements of constructed table.
      */
     public createFreqEditTable(): JQElement {
         return null;
     }
+    /**
+     * getInteractiveTemplate creates the answer template for synchronization of
+     * the realtime answers when the test is being given.
+     */
     public getInteractiveTemplate(): ITestQuestionFields {
         let result: ITestQuestionFields = { answer: [], notes: "" }
         return result;
@@ -1688,7 +1754,12 @@ export class CipherHandler {
     public save(): IState {
         return { cipherType: ICipherType.None, cipherString: '' };
     }
-    public saveInteractive(testType: ITestType): IState {
+    /**
+     * saveInteractive saves the test template date for a question
+     * @param testType Type of test that the question is for
+     * @param isTimed Save information for solving a timed question
+     */
+    public saveInteractive(testType: ITestType, isTimed: boolean): IState {
         return this.save();
     }
 
@@ -1929,7 +2000,6 @@ export class CipherHandler {
     public build(): JQElement {
         return null;
     }
-
     /**
      * Create an edit field for a dropdown
      */

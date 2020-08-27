@@ -646,11 +646,15 @@ input[type='radio'] {
 table.intfreq,
 table.SOLVER {
     border-collapse: collapse;
-    margin: 0px;
+    margin: 0 0 30px 0;
     padding: 0px;
     font-family: 'Courier New', Courier, monospace;
 }
 
+table.SOLVER td.es,
+table.SOLVER th.es {
+    border-right: 1px solid black !important;
+}
 table.intfreq td,
 table.SOLVER td {
     text-align:center;
@@ -660,6 +664,11 @@ table.SOLVER td {
     background-color: white;
 }
 
+table.SOLVER td.TOSOLVEC {
+    padding-top: 30px;
+}
+
+table.SOLVER 
 table.SOLVER td {
     border: none;
 }
@@ -667,7 +676,6 @@ table.SOLVER td {
 input.awc {
     width: 100%;
     background-color: #ffffe0;
-    margin-bottom:30px;
 }
 
 input.awr {
@@ -1584,6 +1592,20 @@ table.nameline td.u {
     width: 16px;
     padding: 0px;
     border: none;
+}
+.ir {
+    float: right;
+    position: relative;
+    right: 4px;
+    bottom: 7px;
+    color: lightblue;
+    width: 0px;
+}
+
+.ir:hover {
+    color: black;
+    font-weight: bold;
+    cursor: col-resize;
 }
 
 .TOSOLVEC,

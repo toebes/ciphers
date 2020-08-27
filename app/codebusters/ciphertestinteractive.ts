@@ -235,7 +235,7 @@ export class CipherTestInteractive extends CipherTest {
                 errors.push('Timed Question: ' + qerror);
             }
             // Save the Interactive portion of the test
-            interactive.timed = cipherhandler.saveInteractive(interactive.testtype);
+            interactive.timed = cipherhandler.saveInteractive(interactive.testtype, true);
             answerdata.push(cipherhandler.getInteractiveTemplate())
             interactive.qdata.push({ qnum: -1, points: interactive.timed.points });
         }
@@ -255,7 +255,7 @@ export class CipherTestInteractive extends CipherTest {
                 errors.push('Question ' + String(qnum + 1) + ': ' + qerror);
             }
             // We have the question, so save the interactive data for it
-            let idata = cipherhandler.saveInteractive(interactive.testtype);
+            let idata = cipherhandler.saveInteractive(interactive.testtype, false);
             answerdata.push(cipherhandler.getInteractiveTemplate());
             interactive.questions.push(idata);
             interactive.qdata.push({ qnum: qnum, points: idata.points });

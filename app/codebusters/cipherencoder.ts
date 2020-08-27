@@ -1,5 +1,5 @@
 import * as InlineEditor from '@ckeditor/ckeditor5-build-inline';
-import { cloneObject } from '../common/ciphercommon';
+import { cloneObject, StringMap, makeFilledArray } from '../common/ciphercommon';
 import {
     CipherHandler,
     IEncodeType,
@@ -93,7 +93,12 @@ export class CipherEncoder extends CipherHandler {
         let result: IEncoderState = cloneObject(this.state) as IState;
         return result;
     }
-    public saveInteractive(testType: ITestType): IEncoderState {
+    /**
+     * saveInteractive saves the test template date for a question
+     * @param testType Type of test that the question is for
+     * @param isTimed Save information for solving a timed question
+     */
+    public saveInteractive(testType: ITestType, isTimed: boolean): IEncoderState {
         let result: IState = {
             cipherType: this.state.cipherType,
             cipherString: "",
@@ -109,24 +114,28 @@ export class CipherEncoder extends CipherHandler {
             result.testLines.push(strset[0])
         }
         result.testFreq = this.freq;
+        // Do we need to save information for testing the solution?
+        if (isTimed) {
+            result.solMap = this.getRandomAlphabet();
+            result.solCheck = this.encipherString(this.state.cipherString, result.solMap);
+        }
         return result;
     }
+    /**
+     * getInteractiveTemplate creates the answer template for synchronization of
+     * the realtime answers when the test is being given.
+     */
     public getInteractiveTemplate(): ITestQuestionFields {
         let result = super.getInteractiveTemplate();
         let replen = this.getSourceCharset().length;
-        result.replacements = new Array(replen);
-        for (let i = 0; i < replen; ++i) {
-            result.replacements[i] = " ";
+        result.answer = makeFilledArray(this.state.cipherString.length, " ");
+        // For a patristocrat we need to have a place to store the separators
+        if (this.state.cipherType == ICipherType.Patristocrat) {
+            result.separators = makeFilledArray(this.state.cipherString.length, " ");
         }
-        let cipherlen = this.cleanString(this.state.cipherString).length;
-        result.answer = new Array(cipherlen);
-        for (let i = 0; i < cipherlen; ++i) {
-            result.answer[i] = " ";
-        }
-
+        result.replacements = makeFilledArray(replen, " ");
         return result;
     }
-
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -533,7 +542,7 @@ export class CipherEncoder extends CipherHandler {
         offset: number,
         alphabet: string
     ): string {
-        let unasigned = alphabet;
+        let unassigned = alphabet;
         let repl = '';
 
         // Go through each character in the source string one at a time
@@ -543,26 +552,26 @@ export class CipherEncoder extends CipherHandler {
         for (let i = 0, len = keyword.length; i < len; i++) {
             let c = keyword.substr(i, 1).toUpperCase();
             // Is it one of the characters we haven't used?
-            let pos = unasigned.indexOf(c);
+            let pos = unassigned.indexOf(c);
             if (pos >= 0) {
                 // we hadn't used it, so save it away and remove it from
                 // the list of ones we haven't used
                 repl += c;
-                unasigned =
-                    unasigned.substr(0, pos) + unasigned.substr(pos + 1);
+                unassigned =
+                    unassigned.substr(0, pos) + unassigned.substr(pos + 1);
             }
         }
         // See if the replacement string happens to wrap around.
         if (repl.length + offset > alphabet.length) {
             let off = alphabet.length - offset;
             repl = repl.substr(off) +
-                unasigned +
+                unassigned +
                 repl.substr(0, off);
         } else {
             repl =
-                unasigned.substr(unasigned.length - offset) +
+                unassigned.substr(unassigned.length - offset) +
                 repl +
-                unasigned.substr(0, unasigned.length - offset);
+                unassigned.substr(0, unassigned.length - offset);
         }
         return repl;
     }
@@ -571,22 +580,40 @@ export class CipherEncoder extends CipherHandler {
      * characters
      */
     public getRepl(): string {
-        let sel = Math.floor(Math.random() * this.unasigned.length);
-        let res = this.unasigned.substr(sel, 1);
-        this.unasigned =
-            this.unasigned.substr(0, sel) + this.unasigned.substr(sel + 1);
+        let sel = Math.floor(Math.random() * this.unassigned.length);
+        let res = this.unassigned.substr(sel, 1);
+        this.unassigned =
+            this.unassigned.substr(0, sel) + this.unassigned.substr(sel + 1);
         return res;
+    }
+    /**
+     * Generates a random alphabet that doesn't respect the replacement rules for
+     * matching characters.  This gets used for encoding the answer for testing
+     * when they have solved the timed question.  It is deliberate to break the
+     * rules in order to keep someone who hacks the code to see the test answer
+     * and deciding that it might be an easier cipher to break than the one on the test.
+     * @returns String of random replacement characters
+     */
+    public getRandomAlphabet(): string {
+        let unassigned = this.getCharset();
+        let result = "";
+        while (unassigned.length > 1) {
+            let sel = Math.floor(Math.random() * unassigned.length);
+            result += unassigned.substr(sel, 1);
+            unassigned = unassigned.substr(0, sel) + unassigned.substr(sel + 1);
+        }
+        return result;
     }
     /**
      *  Generates a random replacement set of characters
      */
     public genAlphabetRandom(): void {
         let charset = this.getCharset();
-        this.unasigned = charset;
+        this.unassigned = charset;
         let replacement = '';
         let pos = 0;
 
-        while (this.unasigned.length > 1) {
+        while (this.unassigned.length > 1) {
             let orig = charset.substr(pos, 1);
             let repl = this.getRepl();
             // If the replacement character is the same as the original
@@ -594,7 +621,7 @@ export class CipherEncoder extends CipherHandler {
             // This is guaranteed to be unique
             if (orig === repl) {
                 let newrepl = this.getRepl();
-                this.unasigned += repl;
+                this.unassigned += repl;
                 repl = newrepl;
             }
             replacement += repl;
@@ -602,18 +629,18 @@ export class CipherEncoder extends CipherHandler {
         }
 
         // Now we have to handle the special case of the last character
-        if (charset.substr(pos, 1) === this.unasigned) {
+        if (charset.substr(pos, 1) === this.unassigned) {
             // Just pick a random spot in what we have already done and
             // swap it.  We are guaranteed that it won't be the last character
             // since it matches already
             let sel = Math.floor(Math.random() * replacement.length);
             replacement =
                 replacement.substr(0, sel) +
-                this.unasigned +
+                this.unassigned +
                 replacement.substr(sel + 1) +
                 replacement.substr(sel, 1);
         } else {
-            replacement += this.unasigned;
+            replacement += this.unassigned;
         }
         this.setReplacement(this.getSourceCharset(), replacement);
     }

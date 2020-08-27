@@ -4,6 +4,7 @@ import { IEncoderState } from "./cipherencoder";
 import { cloneObject } from "../common/ciphercommon";
 import { RealTimeObject, RealTimeString, RealTimeArray, ArrayInsertEvent, ArraySetEvent } from '@convergence/convergence';
 import { bindTextInput } from '@convergence/input-element-bindings'
+import { ICipherType } from "../common/ciphertypes";
 
 export class InteractiveEncoder extends CipherHandler {
     /**
@@ -19,11 +20,14 @@ export class InteractiveEncoder extends CipherHandler {
     }
 
     /**
-     * Generate the HTML to display the interactive form of the cipher
+     * Generate the HTML to display the interactive form of the cipher.
+     * @param qnum Question number.  -1 indicates a timed question
+     * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
         let qnumdisp = String(qnum + 1);
         let idclass = "I" + qnumdisp + "_";
+        let spcclass = "S" + qnumdisp + "_";
         let result = $('<div/>', { id: "Q" + qnumdisp });
         let width = this.maxEncodeWidth;
         let pos = 0;
@@ -32,37 +36,69 @@ export class InteractiveEncoder extends CipherHandler {
             width -= 20;
             extraclass = ' atest';
         }
-
+        // Since we already have the lines spit exactly as they would be on the printed test,
+        // go through and generate a table with one cell per character.
         let table = new JTTable({ class: "SOLVER" });
-
         for (let linestr of this.state.testLines) {
             let qrow = table.addBodyRow()
             let arow = table.addBodyRow()
             for (let c of linestr) {
-                qrow.add({ settings: { class: "TOSOLVEC" }, content: c });
-                if (this.isValidChar(c)) {
-                    arow.add($("<input/>", {
-                        id: idclass + pos,
-                        class: "awc",
-                        type: "text",
-                    }))
+                let extraclass = "";
+                let spos = String(pos);
+                // For a Patristocrat, we need to give them the ability to insert/remove word space indicators
+                // We do this by putting a class on the cell which we will add/remove a spacing class at runtime
+                // in response to them clicking on a separator indicator (a downward V)
+                if (this.state.cipherType == ICipherType.Patristocrat && this.isValidChar(c)) {
+                    extraclass = "S" + spos;
+                    let field = $("<div/>")
+                        .append($("<div/>", { class: "ir", id: spcclass + spos }).html("&#711;"))
+                        .append(c);
+
+                    qrow.add({ settings: { class: "TOSOLVEC " + extraclass }, content: field });
                 } else {
-                    arow.add("")
+                    qrow.add({ settings: { class: "TOSOLVEC" }, content: c });
+                }
+                if (this.isValidChar(c)) {
+                    arow.add({
+                        settings: { class: extraclass }, content: $("<input/>", {
+                            id: idclass + spos,
+                            class: "awc",
+                            type: "text",
+                        })
+                    })
+                } else {
+                    arow.add("");
                 }
                 pos++;
             }
         }
         result.append(table.generate());
+        // Do we need the check solution for a timed question?
+        if (qnum === -1) {
+            result.append($("<button/>", { type: "button", class: "Primary button expanded", id: "checktimed" }).text("Checked Timed Question"));
+        }
+
         result.append(this.genInteractiveFreqTable(qnum, this.state.encodeType, extraclass));
         result.append($("<textarea/>", { id: "in" + qnumdisp, class: "intnote" }))
         return result;
     }
-
+    /**
+     * Handle a local user typing an answer character for the cipher. 
+     * The character is uppercased and checked to be a valid character before
+     * updating the local UI.  Any changes are propagated to the realtime system
+     * to be distributed to the other test takers.
+     * @param id Character slot input field which is being changed
+     * @param newchar New character to set as the answer
+     * @param realtimeAnswer Interface to the realtime system
+     * @param elem UI Element which corresponds to the field being changed (in case it is needed)
+     */
     public setAns(id: string,
         newchar: string,
         realtimeAnswer: RealTimeArray,
         elem?: JQuery<HTMLElement>) {
         let parts = id.split("_");
+        // Make sure we have a proper element that we can be updating
+        // The format of the element id is I<qnum>_<index> but we only need the index portion
         if (parts.length > 1) {
             let index = Number(parts[1]);
             let c = newchar.toUpperCase();
@@ -73,7 +109,12 @@ export class InteractiveEncoder extends CipherHandler {
             realtimeAnswer.set(index, c);
         }
     }
-
+    /**
+     * Propagate an answer from the realtime system to the local interface
+     * @param qnumdisp Question number formated for using in an ID ("0" is the timed question)
+     * @param index Which character index to update
+     * @param value New replacement character for that index
+     */
     public propagateAns(qnumdisp: string, index: number, value: string) {
         let c = value.toUpperCase();
         if (!this.isValidChar(c)) {
@@ -81,19 +122,22 @@ export class InteractiveEncoder extends CipherHandler {
         }
         $("#I" + qnumdisp + "_" + String(index)).val(c);
     }
-    public propagateRepl(qnumdisp: string, index: number, value: string) {
-        let c = value.toUpperCase();
-        if (!this.isValidChar(c)) {
-            c = " "
-        }
-        $("#R" + qnumdisp + "_" + String(index)).val(c);
-    }
-
-
+    /**
+     * Handle a local user typing an replacement character for the cipher replacement table. 
+     * The character is uppercased and checked to be a valid character before
+     * updating the local UI.  Any changes are propagated to the realtime system
+     * to be distributed to the other test takers.
+     * @param id Replacement slot input field which is being changed
+     * @param newchar New character to set as the replacement
+     * @param realtimeAnswer Interface to the realtime system
+     * @param elem UI Element which corresponds to the field being changed (in case it is needed)
+     */
     public setRepl(id: string,
         newchar: string,
         realtimeReplacement: RealTimeArray,
         elem?: JQuery<HTMLElement>) {
+        // Make sure we have a proper element that we can be updating
+        // The format of the element id is R<qnum>_<index> but we only need the index portion
         let parts = id.split("_");
         if (parts.length > 1) {
             let index = Number(parts[1]);
@@ -105,6 +149,57 @@ export class InteractiveEncoder extends CipherHandler {
             realtimeReplacement.set(index, c);
         }
     }
+    /**
+     * Propagate a replacement string from the realtime system to the local interface
+     * @param qnumdisp Question number formated for using in an ID ("0" is the timed question)
+     * @param index Which character index to update
+     * @param value New replacement character for that index
+     */
+    public propagateRepl(qnumdisp: string, index: number, value: string) {
+        let c = value.toUpperCase();
+        if (!this.isValidChar(c)) {
+            c = " "
+        }
+        $("#R" + qnumdisp + "_" + String(index)).val(c);
+    }
+    /**
+     * Propagate a replacement string from the realtime system to the local interface
+     * @param qnumdisp Question number formated for using in an ID ("0" is the timed question)
+     * @param index Which character index to update
+     * @param value New replacement character for that index
+     */
+    public propagateSep(qnumdisp: string, index: number, value: string) {
+        if (value == "|") {
+            $("#Q" + qnumdisp + " .S" + String(index)).addClass("es");
+        } else {
+            $("#Q" + qnumdisp + " .S" + String(index)).removeClass("es");
+        }
+    }
+
+    public clickSeparator(id: string, realtimeSeparators: RealTimeArray) {
+        // Make sure we have a proper element that we can be updating
+        // The format of the element id is S<qnum>_<index> and we need both portions
+        let parts = id.split("_");
+        if (parts.length > 1) {
+            let index = Number(parts[1]);
+            let separators = realtimeSeparators.value();
+            if (separators !== undefined) {
+                let c = separators[index];
+                c = (c === "|") ? " " : "|";
+                this.propagateSep(parts[0].substr(1), index, c)
+                realtimeSeparators.set(index, c);
+            }
+        }
+    }
+    public checkAnswer(answer: string[]) {
+        let answertest = "";
+        for (let c of answer) {
+            answertest += c;
+        }
+        let check = this.encipherString(answertest, this.state.solMap);
+        let diffs = this.countDifferences(check, this.state.solCheck);
+        alert("Total Differences =" + diffs);
+    }
 
     /**
      * attachInteractiveHandlers attaches the realtime updates to all of the fields
@@ -114,6 +209,8 @@ export class InteractiveEncoder extends CipherHandler {
     public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject) {
         let qnumdisp = String(qnum + 1);
         let qdivid = "#Q" + qnumdisp + " ";
+        //
+        // The "answer" portion is for the typed answer to the cipher
         let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;
         realtimeAnswer.on("set", (event: ArraySetEvent) => { this.propagateAns(qnumdisp, event.index, event.value.value()); });
 
@@ -122,6 +219,9 @@ export class InteractiveEncoder extends CipherHandler {
         for (var i in answers) {
             this.propagateAns(qnumdisp, Number(i), answers[i]);
         }
+
+        //
+        // the "replacements" portion is for replacement characters in the frequency table
         let realtimeReplacement = realTimeElement.elementAt("replacements") as RealTimeArray;
         realtimeReplacement.on("set", (event: ArraySetEvent) => { this.propagateRepl(qnumdisp, event.index, event.value.value()); });
         // Propagate the initial values into the fields
@@ -130,7 +230,21 @@ export class InteractiveEncoder extends CipherHandler {
             this.propagateRepl(qnumdisp, Number(i), replacements[i]);
         }
 
-        const textArea = $("#in" + qnumdisp)[0] as HTMLTextAreaElement; // document.getElementById('#in' + qnumdisp) as HTMLTextAreaElement;
+        //
+        // For a Patristocrat, we need the list of separators
+        // 
+        let realtimeSeparators = realTimeElement.elementAt("separators") as RealTimeArray;
+        let separators = realtimeSeparators.value();
+        if (separators !== undefined) {
+            realtimeSeparators.on("set", (event: ArraySetEvent) => { this.propagateSep(qnumdisp, event.index, event.value.value()); });
+            for (var i in separators) {
+                this.propagateSep(qnumdisp, Number(i), separators[i]);
+            }
+        }
+        //
+        // the "notes" portion is a generic field for whatever they want to type in the notes.  It gets shared among all the
+        // students taking the same tests
+        const textArea = $("#in" + qnumdisp)[0] as HTMLTextAreaElement;
         bindTextInput(textArea, realTimeElement.elementAt("notes") as RealTimeString);
 
         $(qdivid + '.awc')
@@ -273,6 +387,16 @@ export class InteractiveEncoder extends CipherHandler {
                 }
                 event.preventDefault();
             });
-
+        $(qdivid + '.ir')
+            .off('click')
+            .on('click', e => {
+                this.clickSeparator($(e.target).attr('id'), realtimeSeparators);
+            });
+        // If we are dealing with the timed question, we need to get the information necessary to check the answer
+        if (qnum === -1) {
+            $("#checktimed")
+                .off('click')
+                .on('click', e => { this.checkAnswer(realtimeAnswer.value()); })
+        }
     }
 }

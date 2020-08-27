@@ -45,7 +45,7 @@ export function cloneObjectClean(source: object): object {
                 clone[elem] = source[elem].slice();
             } else if (typeof source[elem] === "object") {
                 clone[elem] = cloneObjectClean(source[elem]);
-            } else if (source[elem] !== undefined){
+            } else if (source[elem] !== undefined) {
                 clone[elem] = source[elem];
             }
         }
@@ -79,7 +79,19 @@ export function repeatStr(c: string, count: number): string {
     return res;
 }
 /**
- *
+ * Creates an array of a given size initialized with the defined values
+ * @param size Number of elements in the array
+ * @param value Initialized value for the array elements
+ */
+export function makeFilledArray(size: number, value: string): string[] {
+    let result: string[] = new Array(size);
+    for (let i = 0; i < size; i++) {
+        result[i] = value;
+    }
+    return result;
+}
+/**
+ * Pads one string with blanks to match the length of the second string
  * @param c String to pad
  * @param m String to match length of
  */

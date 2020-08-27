@@ -177,125 +177,125 @@ module.exports = {
             patterns: [
                 {
                     from: path.join(__dirname, 'Languages', 'de.js'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'en.js'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'eo.js'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'es.js'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'fr.js'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'it.js'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'la.js'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'nl.js'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'no.js'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'pt.js'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'sv.js'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'de.txt'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'en.txt'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'eo.txt'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'es.txt'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'fr.txt'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'it.txt'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'la.txt'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'nl.txt'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'no.txt'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'pt.txt'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'Languages', 'sv.txt'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'BaconianA.png'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'images',),
                     flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'BaconianB.png'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'images',),
                     flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'pigpen1.png'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'images',),
                     flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'pigpen2.png'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'images',),
                     flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'tapcode.png'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'images',),
                     flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'Twitter_Logo.png'),
-                    to: path.resolve(__dirname, 'dist'),
+                    to: path.resolve(__dirname, 'dist', 'images',),
                     flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'common', 'fonts', 'OFL.txt'),
-                    to: path.resolve(__dirname, 'dist/font'),
+                    to: path.resolve(__dirname, 'dist', 'font'),
                     flatten: true,
                 },
                 {

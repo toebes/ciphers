@@ -1,4 +1,4 @@
-import { cloneObject } from '../common/ciphercommon';
+import { cloneObject, cloneObjectClean } from '../common/ciphercommon';
 import { ITestType, menuMode, toolMode, CipherHandler, IState, IInteractiveTest, ITestQuestionFields } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -6,7 +6,7 @@ import { JTTable } from '../common/jttable';
 import { CipherTest, ITestState } from './ciphertest';
 import { ConvergenceDomain, RealTimeModel, RealTimeObject } from "@convergence/convergence";
 import { Convergence } from "@convergence/convergence";
-import { CipherInteractiveFactory, CipherFactory } from './cipherfactory';
+import { CipherInteractiveFactory, CipherPrintFactory } from './cipherfactory';
 
 /**
  * CipherTestInteractive
@@ -71,86 +71,13 @@ export class CipherTestInteractive extends CipherTest {
             "api/realtime/convergence/scienceolympiad";
     }
     /**
-     * makeInteractive creates an interactive question by invoking the appropriate factory for the saved state
-     * @param elem HTML DOM element to append UI elements for the question
-     * @param state Saved state for the Interactive question to display
-     * @param qnum Question number, -1 indicated a timed question
-     * @param testtype The type of test that it is being generated for
-     * @param realTimeObject Realtime object to establish collaboration for
-     */
-    public makeInteractive(elem: JQuery<HTMLElement>, state: IState, qnum: number, testtype: ITestType, realTimeObject: RealTimeObject) {
-        // Sometimes the handlers die because of insufficient data passed to them (or because they are accessing something that they shouldn't)
-        // We protect from this to also prevent it from popping back to the higher level try/catch which is dealing with any communication
-        // errors to the server
-        try {
-            // Find the right class to render the cipher
-            let ihandler = CipherInteractiveFactory(state.cipherType, state.curlang);
-            // and restore the state
-            ihandler.restore(state);
-
-            // Figure out how to display the question text along with the score.  Timed questions will also have a button
-            // generated for them as part of the question, but we need to give text telling the test taker to press
-            // the button
-            let extratext = '';
-            let result = $('<div/>', {
-                class: 'question ',
-            });
-            let qtext = $('<div/>', { class: 'qtext' });
-            // Is this the timed question?
-            if (qnum === -1) {
-                // Yes, the question number displays as Timed Question
-                qtext.append(
-                    $('<span/>', {
-                        class: 'timed',
-                    }).text('Timed Question')
-                );
-                extratext =
-                    '  When you have solved it, click the <b>Checked Timed Question</b> button so that the time can be recorded and the solution checked.';
-            } else {
-                // Normal question, just construct the question number (don't forget that we are zero based)
-                qtext.append(
-                    $('<span/>', {
-                        class: 'qnum',
-                    }).text(String(qnum + 1) + ')')
-                );
-            }
-            // Add the number of points 
-            qtext.append(
-                $('<span/>', {
-                    class: 'points',
-                }).text(' [' + String(state.points) + ' points] ')
-            );
-            // And finally the question text (plus anything extra fro the timed question)
-            qtext.append(
-                $('<span/>', {
-                    class: 'qbody',
-                }).html(state.question + extratext)
-            );
-            result.append(qtext);
-            // Let the restored class generate the interactive content.
-            result.append(ihandler.genInteractive(qnum, testtype));
-            // Put that into the DOM so that the browser makes it active
-            elem.append(result);
-            // Now that it is active, we can attach all the handlers to it to process the data and keep
-            // it in sync with the realtime components
-            ihandler.attachInteractiveHandlers(qnum, realTimeObject);
-        }
-        catch (e) {
-            // Hmm a bug in the lower code.. Just show it and don't generate this question but at least
-            // we can continue and generate the other questions.
-            let msg = "Something went wrong generating the Question." +
-                " Error =" + e;
-            elem.append($("<h1>").text(msg));
-        }
-    }
-    /**
      * GetFactory returns an initialized CipherHandler associated with a question entry
      * @param question Which entry to get the factory for
      * @returns CipherHandler
      */
     public GetFactory(question: number): CipherHandler {
         let state = this.getFileEntry(question);
-        let cipherhandler = CipherFactory(state.cipherType, state.curlang);
+        let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
         cipherhandler.restore(state);
         return cipherhandler;
     }
@@ -235,7 +162,7 @@ export class CipherTestInteractive extends CipherTest {
                 errors.push('Timed Question: ' + qerror);
             }
             // Save the Interactive portion of the test
-            interactive.timed = cipherhandler.saveInteractive(interactive.testtype, true);
+            interactive.timed = cipherhandler.saveInteractive(-1, interactive.testtype, true);
             answerdata.push(cipherhandler.getInteractiveTemplate())
             interactive.qdata.push({ qnum: -1, points: interactive.timed.points });
         }
@@ -255,7 +182,7 @@ export class CipherTestInteractive extends CipherTest {
                 errors.push('Question ' + String(qnum + 1) + ': ' + qerror);
             }
             // We have the question, so save the interactive data for it
-            let idata = cipherhandler.saveInteractive(interactive.testtype, false);
+            let idata = cloneObjectClean(cipherhandler.saveInteractive(qnum, interactive.testtype, false)) as IState;
             answerdata.push(cipherhandler.getInteractiveTemplate());
             interactive.questions.push(idata);
             interactive.qdata.push({ qnum: qnum, points: idata.points });
@@ -402,12 +329,85 @@ export class CipherTestInteractive extends CipherTest {
             });
     }
     /**
+     * makeInteractive creates an interactive question by invoking the appropriate factory for the saved state
+     * @param elem HTML DOM element to append UI elements for the question
+     * @param state Saved state for the Interactive question to display
+     * @param qnum Question number, -1 indicated a timed question
+     * @param testtype The type of test that it is being generated for
+     * @param realTimeObject Realtime object to establish collaboration for
+     */
+    public makeInteractive(elem: JQuery<HTMLElement>, state: IState, qnum: number, testtype: ITestType, realTimeObject: RealTimeObject) {
+        // Sometimes the handlers die because of insufficient data passed to them (or because they are accessing something that they shouldn't)
+        // We protect from this to also prevent it from popping back to the higher level try/catch which is dealing with any communication
+        // errors to the server
+        try {
+            // Find the right class to render the cipher
+            let ihandler = CipherInteractiveFactory(state.cipherType, state.curlang);
+            // and restore the state
+            ihandler.restore(state);
+
+            // Figure out how to display the question text along with the score.  Timed questions will also have a button
+            // generated for them as part of the question, but we need to give text telling the test taker to press
+            // the button
+            let extratext = '';
+            let result = $('<div/>', {
+                class: 'question ',
+            });
+            let qtext = $('<div/>', { class: 'qtext' });
+            // Is this the timed question?
+            if (qnum === -1) {
+                // Yes, the question number displays as Timed Question
+                qtext.append(
+                    $('<span/>', {
+                        class: 'timed',
+                    }).text('Timed Question')
+                );
+                extratext =
+                    '  When you have solved it, click the <b>Checked Timed Question</b> button so that the time can be recorded and the solution checked.';
+            } else {
+                // Normal question, just construct the question number (don't forget that we are zero based)
+                qtext.append(
+                    $('<span/>', {
+                        class: 'qnum',
+                    }).text(String(qnum + 1) + ')')
+                );
+            }
+            // Add the number of points 
+            qtext.append(
+                $('<span/>', {
+                    class: 'points',
+                }).text(' [' + String(state.points) + ' points] ')
+            );
+            // And finally the question text (plus anything extra fro the timed question)
+            qtext.append(
+                $('<span/>', {
+                    class: 'qbody',
+                }).html(state.question + extratext)
+            );
+            result.append(qtext);
+            // pull in the saved interactive content
+            result.append($(state.testHTML));
+            // Put that into the DOM so that the browser makes it active
+            elem.append(result);
+            // Now that it is active, we can attach all the handlers to it to process the data and keep
+            // it in sync with the realtime components
+            ihandler.attachInteractiveHandlers(qnum, realTimeObject);
+        }
+        catch (e) {
+            // Hmm a bug in the lower code.. Just show it and don't generate this question but at least
+            // we can continue and generate the other questions.
+            let msg = "Something went wrong generating the Question." +
+                " Error =" + e;
+            elem.append($("<h1>").text(msg));
+        }
+    }
+    /**
      * 
      * @param elem 
      * @param testmodel 
      * @param datamodel 
      */
-     public deferredInteractiveTest(elem: JQuery<HTMLElement>, testmodel: RealTimeModel, datamodel: RealTimeModel) {
+    public deferredInteractiveTest(elem: JQuery<HTMLElement>, testmodel: RealTimeModel, datamodel: RealTimeModel) {
         let interactive = testmodel.root().value();
         elem.append($('<div/>', { class: 'head' }).text(interactive.title));
         console.log(interactive);

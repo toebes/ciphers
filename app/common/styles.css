@@ -686,7 +686,7 @@ input.awr {
 .TOSOLVEC,
 .awr,
 .awc{
-    font-family: Courier New, Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
     margin-bottom: 0pt;
     line-height: 100%;
@@ -700,13 +700,14 @@ textarea.intnote {
     width: 100%;
     border: 2px solid green;
     border-style: inset;
+    font-family: 'Courier New', Courier, monospace;
 }
 
 .TOSOLVE,
 .TOSOLVE2,
 .TOSOLVEQ,
 .TOANSWER {
-    font-family: Courier New, Courier, monospace;
+    font-family: 'Courier New', Courier, monospace;
     font-size: 22px;
     font-weight: bold;
     margin-bottom: 0pt;

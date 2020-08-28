@@ -202,6 +202,16 @@ export class CipherMorseEncoder extends CipherEncoder {
         return result;
     }
     /**
+     * Generate the HTML to display the interactive form of the cipher.
+     * @param qnum Question number.  -1 indicates a timed question
+     * @param testType Type of test
+     */
+    public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
+        let result = this.genQuestion(testType);
+        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
+        return result;
+    }
+    /**
      * Generates a displayable state of the current known decoding
      * @param working Current mapping strings
      * @returns HTML of output text

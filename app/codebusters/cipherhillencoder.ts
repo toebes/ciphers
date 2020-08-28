@@ -17,7 +17,7 @@ import {
     multarray,
 } from '../common/mathsupport';
 import { renderMath } from '../common/renderMath';
-import { CipherEncoder } from './cipherencoder';
+import { CipherEncoder, IEncoderState } from './cipherencoder';
 
 const kmathEquiv = '\\equiv';
 // Configure how we want the multiplication to appear - either as a * or a dot
@@ -1097,6 +1097,67 @@ export class CipherHillEncoder extends CipherEncoder {
             result.append(table.generate());
             this.setCharset(charset);
         }
+        return result;
+    }
+    /**
+     * Generate the HTML to display the interactive form of the cipher.
+     * @param qnum Question number.  -1 indicates a timed question
+     * @param testType Type of test
+     */
+    public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
+        let result = $('<div/>');
+        let vals = this.getValidKey(this.state.keyword);
+        if (vals === undefined) {
+            result.append(
+                $('<h3/>').text('Invalid Hill Key: ' + this.state.keyword)
+            );
+            return result;
+        }
+
+        result.append(this.genQuestionMath(vals, true));
+
+        if (this.state.operation === 'compute') {
+            let outMatrix: string[][] = this.makeMatrixFromString(
+                this.repeatStr(' ', this.state.keyword.length)
+            );
+            result.append(
+                $('<div/>').append(this.genAnswerMathMatrix(outMatrix))
+            );
+        } else {
+            let encoded = this.computeHill(vals);
+            let decodetext = this.minimizeString(this.state.cipherString);
+            let charset = this.getCharset();
+            this.setCharset(charset + ' ');
+            if (this.state.operation === 'decode') {
+                decodetext = encoded;
+            } else {
+                decodetext += this.repeatStr(
+                    ' ',
+                    encoded.length - decodetext.length
+                );
+            }
+
+            // Split up the text so it fits on a page when printed (default split is 26 characters)
+            let strings = this.splitToFit(decodetext, encoded);
+
+            let table = new JTTable({
+                class: 'hillblock ansblock shrink cell unstriped',
+            });
+
+            // Add the split up lines to the output table.
+            for (let splitLines of strings) {
+                this.addCipherTableRows(
+                    table,
+                    undefined,
+                    splitLines[1],
+                    undefined,
+                    false
+                );
+            }
+            result.append(table.generate());
+            this.setCharset(charset);
+        }
+        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }))
         return result;
     }
 }

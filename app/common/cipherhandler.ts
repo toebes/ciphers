@@ -87,12 +87,14 @@ export interface IState {
     solution?: string;
     /** Is the problem solved? */
     solved?: boolean;
-    /** The test strings **/
-    testLines?: string[];
-    /** Frequency of source characters **/
-    testFreq?: { [key: string]: number };
     /** Source character set */
     sourceCharset?: string;
+    /** HTML for the interactive solution */
+    testHTML?: string;
+    // /** The test strings **/
+    // testLines?: string[];
+    // /** Frequency of source characters **/
+    // testFreq?: { [key: string]: number };
     /** Maping to check the solution with */
     solMap?: string;
     /** Encoded solution to match against */
@@ -1496,9 +1498,8 @@ export class CipherHandler {
 
         let pos = 0
         for (let c of charset.toUpperCase()) {
-            let repl = '';
             headrow.add(c);
-            let freq = String(this.state.testFreq[c]);
+            let freq = String(this.freq[c]);
             if (freq === '0') {
                 freq = '';
             }
@@ -1520,6 +1521,9 @@ export class CipherHandler {
      * showanswers controls whether we display the answers or just the key
      * encodeType tells the type of encoding to print.  If it is 'random' then
      * we leave it blank.
+     * @param showanswers Display the answers as part of the table
+     * @param encodeType The type of encoding (random/k1/k2)
+     * @param extraclass Extra class to add to the generated table
      */
     public genFreqTable(showanswers: boolean, encodeType: string, extraclass: string): JQElement {
         let table = new JTTable({
@@ -1751,11 +1755,12 @@ export class CipherHandler {
         return { cipherType: ICipherType.None, cipherString: '' };
     }
     /**
-     * saveInteractive saves the test template date for a question
-     * @param testType Type of test that the question is for
-     * @param isTimed Save information for solving a timed question
-     */
-    public saveInteractive(testType: ITestType, isTimed: boolean): IState {
+    * saveInteractive saves the test template html for a question
+    * @param qnum Question number to generate test for
+    * @param testType Type of test that the question is for
+    * @param isTimed Save information for solving a timed question
+    */
+   public saveInteractive(qnum: number, testType: ITestType, isTimed: boolean): IState {
         return this.save();
     }
 
@@ -2089,7 +2094,9 @@ export class CipherHandler {
      * Generate the HTML to display the question for a cipher
      */
     public genInteractive(qnum: number, testType: ITestType): JQElement {
-        return this.genQuestion(testType)
+        let result = this.genQuestion(testType);
+        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
+        return result;
     }
     /**
      * Change the encrypted character.  Note that when we change one, we have

@@ -23,6 +23,7 @@ import { CipherTestInteractive } from "./ciphertestinteractive";
 import { CipherTestQuestions } from "./ciphertestquestions";
 import { CipherVigenereEncoder } from "./ciphervigenereencoder";
 import { InteractiveEncoder } from "./interactiveencoder";
+import { InteractiveHillEncoder } from "./interactivehillencoder";
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -75,7 +76,7 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Hill: {
         cipherType: ICipherType.Hill,
         cipherClass: CipherHillEncoder,
-        interactiveClass: CipherHandler,
+        interactiveClass: InteractiveHillEncoder,
         canPrint: true
     },
     Morbit: {
@@ -213,23 +214,28 @@ export function CipherInteractiveFactory(
     reqlang: string
 ): CipherHandler {
     let lang = "en";
+    let ciphertype = ciphertypestr as ICipherType 
     console.log("Selecting:" + ciphertypestr + " lang=" + lang);
+    let cipherTool: CipherHandler;
     if (typeof reqlang !== "undefined") {
         lang = reqlang.toLowerCase();
     }
-    let entry: ICipherFactoryEntry = {
-        cipherType: ICipherType.None,
-        interactiveClass: InteractiveEncoder,
-        cipherClass: CipherEncoder,
-        canPrint: false
-    };
-    if (typeof cipherFactoryMap[ciphertypestr] !== "undefined") {
-        entry = cipherFactoryMap[ciphertypestr];
+    for (let entry of Object.keys(cipherFactoryMap)) {
+        if (
+            cipherFactoryMap[entry].canPrint &&
+            cipherFactoryMap[entry].cipherType === ciphertype
+        ) {
+            cipherTool = new cipherFactoryMap[entry].interactiveClass();
+            cipherTool.setDefaultCipherType(ciphertype);
+            cipherTool.init(lang);
+            return cipherTool;
+        }
     }
-    let cipherTool: CipherHandler = new entry.interactiveClass();
-    cipherTool.setDefaultCipherType(entry.cipherType);
+    cipherTool = new CipherEncoder();
+    cipherTool.setDefaultCipherType(ciphertype);
     cipherTool.init(lang);
     return cipherTool;
+
 }
 
 // CipherPrintFactory returns a handler for a particular cipher type string and language

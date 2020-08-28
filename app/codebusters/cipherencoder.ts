@@ -15,6 +15,7 @@ import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTFDialog } from '../common/jtfdialog';
+import { JTTable } from '../common/jttable';
 
 export interface IEncoderState extends IState {
     /** K1/K2/K3/K4 Keyword */
@@ -94,11 +95,12 @@ export class CipherEncoder extends CipherHandler {
         return result;
     }
     /**
-     * saveInteractive saves the test template date for a question
+     * saveInteractive saves the test template html for a question
+     * @param qnum Question number to generate test for
      * @param testType Type of test that the question is for
      * @param isTimed Save information for solving a timed question
      */
-    public saveInteractive(testType: ITestType, isTimed: boolean): IEncoderState {
+    public saveInteractive(qnum: number, testType: ITestType, isTimed: boolean): IEncoderState {
         let result: IState = {
             cipherType: this.state.cipherType,
             cipherString: "",
@@ -108,12 +110,8 @@ export class CipherEncoder extends CipherHandler {
             encodeType: this.state.encodeType,
             sourceCharset: this.getSourceCharset(),
         };
-        let strings = this.genTestStrings(testType);
-        result.testLines = []
-        for (let strset of strings) {
-            result.testLines.push(strset[0])
-        }
-        result.testFreq = this.freq;
+        let interactiveContent = $("<div/>").append(this.genInteractive(qnum, testType));
+        result.testHTML = interactiveContent.html();
         // Do we need to save information for testing the solution?
         if (isTimed) {
             result.solMap = this.getRandomAlphabet();
@@ -720,6 +718,7 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      * Generate the HTML to display the question for a cipher
+     * @param testType Type of test
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
@@ -739,6 +738,69 @@ export class CipherEncoder extends CipherHandler {
         result.append(this.genFreqTable(false, this.state.encodeType, extraclass));
         return result;
     }
+    /**
+     * Generate the HTML to display the interactive form of the cipher.
+     * @param qnum Question number.  -1 indicates a timed question
+     * @param testType Type of test
+     */
+    public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
+        let strings = this.genTestStrings(testType);
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            extraclass = ' atest';
+        }
+        let qnumdisp = String(qnum + 1);
+        let idclass = "I" + qnumdisp + "_";
+        let spcclass = "S" + qnumdisp + "_";
+        let result = $('<div/>', { id: "Q" + qnumdisp });
+        let pos = 0;
+        // Since we already have the lines spit exactly as they would be on the printed test,
+        // go through and generate a table with one cell per character.
+        let table = new JTTable({ class: "SOLVER" });
+        for (let strset of strings) {
+            let qrow = table.addBodyRow()
+            let arow = table.addBodyRow()
+            for (let c of strset[0]) {
+                let extraclass = "";
+                let spos = String(pos);
+                // For a Patristocrat, we need to give them the ability to insert/remove word space indicators
+                // We do this by putting a class on the cell which we will add/remove a spacing class at runtime
+                // in response to them clicking on a separator indicator (a downward V)
+                if (this.state.cipherType == ICipherType.Patristocrat && this.isValidChar(c)) {
+                    extraclass = "S" + spos;
+                    let field = $("<div/>")
+                        .append($("<div/>", { class: "ir", id: spcclass + spos }).html("&#711;"))
+                        .append(c);
+
+                    qrow.add({ settings: { class: "TOSOLVEC " + extraclass }, content: field });
+                } else {
+                    qrow.add({ settings: { class: "TOSOLVEC" }, content: c });
+                }
+                if (this.isValidChar(c)) {
+                    arow.add({
+                        settings: { class: extraclass }, content: $("<input/>", {
+                            id: idclass + spos,
+                            class: "awc",
+                            type: "text",
+                        })
+                    })
+                } else {
+                    arow.add("");
+                }
+                pos++;
+            }
+        }
+        result.append(table.generate());
+        // Do we need the check solution for a timed question?
+        if (qnum === -1) {
+            result.append($("<button/>", { type: "button", class: "Primary button expanded", id: "checktimed" }).text("Checked Timed Question"));
+        }
+
+        result.append(this.genInteractiveFreqTable(qnum, this.state.encodeType, extraclass));
+        result.append($("<textarea/>", { id: "in" + qnumdisp, class: "intnote" }))
+        return result;
+    }
+
 
     public genTestStrings(testType: ITestType) {
         this.genAlphabet();

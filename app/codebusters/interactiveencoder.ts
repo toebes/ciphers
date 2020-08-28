@@ -20,69 +20,6 @@ export class InteractiveEncoder extends CipherHandler {
     }
 
     /**
-     * Generate the HTML to display the interactive form of the cipher.
-     * @param qnum Question number.  -1 indicates a timed question
-     * @param testType Type of test
-     */
-    public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let qnumdisp = String(qnum + 1);
-        let idclass = "I" + qnumdisp + "_";
-        let spcclass = "S" + qnumdisp + "_";
-        let result = $('<div/>', { id: "Q" + qnumdisp });
-        let width = this.maxEncodeWidth;
-        let pos = 0;
-        let extraclass = '';
-        if (testType === ITestType.aregional) {
-            width -= 20;
-            extraclass = ' atest';
-        }
-        // Since we already have the lines spit exactly as they would be on the printed test,
-        // go through and generate a table with one cell per character.
-        let table = new JTTable({ class: "SOLVER" });
-        for (let linestr of this.state.testLines) {
-            let qrow = table.addBodyRow()
-            let arow = table.addBodyRow()
-            for (let c of linestr) {
-                let extraclass = "";
-                let spos = String(pos);
-                // For a Patristocrat, we need to give them the ability to insert/remove word space indicators
-                // We do this by putting a class on the cell which we will add/remove a spacing class at runtime
-                // in response to them clicking on a separator indicator (a downward V)
-                if (this.state.cipherType == ICipherType.Patristocrat && this.isValidChar(c)) {
-                    extraclass = "S" + spos;
-                    let field = $("<div/>")
-                        .append($("<div/>", { class: "ir", id: spcclass + spos }).html("&#711;"))
-                        .append(c);
-
-                    qrow.add({ settings: { class: "TOSOLVEC " + extraclass }, content: field });
-                } else {
-                    qrow.add({ settings: { class: "TOSOLVEC" }, content: c });
-                }
-                if (this.isValidChar(c)) {
-                    arow.add({
-                        settings: { class: extraclass }, content: $("<input/>", {
-                            id: idclass + spos,
-                            class: "awc",
-                            type: "text",
-                        })
-                    })
-                } else {
-                    arow.add("");
-                }
-                pos++;
-            }
-        }
-        result.append(table.generate());
-        // Do we need the check solution for a timed question?
-        if (qnum === -1) {
-            result.append($("<button/>", { type: "button", class: "Primary button expanded", id: "checktimed" }).text("Checked Timed Question"));
-        }
-
-        result.append(this.genInteractiveFreqTable(qnum, this.state.encodeType, extraclass));
-        result.append($("<textarea/>", { id: "in" + qnumdisp, class: "intnote" }))
-        return result;
-    }
-    /**
      * Handle a local user typing an answer character for the cipher. 
      * The character is uppercased and checked to be a valid character before
      * updating the local UI.  Any changes are propagated to the realtime system
@@ -238,8 +175,8 @@ export class InteractiveEncoder extends CipherHandler {
         // For a Patristocrat, we need the list of separators
         // 
         let realtimeSeparators = realTimeElement.elementAt("separators") as RealTimeArray;
-        let separators = realtimeSeparators.value();
-        if (separators !== undefined) {
+        if (realTimeElement.hasKey("separators")) {
+            let separators = realtimeSeparators.value();
             realtimeSeparators.on("set", (event: ArraySetEvent) => { this.propagateSep(qnumdisp, event.index, event.value.value()); });
             for (var i in separators) {
                 this.propagateSep(qnumdisp, Number(i), separators[i]);

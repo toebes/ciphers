@@ -554,7 +554,28 @@ export class CipherAffineEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let result = this.genQuestion(testType);
+        let result = $('<div/>', { class: 'grid-x' });
+        let plainindex = 0;
+        let cipherindex = 1;
+        if (this.state.operation === 'encode') {
+            plainindex = 1;
+            cipherindex = 0;
+        }
+        this.genAlphabet();
+        let strings = this.buildReplacement(this.state.cipherString, 40);
+        let table = new JTTable({
+            class: 'ansblock shrink cell unstriped',
+        });
+        for (let strset of strings) {
+            this.addCipherTableRows(
+                table,
+                undefined,
+                strset[plainindex],
+                strset[cipherindex],
+                true
+            );
+        }
+        result.append(table.generate());
         result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
         return result;
     }

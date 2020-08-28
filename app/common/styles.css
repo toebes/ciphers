@@ -1266,6 +1266,11 @@ div.instructions {
     display: none;
 }
 
+table.interactive td.q {
+    padding: 0px;
+    width: 50px;
+}
+
 table.hillans {
     margin-left: 10rem;
     margin-top: 2rem;
@@ -1834,6 +1839,7 @@ table.railfence-sm tbody {
     table.hillans {
         margin-bottom: 12rem;
     }
+
     /* For the page we want an inch margin, but we need to insert the header at the half inch 
        mark.  So instead we are going to do a half inch margin and will have the div for the 
        page add the additional space.  On the bottom we need to do the page numbers at 1/4" 

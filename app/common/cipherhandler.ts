@@ -1459,7 +1459,7 @@ export class CipherHandler {
      * the realtime answers when the test is being given.
      */
     public getInteractiveTemplate(): ITestQuestionFields {
-        let result: ITestQuestionFields = { answer: [], notes: "" }
+        let result: ITestQuestionFields = { answer: [], notes: "" };
         return result;
     }
     /**

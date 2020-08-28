@@ -1,5 +1,5 @@
-import { cloneObject } from '../common/ciphercommon';
-import { IState, ITestType, toolMode } from '../common/cipherhandler';
+import { cloneObject, makeFilledArray } from '../common/ciphercommon';
+import { IState, ITestType, toolMode, ITestQuestionFields } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
@@ -64,6 +64,18 @@ export class CipherHillEncoder extends CipherEncoder {
         // We need a deep copy of the save state
         let savestate = cloneObject(this.state) as IState;
         return savestate;
+    }
+    /**
+     * getInteractiveTemplate creates the answer template for synchronization of
+     * the realtime answers when the test is being given.
+     * @returns Template of question fields to be filled in at runtime.
+     */
+    public getInteractiveTemplate(): ITestQuestionFields {
+        let result: ITestQuestionFields = {
+            answer: makeFilledArray(this.state.keyword.length, " "),
+            notes: "",
+        };
+        return result;
     }
     /**
      * Determines if this generator is appropriate for a given test
@@ -863,9 +875,14 @@ export class CipherHillEncoder extends CipherEncoder {
 
         return renderMath(kmath);
     }
-    public genAnswerMathMatrix(matrix: any[][]): JQuery<HTMLElement> {
+    /**
+     * Generate the visible answer matrix for a question
+     * @param matrix Content to put into the array boxes.
+     * @param extraclass Extra class to add to the table
+     */
+    public genAnswerMathMatrix(matrix: any[][], extraclsss: string): JQuery<HTMLElement> {
         let table = new JTTable({
-            class: 'hillans ansblock shrink cell unstriped',
+            class: 'hillans ansblock shrink cell unstriped' + extraclsss,
         });
         let first = true;
         for (let row of matrix) {
@@ -881,7 +898,7 @@ export class CipherHillEncoder extends CipherEncoder {
             }
             for (let c of row) {
                 let cclass = 'a';
-                if (c === ' ') {
+                if (c === ' ' || typeof (c) !== "string") {
                     cclass = 'q';
                 }
                 tabrow.add({
@@ -997,7 +1014,7 @@ export class CipherHillEncoder extends CipherEncoder {
         if (this.state.operation === 'compute') {
             let modinv = mod26InverseMatrix(vals);
             result.append(
-                $('<div/>').append(this.genAnswerMathMatrix(modinv))
+                $('<div/>').append(this.genAnswerMathMatrix(modinv, ""))
             );
         } else {
             let encoded = this.computeHill(vals);
@@ -1061,7 +1078,7 @@ export class CipherHillEncoder extends CipherEncoder {
                 this.repeatStr(' ', this.state.keyword.length)
             );
             result.append(
-                $('<div/>').append(this.genAnswerMathMatrix(outMatrix))
+                $('<div/>').append(this.genAnswerMathMatrix(outMatrix, ""))
             );
         } else {
             let encoded = this.computeHill(vals);
@@ -1105,7 +1122,9 @@ export class CipherHillEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        let qnumdisp = String(qnum + 1);
+        let idclass = "I" + qnumdisp + "_";
+        let result = $('<div/>', { id: "Q" + qnumdisp });
         let vals = this.getValidKey(this.state.keyword);
         if (vals === undefined) {
             result.append(
@@ -1117,12 +1136,23 @@ export class CipherHillEncoder extends CipherEncoder {
         result.append(this.genQuestionMath(vals, true));
 
         if (this.state.operation === 'compute') {
-            let outMatrix: string[][] = this.makeMatrixFromString(
-                this.repeatStr(' ', this.state.keyword.length)
-            );
-            result.append(
-                $('<div/>').append(this.genAnswerMathMatrix(outMatrix))
-            );
+            // We need to put input fields for each of the matrix entries
+            let outMatrix: JQuery<HTMLElement>[][] = [[]];
+            let pos = 0;
+            for (let row = 0; row < vals.length; row++) {
+                outMatrix.push([]);
+                for (let col = 0; col < vals[row].length; col++) {
+                    outMatrix[row].push(
+                        $("<input/>", {
+                            id: idclass + String(pos),
+                            class: "awc",
+                            type: "text",
+                        }));
+                    pos++;
+                }
+            }
+            result.append($('<div/>')
+                .append(this.genAnswerMathMatrix(outMatrix, " interactive")));
         } else {
             let encoded = this.computeHill(vals);
             let decodetext = this.minimizeString(this.state.cipherString);
@@ -1157,7 +1187,7 @@ export class CipherHillEncoder extends CipherEncoder {
             result.append(table.generate());
             this.setCharset(charset);
         }
-        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }))
+        result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }))
         return result;
     }
 }

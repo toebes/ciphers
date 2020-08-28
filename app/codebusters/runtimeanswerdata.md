@@ -100,16 +100,19 @@ for (var i in replacements) {
 ```
 
 ### `separators`
-/** Deliberate separators between letters to aid in solving a Patristocrat  */
-        let realtimeSeparators = realTimeElement.elementAt("separators") as RealTimeArray;
-        if (realTimeElement.hasKey("separators")) {
-            let separators = realtimeSeparators.value();
-            realtimeSeparators.on("set", (event: ArraySetEvent) => { this.propagateSep(qnumdisp, event.index, event.value.value()); });
-            for (var i in separators) {
-                this.propagateSep(qnumdisp, Number(i), separators[i]);
-            }
-        }
+Deliberate separators between letters to aid in solving a Cipher.  
+This is used for Patristocrats, Baconian, Tap Code and Pig Pen ciphers. 
+If the entry is a `|` then a vertical line is drawn after the character.
+Typically this is bound with a RealTimeArray to track/update changes.
 
+```
+let realtimeSeparators = realTimeElement.elementAt("separators") as RealTimeArray;
+let separators = realtimeSeparators.value();
+realtimeSeparators.on("set", (event: ArraySetEvent) => { this.propagateSep(qnumdisp, event.index, event.value.value()); });
+for (var i in separators) {
+    this.propagateSep(qnumdisp, Number(i), separators[i]);
+}
+```
 ### `notes`
 Any notes typed in the work section below the cipher.
 This is typically bound to a textarea field with a class of `intnote` and an id of the form

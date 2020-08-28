@@ -37,6 +37,22 @@ export class InteractiveHillEncoder extends InteractiveEncoder {
                 console.log("Unable to find the answerfield\n")
             }
         }
+        // The "answer" portion is for the typed answer to the cipher
+        if (realTimeElement.hasKey("replacements")) {
+            let realtimeReplacement = realTimeElement.elementAt("replacements") as RealTimeArray;
+            let replacements = realtimeReplacement.value();
+            for (var i in answers) {
+                let replfield = $("#R" + qnumdisp + "_" + String(i));
+                // Propagate the initial values into the fields
+                replfield.val(replacements[i]);
+                // Bind the field for any updates
+                if (replfield.length > 0) {
+                    bindTextInput(replfield[0] as HTMLInputElement, realtimeReplacement.elementAt(i));
+                } else {
+                    console.log("Unable to find the replacement field\n")
+                }
+            }
+        }
         //
         // the "notes" portion is a generic field for whatever they want to type in the notes.  It gets shared among all the
         // students taking the same tests

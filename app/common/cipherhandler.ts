@@ -143,21 +143,72 @@ export interface ITest {
     testtype: ITestType;
 }
 
+/**
+ * ITestQuestionFields is the runtime data to track the answer to a particular question.
+ */
 export interface ITestQuestionFields {
     /** The current solution represented as an array of characters to map to a realtime model better
-     *  Each spot is a single character.  This only includes the answer characters.  So if the cipher
+     *  Each spot is a single character.  This includes the answer characters with spaces for non valid characters.
+     *   So if the cipher
      *  was  X PDR'M AXVC and the answer typed was:
      *       I DON'T LIKE 
-     *  Then the answer array will be {"I", "D", "O", "N", "T", "L", "I", "K", "E"}
+     *  Then the answer array will be {"I", " ", "D", "O", "N", " ", "T", " ", "L", "I", "K", "E"}
+     * 
+     *   Typically the answer is bound to a RealTimeArray
+     *      let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;
+     *      realtimeAnswer.on("set", (event: ArraySetEvent) => { this.propagateAns(qnumdisp, event.index, event.value.value()); });
+     * 
+     *   The generated HTML fields are typically an input field with the awc class and an ID of the form
+     *      I<qnum>_<offset> 
+     *   Where <qnum> is the question number (0 for timed) and <offset> is the index in the array.
+     *   In the array case, usually these fields will only contain a single character and can be populated vi keyup/keypress
+     *   events (look in interactiveencoder.ts for an example).
+     * 
+     *   In the case where the field could be a number or string (like in the Hill cipher) instead of binding with a RealTimeArray,
+     *   each of the fields are bound as a textInput such as:
+     *         let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;
+     *         let answers = realtimeAnswer.value();
+     *         for (var i in answers) {
+     *             let answerfield = $("#I" + qnumdisp + "_" + String(i));
+     *              bindTextInput(answerfield[0] as HTMLInputElement, realtimeAnswer.elementAt(i));
+     *         }
      **/
     answer: string[],
     /** The replacement choices that has been entered on the test. 
-     *  This is applicable to the Aristocrat/Patristocrat/Xenocrypt ciphers and may
-     *  be useful for the Morbit/Pollux ciphers */
+     *  This is applicable to most ciphers 
+     *  
+     *  Like the answer field, this is also typically bound to a RealTimeArray
+     * 
+     *         let realtimeReplacement = realTimeElement.elementAt("replacements") as RealTimeArray;
+     *         realtimeReplacement.on("set", (event: ArraySetEvent) => { this.propagateRepl(qnumdisp, event.index, event.value.value()); });
+     *
+     *   The generated HTML fields are typically an input field with the awr class and an ID of the form
+     *      R<qnum>_<offset> 
+     *   Where <qnum> is the question number (0 for timed) and <offset> is the index in the array.
+     *   In the array case, usually these fields will only contain a single character and can be populated vi keyup/keypress
+     *   events (look in interactiveencoder.ts for an example).
+     * 
+     *   In the case where the field could be a number or string (like in the Hill cipher) instead of binding with a RealTimeArray,
+     *   each of the fields are bound as a textInput such as:
+     *         let realtimeReplacement = realTimeElement.elementAt("replacements") as RealTimeArray;
+     *         let replacements = realtimeReplacement.value();
+     *         for (var i in replacements) {
+     *             let replacementfield = $("#R" + qnumdisp + "_" + String(i));
+     *              bindTextInput(replacementfield[0] as HTMLInputElement, realtimeReplacement.elementAt(i));
+     *         }
+     * */
     replacements?: string[],
     /** Deliberate separators between letters to aid in solving a Patristocrat  */
     separators?: string[],
-    /** Any notes typed in the work section below the cipher */
+    /** Any notes typed in the work section below the cipher 
+     *   This is typically bound to a textarea field with a class of intnote and an id of the form
+     *      in<qnum>
+     *   where <qnum> is the question number (0 for timed)
+     * 
+     *   The textarea is bound with bindTextInput as follows:
+     *       const textArea = $("#in" + qnumdisp)[0] as HTMLTextAreaElement;
+     *       bindTextInput(textArea, realTimeElement.elementAt("notes") as RealTimeString);
+     */
     notes: string,
 }
 
@@ -2015,11 +2066,12 @@ export class CipherHandler {
     public updateSel(item: string, val: string): void { }
     /**
      * Adds a set of answer rows to a table.
-     *   overline specifies answer characters (typically from a vigenere or running key)
-     *    that someone would use to compute the answer.  undefined indicates not to use it
-     *   cipher line is the line that they are being asked to encode/decode
-     *   answerline is the answer (if any).  undefined to leave it blank
-     *   blankline chooses to add an extra line to the table or not.
+     * @param table Table to add the rows to
+     * @param overline specifies answer characters (typically from a vigenere or running key)
+     *                 that someone would use to compute the answer.  undefined indicates not to use it
+     * @param cipherline the line that they are being asked to encode/decode 
+     * @param answerline the answer (if any).  undefined to leave it blank
+     * @param blankline true=add an extra line to the table.
      */
     public addCipherTableRows(
         table: JTTable,

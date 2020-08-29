@@ -676,11 +676,13 @@ table.SOLVER td {
 input.awc {
     width: 100%;
     background-color: #ffffe0;
+    padding: 0;
 }
 
 input.awr {
     width: 100%;
     background-color: #ffffe0;
+    padding: 0;
 }
 
 .TOSOLVEC,
@@ -1281,6 +1283,11 @@ table.hillblock {
 }
 table.hillblock td {
     min-width: 2rem;
+}
+
+table.affineint td {
+    width: 35px;
+    padding: 0;
 }
 
 table.hillans td.v {

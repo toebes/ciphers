@@ -24,6 +24,7 @@ import { CipherTestQuestions } from "./ciphertestquestions";
 import { CipherVigenereEncoder } from "./ciphervigenereencoder";
 import { InteractiveEncoder } from "./interactiveencoder";
 import { InteractiveHillEncoder } from "./interactivehillencoder";
+import { InteractiveTableEncoder } from "./interactivetableencoder";
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -40,7 +41,7 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Affine: {
         cipherType: ICipherType.Affine,
         cipherClass: CipherAffineEncoder,
-        interactiveClass: CipherHandler,
+        interactiveClass: InteractiveTableEncoder,
         canPrint: true
     },
     Atbash: {

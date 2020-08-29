@@ -17,7 +17,7 @@ import { JTFDialog } from './jtfdialog';
 import { JTFLabeledInput } from './jtflabeledinput';
 import { JTCreateMenu, JTGetSolveURL, JTGetURL } from './jtmenu';
 import { InitStorage, JTStorage } from './jtstore';
-import { JTTable } from './jttable';
+import { JTTable, JTRow } from './jttable';
 import { parseQueryString } from './parsequerystring';
 import { textStandard } from '../common/readability';
 import { RealTimeObject } from '@convergence/convergence';
@@ -1811,7 +1811,7 @@ export class CipherHandler {
     * @param testType Type of test that the question is for
     * @param isTimed Save information for solving a timed question
     */
-   public saveInteractive(qnum: number, testType: ITestType, isTimed: boolean): IState {
+    public saveInteractive(qnum: number, testType: ITestType, isTimed: boolean): IState {
         return this.save();
     }
 
@@ -2127,6 +2127,65 @@ export class CipherHandler {
         return;
     }
     /**
+     * Generates the interactive editing for a cipher table of text
+     * @param strings Array of string arrays to output
+     * @param stringindex Which string in the string set to output
+     * @param qnum Question number that the table is for
+     * @param extraclass Extra class to add to the table
+     * @param genover True=generate the replacement string over the top of the table
+     */
+    public genInteractiveCipherTable(strings: string[][], stringindex: number, qnum: number, extraclass: string, genover: boolean): JQuery<HTMLElement> {
+        let qnumdisp = String(qnum + 1);
+        let table = new JTTable({ class: 'ansblock shrink cell unstriped ' + extraclass, });
+        let pos = 0;
+        // Add the split up lines to the output table.
+        for (let splitLines of strings) {
+            let cipherline = splitLines[stringindex];
+            let rowover: JTRow;
+            if (genover) {
+                rowover = table.addBodyRow();
+            }
+            let rowcipher = table.addBodyRow();
+            let rowanswer = table.addBodyRow();
+            let rowblank = table.addBodyRow();
+
+            for (let i = 0; i < cipherline.length; i++) {
+                if (genover) {
+                    rowover.add({
+                        celltype: 'td', content: $("<input/>", {
+                            id: "R" + qnumdisp + "_" + pos,
+                            class: "awr",
+                            type: "text",
+                        })
+                    });
+                }
+                let c = cipherline.substr(i, 1);
+                if (this.isValidChar(c)) {
+                    rowcipher.add({
+                        settings: { class: 'q v' },
+                        content: c,
+                    });
+                    rowanswer.add({
+                        celltype: 'td',
+                        content: $("<input/>", {
+                            id: "I" + qnumdisp + "_" + pos,
+                            class: "awr",
+                            type: "text",
+                        }),
+                        settings: { class: 'e v' },
+                    });
+                }
+                else {
+                    rowcipher.add(c);
+                    rowanswer.add(c);
+                }
+                rowblank.add('');
+                pos++;
+            }
+        }
+        return table.generate();
+    }
+    /**
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(testType: ITestType): JQElement {
@@ -2147,7 +2206,7 @@ export class CipherHandler {
      */
     public genInteractive(qnum: number, testType: ITestType): JQElement {
         let result = this.genQuestion(testType);
-        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
+        result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }));
         return result;
     }
     /**

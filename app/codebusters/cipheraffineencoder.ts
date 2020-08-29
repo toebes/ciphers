@@ -1,5 +1,5 @@
-import { cloneObject, StringMap } from '../common/ciphercommon';
-import { IState, ITestType, toolMode } from '../common/cipherhandler';
+import { cloneObject, StringMap, makeFilledArray } from '../common/ciphercommon';
+import { IState, ITestType, toolMode, ITestQuestionFields } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
@@ -60,6 +60,26 @@ export class CipherAffineEncoder extends CipherEncoder {
     ];
     /* We have identified a complete solution */
     public completeSolution: boolean = false;
+    /**
+     * Make a copy of the current state
+     */
+    public save(): IState {
+        // We need a deep copy of the save state
+        let savestate = cloneObject(this.state) as IState;
+        return savestate;
+    }
+    /**
+     * getInteractiveTemplate creates the answer template for synchronization of
+     * the realtime answers when the test is being given.
+     * @returns Template of question fields to be filled in at runtime.
+     */
+    public getInteractiveTemplate(): ITestQuestionFields {
+        let result: ITestQuestionFields = {
+            answer: makeFilledArray(this.state.cipherString.length, ""),
+            notes: "",
+        };
+        return result;
+    }
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -357,15 +377,6 @@ export class CipherAffineEncoder extends CipherEncoder {
         }
         return msg;
     }
-
-    /**
-     * Make a copy of the current state
-     */
-    public save(): IState {
-        // We need a deep copy of the save state
-        let savestate = cloneObject(this.state) as IState;
-        return savestate;
-    }
     /**
      * Sets the new A value.  A direction is also provided in the state so that if the
      * intended value is bad, we can keep advancing until we find one
@@ -556,27 +567,14 @@ export class CipherAffineEncoder extends CipherEncoder {
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
         let plainindex = 0;
-        let cipherindex = 1;
         if (this.state.operation === 'encode') {
             plainindex = 1;
-            cipherindex = 0;
         }
         this.genAlphabet();
         let strings = this.buildReplacement(this.state.cipherString, 40);
-        let table = new JTTable({
-            class: 'ansblock shrink cell unstriped',
-        });
-        for (let strset of strings) {
-            this.addCipherTableRows(
-                table,
-                undefined,
-                strset[plainindex],
-                strset[cipherindex],
-                true
-            );
-        }
-        result.append(table.generate());
-        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
+        result.append(this.genInteractiveCipherTable(strings, plainindex, qnum, "affineint", false));
+
+        result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }));
         return result;
     }
     /**

@@ -1179,51 +1179,8 @@ export class CipherHillEncoder extends CipherEncoder {
 
             // Split up the text so it fits on a page when printed (default split is 26 characters)
             let strings = this.splitToFit(decodetext, encoded);
-
-            let table = new JTTable({ class: 'hillblock ansblock shrink cell unstriped', });
-            let pos = 0;
-            // Add the split up lines to the output table.
-            for (let splitLines of strings) {
-                let cipherline = splitLines[1];
-                let rowover = table.addBodyRow()
-                let rowcipher = table.addBodyRow();
-                let rowanswer = table.addBodyRow();
-                let rowblank = table.addBodyRow();
-
-                for (let i = 0; i < cipherline.length; i++) {
-                    rowover.add({
-                        celltype: 'td', content: $("<input/>", {
-                            id: "R" + String(qnum + 1) + "_" + pos,
-                            class: "awr",
-                            type: "text",
-                        })
-                    });
-
-                    let c = cipherline.substr(i, 1);
-                    if (this.isValidChar(c)) {
-                        rowcipher.add({
-                            settings: { class: 'q v' },
-                            content: c,
-                        });
-                        rowanswer.add({
-                            celltype: 'td',
-                            content: $("<input/>", {
-                                id: "I" + String(qnum + 1) + "_" + pos,
-                                class: "awr",
-                                type: "text",
-                            }),
-                            settings: { class: 'e v' },
-                        });
-                    } else {
-                        rowcipher.add(c);
-                        rowanswer.add(c);
-                    }
-                    rowblank.add('');
-                    pos++;
-                }
-            }
-
-            result.append(table.generate());
+            let tabres = this.genInteractiveCipherTable(strings, 1, qnum, "hillblock", true);
+            result.append(tabres);
             this.setCharset(charset);
         }
         result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }))

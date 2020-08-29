@@ -1,9 +1,10 @@
-import { cloneObject } from '../common/ciphercommon';
+import { cloneObject, makeFilledArray } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
     ITestType,
     toolMode,
+    ITestQuestionFields,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -79,6 +80,19 @@ export class CipherVigenereEncoder extends CipherEncoder {
         // We need a deep copy of the save state
         let savestate = cloneObject(this.state) as IState;
         return savestate;
+    }
+    /**
+     * getInteractiveTemplate creates the answer template for synchronization of
+     * the realtime answers when the test is being given.
+     * @returns Template of question fields to be filled in at runtime.
+     */
+    public getInteractiveTemplate(): ITestQuestionFields {
+        let result: ITestQuestionFields = {
+            answer: makeFilledArray(this.state.cipherString.length, ""),
+            replacements: makeFilledArray(this.state.cipherString.length, ""),
+            notes: "",
+        };
+        return result;
     }
     /**
      * Determines if this generator is appropriate for a given test
@@ -554,17 +568,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
         return result;
     }
     /**
-     * Generate the HTML to display the interactive form of the cipher.
-     * @param qnum Question number.  -1 indicates a timed question
-     * @param testType Type of test
-     */
-    public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let result = this.genQuestion(testType);
-        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
-        return result;
-    }
-    /**
      * Generate the HTML to display the question for a cipher
+     * @param testType Type of test
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
@@ -588,6 +593,34 @@ export class CipherVigenereEncoder extends CipherEncoder {
             this.addCipherTableRows(table, '', strset[source], undefined, true);
         }
         result.append(table.generate());
+        return result;
+    }
+    /**
+     * Generate the HTML to display the interactive form of the cipher.
+     * @param qnum Question number.  -1 indicates a timed question
+     * @param testType Type of test
+     */
+    public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
+        let qnumdisp = String(qnum + 1);
+        let result = $('<div/>', { id: "Q" + qnumdisp });
+        let width = 40;
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            width = 30;
+            extraclass = ' atest';
+        }
+        let strings = this.buildReplacementVigenere(
+            this.state.cipherString,
+            this.state.keyword,
+            width
+        );
+        let source = 0;
+        if (this.state.operation === 'encode') {
+            source = 1;
+        }
+        result.append(this.genInteractiveCipherTable(strings, source, qnum, "affineint", true));
+
+        result.append($("<textarea/>", { id: "in" + qnumdisp, class: "intnote" }));
         return result;
     }
 }

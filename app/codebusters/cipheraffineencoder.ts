@@ -565,7 +565,8 @@ export class CipherAffineEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'grid-x' });
+        let qnumdisp = String(qnum + 1);
+        let result = $('<div/>', { id: "Q" + qnumdisp });
         let plainindex = 0;
         if (this.state.operation === 'encode') {
             plainindex = 1;
@@ -574,7 +575,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         let strings = this.buildReplacement(this.state.cipherString, 40);
         result.append(this.genInteractiveCipherTable(strings, plainindex, qnum, "affineint", false));
 
-        result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }));
+        result.append($("<textarea/>", { id: "in" + qnumdisp, class: "intnote" }));
         return result;
     }
     /**

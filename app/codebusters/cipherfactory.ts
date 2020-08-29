@@ -21,10 +21,10 @@ import { CipherTestManage } from "./ciphertestmanage";
 import { CipherTestPrint } from "./ciphertestprint";
 import { CipherTestInteractive } from "./ciphertestinteractive";
 import { CipherTestQuestions } from "./ciphertestquestions";
-import { CipherVigenereEncoder } from "./ciphervigenereencoder";
 import { InteractiveEncoder } from "./interactiveencoder";
 import { InteractiveHillEncoder } from "./interactivehillencoder";
 import { InteractiveTableEncoder } from "./interactivetableencoder";
+import { CipherVigenereEncoder } from "./ciphervigenereencoder";
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -179,7 +179,7 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Vigenere: {
         cipherType: ICipherType.Vigenere,
         cipherClass: CipherVigenereEncoder,
-        interactiveClass: CipherHandler,
+        interactiveClass: InteractiveEncoder,
         canPrint: true
     }
 };
@@ -215,7 +215,7 @@ export function CipherInteractiveFactory(
     reqlang: string
 ): CipherHandler {
     let lang = "en";
-    let ciphertype = ciphertypestr as ICipherType 
+    let ciphertype = ciphertypestr as ICipherType
     console.log("Selecting:" + ciphertypestr + " lang=" + lang);
     let cipherTool: CipherHandler;
     if (typeof reqlang !== "undefined") {

@@ -2169,7 +2169,7 @@ export class CipherHandler {
                         celltype: 'td',
                         content: $("<input/>", {
                             id: "I" + qnumdisp + "_" + pos,
-                            class: "awr",
+                            class: "awc",
                             type: "text",
                         }),
                         settings: { class: 'e v' },
@@ -2179,7 +2179,7 @@ export class CipherHandler {
                     rowcipher.add(c);
                     rowanswer.add(c);
                 }
-                rowblank.add('');
+                rowblank.add({ settings: { class: 's' }, content: ' ' });
                 pos++;
             }
         }

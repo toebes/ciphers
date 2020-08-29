@@ -681,7 +681,7 @@ input.awc {
 
 input.awr {
     width: 100%;
-    background-color: #ffffe0;
+    background-color: #f0f0f0;
     padding: 0;
 }
 
@@ -1177,6 +1177,9 @@ div.vsolv {
 .ansblock td.o.v {
     border: none;
     height: 2rem;
+}
+.ansblock .s {
+    height: 20px;
 }
 .ansblock .v {
     border: 1px solid black;

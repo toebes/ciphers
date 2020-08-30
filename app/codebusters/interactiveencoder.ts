@@ -175,11 +175,13 @@ export class InteractiveEncoder extends CipherHandler {
         if (solvetime != undefined && solvetime > 0) {
             $("#checktimed").prop("disabled", true)
                 .text("Solved at " + formatTime(solvetime));
+            clearInterval(this.IntervalTimer);
         } else {
             let now = this.testTimeInfo.truetime.UTCNow();
             if (now <= this.testTimeInfo.startTime ||
                 now >= this.testTimeInfo.endTimedQuestion) {
                 $("#checktimed").prop("disabled", true).text("No bonus available");
+                clearInterval(this.IntervalTimer);
             } else {
                 let remaintime = this.testTimeInfo.endTimedQuestion - now;
                 let timestr = formatTime(remaintime);
@@ -196,7 +198,7 @@ export class InteractiveEncoder extends CipherHandler {
         this.updateTimerCheckButton(realtimeSolvetime);
         let now = this.testTimeInfo.truetime.UTCNow();
         if (now < this.testTimeInfo.endTimedQuestion) {
-            this.IntervalTimer = setInterval(() => { this.updateTimerCheckButton(realtimeSolvetime) }, 900);
+            this.IntervalTimer = setInterval(() => { this.updateTimerCheckButton(realtimeSolvetime) }, 500);
         }
     }
     /**

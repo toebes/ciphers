@@ -250,11 +250,11 @@ export class CipherTest extends CipherHandler {
         location.assign('TestGenerator.html?test=' + String(test));
     }
     /**
-     * generateTestJSON converts the current test information to a JSON string
+     * generateTestData converts the current test information to a map which can be saved/restored later
      * @param test Test to generate data for
      * @returns string form of the JSON for the test
      */
-    public generateTestJSON(test: ITest): string {
+    public generateTestData(test: ITest): any {
         let result = {};
         result["TEST.0"] = test;
 
@@ -266,7 +266,25 @@ export class CipherTest extends CipherHandler {
         for (let entry of test.questions) {
             result["CIPHER." + String(entry)] = this.getFileEntry(entry);
         }
-        return JSON.stringify(result)
+
+        if (test.hasOwnProperty("answermodelid") && test.answermodelid !== undefined) {
+            result["answermodelid"] = test.answermodelid;
+        }
+        if (test.hasOwnProperty("sourcemodelid") && test.sourcemodelid !== undefined) {
+            result["sourcemodelid"] = test.sourcemodelid;
+        }
+        if (test.hasOwnProperty("testmodelid") && test.testmodelid !== undefined) {
+            result["testmodelid"] = test.testmodelid;
+        }
+        return result;
+    }
+    /**
+     * generateTestJSON converts the current test information to a JSON string
+     * @param test Test to generate data for
+     * @returns string form of the JSON for the test
+     */
+    public generateTestJSON(test: ITest): string {
+        return JSON.stringify(this.generateTestData(test));
     }
     /**
      * Make a copy of a test

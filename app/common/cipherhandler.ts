@@ -142,6 +142,12 @@ export interface ITest {
     questions: number[];
     /** Which type of test this */
     testtype: ITestType;
+    /** ID of test model stored on the interactive server */
+    testmodelid?: string;
+    /** ID of answer model stored on the interactive server */
+    answermodelid?: string;
+    /** ID of the source stored on the interactive server */
+    sourcemodelid?: string;
 }
 
 export interface ITestTimeInfo {

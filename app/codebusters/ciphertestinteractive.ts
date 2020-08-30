@@ -4,7 +4,7 @@ import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { CipherTest, ITestState } from './ciphertest';
-import { ConvergenceDomain, RealTimeModel, RealTimeObject } from "@convergence/convergence";
+import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelPermissions, ModelService, IAutoCreateModelOptions } from "@convergence/convergence";
 import { Convergence } from "@convergence/convergence";
 import { CipherInteractiveFactory, CipherPrintFactory } from './cipherfactory';
 import { TrueTime } from '../common/truetime';
@@ -23,10 +23,12 @@ export class CipherTestInteractive extends CipherTest {
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
     public pageNumber: number = 0;
-    public testTimeInfo: ITestTimeInfo = { truetime:  new TrueTime(this.timeAnomaly),
+    public testTimeInfo: ITestTimeInfo = {
+        truetime: new TrueTime(this.timeAnomaly),
         startTime: 0,
-        endTime : 0,
-        endTimedQuestion: 0};
+        endTime: 0,
+        endTimedQuestion: 0
+    };
 
     /**
      * Restore the state from either a saved file or a previous undo record
@@ -119,7 +121,7 @@ export class CipherTestInteractive extends CipherTest {
         elem.append(result);
         $('.testtitle').text(test.title);
         // We need to save away the JSON for the test so that it can be restored/recreated later
-        let testJSON = this.generateTestJSON(test);
+        let testData = this.generateTestData(test);
         // Create the base structure for the interactive test.  This will include
         // a subset of the normal save data, only enough to present the test, but not enough
         // that someone could hack the answers out of it.
@@ -240,7 +242,7 @@ export class CipherTestInteractive extends CipherTest {
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
         this.setMenuMode(menuMode.test);
         // Now that we have all the data, we need to save it to the interactive server
-        this.saveModels(elem, interactive, answerdata);
+        this.saveModels(elem, interactive, answerdata, testData);
     }
     /**
      * postErrorMessage displays an error string in an alert on the page
@@ -255,13 +257,28 @@ export class CipherTestInteractive extends CipherTest {
         elem.append(callout);
     }
     /**
+     * 
+     * @param collection 
+     * @param owner 
+     */
+    public makeAutoCreateModelOptions(collection: string, owner: string): IAutoCreateModelOptions {
+        let result: IAutoCreateModelOptions = {
+            collection: collection,
+            overrideCollectionWorldPermissions: false,
+            worldPermissions: ModelPermissions.fromJSON({ read: false, write: false, remove: false, manage: false }),
+            userPermissions: {}
+        }
+        result.userPermissions[owner] = ModelPermissions.fromJSON({ read: true, write: true, remove: true, manage: true });
+        return result;
+    }
+    /**
      * Save the current test model to the server
      * @param elem DOM location to put any output
      * @param interactive Interactive test data
      * @param answerdata Interactive test answer data
-     * @param testJSON JSON corresponding to the test
+     * @param testData Test data source
      */
-    public saveModels(elem: JQuery<HTMLElement>, interactive: IInteractiveTest, answerdata: ITestQuestionFields[]) {
+    public saveModels(elem: JQuery<HTMLElement>, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any) {
         // Now that we have the model of the test and the model of the answers,
         //  we need to create two models.  
         // The interactive test is what we pull down to create the test
@@ -273,45 +290,133 @@ export class CipherTestInteractive extends CipherTest {
 
         // this.setConfigString("domain", "http://192.168.1.11/");
         // this.setConfigString("domain", "https://codebusters.alyzee.org/");
-
-
-        // 1. Connect to the domain anonymously.
         Convergence.connectAnonymously(this.getInteractiveURI())
             .then((domain: ConvergenceDomain) => {
-                // 2. Initializes the application after connecting by opening a model.
-                const modelService = domain.models();
-                modelService.openAutoCreate({
-                    collection: "codebusters_tests",
-                    data: interactive,
-                }).then((testmodel: RealTimeModel) => {
-                    // It has been created, so 
-                    var testModelID = testmodel.modelId();
-                    testmodel.close();
-                    modelService.openAutoCreate({
-                        collection: "codebusters_answers",
-                        data: {
-                            testid: testModelID,
-                            starttime: Date.now(),
-                            answers: answerdata
-                        }
-                    }).then((datamodel: RealTimeModel) => {
-                        var dataModelID = datamodel.modelId();
-                        let callout = $('<div/>', {
-                            class: 'callout success',
-                        }).append($("<a/>", { href: "TestInteractive.html?testID=" + dataModelID, target: "_blank" }).text("Open Interactive test"));
-                        elem.append(callout);
-                        // We need to close all the models. now that they have been created
-                        datamodel.close();
-                    }).catch((error) => {
-                        this.postErrorMessage(elem, "Convergence API could not open data model: " + error);
-                    })
-                }).catch((error) => {
-                    this.postErrorMessage(elem, "Convergence API could not open test model: " + error);
-                });
+                this.SaveTestTemplate(domain, interactive, answerdata, testData, elem);
             }).catch((error) => {
                 this.postErrorMessage(elem, "Convergence API could not connect: " + error);
             });
     }
+    /**
+     * Save the test template to the server.  On success proceed to save the other documents.
+     * @param domain Convergence domain to create model under.
+     * @param interactive Interactive test template
+     * @param answerdata Interactive test answer data
+     * @param testData Test data source
+     * @param elem DOM location to put any output
+     */
+    private SaveTestTemplate(domain: ConvergenceDomain, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) {
+        const modelService = domain.models();
+        // See if we have to update the data for the model
+        let isOldModel = true;
+        let testModelOptions = this.makeAutoCreateModelOptions("codebusters_tests", testData.creator);
+        testModelOptions.data = () => { isOldModel = false; return interactive; }
+
+        // See if we are overwriting an existing model
+        if (testData.hasOwnProperty('testmodelid') && testData.testmodelid !== undefined) {
+            testModelOptions.id = testData.testmodelid;
+        }
+        modelService.openAutoCreate(testModelOptions).then((testmodel: RealTimeModel) => {
+            // The test template has been created, so remember where it is and close the model.
+            testData.testmodelid = testmodel.modelId();
+            // If we are replacing an existing model, we have to update the data since it doesn't
+            // get pulled in from the autocreate
+            if (isOldModel) {
+                testmodel.root().value(interactive);
+            }
+            testmodel.close();
+            // Next step, save the answer template
+            this.saveAnswerTemplate(modelService, answerdata, testData, elem);
+        }).catch((error) => {
+            this.postErrorMessage(elem, "Convergence API could not write test model: " + error);
+        });
+    }
+    /**
+     * Save the answer template to the server.  On success proceed to save the test source
+     * @param modelService Model service on the domain to store the model
+     * @param answerdata Interactive test answer data
+     * @param testData Test data source
+     * @param elem DOM location to put any output
+     */
+    private saveAnswerTemplate(modelService: ModelService, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) {
+        let data = {
+            testid: testData.testmodelid,
+            starttime: Date.now(),
+            answers: answerdata
+        };
+        // See if we have to update the data for the model
+        let isOldModel = true;
+        let answerModelOptions = this.makeAutoCreateModelOptions("codebusters_answers", testData.creator)
+        answerModelOptions.data = () => { isOldModel = false; return data; }
+
+        // See if we are overwriting an existing model
+        if (testData.hasOwnProperty('answermodelid') && testData.answermodelid !== undefined) {
+            answerModelOptions.id = testData.answermodelid;
+        }
+        modelService.openAutoCreate(answerModelOptions).then((datamodel: RealTimeModel) => {
+            testData.answermodelid = datamodel.modelId();
+            // If we are replacing an existing model, we have to update the data since it doesn't
+            // get pulled in from the autocreate
+            if (isOldModel) {
+                datamodel.root().value(data);
+            }
+            datamodel.close();
+            this.saveTestSource(modelService, testData, elem);
+        }).catch((error: string) => {
+            this.postErrorMessage(elem, "Convergence API could not write answer model: " + error);
+        });
+    }
+    /**
+     * Save the test source to the server.  On success proceed to finalize the save and give them a link to the generated test.
+     * @param modelService Model service on the domain to store the model
+     * @param testData Test data source
+     * @param elem DOM location to put any output
+     */
+    private saveTestSource(modelService: ModelService, testData: any, elem: JQuery<HTMLElement>) {
+        let data = {
+            testid: testData.testmodelid,
+            answerid: testData.answermodelid,
+            source: testData,
+            creator: this.getConfigString('userid', 'anonymous')
+        };
+        // See if we have to update the data for the model
+        let isOldModel = true;
+        let sourceModelOptions = this.makeAutoCreateModelOptions("codebusters_source", testData.creator);
+        sourceModelOptions.data = () => { isOldModel = false; return data; }
+
+        modelService.openAutoCreate(sourceModelOptions).then((sourcemodel: RealTimeModel) => {
+            testData.sourcemodelid = sourcemodel.modelId();
+            // If we are replacing an existing model, we have to update the data since it doesn't
+            // get pulled in from the autocreate
+            if (isOldModel) {
+                sourcemodel.root().value(data);
+            }
+            sourcemodel.close();
+            // Now that we have the 
+            this.finalizeSave(testData, elem);
+        }).catch((error: string) => {
+            this.postErrorMessage(elem, "Convergence API could not write test source: " + error);
+        });
+    }
+    /**
+     * Save the final data.  Update the local copy to remember where the test was stored.
+     * @param testData Test data source
+     * @param elem DOM location to put any output
+     */
+    private finalizeSave(testData: any, elem: JQuery<HTMLElement>) {
+        // Now that we have all the information about where it is stored on the server,
+        // write it back to the local test entry
+        let testentry = this.getTestEntry(this.state.test);
+        testentry.answermodelid = testData.answermodelid;
+        testentry.testmodelid = testData.testmodelid;
+        testentry.sourcemodelid = testData.sourcemodelid;
+        this.setTestEntry(this.state.test, testentry)
+        let callout = $('<div/>', {
+            class: 'callout success',
+        }).append($("<a/>", { href: "TestInteractive.html?testID=" + testData.answermodelid, target: "_blank" }).text("Open Interactive test"));
+        elem.append(callout);
+    }
+
     /**
      * 
      * @param elem 
@@ -427,8 +532,8 @@ export class CipherTestInteractive extends CipherTest {
         // For now we will pretend that the test starts when they open it.  This information really
         // needs to come from the datamodel
         this.testTimeInfo.startTime = this.testTimeInfo.truetime.UTCNow();
-        this.testTimeInfo.endTimedQuestion = this.testTimeInfo.startTime + (60*10);
-        this.testTimeInfo.endTime = this.testTimeInfo.startTime + (60*50);
+        this.testTimeInfo.endTimedQuestion = this.testTimeInfo.startTime + (60 * 10);
+        this.testTimeInfo.endTime = this.testTimeInfo.startTime + (60 * 50);
 
         elem.append($('<div/>', { class: 'head' }).text(interactive.title));
         console.log(interactive);

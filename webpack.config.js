@@ -176,7 +176,7 @@ module.exports = {
         new CopyWebpackPlugin({
             patterns: [
                 {
-                    from: path.join(__dirname, 'app', 'codebuster', 'pages', 'time.php'),
+                    from: path.join(__dirname, 'app', 'codebusters', 'pages', 'time.php'),
                     to: path.resolve(__dirname, 'dist'),
                 },
                 {

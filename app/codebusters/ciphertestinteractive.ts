@@ -1,5 +1,5 @@
 import { cloneObject, cloneObjectClean } from '../common/ciphercommon';
-import { ITestType, menuMode, toolMode, CipherHandler, IState, IInteractiveTest, ITestQuestionFields } from '../common/cipherhandler';
+import { ITestType, menuMode, toolMode, CipherHandler, IState, IInteractiveTest, ITestQuestionFields, ITestTimeInfo } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
@@ -23,7 +23,11 @@ export class CipherTestInteractive extends CipherTest {
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
     public pageNumber: number = 0;
-    public truetime: TrueTime = new TrueTime(this.timeAnomaly);
+    public testTimeInfo: ITestTimeInfo = { truetime:  new TrueTime(this.timeAnomaly),
+        startTime: 0,
+        endTime : 0,
+        endTimedQuestion: 0};
+
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -172,7 +176,9 @@ export class CipherTestInteractive extends CipherTest {
             }
             // Save the Interactive portion of the test
             interactive.timed = cipherhandler.saveInteractive(-1, interactive.testtype, true);
-            answerdata.push(cipherhandler.getInteractiveTemplate())
+            let answertemplate = cipherhandler.getInteractiveTemplate();
+            answertemplate.solvetime = 0;
+            answerdata.push(answertemplate);
             interactive.qdata.push({ qnum: -1, points: interactive.timed.points });
         }
         // Go through all the questions and generate the interactive portion
@@ -400,7 +406,7 @@ export class CipherTestInteractive extends CipherTest {
             elem.append(result);
             // Now that it is active, we can attach all the handlers to it to process the data and keep
             // it in sync with the realtime components
-            ihandler.attachInteractiveHandlers(qnum, realTimeObject);
+            ihandler.attachInteractiveHandlers(qnum, realTimeObject, this.testTimeInfo);
         }
         catch (e) {
             // Hmm a bug in the lower code.. Just show it and don't generate this question but at least
@@ -418,6 +424,12 @@ export class CipherTestInteractive extends CipherTest {
      */
     public deferredInteractiveTest(elem: JQuery<HTMLElement>, testmodel: RealTimeModel, datamodel: RealTimeModel) {
         let interactive = testmodel.root().value();
+        // For now we will pretend that the test starts when they open it.  This information really
+        // needs to come from the datamodel
+        this.testTimeInfo.startTime = this.testTimeInfo.truetime.UTCNow();
+        this.testTimeInfo.endTimedQuestion = this.testTimeInfo.startTime + (60*10);
+        this.testTimeInfo.endTime = this.testTimeInfo.startTime + (60*50);
+
         elem.append($('<div/>', { class: 'head' }).text(interactive.title));
         console.log(interactive);
         /**

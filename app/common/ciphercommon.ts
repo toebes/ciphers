@@ -259,3 +259,24 @@ export function getPolybiusKey(polybius: string[][]): string {
     }
     return bestkey;
 }
+/**
+ * Format an interval as hh:mm:ss if it is greater than an hour and mm:ss if it is under an hour
+ * @param interval Interval to convert to a displayable type
+ */
+export function formatTime(interval: number): string {
+    let result = "";
+    let minutepad = " ";
+    // Only put the hour on there if the interval is more than an hour.
+    let hours = Math.trunc(interval / (60 * 60));
+    if (hours > 0) {
+        result = String(hours).padStart(2, " ") + ":";
+        interval -= (hours * 60 * 60);
+        minutepad = "0";
+    } else {
+        result = "   ";
+    }
+    let minutes = Math.trunc(interval / 60);
+    let seconds = Math.trunc(interval % 60);
+    result += String(minutes).padStart(2, minutepad) + ":" + String(seconds).padStart(2, "0");
+    return result;
+}

@@ -1,4 +1,4 @@
-import { IState } from "../common/cipherhandler";
+import { IState, ITestTimeInfo } from "../common/cipherhandler";
 import { IEncoderState } from "./cipherencoder";
 import { cloneObject } from "../common/ciphercommon";
 import { RealTimeObject, RealTimeString, RealTimeArray } from '@convergence/convergence';
@@ -19,9 +19,10 @@ export class InteractiveTableEncoder extends InteractiveEncoder {
      * attachInteractiveHandlers attaches the realtime updates to all of the fields
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
+     * @param testTimeInfo Timing information for the current test.
     */
-    public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject) {
-        let qnumdisp = String(qnum + 1);
+   public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo) {
+    let qnumdisp = String(qnum + 1);
         //
         // The "answer" portion is for the typed answer to the cipher
         let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;

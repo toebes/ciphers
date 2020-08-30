@@ -31,6 +31,7 @@ For the Vigenère it is the line above the letters where they can put the encodi
 * `notes` - The text box below the question for whatever notes the team wants to put.
 * `separators` - Indicators of where word breaks are to be displayed as an aid for solving a cipher.  This is used for Patristocrats, Baconian, Tap Code and Pig Pen ciphers. 
 If the entry is a `|` then a vertical line is drawn after the character.  Otherwise no line is drawn.
+* `solvetime` - Number representing the time that the timed problem was solved.  0 indicates that it hasn't been solved yet.
 
 ### `answer`
 
@@ -127,3 +128,7 @@ The textarea is bound with bindTextInput as follows:
 const textArea = $("#in" + qnumdisp)[0] as HTMLTextAreaElement;
 bindTextInput(textArea, realTimeElement.elementAt("notes") as RealTimeString);
 ```
+    /**
+     * Time that the timed question was successfully solved.  0 indicates not solved.
+     */
+    solvetime?: number;

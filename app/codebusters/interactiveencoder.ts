@@ -1,12 +1,13 @@
-import { CipherHandler, ITestType, IState } from "../common/cipherhandler";
-import { JTTable } from "../common/jttable";
+import { CipherHandler, IState, ITestTimeInfo } from "../common/cipherhandler";
 import { IEncoderState } from "./cipherencoder";
-import { cloneObject } from "../common/ciphercommon";
-import { RealTimeObject, RealTimeString, RealTimeArray, ArrayInsertEvent, ArraySetEvent } from '@convergence/convergence';
+import { cloneObject, formatTime } from "../common/ciphercommon";
+import { RealTimeObject, RealTimeString, RealTimeArray, ArraySetEvent, RealTimeNumber, NumberSetValueEvent } from '@convergence/convergence';
 import { bindTextInput } from '@convergence/input-element-bindings'
-import { ICipherType } from "../common/ciphertypes";
 
 export class InteractiveEncoder extends CipherHandler {
+    private testTimeInfo: ITestTimeInfo;
+    /** Handler for our interval time which keeps checking that time is right */
+    private IntervalTimer: NodeJS.Timeout = undefined;
     /**
      * Restore the state from a stored record
      * @param data Saved state to restore
@@ -15,8 +16,6 @@ export class InteractiveEncoder extends CipherHandler {
         this.state = cloneObject(this.defaultstate) as IState;
         this.setSourceCharset(data.sourceCharset);
         this.copyState(this.state, data);
-        // this.setUIDefaults();
-        // this.updateOutput();
     }
 
     /**
@@ -27,12 +26,10 @@ export class InteractiveEncoder extends CipherHandler {
      * @param id Character slot input field which is being changed
      * @param newchar New character to set as the answer
      * @param realtimeAnswer Interface to the realtime system
-     * @param elem UI Element which corresponds to the field being changed (in case it is needed)
      */
     public setAns(id: string,
         newchar: string,
-        realtimeAnswer: RealTimeArray,
-        elem?: JQuery<HTMLElement>) {
+        realtimeAnswer: RealTimeArray) {
         let parts = id.split("_");
         // Make sure we have a proper element that we can be updating
         // The format of the element id is I<qnum>_<index> but we only need the index portion
@@ -66,13 +63,11 @@ export class InteractiveEncoder extends CipherHandler {
      * to be distributed to the other test takers.
      * @param id Replacement slot input field which is being changed
      * @param newchar New character to set as the replacement
-     * @param realtimeAnswer Interface to the realtime system
-     * @param elem UI Element which corresponds to the field being changed (in case it is needed)
+     * @param realtimeReplacement Interface to the realtime system
      */
     public setRepl(id: string,
         newchar: string,
-        realtimeReplacement: RealTimeArray,
-        elem?: JQuery<HTMLElement>) {
+        realtimeReplacement: RealTimeArray) {
         // Make sure we have a proper element that we can be updating
         // The format of the element id is R<qnum>_<index> but we only need the index portion
         let parts = id.split("_");
@@ -112,7 +107,11 @@ export class InteractiveEncoder extends CipherHandler {
             $("#Q" + qnumdisp + " .S" + String(index)).removeClass("es");
         }
     }
-
+    /**
+     * Handle clicking on a separator to toggle the line between letters
+     * @param id Element clicked on
+     * @param realtimeSeparators Runtime structure to track separators
+     */
     public clickSeparator(id: string, realtimeSeparators: RealTimeArray) {
         // Make sure we have a proper element that we can be updating
         // The format of the element id is S<qnum>_<index> and we need both portions
@@ -128,7 +127,14 @@ export class InteractiveEncoder extends CipherHandler {
             }
         }
     }
-    public checkAnswer(answer: string[]) {
+    /**
+     * Checks an answer to see if it is correct.  (Used for the timed question)
+     * @param answer Answer string to check
+     * @param realtimeSolvetime Handler for the realtime number data for the solution time
+     */
+    public checkAnswer(answer: string[], realtimeSolvetime: RealTimeNumber) {
+        let now = this.testTimeInfo.truetime.UTCNow();
+        $("#checktimed").prop("disabled", true);
         let answertest = "";
         for (let c of answer) {
             if (c !== "" && this.isValidChar(c)) {
@@ -139,15 +145,68 @@ export class InteractiveEncoder extends CipherHandler {
         }
         let check = this.encipherString(answertest, this.state.solMap);
         let diffs = this.countDifferences(check, this.state.solCheck);
-        alert("Total Differences =" + diffs);
-    }
+        if (diffs <= 2) {
+            // They have successfully solved it!
+            let solvetime = 0;
+            if (now > this.testTimeInfo.endTimedQuestion) {
+                // Did they somehow solve it AFTER the timed interval?  If so, let them know
+                // there there is no bonus
+                solvetime = this.testTimeInfo.endTimedQuestion - this.testTimeInfo.startTime;
+                alert("Congratulations! You have successfully solved the timed question but there was no bonus time remaining.");
+            } else {
+                // Successful solution.  let them know
+                solvetime = now - this.testTimeInfo.startTime;
+                alert("Congratulations! You have successfully solved the timed question.");
+            }
+            // Update the realtime data so that their partner sees the solution too.
+            realtimeSolvetime.value(solvetime);
+            this.updateTimerCheckButton(realtimeSolvetime);
+        } else {
+            alert("Timed question is not corect" + diffs);
 
+        }
+    }
+    /**
+     * Set the state of the check timed question button based on the current time.
+     * @param realtimeSolvetime Handler for the realtime number data for the solution time
+     */
+    public updateTimerCheckButton(realtimeSolvetime: RealTimeNumber) {
+        let solvetime = realtimeSolvetime.value();
+        if (solvetime != undefined && solvetime > 0) {
+            $("#checktimed").prop("disabled", true)
+                .text("Solved at " + formatTime(solvetime));
+        } else {
+            let now = this.testTimeInfo.truetime.UTCNow();
+            if (now <= this.testTimeInfo.startTime ||
+                now >= this.testTimeInfo.endTimedQuestion) {
+                $("#checktimed").prop("disabled", true).text("No bonus available");
+            } else {
+                let remaintime = this.testTimeInfo.endTimedQuestion - now;
+                let timestr = formatTime(remaintime);
+                $("#checktimed").prop("disabled", false)
+                    .text("Check Timed Question (" + timestr + " remaining)");
+            }
+        }
+    }
+    /**
+     * Process to track if they still can answer the timed question.
+     * @param realtimeSolvetime Handler for the realtime number data for the solution time
+     */
+    public trackAnswerTime(realtimeSolvetime: RealTimeNumber) {
+        this.updateTimerCheckButton(realtimeSolvetime);
+        let now = this.testTimeInfo.truetime.UTCNow();
+        if (now < this.testTimeInfo.endTimedQuestion) {
+            this.IntervalTimer = setInterval(() => { this.updateTimerCheckButton(realtimeSolvetime) }, 900);
+        }
+    }
     /**
      * attachInteractiveHandlers attaches the realtime updates to all of the fields
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
+     * @param testTimeInfo Timing information for the current test.
     */
-    public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject) {
+    public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo) {
+        this.testTimeInfo = testTimeInfo;
         let qnumdisp = String(qnum + 1);
         let qdivid = "#Q" + qnumdisp + " ";
         //
@@ -216,7 +275,7 @@ export class InteractiveEncoder extends CipherHandler {
                     next.focus();
                 } else if (event.keyCode === 46 || event.keyCode === 8) {
                     this.markUndo(null);
-                    this.setAns(id, ' ', realtimeAnswer, target);
+                    this.setAns(id, ' ', realtimeAnswer);
                     current = focusables.index(event.target);
                     if (current === 0) {
                         next = focusables.last();
@@ -244,7 +303,7 @@ export class InteractiveEncoder extends CipherHandler {
                 if (this.isValidChar(newchar) || newchar === ' ') {
                     console.log('Setting ' + id + ' to ' + newchar);
                     this.markUndo(null);
-                    this.setAns(id, newchar, realtimeAnswer, target);
+                    this.setAns(id, newchar, realtimeAnswer);
                     current = focusables.index(event.target);
                     next = focusables.eq(current + 1).length
                         ? focusables.eq(current + 1)
@@ -283,7 +342,7 @@ export class InteractiveEncoder extends CipherHandler {
                     next.focus();
                 } else if (event.keyCode === 46 || event.keyCode === 8) {
                     this.markUndo(null);
-                    this.setRepl(id, ' ', realtimeReplacement, target);
+                    this.setRepl(id, ' ', realtimeReplacement);
                     current = focusables.index(event.target);
                     if (current === 0) {
                         next = focusables.last();
@@ -311,7 +370,7 @@ export class InteractiveEncoder extends CipherHandler {
                 if (this.isValidChar(newchar) || newchar === ' ') {
                     console.log('Setting ' + id + ' to ' + newchar);
                     this.markUndo(null);
-                    this.setRepl(id, newchar, realtimeReplacement, target);
+                    this.setRepl(id, newchar, realtimeReplacement);
                     current = focusables.index(event.target);
                     next = focusables.eq(current + 1).length
                         ? focusables.eq(current + 1)
@@ -329,9 +388,15 @@ export class InteractiveEncoder extends CipherHandler {
             });
         // If we are dealing with the timed question, we need to get the information necessary to check the answer
         if (qnum === -1) {
+            let realtimeSolvetime = realTimeElement.elementAt("solvetime") as RealTimeNumber;
+            if (realTimeElement.hasKey("solvetime")) {
+                realtimeSolvetime.on("value", (event: NumberSetValueEvent) => { this.updateTimerCheckButton(realtimeSolvetime) });
+            }
             $("#checktimed")
                 .off('click')
-                .on('click', e => { this.checkAnswer(realtimeAnswer.value()); })
+                .on('click', () => { this.checkAnswer(realtimeAnswer.value(), realtimeSolvetime); });
+            // Start the process for updating the check answer button
+            this.trackAnswerTime(realtimeSolvetime);
         }
     }
 }

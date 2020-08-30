@@ -21,6 +21,7 @@ import { JTTable, JTRow } from './jttable';
 import { parseQueryString } from './parsequerystring';
 import { textStandard } from '../common/readability';
 import { RealTimeObject } from '@convergence/convergence';
+import { TrueTime } from './truetime';
 
 export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
@@ -143,6 +144,16 @@ export interface ITest {
     testtype: ITestType;
 }
 
+export interface ITestTimeInfo {
+    /** Timer tracker */
+    truetime: TrueTime;
+    /** Start time for the test */
+    startTime: number;
+    /** Time that the timed question needs to be completed by */
+    endTimedQuestion: number;
+    /** Time that the test will end */
+    endTime: number;
+}
 /**
  * ITestQuestionFields is the runtime data to track the answer to a particular question.
  */
@@ -210,6 +221,10 @@ export interface ITestQuestionFields {
      *       bindTextInput(textArea, realTimeElement.elementAt("notes") as RealTimeString);
      */
     notes: string,
+    /**
+     * Time that the timed question was successfully solved.  0 indicates not solved.
+     */
+    solvetime?: number;
 }
 
 export interface IRunningKey {
@@ -3491,13 +3506,12 @@ export class CipherHandler {
                 $('.moreprev').hide();
             });
     }
-
     /**
      * attachInteractiveHandlers attaches the realtime updates to all of the fields
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
+     * @param testTimeInfo Timing information for the current test.
     */
-    public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject) {
-
+    public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo) {
     }
 }

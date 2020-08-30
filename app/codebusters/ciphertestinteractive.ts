@@ -7,6 +7,7 @@ import { CipherTest, ITestState } from './ciphertest';
 import { ConvergenceDomain, RealTimeModel, RealTimeObject } from "@convergence/convergence";
 import { Convergence } from "@convergence/convergence";
 import { CipherInteractiveFactory, CipherPrintFactory } from './cipherfactory';
+import { TrueTime } from '../common/truetime';
 
 /**
  * CipherTestInteractive
@@ -22,6 +23,7 @@ export class CipherTestInteractive extends CipherTest {
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
     public pageNumber: number = 0;
+    public truetime: TrueTime = new TrueTime(this.timeAnomaly);
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -52,6 +54,13 @@ export class CipherTestInteractive extends CipherTest {
             });
             this.attachHandlers();
         }
+    }
+    /**
+     * Report that time has changed.
+     * @param msg Msg about time adjustment event
+     */
+    public timeAnomaly(msg: string) {
+        console.log("**Time anomaly reported:" + msg);
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
@@ -225,7 +234,7 @@ export class CipherTestInteractive extends CipherTest {
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
         this.setMenuMode(menuMode.test);
         // Now that we have all the data, we need to save it to the interactive server
-        this.saveModels(elem, interactive, answerdata, testJSON);
+        this.saveModels(elem, interactive, answerdata);
     }
     /**
      * postErrorMessage displays an error string in an alert on the page
@@ -246,7 +255,7 @@ export class CipherTestInteractive extends CipherTest {
      * @param answerdata Interactive test answer data
      * @param testJSON JSON corresponding to the test
      */
-    public saveModels(elem: JQuery<HTMLElement>, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testJSON: string) {
+    public saveModels(elem: JQuery<HTMLElement>, interactive: IInteractiveTest, answerdata: ITestQuestionFields[]) {
         // Now that we have the model of the test and the model of the answers,
         //  we need to create two models.  
         // The interactive test is what we pull down to create the test
@@ -336,7 +345,7 @@ export class CipherTestInteractive extends CipherTest {
      * @param testtype The type of test that it is being generated for
      * @param realTimeObject Realtime object to establish collaboration for
      */
-    public makeInteractive(elem: JQuery<HTMLElement>, state: IState, qnum: number, testtype: ITestType, realTimeObject: RealTimeObject) {
+    public makeInteractive(elem: JQuery<HTMLElement>, state: IState, qnum: number, realTimeObject: RealTimeObject) {
         // Sometimes the handlers die because of insufficient data passed to them (or because they are accessing something that they shouldn't)
         // We protect from this to also prevent it from popping back to the higher level try/catch which is dealing with any communication
         // errors to the server
@@ -510,10 +519,10 @@ export class CipherTestInteractive extends CipherTest {
 
         // Now go through and generate all the test questions
         if (interactive.timed !== undefined) {
-            this.makeInteractive(elem, interactive.timed, -1, interactive.testtype, datamodel.elementAt("answers", 0) as RealTimeObject);
+            this.makeInteractive(elem, interactive.timed, -1, datamodel.elementAt("answers", 0) as RealTimeObject);
         }
         for (let qnum = 0; qnum < interactive.count; qnum++) {
-            this.makeInteractive(elem, interactive.questions[qnum], qnum, interactive.testtype, datamodel.elementAt("answers", qnum + 1) as RealTimeObject);
+            this.makeInteractive(elem, interactive.questions[qnum], qnum, datamodel.elementAt("answers", qnum + 1) as RealTimeObject);
         }
 
 

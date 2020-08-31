@@ -51,6 +51,7 @@ export class CipherTestInteractive extends CipherTest {
         // Do we have a test id to display an interactive test for?
         if (this.state.testID != undefined) {
             $("#testemenu").hide();
+            $(".instructions").removeClass("instructions");
             $('.testcontent').each((i, elem) => {
                 this.displayInteractiveTest($(elem), this.state.testID);
             });

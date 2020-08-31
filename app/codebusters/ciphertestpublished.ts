@@ -103,10 +103,10 @@ export class CipherTestPublished extends CipherTestManage {
         console.log("Starting query");
         modelService.query("SELECT * FROM codebusters_source")
             .then(results => {
-                console.log("Query complete:");
-                console.log(results);
+                // console.log("Query complete:");
+                // console.log(results);
                 results.data.forEach(result => {
-                    console.log(result);
+                    // console.log(result);
                     let questions = result.data.source['TEST.0'].count;
                     if (result.data.source['TEST.0'].timed !== -1) {
                         questions++;
@@ -176,7 +176,7 @@ export class CipherTestPublished extends CipherTestManage {
         tr.append($("<td/>").append($('<div/>', { class: 'grid-x' }).append(buttons)))
             .append($("<td/>").text(title))
             .append($("<td/>").text(String(questions)))
-            .append($("<td/>").append($('div/>', { class: 'sched', 'data-entry': testmodelid }).text("Calculating...")));
+            .append($("<td/>").append($('<div/>', { class: 'sched', 'data-entry': testmodelid }).text("Calculating...")));
 
 
         var curtr = $('tr[data-entry="' + modelid + '"]');
@@ -194,12 +194,8 @@ export class CipherTestPublished extends CipherTestManage {
      * @param modelid 
      */
     public calculateScheduledTests(modelService: Convergence.ModelService, testmodelid: string, answermodelid: string) {
-        modelService.query("SELECT * FROM codebusters_answers where testid='" + testmodelid + "'").then(results => { console.log(results);});
-        modelService.query("SELECT * FROM codebusters_answers where data.testid='" + testmodelid + "'").then(results => { console.log(results);});
-        modelService.query("SELECT * FROM codebusters_answers where data.testid='" + testmodelid + "'")
+        modelService.query("SELECT * FROM codebusters_answers where testid='" + testmodelid + "'")
             .then(results => {
-                console.log("Query complete:");
-                console.log(results);
                 let total = 0;
                 let templatecount = 0;
                 results.data.forEach(result => {
@@ -220,8 +216,9 @@ export class CipherTestPublished extends CipherTestManage {
                         fieldtext += " [Missing Template]";
                     }
                 }
+                console.log("Result for "+testmodelid+" is '"+fieldtext+"'");
                 // Now we just need to replace the value
-                $('.sched[data-entry="' + testmodelid + '"]').text(fieldtext);
+                $('div.sched[data-entry="' + testmodelid + '"]').text(fieldtext);
             });
 
     }

@@ -74,17 +74,7 @@ export class CipherTestInteractive extends CipherTest {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        return $("<div/>", {id: "testemenu"}).append(this.genTestEditState('testint'));
-    }
-    /**
-     * getInteractiveURI gets the URI to call for the interactive collaboration.
-     * It defaults to a public server, but can be overridded with a local configuration value stored in "domain"
-     * @returns string corresponding to the interactive API to call
-     */
-    public getInteractiveURI(): string {
-        // return this.getConfigString("domain", "https://codebusters.alyzee.org/") +
-        return this.getConfigString("domain", "http://toebeshome.myqnapcloud.com:7630/") +
-            "api/realtime/convergence/scienceolympiad";
+        return $("<div/>", { id: "testemenu" }).append(this.genTestEditState('testint'));
     }
     /**
      * GetFactory returns an initialized CipherHandler associated with a question entry
@@ -102,6 +92,18 @@ export class CipherTestInteractive extends CipherTest {
      * to be stored on the server
      * @param elem Element to place any output/errors/HTML
      */
+
+    // if (test.hasOwnProperty("answermodelid") && test.answermodelid !== undefined) {
+    //     result["answermodelid"] = test.answermodelid;
+    // }
+    // if (test.hasOwnProperty("sourcemodelid") && test.sourcemodelid !== undefined) {
+    //     result["sourcemodelid"] = test.sourcemodelid;
+    // }
+    // if (test.hasOwnProperty("testmodelid") && test.testmodelid !== undefined) {
+    //     result["testmodelid"] = test.testmodelid;
+    // }
+
+
     public generateInteractiveModel(elem: JQuery<HTMLElement>): void {
         let testcount = this.getTestCount();
         let errors: string[] = [];
@@ -258,6 +260,21 @@ export class CipherTestInteractive extends CipherTest {
         elem.append(callout);
     }
     /**
+     * Returns the value for a given field id associated with a test entry.
+     * Note that because it is stored two levels down, we have this service routine
+     * safely get the data (if it actually exists)
+     * @param testData Test Data source
+     * @param field Model field to look for
+     */
+    private getModelId(testData: any, field: string): string {
+        let result: string = undefined;
+        if (testData.hasOwnProperty("TEST.0") &&
+            testData["TEST.0"].hasOwnProperty(field)) {
+            result = testData["TEST.0"][field];
+        }
+        return result;
+    }
+    /**
      * 
      * @param collection 
      * @param owner 
@@ -314,12 +331,13 @@ export class CipherTestInteractive extends CipherTest {
         testModelOptions.data = () => { isOldModel = false; return interactive; }
 
         // See if we are overwriting an existing model
-        if (testData.hasOwnProperty('testmodelid') && testData.testmodelid !== undefined) {
-            testModelOptions.id = testData.testmodelid;
+        let testmodelid = this.getModelId(testData, 'testmodelid');
+        if (testmodelid !== undefined) {
+            testModelOptions.id = testmodelid;
         }
         modelService.openAutoCreate(testModelOptions).then((testmodel: RealTimeModel) => {
             // The test template has been created, so remember where it is and close the model.
-            testData.testmodelid = testmodel.modelId();
+            testData["TEST.0"].testmodelid = testmodel.modelId();
             // If we are replacing an existing model, we have to update the data since it doesn't
             // get pulled in from the autocreate
             if (isOldModel) {
@@ -341,7 +359,7 @@ export class CipherTestInteractive extends CipherTest {
      */
     private saveAnswerTemplate(modelService: ModelService, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) {
         let data = {
-            testid: testData.testmodelid,
+            testid: this.getModelId(testData, 'testmodelid'),
             starttime: Date.now(),
             answers: answerdata
         };
@@ -351,11 +369,12 @@ export class CipherTestInteractive extends CipherTest {
         answerModelOptions.data = () => { isOldModel = false; return data; }
 
         // See if we are overwriting an existing model
-        if (testData.hasOwnProperty('answermodelid') && testData.answermodelid !== undefined) {
-            answerModelOptions.id = testData.answermodelid;
+        let answermodelid = this.getModelId(testData, 'answermodelid');
+        if (answermodelid !== undefined) {
+            answerModelOptions.id = answermodelid;
         }
         modelService.openAutoCreate(answerModelOptions).then((datamodel: RealTimeModel) => {
-            testData.answermodelid = datamodel.modelId();
+            testData["TEST.0"].answermodelid = datamodel.modelId();
             // If we are replacing an existing model, we have to update the data since it doesn't
             // get pulled in from the autocreate
             if (isOldModel) {
@@ -375,8 +394,8 @@ export class CipherTestInteractive extends CipherTest {
      */
     private saveTestSource(modelService: ModelService, testData: any, elem: JQuery<HTMLElement>) {
         let data = {
-            testid: testData.testmodelid,
-            answerid: testData.answermodelid,
+            testid: this.getModelId(testData, 'testmodelid'),
+            answerid: this.getModelId(testData, 'answermodelid'),
             source: testData,
             creator: this.getConfigString('userid', 'anonymous')
         };
@@ -385,8 +404,13 @@ export class CipherTestInteractive extends CipherTest {
         let sourceModelOptions = this.makeAutoCreateModelOptions("codebusters_source", testData.creator);
         sourceModelOptions.data = () => { isOldModel = false; return data; }
 
+        // See if we are overwriting an existing model
+        let sourcemodelid = this.getModelId(testData, 'sourcemodelid');
+        if (sourcemodelid !== undefined) {
+            sourceModelOptions.id = sourcemodelid;
+        }
         modelService.openAutoCreate(sourceModelOptions).then((sourcemodel: RealTimeModel) => {
-            testData.sourcemodelid = sourcemodel.modelId();
+            testData["TEST.0"].sourcemodelid = sourcemodel.modelId();
             // If we are replacing an existing model, we have to update the data since it doesn't
             // get pulled in from the autocreate
             if (isOldModel) {
@@ -408,13 +432,13 @@ export class CipherTestInteractive extends CipherTest {
         // Now that we have all the information about where it is stored on the server,
         // write it back to the local test entry
         let testentry = this.getTestEntry(this.state.test);
-        testentry.answermodelid = testData.answermodelid;
-        testentry.testmodelid = testData.testmodelid;
-        testentry.sourcemodelid = testData.sourcemodelid;
+        testentry.answermodelid = this.getModelId(testData, 'answermodelid');
+        testentry.testmodelid = this.getModelId(testData, 'testmodelid');
+        testentry.sourcemodelid = this.getModelId(testData, 'sourcemodelid');
         this.setTestEntry(this.state.test, testentry)
         let callout = $('<div/>', {
             class: 'callout success',
-        }).append($("<a/>", { href: "TestInteractive.html?testID=" + testData.answermodelid, target: "_blank" }).text("Open Interactive test"));
+        }).append($("<a/>", { href: "TestInteractive.html?testID=" + testentry.answermodelid, target: "_blank" }).text("Open Interactive test"));
         elem.append(callout);
     }
 

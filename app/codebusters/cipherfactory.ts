@@ -25,6 +25,7 @@ import { InteractiveEncoder } from "./interactiveencoder";
 import { InteractiveHillEncoder } from "./interactivehillencoder";
 import { InteractiveTableEncoder } from "./interactivetableencoder";
 import { CipherVigenereEncoder } from "./ciphervigenereencoder";
+import { CipherTestPublished } from "./ciphertestpublished";
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -161,6 +162,12 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     TestPrint: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestPrint,
+        interactiveClass: CipherHandler,
+        canPrint: false
+    },
+    TestPublished: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestPublished,
         interactiveClass: CipherHandler,
         canPrint: false
     },

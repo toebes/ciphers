@@ -1002,6 +1002,20 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'TestPublished.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'TestManage.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestPublished',
+            title: 'Test Management',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TestPrint.html',
             template: path.join(
                 __dirname,

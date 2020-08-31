@@ -50,6 +50,7 @@ interface ITestTypeInfo {
 }
 
 export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols' | 'testint';
+export type ITestManage = 'local' | 'published';
 /**
  * Base support for all the test generation handlers
  * There are five pages that need to be created
@@ -185,6 +186,28 @@ export class CipherTest extends CipherHandler {
         ];
         return JTRadioButton(8, 'testdisp', radiobuttons, testdisp);
     }
+    /**
+     * getInteractiveURI gets the URI to call for the interactive collaboration.
+     * It defaults to a public server, but can be overridded with a local configuration value stored in "domain"
+     * @returns string corresponding to the interactive API to call
+     */
+    public getInteractiveURI(): string {
+        // return this.getConfigString("domain", "https://codebusters.alyzee.org/") +
+        return this.getConfigString("domain", "http://toebeshome.myqnapcloud.com:7630/") +
+            "api/realtime/convergence/scienceolympiad";
+    }
+    /**
+     * Put up the test management radio button for selecting which tests to view.
+     * @param testmanage State
+     */
+    public genTestManageState(testmanage: ITestManage): JQuery<HTMLElement> {
+        let radiobuttons = [
+            { title: 'Local', value: 'local' },
+            { title: 'Published', value: 'published' },
+        ];
+        return JTRadioButton(8, 'testmanage', radiobuttons, testmanage);
+    }
+
     public setTestEditState(testdisp: ITestDisp): void {
         JTRadioButtonSet('testdisp', testdisp);
     }
@@ -266,16 +289,6 @@ export class CipherTest extends CipherHandler {
         for (let entry of test.questions) {
             result["CIPHER." + String(entry)] = this.getFileEntry(entry);
         }
-
-        if (test.hasOwnProperty("answermodelid") && test.answermodelid !== undefined) {
-            result["answermodelid"] = test.answermodelid;
-        }
-        if (test.hasOwnProperty("sourcemodelid") && test.sourcemodelid !== undefined) {
-            result["sourcemodelid"] = test.sourcemodelid;
-        }
-        if (test.hasOwnProperty("testmodelid") && test.testmodelid !== undefined) {
-            result["testmodelid"] = test.testmodelid;
-        }
         return result;
     }
     /**
@@ -322,6 +335,12 @@ export class CipherTest extends CipherHandler {
     public gotoInteractiveTest(test: number): void {
         location.assign('TestInteractive.html?test=' + String(test));
     }
+    public gotoTestPublished(): void {
+        location.assign('TestPublished.html');
+    }
+    public gotoTestLocal(): void {
+        location.assign('TestManage.html');
+    }
     public gotoTestDisplay(testdisp: ITestDisp): void {
         switch (testdisp) {
             case 'testans':
@@ -339,6 +358,17 @@ export class CipherTest extends CipherHandler {
                 break;
             case 'testint':
                 this.gotoInteractiveTest(this.state.test);
+                break;
+        }
+    }
+    public gotoTestManage(testmanage: ITestManage): void {
+        switch (testmanage) {
+            case 'published':
+                this.gotoTestPublished();
+                break;
+            default:
+            case 'local':
+                this.gotoTestLocal();
                 break;
         }
     }
@@ -975,6 +1005,16 @@ export class CipherTest extends CipherHandler {
                     .removeClass('is-active');
                 $(e.target).addClass('is-active');
                 this.gotoTestDisplay($(e.target).val() as ITestDisp);
+                this.updateOutput();
+            });
+        $('[name="testmanage"]')
+            .off('click')
+            .on('click', e => {
+                $(e.target)
+                    .siblings()
+                    .removeClass('is-active');
+                $(e.target).addClass('is-active');
+                this.gotoTestManage($(e.target).val() as ITestManage);
                 this.updateOutput();
             });
     }

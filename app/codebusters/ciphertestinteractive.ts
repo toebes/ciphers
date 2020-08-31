@@ -50,6 +50,7 @@ export class CipherTestInteractive extends CipherTest {
         this.setMenuMode(menuMode.test);
         // Do we have a test id to display an interactive test for?
         if (this.state.testID != undefined) {
+            $("#testemenu").hide();
             $('.testcontent').each((i, elem) => {
                 this.displayInteractiveTest($(elem), this.state.testID);
             });
@@ -73,7 +74,7 @@ export class CipherTestInteractive extends CipherTest {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        return this.genTestEditState('testint');
+        return $("<div/>", {id: "testemenu"}).append(this.genTestEditState('testint'));
     }
     /**
      * getInteractiveURI gets the URI to call for the interactive collaboration.

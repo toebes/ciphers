@@ -197,6 +197,16 @@ export class CipherTest extends CipherHandler {
             "api/realtime/convergence/scienceolympiad";
     }
     /**
+     * Report an error to the user.  This creates a closable warning box placed into the ans section
+     * @param msg Error message to display
+     */
+    public reportFailure(msg: string) {
+        console.log(msg);
+        $(".ans").append($("<div/>", { class: "callout warning", "data-closable": "" })
+            .append($("<p/>").text(msg))
+            .append($("<button/>", { class: "close-button", "aria-label": "Dismiss alert", type: "button", "data-close": "" }).append($("<span/>", { "aria-hidden": "true" }).html("&times;"))));
+    }
+    /**
      * Put up the test management radio button for selecting which tests to view.
      * @param testmanage State
      */

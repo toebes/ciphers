@@ -74,7 +74,7 @@ export class CipherTestPublished extends CipherTestManage {
         return this.genTestManageState('published');
     }
     /**
-     * 
+     * Generates a list of all the tests on the server in a table.
      */
     public genTestList(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'testlist' });
@@ -88,25 +88,21 @@ export class CipherTestPublished extends CipherTestManage {
 
         Convergence.connectAnonymously(this.getInteractiveURI())
             .then((domain: ConvergenceDomain) => {
-                this.QueryModels(domain);
+                this.findAllTests(domain);
             }).catch((error) => {
-                console.log("Convergence API could not connect: " + error);
+                this.reportFailure("Convergence API could not connect: " + error);
             });
         return result;
     }
     /**
-     * 
-     * @param domain 
+     * Find all the test sources on the server
+     * @param domain Convergence Domain to query against
      */
-    private QueryModels(domain: ConvergenceDomain) {
+    private findAllTests(domain: ConvergenceDomain) {
         const modelService = domain.models();
-        console.log("Starting query");
         modelService.query("SELECT * FROM codebusters_source")
             .then(results => {
-                // console.log("Query complete:");
-                // console.log(results);
                 results.data.forEach(result => {
-                    // console.log(result);
                     let questions = result.data.source['TEST.0'].count;
                     if (result.data.source['TEST.0'].timed !== -1) {
                         questions++;
@@ -122,11 +118,13 @@ export class CipherTestPublished extends CipherTestManage {
                         questions);
                 });
                 this.attachHandlers();
-            });
+            })
+            .catch(error => { this.reportFailure("Convergence API could not connect: " + error) }
+            );
     }
     /**
-     * 
-     * @param modelid 
+     * Add/replace a test entry to the table of all tests along with the buttons to interact with the test.
+     * @param sourcemodelid 
      * @param title 
      * @param version 
      * @param created 
@@ -135,40 +133,40 @@ export class CipherTestPublished extends CipherTestManage {
      * @param answermodelid 
      * @param questions 
      */
-    public addPublishedEntry(modelService: Convergence.ModelService, modelid: string, title: string, version: number, created: Date, modified: Date, testmodelid: string, answermodelid: string, questions: number) {
-        let tr = $("<tr/>", { 'data-entry': modelid });
+    public addPublishedEntry(modelService: Convergence.ModelService, sourcemodelid: string, title: string, version: number, created: Date, modified: Date, testmodelid: string, answermodelid: string, questions: number) {
+        let tr = $("<tr/>", { 'data-source': sourcemodelid, 'data-test': testmodelid, 'data-answer': answermodelid });
         let buttons = $('<div/>', { class: 'button-group round shrink' });
         buttons.append(
             $('<a/>', {
-                'data-entry': modelid,
+                'data-source': sourcemodelid,
                 type: 'button',
                 class: 'pubedit button',
             }).text('Edit')
         );
         buttons.append(
             $('<a/>', {
-                'data-entry': modelid,
+                'data-source': sourcemodelid,
                 type: 'button',
                 class: 'pubdel alert button',
             }).text('Delete')
         );
         buttons.append(
             $('<a/>', {
-                'data-entry': modelid,
+                'data-source': sourcemodelid,
                 type: 'button',
                 class: 'pubpermit button',
             }).text('Permissions')
         );
         buttons.append(
             $('<a/>', {
-                'data-entry': modelid,
+                'data-source': sourcemodelid,
                 type: 'button',
                 class: 'pubsched button',
             }).text('Schedule Test')
         );
         buttons.append(
             $('<a/>', {
-                'data-entry': modelid,
+                'data-source': sourcemodelid,
                 type: 'button',
                 class: 'pubresults button',
             }).text('View Results')
@@ -176,10 +174,10 @@ export class CipherTestPublished extends CipherTestManage {
         tr.append($("<td/>").append($('<div/>', { class: 'grid-x' }).append(buttons)))
             .append($("<td/>").text(title))
             .append($("<td/>").text(String(questions)))
-            .append($("<td/>").append($('<div/>', { class: 'sched', 'data-entry': testmodelid }).text("Calculating...")));
+            .append($("<td/>").append($('<div/>', { class: 'sched', 'data-source': testmodelid }).text("Calculating...")));
 
 
-        var curtr = $('tr[data-entry="' + modelid + '"]');
+        var curtr = $('tr[data-source="' + sourcemodelid + '"]');
         if (curtr.length > 0) {
             curtr.replaceWith(tr);
         } else {
@@ -189,9 +187,9 @@ export class CipherTestPublished extends CipherTestManage {
         this.calculateScheduledTests(modelService, testmodelid, answermodelid);
     }
     /**
-     * 
+     * Determine how many tests are scheduled for a given test template and update the div holding that number.
      * @param modelService 
-     * @param modelid 
+     * @param sourcemodelid 
      */
     public calculateScheduledTests(modelService: Convergence.ModelService, testmodelid: string, answermodelid: string) {
         modelService.query("SELECT * FROM codebusters_answers where testid='" + testmodelid + "'")
@@ -216,25 +214,19 @@ export class CipherTestPublished extends CipherTestManage {
                         fieldtext += " [Missing Template]";
                     }
                 }
-                console.log("Result for "+testmodelid+" is '"+fieldtext+"'");
+                console.log("Result for " + testmodelid + " is '" + fieldtext + "'");
                 // Now we just need to replace the value
-                $('div.sched[data-entry="' + testmodelid + '"]').text(fieldtext);
-            });
-
+                $('div.sched[data-source="' + testmodelid + '"]').text(fieldtext);
+            })
+            .catch(error => { this.reportFailure("Convergence API could not connect: " + error) });
     }
     /**
-     * 
-     * @param test published ID of test
+     * Download the source from a published test and edit it locally.
+     * @param sourcemodelid published ID of test
      */
-    public downloadPublishedTest(test: string): void {
-        //this.deleteTestEntry(test);
+    public downloadPublishedTest(sourcemodelid: string): void {
+        //this.deleteTestEntry(sourcemodelid);
         this.updateOutput();
-    }
-
-    /**
-     * This prompts a user and then deletes all ciphers
-     */
-    public gotoDeleteAllCiphers(): void {
     }
     /**
      * Create the hidden dialog for selecting a cipher to open
@@ -269,77 +261,117 @@ export class CipherTestPublished extends CipherTestManage {
     }
     /**
      * Remove a test from the server along with all the scheduled tests that are associated with it
-     * @param test 
+     * @param sourcemodelid 
+     * @param testmodelid 
+     * @param answermodelid 
      */
-    public deleteTestFromServer(test: string) {
-        // First we need to get the test which will have the id of the test template and answer template
-        // Then we need to search for all answer templates which refer to the test template
-        // With that list in mind, we need to go through and delete each of them
+    public deleteTestFromServer(sourcemodelid: string, testmodelid: string) {
         // by calling modelService.remove()
-    }
-    /**
-     * 
-     * @param test published ID of test
-     */
-    public deletePublishedTest(test: string): void {
-        $("#okdel")
-            .off("click")
-            .on("click", e => {
-                this.deleteTestFromServer(test);
-                $("#delpubdlg").foundation("close");
-                this.updateOutput();
+        Convergence.connectAnonymously(this.getInteractiveURI())
+            .then((domain: ConvergenceDomain) => {
+                this.doDeleteTestFromServer(domain, sourcemodelid, testmodelid);
+            }).catch((error) => {
+                console.log("Convergence API could not connect: " + error);
             });
-        $("#okdel").removeAttr("disabled");
-        $("#delpubdlg").foundation("open");
     }
     /**
+     * Perform the real work of deleting the models from the server.  
+     * Search for all answer templates which refer to the test template and then delete the source and test templates
      * 
-     * @param test published ID of test
+     * @param domain 
+     * @param sourcemodelid 
+     * @param testmodelid 
+     * @param answermodelid 
      */
-    public changePublishedTestPermissions(test: string): void {
-        location.assign('TestPermissions.html?test=' + test);
+    public doDeleteTestFromServer(domain: ConvergenceDomain, sourcemodelid: string, testmodelid: string) {
+        const modelService = domain.models();
+        // Our query should get all of the answer templates which reference the test
+        modelService.query("SELECT * FROM codebusters_answers where testid='" + testmodelid + "'")
+            .then(results => {
+                results.data.forEach(result => {
+                    modelService.remove(result.modelId).catch(error => { this.reportFailure("Unable to remove " + result.modelId + " Error code:" + error); });
+                });
+                // Now that the answer templates are gone, remove the test template 
+                modelService.remove(testmodelid).catch(error => { this.reportFailure("Unable to remove " + testmodelid + " Error code:" + error); });
+                //  and the test source
+                modelService.remove(sourcemodelid).catch(error => { this.reportFailure("Unable to remove " + sourcemodelid + " Error code:" + error); });
+                // And update the table to remove the entry
+                $('tr[data-source="' + sourcemodelid + '"]').remove();
+            })
+            .catch(error => { this.reportFailure("Convergence API could not connect: " + error) });;
     }
     /**
-     * 
-     * @param test published ID of test
+     * See if the user wants to actually delete a test (after warnign them) and if so, request the deletion.
+     * @param sourcemodelid published ID of test
      */
-    public gotoPublishedSchedule(test: string): void {
-        location.assign('TestSchedule.html?test=' + test);
+    public deletePublishedTest(sourcemodelid: string): void {
+        // First we need to get the testmodel and the answer model because we want to delete them too
+        let tr = $('tr[data-source="' + sourcemodelid + '"]');
+        let testmodelid = tr.attr('data-test');
+        if (testmodelid == "") {
+            alert("Unable to identify the test templates");
+        } else {
+            $("#okdel")
+                .off("click")
+                .on("click", e => {
+                    this.deleteTestFromServer(sourcemodelid, testmodelid);
+                    $("#delpubdlg").foundation("close");
+                    this.updateOutput();
+                });
+            $("#okdel").removeAttr("disabled");
+            $("#delpubdlg").foundation("open");
+        }
     }
     /**
-     * 
-     * @param test published ID of test
+     * Jump to the page to change permissions for a test
+     * @param sourcemodelid published ID of test
      */
-    public gotoPublishedResults(test: string): void {
-        //this.deleteTestEntry(test);
-        this.updateOutput();
+    public changePublishedTestPermissions(sourcemodelid: string): void {
+        location.assign('TestPermissions.html?test=' + sourcemodelid);
     }
+    /**
+     * Jump to the page to schedule a test
+     * @param sourcemodelid published ID of test
+     */
+    public gotoPublishedSchedule(sourcemodelid: string): void {
+        location.assign('TestSchedule.html?test=' + sourcemodelid);
+    }
+    /**
+     * Jump to the page to show the results of taking the test
+     * @param sourcemodelid published ID of test
+     */
+    public gotoPublishedResults(sourcemodelid: string): void {
+        location.assign('TestResults.html?test=' + sourcemodelid);
+    }
+    /**
+     * Attach all the UI handlers for created DOM elements
+     */
     public attachHandlers(): void {
         super.attachHandlers();
         $('.pubedit')
             .off('click')
             .on('click', e => {
-                this.downloadPublishedTest($(e.target).attr('data-entry'));
+                this.downloadPublishedTest($(e.target).attr('data-source'));
             });
         $('.pubdel')
             .off('click')
             .on('click', e => {
-                this.deletePublishedTest($(e.target).attr('data-entry'));
+                this.deletePublishedTest($(e.target).attr('data-source'));
             });
         $('.pubpermit')
             .off('click')
             .on('click', e => {
-                this.changePublishedTestPermissions($(e.target).attr('data-entry'));
+                this.changePublishedTestPermissions($(e.target).attr('data-source'));
             });
         $('.pubsched')
             .off('click')
             .on('click', e => {
-                this.gotoPublishedSchedule($(e.target).attr('data-entry'));
+                this.gotoPublishedSchedule($(e.target).attr('data-source'));
             });
         $('.pubresults')
             .off('click')
             .on('click', e => {
-                this.gotoPublishedResults($(e.target).attr('data-entry')
+                this.gotoPublishedResults($(e.target).attr('data-source')
                 );
             });
     }

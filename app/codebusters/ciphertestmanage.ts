@@ -4,7 +4,6 @@ import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { CipherTest, ITestState } from './ciphertest';
-import { JTRadioButton } from '../common/jtradiobutton';
 
 /**
  * CipherTestManage

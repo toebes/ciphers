@@ -1,14 +1,12 @@
 import { cloneObject } from '../common/ciphercommon';
-import { IState, ITestType, menuMode, toolMode, IInteractiveTest, ITestQuestionFields } from '../common/cipherhandler';
+import { IState, menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
-import { CipherTest, ITestState } from './ciphertest';
-import { JTRadioButton } from '../common/jtradiobutton';
+import { ITestState } from './ciphertest';
 import { CipherTestManage } from './ciphertestmanage';
-import Convergence = require('@convergence/convergence');
-import { ConvergenceDomain } from '@convergence/convergence';
-import { data } from 'jquery';
+import { Convergence } from '@convergence/convergence';
+import { ConvergenceDomain, RealTimeModel } from '@convergence/convergence';
 import { JTFDialog } from '../common/jtfdialog';
 
 /**
@@ -18,9 +16,6 @@ import { JTFDialog } from '../common/jtfdialog';
  *       <EDIT> <DELETE> <Permissions> <Schedule> <View Results> Test Title  #questions #Scheduled
  *  The command buttons availableare
  */
-
-
-
 export class CipherTestPublished extends CipherTestManage {
     public activeToolMode: toolMode = toolMode.codebusters;
 
@@ -225,8 +220,25 @@ export class CipherTestPublished extends CipherTestManage {
      * @param sourcemodelid published ID of test
      */
     public downloadPublishedTest(sourcemodelid: string): void {
-        //this.deleteTestEntry(sourcemodelid);
-        this.updateOutput();
+        Convergence.connectAnonymously(this.getInteractiveURI())
+            .then((domain: ConvergenceDomain) => {
+                this.doDownloadPublishedTest(domain.models(), sourcemodelid);
+            }).catch((error) => {
+                this.reportFailure("Convergence API could not connect: " + error);
+            });
+    }
+    /**
+     * 
+     * @param domain Convergence domain to load file from
+     * @param sourcemodelid File to be opened
+     */
+    private doDownloadPublishedTest(modelService: Convergence.ModelService, sourcemodelid: string) {
+        modelService.open(sourcemodelid)
+            .then((datamodel: RealTimeModel) => {
+                let data = datamodel.root().value();
+                this.processTestXML(data.source);
+            })
+            .catch(error => { this.reportFailure("Convergence API could not open model " + sourcemodelid + " Error:" + error) });
     }
     /**
      * Create the hidden dialog for selecting a cipher to open
@@ -313,7 +325,7 @@ export class CipherTestPublished extends CipherTestManage {
         } else {
             $("#okdel")
                 .off("click")
-                .on("click", e => {
+                .on("click", () => {
                     this.deleteTestFromServer(sourcemodelid, testmodelid);
                     $("#delpubdlg").foundation("close");
                     this.updateOutput();

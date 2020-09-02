@@ -8,7 +8,6 @@ import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelPermissions, Mod
 import { Convergence } from "@convergence/convergence";
 import { CipherInteractiveFactory, CipherPrintFactory } from './cipherfactory';
 import { TrueTime } from '../common/truetime';
-import { ConvergenceAuthentication, ConvergenceSettings, ConvergenceLoginParameters } from './authentication'
 
 /**
  * CipherTestInteractive

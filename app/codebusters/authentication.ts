@@ -1,5 +1,5 @@
-import Convergence, { ConvergenceDomain } from '@convergence/convergence'
-import { KJUR } from 'jsrasign'
+import Convergence, { ConvergenceDomain } from '@convergence/convergence';
+import { KJUR } from 'jsrsasign';
 
 export interface ConvergenceLoginParameters {
     username: string;
@@ -18,12 +18,14 @@ export interface ConvergenceSettings {
 }
 
 export class ConvergenceAuthentication {
-  private static readonly ALG_RS256 = 'RS256'
-  private static readonly JWT_ISSUER = 'Convergence'
-  private static readonly JWT_AUDIENCE = 'CodeBusters'
+    private static readonly ALG_RS256 = 'RS256';
+    private static readonly JWT_ISSUER = 'Convergence';
+    private static readonly JWT_AUDIENCE = 'CodeBusters';
 
-  private static readonly TESTING_KEY_ID_PRIVATE_KEY =
-  `-----BEGIN RSA PRIVATE KEY-----
+    // Yes we know putting the key here is insecure, but it is going to be
+    // revoked as soon as we are finished testing.
+    private static readonly TESTING_KEY_ID_PRIVATE_KEY =
+        `-----BEGIN RSA PRIVATE KEY-----
   MIIEpAIBAAKCAQEAhx0FDPxUQzyoDuHafI28aj2p/bMll63xxMdQYFkw/AE33nQ4
   zdn0H4soObDIq+AAurwtYZMDx/eUS563HHBQij1THP9XymjL7QDcRgJOlsm/HlGg
   f6U3B4cmQGHpky2szISvHcnMkpQblrpSSmc50jNpg4bmhyNi0R2wOdwTauIhMVRc
@@ -49,49 +51,49 @@ export class ConvergenceAuthentication {
   QAzqWwKBgQCvW2dGM98mgrsFVaJSjdT+zTwjbbojtS2CMWpfddLRy+arwu8TzsYa
   +VTjDB+VvB/qZtLAiVwwLx/rqc9l7RA3Xth0oid/5mqpoBpEydN1GvFuqz4p7jue
   sSRrkGTbVtr3OlrTfk3k3YZdjSjlvqb2GWHbzU7bkomLdIsG0Xx3Xg==
-  -----END RSA PRIVATE KEY-----`
+  -----END RSA PRIVATE KEY-----`;
 
-  private static formatConnectUrl (baseUrl: string, namespace: string, domain: string) {
-    return baseUrl + '/api/realtime/' + namespace + '/' + domain
-  }
-
-  public static getLocalPrivateKey (): string {
-    return this.TESTING_KEY_ID_PRIVATE_KEY
-  }
-
-  public static connect (settings: ConvergenceSettings, loginParameters: ConvergenceLoginParameters): Promise<ConvergenceDomain> {
-    const connectUrl = this.formatConnectUrl(settings.baseUrl, settings.namespace, settings.domain)
-
-    const tNow = KJUR.jws.IntDate.get('now')
-    const tEnd = KJUR.jws.IntDate.get('now + 1day')
-
-    let emailAddress = loginParameters.emailAddress
-    if (emailAddress === undefined || emailAddress == null) {
-      emailAddress = loginParameters.username
+    private static formatConnectUrl(baseUrl: string, namespace: string, domain: string) {
+        return baseUrl + '/api/realtime/' + namespace + '/' + domain;
     }
 
-    let displayName = loginParameters.displayName
-    if (displayName === undefined || displayName == null) {
-      displayName = loginParameters.firstName + ' ' + loginParameters.lastName
+    public static getLocalPrivateKey(): string {
+        return this.TESTING_KEY_ID_PRIVATE_KEY;
     }
 
-    var header = { alg: this.ALG_RS256, typ: 'JWT', kid: settings.keyId }
-    var payload = {
-      iss: this.JWT_ISSUER,
-      sub: loginParameters.username,
-      nbf: tNow,
-      iat: tNow,
-      exp: tEnd,
-      aud: this.JWT_AUDIENCE,
-      firstName: loginParameters.firstName,
-      lastName: loginParameters.lastName,
-      displayName: displayName,
-      email: emailAddress
-    }
+    public static connect(settings: ConvergenceSettings, loginParameters: ConvergenceLoginParameters): Promise<ConvergenceDomain> {
+        const connectUrl = this.formatConnectUrl(settings.baseUrl, settings.namespace, settings.domain);
 
-    const stringHeader = JSON.stringify(header)
-    const stringPayload = JSON.stringify(payload)
-    const signedJWT = KJUR.jws.JWS.sign(this.ALG_RS256, stringHeader, stringPayload, settings.privateKey)
-    return Convergence.connectWithJwt(connectUrl, signedJWT)
-  }
+        const tNow = KJUR.jws.IntDate.get('now');
+        const tEnd = KJUR.jws.IntDate.get('now + 1hour');
+
+        let emailAddress = loginParameters.emailAddress
+        if (emailAddress === undefined || emailAddress == null) {
+            emailAddress = loginParameters.username;
+        }
+
+        let displayName = loginParameters.displayName
+        if (displayName === undefined || displayName == null) {
+            displayName = loginParameters.firstName + ' ' + loginParameters.lastName;
+        }
+
+        var header = { alg: this.ALG_RS256, typ: 'JWT', kid: settings.keyId }
+        var payload = {
+            iss: this.JWT_ISSUER,
+            sub: loginParameters.username,
+            nbf: tNow,
+            iat: tNow,
+            exp: tEnd,
+            aud: this.JWT_AUDIENCE,
+            firstName: loginParameters.firstName,
+            lastName: loginParameters.lastName,
+            displayName: displayName,
+            email: emailAddress
+        };
+
+        const stringHeader = JSON.stringify(header);
+        const stringPayload = JSON.stringify(payload);
+        const signedJWT = KJUR.jws.JWS.sign(this.ALG_RS256, stringHeader, stringPayload, settings.privateKey);
+        return Convergence.connectWithJwt(connectUrl, signedJWT);
+    }
 }

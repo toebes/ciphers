@@ -8,6 +8,7 @@ import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelPermissions, Mod
 import { Convergence } from "@convergence/convergence";
 import { CipherInteractiveFactory, CipherPrintFactory } from './cipherfactory';
 import { TrueTime } from '../common/truetime';
+import { ConvergenceAuthentication, ConvergenceSettings, ConvergenceLoginParameters } from './authentication'
 
 /**
  * CipherTestInteractive
@@ -260,6 +261,7 @@ export class CipherTestInteractive extends CipherTest {
         console.log(message);
         elem.append(callout);
     }
+
     /**
      * Returns the value for a given field id associated with a test entry.
      * Note that because it is stored two levels down, we have this service routine
@@ -309,8 +311,7 @@ export class CipherTestInteractive extends CipherTest {
 
         // this.setConfigString("domain", "http://192.168.1.11/");
         // this.setConfigString("domain", "https://codebusters.alyzee.org/");
-        this.connectRealtime()
-            .then((domain: ConvergenceDomain) => {
+        this.connectRealtime().then((domain: ConvergenceDomain) => {
                 this.SaveTestTemplate(domain, interactive, answerdata, testData, elem);
             });
     }

@@ -15,6 +15,7 @@ import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
 import { ConvergenceDomain } from '@convergence/convergence';
 import Convergence = require('@convergence/convergence');
+import { ConvergenceAuthentication, ConvergenceSettings, ConvergenceLoginParameters } from './authentication';
 
 export interface buttonInfo {
     title: string;
@@ -239,20 +240,61 @@ export class CipherTest extends CipherHandler {
         return this.getConfigString("domain", "http://toebeshome.myqnapcloud.com:7630/") +
             "api/realtime/convergence/scienceolympiad";
     }
+    
     /**
-     * 
+     * Retrieves the default login parameters for Convergence from storage.
+     * Default uses Anonymous for userid,  No for fname, and Name for lname.
+     * @returns ConvergenceLoginParameters
+     */
+    public getConvergenceLoginParameters (): ConvergenceLoginParameters {
+      const username = this.getConfigString('userid', 'Anonymous')
+      const firstName = this.getConfigString('fname', 'No')
+      const lastName = this.getConfigString('lname', 'Name')
+      return { username: username, firstName: firstName, lastName: lastName }
+    }
+
+    /**
+       * Creates the default convergence settings to use for authentication.
+       * If any field is missing will return null.
+       * @returns ConvergenceSettings (Or null for failure)
+       */
+    public getConvergenceSettings (): ConvergenceSettings {
+      const baseUrl = this.getConfigString('domain', 'http://toebeshome.myqnapcloud.com:7630/')
+      const privateKey = ConvergenceAuthentication.getLocalPrivateKey()
+      const convergenceNamespace = this.getConfigString('convergenceNamespace', 'convergence')
+      const convergenceDomain = this.getConfigString('convergenceDomain', 'scienceolympiad')
+      const convergenceKeyId = this.getConfigString('convergenceKeyId', 'TestingKeyId')
+
+      if (baseUrl === null || privateKey === null || convergenceNamespace == null || convergenceDomain === null || convergenceKeyId === null) {
+        return null
+      } else {
+        return {
+          baseUrl: baseUrl,
+          namespace: convergenceNamespace,
+          privateKey: privateKey,
+          domain: convergenceDomain,
+          keyId: convergenceKeyId
+        }
+      }
+    }
+
+    /**
      * @returns Promise ConvergenceDomain to interact with
      */
-    public connectRealtime(): Promise<ConvergenceDomain> {
-        let result = Convergence.connectAnonymously(this.getInteractiveURI());
-        result.catch((error) => {
-            this.reportFailure("Convergence API could not connect: " + error);
-        });
-        return result;
+    public connectRealtime (): Promise<ConvergenceDomain> {
+      const loginParameters = this.getConvergenceLoginParameters()
+      const loginSettings = this.getConvergenceSettings()
+      const result = ConvergenceAuthentication.connect(loginSettings, loginParameters)
+      result.catch((error) => {
+        this.reportFailure('Convergence API could not connect: ' + error)
+      })
+      return result
     }
+
     public setTestEditState(testdisp: ITestDisp): void {
         JTRadioButtonSet('testdisp', testdisp);
     }
+
     public mapTestTypeString(id: string): ITestType {
         let result = ITestType.None;
         for (let entry of this.testTypeMap) {
@@ -263,6 +305,7 @@ export class CipherTest extends CipherHandler {
         }
         return result;
     }
+
     public mapTestTypeID(testtype: ITestType): string {
         let result = "";
         for (let entry of this.testTypeMap) {

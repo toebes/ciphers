@@ -20,8 +20,8 @@ import { InitStorage, JTStorage } from './jtstore';
 import { JTTable, JTRow } from './jttable';
 import { parseQueryString } from './parsequerystring';
 import { textStandard } from '../common/readability';
-import { RealTimeObject } from '@convergence/convergence';
-import { TrueTime } from './truetime';
+import { RealTimeObject } from '@convergence/convergence'
+import { TrueTime } from './truetime'
 
 export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
@@ -1031,6 +1031,7 @@ export class CipherHandler {
         }
         return result;
     }
+
     /**
      * Writes a test entry to local storage.  An entry of -1 or
      * greater than the number of entries just writes as a new entry

@@ -94,6 +94,11 @@ export class ConvergenceAuthentication {
         const stringHeader = JSON.stringify(header);
         const stringPayload = JSON.stringify(payload);
         const signedJWT = KJUR.jws.JWS.sign(this.ALG_RS256, stringHeader, stringPayload, settings.privateKey);
-        return Convergence.connectWithJwt(connectUrl, signedJWT);
+        // Convergence.configureLogging({
+        //     root: LogLevel.DEBUG
+        // });
+
+        // return Convergence.connectWithJwt(connectUrl, signedJWT);
+        return Convergence.connectAnonymously(connectUrl);
     }
 }

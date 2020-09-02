@@ -13,6 +13,8 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
+import { ConvergenceDomain } from '@convergence/convergence';
+import Convergence = require('@convergence/convergence');
 
 export interface buttonInfo {
     title: string;
@@ -51,6 +53,7 @@ interface ITestTypeInfo {
 
 export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols' | 'testint';
 export type ITestManage = 'local' | 'published';
+export type IPublishDisp = ITestManage | 'permissions' | 'schedule' | 'results';
 /**
  * Base support for all the test generation handlers
  * There are five pages that need to be created
@@ -176,6 +179,11 @@ export class CipherTest extends CipherHandler {
         this.setUIDefaults();
         this.updateOutput();
     }
+    /**
+     * Create the tab buttons on the top of the page
+     * @param testdisp Default state for this page
+     * @returns JQuery elements for managing the state
+     */
     public genTestEditState(testdisp: ITestDisp): JQuery<HTMLElement> {
         let radiobuttons = [
             { title: 'Edit Test', value: 'testedit' },
@@ -187,24 +195,18 @@ export class CipherTest extends CipherHandler {
         return JTRadioButton(8, 'testdisp', radiobuttons, testdisp);
     }
     /**
-     * getInteractiveURI gets the URI to call for the interactive collaboration.
-     * It defaults to a public server, but can be overridded with a local configuration value stored in "domain"
-     * @returns string corresponding to the interactive API to call
+     * Create the tab buttons on the top of the page
+     * @param testdisp Default state for this page
+     * @returns JQuery elements for managing the state
      */
-    public getInteractiveURI(): string {
-        // return this.getConfigString("domain", "https://codebusters.alyzee.org/") +
-        return this.getConfigString("domain", "http://toebeshome.myqnapcloud.com:7630/") +
-            "api/realtime/convergence/scienceolympiad";
-    }
-    /**
-     * Report an error to the user.  This creates a closable warning box placed into the ans section
-     * @param msg Error message to display
-     */
-    public reportFailure(msg: string) {
-        console.log(msg);
-        $(".ans").append($("<div/>", { class: "callout warning", "data-closable": "" })
-            .append($("<p/>").text(msg))
-            .append($("<button/>", { class: "close-button", "aria-label": "Dismiss alert", type: "button", "data-close": "" }).append($("<span/>", { "aria-hidden": "true" }).html("&times;"))));
+    public genPublishedEditState(testdisp: IPublishDisp): JQuery<HTMLElement> {
+        let radiobuttons = [
+            { title: 'Published', value: 'published' },
+            { title: 'Permissions', value: 'permissions' },
+            { title: 'Schedule Test', value: 'schedule' },
+            { title: 'Test Results', value: 'results' },
+        ];
+        return JTRadioButton(8, 'pubdisp', radiobuttons, testdisp);
     }
     /**
      * Put up the test management radio button for selecting which tests to view.
@@ -217,7 +219,37 @@ export class CipherTest extends CipherHandler {
         ];
         return JTRadioButton(8, 'testmanage', radiobuttons, testmanage);
     }
-
+    /**
+     * Report an error to the user.  This creates a closable warning box placed into the ans section
+     * @param msg Error message to display
+     */
+    public reportFailure(msg: string) {
+        console.log(msg);
+        $(".ans").append($("<div/>", { class: "callout warning", "data-closable": "" })
+            .append($("<p/>").text(msg))
+            .append($("<button/>", { class: "close-button", "aria-label": "Dismiss alert", type: "button", "data-close": "" }).append($("<span/>", { "aria-hidden": "true" }).html("&times;"))));
+    }
+    /**
+     * getInteractiveURI gets the URI to call for the interactive collaboration.
+     * It defaults to a public server, but can be overridded with a local configuration value stored in "domain"
+     * @returns string corresponding to the interactive API to call
+     */
+    public getInteractiveURI(): string {
+        // return this.getConfigString("domain", "https://codebusters.alyzee.org/") +
+        return this.getConfigString("domain", "http://toebeshome.myqnapcloud.com:7630/") +
+            "api/realtime/convergence/scienceolympiad";
+    }
+    /**
+     * 
+     * @returns Promise ConvergenceDomain to interact with
+     */
+    public connectRealtime(): Promise<ConvergenceDomain> {
+        let result = Convergence.connectAnonymously(this.getInteractiveURI());
+        result.catch((error) => {
+            this.reportFailure("Convergence API could not connect: " + error);
+        });
+        return result;
+    }
     public setTestEditState(testdisp: ITestDisp): void {
         JTRadioButtonSet('testdisp', testdisp);
     }
@@ -351,6 +383,28 @@ export class CipherTest extends CipherHandler {
     public gotoTestLocal(): void {
         location.assign('TestManage.html');
     }
+    /**
+     * Jump to the page to change permissions for a test
+     * @param sourcemodelid published ID of test
+     */
+    public gotoPublishedTestPermissions(sourcemodelid: string): void {
+        location.assign('TestPermissions.html?testID=' + sourcemodelid);
+    }
+    /**
+     * Jump to the page to schedule a test
+     * @param sourcemodelid published ID of test
+     */
+    public gotoPublishedSchedule(sourcemodelid: string): void {
+        location.assign('TestSchedule.html?testID=' + sourcemodelid);
+    }
+    /**
+     * Jump to the page to show the results of taking the test
+     * @param sourcemodelid published ID of test
+     */
+    public gotoPublishedResults(sourcemodelid: string): void {
+        location.assign('TestResults.html?testID=' + sourcemodelid);
+    }
+
     public gotoTestDisplay(testdisp: ITestDisp): void {
         switch (testdisp) {
             case 'testans':
@@ -382,7 +436,23 @@ export class CipherTest extends CipherHandler {
                 break;
         }
     }
-
+    public gotoPublishDisplay(testdisp: IPublishDisp): void {
+        switch (testdisp) {
+            case 'published':
+                this.gotoTestPublished();
+                break;
+            case 'permissions':
+                this.gotoPublishedTestPermissions(this.state.testID);
+                break;
+            case 'results':
+                this.gotoPublishedResults(this.state.testID);
+                break;
+            default:
+            case 'schedule':
+                this.gotoPublishedSchedule(this.state.testID);
+                break;
+        }
+    }
     public gotoEditCipher(entry: number): void {
         let entryURL = this.getEntryURL(entry);
         if (entryURL !== '') {
@@ -1025,6 +1095,16 @@ export class CipherTest extends CipherHandler {
                     .removeClass('is-active');
                 $(e.target).addClass('is-active');
                 this.gotoTestManage($(e.target).val() as ITestManage);
+                this.updateOutput();
+            });
+        $('[name="pubdisp"]')
+            .off('click')
+            .on('click', e => {
+                $(e.target)
+                    .siblings()
+                    .removeClass('is-active');
+                $(e.target).addClass('is-active');
+                this.gotoPublishDisplay($(e.target).val() as IPublishDisp);
                 this.updateOutput();
             });
     }

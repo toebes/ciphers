@@ -1016,6 +1016,48 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'TestPermissions.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'TestManage.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestPermissions',
+            title: 'Test Permissions',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'TestSchedule.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'TestManage.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestSchedule',
+            title: 'Schedule Test',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'TestResults.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'TestManage.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestResults',
+            title: 'View Test Results',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TestPrint.html',
             template: path.join(
                 __dirname,

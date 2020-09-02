@@ -309,11 +309,9 @@ export class CipherTestInteractive extends CipherTest {
 
         // this.setConfigString("domain", "http://192.168.1.11/");
         // this.setConfigString("domain", "https://codebusters.alyzee.org/");
-        Convergence.connectAnonymously(this.getInteractiveURI())
+        this.connectRealtime()
             .then((domain: ConvergenceDomain) => {
                 this.SaveTestTemplate(domain, interactive, answerdata, testData, elem);
-            }).catch((error) => {
-                this.postErrorMessage(elem, "Convergence API could not connect: " + error);
             });
     }
     /**
@@ -449,7 +447,7 @@ export class CipherTestInteractive extends CipherTest {
      * @param testUID 
      */
     public displayInteractiveTest(elem: JQuery<HTMLElement>, testUID: string) {
-        Convergence.connectAnonymously(this.getInteractiveURI())
+        this.connectRealtime()
             .then((domain: ConvergenceDomain) => {
                 // 2. Initializes the application after connecting by opening a model.
                 const modelService = domain.models();
@@ -469,9 +467,6 @@ export class CipherTestInteractive extends CipherTest {
                     .catch((error) => {
                         this.postErrorMessage(elem, "Convergence API could not open test model: " + error);
                     });
-            })
-            .catch((error) => {
-                this.postErrorMessage(elem, "Convergence API could not connect: " + error);
             });
     }
     /**

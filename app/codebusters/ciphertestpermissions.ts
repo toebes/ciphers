@@ -5,15 +5,13 @@ import { ICipherType } from "../common/ciphertypes";
 import { cloneObject } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTTable } from "../common/jttable";
-import { ConvergenceDomain, RealTimeModel } from "@convergence/convergence";
-import { Convergence } from '@convergence/convergence';
+import { ConvergenceDomain, ModelPermissions } from "@convergence/convergence";
 
 /**
  * CipherTestPublished
- *    This shows a list of all published tests.
+ *    This shows a list of permissions for a test
  *    Each line has a line with buttons at the start
- *       <EDIT> <DELETE> <Permissions> <Schedule> <View Results> Test Title  #questions #Scheduled
- *  The command buttons availableare
+ *       <DELETE> <userid>  <Permissions>
  */
 export class CipherTestPermissions extends CipherTestManage {
     public activeToolMode: toolMode = toolMode.codebusters;
@@ -66,14 +64,11 @@ export class CipherTestPermissions extends CipherTestManage {
      */
     public genTestList(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'testlist' });
-        let table = new JTTable({ class: 'cell shrink testlist publist' });
+        let table = new JTTable({ class: 'cell shrink testlist permlist' });
         let row = table.addHeaderRow();
         row.add('Action')
             .add('Userid')
-            .add('Read')
-            .add('Write')
-            .add('Remove')
-            .add('Manage');
+            .add('Permissions');
         result.append(table.generate());
 
         this.connectRealtime()
@@ -87,110 +82,79 @@ export class CipherTestPermissions extends CipherTestManage {
      * @param domain Convergence Domain to query against
      */
     private findPermissions(domain: ConvergenceDomain, testid: string) {
-        // const modelService = domain.models();
-        // modelService.permissions(testid)            .then((datamodel: RealTimeModel) => {
-        //         let data = datamodel.root().value();
-        //         this.processTestXML(data.source);
-        //     })
-        //     .catch(error => { this.reportFailure("Convergence API could not open model " + testid + " Error:" + error) });
+        const modelService = domain.models();
+        let permissionManager = modelService.permissions(testid);
+        permissionManager.getWorldPermissions()
+            .then(worldPermissions => {
+                this.addPermissions(0, undefined, worldPermissions);
+            })
+            .catch(error => { this.reportFailure("getWorldPermissions for " + testid + " returned Error:" + error) });
+        let slot = 1;
+        permissionManager.getAllUserPermissions()
+            .then(permissions => {
+                permissions.forEach((permissionset, user) => {
+                    this.addPermissions(slot, user, permissionset);
+                    slot++;
+                })
+            })
+            .catch(error => { this.reportFailure("getAllUserPermissions for " + testid + " returned Error:" + error) });
     }
     /**
-     * Add/replace a test entry to the table of all tests along with the buttons to interact with the test.
-     * @param sourcemodelid 
-     * @param title 
-     * @param version 
-     * @param created 
-     * @param modified 
-     * @param testmodelid 
-     * @param answermodelid 
-     * @param questions 
+     * Create a labeled input field
+     * @param title Title for the input field
+     * @param id HTML ID to associate with the field
+     * @param checked Checked or not
      */
-    public addPublishedEntry(modelService: Convergence.ModelService, sourcemodelid: string, title: string, version: number, created: Date, modified: Date, testmodelid: string, answermodelid: string, questions: number) {
-        let tr = $("<tr/>", { 'data-source': sourcemodelid, 'data-test': testmodelid, 'data-answer': answermodelid });
+    private makeInputField(title: string, id: string, checked: boolean): JQuery<HTMLElement> {
+        let result = $("<span/>");
+        if (checked) {
+            result.append($("<input/>", { type: "checkbox", id: id, name: title, checked: "checked" }))
+        } else {
+            result.append($("<input/>", { type: "checkbox", id: id, name: title }))
+        }
+        result.append($("<label/>", { for: id }).text(title));
+        return result;
+
+    }
+    /**
+     * Add/replace a test entry to the table for the permissions of a particular user.
+     * @param user 
+     * @param permissionset 
+    */
+    public addPermissions(slot: number, user: string, permissionset: ModelPermissions) {
+        let id = user;
+        let idbase = String(slot);
+        let userfield: JQuery<HTMLElement>;
+        if (user === undefined) {
+            id = "_WORLD";
+            userfield = $("<b/>").text("WORLD");
+        } else {
+            userfield = $("<input/>", { id: "U" + idbase, value: user, type: "text" })
+        }
+        let tr = $("<tr/>", { 'data-id': slot });
         let buttons = $('<div/>', { class: 'button-group round shrink' });
         buttons.append(
             $('<a/>', {
-                'data-source': sourcemodelid,
-                type: 'button',
-                class: 'pubedit button',
-            }).text('Edit')
-        );
-        buttons.append(
-            $('<a/>', {
-                'data-source': sourcemodelid,
+                'data-id': slot,
                 type: 'button',
                 class: 'pubdel alert button',
             }).text('Delete')
         );
-        buttons.append(
-            $('<a/>', {
-                'data-source': sourcemodelid,
-                type: 'button',
-                class: 'pubpermit button',
-            }).text('Permissions')
-        );
-        buttons.append(
-            $('<a/>', {
-                'data-source': sourcemodelid,
-                type: 'button',
-                class: 'pubsched button',
-            }).text('Schedule Test')
-        );
-        buttons.append(
-            $('<a/>', {
-                'data-source': sourcemodelid,
-                type: 'button',
-                class: 'pubresults button',
-            }).text('View Results')
-        );
+
         tr.append($("<td/>").append($('<div/>', { class: 'grid-x' }).append(buttons)))
-            .append($("<td/>").text(title))
-            .append($("<td/>").text(String(questions)))
-            .append($("<td/>").append($('<div/>', { class: 'sched', 'data-source': testmodelid }).text("Calculating...")));
+            .append($("<td/>").append(userfield));
+        tr.append($("<td/>")
+            .append(this.makeInputField("read", "R" + idbase, permissionset.read))
+            .append(this.makeInputField("write", "W" + idbase, permissionset.write))
+            .append(this.makeInputField("remove", "X" + idbase, permissionset.remove))
+            .append(this.makeInputField("manage", "M" + idbase, permissionset.manage)))
 
-
-        var curtr = $('tr[data-source="' + sourcemodelid + '"]');
+        var curtr = $('tr[data-id="' + slot + '"]');
         if (curtr.length > 0) {
             curtr.replaceWith(tr);
         } else {
-            $(".publist").append(tr);
+            $(".permlist").append(tr);
         }
-        // Kick off a request to figure out 
-        this.calculateScheduledTests(modelService, testmodelid, answermodelid);
-    }
-    /**
-     * Determine how many tests are scheduled for a given test template and update the div holding that number.
-     * @param modelService 
-     * @param sourcemodelid 
-     */
-    public calculateScheduledTests(modelService: Convergence.ModelService, testmodelid: string, answermodelid: string) {
-        modelService.query("SELECT * FROM codebusters_answers where testid='" + testmodelid + "'")
-            .then(results => {
-                let total = 0;
-                let templatecount = 0;
-                results.data.forEach(result => {
-                    if (result.modelId === answermodelid) {
-                        templatecount++;
-                    } else {
-                        total++;
-                    }
-                });
-                let fieldtext = "None Found";
-                if (total === 0) {
-                    if (templatecount === 1) {
-                        fieldtext = "None Scheduled";
-                    }
-                } else {
-                    fieldtext = String(total);
-                    if (templatecount === 0) {
-                        fieldtext += " [Missing Template]";
-                    }
-                }
-                console.log("Result for " + testmodelid + " is '" + fieldtext + "'");
-                // Now we just need to replace the value
-                $('div.sched[data-source="' + testmodelid + '"]').text(fieldtext);
-            })
-            .catch(error => { this.reportFailure("Convergence API could not connect: " + error) });
     }
     /**
      * Attach all the UI handlers for created DOM elements

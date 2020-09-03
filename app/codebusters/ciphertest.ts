@@ -7,6 +7,7 @@ import {
     ITestType,
     toolMode,
     IQuestionData,
+    ITestQuestionFields,
 } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -49,6 +50,23 @@ interface ITestTypeInfo {
     title: string;
     type: ITestType;
     id: string;
+}
+
+export interface ITestUser {
+    userid: string,
+    displayname: string,
+    starttime: number,
+    idletime: number,
+    confidence: number,
+    notes: string,
+}
+export interface IAnswerTemplate {
+    testid: string,
+    starttime: number,
+    endtime: number,
+    endtimed: number,
+    answers: ITestQuestionFields[],
+    assigned: ITestUser[],
 }
 
 export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols' | 'testint';

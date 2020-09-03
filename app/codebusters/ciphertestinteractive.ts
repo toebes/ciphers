@@ -3,9 +3,8 @@ import { ITestType, menuMode, toolMode, CipherHandler, IState, IInteractiveTest,
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
-import { CipherTest, ITestState } from './ciphertest';
+import { CipherTest, ITestState, IAnswerTemplate } from './ciphertest';
 import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelPermissions, ModelService, IAutoCreateModelOptions } from "@convergence/convergence";
-import { Convergence } from "@convergence/convergence";
 import { CipherInteractiveFactory, CipherPrintFactory } from './cipherfactory';
 import { TrueTime } from '../common/truetime';
 
@@ -357,9 +356,12 @@ export class CipherTestInteractive extends CipherTest {
      * @param elem DOM location to put any output
      */
     private saveAnswerTemplate(modelService: ModelService, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) {
-        let data = {
+      let data:IAnswerTemplate = {
             testid: this.getModelId(testData, 'testmodelid'),
             starttime: Date.now(),
+            endtime: Date.now()+(50*60),
+            endtimed: Date.now()+(10*60),
+            assigned:[],
             answers: answerdata
         };
         // See if we have to update the data for the model

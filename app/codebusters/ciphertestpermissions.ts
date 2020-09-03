@@ -41,18 +41,6 @@ export class CipherTestPermissions extends CipherTestManage {
         this.updateOutput();
     }
     /**
-     * Update the output based on current state settings.  This propagates
-     * All values to the UI
-     */
-    public updateOutput(): void {
-        super.updateOutput();
-        this.setMenuMode(menuMode.test);
-        $('.testlist').each((i, elem) => {
-            $(elem).replaceWith(this.genTestList());
-        });
-        this.attachHandlers();
-    }
-    /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
      * @returns HTML DOM elements to display in the section
      */

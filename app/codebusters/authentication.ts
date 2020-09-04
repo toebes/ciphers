@@ -19,8 +19,8 @@ export interface ConvergenceSettings {
 
 export class ConvergenceAuthentication {
     private static readonly ALG_RS256 = 'RS256';
-    private static readonly JWT_ISSUER = 'Convergence';
-    private static readonly JWT_AUDIENCE = 'CodeBusters';
+    private static readonly JWT_ISSUER = 'Codebusters';
+    private static readonly JWT_AUDIENCE = 'Convergence';
 
     // Yes we know putting the key here is insecure, but it is going to be
     // revoked as soon as we are finished testing.
@@ -98,7 +98,7 @@ export class ConvergenceAuthentication {
         //     root: LogLevel.DEBUG
         // });
 
-        // return Convergence.connectWithJwt(connectUrl, signedJWT);
-        return Convergence.connectAnonymously(connectUrl);
+        return Convergence.connectWithJwt(connectUrl, signedJWT);
+        // return Convergence.connectAnonymously(connectUrl);
     }
 }

@@ -7,12 +7,15 @@ import {
     ITestType,
     toolMode,
     IQuestionData,
+    ITestQuestionFields,
 } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
+import { ConvergenceDomain } from '@convergence/convergence';
+import { ConvergenceAuthentication, ConvergenceSettings, ConvergenceLoginParameters } from './authentication';
 
 export interface buttonInfo {
     title: string;
@@ -49,7 +52,26 @@ interface ITestTypeInfo {
     id: string;
 }
 
+export interface ITestUser {
+    userid: string,
+    displayname: string,
+    starttime: number,
+    idletime: number,
+    confidence: number,
+    notes: string,
+}
+export interface IAnswerTemplate {
+    testid: string,
+    starttime: number,
+    endtime: number,
+    endtimed: number,
+    answers: ITestQuestionFields[],
+    assigned: ITestUser[],
+}
+
 export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols' | 'testint';
+export type ITestManage = 'local' | 'published';
+export type IPublishDisp = ITestManage | 'permissions' | 'schedule' | 'results';
 /**
  * Base support for all the test generation handlers
  * There are five pages that need to be created
@@ -175,6 +197,11 @@ export class CipherTest extends CipherHandler {
         this.setUIDefaults();
         this.updateOutput();
     }
+    /**
+     * Create the tab buttons on the top of the page
+     * @param testdisp Default state for this page
+     * @returns JQuery elements for managing the state
+     */
     public genTestEditState(testdisp: ITestDisp): JQuery<HTMLElement> {
         let radiobuttons = [
             { title: 'Edit Test', value: 'testedit' },
@@ -185,9 +212,109 @@ export class CipherTest extends CipherHandler {
         ];
         return JTRadioButton(8, 'testdisp', radiobuttons, testdisp);
     }
+    /**
+     * Create the tab buttons on the top of the page
+     * @param testdisp Default state for this page
+     * @returns JQuery elements for managing the state
+     */
+    public genPublishedEditState(testdisp: IPublishDisp): JQuery<HTMLElement> {
+        let radiobuttons = [
+            { title: 'Published', value: 'published' },
+            { title: 'Permissions', value: 'permissions' },
+            { title: 'Schedule Test', value: 'schedule' },
+            { title: 'Test Results', value: 'results' },
+        ];
+        return JTRadioButton(8, 'pubdisp', radiobuttons, testdisp);
+    }
+    /**
+     * Put up the test management radio button for selecting which tests to view.
+     * @param testmanage State
+     */
+    public genTestManageState(testmanage: ITestManage): JQuery<HTMLElement> {
+        let radiobuttons = [
+            { title: 'Local', value: 'local' },
+            { title: 'Published', value: 'published' },
+        ];
+        return JTRadioButton(8, 'testmanage', radiobuttons, testmanage);
+    }
+    /**
+     * Report an error to the user.  This creates a closable warning box placed into the ans section
+     * @param msg Error message to display
+     */
+    public reportFailure(msg: string) {
+        console.log(msg);
+        $(".ans").append($("<div/>", { class: "callout warning", "data-closable": "" })
+            .append($("<p/>").text(msg))
+            .append($("<button/>", { class: "close-button", "aria-label": "Dismiss alert", type: "button", "data-close": "" }).append($("<span/>", { "aria-hidden": "true" }).html("&times;"))));
+    }
+    /**
+     * getInteractiveURI gets the URI to call for the interactive collaboration.
+     * It defaults to a public server, but can be overridded with a local configuration value stored in "domain"
+     * @returns string corresponding to the interactive API to call
+     */
+    public getInteractiveURI(): string {
+        // return this.getConfigString("domain", "https://codebusters.alyzee.org/") +
+        return this.getConfigString("domain", "http://toebeshome.myqnapcloud.com:7630/") +
+            "api/realtime/convergence/scienceolympiad";
+    }
+
+    /**
+     * Retrieves the default login parameters for Convergence from storage.
+     * Default uses Anonymous for userid,  No for fname, and Name for lname.
+     * @returns ConvergenceLoginParameters
+     */
+    public getConvergenceLoginParameters(): ConvergenceLoginParameters {
+        const username = this.getConfigString('userid', 'Anonymous')
+        const firstName = this.getConfigString('fname', 'No')
+        const lastName = this.getConfigString('lname', 'Name')
+        return { username: username, firstName: firstName, lastName: lastName }
+    }
+
+    /**
+       * Creates the default convergence settings to use for authentication.
+       * If any field is missing will return null.
+       * @returns ConvergenceSettings (Or null for failure)
+       */
+    public getConvergenceSettings(): ConvergenceSettings {
+        const baseUrl = this.getConfigString('domain', 'http://toebeshome.myqnapcloud.com:7630/')
+        const privateKey = ConvergenceAuthentication.getLocalPrivateKey()
+        const convergenceNamespace = this.getConfigString('convergenceNamespace', 'convergence')
+        const convergenceDomain = this.getConfigString('convergenceDomain', 'scienceolympiad')
+        const convergenceKeyId = this.getConfigString('convergenceKeyId', 'TestingKeyId')
+
+        if (baseUrl === null || privateKey === null || convergenceNamespace == null || convergenceDomain === null || convergenceKeyId === null) {
+            return null
+        } else {
+            return {
+                baseUrl: baseUrl,
+                namespace: convergenceNamespace,
+                privateKey: privateKey,
+                domain: convergenceDomain,
+                keyId: convergenceKeyId
+            }
+        }
+    }
+
+    /**
+     * @returns Promise ConvergenceDomain to interact with
+     */
+    public connectRealtime(): Promise<ConvergenceDomain> {
+        const loginParameters = this.getConvergenceLoginParameters()
+        const loginSettings = this.getConvergenceSettings()
+        let result = ConvergenceAuthentication.connect(loginSettings, loginParameters)
+            .catch((error) => {
+                this.reportFailure('Convergence API could not connect: ' + error)
+            })
+        return result
+    }
+
     public setTestEditState(testdisp: ITestDisp): void {
         JTRadioButtonSet('testdisp', testdisp);
     }
+    /**
+     * Maps a string to the corresponding test type ID
+     * @param id string representation of the id
+     */
     public mapTestTypeString(id: string): ITestType {
         let result = ITestType.None;
         for (let entry of this.testTypeMap) {
@@ -198,6 +325,10 @@ export class CipherTest extends CipherHandler {
         }
         return result;
     }
+    /**
+     * Maps a test type to the corresponding string
+     * @param testtype Test type to map
+     */
     public mapTestTypeID(testtype: ITestType): string {
         let result = "";
         for (let entry of this.testTypeMap) {
@@ -250,11 +381,11 @@ export class CipherTest extends CipherHandler {
         location.assign('TestGenerator.html?test=' + String(test));
     }
     /**
-     * generateTestJSON converts the current test information to a JSON string
+     * generateTestData converts the current test information to a map which can be saved/restored later
      * @param test Test to generate data for
      * @returns string form of the JSON for the test
      */
-    public generateTestJSON(test: ITest): string {
+    public generateTestData(test: ITest): any {
         let result = {};
         result["TEST.0"] = test;
 
@@ -266,7 +397,15 @@ export class CipherTest extends CipherHandler {
         for (let entry of test.questions) {
             result["CIPHER." + String(entry)] = this.getFileEntry(entry);
         }
-        return JSON.stringify(result)
+        return result;
+    }
+    /**
+     * generateTestJSON converts the current test information to a JSON string
+     * @param test Test to generate data for
+     * @returns string form of the JSON for the test
+     */
+    public generateTestJSON(test: ITest): string {
+        return JSON.stringify(this.generateTestData(test));
     }
     /**
      * Make a copy of a test
@@ -304,6 +443,34 @@ export class CipherTest extends CipherHandler {
     public gotoInteractiveTest(test: number): void {
         location.assign('TestInteractive.html?test=' + String(test));
     }
+    public gotoTestPublished(): void {
+        location.assign('TestPublished.html');
+    }
+    public gotoTestLocal(): void {
+        location.assign('TestManage.html');
+    }
+    /**
+     * Jump to the page to change permissions for a test
+     * @param sourcemodelid published ID of test
+     */
+    public gotoPublishedTestPermissions(sourcemodelid: string): void {
+        location.assign('TestPermissions.html?testID=' + sourcemodelid);
+    }
+    /**
+     * Jump to the page to schedule a test
+     * @param sourcemodelid published ID of test
+     */
+    public gotoPublishedSchedule(sourcemodelid: string): void {
+        location.assign('TestSchedule.html?testID=' + sourcemodelid);
+    }
+    /**
+     * Jump to the page to show the results of taking the test
+     * @param sourcemodelid published ID of test
+     */
+    public gotoPublishedResults(sourcemodelid: string): void {
+        location.assign('TestResults.html?testID=' + sourcemodelid);
+    }
+
     public gotoTestDisplay(testdisp: ITestDisp): void {
         switch (testdisp) {
             case 'testans':
@@ -324,7 +491,34 @@ export class CipherTest extends CipherHandler {
                 break;
         }
     }
-
+    public gotoTestManage(testmanage: ITestManage): void {
+        switch (testmanage) {
+            case 'published':
+                this.gotoTestPublished();
+                break;
+            default:
+            case 'local':
+                this.gotoTestLocal();
+                break;
+        }
+    }
+    public gotoPublishDisplay(testdisp: IPublishDisp): void {
+        switch (testdisp) {
+            case 'published':
+                this.gotoTestPublished();
+                break;
+            case 'permissions':
+                this.gotoPublishedTestPermissions(this.state.testID);
+                break;
+            case 'results':
+                this.gotoPublishedResults(this.state.testID);
+                break;
+            default:
+            case 'schedule':
+                this.gotoPublishedSchedule(this.state.testID);
+                break;
+        }
+    }
     public gotoEditCipher(entry: number): void {
         let entryURL = this.getEntryURL(entry);
         if (entryURL !== '') {
@@ -957,6 +1151,26 @@ export class CipherTest extends CipherHandler {
                     .removeClass('is-active');
                 $(e.target).addClass('is-active');
                 this.gotoTestDisplay($(e.target).val() as ITestDisp);
+                this.updateOutput();
+            });
+        $('[name="testmanage"]')
+            .off('click')
+            .on('click', e => {
+                $(e.target)
+                    .siblings()
+                    .removeClass('is-active');
+                $(e.target).addClass('is-active');
+                this.gotoTestManage($(e.target).val() as ITestManage);
+                this.updateOutput();
+            });
+        $('[name="pubdisp"]')
+            .off('click')
+            .on('click', e => {
+                $(e.target)
+                    .siblings()
+                    .removeClass('is-active');
+                $(e.target).addClass('is-active');
+                this.gotoPublishDisplay($(e.target).val() as IPublishDisp);
                 this.updateOutput();
             });
     }

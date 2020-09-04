@@ -13,6 +13,9 @@ import { CipherTest, ITestState } from './ciphertest';
  *  The command buttons availableare
  *       <New Test><EXPORT><IMPORT>
  */
+
+
+
 export class CipherTestManage extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;
 
@@ -58,6 +61,16 @@ export class CipherTestManage extends CipherTest {
         });
         this.attachHandlers();
     }
+    /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
+    public genPreCommands(): JQuery<HTMLElement> {
+        return this.genTestManageState("local");
+    }
+    /**
+     * 
+     */
     public genTestList(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'testlist' });
         let testcount = this.getTestCount();

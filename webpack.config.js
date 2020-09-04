@@ -176,7 +176,7 @@ module.exports = {
         new CopyWebpackPlugin({
             patterns: [
                 {
-                    from: path.join(__dirname, 'app', 'codebuster', 'pages', 'time.php'),
+                    from: path.join(__dirname, 'app', 'codebusters', 'pages', 'time.php'),
                     to: path.resolve(__dirname, 'dist'),
                 },
                 {
@@ -999,6 +999,62 @@ module.exports = {
             chunks: ['codebusters'],
             cipher: 'TestManage',
             title: 'Test Management',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'TestPublished.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'TestManage.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestPublished',
+            title: 'Test Management',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'TestPermissions.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'TestManage.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestPermissions',
+            title: 'Test Permissions',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'TestSchedule.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'TestManage.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestSchedule',
+            title: 'Schedule Test',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'TestResults.html',
+            template: path.join(
+                __dirname,
+                'app',
+                'codebusters',
+                'pages',
+                'TestManage.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestResults',
+            title: 'View Test Results',
         }),
         new HtmlWebpackPlugin({
             inject: false,

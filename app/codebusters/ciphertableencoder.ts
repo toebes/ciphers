@@ -1,5 +1,5 @@
-import { BoolMap, cloneObject, StringMap } from '../common/ciphercommon';
-import { ITestType, toolMode } from '../common/cipherhandler';
+import {BoolMap, cloneObject, makeFilledArray, StringMap} from '../common/ciphercommon';
+import {ITestQuestionFields, ITestType, toolMode} from '../common/cipherhandler';
 import { CipherTypeButtonItem, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
@@ -59,6 +59,21 @@ export class CipherTableEncoder extends CipherEncoder {
     public save(): IEncoderState {
         return super.save();
     }
+
+    /**
+     * getInteractiveTemplate creates the answer template for synchronization of
+     * the realtime answers when the test is being given.
+     * @returns Template of question fields to be filled in at runtime.
+     */
+    public getInteractiveTemplate(): ITestQuestionFields {
+        let len = this.state.cipherString.length;
+        let result: ITestQuestionFields = {
+            answer: makeFilledArray(len, " "),
+            notes: "",
+        };
+        return result;
+    }
+
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -273,7 +288,41 @@ export class CipherTableEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let result = this.genQuestion(testType);
+        let strings = this.genTestStrings(testType);
+        let qnumdisp = String(qnum + 1);
+        let idclass = "I" + qnumdisp + "_";
+        let result = $('<div/>', { id: "Q" + qnumdisp });
+        let tosolve = 0;
+        if (this.state.operation === 'encode') {
+            tosolve = 1;
+        }
+        let pos = 0;
+
+        let table = new JTTable({ class: "SOLVER" });
+        for (let strset of strings) {
+            let qrow = table.addBodyRow();
+            let arow = table.addBodyRow();
+            for (let c of strset[tosolve]) {
+                let extraclass = "";
+                let spos = String(pos);
+                qrow.add({ settings: { class: "TOSOLVEC" }, content: c });
+                if (this.isValidChar(c)) {
+                    arow.add({
+                        settings: { class: extraclass }, content: $("<input/>", {
+                            id: idclass + spos,
+                            class: "awc",
+                            type: "text",
+                        })
+                    });
+                }
+                else {
+                    arow.add("");
+                }
+                pos++;
+            }
+            result.append(table.generate());
+        }
+
         result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
         return result;
     }

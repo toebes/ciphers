@@ -21,6 +21,7 @@ import { CipherTestManage } from "./ciphertestmanage";
 import { CipherTestPrint } from "./ciphertestprint";
 import { CipherTestInteractive } from "./ciphertestinteractive";
 import { CipherTestQuestions } from "./ciphertestquestions";
+import { InteractiveAffineEncoder } from "./interactiveaffineencoder";
 import { InteractiveEncoder } from "./interactiveencoder";
 import { InteractiveHillEncoder } from "./interactivehillencoder";
 import { InteractiveTableEncoder } from "./interactivetableencoder";
@@ -41,13 +42,13 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Affine: {
         cipherType: ICipherType.Affine,
         cipherClass: CipherAffineEncoder,
-        interactiveClass: InteractiveTableEncoder,
+        interactiveClass: InteractiveAffineEncoder,
         canPrint: true
     },
     Atbash: {
         cipherType: ICipherType.Atbash,
         cipherClass: CipherTableEncoder,
-        interactiveClass: CipherHandler,
+        interactiveClass: InteractiveTableEncoder,
         canPrint: true
     },
     Baconian: {
@@ -59,7 +60,7 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Caesar: {
         cipherType: ICipherType.Caesar,
         cipherClass: CipherTableEncoder,
-        interactiveClass: CipherHandler,
+        interactiveClass: InteractiveTableEncoder,
         canPrint: true
     },
     Encoder: {

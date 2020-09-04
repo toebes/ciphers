@@ -6,15 +6,7 @@ import { bindTextInput } from '@convergence/input-element-bindings'
 import { InteractiveEncoder } from "./interactiveencoder";
 
 export class InteractiveHillEncoder extends InteractiveEncoder {
-    /**
-     * Restore the state from a stored record
-     * @param data Saved state to restore
-     */
-    public restore(data: IEncoderState): void {
-        this.state = cloneObject(this.defaultstate) as IState;
-        this.setSourceCharset(data.sourceCharset);
-        this.copyState(this.state, data);
-    }
+
     /**
      * attachInteractiveHandlers attaches the realtime updates to all of the fields
      * @param qnum Question number to set handler for
@@ -22,7 +14,8 @@ export class InteractiveHillEncoder extends InteractiveEncoder {
      * @param testTimeInfo Timing information for the current test.
     */
    public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo) {
-    let qnumdisp = String(qnum + 1);
+        let qnumdisp = String(qnum + 1);
+
         //
         // The "answer" portion is for the typed answer to the cipher
         let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;
@@ -35,10 +28,10 @@ export class InteractiveHillEncoder extends InteractiveEncoder {
             if (answerfield.length > 0) {
                 bindTextInput(answerfield[0] as HTMLInputElement, realtimeAnswer.elementAt(i));
             } else {
-                console.log("Unable to find the answerfield\n")
+                console.log("Unable to find the answer field\n")
             }
         }
-        // The "answer" portion is for the typed answer to the cipher
+        // The "replacement" portion is for the typed answer to the cipher
         if (realTimeElement.hasKey("replacements")) {
             let realtimeReplacement = realTimeElement.elementAt("replacements") as RealTimeArray;
             let replacements = realtimeReplacement.value();
@@ -54,10 +47,7 @@ export class InteractiveHillEncoder extends InteractiveEncoder {
                 }
             }
         }
-        //
-        // the "notes" portion is a generic field for whatever they want to type in the notes.  It gets shared among all the
-        // students taking the same tests
-        const textArea = $("#in" + qnumdisp)[0] as HTMLTextAreaElement;
-        bindTextInput(textArea, realTimeElement.elementAt("notes") as RealTimeString);
+
+        this.attachInteractiveNotesHandler(qnumdisp, realTimeElement);
     }
 }

@@ -377,8 +377,12 @@ export class CipherTestInteractive extends CipherTest {
         console.log("Result modelid=" + modelid);
         if (modelid !== undefined) {
             // Ok we have a model, let's see what the permissions are on it
-            modelService.permissions(modelid).getPermissions()
-                .then((myPermissions: ModelPermissions) => {
+            // modelService.permissions(modelid).getPermissions()
+            //    .then((myPermissions: ModelPermissions) => {
+            modelService.permissions(modelid).getAllUserPermissions()
+                .then(permissions => {
+                    let myPermissions = permissions.get(modelService.session().user().username);
+
                     if (myPermissions === undefined) {
                         this.askSaveDecision(modelService, "Empty permissions for " + modelType + " model", false, interactive, answerdata, testData, elem);
                     } else {

@@ -615,7 +615,7 @@ export class CipherTestInteractive extends CipherTest {
         this.setTestEntry(this.state.test, testentry)
         let callout = $('<div/>', {
             class: 'callout success',
-        }).append($("<a/>", { href: "TestInteractive.html?testID=" + testentry.answermodelid, target: "_blank", class: "button large" }).text("Open Interactive test"));
+        }).append($("<a/>", { href: "TestSchedule.html?testID=" + testentry.sourcemodelid, class: "button large" }).text("Schedule Test"));
         elem.append(callout);
     }
     /**

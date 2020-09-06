@@ -80,6 +80,24 @@ export class CipherTestSchedule extends CipherTestManage {
             .catch(error => { this.reportFailure("Could not open model for " + sourcemodelid + " Error:" + error) });
 
     }
+    public dateTimeInput(id: string, datetime: number): JQuery<HTMLElement> {
+        // Alternative Date Time Input options:
+        //   https://github.com/amsul/pickadate.js - 
+        //   https://github.com/flatpickr/flatpickr - seems to be pretty good, but is picky about the time format
+        //   https://www.jqueryscript.net/blog/best-date-time-picker.html - Survey of 10 of them
+        let dateobj = new Date(datetime);
+
+
+        // M j, Y H:i
+
+
+        let dateval = dateobj.toISOString();
+        console.log("Date: " + datetime + " Maps to " + dateval);
+        let result = $("<span/>")
+            .append($("<input/>", { type: "datetime-local", id: id, class: "datetimepick", value: dateval.substr(0, 19) }));
+
+        return result;
+    }
     /**
      * Find all the tests scheduled for a given test template
      * @param modelService 
@@ -92,9 +110,10 @@ export class CipherTestSchedule extends CipherTestManage {
                 let templatecount = 0;
                 let table: JTTable = undefined
                 results.data.forEach(result => {
+                    let answertemplate = result.data as IAnswerTemplate;
                     if (result.modelId === answermodelid) {
                         templatecount++;
-                        this.answerTemplate = result.data as IAnswerTemplate;
+                        this.answerTemplate = answertemplate;
                     } else {
                         if (table === undefined) {
                             table = new JTTable({ class: 'cell shrink testlist publist' });
@@ -115,9 +134,9 @@ export class CipherTestSchedule extends CipherTestManage {
                             }).text('Delete')
                         );
                         row.add(buttons)
-                            .add("StartTime") // Start Time
-                            .add("EndTime") // End Time
-                            .add("TimedQ") // Timed question End
+                            .add(this.dateTimeInput("S" + String(total), answertemplate.starttime))
+                            .add(this.dateTimeInput("E" + String(total), answertemplate.endtime))
+                            .add(this.dateTimeInput("T" + String(total), answertemplate.endtimed))
                             .add("User1,User2,User3"); // Takers
                         // Need to add the entry
                         total++;
@@ -134,6 +153,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 } else {
                     $(".testlist").append(table.generate());
                 }
+                this.attachHandlers();
             })
             .catch(error => { this.reportFailure("Convergence API could not connect: " + error) });
     }
@@ -171,5 +191,20 @@ export class CipherTestSchedule extends CipherTestManage {
                 this.copyAnswerTemplate();
             });
 
+        // $(".datetimepick").each((i, elem) => {
+        //     let x = flatpickr(elem, {
+        //         altInput: true,
+        //         enableTime: true,
+        //         dateFormat: "M j, Y H:i",
+        //         minDate: "today",
+        //         allowInput: true,
+        //     })
+        // });
+        // flatpickr(".flatpikrtime", {
+        //     altInput: true,
+        //     altFormat: "F j, Y HH:MM",
+        //     dateFormat: "Y-m-d",
+        //     minDate: "today",
+        // });
     }
 }

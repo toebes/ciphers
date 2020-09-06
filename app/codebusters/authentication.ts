@@ -1,4 +1,4 @@
-import Convergence, { ConvergenceDomain } from '@convergence/convergence';
+import Convergence, { ConvergenceDomain, LogLevel } from '@convergence/convergence';
 import { KJUR } from 'jsrsasign';
 
 export interface ConvergenceLoginParameters {
@@ -95,7 +95,10 @@ export class ConvergenceAuthentication {
         const stringPayload = JSON.stringify(payload);
         const signedJWT = KJUR.jws.JWS.sign(this.ALG_RS256, stringHeader, stringPayload, settings.privateKey);
         // Convergence.configureLogging({
-        //     root: LogLevel.DEBUG
+        //     root: LogLevel.DEBUG,
+        //     loggers: {
+        //         "protocol.ping": LogLevel.SILENT
+        //     }
         // });
 
         return Convergence.connectWithJwt(connectUrl, signedJWT);

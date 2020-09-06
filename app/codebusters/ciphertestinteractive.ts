@@ -7,6 +7,7 @@ import { CipherTest, ITestState, IAnswerTemplate } from './ciphertest';
 import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelPermissions, ModelService, IAutoCreateModelOptions } from "@convergence/convergence";
 import { CipherInteractiveFactory, CipherPrintFactory } from './cipherfactory';
 import { TrueTime } from '../common/truetime';
+import { JTFDialog } from '../common/jtfdialog';
 
 /**
  * CipherTestInteractive
@@ -283,7 +284,7 @@ export class CipherTestInteractive extends CipherTest {
     public makeAutoCreateModelOptions(collection: string, owner: string): IAutoCreateModelOptions {
         let result: IAutoCreateModelOptions = {
             collection: collection,
-            overrideCollectionWorldPermissions: false,
+            overrideCollectionWorldPermissions: true,
             worldPermissions: ModelPermissions.fromJSON({ read: false, write: false, remove: false, manage: false }),
             userPermissions: {}
         }
@@ -298,31 +299,222 @@ export class CipherTestInteractive extends CipherTest {
      * @param testData Test data source
      */
     public saveModels(elem: JQuery<HTMLElement>, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any) {
-        // Now that we have the model of the test and the model of the answers,
-        //  we need to create two models.  
-        // The interactive test is what we pull down to create the test
-        // the answerdata is what is shared between the test takers
-        //
-        // Convergence.configureLogging({
-        //     root: LogLevel.DEBUG
-        // });
-
-        // this.setConfigString("domain", "http://192.168.1.11/");
-        // this.setConfigString("domain", "https://codebusters.alyzee.org/");
         this.connectRealtime().then((domain: ConvergenceDomain) => {
-                this.SaveTestTemplate(domain, interactive, answerdata, testData, elem);
-            });
+            // We successfully opened the connection to the server.  
+            // First we will need to test to see if the model exists.  This will get us to one of several options.
+            // 1) The model already exists and we have permission to access it.   
+            //     Give them a choice to overwrite the existing model, create a new model or go back to editing the test.
+            // 2) The model already exists and we don't have permission to access it.
+            //     Give them a choice to create a new model or go back to editing the test
+            // 3) The model doesn't exist.
+            //     Give them a choice to create a new model or go back to editing the test.
+            // 
+            // If they choose to create a new model, blank out the model fields in the test template.
+            // If they choose to go back to editing the test, just jump to it.  Note that nothing is really lost
+            // since the test is saved locally, they just don't end up publishing it to the server.
+            this.checkSourceTemplate(domain.models(), interactive, answerdata, testData, elem);
+        });
     }
     /**
-     * Save the test template to the server.  On success proceed to save the other documents.
-     * @param domain Convergence domain to create model under.
+     * Check to see if we have permission to write to the Source Model.
+     * @param modelService Convergence model service class.
      * @param interactive Interactive test template
      * @param answerdata Interactive test answer data
      * @param testData Test data source
      * @param elem DOM location to put any output
      */
-    private SaveTestTemplate(domain: ConvergenceDomain, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) {
-        const modelService = domain.models();
+    private checkSourceTemplate(modelService: ModelService, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) {
+        this.checkModel("Source", "sourcemodelid", this.checkTestModel, modelService, interactive, answerdata, testData, elem);
+    }
+    /**
+     * Check to see if we have permission to write to the Test Model.
+     * @param modelService Convergence model service class.
+     * @param interactive Interactive test template
+     * @param answerdata Interactive test answer data
+     * @param testData Test data source
+     * @param elem DOM location to put any output
+     */
+    private checkTestModel(modelService: ModelService, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) {
+        this.checkModel("Test", "testmodelid", this.checkAnswerModel, modelService, interactive, answerdata, testData, elem);
+    }
+    /**
+     * Check to see if we have permission to write to the Answer Model.
+     * @param modelService Convergence model service class.
+     * @param interactive Interactive test template
+     * @param answerdata Interactive test answer data
+     * @param testData Test data source
+     * @param elem DOM location to put any output
+     */
+    private checkAnswerModel(modelService: ModelService, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) {
+        this.checkModel("Answer", "answermodelid", undefined, modelService, interactive, answerdata, testData, elem);
+    }
+    /**
+     * Check to see if a model already exists on the server.  If it doesn't or there is some access problem
+     * with the model, we want to skip to the final decision step, otherwise jump to the next step in the checking
+     * process (firest we look at the Source Model, then the Test Model and finally the Answer Model )
+     * @param modelType Descriptive name of the type of model being checked
+     * @param modelRef Reference fot the model entry to get
+     * @param nextStep Method to call on success
+     * @param modelService Convergence model service class.
+     * @param interactive Interactive test template
+     * @param answerdata Interactive test answer data
+     * @param testData Test data source
+     * @param elem DOM location to put any output
+     */
+    private checkModel(
+        modelType: string,
+        modelRef: string,
+        nextStep: (modelService: ModelService, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) => void,
+        modelService: ModelService,
+        interactive: IInteractiveTest,
+        answerdata: ITestQuestionFields[],
+        testData: any,
+        elem: JQuery<HTMLElement>
+    ) {
+        // Figure out the ID for the type of model that we want to check
+        console.log("Looking for " + modelRef + " for a " + modelType + " Model.");
+        let modelid = this.getModelId(testData, modelRef);
+        console.log("Result modelid=" + modelid);
+        if (modelid !== undefined) {
+            // Ok we have a model, let's see what the permissions are on it
+            modelService.permissions(modelid).getPermissions()
+                .then((myPermissions: ModelPermissions) => {
+                    if (myPermissions === undefined) {
+                        this.askSaveDecision(modelService, "Empty permissions for " + modelType + " model", false, interactive, answerdata, testData, elem);
+                    } else {
+                        // We have a model and were able to get the permissions.  Make sure we can actually write to it.
+                        if (myPermissions.read && myPermissions.write) {
+                            // We can write, so see if we have a next step to take
+                            if (nextStep === undefined) {
+                                nextStep(modelService, interactive, answerdata, testData, elem);
+                            } else {
+                                // No more steps, so just let the user decide what to do.
+                                this.askSaveDecision(modelService, "", true, interactive, answerdata, testData, elem);
+                            }
+                        }
+                        else {
+                            this.askSaveDecision(modelService, "No access to " + modelType + " model", false, interactive, answerdata, testData, elem);
+                        }
+                    }
+                })
+                .catch(e => {
+                    // Something went wrong getting the permissions
+                    let msg = "";
+                    // If it is there but we can't get access to it, we won't be able to overwrite it
+                    if (e.code === "unauthorized") {
+                        msg = "A " + modelType + " model already exists for this test but you don't have permission to access it.";
+                    }
+                    // Of course if it is anything but "not found" we want to report the error.
+                    else if (e.code !== "model_not_found") {
+                        msg = "An error accessing the " + modelType + " model occurred: " + e;
+                    }
+                    // Either way, we are done testing, so prompt to user to figure out what we want to do.
+                    this.askSaveDecision(modelService, msg, false, interactive, answerdata, testData, elem);
+                });
+        }
+        else {
+            // No model, so just prompt the user to write or not.
+            this.askSaveDecision(modelService, "", false, interactive, answerdata, testData, elem);
+        }
+    }
+    /**
+     * Save the test template to the server.  On success proceed to save the other documents.
+     */
+    /**
+     * 
+     * @param modelService Convergence model service class.
+     * @param reason Message about the existing file to put on the dialog
+     * @param canoverwrite All them to choose to overwrite
+     * @param interactive Interactive test template
+     * @param answerdata Interactive test answer data
+     * @param testData Test data source
+     * @param elem DOM location to put any output
+     */
+    private askSaveDecision(modelService: ModelService, reason: string, canoverwrite: boolean, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) {
+        // First we need to get the testmodel and the answer model because we want to delete them too
+        let actiontaken = false;
+        $("#okpub")
+            .off("click")
+            .on("click", () => {
+                actiontaken = true;
+                $("#savechoicedlg").foundation("close");
+                // Wipe out existence of any previous test model so that we generate a new one.
+                delete testData["TEST.0"].answermodelid;
+                delete testData["TEST.0"].testmodelid;
+                delete testData["TEST.0"].sourcemodelid;
+                this.SaveTestTemplate(modelService, interactive, answerdata, testData, elem);
+            });
+        $("#okover")
+            .off("click")
+            .on("click", () => {
+                actiontaken = true;
+                $("#savechoicedlg").foundation("close");
+                // All is good, do we want to overwrite it
+                this.SaveTestTemplate(modelService, interactive, answerdata, testData, elem);
+            });
+        // Handle when they just click cancel so we go back to the 
+        $(document).on('closed.zf.reveal', '#savechoicedlg[data-reveal]', function () {
+            if (!actiontaken) {
+                this.gotoEditTest(this.state.test);
+            }
+        });
+        // Prepare the dialog for siaplay
+        $("#okpub").removeAttr("disabled");
+        // If we don't have the opportunity to overwrite, hide the button
+        if (canoverwrite) {
+            $("#okover").removeAttr("disabled").show();
+        } else {
+            $("#okover").attr("disabled", "disabled").hide();
+        }
+        // Add any additional context messages we need for the dialog
+        $("#ovmsg").append($("<div/>").text(reason));
+        // Change the cancel button to say "Don't publis"
+        $("#savechoicedlg a[data-close]").text("Don't Publish");
+        // Show the dialog
+        $("#savechoicedlg").attr("data-close-on-click", "false")
+            .attr("data-close-on-esc", "false")
+            .foundation("open");
+    }
+    /**
+     * Create the hidden dialog for selecting a cipher to open
+     */
+    private createSaveChoiceDlg(): JQuery<HTMLElement> {
+        let dlgContents = $("<div/>", {
+            class: "callout alert",
+        }).text(
+            "This will publish the test on the interactive server."
+        ).append($("<div/>", { id: "ovmsg" }));
+        let SaveChoiceDlg = JTFDialog(
+            "savechoicedlg",
+            "Publish Test",
+            dlgContents,
+            "okpub",
+            "Publish New Test",
+            "okover",
+            "Overwrite Existing Test",
+        );
+        return SaveChoiceDlg;
+    }
+    /**
+     * Create the main menu at the top of the page.
+     * This also creates the hidden dialog used for deleting ciphers
+     */
+    public createMainMenu(): JQuery<HTMLElement> {
+        let result = super.createMainMenu();
+        // Create the dialog for selecting which cipher to load
+        result.append(this.createSaveChoiceDlg());
+        return result;
+    }
+
+    /**
+     * Save the test template to the server.  On success proceed to save the other documents.
+     * @param modelService Convergence model service class.
+     * @param interactive Interactive test template
+     * @param answerdata Interactive test answer data
+     * @param testData Test data source
+     * @param elem DOM location to put any output
+     */
+    private SaveTestTemplate(modelService: ModelService, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) {
         // See if we have to update the data for the model
         let isOldModel = true;
         let testModelOptions = this.makeAutoCreateModelOptions("codebusters_tests", testData.creator);
@@ -356,12 +548,15 @@ export class CipherTestInteractive extends CipherTest {
      * @param elem DOM location to put any output
      */
     private saveAnswerTemplate(modelService: ModelService, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) {
-      let data:IAnswerTemplate = {
+        // Assume that the test can start in 30 seconds by default.  However in reality, this is the
+        // answer template so it has to be copied with a new time set, so this really only gets used for testing.
+        let starttime = Date.now() + 30 * 1000;
+        let data: IAnswerTemplate = {
             testid: this.getModelId(testData, 'testmodelid'),
-            starttime: Date.now(),
-            endtime: Date.now()+(50*60),
-            endtimed: Date.now()+(10*60),
-            assigned:[],
+            starttime: starttime,
+            endtime: starttime + (50 * 60 * 1000),
+            endtimed: starttime + (10 * 60 * 1000),
+            assigned: [],
             answers: answerdata
         };
         // See if we have to update the data for the model

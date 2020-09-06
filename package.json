@@ -70,7 +70,7 @@
         "fs": "0.0.1-security",
         "jquery": "^3.5.1",
         "js-cookie": "^2.2.1",
-        "jsrsasign": "^9.1.5",
+        "jsrsasign": "^9.1.6",
         "jsrsasign-util": "^1.0.0",
         "katex": "^0.10.2",
         "text-readability": "^1.0.5",

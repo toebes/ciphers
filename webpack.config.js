@@ -14,6 +14,7 @@ var ANALYZE = argv.analyze || false;
 // process.traceDeprecation = true;
 
 module.exports = {
+    stats: 'errors-warnings',
     //    mode: "development", // "production" | "development" | "none"
     context: __dirname,
     // devtool: "inline-source-map",

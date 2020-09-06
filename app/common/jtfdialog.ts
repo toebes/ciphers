@@ -6,7 +6,9 @@ export function JTFDialog(
     title: string,
     content: JQuery<HTMLElement>,
     okid?: string,
-    oktitle?: string
+    oktitle?: string,
+    extraid?: string,
+    extratitle?: string
 ): JQuery<HTMLElement> {
     // The dialog has a top bar with a title indicating the purpose of the dialog
     // The data-reveal class keeps it hidden
@@ -38,6 +40,13 @@ export function JTFDialog(
                     oktitle
                 )
             );
+        if (extraid !== null && extratitle !== undefined) {
+            buttongroup.append(
+                $("<a/>", { class: "button", disabled: "true", id: extraid }).text(
+                    extratitle
+                )
+            );
+        }
         dlg.append(buttongroup);
     }
     // Plus we need a close button at the top of the dialog

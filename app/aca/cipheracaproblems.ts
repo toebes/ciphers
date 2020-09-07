@@ -311,7 +311,8 @@ export class CipherACAProblems extends CipherTest {
         $("#delalldlg").foundation("open");
     }
     /**
-     * Create the hidden dialog for selecting a cipher to open
+     * Create the hidden dialog asking about deleting all problems
+     * @returns HTML DOM Element for dialog
      */
     private createDeleteAllDlg(): JQuery<HTMLElement> {
         let dlgContents = $("<div/>", {

@@ -1,6 +1,9 @@
 /**
  * TSTable - Class for dynamically generating JQuery tables in TypeScript
  */
+
+import { rightLogShift } from "mathjs";
+
 /**
  *
  */
@@ -48,20 +51,16 @@ function isRowParms(parms: JTRowParms | JTRowItems): parms is JTRowParms {
 }
 
 export class JTRow {
-    public class: string;
     public celltype: string;
     public row: JTRowItems;
+    public attrset: JQuery.PlainObject;
     constructor(parms?: JTRowParms | JTRowItems) {
         this.celltype = "td";
-        this.class = undefined;
         this.row = [];
         if (parms !== null && parms !== undefined) {
             if (Array.isArray(parms)) {
                 this.row = <JTRowItems>parms;
             } else {
-                if (parms.class !== undefined) {
-                    this.class = parms.class;
-                }
                 if (parms.celltype !== undefined) {
                     this.celltype = parms.celltype;
                 }
@@ -71,12 +70,12 @@ export class JTRow {
             }
         }
     }
-    public setClass(tclass: string): JTRow {
-        this.class = tclass;
-        return this;
-    }
     public setCellType(celltype: string): JTRow {
         this.celltype = celltype;
+        return this;
+    }
+    public attr(attrset: JQuery.PlainObject): JTRow {
+        this.attrset = attrset;
         return this;
     }
     /**
@@ -99,6 +98,9 @@ export class JTRow {
             return null;
         }
         let row = $("<tr/>");
+        if (this.attrset !== undefined) {
+            row.attr(this.attrset);
+        }
         for (let item of this.row) {
             let cell = null;
             let celltype = this.celltype;

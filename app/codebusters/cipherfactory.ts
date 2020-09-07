@@ -30,6 +30,7 @@ import { CipherTestPublished } from "./ciphertestpublished";
 import { CipherTestPermissions } from "./ciphertestpermissions";
 import { CipherTestSchedule } from "./ciphertestschedule";
 import { CipherTestResults } from "./ciphertestresults";
+import { CipherTakeTest } from "./ciphertaketest";
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -138,6 +139,12 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherClass: CipherRSAEncoder,
         interactiveClass: CipherHandler,
         canPrint: true
+    },
+    TakeTest: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTakeTest,
+        interactiveClass: CipherHandler,
+        canPrint: false
     },
     TapCode: {
         cipherType: ICipherType.TapCode,

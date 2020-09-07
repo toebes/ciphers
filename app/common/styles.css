@@ -1090,6 +1090,12 @@ table.found tr th:nth-child(odd) {
     cursor: not-allowed;
 }
 
+.dropdown.menu .menubutton {
+    background-color: #1779ba;
+    color: white;
+    border-radius: 0.625rem;
+}
+
 .menu .divider {
     background-color: white;
     height: 2px;

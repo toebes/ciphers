@@ -1032,16 +1032,22 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'TestSchedule.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestManage.html'
             ),
             chunks: ['codebusters'],
             cipher: 'TestSchedule',
             title: 'Schedule Test',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'TakeTest.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
+                'TestManage.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TakeTest',
+            title: 'Take a Test',
         }),
         new HtmlWebpackPlugin({
             inject: false,

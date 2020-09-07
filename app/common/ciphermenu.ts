@@ -23,6 +23,11 @@ export const CipherMenu: menuItem[] = [
         ]
     },
     {
+        title: "Take a Test",
+        href: "TakeTest.html",
+        classname: 'menucb menubutton'
+    },
+    {
         title: "Test Generation Tools",
         classname: "menucb",
         menu: [

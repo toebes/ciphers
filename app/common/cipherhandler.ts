@@ -2581,6 +2581,10 @@ export class CipherHandler {
                 this.register();
                 break;
 
+            case 'realtimeconfig':
+                this.realtimeconfig();
+                break;
+
             default:
                 console.log('Unknown action: ' + action);
                 break;
@@ -3032,6 +3036,29 @@ export class CipherHandler {
     /**
      * Creates the hidden dialog showing version/build information
      */
+    public createRealtimeConfigDlg(): JQElement {
+        let dlgContents = $('<div/>', {
+            id: 'realtimeconf',
+            class: 'callout secondary'
+        })
+            .append("<div/>").text("This is only for testing, do not change it unless you know what you are doing because you will break things.")
+            .append(JTFLabeledInput("Base URL:", "text", "baseUrl", "", ""))
+            .append(JTFLabeledInput("Realtime Name Space:", "text", "convergenceNamespace", "", ""))
+            .append(JTFLabeledInput("Realtime Domain:", "text", "convergenceDomain", "", ""))
+            .append(JTFLabeledInput("Realtime KeyID:", "text", "convergenceKeyId", "", ""));
+
+        let realtimeConfigDlg = JTFDialog(
+            'Realtimedlg',
+            '[Testing] Realtime Configuration',
+            dlgContents,
+            'okrealtime',
+            'RealtimeConfig'
+        );
+        return realtimeConfigDlg;
+    }
+    /**
+     * Creates the hidden dialog showing version/build information
+     */
     public createRegisterDlg(): JQElement {
         let dlgContents = $('<div/>', {
             id: 'registercont',
@@ -3042,14 +3069,14 @@ export class CipherHandler {
             .append(JTFLabeledInput("First Name:", "text", "regfname", this.getConfigString("fname", ""), ""))
             .append(JTFLabeledInput("Last Name:", "text", "reglname", this.getConfigString("lname", ""), ""));
 
-        let aboutDlg = JTFDialog(
+        let registerDlg = JTFDialog(
             'Registerdlg',
             '[Testing] Register',
             dlgContents,
             'okregister',
             'Register'
         );
-        return aboutDlg;
+        return registerDlg;
     }
     /**
      * Creates the hidden dialog showing version/build information
@@ -3083,12 +3110,13 @@ export class CipherHandler {
      */
     public createMainMenu(): JQElement {
         let result = $('<div/>');
-        result.append(JTCreateMenu(CipherMenu, 'cmainmenu', 'Cipher Tools'));
-        // Create the dialog for selecting which cipher to load
-        result.append(this.createOpenFileDlg());
-        result.append(this.createImportFileDlg());
-        result.append(this.createAboutDlg());
-        result.append(this.createRegisterDlg());
+        result.append(JTCreateMenu(CipherMenu, 'cmainmenu', 'Cipher Tools'))
+            // Create the dialog for selecting which cipher to load
+            .append(this.createOpenFileDlg())
+            .append(this.createImportFileDlg())
+            .append(this.createAboutDlg())
+            .append(this.createRegisterDlg())
+            .append(this.createRealtimeConfigDlg());
         return result;
     }
     /**
@@ -3148,6 +3176,24 @@ export class CipherHandler {
             })
         $('#Registerdlg').foundation('open');
     }
+    public realtimeconfig(): void {
+        $("#baseUrl").val(this.getConfigString("domain", "http://toebeshome.myqnapcloud.com:7630/"));
+        $("#convergenceNamespace").val(this.getConfigString("convergenceNamespace", "convergence"));
+        $("#convergenceDomain").val(this.getConfigString("convergenceDomain", "scienceolympiad"));
+        $("#convergenceKeyId").val(this.getConfigString("convergenceKeyId", "TestingKeyId"));
+        $('#okrealtime')
+            .removeAttr('disabled')
+            .off('click')
+            .on('click', e => {
+                this.setConfigString("domain", $("#baseUrl").val() as string);
+                this.setConfigString("convergenceNamespace", $("#convergenceNamespace").val() as string);
+                this.setConfigString("convergenceDomain", $("#convergenceDomain").val() as string);
+                this.setConfigString("convergenceKeyId", $("#convergenceKeyId").val() as string);
+                $('#Realtimedlg').foundation('close');
+            })
+        $('#Realtimedlg').foundation('open');
+    }
+
 
     /**
      * Download the zip file is the 'download' button is not disabled
@@ -3458,6 +3504,11 @@ export class CipherHandler {
             .off('click')
             .on('click', () => {
                 this.register();
+            });
+        $('#realtimeconfig')
+            .off('click')
+            .on('click', () => {
+                this.realtimeconfig();
             });
         $('#save')
             .off('click')

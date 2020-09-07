@@ -5,7 +5,7 @@ import { ICipherType } from "../common/ciphertypes";
 import { cloneObject, timestampToISOLocalString, timestampMinutes, BoolMap } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTTable } from "../common/jttable";
-import { ConvergenceDomain, RealTimeModel, ModelService } from "@convergence/convergence";
+import { ConvergenceDomain, RealTimeModel, ModelService, ModelPermissions, DomainUser, DomainUserType } from "@convergence/convergence";
 import { JTFIncButton } from "../common/jtfIncButton";
 import { JTFDialog } from "../common/jtfdialog";
 
@@ -95,7 +95,7 @@ export class CipherTestSchedule extends CipherTestManage {
     }
     /**
      * Find all the tests scheduled for a given test template
-     * @param modelService 
+     * @param modelService Domain Model service object for making requests
      * @param sourcemodelid 
      */
     public findScheduledTests(modelService: Convergence.ModelService, testmodelid: string, answermodelid: string) {
@@ -198,7 +198,7 @@ export class CipherTestSchedule extends CipherTestManage {
     }
     /**
      * 
-     * @param modelService 
+     * @param modelService Domain Model service object for making requests
      * @param modelid 
      */
     private doDeletePublished(modelService: ModelService, modelid: string) {
@@ -265,11 +265,92 @@ export class CipherTestSchedule extends CipherTestManage {
             this.saveAnswerTemplate(modelService, testid, userlist, starttime, endtime, endtimed);
         });
     }
+    /**
+     * 
+     * tually it looks like the create user one is a POST:
+     * <server>/api/rest/domains/convergence/scienceolympiad/users
+     * and the POST payload looks like a DomainUser  {displayname: <name>, email: <email>, firstName: <fname>, lastName: <lname>, password: <pw>, username: <username>}
+     * @param modelService Domain Model service object for making requests
+     * @param userid User to ensure exists
+     */
+    public ensureUsersExist(modelService: ModelService, userids: string[]): JQuery.jqXHR<any> {
+        // TODO: Figure out how we can return the resolved promise when they call us with an empty list
+        // (which means nothing to do)
+        // https://stackoverflow.com/questions/5316697/jquery-return-data-after-ajax-call-success/5316805#5316805
+        // if (userids.length <= 0) {
+        //     // If we are called with nothing to do, just resolve the promise cleanly
+        //     let result: JQuery.jqXHR<any>;
+        //     let foo = result.promise();
+        //     foo.resolve()
+        //     // (function (resolve, reject) {
+        //     //     resolve;
+        //     // });
+        //     // return promise;
+        // }
+        //
 
-
+        let userid = userids.pop();
+        let newUser = {
+            displayName: userid,
+            email: userid,
+            firstName: "First",
+            lastName: "Last",
+            username: userid,
+        }
+        if (userids.length > 0) {
+            let promise = this.ensureUsersExist(modelService, userids)
+                .catch((e: any) => { return promise; })
+        }
+        return $.ajax({ method: "POST", url: "xxx", data: newUser });
+    }
+    /**
+     * Update the permissions on a model entry
+     * @param modelService Domain Model service object for making requests
+     * @param modelid ID of model
+     * @param toremove List of users to remove access for
+     * @param toadd List of users to add access for
+     */
+    public saveUserPermissions(modelService: ModelService, modelid: string, toremove: string[], toadd: string[]) {
+        let permissionManager = modelService.permissions(modelid);
+        permissionManager.getAllUserPermissions().then(allPermissions => {
+            let toCheck: string[] = [];
+            // first go through the ones to remove
+            for (let userid of toremove) {
+                let permit: ModelPermissions = allPermissions[userid];
+                // They must be able to read/write but not remove/manage if it is a user
+                if (permit.read && permit.write && !permit.remove && !permit.manage) {
+                    delete allPermissions[userid];
+                }
+            }
+            for (let userid of toadd) {
+                if (!allPermissions.has(userid)) {
+                    toCheck.push(userid);
+                    allPermissions.set(userid, ModelPermissions.fromJSON({ read: true, write: true, remove: false, manage: false }));
+                }
+            }
+            // For now we have to make sure we dont' call ensureUsersExist with zero entries
+            if (toadd.length < 0) {  // Temporarily disable calling
+                this.ensureUsersExist(modelService, toadd).then(() => {
+                    // We have updated the permissions, so save it back.
+                    permissionManager.setAllUserPermissions(allPermissions)
+                        .catch(error => { this.reportFailure("Unable to set model permissions: " + error) });
+                })
+            } else {
+                console.log(allPermissions);
+                permissionManager.setAllUserPermissions(allPermissions)
+                    .catch(error => { this.reportFailure("Unable to set model permissions: " + error) });
+            }
+        }).catch(error => { this.reportFailure("Could not get model permissions: " + error) });
+    }
     /**
      * Update an existing test to set the list of users, and the test times.  We need to remember who was
      * on the test previously and remove them
+     * @param modelService Domain Model service object for making requests
+     * @param modelid ID of model to save
+     * @param userlist Array of users to associate with the test
+     * @param starttime Start time for the scheduled test
+     * @param endtime End time for the scheduled test
+     * @param endtimed End of the timed question bonus
      */
     public saveAnswerTemplate(modelService: ModelService, modelid: string, userlist: string[], starttime: number, endtime: number, endtimed: number) {
         let usermap: BoolMap = {};
@@ -284,7 +365,7 @@ export class CipherTestSchedule extends CipherTestManage {
             let added: string[] = [];
             let assigned: ITestUser[] = datamodel.elementAt("assigned").value();
 
-            for (var i in assigned) {
+            for (let i in assigned) {
                 let assignee = assigned[i];
                 if (assignee.userid !== userlist[i]) {
                     // We have a change...Make sure we aren't just changing users around
@@ -293,16 +374,22 @@ export class CipherTestSchedule extends CipherTestManage {
                     }
                     assignee.userid = userlist[i];
                 }
+                if (userlist[i] !== "") {
+                    added.push(userlist[i]);
+                }
             }
             // Add any users not already on the list
             for (let i = assigned.length; i < userlist.length; i++) {
                 assigned.push({ userid: userlist[i], displayname: userlist[i], starttime: 0, idletime: 0, confidence: 0, notes: "" });
-                added.push(userlist[i]);
+                if (userlist[i] !== "") {
+                    added.push(userlist[i]);
+                }
             }
             // And save out the data model
             datamodel.elementAt("assigned").value(assigned);
             datamodel.close();
             // Reset the permissions on the model.  Remove anyone who was taken off and add anyone
+            this.saveUserPermissions(modelService, modelid, removed, added);
         }).catch(error => { this.reportFailure("Could not open model to save: " + error) });
     }
     /**
@@ -365,10 +452,10 @@ export class CipherTestSchedule extends CipherTestManage {
         );
         return DeleteTestDlg;
     }
-
     /**
      * Create the main menu at the top of the page.
      * This also creates the hidden dialog used for deleting ciphers
+     * @returns DOM element to put at the top
      */
     public createMainMenu(): JQuery<HTMLElement> {
         let result = super.createMainMenu();
@@ -378,17 +465,26 @@ export class CipherTestSchedule extends CipherTestManage {
             .append(this.createDeleteScheduledDlg());
         return result;
     }
+    /**
+     * Locate the row id for an element.  This looks for the ID of the containing TR
+     * @param elem element to get information for
+     * @returns row ID
+     */
     public getRowID(elem: JQuery<HTMLElement>): string {
         let tr = elem.closest("tr");
         let id = tr.attr("id") as string;
         return id.substr(1);
     }
+    /**
+     * Locate the model id for an element.  This looks for the data-source attribute of the containing TR
+     * @param elem element to get information for
+     * @returns model id stored on the TR element
+     */
     public getModelID(elem: JQuery<HTMLElement>): string {
         let tr = elem.closest("tr");
         let id = tr.attr("data-source") as string;
         return id;
     }
-
     /**
      * Attach all the UI handlers for created DOM elements
      */

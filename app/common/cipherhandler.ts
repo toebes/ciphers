@@ -3045,7 +3045,9 @@ export class CipherHandler {
             .append(JTFLabeledInput("Base URL:", "text", "baseUrl", "", ""))
             .append(JTFLabeledInput("Realtime Name Space:", "text", "convergenceNamespace", "", ""))
             .append(JTFLabeledInput("Realtime Domain:", "text", "convergenceDomain", "", ""))
-            .append(JTFLabeledInput("Realtime KeyID:", "text", "convergenceKeyId", "", ""));
+            .append(JTFLabeledInput("Realtime KeyID:", "text", "convergenceKeyId", "", ""))
+            .append(JTFLabeledInput("Debug:", "text", "convergenceDebug", "", ""));
+            
 
         let realtimeConfigDlg = JTFDialog(
             'Realtimedlg',
@@ -3181,6 +3183,8 @@ export class CipherHandler {
         $("#convergenceNamespace").val(this.getConfigString("convergenceNamespace", "convergence"));
         $("#convergenceDomain").val(this.getConfigString("convergenceDomain", "scienceolympiad"));
         $("#convergenceKeyId").val(this.getConfigString("convergenceKeyId", "TestingKeyId"));
+        $("#convergenceDebug").val(this.getConfigString("convergenceDebug", ""));
+        
         $('#okrealtime')
             .removeAttr('disabled')
             .off('click')
@@ -3189,6 +3193,7 @@ export class CipherHandler {
                 this.setConfigString("convergenceNamespace", $("#convergenceNamespace").val() as string);
                 this.setConfigString("convergenceDomain", $("#convergenceDomain").val() as string);
                 this.setConfigString("convergenceKeyId", $("#convergenceKeyId").val() as string);
+                this.setConfigString("convergenceDebug", $("#convergenceDebug").val() as string);
                 $('#Realtimedlg').foundation('close');
             })
         $('#Realtimedlg').foundation('open');

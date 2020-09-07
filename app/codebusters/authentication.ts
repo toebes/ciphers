@@ -15,6 +15,7 @@ export interface ConvergenceSettings {
     domain: string;
     keyId: string;
     privateKey: string;
+    debug: boolean;
 }
 
 export class ConvergenceAuthentication {
@@ -94,12 +95,14 @@ export class ConvergenceAuthentication {
         const stringHeader = JSON.stringify(header);
         const stringPayload = JSON.stringify(payload);
         const signedJWT = KJUR.jws.JWS.sign(this.ALG_RS256, stringHeader, stringPayload, settings.privateKey);
-        // Convergence.configureLogging({
-        //     root: LogLevel.DEBUG,
-        //     loggers: {
-        //         "protocol.ping": LogLevel.SILENT
-        //     }
-        // });
+        if (settings.debug) {
+            Convergence.configureLogging({
+                root: LogLevel.DEBUG,
+                loggers: {
+                    "protocol.ping": LogLevel.SILENT
+                }
+            });
+        }
 
         return Convergence.connectWithJwt(connectUrl, signedJWT);
         // return Convergence.connectAnonymously(connectUrl);

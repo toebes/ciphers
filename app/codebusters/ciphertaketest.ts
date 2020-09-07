@@ -1,10 +1,10 @@
 import { toolMode, IState, menuMode } from "../common/cipherhandler";
 import { ITestState, IAnswerTemplate } from "./ciphertest";
 import { ICipherType } from "../common/ciphertypes";
-import { cloneObject, timestampToISOLocalString } from "../common/ciphercommon";
+import { cloneObject, timestampToISOLocalString, timestampMinutes } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTTable } from "../common/jttable";
-import { ConvergenceDomain } from "@convergence/convergence";
+import { ConvergenceDomain, RealTimeModel } from "@convergence/convergence";
 import { CipherTest } from "./ciphertest";
 
 /**
@@ -117,6 +117,12 @@ export class CipherTakeTest extends CipherTest {
         let now = Date.now();
 
         if (answertemplate.endtime < now) {
+            let endtime = new Date(answertemplate.endtime).toLocaleString();
+            buttons.append("Test ended at "+endtime);
+        } else if (answertemplate.starttime > now + timestampMinutes(30)) {
+            let starttime = new Date(answertemplate.starttime).toLocaleString();
+            buttons.append("Test starts at "+starttime);
+        } else {
             buttons.append(
                 $('<a/>', {
                     type: 'button',
@@ -129,19 +135,30 @@ export class CipherTakeTest extends CipherTest {
                     class: 'printhint alert button',
                 }).text('Print Hints')
             );
-        } else {
-            buttons.append("Test time over");
         }
+        let testmodelid = answertemplate.testid;
+        let starttime = new Date(answertemplate.starttime).toLocaleString();
+        let testtitle = $("<span/>").text("..Loading...");
         tr.append($("<td/>").append($('<div/>', { class: 'grid-x' }).append(buttons)))
-            .append($("<td/>").text("TITLE HERE"))
-            .append($("<td/>").text(timestampToISOLocalString(answertemplate.starttime)));
+            .append($("<td/>").append(testtitle))
+            .append($("<td/>").text(starttime));
 
+        this.fillTitle(modelService, testtitle, testmodelid);
         var curtr = $('tr[data-answer="' + answermodelid + '"]');
         if (curtr.length > 0) {
             curtr.replaceWith(tr);
         } else {
             $(".publist").append(tr);
         }
+    }
+    public fillTitle(modelService: Convergence.ModelService, elem: JQuery<HTMLElement>, testmodelid: string) {
+        modelService.open(testmodelid).then(
+            (testmodel: RealTimeModel) => {
+                let title = testmodel.elementAt("title").value();
+                elem.empty().append($("<span/>").text(title));
+            }
+        )
+            .catch(error => { this.reportFailure("Unable to get model title for " + testmodelid + ": " + error) });
     }
     /**
      * Run a test

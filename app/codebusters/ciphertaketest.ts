@@ -23,15 +23,6 @@ export class CipherTakeTest extends CipherTest {
     };
     public state: ITestState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [
-        // { title: 'New Test', color: 'primary', id: 'newtest' },
-        // {
-        //     title: 'Export Tests',
-        //     color: 'primary',
-        //     id: 'export',
-        //     download: true,
-        // },
-        // { title: 'Import Tests from File', color: 'primary', id: 'import' },
-        // { title: 'Import Tests from URL', color: 'primary', id: 'importurl' },
     ];
     /**
      * Restore the state from either a saved file or a previous undo record
@@ -52,9 +43,7 @@ export class CipherTakeTest extends CipherTest {
     public updateOutput(): void {
         super.updateOutput();
         this.setMenuMode(menuMode.test);
-        $('.testlist').each((i, elem) => {
-            $(elem).replaceWith(this.genTestList());
-        });
+        $('.testlist').replaceWith(this.genTestList());
         this.attachHandlers();
     }
     /**
@@ -62,17 +51,25 @@ export class CipherTakeTest extends CipherTest {
      */
     public genTestList(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'testlist' });
-        let table = new JTTable({ class: 'cell shrink testlist publist' });
-        let row = table.addHeaderRow();
-        row.add('Action')
-            .add('Title')
-            .add('Start Time');
-        result.append(table.generate());
+        let userid = this.getConfigString("userid", "");
+        if (userid === "") {
+            let callout = $('<div/>', {
+                class: 'callout alert',
+            }).text("Please log in in order to see tests assigned to you.");
+            result.append(callout);
+        } else {
+            let table = new JTTable({ class: 'cell shrink publist' });
+            let row = table.addHeaderRow();
+            row.add('Action')
+                .add('Title')
+                .add('Start Time');
+            result.append(table.generate());
 
-        this.connectRealtime()
-            .then((domain: ConvergenceDomain) => {
-                this.findAllTests(domain);
-            });
+            this.connectRealtime()
+                .then((domain: ConvergenceDomain) => {
+                    this.findAllTests(domain);
+                });
+        }
         return result;
     }
     /**
@@ -84,6 +81,7 @@ export class CipherTakeTest extends CipherTest {
         let userid = this.getConfigString("userid", "NOBODY");
         modelService.query("SELECT * FROM codebusters_answers")
             .then(results => {
+                let count = 0;
                 results.data.forEach(result => {
                     let answertemplate = result.data as IAnswerTemplate;
                     // Check to see if they are permitted 
@@ -95,11 +93,18 @@ export class CipherTakeTest extends CipherTest {
                         }
                     }
                     if (isAssigned) {
+                        count++;
                         this.addPublishedEntry(modelService,
                             result.modelId,
                             answertemplate);
                     }
                 });
+                if (count === 0) {
+                    let callout = $('<div/>', {
+                        class: 'callout alert',
+                    }).text("Please log in in order to see tests assigned to you.");
+                    $(".testlist").append(callout);
+                }
                 this.attachHandlers();
             })
             .catch(error => { this.reportFailure("Convergence API could not connect: " + error) }
@@ -118,10 +123,10 @@ export class CipherTakeTest extends CipherTest {
 
         if (answertemplate.endtime < now) {
             let endtime = new Date(answertemplate.endtime).toLocaleString();
-            buttons.append("Test ended at "+endtime);
+            buttons.append("Test ended at " + endtime);
         } else if (answertemplate.starttime > now + timestampMinutes(30)) {
             let starttime = new Date(answertemplate.starttime).toLocaleString();
-            buttons.append("Test starts at "+starttime);
+            buttons.append("Test starts at " + starttime);
         } else {
             buttons.append(
                 $('<a/>', {

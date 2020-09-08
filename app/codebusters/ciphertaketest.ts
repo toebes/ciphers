@@ -165,7 +165,7 @@ export class CipherTakeTest extends CipherTest {
      * @param testid Id of test model
      */
     public gotoTakeTest(testid: string) {
-        location.assign('TestInteractive.html?testID=' + testid);
+        location.assign('TestTimed.html?testID=' + testid);
     }
     /**
      * Print hints for a test

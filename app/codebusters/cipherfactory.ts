@@ -31,6 +31,7 @@ import { CipherTestPermissions } from "./ciphertestpermissions";
 import { CipherTestSchedule } from "./ciphertestschedule";
 import { CipherTestResults } from "./ciphertestresults";
 import { CipherTakeTest } from "./ciphertaketest";
+import { CipherTestTimed } from "./ciphertesttimed";
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -164,9 +165,21 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         interactiveClass: CipherHandler,
         canPrint: false
     },
+    TestInteractive: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestInteractive,
+        interactiveClass: CipherHandler,
+        canPrint: false
+    },
     TestManage: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestManage,
+        interactiveClass: CipherHandler,
+        canPrint: false
+    },
+    TestPermissions: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestPermissions,
         interactiveClass: CipherHandler,
         canPrint: false
     },
@@ -182,15 +195,9 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         interactiveClass: CipherHandler,
         canPrint: false
     },
-    TestPermissions: {
+    TestQuestions: {
         cipherType: ICipherType.Test,
-        cipherClass: CipherTestPermissions,
-        interactiveClass: CipherHandler,
-        canPrint: false
-    },
-    TestSchedule: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherTestSchedule,
+        cipherClass: CipherTestQuestions,
         interactiveClass: CipherHandler,
         canPrint: false
     },
@@ -200,15 +207,15 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         interactiveClass: CipherHandler,
         canPrint: false
     },
-    TestQuestions: {
+    TestSchedule: {
         cipherType: ICipherType.Test,
-        cipherClass: CipherTestQuestions,
+        cipherClass: CipherTestSchedule,
         interactiveClass: CipherHandler,
         canPrint: false
     },
-    TestInteractive: {
+    TestTimed: {
         cipherType: ICipherType.Test,
-        cipherClass: CipherTestInteractive,
+        cipherClass: CipherTestTimed,
         interactiveClass: CipherHandler,
         canPrint: false
     },

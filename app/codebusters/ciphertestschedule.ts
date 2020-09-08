@@ -316,10 +316,12 @@ export class CipherTestSchedule extends CipherTestManage {
             let toCheck: string[] = [];
             // first go through the ones to remove
             for (let userid of toremove) {
-                let permit: ModelPermissions = allPermissions[userid];
-                // They must be able to read/write but not remove/manage if it is a user
-                if (permit.read && permit.write && !permit.remove && !permit.manage) {
-                    delete allPermissions[userid];
+                if (allPermissions.has(userid)) {
+                    let permit: ModelPermissions = allPermissions.get(userid);
+                    // They must be able to read/write but not remove/manage if it is a user
+                    if (permit.read && permit.write && !permit.remove && !permit.manage) {
+                        allPermissions.delete(userid);
+                    }
                 }
             }
             for (let userid of toadd) {
@@ -336,7 +338,6 @@ export class CipherTestSchedule extends CipherTestManage {
                         .catch(error => { this.reportFailure("Unable to set model permissions: " + error) });
                 })
             } else {
-                console.log(allPermissions);
                 permissionManager.setAllUserPermissions(allPermissions)
                     .catch(error => { this.reportFailure("Unable to set model permissions: " + error) });
             }
@@ -367,15 +368,19 @@ export class CipherTestSchedule extends CipherTestManage {
 
             for (let i in assigned) {
                 let assignee = assigned[i];
-                if (assignee.userid !== userlist[i]) {
+                let userid = "";
+                if (Number(i) < userlist.length) {
+                    userid = userlist[i];
+                }
+                if (assignee.userid !== userid) {
                     // We have a change...Make sure we aren't just changing users around
                     if (!usermap[assignee.userid]) {
                         removed.push(assignee.userid);
                     }
-                    assignee.userid = userlist[i];
+                    assignee.userid = userid;
                 }
-                if (userlist[i] !== "") {
-                    added.push(userlist[i]);
+                if (userid !== "") {
+                    added.push(userid);
                 }
             }
             // Add any users not already on the list

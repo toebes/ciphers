@@ -715,8 +715,10 @@ export class CipherTestInteractive extends CipherTest {
             // Hmm a bug in the lower code.. Just show it and don't generate this question but at least
             // we can continue and generate the other questions.
             let msg = "Something went wrong generating the Question." +
-                " Error =" + e;
+                " Error = " + e;
             elem.append($("<h1>").text(msg));
+            msg = e.stack.toString();
+            elem.append($("<pre>").text(msg));
         }
     }
     /**

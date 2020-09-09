@@ -94,12 +94,12 @@ export class InteractiveEncoder extends InteractiveHandler {
         let qdivid = "#Q" + qnumdisp + " ";
 
         let realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
-        let realtimeReplacement = this.attachInteractiveReplacementHandler(realTimeElement, qnumdisp);
+        let realtimeReplacement = this.attachInteractiveReplacementsHandler(realTimeElement, qnumdisp);
         let realtimeSeparators = this.attachInteractiveSeparatorsHandler(realTimeElement, qnumdisp);
         this.attachInteractiveNotesHandler(qnumdisp, realTimeElement);
 
         this.bindSingleCharacterField(qdivid, realtimeAnswer, realtimeReplacement);
-        this.bindNotesField(qdivid, realtimeSeparators);
+        this.bindSeparatorsField(qdivid, realtimeSeparators);
 
         // If we are dealing with the timed question, we need to get the information necessary to check the answer
         if (qnum === -1) {

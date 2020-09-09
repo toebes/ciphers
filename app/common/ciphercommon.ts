@@ -266,6 +266,7 @@ export function getPolybiusKey(polybius: string[][]): string {
 export function formatTime(interval: number): string {
     let result = "";
     let minutepad = " ";
+    interval /= timestampSeconds(1);
     // Only put the hour on there if the interval is more than an hour.
     let hours = Math.trunc(interval / (60 * 60));
     if (hours > 0) {
@@ -326,4 +327,47 @@ export function timestampToISOLocalString(datetime: number, includeseconds?: boo
         len += 3;
     }
     return iso.substr(0, len);
+}
+/**
+ * Generate a friendly date.  
+ * @param datetime Timestamp to be printed
+ * @returns string human readable localized time
+ */
+export function timestampToFriendly(datetime: number, includeTime?: boolean): string {
+    let date = new Date(datetime);
+    return date.toLocaleString();
+}
+/**
+ * A timestamp which represents as far into the future as possible.  For now
+ * we assume the limitaions of a 32 bit signed integer 
+ *   https://en.wikipedia.org/wiki/Year_2038_problem
+ * at some point in the future this probably should be updated..
+ * @type number Timestamp representing forever
+ */
+export const timestampForever = new Date('1-1-2038').valueOf();
+/**
+ * calloutTypes are the various callout renderings based on 
+ * Foundation
+ * see:  https://get.foundation/sites/docs/callout.html
+ */
+export type calloutTypes = "secondary" | "primary" | "success" | "warning" | "alert"
+/**
+ * makeCallout constructs a callout 
+ * @param content Content for the callout
+ * @param type Type of callout (default=alert)
+ * @returns HTML Dom for callout
+ */
+export function makeCallout(content: string | JQuery<HTMLElement>, type?: calloutTypes) {
+    if (type === undefined) {
+        type = "alert";
+    }
+    let callout = $('<div/>', {
+        class: 'callout ' + type,
+    });
+    if (jQuery.type(content) === "string") {
+        callout.text(content as string);
+    } else {
+        callout.append(content);
+    }
+    return callout;
 }

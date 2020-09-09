@@ -240,18 +240,6 @@ export class CipherTestInteractive extends CipherTest {
         this.saveModels(elem, interactive, answerdata, testData);
     }
     /**
-     * postErrorMessage displays an error string in an alert on the page
-     * @param elem DOM location to put the error message
-     * @param message Text for the error message
-     */
-    public postErrorMessage(elem: JQuery<HTMLElement>, message: string) {
-        let callout = $('<div/>', {
-            class: 'callout alert',
-        }).text(message);
-        console.log(message);
-        elem.append(callout);
-    }
-    /**
      * Returns the value for a given field id associated with a test entry.
      * Note that because it is stored two levels down, we have this service routine
      * safely get the data (if it actually exists)

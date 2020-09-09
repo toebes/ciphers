@@ -1,7 +1,7 @@
-import { CipherTest, ITestState } from "./ciphertest";
+import { CipherTest, ITestState, IAnswerTemplate } from "./ciphertest";
 import { toolMode, ITestTimeInfo, menuMode, CipherHandler, IInteractiveTest, ITestType, ITestQuestionFields, IState } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
-import { cloneObject, cloneObjectClean } from "../common/ciphercommon";
+import { cloneObject, makeCallout, timestampToFriendly, timestampMinutes, formatTime } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { TrueTime } from "../common/truetime";
 import { CipherPrintFactory } from "./cipherfactory";
@@ -50,11 +50,8 @@ export class CipherTestTimed extends CipherTest {
         this.setMenuMode(menuMode.test);
         // Do we have a test id to display an interactive test for?
         if (this.state.testID != undefined) {
-            $("#testemenu").hide();
-            $(".instructions").removeClass("instructions");
-            $('.testcontent').each((i, elem) => {
-                this.displayInteractiveTest($(elem), this.state.testID);
-            });
+            $('.testcontent').empty();
+            this.displayInteractiveTest(this.state.testID);
         }
     }
     /**
@@ -63,13 +60,6 @@ export class CipherTestTimed extends CipherTest {
      */
     public timeAnomaly(msg: string) {
         console.log("**Time anomaly reported:" + msg);
-    }
-    /**
-     * genPreCommands() Generates HTML for any UI elements that go above the command bar
-     * @returns HTML DOM elements to display in the section
-     */
-    public genPreCommands(): JQuery<HTMLElement> {
-        return $("<div/>", { id: "testemenu" }).append(this.genTestEditState('testint'));
     }
     /**
      * GetFactory returns an initialized CipherHandler associated with a question entry
@@ -83,45 +73,83 @@ export class CipherTestTimed extends CipherTest {
         return cipherhandler;
     }
     /**
-     * postErrorMessage displays an error string in an alert on the page
-     * @param elem DOM location to put the error message
-     * @param message Text for the error message
+     * Start the process for displaying an interactive test.  Stage 1 is where we have to check the time to make sure we can even run the test
+     * @param testUID T
      */
-    public postErrorMessage(elem: JQuery<HTMLElement>, message: string) {
-        let callout = $('<div/>', {
-            class: 'callout alert',
-        }).text(message);
-        console.log(message);
-        elem.append(callout);
-    }
-    /**
-     * 
-     * @param elem 
-     * @param testUID 
-     */
-    public displayInteractiveTest(elem: JQuery<HTMLElement>, testUID: string) {
+    public displayInteractiveTest(testUID: string) {
+        let result = $('.testcontent');
         this.connectRealtime()
             .then((domain: ConvergenceDomain) => {
                 // 2. Initializes the application after connecting by opening a model.
                 const modelService = domain.models();
                 modelService.open(testUID)
-                    .then((datamodel: RealTimeModel) => {
-                        console.log('opened test model')
-                        let testid = datamodel.elementAt("testid").value()
-                        modelService.open(testid)
-                            .then((testmodel: RealTimeModel) => {
-                                console.log("Fully opened: testmodel");
-                                this.deferredInteractiveTest(elem, testmodel, datamodel);
-                            })
-                            .catch((error) => {
-                                this.postErrorMessage(elem, "Convergence API could not open data model: " + error);
-                            })
+                    .then((answermodel: RealTimeModel) => {
+                        console.log('opened answer model')
+                        let answertemplate = answermodel.root().value() as IAnswerTemplate;
+                        let testid = answertemplate.testid;
+                        // Figure out if it is time to run the test
+                        let now = this.testTimeInfo.truetime.UTCNow();
+                        // We have several situations
+                        // 1) Way too early - now + 5 minutes < answertemplate.starttime
+                        // 2) Early, but time to load - now < answertemplate.starttime
+                        // 3) Test in progress - now >= answertemplate.starttime and now <= answertemplate.endtime (we set endtime to be forever in the future)
+                        // 4) Test is over - now > answertemplate.endtime
+                        if (now > answertemplate.endtime) {
+                            result.append(makeCallout("The time for this test is over.  It ended " + timestampToFriendly(answertemplate.endtimed)))
+                            answermodel.close();
+                        } else if (now + timestampMinutes(15) < answertemplate.starttime) {
+                            // They are way too early.  
+                            result.append(makeCallout("The test is not ready to start.  It is scheduled " + timestampToFriendly(answertemplate.starttime)));
+                            answermodel.close();
+                        } else if (now < answertemplate.starttime) {
+                            // Put up a countdown timer..
+                            this.countDownTimer(modelService, testid, answermodel, answertemplate);
+                        } else {
+                            this.openTestModel(modelService, testid, answermodel);
+                        }
                     })
-                    .catch((error) => {
-                        this.postErrorMessage(elem, "Convergence API could not open test model: " + error);
-                    });
+                    .catch((error) => { this.reportFailure("Convergence API could not open test model: " + error); });
             });
     }
+    /**
+     * Wait until time to prepare the test.  During this time, only a countdown timer is displayed and no data is pulled from
+     * the model.  Even if they examine the web page, they won't see any content here.
+     * @param modelService 
+     * @param testid 
+     * @param answermodel 
+     * @param answertemplate 
+     */
+    private countDownTimer(modelService, testid: any, answermodel: RealTimeModel, answertemplate: IAnswerTemplate) {
+        let result = $('.waittimer');
+        let intervalInfo = $("<h3/>").text("The test will start in ").append($("<span/>", { id: "remaintime", class: "timestamp" }));
+        result.append(makeCallout(intervalInfo, "primary"));
+        let intervaltimer = setInterval(() => {
+            let now = this.testTimeInfo.truetime.UTCNow();
+            let remaining = answertemplate.starttime - now;
+            if (remaining < timestampMinutes(5)) {
+                clearInterval(intervaltimer);
+                this.openTestModel(modelService, testid, answermodel);
+            } else {
+                $("#remaintime").text(formatTime(remaining))
+            }
+        }, 100);
+    }
+    /**
+     * 
+     * @param modelService 
+     * @param testid 
+     * @param answermodel 
+     * @param elem 
+     */
+    private openTestModel(modelService, testid: any, answermodel: RealTimeModel) {
+        modelService.open(testid)
+            .then((testmodel: RealTimeModel) => {
+                console.log("Fully opened: testmodel");
+                this.deferredInteractiveTest(testmodel, answermodel);
+            })
+            .catch((error) => { this.reportFailure("Convergence API could not open data model: " + error); });
+    }
+
     /**
      * makeInteractive creates an interactive question by invoking the appropriate factory for the saved state
      * @param elem HTML DOM element to append UI elements for the question
@@ -199,17 +227,19 @@ export class CipherTestTimed extends CipherTest {
      * 
      * @param elem 
      * @param testmodel 
-     * @param datamodel 
+     * @param answermodel 
      */
-    public deferredInteractiveTest(elem: JQuery<HTMLElement>, testmodel: RealTimeModel, datamodel: RealTimeModel) {
+    public deferredInteractiveTest(testmodel: RealTimeModel, answermodel: RealTimeModel) {
+        let target = $('.testcontent');
+        $(".instructions").removeClass("instructions");
         let interactive = testmodel.root().value();
         // For now we will pretend that the test starts when they open it.  This information really
-        // needs to come from the datamodel
+        // needs to come from the answermodel
         this.testTimeInfo.startTime = this.testTimeInfo.truetime.UTCNow();
         this.testTimeInfo.endTimedQuestion = this.testTimeInfo.startTime + (60 * 10);
         this.testTimeInfo.endTime = this.testTimeInfo.startTime + (60 * 50);
 
-        elem.append($('<div/>', { class: 'head' }).text(interactive.title));
+        target.append($('<div/>', { class: 'head' }).text(interactive.title));
         console.log(interactive);
         /**
          * Output any running keys used
@@ -310,10 +340,10 @@ export class CipherTestTimed extends CipherTest {
 
         // Now go through and generate all the test questions
         if (interactive.timed !== undefined) {
-            this.makeInteractive(elem, interactive.timed, -1, datamodel.elementAt("answers", 0) as RealTimeObject);
+            this.makeInteractive(target, interactive.timed, -1, answermodel.elementAt("answers", 0) as RealTimeObject);
         }
         for (let qnum = 0; qnum < interactive.count; qnum++) {
-            this.makeInteractive(elem, interactive.questions[qnum], qnum, datamodel.elementAt("answers", qnum + 1) as RealTimeObject);
+            this.makeInteractive(target, interactive.questions[qnum], qnum, answermodel.elementAt("answers", qnum + 1) as RealTimeObject);
         }
 
 

@@ -1137,6 +1137,11 @@ table.found tr th:nth-child(odd) {
 .qtext .qbody p:first-of-type {
     display: inline;
 }
+.timestamp {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 24pt;
+    font-weight: bold;
+}
 
 .timer {
     position: fixed;

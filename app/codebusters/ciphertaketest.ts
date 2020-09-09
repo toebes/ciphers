@@ -102,7 +102,7 @@ export class CipherTakeTest extends CipherTest {
                 if (count === 0) {
                     let callout = $('<div/>', {
                         class: 'callout alert',
-                    }).text("Please log in in order to see tests assigned to you.");
+                    }).text("There are currently no tests assigned for you to take.");
                     $(".testlist").append(callout);
                 }
                 this.attachHandlers();

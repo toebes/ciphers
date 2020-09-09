@@ -3,10 +3,18 @@ import { ITestType, menuMode, toolMode, CipherHandler, IState, IInteractiveTest,
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { CipherTest, ITestState, IAnswerTemplate } from './ciphertest';
-import { ConvergenceDomain, RealTimeModel, ModelPermissions, ModelService, IAutoCreateModelOptions } from "@convergence/convergence";
-import { CipherPrintFactory } from './cipherfactory';
+import {
+    ConvergenceDomain,
+    RealTimeModel,
+    ModelPermissions,
+    ModelService,
+    IAutoCreateModelOptions,
+    RealTimeObject
+} from "@convergence/convergence";
+import {CipherInteractiveFactory, CipherPrintFactory} from './cipherfactory';
 import { TrueTime } from '../common/truetime';
 import { JTFDialog } from '../common/jtfdialog';
+import {JTTable} from "../common/jttable";
 
 /**
  * CipherTestInteractive

@@ -417,7 +417,7 @@ export class CipherTestInteractive extends CipherTest {
         }
         // Add any additional context messages we need for the dialog
         if (reason !== "") {
-            $("#ovmsg").replaceWith($("<div/>", { class: "callout alert" }).text(reason));
+            $("#ovmsg").empty().append($("<div/>", { class: "callout alert" }).text(reason));
         } else {
             $("#ovmsg").empty();
         }

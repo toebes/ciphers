@@ -86,24 +86,29 @@ export class CipherTestTimed extends CipherTest {
                     .then((answermodel: RealTimeModel) => {
                         console.log('opened answer model')
                         let answertemplate = answermodel.root().value() as IAnswerTemplate;
+                        // Populate the time from the answer template
+                        this.testTimeInfo.startTime = answertemplate.starttime;
+                        this.testTimeInfo.endTimedQuestion = answertemplate.endtimed;
+                        this.testTimeInfo.endTime = answertemplate.endtime;
+
                         let testid = answertemplate.testid;
                         // Figure out if it is time to run the test
                         let now = this.testTimeInfo.truetime.UTCMSNow();
                         // We have several situations
-                        // 1) Way too early - now + 5 minutes < answertemplate.starttime
-                        // 2) Early, but time to load - now < answertemplate.starttime
-                        // 3) Test in progress - now >= answertemplate.starttime and now <= answertemplate.endtime (we set endtime to be forever in the future)
-                        // 4) Test is over - now > answertemplate.endtime
-                        if (now > answertemplate.endtime) {
-                            result.append(makeCallout("The time for this test is over.  It ended " + timestampToFriendly(answertemplate.endtimed / timestampSeconds(1))))
+                        // 1) Way too early - now + 5 minutes < this.testTimeInfo.startTime
+                        // 2) Early, but time to load - now < this.testTimeInfo.startTime
+                        // 3) Test in progress - now >= this.testTimeInfo.startTime and now <= this.testTimeInfo.endTime (we set endtime to be forever in the future)
+                        // 4) Test is over - now > this.testTimeInfo.endTime
+                        if (now > this.testTimeInfo.endTime) {
+                            result.append(makeCallout("The time for this test is over.  It ended " + timestampToFriendly(this.testTimeInfo.endTime / timestampSeconds(1))))
                             answermodel.close();
-                        } else if (now + timestampMinutes(15) < answertemplate.starttime) {
+                        } else if (now + timestampMinutes(15) < this.testTimeInfo.startTime) {
                             // They are way too early.  
-                            result.append(makeCallout("The test is not ready to start.  It is scheduled " + timestampToFriendly(answertemplate.starttime / timestampSeconds(1))));
+                            result.append(makeCallout("The test is not ready to start.  It is scheduled " + timestampToFriendly(this.testTimeInfo.startTime / timestampSeconds(1))));
                             answermodel.close();
-                        } else if (now < answertemplate.starttime) {
+                        } else if (now < this.testTimeInfo.startTime) {
                             // Put up a countdown timer..
-                            this.countDownTimer(modelService, testid, answermodel, answertemplate);
+                            this.countDownTimer(modelService, testid, answermodel);
                         } else {
                             this.openTestModel(modelService, testid, answermodel);
                         }
@@ -119,21 +124,29 @@ export class CipherTestTimed extends CipherTest {
      * @param answermodel 
      * @param answertemplate 
      */
-    private countDownTimer(modelService, testid: any, answermodel: RealTimeModel, answertemplate: IAnswerTemplate) {
+    private countDownTimer(modelService, testid: any, answermodel: RealTimeModel) {
         let result = $('.waittimer');
         let intervalInfo = $("<h3/>").text("The test will start in ").append($("<span/>", { id: "remaintime", class: "timestamp" }));
         result.append(makeCallout(intervalInfo, "primary"));
         let intervaltimer = setInterval(() => {
             let now = this.testTimeInfo.truetime.UTCMSNow();
-            let remaining = answertemplate.starttime - now;
+            let remaining = this.testTimeInfo.startTime - now;
             if (remaining < timestampMinutes(5)) {
                 clearInterval(intervaltimer);
                 this.openTestModel(modelService, testid, answermodel);
             } else {
-                $("#remaintime").text(formatTime(remaining/timestampSeconds(1)))
+                this.updateTimer(remaining);
             }
         }, 100);
     }
+    /**
+     * Update the remaining time for the test
+     * @param remaining Time in ms remaining before test start
+     */
+    private updateTimer(remaining: number) {
+        $("#remaintime").text(formatTime(remaining / timestampSeconds(1)));
+    }
+
     /**
      * 
      * @param modelService 
@@ -149,7 +162,6 @@ export class CipherTestTimed extends CipherTest {
             })
             .catch((error) => { this.reportFailure("Convergence API could not open data model: " + error); });
     }
-
     /**
      * makeInteractive creates an interactive question by invoking the appropriate factory for the saved state
      * @param elem HTML DOM element to append UI elements for the question
@@ -225,19 +237,16 @@ export class CipherTestTimed extends CipherTest {
     }
     /**
      * 
-     * @param elem 
-     * @param testmodel 
-     * @param answermodel 
+     * @param interactive Test template
+     * @param answermodel Interactive answer model
      */
     public deferredInteractiveTest(testmodel: RealTimeModel, answermodel: RealTimeModel) {
+        $('.waittimer').empty().append(makeCallout(($("<h3/>").text("Connecting to test server..."), "primary")));
+
         let target = $('.testcontent');
-        $(".instructions").removeClass("instructions");
+        target.hide();
+
         let interactive = testmodel.root().value();
-        // For now we will pretend that the test starts when they open it.  This information really
-        // needs to come from the answermodel
-        this.testTimeInfo.startTime = this.testTimeInfo.truetime.UTCNow();
-        this.testTimeInfo.endTimedQuestion = this.testTimeInfo.startTime + (60 * 10);
-        this.testTimeInfo.endTime = this.testTimeInfo.startTime + (60 * 50);
 
         target.append($('<div/>', { class: 'head' }).text(interactive.title));
         console.log(interactive);
@@ -337,15 +346,83 @@ export class CipherTestTimed extends CipherTest {
             .add({ settings: { colspan: 4 }, content: '' });
         $('#scoretable').append(table.generate());
 
+        this.waitToDisplayTest(interactive, answermodel);
+    }
+    /**
+     * Final step before showing the test.
+     * We have loaded the template but need to wait until closer to the actual start time
+     * In this case we will go until there are 10 seconds left before processing the template
+     * @param interactive Test template
+     * @param answermodel Interactive answer model
+     */
+    private waitToDisplayTest(interactive: { [key: string]: any; }, answermodel: RealTimeModel) {
+        let result = $('.waittimer');
+        let intervalInfo = $("<h3/>")
+            .text("Please Standby, The test will start in ")
+            .append($("<span/>", { id: "remaintime", class: "timestamp" }));
+        result.empty().append(makeCallout(intervalInfo, "primary"));
 
-        // Now go through and generate all the test questions
+        if (this.testTimeInfo.truetime.UTCMSNow() < this.testTimeInfo.startTime) {
+            // Start a timer to wait until get get to 10 seconds in.  During
+            // that time, we need to update the timer display to let them know how long is left.
+            let intervaltimer = setInterval(() => {
+                let now = this.testTimeInfo.truetime.UTCMSNow();
+                let remaining = this.testTimeInfo.startTime - now;
+                if (remaining < timestampSeconds(10)) {
+                    // Is it that time already? Stop timing and go to the next step
+                    clearInterval(intervaltimer);
+                    this.makeTestLive(interactive, answermodel);
+                }
+                else {
+                    this.updateTimer(remaining);
+                }
+            }, 100);
+        } else {
+            this.makeTestLive(interactive, answermodel);
+        }
+    }
+    /**
+     * Everything is loaded, we need to process the template, but don't display anything until the last second
+     * @param interactive Test template
+     * @param answermodel Interactive answer model
+     */
+    private makeTestLive(interactive: { [key: string]: any; }, answermodel: RealTimeModel) {
+        // Make sure to hide the generated DOM elements while we get them ready
+        let target = $('.testcontent');
+        target.hide();
+        // Generate the questions
         if (interactive.timed !== undefined) {
             this.makeInteractive(target, interactive.timed, -1, answermodel.elementAt("answers", 0) as RealTimeObject);
         }
         for (let qnum = 0; qnum < interactive.count; qnum++) {
             this.makeInteractive(target, interactive.questions[qnum], qnum, answermodel.elementAt("answers", qnum + 1) as RealTimeObject);
         }
+        // Everything is ready and connected, we just need to wait until it is closer to test time
+        // Start a timer waiting for it to run
+        if (this.testTimeInfo.truetime.UTCMSNow() < this.testTimeInfo.startTime) {
 
-
+            let intervaltimer = setInterval(() => {
+                let now = this.testTimeInfo.truetime.UTCMSNow();
+                let remaining = this.testTimeInfo.startTime - now;
+                if (remaining < timestampSeconds(1)) {
+                    clearInterval(intervaltimer);
+                    this.runTestLive(target);
+                }
+                else {
+                    this.updateTimer(remaining);
+                }
+            }, 100);
+        } else {
+            this.runTestLive(target);
+        }
+    }
+    /**
+     * 
+     * @param target 
+     */
+    private runTestLive(target: JQuery<HTMLElement>) {
+        $('.waittimer').empty();
+        target.show();
+        $(".instructions").removeClass("instructions");
     }
 }

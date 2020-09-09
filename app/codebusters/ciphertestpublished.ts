@@ -220,6 +220,7 @@ export class CipherTestPublished extends CipherTestManage {
         modelService.open(sourcemodelid)
             .then((datamodel: RealTimeModel) => {
                 let data = datamodel.root().value();
+                datamodel.close();
                 this.processTestXML(data.source);
             })
             .catch(error => { this.reportFailure("Convergence API could not open model " + sourcemodelid + " Error:" + error) });

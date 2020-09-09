@@ -2,10 +2,9 @@ import { cloneObject, cloneObjectClean } from '../common/ciphercommon';
 import { ITestType, menuMode, toolMode, CipherHandler, IState, IInteractiveTest, ITestQuestionFields, ITestTimeInfo } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
-import { JTTable } from '../common/jttable';
 import { CipherTest, ITestState, IAnswerTemplate } from './ciphertest';
-import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelPermissions, ModelService, IAutoCreateModelOptions } from "@convergence/convergence";
-import { CipherInteractiveFactory, CipherPrintFactory } from './cipherfactory';
+import { ConvergenceDomain, RealTimeModel, ModelPermissions, ModelService, IAutoCreateModelOptions } from "@convergence/convergence";
+import { CipherPrintFactory } from './cipherfactory';
 import { TrueTime } from '../common/truetime';
 import { JTFDialog } from '../common/jtfdialog';
 
@@ -49,19 +48,11 @@ export class CipherTestInteractive extends CipherTest {
         super.updateOutput();
         this.setMenuMode(menuMode.test);
         // Do we have a test id to display an interactive test for?
-        if (this.state.testID != undefined) {
-            $("#testemenu").hide();
-            $(".instructions").removeClass("instructions");
-            $('.testcontent').each((i, elem) => {
-                this.displayInteractiveTest($(elem), this.state.testID);
-            });
-        } else {
-            // Not an interactive test, so we must be trying to create one from the current test
-            $('.testcontent').each((i, elem) => {
-                this.generateInteractiveModel($(elem));
-            });
-            this.attachHandlers();
-        }
+        // Not an interactive test, so we must be trying to create one from the current test
+        $('.testlist').each((i, elem) => {
+            this.generateInteractiveModel($(elem));
+        });
+        this.attachHandlers();
     }
     /**
      * Report that time has changed.
@@ -260,7 +251,6 @@ export class CipherTestInteractive extends CipherTest {
         console.log(message);
         elem.append(callout);
     }
-
     /**
      * Returns the value for a given field id associated with a test entry.
      * Note that because it is stored two levels down, we have this service routine
@@ -518,7 +508,7 @@ export class CipherTestInteractive extends CipherTest {
             // Next step, save the answer template
             this.saveAnswerTemplate(modelService, answerdata, testData, elem);
         }).catch((error) => {
-            this.postErrorMessage(elem, "Convergence API could not write test model: " + error);
+            this.reportFailure("Convergence API could not write test model: " + error);
         });
     }
     /**
@@ -560,7 +550,7 @@ export class CipherTestInteractive extends CipherTest {
             datamodel.close();
             this.saveTestSource(modelService, testData, elem);
         }).catch((error: string) => {
-            this.postErrorMessage(elem, "Convergence API could not write answer model: " + error);
+            this.reportFailure("Convergence API could not write answer model: " + error);
         });
     }
     /**
@@ -597,7 +587,7 @@ export class CipherTestInteractive extends CipherTest {
             // Now that we have the 
             this.finalizeSave(testData, elem);
         }).catch((error: string) => {
-            this.postErrorMessage(elem, "Convergence API could not write test source: " + error);
+            this.reportFailure("Convergence API could not write test source: " + error);
         });
     }
     /**

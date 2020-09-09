@@ -280,3 +280,50 @@ export function formatTime(interval: number): string {
     result += String(minutes).padStart(2, minutepad) + ":" + String(seconds).padStart(2, "0");
     return result;
 }
+/**
+ * Converts the number of seconds to the timestamp interval vale
+ * @param seconds number of seconds to convert
+ * @returns number of miliseconds in a timestamp
+ */
+export function timestampSeconds(seconds: number): number {
+    return seconds * 1000;
+}
+/**
+ * Converts the number of minutes to the timestamp interval vale
+ * @param seconds number of minutes to convert
+ * @returns number of miliseconds in a timestamp
+ */
+export function timestampMinutes(minutes: number): number {
+    return minutes * 60 * 1000;
+}
+/**
+ * Converts a timestamp value into an ISO format string that can be passed as a value for
+ * datetime-local input fields.  Normally converting a value to ISO String generates
+ * a  24 character result in the format:
+ *     2020-09-06T10:40:31.358Z    -- Value
+ *     YYYY-MM-DDTHH:MM:SS.mmmZ    -- Interpretation of fields
+ *     000000000111111111122222    -- Offset
+ *     123456789012345678901234
+ * If you want to edit the time just to the minute, you need to have the first 16 characters:
+ *     2020-09-06T10:40
+ * If you want to edit to the second, you need the three more characters to get to 19:
+ *     2020-09-06T10:40:31
+ * 
+ * Note that the miliseconds and the Z get chopped because they don't seem to be tolerated by
+ * the datetime-local input field.
+ * 
+ * If you want a good tool for printing out epoch values: https://www.epochconverter.com/ 
+ * @param datetime Timestamp to convert
+ * @param includeseconds? True says to include the seconds in the output format
+ * @returns Localized time stamp in ISO format
+ */
+export function timestampToISOLocalString(datetime: number, includeseconds?: boolean) {
+    let tzOffset = timestampMinutes(new Date().getTimezoneOffset());
+    let dateobj = new Date(datetime - tzOffset);
+    let iso = dateobj.toISOString();
+    let len = 16;
+    if (includeseconds !== undefined && includeseconds) {
+        len += 3;
+    }
+    return iso.substr(0, len);
+}

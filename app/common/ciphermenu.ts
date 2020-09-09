@@ -23,6 +23,11 @@ export const CipherMenu: menuItem[] = [
         ]
     },
     {
+        title: "Take a Test",
+        href: "TakeTest.html",
+        classname: 'menucb menubutton'
+    },
+    {
         title: "Test Generation Tools",
         classname: "menucb",
         menu: [
@@ -230,7 +235,8 @@ export const CipherMenu: menuItem[] = [
                 action: "guidance",
                 classname: "guidance menucb"
             },
-            { title: "[TESTING] Register", action: "register", classname: "register menucb" }
+            { title: "[TESTING] Register", action: "register", classname: "register menucb" },
+            { title: "[TESTING] Realtime Configuration", action: "realtimeconfig", classname: "realtimeconfig menucb" }
         ]
     }
 ];

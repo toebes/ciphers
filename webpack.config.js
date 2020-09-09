@@ -354,11 +354,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'ACAProblems.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestQuestions.html'
             ),
             chunks: ['aca'],
@@ -368,11 +364,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'ACASubmit.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestQuestions.html'
             ),
             chunks: ['aca'],
@@ -382,11 +374,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'CheckerboardSolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'Solver.html'
             ),
             chunks: ['aca'],
@@ -396,11 +384,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'ColumnarSolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'Solver.html'
             ),
             chunks: ['aca'],
@@ -410,11 +394,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'PortaxSolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'Solver.html'
             ),
             chunks: ['aca'],
@@ -424,11 +404,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'CryptarithmSolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'CryptarithmSolver.html'
             ),
             chunks: ['aca'],
@@ -438,11 +414,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'CryptogramDocuments.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'CryptogramDocuments.html'
             ),
             chunks: ['aca'],
@@ -452,11 +424,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'HomophonicSolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'Solver.html'
             ),
             chunks: ['aca'],
@@ -466,11 +434,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'KeyPhraseSolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'Solver.html'
             ),
             chunks: ['aca'],
@@ -480,11 +444,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'FractionatedMorseSolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'FractionatedMorseSolver.html'
             ),
             chunks: ['aca'],
@@ -494,11 +454,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'FullIndex.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'FullIndex.html'
             ),
             chunks: ['aca'],
@@ -508,11 +464,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'GenLanguage.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'GenLanguage.html'
             ),
             chunks: ['aca'],
@@ -522,11 +474,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'GromarkSolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'GromarkSolver.html'
             ),
             chunks: ['aca'],
@@ -536,11 +484,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'MorbitSolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'MorbitSolver.html'
             ),
             chunks: ['aca'],
@@ -550,11 +494,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'RagbabySolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'RagbabySolver.html'
             ),
             chunks: ['aca'],
@@ -564,11 +504,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'RailfenceSolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'RailfenceSolver.html'
             ),
             chunks: ['aca'],
@@ -578,11 +514,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'Solver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'Solver.html'
             ),
             chunks: ['aca'],
@@ -592,11 +524,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'VigenereSolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'VigenereSolver.html'
             ),
             chunks: ['aca'],
@@ -607,11 +535,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'XenocryptSolver.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'aca',
-                'pages',
+            template: path.join(__dirname, 'app', 'aca', 'pages',
                 'XenocryptSolver.html'
             ),
             chunks: ['aca'],
@@ -626,11 +550,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'index.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'index.html'
             ),
             chunks: ['codebusters'],
@@ -640,11 +560,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'samples.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'samples.html'
             ),
             chunks: ['codebusters'],
@@ -654,11 +570,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'versions.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'versions.html'
             ),
             chunks: ['codebusters'],
@@ -668,11 +580,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'HowTo.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'HowTo.html'
             ),
             chunks: ['codebusters'],
@@ -682,11 +590,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'TestGuidance.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestGuidance.html'
             ),
             chunks: ['codebusters'],
@@ -696,11 +600,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'QuoteAnalyze.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -710,11 +610,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'GenerateHomophones.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -724,11 +620,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'AffineEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -738,11 +630,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'AristocratEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'AristocratEncrypt.html'
             ),
             chunks: ['codebusters'],
@@ -752,11 +640,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'PigPenEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -766,11 +650,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'MorbitEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -780,11 +660,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'PolluxEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -794,11 +670,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'RailFenceEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -808,11 +680,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'TapCodeEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -822,11 +690,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'AristocratSpanishEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'AristocratSpanishEncrypt.html'
             ),
             chunks: ['codebusters'],
@@ -836,11 +700,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'Atbash.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -850,11 +710,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'Baconian.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -864,11 +720,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'Caesar.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -878,11 +730,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'RSAEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -892,11 +740,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'EditRunningKeys.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'EditRunningKeys.html'
             ),
             chunks: ['codebusters'],
@@ -906,11 +750,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'RunningKeyEncoder.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -920,11 +760,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'HillEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -934,11 +770,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'HillKeys.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'HillKeys.html'
             ),
             chunks: ['codebusters'],
@@ -948,11 +780,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'PatristocratEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'AristocratEncrypt.html'
             ),
             chunks: ['codebusters'],
@@ -962,11 +790,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'TestAnswers.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestAnswers.html'
             ),
             chunks: ['codebusters'],
@@ -976,11 +800,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'TestGenerator.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestGenerator.html'
             ),
             chunks: ['codebusters'],
@@ -990,11 +810,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'TestManage.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestManage.html'
             ),
             chunks: ['codebusters'],
@@ -1004,11 +820,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'TestPublished.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestManage.html'
             ),
             chunks: ['codebusters'],
@@ -1018,11 +830,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'TestPermissions.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestManage.html'
             ),
             chunks: ['codebusters'],
@@ -1032,11 +840,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'TestSchedule.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestManage.html'
             ),
             chunks: ['codebusters'],
@@ -1045,12 +849,18 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'TakeTest.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
+                'TestManage.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TakeTest',
+            title: 'Take a Test',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TestResults.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestManage.html'
             ),
             chunks: ['codebusters'],
@@ -1060,11 +870,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'TestPrint.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestPrint.html'
             ),
             chunks: ['codebusters'],
@@ -1074,11 +880,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'TestInteractive.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestInteractive.html'
             ),
             chunks: ['codebusters'],
@@ -1087,12 +889,18 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'TestTimed.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
+                'TestTimed.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestTimed',
+            title: 'Interactive Test',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TestQuestions.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestQuestions.html'
             ),
             chunks: ['codebusters'],
@@ -1102,11 +910,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'VigenereEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'StdEncoder.html'
             ),
             chunks: ['codebusters'],
@@ -1116,11 +920,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'XenocryptEncrypt.html',
-            template: path.join(
-                __dirname,
-                'app',
-                'codebusters',
-                'pages',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'XenocryptEncrypt.html'
             ),
             chunks: ['codebusters'],

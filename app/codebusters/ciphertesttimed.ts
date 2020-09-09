@@ -1,7 +1,7 @@
 import { CipherTest, ITestState, IAnswerTemplate } from "./ciphertest";
 import { toolMode, ITestTimeInfo, menuMode, CipherHandler, IInteractiveTest, ITestType, ITestQuestionFields, IState } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
-import { cloneObject, makeCallout, timestampToFriendly, timestampMinutes, formatTime } from "../common/ciphercommon";
+import { cloneObject, makeCallout, timestampToFriendly, timestampMinutes, formatTime, timestampSeconds } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { TrueTime } from "../common/truetime";
 import { CipherPrintFactory } from "./cipherfactory";
@@ -88,18 +88,18 @@ export class CipherTestTimed extends CipherTest {
                         let answertemplate = answermodel.root().value() as IAnswerTemplate;
                         let testid = answertemplate.testid;
                         // Figure out if it is time to run the test
-                        let now = this.testTimeInfo.truetime.UTCNow();
+                        let now = this.testTimeInfo.truetime.UTCMSNow();
                         // We have several situations
                         // 1) Way too early - now + 5 minutes < answertemplate.starttime
                         // 2) Early, but time to load - now < answertemplate.starttime
                         // 3) Test in progress - now >= answertemplate.starttime and now <= answertemplate.endtime (we set endtime to be forever in the future)
                         // 4) Test is over - now > answertemplate.endtime
                         if (now > answertemplate.endtime) {
-                            result.append(makeCallout("The time for this test is over.  It ended " + timestampToFriendly(answertemplate.endtimed)))
+                            result.append(makeCallout("The time for this test is over.  It ended " + timestampToFriendly(answertemplate.endtimed / timestampSeconds(1))))
                             answermodel.close();
                         } else if (now + timestampMinutes(15) < answertemplate.starttime) {
                             // They are way too early.  
-                            result.append(makeCallout("The test is not ready to start.  It is scheduled " + timestampToFriendly(answertemplate.starttime)));
+                            result.append(makeCallout("The test is not ready to start.  It is scheduled " + timestampToFriendly(answertemplate.starttime / timestampSeconds(1))));
                             answermodel.close();
                         } else if (now < answertemplate.starttime) {
                             // Put up a countdown timer..
@@ -124,13 +124,13 @@ export class CipherTestTimed extends CipherTest {
         let intervalInfo = $("<h3/>").text("The test will start in ").append($("<span/>", { id: "remaintime", class: "timestamp" }));
         result.append(makeCallout(intervalInfo, "primary"));
         let intervaltimer = setInterval(() => {
-            let now = this.testTimeInfo.truetime.UTCNow();
+            let now = this.testTimeInfo.truetime.UTCMSNow();
             let remaining = answertemplate.starttime - now;
             if (remaining < timestampMinutes(5)) {
                 clearInterval(intervaltimer);
                 this.openTestModel(modelService, testid, answermodel);
             } else {
-                $("#remaintime").text(formatTime(remaining))
+                $("#remaintime").text(formatTime(remaining/timestampSeconds(1)))
             }
         }, 100);
     }

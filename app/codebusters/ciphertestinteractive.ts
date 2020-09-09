@@ -624,11 +624,11 @@ export class CipherTestInteractive extends CipherTest {
                                 this.deferredInteractiveTest(elem, testmodel, datamodel);
                             })
                             .catch((error) => {
-                                this.postErrorMessage(elem, "Convergence API could not open data model: " + error);
+                                this.reportFailure("Convergence API could not open data model: " + error);
                             })
                     })
                     .catch((error) => {
-                        this.postErrorMessage(elem, "Convergence API could not open test model: " + error);
+                        this.reportFailure("Convergence API could not open test model: " + error);
                     });
             });
     }

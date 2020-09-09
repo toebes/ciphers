@@ -266,7 +266,6 @@ export function getPolybiusKey(polybius: string[][]): string {
 export function formatTime(interval: number): string {
     let result = "";
     let minutepad = " ";
-    interval /= timestampSeconds(1);
     // Only put the hour on there if the interval is more than an hour.
     let hours = Math.trunc(interval / (60 * 60));
     if (hours > 0) {

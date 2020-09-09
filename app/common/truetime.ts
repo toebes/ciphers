@@ -82,6 +82,17 @@ export class TrueTime {
         return curtime;
     }
     /**
+     * Get an adjusted UTC time.
+     * @returns Number of miliseconds since the UTC epoch start.
+     */
+    public UTCMSNow(): number {
+        let curtime = Date.now();
+        if (this.validOffset) {
+            curtime += this.timeOffset * 1000.0;
+        }
+        return curtime;
+    }
+    /**
      * Internal timer driven function that 
      */
     private validateInterval() {

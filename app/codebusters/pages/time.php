@@ -3,7 +3,7 @@ header("Content-Type: application/json");
 
 // Return the current time (with miliseconds)
 
-$data = [ 'microtime' => microtime(true) ];
+$data = [ 'microtime' => microtime(true)*1000.0 ];
 $json = json_encode($data);
 if ($json === false) {
     // Avoid echo of empty string (which is invalid JSON), and

@@ -73,7 +73,7 @@ export class CipherTestTimed extends CipherTest {
      * @param remaining Time in ms remaining before test start
      */
     private updateTimer(remaining: number) {
-        $("#remaintime").text(formatTime(remaining / timestampSeconds(1)));
+        $("#remaintime").text(formatTime(remaining));
     }
     /**
      * Update the main status message about the state of the test.
@@ -194,7 +194,7 @@ export class CipherTestTimed extends CipherTest {
                         // of the slots in answertemplate.assigned
                         let testid = answertemplate.testid;
                         // Figure out if it is time to run the test
-                        let now = this.testTimeInfo.truetime.UTCMSNow();
+                        let now = this.testTimeInfo.truetime.UTCNow();
                         // We have several situations
                         // 1) Way too early - now + 5 minutes < this.testTimeInfo.startTime
                         // 2) Early, but time to load - now < this.testTimeInfo.startTime
@@ -227,10 +227,10 @@ export class CipherTestTimed extends CipherTest {
      * @param answertemplate 
      */
     private waitToLoadTestModel(modelService, testid: any, answermodel: RealTimeModel) {
-        if (this.testTimeInfo.truetime.UTCMSNow() < (this.testTimeInfo.startTime - timestampMinutes(5))) {
+        if (this.testTimeInfo.truetime.UTCNow() < (this.testTimeInfo.startTime - timestampMinutes(5))) {
             this.setTimerMessage("The test will start in ");
             let intervaltimer = setInterval(() => {
-                let now = this.testTimeInfo.truetime.UTCMSNow();
+                let now = this.testTimeInfo.truetime.UTCNow();
                 let remaining = this.testTimeInfo.startTime - now;
                 if (remaining < timestampMinutes(5)) {
                     clearInterval(intervaltimer);
@@ -384,11 +384,11 @@ export class CipherTestTimed extends CipherTest {
     private waitToDisplayTest(interactive: { [key: string]: any; }, answermodel: RealTimeModel) {
         this.setTimerMessage("Please Standby, The test will start in ");
 
-        if (this.testTimeInfo.truetime.UTCMSNow() < (this.testTimeInfo.startTime - timestampSeconds(10))) {
+        if (this.testTimeInfo.truetime.UTCNow() < (this.testTimeInfo.startTime - timestampSeconds(10))) {
             // Start a timer to wait until get get to 10 seconds in.  During
             // that time, we need to update the timer display to let them know how long is left.
             let intervaltimer = setInterval(() => {
-                let now = this.testTimeInfo.truetime.UTCMSNow();
+                let now = this.testTimeInfo.truetime.UTCNow();
                 let remaining = this.testTimeInfo.startTime - now;
                 if (remaining < timestampSeconds(10)) {
                     // Is it that time already? Stop timing and go to the next step
@@ -422,9 +422,9 @@ export class CipherTestTimed extends CipherTest {
         }
         // Everything is ready and connected, we just need to wait until it is closer to test time
         // Start a timer waiting for it to run
-        if (this.testTimeInfo.truetime.UTCMSNow() < this.testTimeInfo.startTime) {
+        if (this.testTimeInfo.truetime.UTCNow() < this.testTimeInfo.startTime) {
             let intervaltimer = setInterval(() => {
-                let now = this.testTimeInfo.truetime.UTCMSNow();
+                let now = this.testTimeInfo.truetime.UTCNow();
                 let remaining = this.testTimeInfo.startTime - now;
                 if (remaining < timestampSeconds(1)) {
                     clearInterval(intervaltimer);
@@ -449,7 +449,7 @@ export class CipherTestTimed extends CipherTest {
         $(".instructions").removeClass("instructions").addClass("iinstructions");
         // Start a timer and run until we are out of time
         let intervaltimer = setInterval(() => {
-            if (this.testTimeInfo.truetime.UTCMSNow() >= this.testTimeInfo.endTime) {
+            if (this.testTimeInfo.truetime.UTCNow() >= this.testTimeInfo.endTime) {
                 clearInterval(intervaltimer);
                 // Time to kill the test
                 this.shutdownTest(answermodel)

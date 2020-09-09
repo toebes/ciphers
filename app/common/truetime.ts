@@ -1,4 +1,5 @@
 import { not } from "mathjs";
+import { timestampSeconds } from "./ciphercommon";
 
 /**
  * ChangeNotifyCallback is the callback function that gets invoked when the TrueTime object discovers that time has somehow
@@ -72,23 +73,12 @@ export class TrueTime {
     }
     /**
      * Get an adjusted UTC time.
-     * @returns Number of seconds since the UTC epoch start.
-     */
-    public UTCNow(): number {
-        let curtime = Date.now() / 1000.0;
-        if (this.validOffset) {
-            curtime += this.timeOffset;
-        }
-        return curtime;
-    }
-    /**
-     * Get an adjusted UTC time.
      * @returns Number of miliseconds since the UTC epoch start.
      */
-    public UTCMSNow(): number {
+    public UTCNow(): number {
         let curtime = Date.now();
         if (this.validOffset) {
-            curtime += this.timeOffset * 1000.0;
+            curtime += this.timeOffset;
         }
         return curtime;
     }
@@ -100,10 +90,10 @@ export class TrueTime {
         if (this.previousTime != undefined) {
             let delta = Math.abs(curtime - this.previousTime);
             // See if we drifted 
-            if (delta > (this.validationInterval + 2)) {
+            if (delta > (timestampSeconds(this.validationInterval + 2))) {
                 let msg = "Time has been adjusted by " + String(delta - this.validationInterval) + " seconds.";
                 this.validOffset = true;
-                this.timeOffset += (curtime - 1 - this.previousTime);
+                this.timeOffset += (curtime - timestampSeconds(this.validationInterval) - this.previousTime);
                 this.notify(msg);
                 this.syncTime();
                 // See if it is time for us to revalidate against a trusted source.
@@ -119,7 +109,7 @@ export class TrueTime {
     public startTiming() {
         this.stopTiming();
         this.previousTime = undefined;
-        this.IntervalTimer = setInterval(() => { this.validateInterval() }, this.validationInterval * 1000);
+        this.IntervalTimer = setInterval(() => { this.validateInterval() }, timestampSeconds(this.validationInterval));
     }
     /**
      * stopTiming turns off our timer.
@@ -145,13 +135,13 @@ export class TrueTime {
     public syncTime() {
         $.getJSON("https://toebes.com/codebusters/time.php")
             .done(data => {
-                let curtime = Date.now() / 1000.0;
+                let curtime = Date.now();
                 let delta = curtime - data.microtime;
                 if (!this.validOffset) {
                     this.updateOffset(delta);
                 } else {
                     let change = Math.abs(delta - this.timeOffset);
-                    if (change > this.maxDrift) {
+                    if (change > timestampSeconds(this.maxDrift)) {
                         this.updateOffset(delta);
                         let msg = "Time has drifted by more than " + this.maxDrift + " seconds.  Adjusting to " + delta;
                         this.notifyFunc(msg);

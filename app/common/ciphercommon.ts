@@ -261,11 +261,12 @@ export function getPolybiusKey(polybius: string[][]): string {
 }
 /**
  * Format an interval as hh:mm:ss if it is greater than an hour and mm:ss if it is under an hour
- * @param interval Interval to convert to a displayable type
+ * @param interval Interval in milliseconds to convert to a displayable type 
  */
 export function formatTime(interval: number): string {
     let result = "";
     let minutepad = " ";
+    interval /=  timestampSeconds(1);
     // Only put the hour on there if the interval is more than an hour.
     let hours = Math.trunc(interval / (60 * 60));
     if (hours > 0) {

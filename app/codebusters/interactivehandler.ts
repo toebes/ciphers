@@ -130,7 +130,7 @@ export class InteractiveHandler extends CipherHandler {
      * @param qdivid <div> with ID matching question number ("0" is the timed question)
      * @param realtimeSeparators Runtime structure to track separators
      */
-    public bindNotesField(qdivid: string, realtimeSeparators: RealTimeArray) {
+    public bindSeparatorsField(qdivid: string, realtimeSeparators: RealTimeArray) {
         $(qdivid + '.ir')
             .off('click')
             .on('click', e => {
@@ -178,7 +178,7 @@ export class InteractiveHandler extends CipherHandler {
      * @param realTimeElement Runtime structure to track the "replacements" field
      * @param qnumdisp Question number formatted for using in an ID ("0" is the timed question)
      */
-    public attachInteractiveReplacementHandler(realTimeElement: RealTimeObject, qnumdisp: string) {
+    public attachInteractiveReplacementsHandler(realTimeElement: RealTimeObject, qnumdisp: string) {
         //
         // the "replacements" portion is for replacement characters in the frequency table
         let realtimeReplacement = realTimeElement.elementAt("replacements") as RealTimeArray;
@@ -233,7 +233,7 @@ export class InteractiveHandler extends CipherHandler {
                     let next;
                     let focusables = target.closest(".question").find('.awc');
 
-                    if (event.keyCode === 37) {
+                    if (event.which === 37) {
                         // left
                         current = focusables.index(event.target);
                         if (current === 0) {
@@ -242,14 +242,14 @@ export class InteractiveHandler extends CipherHandler {
                             next = focusables.eq(current - 1);
                         }
                         next.focus();
-                    } else if (event.keyCode === 39) {
+                    } else if (event.which === 39) {
                         // right
                         current = focusables.index(event.target);
                         next = focusables.eq(current + 1).length
                             ? focusables.eq(current + 1)
                             : focusables.eq(0);
                         next.focus();
-                    } else if (event.keyCode === 46 || event.keyCode === 8) {
+                    } else if (event.which === 46 || event.which === 8) {
                         this.markUndo(null);
                         this.setAns(id, ' ', realtimeAnswer);
                         current = focusables.index(event.target);
@@ -298,11 +298,18 @@ export class InteractiveHandler extends CipherHandler {
                     let target = $(event.target);
                     let id = target.attr("id");
                     // The ID should be of the form Dx_y where x is the question number and y is the offset of the string
+                    let isRails = target.attr("isRails");
                     let current;
                     let next;
                     let focusables = target.closest(".question").find('.awr');
 
-                    if (event.keyCode === 37) {
+                    // Note:  event.keyCode has been marked as deprecated.
+                    //        (see https://css-tricks.com/snippets/javascript/javascript-keycodes/)
+                    //        event.which is sometimes marked deprecated, too, but it has been undeprecated...
+                    //        (see https://github.com/jquery/jquery/issues/4755)
+                    //        BEWARE: you can not use event.which for 'keypress' events, only keyup/keydown.
+
+                    if (event.which === 37) {
                         // left
                         current = focusables.index(event.target);
                         if (current === 0) {
@@ -311,14 +318,38 @@ export class InteractiveHandler extends CipherHandler {
                             next = focusables.eq(current - 1);
                         }
                         next.focus();
-                    } else if (event.keyCode === 39) {
+                    } else if ((event.which === 38 || event.which === 40) && isRails == "1"){
+                        // navigate RailFence rails up and down... no wrapping.
+                        // This is used only for RailFence where the 'replacements' array is lengthened
+                        // to provide input fields for 6 rails.  The input field 'id' in the replacements array
+                        // which is used only be RainFence, starts with 'X'.  This prevents this code from
+                        // executing on other ciphers legitimate use of 'replacements'.
+
+                        // direction is -1 for up and 1 for down...
+                        let direction = event.which - 39;
+
+                        current = focusables.index(event.target);
+                        // lineLength **should** ALWAYS be an integer!!!
+                        let lineLength = focusables.length / 6;
+                        let currentRail = Math.floor(current / lineLength);
+
+                        // Test if we are at the top and trying to go up, or bottom and trying to go down and
+                        // do nothing if either is true.
+                        if ((currentRail === 0 && direction === -1) || (currentRail === 5 && direction === 1)) {
+                            next = focusables.eq(current);
+                        } else {
+                            // else move by one whole row...up or down.
+                            next = focusables.eq(current + (direction * lineLength));
+                        }
+                        next.focus();
+                    } else if (event.which === 39) {
                         // right
                         current = focusables.index(event.target);
                         next = focusables.eq(current + 1).length
                             ? focusables.eq(current + 1)
                             : focusables.eq(0);
                         next.focus();
-                    } else if (event.keyCode === 46 || event.keyCode === 8) {
+                    } else if (event.which === 46 || event.which === 8) {
                         this.markUndo(null);
                         this.setRepl(id, ' ', realtimeReplacement);
                         current = focusables.index(event.target);

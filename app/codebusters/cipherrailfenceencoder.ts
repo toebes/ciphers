@@ -1,10 +1,11 @@
-import { cloneObject, StringMap, sanitizeString } from '../common/ciphercommon';
-import { IState, ITestType, toolMode } from '../common/cipherhandler';
+import {cloneObject, StringMap, sanitizeString, makeFilledArray} from '../common/ciphercommon';
+import {IState, ITestQuestionFields, ITestType, toolMode} from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 import { JTFIncButton } from '../common/jtfIncButton';
+import {JTTable} from "../common/jttable";
 
 
 interface IRailFenceState extends IState {
@@ -43,6 +44,25 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         this.guidanceButton,
     ];
     /** Save and Restore are done on the CipherEncoder Class */
+
+    /**
+     * getInteractiveTemplate creates the answer template for synchronization of
+     * the realtime answers when the test is being given.
+     * @returns Template of question fields to be filled in at runtime.
+     */
+    public getInteractiveTemplate(): ITestQuestionFields {
+        let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.cipherString);
+        let strings: string[][] = this.makeReplacement(rfs.getRailFenceEncoding(), this.state.cipherString.length);
+        let cipherString = strings[0];
+        let len = cipherString[0].length;
+        let result: ITestQuestionFields = {
+            answer: makeFilledArray(len, " "),
+            replacements: makeFilledArray(6 * len, " "),
+            separators: makeFilledArray(len, " "),
+            notes: "",
+        };
+        return result;
+    }
 
     /**
  * Determines if this generator is appropriate for a given test
@@ -329,7 +349,66 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let result = this.genQuestion(testType);
+        let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.cipherString);
+        let strings: string[][] = this.makeReplacement(rfs.getRailFenceEncoding(), this.state.cipherString.length);
+        let qnumdisp = String(qnum + 1);
+        let idclass = "I" + qnumdisp + "_";
+        let spcclass = "S" + qnumdisp + "_";
+        let result = $('<div/>', { id: "Q" + qnumdisp });
+
+        let answerLength = -1;
+
+        // The question text.
+        for (let strset of strings) {
+            answerLength = strset[0].length;
+            result.append($('<div/>', { class: 'TOSOLVE' }).append($('<p/>').text(strset[0])));
+        }
+
+        let pos = 0;
+        // The rails (we will use the replacement field)
+        let railsTable = new JTTable({ class: "SOLVER" });
+        for (let i = 0; i < 6; i++ ) {
+            let railRow = railsTable.addBodyRow();
+            for (let j = 0; j < answerLength; j++) {
+                let extraclass = "";
+                let spos = String(pos);
+                railRow.add({
+                    settings: { class: extraclass }, content: $("<input/>",{
+                        id: "R" + String(qnum + 1) + "_" + pos,
+                        class: "awr",
+                        type: "text",
+                    }).attr("isRails", "1")
+                });
+                pos++;
+            }
+        }
+        result.append(railsTable.generate());
+
+        // The answer fields
+        result.append($("<p/>").text("Answer:"));
+        let answerTable = new JTTable({ class: "SOLVER" });
+        let qrow = answerTable.addBodyRow();
+        let arow = answerTable.addBodyRow();
+        for (let i = 0; i < answerLength; i++) {
+            let extraclass = "";
+            let spos = String(i);
+
+            extraclass = "S" + spos;
+            let field = $("<div/>")
+                .append($("<div/>", { class: "ir", id: spcclass + spos }).html("&#711;"))
+                .append(" ");
+            qrow.add({ settings: { class: "TOSOLVEC " + extraclass }, content: field });
+
+            arow.add({
+                settings: { class: extraclass }, content: $("<input/>", {
+                    id: idclass + spos,
+                    class: "awc",
+                    type: "text",
+                    })
+                });
+        }
+        result.append(answerTable.generate());
+
         result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
         return result;
     }

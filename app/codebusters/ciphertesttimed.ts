@@ -100,11 +100,11 @@ export class CipherTestTimed extends CipherTest {
                         // 3) Test in progress - now >= this.testTimeInfo.startTime and now <= this.testTimeInfo.endTime (we set endtime to be forever in the future)
                         // 4) Test is over - now > this.testTimeInfo.endTime
                         if (now > this.testTimeInfo.endTime) {
-                            result.append(makeCallout("The time for this test is over.  It ended " + timestampToFriendly(this.testTimeInfo.endTime / timestampSeconds(1))))
+                            result.append(makeCallout($("<h3/>").text("The time for this test is over.  It ended " + timestampToFriendly(this.testTimeInfo.endTime / timestampSeconds(1)))))
                             answermodel.close();
                         } else if (now + timestampMinutes(15) < this.testTimeInfo.startTime) {
                             // They are way too early.  
-                            result.append(makeCallout("The test is not ready to start.  It is scheduled " + timestampToFriendly(this.testTimeInfo.startTime / timestampSeconds(1))));
+                            result.append(makeCallout($("<h3/>").text("The test is not ready to start.  It is scheduled " + timestampToFriendly(this.testTimeInfo.startTime / timestampSeconds(1)))));
                             answermodel.close();
                         } else if (now < this.testTimeInfo.startTime) {
                             // Put up a countdown timer..
@@ -400,29 +400,50 @@ export class CipherTestTimed extends CipherTest {
         // Everything is ready and connected, we just need to wait until it is closer to test time
         // Start a timer waiting for it to run
         if (this.testTimeInfo.truetime.UTCMSNow() < this.testTimeInfo.startTime) {
-
             let intervaltimer = setInterval(() => {
                 let now = this.testTimeInfo.truetime.UTCMSNow();
                 let remaining = this.testTimeInfo.startTime - now;
                 if (remaining < timestampSeconds(1)) {
                     clearInterval(intervaltimer);
-                    this.runTestLive(target);
+                    this.runTestLive(target, answermodel);
                 }
                 else {
                     this.updateTimer(remaining);
                 }
             }, 100);
         } else {
-            this.runTestLive(target);
+            this.runTestLive(target, answermodel);
         }
     }
     /**
      * 
      * @param target 
+     * @param answermodel Interactive answer model
      */
-    private runTestLive(target: JQuery<HTMLElement>) {
+    private runTestLive(target: JQuery<HTMLElement>, answermodel: RealTimeModel) {
         $('.waittimer').empty();
         target.show();
-        $(".instructions").removeClass("instructions");
+        $(".instructions").removeClass("instructions").addClass("iinstructions");
+        // Start a timer and run until we are out of time
+        let intervaltimer = setInterval(() => {
+            if (this.testTimeInfo.truetime.UTCMSNow() >= this.testTimeInfo.endTime) {
+                clearInterval(intervaltimer);
+                // Time to kill the test
+                this.shutdownTest(answermodel)
+            }
+        }, 100);
+    }
+    /**
+     * 
+     * @param answermodel Interactive answer model
+     */
+    private shutdownTest(answermodel: RealTimeModel) {
+        let target = $('.testcontent');
+        target.hide();
+        $(".iinstructions").hide();
+        let intervalInfo = $("<h3/>").text("Time is up. The test is now over.")
+        $('.waittimer').empty().append(makeCallout(intervalInfo, "primary"));
+        answermodel.close();
+        target.empty();
     }
 }

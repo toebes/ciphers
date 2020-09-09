@@ -1,11 +1,11 @@
 import { CipherTest, ITestState, IAnswerTemplate } from "./ciphertest";
 import { toolMode, ITestTimeInfo, menuMode, CipherHandler, IState } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
-import { cloneObject, makeCallout, timestampToFriendly, timestampMinutes, formatTime, timestampSeconds } from "../common/ciphercommon";
+import { cloneObject, makeCallout, timestampToFriendly, timestampMinutes, formatTime, timestampSeconds, NumberMap, StringMap } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { TrueTime } from "../common/truetime";
 import { CipherPrintFactory } from "./cipherfactory";
-import { ConvergenceDomain, RealTimeModel, RealTimeObject } from "@convergence/convergence";
+import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelCollaborator } from "@convergence/convergence";
 import { CipherInteractiveFactory } from "./cipherfactory";
 import { JTTable } from "../common/jttable";
 
@@ -53,6 +53,7 @@ export class CipherTestTimed extends CipherTest {
             this.setTestStatusMessage("You must be logged in to be able to take a test.");
         } else if (this.state.testID != undefined) {
             $('.testcontent').empty();
+            $(".timer").hide();
             this.displayInteractiveTest(this.state.testID);
         } else {
             this.setTestStatusMessage("No test id was provided to run.");
@@ -97,6 +98,87 @@ export class CipherTestTimed extends CipherTest {
      */
     public timeAnomaly(msg: string) {
         console.log("**Time anomaly reported:" + msg);
+    }
+    /**
+     * Generates a 2 letter initials for a name
+     * @param name Name to compute initials for
+     */
+    public computeInitials(name:string) : string {
+        let result = "";
+        if (name !== "" && name !== undefined) {
+            // Figure out the initials 
+            let parts = name.split(" ");
+            result = parts[0].substr(0, 1).toUpperCase();
+            if (parts.length > 1) {
+                result += parts[parts.length - 1].substr(0, 1).toUpperCase();
+            }
+        }
+        return result;
+    }
+    /**
+     * Update the test display of who is connected to the current test
+     * @param answermodel Interactive answer model
+     * @param collaborators Array of collaborators currently on the test
+     */
+    private updateUserStatus(answermodel:RealTimeModel,collaborators:ModelCollaborator[]) {
+        let answertemplate = answermodel.root().value() as IAnswerTemplate;
+        for (let i = 1; i <= 3; i++) {
+            $("#part"+String(i)).removeClass("connected");
+        }
+        // First find all the users that are taking the test
+        let useridid:StringMap = {};
+        for (let i in         answertemplate.assigned) {
+            let userid = answertemplate.assigned[i].userid;
+            if (userid !== "") {
+                useridid[userid] = String(Number(i)+1);
+            }
+        }
+        collaborators.forEach((collaborator: ModelCollaborator) => {
+            let email = collaborator.user.email;
+            if (email === "") {
+                email = collaborator.user.username;
+            }
+            if (useridid.hasOwnProperty(email)) {
+                let idslot = useridid[email];
+                let displayname = collaborator.user.displayName;
+                if (displayname === undefined || displayname === "") {
+                    displayname = email;
+                }
+                let initials = this.computeInitials(displayname);
+                $("#user" + idslot).text(displayname);
+                $("#init" + idslot).text(initials);
+                $("#part"+idslot).addClass("connected");
+            }
+        });
+    }
+    /**
+     * Track changes to who is working on the test
+     * @param answermodel Interactive answer model
+     */
+    private trackUsers(answermodel: RealTimeModel) {
+        answermodel.collaboratorsAsObservable().subscribe((collaborators:ModelCollaborator[]) => {
+            this.updateUserStatus(answermodel, collaborators);
+        });
+    }
+    /**
+     * Confirm that we are the only copy for this user editing the test.
+     * Note that we want to disconnect the other model, but we aren't sure how to do that yet
+     * @param answermodel Interactive answer model
+     * @param userid 
+     */
+    private confirmOnly(answermodel:RealTimeModel, userid: string){
+        let collaborators = answermodel.collaborators();
+        let matches = 0;
+        collaborators.forEach((collaborator: ModelCollaborator) => {
+            if (collaborator.user.email === userid) {
+                matches++;
+            }
+        });
+        if (matches > 1) {
+            console.log("Multiple users logged in, we need to drop the others");
+        } else if (matches === 0) {
+            console.log("We can't find ourselves in the model");
+        }
     }
     /**
      * makeInteractive creates an interactive question by invoking the appropriate factory for the saved state
@@ -188,10 +270,46 @@ export class CipherTestTimed extends CipherTest {
                         this.testTimeInfo.startTime = answertemplate.starttime;
                         this.testTimeInfo.endTimedQuestion = answertemplate.endtimed;
                         this.testTimeInfo.endTime = answertemplate.endtime;
-
-                        // TODO: We should confirm that they are actually allowed to take this test.
+                        // We need confirm that they are actually allowed to take this test.
                         // this.getConfigString("userid", "") must be non-blank and be present as one
                         // of the slots in answertemplate.assigned
+                        let userfound = false;
+                        let loggedinuserid = this.getConfigString("userid", "");
+                        if (loggedinuserid === "") {
+                            this.shutdownTest(answermodel, "You must be logged in to be able to take a test.");
+                        }
+                        //
+                        // Populate the default names on the test.  Note that we may get better information
+                        // about the user when they are logged in, but for now we use what we are given in the template
+                        //
+                        for (let i = 0; i < 3; i++) {
+                            let name = "";
+                            let userid = "";
+                            if (i < answertemplate.assigned.length) {
+                                name = answertemplate.assigned[i].displayname;
+                                userid = answertemplate.assigned[i].userid;
+                            }
+                            if (userid === loggedinuserid) {
+                                userfound = true;
+                            }
+                            let idslot = String(Number(i) + 1);
+                            if (name === "" && userid !== "") {
+                                name = userid;
+                            }
+                            if (name === "" || name === undefined) {
+                                $("#part" + idslot).hide();
+                            } else {
+                                let initials = this.computeInitials(name);
+                                $("#user" + idslot).text(name);
+                                $("#init" + idslot).text(initials);
+                            }
+                        }
+                        // Make sure that they were found in the list of active users for this test
+                        if (!userfound) {
+                            this.shutdownTest(answermodel, "You are not assigned to take this test.");
+                        }
+                        // Make sure that we are the only copy for this yser
+                        this.confirmOnly(answermodel, loggedinuserid);
                         let testid = answertemplate.testid;
                         // Figure out if it is time to run the test
                         let now = this.testTimeInfo.truetime.UTCNow();
@@ -223,7 +341,7 @@ export class CipherTestTimed extends CipherTest {
      * the model.  Even if they examine the web page, they won't see any content here.
      * @param modelService 
      * @param testid 
-     * @param answermodel 
+     * @param answermodel Interactive answer model
      * @param answertemplate 
      */
     private waitToLoadTestModel(modelService, testid: any, answermodel: RealTimeModel) {
@@ -248,7 +366,7 @@ export class CipherTestTimed extends CipherTest {
       * Open the test model for the test template.
       * @param modelService 
       * @param testid 
-      * @param answermodel 
+      * @param answermodel Interactive answer model
       * @param elem 
       */
     private openTestModel(modelService, testid: any, answermodel: RealTimeModel) {
@@ -383,6 +501,8 @@ export class CipherTestTimed extends CipherTest {
      */
     private waitToDisplayTest(interactive: { [key: string]: any; }, answermodel: RealTimeModel) {
         this.setTimerMessage("Please Standby, The test will start in ");
+        this.trackUsers(answermodel);
+        $(".timer").show();
 
         if (this.testTimeInfo.truetime.UTCNow() < (this.testTimeInfo.startTime - timestampSeconds(10))) {
             // Start a timer to wait until get get to 10 seconds in.  During
@@ -449,24 +569,30 @@ export class CipherTestTimed extends CipherTest {
         $(".instructions").removeClass("instructions").addClass("iinstructions");
         // Start a timer and run until we are out of time
         let intervaltimer = setInterval(() => {
-            if (this.testTimeInfo.truetime.UTCNow() >= this.testTimeInfo.endTime) {
+            let now = this.testTimeInfo.truetime.UTCNow();
+            if (now >= this.testTimeInfo.endTime) {
                 clearInterval(intervaltimer);
                 // Time to kill the test
                 this.shutdownTest(answermodel)
             }
+            $("#tremain").text(formatTime(this.testTimeInfo.endTime - now));
         }, 100);
     }
     /**
      * Stage 8: Cleanup.
      * @param answermodel Interactive answer model
      */
-    private shutdownTest(answermodel: RealTimeModel) {
+    private shutdownTest(answermodel: RealTimeModel, message?: string) {
+        if (message === undefined) {
+            message = "Time is up. The test is now over.  Scheduled end time ";
+        }
         $('.testcontent').hide();
         $(".iinstructions").hide();
         let session = answermodel.session().domain();
         this.testTimeInfo.truetime.stopTiming();
         answermodel.close();
         session.disconnect();
-        this.setTestStatusMessage("Time is up. The test is now over.  Scheduled end time ", this.testTimeInfo.endTime);
+        this.setTestStatusMessage(message, this.testTimeInfo.endTime);
+        $('.testcontent').show();
     }
 }

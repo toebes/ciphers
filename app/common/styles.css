@@ -1137,11 +1137,6 @@ table.found tr th:nth-child(odd) {
 .qtext .qbody p:first-of-type {
     display: inline;
 }
-.timestamp {
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 24pt;
-    font-weight: bold;
-}
 
 .timer {
     position: fixed;
@@ -1151,7 +1146,44 @@ table.found tr th:nth-child(odd) {
     height: 50px;
     border: 1px solid green;
     background: white;
+    padding-top:1px;
 }
+
+.timer div.timestamp {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 20pt;
+    font-weight: bold;
+    float: right;
+    height: 100%;
+    background: lightcyan;
+    padding: 5px 2px;
+}
+.participant {
+    height: 16px;
+    padding: 0px;
+    margin: 0px;
+}
+.participant .uid {
+    margin-left: 2px;
+    font-size: 10px;
+    height: 14px;
+    width: 20px;
+    border-radius: 6px;
+    text-align: center;
+    background: lightgrey;
+    border: 1px solid darkgrey;
+}
+.participant.connected .uid {
+    background: lightgreen;
+    border: 1px solid darkgreen;
+}
+
+.timestamp {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 24pt;
+    font-weight: bold;
+}
+
 
 div.rn,
 div.sn,

@@ -97,7 +97,7 @@ export class TrueTime {
                 this.notify(msg);
                 this.syncTime();
                 // See if it is time for us to revalidate against a trusted source.
-            } else if ((curtime - this.lastSyncTime) > this.syncInterval) {
+            } else if ((curtime - this.lastSyncTime) > timestampSeconds(this.syncInterval)) {
                 this.syncTime();
             }
         }

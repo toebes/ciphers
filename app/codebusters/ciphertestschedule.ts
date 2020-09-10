@@ -401,6 +401,7 @@ export class CipherTestSchedule extends CipherTestManage {
             datamodel.close();
             // Reset the permissions on the model.  Remove anyone who was taken off and add anyone
             this.saveUserPermissions(modelService, modelid, removed, added);
+            this.saveUserPermissions(modelService, this.answerTemplate.testid, [], added);
         }).catch(error => { this.reportFailure("Could not open model to save: " + error) });
     }
     /**

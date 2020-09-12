@@ -75,7 +75,7 @@ export function JTCreateMenu(
     // let parms = parseQueryString(window.location.search.substring(1))
     // let ciphertype: ICipherType = parms['cipherType'] as ICipherType
 
-    let result = $('<div/>');
+    let result = $('<div/>', { class: "mainmenubar" });
     let titlebar = $('<div/>', {
         class: 'title-bar',
         'data-responsive-toggle': id,
@@ -120,7 +120,7 @@ export function JTCreateMenu(
     topbar.append(topbarright);
     result.append(topbar);
 
-    return result.children();
+    return result;
 }
 
 export function JTGetURL(

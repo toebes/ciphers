@@ -8,6 +8,7 @@ import { CipherPrintFactory } from "./cipherfactory";
 import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelCollaborator } from "@convergence/convergence";
 import { CipherInteractiveFactory } from "./cipherfactory";
 import { JTTable } from "../common/jttable";
+import Split from 'split-grid';
 
 /**
  * CipherTestTimed
@@ -103,7 +104,7 @@ export class CipherTestTimed extends CipherTest {
      * Generates a 2 letter initials for a name
      * @param name Name to compute initials for
      */
-    public computeInitials(name:string) : string {
+    public computeInitials(name: string): string {
         let result = "";
         if (name !== "" && name !== undefined) {
             // Figure out the initials 
@@ -120,17 +121,17 @@ export class CipherTestTimed extends CipherTest {
      * @param answermodel Interactive answer model
      * @param collaborators Array of collaborators currently on the test
      */
-    private updateUserStatus(answermodel:RealTimeModel,collaborators:ModelCollaborator[]) {
+    private updateUserStatus(answermodel: RealTimeModel, collaborators: ModelCollaborator[]) {
         let answertemplate = answermodel.root().value() as IAnswerTemplate;
         for (let i = 1; i <= 3; i++) {
-            $("#part"+String(i)).removeClass("connected");
+            $("#part" + String(i)).removeClass("connected");
         }
         // First find all the users that are taking the test
-        let useridid:StringMap = {};
-        for (let i in         answertemplate.assigned) {
+        let useridid: StringMap = {};
+        for (let i in answertemplate.assigned) {
             let userid = answertemplate.assigned[i].userid;
             if (userid !== "") {
-                useridid[userid] = String(Number(i)+1);
+                useridid[userid] = String(Number(i) + 1);
             }
         }
         collaborators.forEach((collaborator: ModelCollaborator) => {
@@ -147,7 +148,7 @@ export class CipherTestTimed extends CipherTest {
                 let initials = this.computeInitials(displayname);
                 $("#user" + idslot).text(displayname);
                 $("#init" + idslot).text(initials);
-                $("#part"+idslot).addClass("connected");
+                $("#part" + idslot).addClass("connected");
             }
         });
     }
@@ -156,7 +157,7 @@ export class CipherTestTimed extends CipherTest {
      * @param answermodel Interactive answer model
      */
     private trackUsers(answermodel: RealTimeModel) {
-        answermodel.collaboratorsAsObservable().subscribe((collaborators:ModelCollaborator[]) => {
+        answermodel.collaboratorsAsObservable().subscribe((collaborators: ModelCollaborator[]) => {
             this.updateUserStatus(answermodel, collaborators);
         });
     }
@@ -166,7 +167,7 @@ export class CipherTestTimed extends CipherTest {
      * @param answermodel Interactive answer model
      * @param userid 
      */
-    private confirmOnly(answermodel:RealTimeModel, userid: string){
+    private confirmOnly(answermodel: RealTimeModel, userid: string) {
         let collaborators = answermodel.collaborators();
         let matches = 0;
         collaborators.forEach((collaborator: ModelCollaborator) => {
@@ -530,6 +531,16 @@ export class CipherTestTimed extends CipherTest {
      * @param answermodel Interactive answer model
      */
     private makeTestLive(interactive: { [key: string]: any; }, answermodel: RealTimeModel) {
+        Split({
+            minsize: 20,
+            rowMinSize: 20,
+            rowMinSizes: { 1: 20 },
+            rowGutters: [{
+                track: 1,
+                element: document.querySelector('.gutter-row-1'),
+            }]
+        });
+
         // Make sure to hide the generated DOM elements while we get them ready
         let target = $('.testcontent');
         target.hide();
@@ -540,6 +551,8 @@ export class CipherTestTimed extends CipherTest {
         for (let qnum = 0; qnum < interactive.count; qnum++) {
             this.makeInteractive(target, interactive.questions[qnum], qnum, answermodel.elementAt("answers", qnum + 1) as RealTimeObject);
         }
+        this.setMenuMode(menuMode.test);
+        $(".mainmenubar").hide();
         // Everything is ready and connected, we just need to wait until it is closer to test time
         // Start a timer waiting for it to run
         if (this.testTimeInfo.truetime.UTCNow() < this.testTimeInfo.startTime) {
@@ -594,5 +607,6 @@ export class CipherTestTimed extends CipherTest {
         session.disconnect();
         this.setTestStatusMessage(message, this.testTimeInfo.endTime);
         $('.testcontent').show();
+        $(".mainmenubar").show();
     }
 }

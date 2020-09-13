@@ -1125,6 +1125,10 @@ table.found tr th:nth-child(odd) {
     padding: 0rem;
 }
 
+.reveal-overlay.hideback {
+    background-color: #773838;
+}
+
 .qtext {
     border-top: 1px solid grey;
     margin-bottom: 20px;

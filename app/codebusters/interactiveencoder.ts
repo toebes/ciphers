@@ -1,5 +1,5 @@
 import { ITestTimeInfo } from "../common/cipherhandler";
-import { InteractiveHandler} from "./interactivehandler";
+import { InteractiveHandler } from "./interactivehandler";
 import { formatTime } from "../common/ciphercommon";
 import { RealTimeObject, RealTimeNumber, NumberSetValueEvent } from '@convergence/convergence';
 
@@ -105,7 +105,7 @@ export class InteractiveEncoder extends InteractiveHandler {
         if (qnum === -1) {
             let realtimeSolvetime = realTimeElement.elementAt("solvetime") as RealTimeNumber;
             if (realTimeElement.hasKey("solvetime")) {
-                realtimeSolvetime.on("value", (event: NumberSetValueEvent) => { this.updateTimerCheckButton(realtimeSolvetime) });
+                realtimeSolvetime.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => { this.updateTimerCheckButton(realtimeSolvetime) });
             }
             $("#checktimed")
                 .off('click')

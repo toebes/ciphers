@@ -173,7 +173,7 @@ export interface ITestQuestionFields {
      * 
      *   Typically the answer is bound to a RealTimeArray
      *      let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;
-     *      realtimeAnswer.on("set", (event: ArraySetEvent) => { this.propagateAns(qnumdisp, event.index, event.value.value()); });
+     *      realtimeAnswer.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => { this.propagateAns(qnumdisp, event.index, event.value.value()); });
      * 
      *   The generated HTML fields are typically an input field with the awc class and an ID of the form
      *      I<qnum>_<offset> 
@@ -197,7 +197,7 @@ export interface ITestQuestionFields {
      *  Like the answer field, this is also typically bound to a RealTimeArray
      * 
      *         let realtimeReplacement = realTimeElement.elementAt("replacements") as RealTimeArray;
-     *         realtimeReplacement.on("set", (event: ArraySetEvent) => { this.propagateRepl(qnumdisp, event.index, event.value.value()); });
+     *         realtimeReplacement.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => { this.propagateRepl(qnumdisp, event.index, event.value.value()); });
      *
      *   The generated HTML fields are typically an input field with the awr class and an ID of the form
      *      R<qnum>_<offset> 
@@ -3047,7 +3047,7 @@ export class CipherHandler {
             .append(JTFLabeledInput("Realtime Domain:", "text", "convergenceDomain", "", ""))
             .append(JTFLabeledInput("Realtime KeyID:", "text", "convergenceKeyId", "", ""))
             .append(JTFLabeledInput("Debug:", "text", "convergenceDebug", "", ""));
-            
+
 
         let realtimeConfigDlg = JTFDialog(
             'Realtimedlg',
@@ -3184,7 +3184,7 @@ export class CipherHandler {
         $("#convergenceDomain").val(this.getConfigString("convergenceDomain", "scienceolympiad"));
         $("#convergenceKeyId").val(this.getConfigString("convergenceKeyId", "TestingKeyId"));
         $("#convergenceDebug").val(this.getConfigString("convergenceDebug", ""));
-        
+
         $('#okrealtime')
             .removeAttr('disabled')
             .off('click')

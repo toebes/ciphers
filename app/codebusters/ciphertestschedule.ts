@@ -391,7 +391,7 @@ export class CipherTestSchedule extends CipherTestManage {
             }
             // Add any users not already on the list
             for (let i = assigned.length; i < userlist.length; i++) {
-                assigned.push({ userid: userlist[i], displayname: userlist[i], starttime: 0, idletime: 0, confidence: 0, notes: "" });
+                assigned.push({ userid: userlist[i], displayname: userlist[i], starttime: 0, idletime: 0, confidence: 0, notes: "", sessionid:"" });
                 if (userlist[i] !== "") {
                     added.push(userlist[i]);
                 }

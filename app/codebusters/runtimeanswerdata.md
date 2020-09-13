@@ -48,7 +48,7 @@ Then the answer array will be `{"I", " ", "D", "O", "N", " ", "T", " ", "L", "I"
 Typically the answer is bound to a RealTimeArray
 ```
 let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;
-realtimeAnswer.on("set", (event: ArraySetEvent) => { this.propagateAns(qnumdisp, event.index, event.value.value()); });
+realtimeAnswer.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => { this.propagateAns(qnumdisp, event.index, event.value.value()); });
 ```
 The generated HTML fields are typically an input field with the `awc` class and an ID of the form
 
@@ -76,7 +76,7 @@ Like the answer field, this is also typically bound to a RealTimeArray
 
 ```
 let realtimeReplacement = realTimeElement.elementAt("replacements") as RealTimeArray;
-realtimeReplacement.on("set", (event: ArraySetEvent) => { this.propagateRepl(qnumdisp, event.index, event.value.value()); });
+realtimeReplacement.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => { this.propagateRepl(qnumdisp, event.index, event.value.value()); });
 ```
 
 The generated HTML fields are typically an input field with the `awr` class and an ID of the form
@@ -109,7 +109,7 @@ Typically this is bound with a RealTimeArray to track/update changes.
 ```
 let realtimeSeparators = realTimeElement.elementAt("separators") as RealTimeArray;
 let separators = realtimeSeparators.value();
-realtimeSeparators.on("set", (event: ArraySetEvent) => { this.propagateSep(qnumdisp, event.index, event.value.value()); });
+realtimeSeparators.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => { this.propagateSep(qnumdisp, event.index, event.value.value()); });
 for (var i in separators) {
     this.propagateSep(qnumdisp, Number(i), separators[i]);
 }

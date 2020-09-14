@@ -545,6 +545,11 @@ export class CipherTestSchedule extends CipherTestManage {
             .on('click', e => {
                 this.deleteScheduled(this.getRowID($(e.target)), this.getModelID($(e.target)));
             })
+        $(".datetimepick")
+        .off('change')
+        .on('change', e => {
+            this.setChanged(this.getRowID($(e.target)));
+        }
         // $(".datetimepick").each((i, elem) => {
         //     let x = flatpickr(elem, {
         //         altInput: true,

@@ -26,9 +26,9 @@ export class CipherTestSchedule extends CipherTestManage {
     public state: ITestState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [
         { title: 'Add One', color: 'primary', id: 'addsched' },
-        { title: 'Propagate Time', color: 'primary', id: 'propsched' },
-        { title: 'Import Schedule', color: 'primary', id: 'importsched' },
-        { title: 'Save All', color: 'primary', id: 'savesched' },
+        { title: 'Propagate Time', color: 'primary', id: 'propsched', disabled: true },
+        { title: 'Import Schedule', color: 'primary', id: 'importsched', disabled: true },
+        { title: 'Save All', color: 'primary', id: 'savesched', disabled: true },
         { title: 'Delete All', color: 'alert', id: 'delallsched' },
     ];
     /**
@@ -235,6 +235,7 @@ export class CipherTestSchedule extends CipherTestManage {
      */
     public setChanged(id: string) {
         $("#SV" + id).removeAttr("disabled");
+        $("#savesched").removeAttr("disabled");
     }
     /**
      * Save a scheduled test
@@ -269,6 +270,17 @@ export class CipherTestSchedule extends CipherTestManage {
         this.connectRealtime().then((domain: ConvergenceDomain) => {
             const modelService = domain.models();
             this.saveAnswerTemplate(modelService, testid, userlist, starttime, endtime, endtimed);
+        });
+    }
+    /**
+     * Save all unsaved scheduled test
+     */
+    public saveAllScheduled() {
+        $("#savesched").attr("disabled", "disabled");
+        $(".pubsave").each((i, elem) => {
+            if ($(elem).attr("disabled") != "") {
+                this.saveScheduled(this.getRowID($(elem)), this.getModelID($(elem)));
+            }
         });
     }
     /**
@@ -391,7 +403,7 @@ export class CipherTestSchedule extends CipherTestManage {
             }
             // Add any users not already on the list
             for (let i = assigned.length; i < userlist.length; i++) {
-                assigned.push({ userid: userlist[i], displayname: userlist[i], starttime: 0, idletime: 0, confidence: 0, notes: "", sessionid:"" });
+                assigned.push({ userid: userlist[i], displayname: userlist[i], starttime: 0, idletime: 0, confidence: 0, notes: "", sessionid: "" });
                 if (userlist[i] !== "") {
                     added.push(userlist[i]);
                 }
@@ -512,6 +524,11 @@ export class CipherTestSchedule extends CipherTestManage {
             .on('click', () => {
                 this.gotoDeleteAllScheduled();
             })
+        $("#savesched")
+            .off('click')
+            .on('click', () => {
+                this.saveAllScheduled();
+            })
         $('input[id^="D_"]')
             .off('input')
             .on('input', e => {
@@ -546,10 +563,10 @@ export class CipherTestSchedule extends CipherTestManage {
                 this.deleteScheduled(this.getRowID($(e.target)), this.getModelID($(e.target)));
             })
         $(".datetimepick")
-        .off('change')
-        .on('change', e => {
-            this.setChanged(this.getRowID($(e.target)));
-        }
+            .off('change')
+            .on('change', e => {
+                this.setChanged(this.getRowID($(e.target)));
+            }
         // $(".datetimepick").each((i, elem) => {
         //     let x = flatpickr(elem, {
         //         altInput: true,

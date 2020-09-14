@@ -468,8 +468,8 @@ export class CipherTestTimed extends CipherTest {
 
         let interactive = testmodel.root().value();
 
-        target.append($('<div/>', { class: 'head' }).text(interactive.title));
-        console.log(interactive);
+        // Update the title for the test
+        $(".testtitle").text(interactive.title);
         /**
          * Output any running keys used
          */
@@ -628,7 +628,7 @@ export class CipherTestTimed extends CipherTest {
             this.makeInteractive(target, interactive.questions[qnum], qnum, answermodel.elementAt("answers", qnum + 1) as RealTimeObject);
         }
         // Give them an easy way to exit the test
-        target.append($("<button/>", { type: "button", class: "button large rounded centered", id: "exittest" }).text("Exit Test"));
+        target.append($("<button/>", { type: "button", class: "Primary button large rounded centered", id: "exittest" }).text("Exit Test"));
         $("#exittest").on('click', () => { this.shutdownTest(answermodel, "Exit test requested by user.") });
 
         this.setMenuMode(menuMode.test);

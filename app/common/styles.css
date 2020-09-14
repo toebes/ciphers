@@ -647,6 +647,10 @@ input[type='radio'] {
     float: none;
 }
 
+.testcontent table.SOLVER {
+    width: auto;
+}
+
 table.intfreq,
 table.SOLVER {
     border-collapse: collapse;
@@ -677,14 +681,19 @@ table.SOLVER td {
     border: none;
 }
 
-input.awc {
+.affineint input.awc,
+.hillans input.awc {
     width: 100%;
+}
+
+input.awc {
+    width: 1.5rem;
     background-color: #ffffe0;
     padding: 0;
 }
 
 input.awr {
-    width: 100%;
+    width: 2rem;
     background-color: #f0f0f0;
     padding: 0;
 }

@@ -27,8 +27,8 @@ export class CipherTestSchedule extends CipherTestManage {
     public cmdButtons: JTButtonItem[] = [
         { title: 'Add One', color: 'primary', id: 'addsched' },
         { title: 'Propagate Time', color: 'primary', id: 'propsched' },
-        { title: 'Import Schedule', color: 'primary', id: 'importsched' },
-        { title: 'Save All', color: 'primary', id: 'savesched' },
+        { title: 'Import Schedule', color: 'primary', id: 'importsched', disabled: true },
+        { title: 'Save All', color: 'primary', id: 'savesched', disabled: true },
         { title: 'Delete All', color: 'alert', id: 'delallsched' },
     ];
     /**
@@ -237,6 +237,7 @@ export class CipherTestSchedule extends CipherTestManage {
      */
     public setChanged(id: string) {
         $("#SV" + id).removeAttr("disabled");
+        $("#savesched").removeAttr("disabled");
     }
     /**
      * Save a scheduled test
@@ -272,6 +273,65 @@ export class CipherTestSchedule extends CipherTestManage {
             const modelService = domain.models();
             this.saveAnswerTemplate(modelService, testid, userlist, starttime, endtime, endtimed);
         });
+    }
+    /**
+     * Save all unsaved scheduled test
+     */
+    public saveAllScheduled(): void {
+        $("#savesched").attr("disabled", "disabled");
+        $(".pubsave").each((i, elem) => {
+            if ($(elem).attr("disabled") != "") {
+                this.saveScheduled(this.getRowID($(elem)), this.getModelID($(elem)));
+            }
+        });
+    }
+    /**
+     * Propagate the time from the first test to all the other tests
+     */
+    public propagateSchedule(): void {
+        $("#okprop")
+            .removeAttr("disabled")
+            .off("click")
+            .on("click", e => {
+                $("#propscheddlg").foundation("close");
+                // First get the starting times.  It will be the first row
+                if ($("#S_0").length > 0) {
+                    // Get the starting times
+                    let starttime = $("#S_0").val() as string;
+                    let duration = $("#D_0").val() as number;
+                    let timed = $("#T_0").val() as number;
+                    // Find all of the time fields on the page
+                    $('input[id^="T_"]').each((i, elem) => {
+                        // parse out what row it is
+                        let rowid = this.getRowID($(elem));
+                        // Technically we don't have to check for the first row, but we know
+                        // we aren't going to update it so save some time
+                        if (rowid !== "0") {
+                            // Get the current values on the row
+                            let rowstarttime = $("#S_" + rowid).val() as string;
+                            let rowduration = $("#D_" + rowid).val() as number;
+                            let rowtimed = $("#T_" + rowid).val() as number;
+                            // See if any of the times are different
+                            if (rowstarttime !== starttime ||
+                                rowduration !== duration ||
+                                rowtimed !== timed) {
+                                // We have times different, so update them
+                                $("#S_" + rowid).val(starttime);
+                                $("#D_" + rowid).val(duration);
+                                $("#T_" + rowid).val(timed);
+                                // And mark that we changed it
+                                this.setChanged(rowid);
+                            }
+                        }
+                    });
+                }
+            });
+        // Put up the dialog to ask them.
+        $("#propscheddlg").foundation("open");
+
+    }
+    public importSchedule(): void {
+
     }
     /**
      * 
@@ -393,7 +453,7 @@ export class CipherTestSchedule extends CipherTestManage {
             }
             // Add any users not already on the list
             for (let i = assigned.length; i < userlist.length; i++) {
-                assigned.push({ userid: userlist[i], displayname: userlist[i], starttime: 0, idletime: 0, confidence: 0, notes: "" });
+                assigned.push({ userid: userlist[i], displayname: userlist[i], starttime: 0, idletime: 0, confidence: 0, notes: "", sessionid: "" });
                 if (userlist[i] !== "") {
                     added.push(userlist[i]);
                 }
@@ -467,6 +527,27 @@ export class CipherTestSchedule extends CipherTestManage {
         return DeleteTestDlg;
     }
     /**
+     * Create the hidden dialog for confirming propagation of the time
+     * @returns HTML DOM element for dialog
+     */
+    private createPropagateScheduledDlg(): JQuery<HTMLElement> {
+        let dlgContents = $("<div/>", {
+            class: "callout alert",
+        }).text(
+            "This will copy the times from the first test to all other tests. " +
+            "You will need to save the changes after it propagates the times. " +
+            "Are you sure you want to do this?"
+        );
+        let PropagateScheduleDlg = JTFDialog(
+            "propscheddlg",
+            "Propagate Test Schedule",
+            dlgContents,
+            "okprop",
+            "Yes, Update them all!"
+        );
+        return PropagateScheduleDlg;
+    }
+    /**
      * Create the main menu at the top of the page.
      * This also creates the hidden dialog used for deleting ciphers
      * @returns DOM element to put at the top
@@ -476,7 +557,8 @@ export class CipherTestSchedule extends CipherTestManage {
         // Create the dialog for selecting which cipher to load
         result
             .append(this.createDeleteAllDlg())
-            .append(this.createDeleteScheduledDlg());
+            .append(this.createDeleteScheduledDlg())
+            .append(this.createPropagateScheduledDlg());
         return result;
     }
     /**
@@ -514,6 +596,21 @@ export class CipherTestSchedule extends CipherTestManage {
             .on('click', () => {
                 this.gotoDeleteAllScheduled();
             })
+        $("#savesched")
+            .off('click')
+            .on('click', () => {
+                this.saveAllScheduled();
+            })
+        $("#propsched")
+            .off('click')
+            .on('click', () => {
+                this.propagateSchedule();
+            });
+        $("#importsched")
+            .off('click')
+            .on('click', () => {
+                this.importSchedule();
+            });
         $('input[id^="D_"]')
             .off('input')
             .on('input', e => {
@@ -547,6 +644,11 @@ export class CipherTestSchedule extends CipherTestManage {
             .on('click', e => {
                 this.deleteScheduled(this.getRowID($(e.target)), this.getModelID($(e.target)));
             })
+        $(".datetimepick")
+            .off('change')
+            .on('change', e => {
+                this.setChanged(this.getRowID($(e.target)));
+            });
         // $(".datetimepick").each((i, elem) => {
         //     let x = flatpickr(elem, {
         //         altInput: true,

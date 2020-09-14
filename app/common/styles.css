@@ -27,6 +27,10 @@ th.desc::after {
 .prev {
     display: none;
 }
+body.fs  {
+    height: 100vh;
+    overflow:hidden;
+}
 body.txt {
     padding: 1rem;
     font-family: Arial, Helvetica, sans-serif;
@@ -643,6 +647,10 @@ input[type='radio'] {
     float: none;
 }
 
+.testcontent table.SOLVER {
+    width: auto;
+}
+
 table.intfreq,
 table.SOLVER {
     border-collapse: collapse;
@@ -673,14 +681,19 @@ table.SOLVER td {
     border: none;
 }
 
-input.awc {
+.affineint input.awc,
+.hillans input.awc {
     width: 100%;
+}
+
+input.awc {
+    width: 1.5rem;
     background-color: #ffffe0;
     padding: 0;
 }
 
 input.awr {
-    width: 100%;
+    width: 2rem;
     background-color: #f0f0f0;
     padding: 0;
 }
@@ -1121,6 +1134,10 @@ table.found tr th:nth-child(odd) {
     padding: 0rem;
 }
 
+.reveal-overlay.hideback {
+    background-color: #773838;
+}
+
 .qtext {
     border-top: 1px solid grey;
     margin-bottom: 20px;
@@ -1140,13 +1157,14 @@ table.found tr th:nth-child(odd) {
 
 .timer {
     position: fixed;
-    right: 0;
+    right: 20px;
     top: 0;
     width: 200px;
     height: 50px;
     border: 1px solid green;
     background: white;
     padding-top:1px;
+    z-index: 3;
 }
 
 .timer div.timestamp {
@@ -1461,6 +1479,53 @@ table.nameline td.u {
     width: 2.5rem;
     padding: 0 0.3rem 0.2rem 0.3rem;
     border-radius: 0.2rem;
+}
+
+.testgrid {
+    grid-template-rows: 5% 10px 95%;
+    display: grid;
+    height:100vh;
+    }
+    
+#topsplit {
+    grid-area: 1 / 1/ 1/ 1;
+    overflow:scroll;
+}
+#bottomsplit {
+    grid-area: 3 / 1/ 3/ 1;
+    overflow:scroll;
+    padding-top:30px;
+    margin-top:10px;
+}
+
+.gutter-row-1 {
+    height: 20px;
+    grid-area: 2 / 1/ 2/ 1;
+    background-color: lightblue;
+    border: 2px outset blue;
+    z-index: 2;
+}
+
+.gutter-row-1 .tab {
+    background-color:lightblue;
+    position: relative;
+    top: 0px;
+    left: 48%;
+    width: 80px;
+    text-align: center;
+    border-top: 2px outset lightblue;
+    border-bottom: 2px outset blue;
+    border-right: 2px outset blue;
+    border-left: 2px outset blue;
+    border-radius: 0px 0px 10px 10px;
+    /* z-index: 0; */
+    padding: 0px 10px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 /**

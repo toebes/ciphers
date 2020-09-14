@@ -1,7 +1,7 @@
-import { CipherHandler, IState} from "../common/cipherhandler";
+import { CipherHandler, IState } from "../common/cipherhandler";
 import { IEncoderState } from "./cipherencoder";
-import { cloneObject} from "../common/ciphercommon";
-import { RealTimeObject, RealTimeString, RealTimeArray, ArraySetEvent} from '@convergence/convergence';
+import { cloneObject } from "../common/ciphercommon";
+import { RealTimeObject, RealTimeString, RealTimeArray, ArraySetEvent } from '@convergence/convergence';
 import { bindTextInput } from '@convergence/input-element-bindings'
 
 export class InteractiveHandler extends CipherHandler {
@@ -163,7 +163,7 @@ export class InteractiveHandler extends CipherHandler {
         let realtimeSeparators = realTimeElement.elementAt("separators") as RealTimeArray;
         if (realTimeElement.hasKey("separators")) {
             let separators = realtimeSeparators.value();
-            realtimeSeparators.on("set", (event: ArraySetEvent) => {
+            realtimeSeparators.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => {
                 this.propagateSep(qnumdisp, event.index, event.value.value());
             });
             for (var i in separators) {
@@ -182,7 +182,7 @@ export class InteractiveHandler extends CipherHandler {
         //
         // the "replacements" portion is for replacement characters in the frequency table
         let realtimeReplacement = realTimeElement.elementAt("replacements") as RealTimeArray;
-        realtimeReplacement.on("set", (event: ArraySetEvent) => {
+        realtimeReplacement.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => {
             this.propagateRepl(qnumdisp, event.index, event.value.value());
         });
         // Propagate the initial values into the fields
@@ -202,7 +202,7 @@ export class InteractiveHandler extends CipherHandler {
         //
         // The "answer" portion is for the typed answer to the cipher
         let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;
-        realtimeAnswer.on("set", (event: ArraySetEvent) => {
+        realtimeAnswer.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => {
             this.propagateAns(qnumdisp, event.index, event.value.value());
         });
 
@@ -318,7 +318,7 @@ export class InteractiveHandler extends CipherHandler {
                             next = focusables.eq(current - 1);
                         }
                         next.focus();
-                    } else if ((event.which === 38 || event.which === 40) && isRails == "1"){
+                    } else if ((event.which === 38 || event.which === 40) && isRails == "1") {
                         // navigate RailFence rails up and down... no wrapping.
                         // This is used only for RailFence where the 'replacements' array is lengthened
                         // to provide input fields for 6 rails.  The input field 'id' in the replacements array

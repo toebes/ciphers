@@ -1,13 +1,14 @@
 import { CipherTest, ITestState, IAnswerTemplate } from "./ciphertest";
-import { toolMode, ITestTimeInfo, menuMode, CipherHandler, IState } from "../common/cipherhandler";
+import { toolMode, ITestTimeInfo, menuMode, IState } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
 import { cloneObject, makeCallout, timestampToFriendly, timestampMinutes, formatTime, timestampSeconds, NumberMap, StringMap } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { TrueTime } from "../common/truetime";
-import { CipherPrintFactory } from "./cipherfactory";
-import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelCollaborator } from "@convergence/convergence";
+import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelCollaborator, RealTimeString, StringSetValueEvent } from "@convergence/convergence";
 import { CipherInteractiveFactory } from "./cipherfactory";
 import { JTTable } from "../common/jttable";
+import Split from 'split-grid';
+import { JTFDialog } from "../common/jtfdialog";
 
 /**
  * CipherTestTimed
@@ -105,7 +106,7 @@ export class CipherTestTimed extends CipherTest {
      * Generates a 2 letter initials for a name
      * @param name Name to compute initials for
      */
-    public computeInitials(name:string) : string {
+    public computeInitials(name: string): string {
         let result = "";
         if (name !== "" && name !== undefined) {
             // Figure out the initials 
@@ -122,17 +123,17 @@ export class CipherTestTimed extends CipherTest {
      * @param answermodel Interactive answer model
      * @param collaborators Array of collaborators currently on the test
      */
-    private updateUserStatus(answermodel:RealTimeModel,collaborators:ModelCollaborator[]) {
+    private updateUserStatus(answermodel: RealTimeModel, collaborators: ModelCollaborator[]) {
         let answertemplate = answermodel.root().value() as IAnswerTemplate;
         for (let i = 1; i <= 3; i++) {
-            $("#part"+String(i)).removeClass("connected");
+            $("#part" + String(i)).removeClass("connected");
         }
         // First find all the users that are taking the test
-        let useridid:StringMap = {};
-        for (let i in         answertemplate.assigned) {
+        let useridid: StringMap = {};
+        for (let i in answertemplate.assigned) {
             let userid = answertemplate.assigned[i].userid;
             if (userid !== "") {
-                useridid[userid] = String(Number(i)+1);
+                useridid[userid] = String(Number(i) + 1);
             }
         }
         collaborators.forEach((collaborator: ModelCollaborator) => {
@@ -149,7 +150,7 @@ export class CipherTestTimed extends CipherTest {
                 let initials = this.computeInitials(displayname);
                 $("#user" + idslot).text(displayname);
                 $("#init" + idslot).text(initials);
-                $("#part"+idslot).addClass("connected");
+                $("#part" + idslot).addClass("connected");
             }
         });
     }
@@ -158,7 +159,7 @@ export class CipherTestTimed extends CipherTest {
      * @param answermodel Interactive answer model
      */
     private trackUsers(answermodel: RealTimeModel) {
-        answermodel.collaboratorsAsObservable().subscribe((collaborators:ModelCollaborator[]) => {
+        answermodel.collaboratorsAsObservable().subscribe((collaborators: ModelCollaborator[]) => {
             this.updateUserStatus(answermodel, collaborators);
         });
     }
@@ -166,21 +167,94 @@ export class CipherTestTimed extends CipherTest {
      * Confirm that we are the only copy for this user editing the test.
      * Note that we want to disconnect the other model, but we aren't sure how to do that yet
      * @param answermodel Interactive answer model
-     * @param userid 
+     * @param userid User taking the test
+     * @param realtimeSessionid Realtime handler for shared session id
      */
-    private confirmOnly(answermodel:RealTimeModel, userid: string){
+    private confirmOnly(answermodel: RealTimeModel, userid: string, realtimeSessionid: RealTimeString) {
+        // Figure out who is connected to the test
         let collaborators = answermodel.collaborators();
         let matches = 0;
+        let actiontaken = false;
+        // And see how many of them happen to be us
+        // We should find exactly 1 unless they are taking the test twice.
         collaborators.forEach((collaborator: ModelCollaborator) => {
             if (collaborator.user.email === userid) {
                 matches++;
             }
         });
-        if (matches > 1) {
-            console.log("Multiple users logged in, we need to drop the others");
-        } else if (matches === 0) {
+        // We didn't find ourselves.  Not much we can do about it but complain
+        if (matches === 0) {
             console.log("We can't find ourselves in the model");
         }
+        // Track changes in the session id
+        let oursessionid = answermodel.session().sessionId();
+        realtimeSessionid.on(RealTimeString.Events.VALUE, (event: StringSetValueEvent) => {
+            // If the shared sessionid changed and it isn't us, just get out.
+            if (event.element.value() != oursessionid) {
+                this.shutdownTest(answermodel, "Another session has taken over the test");
+            }
+        });
+        // See if there was more than one of us.
+        if (matches > 1) {
+            // There was, so prompt them to figure out what to do.
+            // Note that the dialog is modal and will cover the entire screen.  Since this
+            // can take some time, we don't want them peeking at the test content.
+            // But we do leave the test content there so that if they do say yes we can
+            // get back to the test quickly.
+            $("#okdisc")
+                .off("click")
+                .on("click", () => {
+                    actiontaken = true;
+                    $("#multilogindlg").foundation("close");
+                    // Set the model session id to be our session id!
+                    realtimeSessionid.value(oursessionid);
+                });
+            // Handle when they just click cancel so we go back to the 
+            $(document).on('closed.zf.reveal', '#multilogindlg[data-reveal]', () => {
+                if (!actiontaken) {
+                    this.shutdownTest(answermodel, "Test is being taken in a different window.");
+                }
+            });
+            // Change the cancel button to say "Disconnect other session and take test here"
+            $("#multilogindlg a[data-close]").text("Exit");
+            // Make the dialog hide everything instead of being transparant
+            $("#multilogindlg").parent().addClass("hideback");
+            $("#okdisc").removeAttr("disabled");
+            $("#multilogindlg").attr("data-close-on-click", "false")
+                .attr("data-close-on-esc", "false")
+                .foundation("open");
+        }
+    }
+    /**
+     * Create the hidden dialog for selecting a cipher to open
+     * @returns DOM element for the dialog
+     */
+    private createmultiLoginDlg(): JQuery<HTMLElement> {
+        let dlgContents = $("<div/>", {
+            class: "callout alert",
+        }).text("Your userid is already being used to take this test currently." +
+            "  This may be because a web page is already open to the test or " +
+            "someone may have logged into your account without you knowing.  " +
+            "You can take the test in this window or exit and let that session continue running."
+        );
+        let MultiLoginDlg = JTFDialog(
+            "multilogindlg",
+            "User already taking test",
+            dlgContents,
+            "okdisc",
+            "Disconnect other session and take test here!"
+        );
+        return MultiLoginDlg;
+    }
+    /**
+     * Create the main menu at the top of the page.
+     * This also creates any needed hidden dialogs
+     */
+    public createMainMenu(): JQuery<HTMLElement> {
+        let result = super.createMainMenu();
+        // Create the dialog for prompting about multiple test takers
+        result.append(this.createmultiLoginDlg());
+        return result;
     }
     /**
      * makeInteractive creates an interactive question by invoking the appropriate factory for the saved state
@@ -275,7 +349,7 @@ export class CipherTestTimed extends CipherTest {
                         // We need confirm that they are actually allowed to take this test.
                         // this.getConfigString("userid", "") must be non-blank and be present as one
                         // of the slots in answertemplate.assigned
-                        let userfound = false;
+                        let userfound = -1;
                         let loggedinuserid = this.getConfigString("userid", "");
                         if (loggedinuserid === "") {
                             this.shutdownTest(answermodel, "You must be logged in to be able to take a test.");
@@ -292,7 +366,7 @@ export class CipherTestTimed extends CipherTest {
                                 userid = answertemplate.assigned[i].userid;
                             }
                             if (userid === loggedinuserid) {
-                                userfound = true;
+                                userfound = i;
                             }
                             let idslot = String(Number(i) + 1);
                             if (name === "" && userid !== "") {
@@ -307,11 +381,12 @@ export class CipherTestTimed extends CipherTest {
                             }
                         }
                         // Make sure that they were found in the list of active users for this test
-                        if (!userfound) {
+                        if (userfound < 0) {
                             this.shutdownTest(answermodel, "You are not assigned to take this test.");
                         }
+                        let realtimeSessionid = answermodel.elementAt("assigned", userfound, "sessionid") as RealTimeString;
                         // Make sure that we are the only copy for this yser
-                        this.confirmOnly(answermodel, loggedinuserid);
+                        this.confirmOnly(answermodel, loggedinuserid, realtimeSessionid);
                         let testid = answertemplate.testid;
                         // Figure out if it is time to run the test
                         let now = this.testTimeInfo.truetime.UTCNow();
@@ -532,6 +607,16 @@ export class CipherTestTimed extends CipherTest {
      * @param answermodel Interactive answer model
      */
     private makeTestLive(interactive: { [key: string]: any; }, answermodel: RealTimeModel) {
+        Split({
+            minsize: 20,
+            rowMinSize: 20,
+            rowMinSizes: { 1: 20 },
+            rowGutters: [{
+                track: 1,
+                element: document.querySelector('.gutter-row-1'),
+            }]
+        });
+
         // Make sure to hide the generated DOM elements while we get them ready
         let target = $('.testcontent');
         target.hide();
@@ -542,6 +627,8 @@ export class CipherTestTimed extends CipherTest {
         for (let qnum = 0; qnum < interactive.count; qnum++) {
             this.makeInteractive(target, interactive.questions[qnum], qnum, answermodel.elementAt("answers", qnum + 1) as RealTimeObject);
         }
+        this.setMenuMode(menuMode.test);
+        $(".mainmenubar").hide();
         // Everything is ready and connected, we just need to wait until it is closer to test time
         // Start a timer waiting for it to run
         if (this.testTimeInfo.truetime.UTCNow() < this.testTimeInfo.startTime) {
@@ -595,6 +682,10 @@ export class CipherTestTimed extends CipherTest {
         answermodel.close();
         session.disconnect();
         this.setTestStatusMessage(message, this.testTimeInfo.endTime);
+        $("#topsplit").hide();
+        $(".gutter-row-1").hide();
+        $(".timer").hide();
         $('.testcontent').show();
+        $(".mainmenubar").show();
     }
 }

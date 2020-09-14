@@ -59,6 +59,7 @@ export interface ITestUser {
     idletime: number,
     confidence: number,
     notes: string,
+    sessionid: string,
 }
 export interface IAnswerTemplate {
     testid: string,

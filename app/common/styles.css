@@ -981,6 +981,16 @@ table.found tr th:nth-child(odd) {
     text-align: right;
     border-bottom: 1px solid grey;
 }
+button.rounded {
+    border-radius: 0.625rem !important;
+}
+
+.centered {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
 .button-group.round,
 .input-group-button .round {
     border-radius: 0.625rem !important;

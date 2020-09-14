@@ -816,7 +816,7 @@ export class CipherEncoder extends CipherHandler {
         result.append(table.generate());
         // Do we need the check solution for a timed question?
         if (qnum === -1) {
-            result.append($("<button/>", { type: "button", class: "Primary button expanded", id: "checktimed" }).text("Checked Timed Question"));
+            result.append($("<button/>", { type: "button", class: "button large rounded centered", id: "checktimed" }).text("Checked Timed Question"));
         }
 
         result.append(this.genInteractiveFreqTable(qnum, this.state.encodeType, extraclass));

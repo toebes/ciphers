@@ -566,7 +566,7 @@ export class CipherTestSchedule extends CipherTestManage {
             .off('change')
             .on('change', e => {
                 this.setChanged(this.getRowID($(e.target)));
-            }
+            });
         // $(".datetimepick").each((i, elem) => {
         //     let x = flatpickr(elem, {
         //         altInput: true,

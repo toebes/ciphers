@@ -107,4 +107,17 @@ export class ConvergenceAuthentication {
         return Convergence.connectWithJwt(connectUrl, signedJWT);
         // return Convergence.connectAnonymously(connectUrl);
     }
+
+    public static connectByUsernames (settings: ConvergenceSettings, usernames: Array<string>): Promise<ConvergenceDomain[]> {
+      const connectPromises: Promise<ConvergenceDomain>[] = []
+      usernames.forEach(username => {
+        connectPromises.push(this.connect(settings, { username: username, firstName: 'Awaiting', lastName: 'Name' }))
+      })
+
+      // If we ever target es2020 can use Promise.alLSettled() instead of mapping the error catches as below.
+      // If we want execution to stop of all promises if a fail occurs then comment out line below.
+      connectPromises.map(p => p.catch(e => e))
+
+      return Promise.all(connectPromises)
+    }
 }

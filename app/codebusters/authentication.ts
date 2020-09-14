@@ -108,6 +108,12 @@ export class ConvergenceAuthentication {
         // return Convergence.connectAnonymously(connectUrl);
     }
 
+    /**
+     * Connects each username given and uses 'Awaiting' for first name and 'Name' for last name.
+     * Awaits for all promises to finish (success/rejection) before returning to caller.
+     * @param settings ConvergenceSettings to use for connect
+     * @param usernames Array of usernames to connect
+     */
     public static connectByUsernames (settings: ConvergenceSettings, usernames: Array<string>): Promise<ConvergenceDomain[]> {
       const connectPromises: Promise<ConvergenceDomain>[] = []
       usernames.forEach(username => {

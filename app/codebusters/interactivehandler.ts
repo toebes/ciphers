@@ -9,7 +9,7 @@ export class InteractiveHandler extends CipherHandler {
      * Restore the state from a stored record
      * @param data Saved state to restore
      */
-    public restore(data: IEncoderState): void {
+    public restore(data: IEncoderState, suppressOutput: boolean = false): void {
         this.state = cloneObject(this.defaultstate) as IState;
         this.setSourceCharset(data.sourceCharset);
         this.copyState(this.state, data);

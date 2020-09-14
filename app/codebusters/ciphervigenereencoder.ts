@@ -67,11 +67,13 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: IState): void {
+    public restore(data: IState, suppressOutput: boolean = false): void {
         this.state = cloneObject(this.defaultstate) as IVigenereState;
         this.copyState(this.state, data);
-        this.setUIDefaults();
-        this.updateOutput();
+        if (!suppressOutput) {
+            this.setUIDefaults();
+            this.updateOutput();
+        }
     }
     /**
      * Make a copy of the current state
@@ -514,6 +516,43 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 }
             });
     }
+
+    /**
+     * Generate the score of an answered cipher
+     * @param answer - the array of characters from the interactive test.
+     */
+    public genScore(answer: string[]): number {
+        let strings = this.buildReplacementVigenere(
+            this.state.cipherString,
+            this.state.keyword,
+            9999
+        );
+        let keyword = '';
+        for (let c of this.state.keyword.toUpperCase()) {
+            if (this.isValidChar(c)) {
+                keyword += c;
+            }
+        }
+        let dest = 1;
+        if (this.state.operation === 'encode') {
+            dest = 0;
+        }
+
+        let solution = undefined
+        for (let strset of strings) {
+            solution = strset[dest].split('');
+        }
+        for (let s = 0; s < solution.length; s++) {
+            // The answer comes from the interactive test and has empty strings between
+            // words (vs. spaces).
+            if (solution[s] === ' ') {
+                solution[s] = '';
+            }
+        }
+
+        return this.calculateScore(solution, answer, this.state.points);
+    }
+
     /**
      * Generate the HTML to display the answer for a cipher
      */

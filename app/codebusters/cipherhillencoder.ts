@@ -51,11 +51,13 @@ export class CipherHillEncoder extends CipherEncoder {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: IState): void {
+    public restore(data: IState, suppressOutput: boolean = false): void {
         this.state = cloneObject(this.defaultstate) as IState;
         this.copyState(this.state, data);
-        this.setUIDefaults();
-        this.updateOutput();
+        if (!suppressOutput) {
+            this.setUIDefaults();
+            this.updateOutput();
+        }
     }
     /**
      * Make a copy of the current state

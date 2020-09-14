@@ -300,6 +300,24 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     }
 
     /**
+     * Generate the score of an answered cipher
+     * @param answer - the array of characters from the interactive test.
+     */
+    public genScore(answer: string[]) : number {
+        // Determine the solution array of characters based on genAnswer()'
+        let solution = undefined;
+        let cipherString = '';
+        for (let c of this.state.cipherString) {
+            if (this.isValidChar(c.toUpperCase())) {
+                cipherString += c;
+            }
+        }
+        solution = cipherString.toUpperCase().split('');
+
+        return this.calculateScore(solution, answer, this.state.points);
+    }
+
+    /**
      * Generate the HTML to display the answer for a cipher.
      * It is just the ciper text formatted with TOANSWER.
      */

@@ -30,15 +30,17 @@ export class CipherTestPermissions extends CipherTestManage {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: ITestState): void {
+    public restore(data: ITestState, suppressOutput: boolean = false): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;
         this.state.curlang = curlang;
         this.copyState(this.state, data);
         /** See if we have to import an XML file */
         this.checkXMLImport();
-        this.setUIDefaults();
-        this.updateOutput();
+        if (!suppressOutput) {
+            this.setUIDefaults();
+            this.updateOutput();
+        }
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar

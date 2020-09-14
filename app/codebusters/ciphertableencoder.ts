@@ -78,8 +78,8 @@ export class CipherTableEncoder extends CipherEncoder {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: IEncoderState): void {
-        super.restore(data);
+    public restore(data: IEncoderState, suppressOutput: boolean = false): void {
+        super.restore(data, suppressOutput);
     }
     public setUIDefaults(): void {
         super.setUIDefaults();
@@ -250,6 +250,34 @@ export class CipherTableEncoder extends CipherEncoder {
         );
         return result;
     }
+
+    /**
+     * Generate the score of an answered cipher
+     * @param answer - the array of characters from the interactive test.
+     */
+    public genScore(answer: string[]): number {
+        this.genAlphabet();
+        let strings = this.makeReplacement(this.state.cipherString, 9999);
+        let toanswer = 1;
+        if (this.state.operation === 'encode') {
+            toanswer = 0;
+        }
+
+        let solution = undefined
+        for (let strset of strings) {
+            solution = strset[toanswer].split('');
+        }
+        for (let s = 0; s < solution.length; s++) {
+            // The answer comes from the interactive test and has empty strings between
+            // words (vs. spaces).
+            if (solution[s] === ' ') {
+                solution[s] = '';
+            }
+        }
+
+        return this.calculateScore(solution, answer, this.state.points);
+    }
+
     /**
      * Generate the HTML to display the answer for a cipher
      */

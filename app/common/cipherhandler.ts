@@ -1823,7 +1823,7 @@ export class CipherHandler {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: IState): void { }
+    public restore(data: IState, suppressOutput: boolean = false): void { }
     public save(): IState {
         return { cipherType: ICipherType.None, cipherString: '' };
     }
@@ -2206,6 +2206,12 @@ export class CipherHandler {
             }
         }
         return table.generate();
+    }
+    /**
+     * Generate the score of an answered cipher
+     */
+    public genScore(answer: string[]): number {
+        return 1000000;
     }
     /**
      * Generate the HTML to display the answer for a cipher
@@ -3577,4 +3583,38 @@ export class CipherHandler {
     */
     public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo) {
     }
+
+    /**
+     * Calculate the score for the answer from an interactive test.  We calculate the solution
+     * on the fly based on how genAnswer() does it.
+     * @param solution - Calculated solution array of characters
+     * @param answer - Answer array of characters from interactive test
+     * @param points - number of points assigned to this question.
+     */
+    public calculateScore(solution: string[], answer: string[], points: number) : number {
+        let score: number;
+        let wrongCount = 0;
+        let penaltyLetters = 0;
+
+        for (let s = 0; s < solution.length; s++) {
+            if (solution[s] !== answer[s]) {
+                wrongCount++;
+            }
+        }
+        // Up to 2 wrong os OK
+        penaltyLetters = wrongCount - 2;
+        if (penaltyLetters < 0) {
+            score = points;
+        }
+        else {
+            // Incorrect characters are penalized 100 points each, upto the
+            // maximum number of points.
+            score = points - (100 * penaltyLetters);
+            if (score < 0) {
+                score = 0;
+            }
+        }
+        return score;
+    }
 }
+

@@ -28,13 +28,15 @@ export class CipherTakeTest extends CipherTest {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: ITestState): void {
+    public restore(data: ITestState, suppressOutput: boolean = false): void {
         let curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;
         this.state.curlang = curlang;
         this.copyState(this.state, data);
-        this.setUIDefaults();
-        this.updateOutput();
+        if (!suppressOutput) {
+            this.setUIDefaults();
+            this.updateOutput();
+        }
     }
     /**
      * Update the output based on current state settings.  This propagates

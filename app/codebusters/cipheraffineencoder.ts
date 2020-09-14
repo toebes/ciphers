@@ -84,7 +84,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: IAffineState): void {
+    public restore(data: IAffineState, suppressOutput: boolean = false): void {
         this.state = cloneObject(this.defaultstate) as IAffineState;
         this.copyState(this.state, data);
         if (isNaN(this.state.solclick1)) {

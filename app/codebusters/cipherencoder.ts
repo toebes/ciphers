@@ -138,11 +138,13 @@ export class CipherEncoder extends CipherHandler {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: IEncoderState): void {
+    public restore(data: IEncoderState, suppressOutput: boolean = false): void {
         this.state = cloneObject(this.defaultstate) as IState;
         this.copyState(this.state, data);
-        this.setUIDefaults();
-        this.updateOutput();
+        if (!suppressOutput) {
+            this.setUIDefaults();
+            this.updateOutput();
+        }
     }
     /**
      * Cleans up any settings, range checking and normalizing any values.
@@ -663,6 +665,27 @@ export class CipherEncoder extends CipherHandler {
         }
         return "Not valid for " + this.getTestTypeName(testType);
     }
+
+    /**
+     * Generate the score of an answered cipher
+     * @param answer - the array of characters from the interactive test.
+     */
+    public genScore(answer: string[]): number {
+        let strings = this.genTestStrings(ITestType.None);
+
+        let toanswer = 1;
+        if (this.state.operation === 'encode') {
+            toanswer = 0;
+        }
+
+        let solution = undefined
+        for (let strset of strings) {
+            solution = strset[toanswer].split('');
+        }
+
+        return this.calculateScore(solution, answer, this.state.points);
+    }
+
     /**
      * Generate the HTML to display the answer for a cipher
      */

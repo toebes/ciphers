@@ -1,7 +1,7 @@
 import { CipherTest, ITestState, IAnswerTemplate } from "./ciphertest";
 import { toolMode, ITestTimeInfo, menuMode, IState } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
-import { cloneObject, makeCallout, timestampToFriendly, timestampMinutes, formatTime, timestampSeconds, NumberMap, StringMap } from "../common/ciphercommon";
+import { cloneObject, makeCallout, timestampToFriendly, timestampFromMinutes, formatTime, timestampFromSeconds, NumberMap, StringMap } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { TrueTime } from "../common/truetime";
 import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelCollaborator, RealTimeString, StringSetValueEvent } from "@convergence/convergence";
@@ -91,7 +91,7 @@ export class CipherTestTimed extends CipherTest {
 
         let content = msg;
         if (timestamp !== undefined) {
-            content += timestampToFriendly(timestamp / timestampSeconds(1));
+            content += timestampToFriendly(timestamp / timestampFromSeconds(1));
         }
         target.empty().append(makeCallout($("<h3/>").text(content)));
     }
@@ -398,7 +398,7 @@ export class CipherTestTimed extends CipherTest {
                         if (now > this.testTimeInfo.endTime) {
                             this.shutdownTest(answermodel);
                             return;
-                        } else if (now + timestampMinutes(15) < this.testTimeInfo.startTime) {
+                        } else if (now + timestampFromMinutes(15) < this.testTimeInfo.startTime) {
                             // They are way too early.  
                             this.setTestStatusMessage("The test is not ready to start.  It is scheduled ", this.testTimeInfo.startTime);
                             answermodel.close();
@@ -422,12 +422,12 @@ export class CipherTestTimed extends CipherTest {
      * @param answertemplate 
      */
     private waitToLoadTestModel(modelService, testid: any, answermodel: RealTimeModel) {
-        if (this.testTimeInfo.truetime.UTCNow() < (this.testTimeInfo.startTime - timestampMinutes(5))) {
+        if (this.testTimeInfo.truetime.UTCNow() < (this.testTimeInfo.startTime - timestampFromMinutes(5))) {
             this.setTimerMessage("The test will start in ");
             let intervaltimer = setInterval(() => {
                 let now = this.testTimeInfo.truetime.UTCNow();
                 let remaining = this.testTimeInfo.startTime - now;
-                if (remaining < timestampMinutes(5)) {
+                if (remaining < timestampFromMinutes(5)) {
                     clearInterval(intervaltimer);
                     this.openTestModel(modelService, testid, answermodel);
                 } else {
@@ -581,13 +581,13 @@ export class CipherTestTimed extends CipherTest {
         this.trackUsers(answermodel);
         $(".timer").show();
 
-        if (this.testTimeInfo.truetime.UTCNow() < (this.testTimeInfo.startTime - timestampSeconds(10))) {
+        if (this.testTimeInfo.truetime.UTCNow() < (this.testTimeInfo.startTime - timestampFromSeconds(10))) {
             // Start a timer to wait until get get to 10 seconds in.  During
             // that time, we need to update the timer display to let them know how long is left.
             let intervaltimer = setInterval(() => {
                 let now = this.testTimeInfo.truetime.UTCNow();
                 let remaining = this.testTimeInfo.startTime - now;
-                if (remaining < timestampSeconds(10)) {
+                if (remaining < timestampFromSeconds(10)) {
                     // Is it that time already? Stop timing and go to the next step
                     clearInterval(intervaltimer);
                     this.makeTestLive(interactive, answermodel);
@@ -639,7 +639,7 @@ export class CipherTestTimed extends CipherTest {
             let intervaltimer = setInterval(() => {
                 let now = this.testTimeInfo.truetime.UTCNow();
                 let remaining = this.testTimeInfo.startTime - now;
-                if (remaining < timestampSeconds(1)) {
+                if (remaining < timestampFromSeconds(1)) {
                     clearInterval(intervaltimer);
                     this.runTestLive(answermodel);
                 }

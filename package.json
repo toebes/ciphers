@@ -66,6 +66,7 @@
         "es5-shim": "^4.5.14",
         "es6-shim": "^0.35.5",
         "eslint-plugin-prettier": "^3.1.4",
+        "flatpickr": "^4.6.6",
         "foundation-sites": "^6.6.3",
         "fs": "0.0.1-security",
         "jquery": "^3.5.1",

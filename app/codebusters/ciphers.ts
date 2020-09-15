@@ -31,6 +31,7 @@ import "foundation.css";
 import "foundation-sites";
 import "katex.css";
 import "../common/styles.css";
+import "flatpickr.css";
 
 import { CipherHandler } from "../common/cipherhandler";
 import { CipherFactory } from "./cipherfactory";

@@ -9,6 +9,9 @@ import { ConvergenceDomain, RealTimeModel, ModelService, ModelPermissions, Domai
 import { JTFIncButton } from "../common/jtfIncButton";
 import { JTFDialog } from "../common/jtfdialog";
 
+import * as _flatpickr from 'flatpickr';
+import { FlatpickrFn } from 'flatpickr/dist/types/instance';
+const flatpickr: FlatpickrFn = _flatpickr as any;
 /**
  * CipherTestScheduled
  *    This shows a list of all Scheduled tests.
@@ -649,14 +652,14 @@ export class CipherTestSchedule extends CipherTestManage {
             .on('change', e => {
                 this.setChanged(this.getRowID($(e.target)));
             });
-        // $(".datetimepick").each((i, elem) => {
-        //     let x = flatpickr(elem, {
-        //         altInput: true,
-        //         enableTime: true,
-        //         dateFormat: "M j, Y H:i",
-        //         minDate: "today",
-        //         allowInput: true,
-        //     })
-        // });
+        $(".datetimepick").each((i, elem) => {
+            let x = flatpickr(elem, {
+                altInput: true,
+                enableTime: true,
+                dateFormat: "M j, Y H:i",
+                minDate: "today",
+                allowInput: true,
+            })
+        });
     }
 }

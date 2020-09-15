@@ -41,6 +41,13 @@ module.exports = {
                 'html5sortable.cjs.js'
             ),
             'styles-css': path.join(__dirname, 'styles.css'),
+            'flatpickr.css': path.join(
+                __dirname,
+                'node_modules',
+                'flatpickr',
+                'dist',
+                'flatpickr.css'
+            ),
             'foundation.css': path.join(
                 __dirname,
                 'node_modules',

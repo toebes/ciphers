@@ -83,7 +83,7 @@ export class TrueTime {
         return curtime;
     }
     /**
-     * Internal timer driven function that 
+     * Internal timer driven function that checks to see if someone has adjusted the clock
      */
     private validateInterval() {
         let curtime = this.UTCNow();
@@ -130,24 +130,35 @@ export class TrueTime {
         this.previousTime = undefined;
     }
     /**
-     * syncTime checks to see 
+     * syncTime checks to see how far off we are from the server time
      */
     public syncTime() {
         $.getJSON("https://toebes.com/codebusters/time.php")
             .done(data => {
+                // We received a response with the current time.  Note that it may have taken
+                // some time for it to get to us, but on average we can assume that the delay is
+                // mostly the same from call to call and unlikely to be more than a couple hundred
+                // milliseconds. 
                 let curtime = Date.now();
+                // Figure out how far off the time the server tolds us it is from the current time (all is in UTC)
                 let delta = curtime - data.microtime;
                 if (!this.validOffset) {
+                    // We've never set the offset, so update it now
                     this.updateOffset(delta);
                 } else {
+                    // We previously had an offset, see how far off we are now relative to previously
                     let change = Math.abs(delta - this.timeOffset);
+                    // See if we have drifted more than we want
                     if (change > timestampSeconds(this.maxDrift)) {
+                        // We are out of our drift tolerance, then we will have to update it.
                         this.updateOffset(delta);
-                        let msg = "Time has drifted by more than " + this.maxDrift + " seconds.  Adjusting to " + delta;
+                        // And let someone know that it has
+                        let msg = "Time has drifted by more than " + String(this.maxDrift) + " seconds.  Adjusting to " + String(timestampSeconds(delta));
                         this.notifyFunc(msg);
                     }
                 }
                 console.log("**Time Result: Delta=", delta + " curtime=" + curtime + " Date:" + Date()); console.log(data);
+                // Track when we last did this so that we don't ask too often
                 this.lastSyncTime = this.UTCNow();
             })
             .fail(error => { console.log("**TIME FAIL:" + error); });

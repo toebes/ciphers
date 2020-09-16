@@ -1,7 +1,7 @@
 import { toolMode, IState, menuMode } from "../common/cipherhandler";
 import { ITestState, IAnswerTemplate } from "./ciphertest";
 import { ICipherType } from "../common/ciphertypes";
-import { cloneObject, timestampToISOLocalString, timestampMinutes } from "../common/ciphercommon";
+import { cloneObject, timestampFromMinutes } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTTable } from "../common/jttable";
 import { ConvergenceDomain, RealTimeModel } from "@convergence/convergence";
@@ -126,7 +126,7 @@ export class CipherTakeTest extends CipherTest {
         if (answertemplate.endtime < now) {
             let endtime = new Date(answertemplate.endtime).toLocaleString();
             buttons.append("Test ended at " + endtime);
-        } else if (answertemplate.starttime > now + timestampMinutes(30)) {
+        } else if (answertemplate.starttime > now + timestampFromMinutes(30)) {
             let starttime = new Date(answertemplate.starttime).toLocaleString();
             buttons.append("Test starts at " + starttime);
         } else {

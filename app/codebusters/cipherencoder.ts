@@ -111,7 +111,8 @@ export class CipherEncoder extends CipherHandler {
             sourceCharset: this.getSourceCharset(),
         };
         let interactiveContent = $("<div/>").append(this.genInteractive(qnum, testType));
-        result.testHTML = interactiveContent.html();
+        let testHTML = interactiveContent.html()
+        result.testHTML = this.obverse(testHTML);
         // Do we need to save information for testing the solution?
         if (isTimed) {
             result.solMap = this.getRandomAlphabet();
@@ -817,7 +818,7 @@ export class CipherEncoder extends CipherHandler {
         result.append(table.generate());
         // Do we need the check solution for a timed question?
         if (qnum === -1) {
-            result.append($("<button/>", { type: "button", class: "Primary button expanded", id: "checktimed" }).text("Checked Timed Question"));
+            result.append($("<button/>", { type: "button", class: "button large rounded centered", id: "checktimed" }).text("Checked Timed Question"));
         }
 
         result.append(this.genInteractiveFreqTable(qnum, this.state.encodeType, extraclass));

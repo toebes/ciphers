@@ -6,7 +6,7 @@ import {cloneObject} from "../common/ciphercommon";
 import {JTButtonItem} from "../common/jtbuttongroup";
 import {JTTable} from "../common/jttable";
 import {ConvergenceDomain, ModelService} from "@convergence/convergence";
-import {CipherFactory, CipherPrintFactory} from "./cipherfactory";
+import {CipherPrintFactory} from "./cipherfactory";
 
 /**
  * CipherTestPublished
@@ -66,7 +66,9 @@ export class CipherTestResults extends CipherTestManage {
         // Once we have the test template, then we will be able to find all the scheduled tests
         this.connectRealtime()
             .then((domain: ConvergenceDomain) => {
-                this.openTestSource(domain, this.state.testID); });
+                this.openTestSource(domain, this.state.testID);
+                $(".ans").remove();
+            });
         return result;
     }
     /**
@@ -217,25 +219,49 @@ export class CipherTestResults extends CipherTestManage {
                             userList += users[i].displayname;
                         }
 
+                        // Create a table with this test's detailed results
+                        let viewTable = new JTTable({ class: 'cell shrink testscores' });
+                        let hasTimed = false;
+                        let viewTableHeader = viewTable.addHeaderRow();
+                        viewTableHeader.add('Question')
+                            .add('Value')
+                            .add('Cipher type')
+                            .add('Incorrect letters')
+                            .add('Deduction')
+                            .add('Score');
+
                         let answers = result.data.answers;
                         // Loop thru questions to tabulate the score.
                         //console.log("The answer count is: " + answers.length.toString());
                         let testScore = 0;
-                        let testScorePromise = undefined;
+                        let scoreInformation = undefined;
                         let testInformation = theTest['TEST.0'];
                         let timeQuestion = testInformation['timed'];
                         if (timeQuestion != -1) {
+
+                        }
+                        if (timeQuestion != -1) {
+                            hasTimed = true;
                             let question = 'CIPHER.' + timeQuestion;
                             let state = theTest[question]
                             let ihandler = CipherPrintFactory(state.cipherType, state.curlang);
                             ihandler.restore(state, true);
-                            testScore += ihandler.genScore(answers[0].answer);
+                            scoreInformation = ihandler.genScore(answers[0].answer);
+                            testScore += scoreInformation.score;
                             // tally final score which includes the bonus.
                             testScore += this.calculateTimingBonus((bonusTime - startTime)/1000);
+                            let viewTableRow = viewTable.addBodyRow();
+                            viewTableRow.add('Timed')
+                                .add(state.points.toString())
+                                .add(state.cipherType)
+                                .add(scoreInformation.incorrect)
+                                .add(scoreInformation.deduction)
+                                .add(scoreInformation.score.toString());
                         }
                         let questions = testInformation['questions'];
                         for (let i = 1; i < answers.length; i++) {
                             let answer = answers[i].answer;
+                            let viewTableRow = viewTable.addBodyRow();
                             console.log("Answer " + i + " is " + answer);
                             // Find the right class to render the cipher but questions array does not
                             // contain the timed question.
@@ -244,9 +270,44 @@ export class CipherTestResults extends CipherTestManage {
                             let state = theTest[question];
                             let ihandler = CipherPrintFactory(state.cipherType, state.curlang);
                             ihandler.restore(state, true);
-                            console.log("This question scored at: " + ihandler.genScore(answer).toString());
-                            testScore += ihandler.genScore(answer);
+
+                            try {
+                                scoreInformation = ihandler.genScore(answer);
+                                console.log("This question scored at: " + scoreInformation.score.toString());
+
+                            } catch (e) {
+                                scoreInformation.incorrect = '?';
+                                scoreInformation.deduction = '?';
+                                scoreInformation.score = 1;
+                                console.log("Unable to handle genScore() in cipher: " + state.cipherType +
+                                    " on question: " + questions[(i-1)].toString());
+                                e.stackTrace
+                            }
+                            testScore += scoreInformation.score;
+                            viewTableRow.add(i.toString())
+                                .add(state.points.toString())
+                                .add(state.cipherType)
+                                .add(scoreInformation.incorrect)
+                                .add(scoreInformation.deduction)
+                                .add(scoreInformation.score.toString());
                         }
+
+                        if (hasTimed) {
+                            let bonusTableRow = viewTable.addFooterRow();
+                            bonusTableRow.add('Bonus')
+                                .add({
+                                    settings: {colspan: 4, class: 'grey' },
+                                    content: '',
+                                })
+                                .add(this.calculateTimingBonus((bonusTime - startTime) / 1000).toString());
+                        }
+                        let totalTableRow = viewTable.addFooterRow();
+                        totalTableRow.add('Final score')
+                            .add({
+                                settings: {colspan: 4, class: 'grey' },
+                                content: '',
+                            })
+                            .add(testScore.toString());
 
                         row.add(buttons)
                             .add(testStarted) // Start Time
@@ -255,6 +316,14 @@ export class CipherTestResults extends CipherTestManage {
                             .add(userList)
                             .add(/*testScorePromise.then(toString()*/testScore.toString()); // Takers
                         // Need to add the entry
+                        let viewRow = table.addBodyRow();
+                        viewRow.add({
+                            settings: {colspan: 6},
+                            content: $('<div/>', { class: result.modelId }).append(viewTable.generate()),
+                        });
+                        /*content: $('<div/>').append(viewTable.generate()), */
+                        /*content: $('#scoretable').append(viewTable.generate()), */
+
                         total++;
                     }
                 });
@@ -277,6 +346,11 @@ export class CipherTestResults extends CipherTestManage {
      */
     public attachHandlers(): void {
         super.attachHandlers();
+        $('.pubview')
+            .off('click')
+            .on('click', e => {
+                $('.sdf').show();
+            });
     }
 
     /**

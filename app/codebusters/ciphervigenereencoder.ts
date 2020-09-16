@@ -4,7 +4,7 @@ import {
     IState,
     ITestType,
     toolMode,
-    ITestQuestionFields,
+    ITestQuestionFields, IScoreInformation,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -521,7 +521,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Generate the score of an answered cipher
      * @param answer - the array of characters from the interactive test.
      */
-    public genScore(answer: string[]): number {
+    public genScore(answer: string[]): IScoreInformation {
         let strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,

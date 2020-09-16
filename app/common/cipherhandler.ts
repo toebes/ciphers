@@ -273,6 +273,18 @@ export interface IInteractiveTest {
     qdata: IQuestionData[];
 }
 
+/**
+ * All the information about the score of a question.
+ */
+export interface IScoreInformation {
+    /** Totals incorrect letters -- goes right in the result table */
+    incorrect: string;
+    /** Deduction, max is number of points -- goes right in the result table*/
+    deduction: string;
+    /** Score for this question -- added to running total score */
+    score: number;
+}
+
 type patelem = [string, number, number, number];
 type JQElement = JQuery<HTMLElement>;
 /**
@@ -2210,8 +2222,12 @@ export class CipherHandler {
     /**
      * Generate the score of an answered cipher
      */
-    public genScore(answer: string[]): number {
-        return 1000000;
+    public genScore(answer: string[]): IScoreInformation {
+        let scoreInformation: IScoreInformation =
+            {incorrect: 'all',
+            deduction: 'max',
+            score: 1000000};
+        return scoreInformation;
     }
     /**
      * Generate the HTML to display the answer for a cipher
@@ -3591,7 +3607,15 @@ export class CipherHandler {
      * @param answer - Answer array of characters from interactive test
      * @param points - number of points assigned to this question.
      */
-    public calculateScore(solution: string[], answer: string[], points: number) : number {
+    public calculateScore(solution: string[], answer: string[], points: number) : IScoreInformation {
+
+        console.log("Length of solution: " + solution.length.toString() +
+                    "\nLength of answer:  " + answer.length.toString());
+        let scoreInformation: IScoreInformation = {
+            incorrect: '-',
+            deduction: '-',
+            score: 0
+        };
         let score: number;
         let wrongCount = 0;
         let penaltyLetters = 0;
@@ -3614,7 +3638,10 @@ export class CipherHandler {
                 score = 0;
             }
         }
-        return score;
+        scoreInformation.incorrect = wrongCount.toString();
+        scoreInformation.deduction = (points - score).toString();
+        scoreInformation.score = score;
+        return scoreInformation;
     }
 }
 

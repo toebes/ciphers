@@ -1,5 +1,5 @@
 import {cloneObject, StringMap, sanitizeString, makeFilledArray} from '../common/ciphercommon';
-import {IState, ITestQuestionFields, ITestType, toolMode} from '../common/cipherhandler';
+import {IState, ITestQuestionFields, ITestType, IScoreInformation, toolMode} from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
@@ -303,7 +303,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * Generate the score of an answered cipher
      * @param answer - the array of characters from the interactive test.
      */
-    public genScore(answer: string[]) : number {
+    public genScore(answer: string[]) : IScoreInformation {
         // Determine the solution array of characters based on genAnswer()'
         let solution = undefined;
         let cipherString = '';

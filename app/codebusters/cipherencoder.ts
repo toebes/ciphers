@@ -111,7 +111,8 @@ export class CipherEncoder extends CipherHandler {
             sourceCharset: this.getSourceCharset(),
         };
         let interactiveContent = $("<div/>").append(this.genInteractive(qnum, testType));
-        result.testHTML = interactiveContent.html();
+        let testHTML = interactiveContent.html()
+        result.testHTML = this.obverse(testHTML);
         // Do we need to save information for testing the solution?
         if (isTimed) {
             result.solMap = this.getRandomAlphabet();

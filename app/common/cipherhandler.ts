@@ -1219,6 +1219,20 @@ export class CipherHandler {
         return '';
     }
     /**
+     * Obfuscate a string with a reversable operation (akin to rot13 but using other characters too)
+     * @param str String to revewse
+     */
+    public obverse(str: string): string {
+        let repl: StringMap = {};
+        const cmap1: string = "<=> abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const cmap2: string = "YObkT>hFBZRcGV UzvKqptMrDnIPXmHeJuNdiAwCoSsE=xWgLaljQy<f";
+        for (let i = 0; i < cmap1.length; i++) {
+            repl[cmap1[i]] = cmap2[i];
+        }
+
+        return str.replace(/[<>= a-z]/gi, c => repl[c])
+    }
+    /**
      * Gets the string that corresponds to a running key entry in local storage
      */
     public getRunningKeyName(entry: number): string {
@@ -3591,7 +3605,7 @@ export class CipherHandler {
      * @param answer - Answer array of characters from interactive test
      * @param points - number of points assigned to this question.
      */
-    public calculateScore(solution: string[], answer: string[], points: number) : number {
+    public calculateScore(solution: string[], answer: string[], points: number): number {
         let score: number;
         let wrongCount = 0;
         let penaltyLetters = 0;

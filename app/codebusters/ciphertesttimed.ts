@@ -314,7 +314,7 @@ export class CipherTestTimed extends CipherTest {
             );
             result.append(qtext);
             // pull in the saved interactive content
-            result.append($(state.testHTML));
+            result.append($(this.obverse(state.testHTML)));
             // Put that into the DOM so that the browser makes it active
             elem.append(result);
             // Now that it is active, we can attach all the handlers to it to process the data and keep

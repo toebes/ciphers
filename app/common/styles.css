@@ -1,5 +1,7 @@
 /* textarea, input, */
-.ibox, .ui-spinner, /* .note-editor, */ .ui-sel /*, .note */ {
+.ibox,
+.ui-spinner,
+.ui-sel {
     display: block;
     margin-left: 160px;
     margin-bottom: 10px;
@@ -8,6 +10,7 @@
 :target {
     background-color: #ffffcc !important;
 }
+.hidden,
 .qplain {
     display: none;
 }

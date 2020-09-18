@@ -266,7 +266,7 @@ export function getPolybiusKey(polybius: string[][]): string {
 export function formatTime(interval: number): string {
     let result = "";
     let minutepad = " ";
-    interval /=  timestampSeconds(1);
+    interval /= timestampFromSeconds(1);
     // Only put the hour on there if the interval is more than an hour.
     let hours = Math.trunc(interval / (60 * 60));
     if (hours > 0) {
@@ -286,7 +286,7 @@ export function formatTime(interval: number): string {
  * @param seconds number of seconds to convert
  * @returns number of miliseconds in a timestamp
  */
-export function timestampSeconds(seconds: number): number {
+export function timestampFromSeconds(seconds: number): number {
     return seconds * 1000;
 }
 /**
@@ -294,7 +294,7 @@ export function timestampSeconds(seconds: number): number {
  * @param seconds number of minutes to convert
  * @returns number of miliseconds in a timestamp
  */
-export function timestampMinutes(minutes: number): number {
+export function timestampFromMinutes(minutes: number): number {
     return minutes * 60 * 1000;
 }
 /**
@@ -319,7 +319,7 @@ export function timestampMinutes(minutes: number): number {
  * @returns Localized time stamp in ISO format
  */
 export function timestampToISOLocalString(datetime: number, includeseconds?: boolean) {
-    let tzOffset = timestampMinutes(new Date().getTimezoneOffset());
+    let tzOffset = timestampFromMinutes(new Date().getTimezoneOffset());
     let dateobj = new Date(datetime - tzOffset);
     let iso = dateobj.toISOString();
     let len = 16;
@@ -328,14 +328,34 @@ export function timestampToISOLocalString(datetime: number, includeseconds?: boo
     }
     return iso.substr(0, len);
 }
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 /**
  * Generate a friendly date.  
  * @param datetime Timestamp to be printed
  * @returns string human readable localized time
  */
 export function timestampToFriendly(datetime: number, includeTime?: boolean): string {
+    // dd-MMM-yy hh:mm ap
     let date = new Date(datetime);
-    return date.toLocaleString();
+    let month = MONTHS[date.getMonth()];
+    let day = date.getDate();
+    let year = date.getFullYear().toString().substring(2);
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    let ampm = ' AM';
+    if (hours > 12) {
+        ampm = ' PM';
+        hours %= 12;
+    }
+    if (hours === 0) {
+        hours = 12;
+    }
+
+    let dateStamp = day + '-' + month + '-' + year;
+    let timeStamp = hours + ':' + minutes +  ampm;
+    return dateStamp + ' ' + timeStamp;
 }
 /**
  * A timestamp which represents as far into the future as possible.  For now

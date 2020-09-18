@@ -2,7 +2,7 @@ import { CipherTestManage } from "./ciphertestmanage";
 import { toolMode, IState } from "../common/cipherhandler";
 import { ITestState, IAnswerTemplate, ITestUser } from './ciphertest';
 import { ICipherType } from "../common/ciphertypes";
-import { cloneObject, timestampToISOLocalString, timestampMinutes, BoolMap, timestampForever } from "../common/ciphercommon";
+import { cloneObject, timestampToISOLocalString, timestampFromMinutes, BoolMap, timestampForever } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTTable } from "../common/jttable";
 import { ConvergenceDomain, RealTimeModel, ModelService, ModelPermissions, DomainUser, DomainUserType } from "@convergence/convergence";
@@ -144,11 +144,11 @@ export class CipherTestSchedule extends CipherTestManage {
                         for (let i in answertemplate.assigned) {
                             userids[i] = answertemplate.assigned[i].userid;
                         }
-                        let testlength = Math.round((answertemplate.endtime - answertemplate.starttime) / timestampMinutes(1));
+                        let testlength = Math.round((answertemplate.endtime - answertemplate.starttime) / timestampFromMinutes(1));
                         if (answertemplate.endtime === timestampForever) {
                             testlength = 0;
                         }
-                        let timedlength = Math.round((answertemplate.endtimed - answertemplate.starttime) / timestampMinutes(1));
+                        let timedlength = Math.round((answertemplate.endtimed - answertemplate.starttime) / timestampFromMinutes(1));
                         row.add(buttons)
                             .add($("<div>")
                                 .append($("<input/>", { type: "text", id: "U0_" + eid, value: userids[0] }))
@@ -189,8 +189,8 @@ export class CipherTestSchedule extends CipherTestManage {
                 let newAnswerTemplate: IAnswerTemplate = {
                     testid: this.answerTemplate.testid,
                     starttime: starttime,
-                    endtime: starttime + timestampMinutes(50),
-                    endtimed: starttime + timestampMinutes(10),
+                    endtime: starttime + timestampFromMinutes(50),
+                    endtimed: starttime + timestampFromMinutes(10),
                     assigned: [],
                     answers: this.answerTemplate.answers
                 }
@@ -265,11 +265,11 @@ export class CipherTestSchedule extends CipherTestManage {
         let testDuration = $("#D_" + eid).val() as number;
         let timedDuration = $("#T_" + eid).val() as number;
         let starttime = Date.parse(testStart);
-        let endtime = starttime + timestampMinutes(testDuration);
+        let endtime = starttime + timestampFromMinutes(testDuration);
         if (testDuration === 0) {
             endtime = timestampForever;
         }
-        let endtimed = starttime + timestampMinutes(timedDuration);
+        let endtimed = starttime + timestampFromMinutes(timedDuration);
         $("#SV" + eid).attr("disabled", "disabled");
 
         this.connectRealtime().then((domain: ConvergenceDomain) => {

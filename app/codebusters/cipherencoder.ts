@@ -7,7 +7,7 @@ import {
     ITestType,
     menuMode,
     toolMode,
-    ITestQuestionFields,
+    ITestQuestionFields, IScoreInformation,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -111,7 +111,8 @@ export class CipherEncoder extends CipherHandler {
             sourceCharset: this.getSourceCharset(),
         };
         let interactiveContent = $("<div/>").append(this.genInteractive(qnum, testType));
-        result.testHTML = interactiveContent.html();
+        let testHTML = interactiveContent.html()
+        result.testHTML = this.obverse(testHTML);
         // Do we need to save information for testing the solution?
         if (isTimed) {
             result.solMap = this.getRandomAlphabet();
@@ -670,7 +671,8 @@ export class CipherEncoder extends CipherHandler {
      * Generate the score of an answered cipher
      * @param answer - the array of characters from the interactive test.
      */
-    public genScore(answer: string[]): number {
+    public genScore(answer: string[]): IScoreInformation {
+        this.maxEncodeWidth = 99999;
         let strings = this.genTestStrings(ITestType.None);
 
         let toanswer = 1;
@@ -678,9 +680,9 @@ export class CipherEncoder extends CipherHandler {
             toanswer = 0;
         }
 
-        let solution = undefined
+        let solution: string[] = [];
         for (let strset of strings) {
-            solution = strset[toanswer].split('');
+            solution = solution.concat(strset[toanswer].split(''));
         }
 
         return this.calculateScore(solution, answer, this.state.points);

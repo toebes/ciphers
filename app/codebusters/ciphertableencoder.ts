@@ -1,5 +1,5 @@
 import {BoolMap, cloneObject, makeFilledArray, StringMap} from '../common/ciphercommon';
-import {ITestQuestionFields, ITestType, toolMode} from '../common/cipherhandler';
+import {ITestQuestionFields, ITestType, IScoreInformation, toolMode} from '../common/cipherhandler';
 import { CipherTypeButtonItem, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
@@ -255,7 +255,7 @@ export class CipherTableEncoder extends CipherEncoder {
      * Generate the score of an answered cipher
      * @param answer - the array of characters from the interactive test.
      */
-    public genScore(answer: string[]): number {
+    public genScore(answer: string[]): IScoreInformation {
         this.genAlphabet();
         let strings = this.makeReplacement(this.state.cipherString, 9999);
         let toanswer = 1;

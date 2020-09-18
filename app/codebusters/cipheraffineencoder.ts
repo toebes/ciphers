@@ -1,5 +1,5 @@
 import { cloneObject, StringMap, makeFilledArray } from '../common/ciphercommon';
-import { IState, ITestType, toolMode, ITestQuestionFields } from '../common/cipherhandler';
+import {IState, ITestType, toolMode, ITestQuestionFields, IScoreInformation} from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
@@ -531,6 +531,31 @@ export class CipherAffineEncoder extends CipherEncoder {
         }
         return result;
     }
+
+    /**
+     * Generate the score of an answered cipher
+     * @param answer - the array of characters from the interactive test.
+     */
+    genScore(answer: string[]): IScoreInformation {
+        let cipherindex = 1;
+        if (this.state.operation === 'encode') {
+            cipherindex = 0;
+        }
+        this.genAlphabet();
+        let strings = this.buildReplacement(this.state.cipherString, 9999);
+        let solution: string[] = [];
+        for (let strset of strings) {
+            solution = solution.concat(strset[cipherindex].split(''));
+        }
+        //TODO: should we need to do this or should it be done on data entry?
+        let upperAnswer: string[] = [];
+        for (let i = 0; i < answer.length; i++) {
+            upperAnswer[i] = answer[i].toUpperCase();
+        }
+
+        return this.calculateScore(solution, upperAnswer, this.state.points);
+    }
+
     /**
      * Generate the HTML to display the answer for a cipher
      */

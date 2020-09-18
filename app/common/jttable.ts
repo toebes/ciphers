@@ -53,6 +53,7 @@ function isRowParms(parms: JTRowParms | JTRowItems): parms is JTRowParms {
 export class JTRow {
     public celltype: string;
     public row: JTRowItems;
+    public rowClass: string;
     public attrset: JQuery.PlainObject;
     constructor(parms?: JTRowParms | JTRowItems) {
         this.celltype = "td";
@@ -66,6 +67,9 @@ export class JTRow {
                 }
                 if (parms.row !== undefined) {
                     this.row = parms.row;
+                }
+                if (parms.class !== undefined) {
+                    this.rowClass = parms.class;
                 }
             }
         }
@@ -98,6 +102,9 @@ export class JTRow {
             return null;
         }
         let row = $("<tr/>");
+        if (this.rowClass !== undefined) {
+            row.addClass(this.rowClass);
+        }
         if (this.attrset !== undefined) {
             row.attr(this.attrset);
         }

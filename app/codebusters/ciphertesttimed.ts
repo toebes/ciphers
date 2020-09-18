@@ -91,7 +91,7 @@ export class CipherTestTimed extends CipherTest {
 
         let content = msg;
         if (timestamp !== undefined) {
-            content += timestampToFriendly(timestamp / timestampFromSeconds(1));
+            content += timestampToFriendly(timestamp );
         }
         target.empty().append(makeCallout($("<h3/>").text(content)));
     }

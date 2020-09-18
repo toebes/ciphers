@@ -527,12 +527,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
             this.state.keyword,
             9999
         );
-        let keyword = '';
-        for (let c of this.state.keyword.toUpperCase()) {
-            if (this.isValidChar(c)) {
-                keyword += c;
-            }
-        }
         let dest = 1;
         if (this.state.operation === 'encode') {
             dest = 0;
@@ -541,13 +535,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
         let solution = undefined
         for (let strset of strings) {
             solution = strset[dest].split('');
-        }
-        for (let s = 0; s < solution.length; s++) {
-            // The answer comes from the interactive test and has empty strings between
-            // words (vs. spaces).
-            if (solution[s] === ' ') {
-                solution[s] = '';
-            }
         }
 
         return this.calculateScore(solution, answer, this.state.points);

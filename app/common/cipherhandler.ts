@@ -3635,8 +3635,12 @@ export class CipherHandler {
         let penaltyLetters = 0;
 
         for (let s = 0; s < solution.length; s++) {
-            if (solution[s] !== answer[s]) {
-                wrongCount++;
+            //console.log("Solution: " + solution[s] + " == " + answer[s] + " :Answer");
+            if (this.isValidChar(solution[s])) {
+                if (solution[s] !== answer[s]) {
+                    //console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+                    wrongCount++;
+                }
             }
         }
         // Up to 2 wrong os OK

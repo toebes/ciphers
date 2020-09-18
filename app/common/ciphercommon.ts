@@ -328,14 +328,34 @@ export function timestampToISOLocalString(datetime: number, includeseconds?: boo
     }
     return iso.substr(0, len);
 }
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 /**
  * Generate a friendly date.  
  * @param datetime Timestamp to be printed
  * @returns string human readable localized time
  */
 export function timestampToFriendly(datetime: number, includeTime?: boolean): string {
+    // dd-MMM-yy hh:mm ap
     let date = new Date(datetime);
-    return date.toLocaleString();
+    let month = MONTHS[date.getMonth()];
+    let day = date.getDate();
+    let year = date.getFullYear().toString().substring(2);
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    let ampm = ' AM';
+    if (hours > 12) {
+        ampm = ' PM';
+        hours %= 12;
+    }
+    if (hours === 0) {
+        hours = 12;
+    }
+
+    let dateStamp = day + '-' + month + '-' + year;
+    let timeStamp = hours + ':' + minutes +  ampm;
+    return dateStamp + ' ' + timeStamp;
 }
 /**
  * A timestamp which represents as far into the future as possible.  For now

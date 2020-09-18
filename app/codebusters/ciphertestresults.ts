@@ -2,7 +2,7 @@ import {CipherTestManage} from "./ciphertestmanage";
 import {IState, toolMode} from "../common/cipherhandler";
 import {ITestState} from './ciphertest';
 import {ICipherType} from "../common/ciphertypes";
-import {cloneObject} from "../common/ciphercommon";
+import {cloneObject, formatTime, timestampFromSeconds, timestampToFriendly} from "../common/ciphercommon";
 import {JTButtonItem} from "../common/jtbuttongroup";
 import {JTTable} from "../common/jttable";
 import {ConvergenceDomain, ModelService} from "@convergence/convergence";
@@ -30,8 +30,6 @@ export class CipherTestResults extends CipherTestManage {
         { title: 'Save All', color: 'primary', id: 'savesched' },
         { title: 'Delete All', color: 'alert', id: 'delallsched' },
     ];
-
-    private testSource = undefined;
 
     /**
      * Restore the state from either a saved file or a previous undo record
@@ -205,10 +203,10 @@ export class CipherTestResults extends CipherTestManage {
 
                         let startTime = result.data.starttime;
                         let date = new Date(startTime);
-                        let testStarted = this.getDateString(startTime);
+                        let testStarted = timestampToFriendly(startTime);
                         let endTime = result.data.endtime;
-                        let testEnded = this.getDateString(endTime);
-                        let bonusTime = result.data.endtimed;
+                        let testEnded = timestampToFriendly(endTime);
+                        let bonusTime = 0;
                         let users = result.data.assigned;
 
                         let userList = '';
@@ -248,8 +246,9 @@ export class CipherTestResults extends CipherTestManage {
                             ihandler.restore(state, true);
                             scoreInformation = ihandler.genScore(answers[0].answer);
                             testScore += scoreInformation.score;
+                            bonusTime = answers[0].solvetime;
                             // tally final score which includes the bonus.
-                            testScore += this.calculateTimingBonus((bonusTime - startTime)/1000);
+                            testScore += this.calculateTimingBonus(bonusTime);
                             let viewTableRow = viewTable.addBodyRow();
                             viewTableRow.add('Timed')
                                 .add(state.points.toString())
@@ -299,7 +298,7 @@ export class CipherTestResults extends CipherTestManage {
                                     settings: {colspan: 4, class: 'grey' },
                                     content: '',
                                 })
-                                .add(this.calculateTimingBonus((bonusTime - startTime) / 1000).toString());
+                                .add(this.calculateTimingBonus(bonusTime).toString());
                         }
                         let totalTableRow = viewTable.addFooterRow();
                         totalTableRow.add('Final score')
@@ -308,22 +307,22 @@ export class CipherTestResults extends CipherTestManage {
                                 content: '',
                             })
                             .add(testScore.toString());
-
+                        let solvedTime = "No Bonus";
+                        if (bonusTime !== 0) {
+                            solvedTime = formatTime(bonusTime * timestampFromSeconds(1));
+                        }
                         row.add(buttons)
                             .add(testStarted) // Start Time
                             .add(testEnded) // End Time
-                            .add(((bonusTime - startTime)/1000).toString()) // Timed question End
+                            .add(solvedTime) // Timed question End
                             .add(userList)
                             .add(/*testScorePromise.then(toString()*/testScore.toString()); // Takers
                         // Need to add the entry
-                        let viewRow = table.addBodyRow();
+                        let viewRow = table.addBodyRow({ class: 'hidden' });
                         viewRow.add({
-                            settings: {colspan: 6},
-                            content: $('<div/>', { class: result.modelId }).append(viewTable.generate()),
+                            settings: { colspan: 6 },
+                            content: $('<div/>').append(viewTable.generate()),
                         });
-                        /*content: $('<div/>').append(viewTable.generate()), */
-                        /*content: $('#scoretable').append(viewTable.generate()), */
-
                         total++;
                     }
                 });
@@ -337,6 +336,7 @@ export class CipherTestResults extends CipherTestManage {
                     }
                 } else {
                     $(".testlist").append(table.generate());
+                    this.attachHandlers();
                 }
             })
             .catch(error => { this.reportFailure("findScheduledTests Convergence API could not connect: " + error) });
@@ -346,10 +346,13 @@ export class CipherTestResults extends CipherTestManage {
      */
     public attachHandlers(): void {
         super.attachHandlers();
-        $('.pubview')
+        $( '.pubview' )
             .off('click')
             .on('click', e => {
-                $('.sdf').show();
+                let target = $(e.target);
+                let tr = target.closest('tr');
+                tr.next().toggleClass('hidden');
+
             });
     }
 
@@ -359,29 +362,13 @@ export class CipherTestResults extends CipherTestManage {
      *                   time question was successfully solved.
      */
     calculateTimingBonus(solvedTime: number):number {
-        let returnValue: number;
-        returnValue = 4 * (600 - solvedTime);
-        if (returnValue < 0) {
-            returnValue = 0;
+        let returnValue: number = 0;
+        if (solvedTime !== 0) {
+            returnValue = 4 * (600 - solvedTime);
+            if (returnValue < 0) {
+                returnValue = 0;
+            }
         }
         return returnValue
-    }
-
-    MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    /**
-     * Format the number of milliseconds since the 1970 epoch in a human readable date/time string.
-     * @param milliseconds
-     */
-    getDateString(milliseconds: number): string {
-
-        // MMM dd, YYYY HH:MM
-        let date = new Date(milliseconds);
-        let month = this.MONTHS[date.getMonth()];
-        let day = date.getDate();
-        let year = date.getFullYear().toString().substring(2);
-        let hours = date.getHours();
-        let minutes = date.getMinutes();
-        return month + " " + day + ", " + year + " @ " + hours + ":" + minutes;
     }
 }

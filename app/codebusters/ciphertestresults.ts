@@ -5,7 +5,7 @@ import {ICipherType} from "../common/ciphertypes";
 import {cloneObject, formatTime, timestampFromSeconds, timestampToFriendly} from "../common/ciphercommon";
 import {JTButtonItem} from "../common/jtbuttongroup";
 import {JTTable} from "../common/jttable";
-import {ConvergenceDomain, ModelService} from "@convergence/convergence";
+import {Convergence, ConvergenceDomain, ModelService} from "@convergence/convergence";
 import {CipherPrintFactory} from "./cipherfactory";
 
 /**
@@ -31,22 +31,6 @@ export class CipherTestResults extends CipherTestManage {
         { title: 'Delete All', color: 'alert', id: 'delallsched' },
     ];
 
-    /**
-     * Restore the state from either a saved file or a previous undo record
-     * @param data Saved state to restore
-     */
-    public restore(data: ITestState, suppressOutput: boolean = false): void {
-        let curlang = this.state.curlang;
-        this.state = cloneObject(this.defaultstate) as IState;
-        this.state.curlang = curlang;
-        this.copyState(this.state, data);
-        /** See if we have to import an XML file */
-        this.checkXMLImport();
-        if (!suppressOutput) {            
-            this.setUIDefaults();
-            this.updateOutput();
-        }
-    }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
      * @returns HTML DOM elements to display in the section
@@ -82,57 +66,17 @@ export class CipherTestResults extends CipherTestManage {
                 let testmodelid = realtimeModel.root().elementAt("testid").value();
                 let answermodelid = realtimeModel.root().elementAt("answerid").value();
                 realtimeModel.close();
-                let testSourcePromise = this.findTestSource2(modelService, testmodelid);
+                let testSourcePromise = this.findTestSource(modelService, testmodelid);
                 this.findScheduledTests(modelService, testmodelid, answermodelid, testSourcePromise);
             })
             .catch(error => { this.reportFailure("Could not open model for " + sourcemodelid + " Error:" + error) });
 
     }
-
     /**
      * Find test test source
      *
      */
-    private findTestSource(domain: ConvergenceDomain, testModelId: string) : Promise<any> {
-        const modelService = domain.models();
-        let returnValue = undefined;
-        modelService.open(testModelId)
-            .then(realtimeModel => {
-                let testModelId = realtimeModel.root().elementAt("testid").value();
-
-                console.log("Finding source with: "+"SELECT * FROM codebusters_source where testid='" + testModelId + "'");
-                returnValue = modelService.query("SELECT * FROM codebusters_source where testid='" + testModelId + "'")
-                    .then(results => {
-                        let count = 0;
-                        let testSource = undefined
-                        results.data.forEach(result => {
-                            testSource = result
-                            // let question = 'CIPHER.' + count.toString();
-                            // let state = testSource[question];
-                            // let ihandler = CipherFactory(state.cipherType, state.curlang);
-                            // // and restore the state
-                            // ihandler.restore(state);
-                            //
-                            console.log("Found it: " + testSource['TEST.0'].title);
-                            count++;
-                        })
-                        if (count != 1) {
-                            console.log("Error calculating results... found '" + count + "' tests!");
-                            return undefined
-                        }
-                        else {
-                            return testSource
-                        }
-                    })
-                    .catch(error => { this.reportFailure("Convergence API could not connect: " + error) });
-            })
-        return returnValue;
-    }
-    /**
-     * Find test test source
-     *
-     */
-    private findTestSource2(modelService: Convergence.ModelService, testModelId: string) : Promise<any> {
+    private findTestSource(modelService: Convergence.ModelService, testModelId: string) : Promise<any> {
         console.log("Finding source with: " + "SELECT * FROM codebusters_source where testid='" + testModelId + "'");
         return modelService.query("SELECT * FROM codebusters_source where testid='" + testModelId + "'")
         .then(results => {
@@ -149,13 +93,16 @@ export class CipherTestResults extends CipherTestManage {
             return testSource;
         })
         .catch(error => {
-            this.reportFailure("findTestSource2: Convergence API could not connect: " + error)
+            this.reportFailure("findTestSource: Convergence API could not connect: " + error)
         });
     }
 
     /**
      * Find all the tests scheduled for a given test template
-     * @param modelService
+     * @param modelService service object to access the model data
+     * @param testmodelid ID of the test model for these results
+     * @param answermodelid ID of the answer template models that we will skip
+     * @param testSourcePromise promise that will provide the actual test we will use to score answered tests
      */
     public findScheduledTests(modelService: ModelService, testmodelid: string, answermodelid: string, testSourcePromise: Promise<any>) {
 
@@ -177,6 +124,12 @@ export class CipherTestResults extends CipherTestManage {
                         if (table === undefined) {
                             table = new JTTable({ class: 'cell shrink testlist publist' });
                             let row = table.addHeaderRow();
+                            row.add(
+                                {
+                                    settings: { colspan: 6, style: 'text-align:center' },
+                                    content: $( '<div/>', { class: 'sublist'}).text('Results for test: "'+theTest['TEST.0'].title+'"'),
+                                });
+                            row = table.addHeaderRow();
                             row.add('Action')
                                 .add('Start Time')
                                 .add('End Time')
@@ -202,7 +155,6 @@ export class CipherTestResults extends CipherTestManage {
                         );
 
                         let startTime = result.data.starttime;
-                        let date = new Date(startTime);
                         let testStarted = timestampToFriendly(startTime);
                         let endTime = result.data.endtime;
                         let testEnded = timestampToFriendly(endTime);

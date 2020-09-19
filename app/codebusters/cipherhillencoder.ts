@@ -1,5 +1,5 @@
 import { cloneObject, makeFilledArray } from '../common/ciphercommon';
-import { IState, ITestType, toolMode, ITestQuestionFields } from '../common/cipherhandler';
+import {IState, ITestType, toolMode, ITestQuestionFields, IScoreInformation} from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
@@ -1007,6 +1007,62 @@ export class CipherHillEncoder extends CipherEncoder {
             theLines.push([lineTwo, lineOne])
         }
         return theLines
+    }
+
+    /**
+     * Generate the score of an answered cipher
+     * @param answer - the array of characters from the interactive test.
+     */
+    public genScore(answer: string[]): IScoreInformation {
+        let scoreInformation: IScoreInformation =
+            { incorrect: '0', deduction: '0', score: 0};
+        let vals = this.getValidKey(this.state.keyword);
+        if (this.state.operation === 'compute') {
+            let modinv = mod26InverseMatrix(vals);
+            let count = 0;
+            let errorCount = 0;
+            for (let i = 0; i < modinv.length; i++) {
+                for (let j = 0; j < modinv[0].length; j++) {
+                    if (modinv[i][j] !== parseInt(answer[count].trim())) {
+                        errorCount++;
+                    }
+                    count++;
+                }
+            }
+            // Scoring for compute matix problems is all or nothing...
+            scoreInformation.incorrect = errorCount.toString();
+            if (errorCount === 0) {
+                // all points
+                scoreInformation.score = this.state.points;
+            }
+            else {
+                // no points (initialized to 0)
+                scoreInformation.deduction = this.state.points.toString();
+            }
+        }
+        else {
+            let encoded = this.computeHill(vals);
+            let plaintext = this.minimizeString(this.state.cipherString);
+            let charset = this.getCharset();
+            //TODO: should we need to do this or should it be done on data entry?
+            let upperAnswer: string[] = [];
+            for (let i = 0; i < answer.length; i++) {
+                upperAnswer[i] = answer[i].trim().toUpperCase();
+            }
+            // Prepare for encode problem...
+            // Do not need to pad, there was not input field for it.
+            let solution = encoded.split('');
+
+            if (this.state.operation === 'decode') {
+                // Pad answer if necessary.
+                plaintext += this.repeatStr(this.padval,
+                    encoded.length - plaintext.length);
+
+                solution = plaintext.split('');
+            }
+            scoreInformation = this.calculateScore(solution, upperAnswer, this.state.points);
+        }
+        return scoreInformation;
     }
 
     /**

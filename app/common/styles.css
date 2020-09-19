@@ -695,6 +695,10 @@ input.awc {
     padding: 0;
 }
 
+table.baconian input.awr {
+    width:100%;
+}
+
 input.awr {
     width: 2rem;
     background-color: #f0f0f0;
@@ -984,6 +988,7 @@ table.found tr th:nth-child(odd) {
     text-align: right;
     border-bottom: 1px solid grey;
 }
+.button.rounded,
 button.rounded {
     border-radius: 0.625rem !important;
 }
@@ -1360,6 +1365,15 @@ table.hillblock {
 }
 table.hillblock td {
     min-width: 2rem;
+}
+
+table.cipherint td {
+    width: 1.5rem;
+    padding: 0;
+}
+table.baconian.cipherint td {
+    border: none;
+    padding: 0;
 }
 
 table.affineint td {

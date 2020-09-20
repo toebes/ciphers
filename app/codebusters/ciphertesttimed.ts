@@ -91,7 +91,7 @@ export class CipherTestTimed extends CipherTest {
 
         let content = msg;
         if (timestamp !== undefined) {
-            content += timestampToFriendly(timestamp );
+            content += timestampToFriendly(timestamp);
         }
         target.empty().append(makeCallout($("<h3/>").text(content)));
     }
@@ -701,8 +701,7 @@ export class CipherTestTimed extends CipherTest {
         $(".iinstructions").hide();
         let session = answermodel.session().domain();
         this.testTimeInfo.truetime.stopTiming();
-        answermodel.close();
-        answermodel.whenClosed().then(()=> session.dispose());
+        answermodel.close().then(() => session.dispose());
         this.setTestStatusMessage(message, this.testTimeInfo.endTime);
         $("#topsplit").hide();
         $(".gutter-row-1").hide();

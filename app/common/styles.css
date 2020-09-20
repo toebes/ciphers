@@ -1007,11 +1007,19 @@ button.rounded {
     display: block;
 }
 
-.button-group.round,
+/* .button-group.round,
 .input-group-button .round {
     border-radius: 0.625rem !important;
-    overflow: hidden;
+  overflow: hidden;
+} */
+
+.button-group.round.shrink a:first-child {
+    border-radius: .625rem 0 0 .625rem;
 }
+.button-group.round.shrink a:last-child {
+    border-radius: 0 .625rem .625rem 0rem;
+}
+
 .button-group .button {
     margin-right: 0.2rem;
 }

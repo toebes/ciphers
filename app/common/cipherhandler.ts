@@ -2238,9 +2238,11 @@ export class CipherHandler {
      */
     public genScore(answer: string[]): IScoreInformation {
         let scoreInformation: IScoreInformation =
-            {incorrect: 'all',
+        {
+            incorrect: 'all',
             deduction: 'max',
-            score: 1000000};
+            score: 1000000
+        };
         return scoreInformation;
     }
     /**
@@ -3439,7 +3441,7 @@ export class CipherHandler {
                     if (newchar === ' ') {
                         newchar = '';
                     }
-                    console.log('Setting ' + repchar + ' to ' + newchar);
+                    // console.log('Setting ' + repchar + ' to ' + newchar);
                     this.markUndo(null);
                     this.setChar(repchar, newchar, target);
                     current = focusables.index(event.target);
@@ -3448,7 +3450,7 @@ export class CipherHandler {
                         : focusables.eq(0);
                     next.focus();
                 } else {
-                    console.log('Not valid:' + newchar);
+                    // console.log('Not valid:' + newchar);
                 }
                 event.preventDefault();
             })
@@ -3621,10 +3623,10 @@ export class CipherHandler {
      * @param answer - Answer array of characters from interactive test
      * @param points - number of points assigned to this question.
      */
-    public calculateScore(solution: string[], answer: string[], points: number) : IScoreInformation {
+    public calculateScore(solution: string[], answer: string[], points: number): IScoreInformation {
 
         console.log("Length of solution: " + solution.length.toString() +
-                    "\nLength of answer:  " + answer.length.toString());
+            "\nLength of answer:  " + answer.length.toString());
         let scoreInformation: IScoreInformation = {
             incorrect: '-',
             deduction: '-',

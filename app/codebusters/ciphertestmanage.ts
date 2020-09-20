@@ -10,12 +10,9 @@ import { CipherTest, ITestState } from './ciphertest';
  *    This shows a list of all tests.
  *    Each line has a line with buttons at the start
  *       <EDIT> <DELETE> <Test Packet> <Answer Key> Test Title  #questions
- *  The command buttons availableare
+ *  The command buttons available are
  *       <New Test><EXPORT><IMPORT>
  */
-
-
-
 export class CipherTestManage extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;
 

@@ -31,6 +31,9 @@ import "foundation.css";
 import "foundation-sites";
 import "katex.css";
 import "../common/styles.css";
+// import "datatables.net";
+import "datatables.net-dt"; 
+import "datatables.css";
 
 import { CipherHandler } from "../common/cipherhandler";
 import { CipherFactory } from "./cipherfactory";

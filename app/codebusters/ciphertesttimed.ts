@@ -395,6 +395,15 @@ export class CipherTestTimed extends CipherTest {
                         // 2) Early, but time to load - now < this.testTimeInfo.startTime
                         // 3) Test in progress - now >= this.testTimeInfo.startTime and now <= this.testTimeInfo.endTime (we set endtime to be forever in the future)
                         // 4) Test is over - now > this.testTimeInfo.endTime
+
+                        // We will only let the "interactive-header" show, which contains the test taker
+                        // names.
+                        // Hide default header, the custom header is empty at this  point, so no
+                        // need to hide it here.  All will be revealed in Stage 4 when we get the
+                        // custom header info from the test model.
+                        let target = $('.default-header');
+                        target.hide();
+
                         if (now > this.testTimeInfo.endTime) {
                             this.shutdownTest(answermodel);
                             return;
@@ -470,6 +479,14 @@ export class CipherTestTimed extends CipherTest {
 
         // Update the title for the test
         $(".testtitle").text(interactive.title);
+
+        // Show custom header or default header.
+        if (interactive.useCustomHeader) {
+            $('.custom-header').append(interactive.customHeader).show()
+        }
+        else {
+            $('.default-header').show()
+        }
         /**
          * Output any running keys used
          */

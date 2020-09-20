@@ -160,7 +160,7 @@ export class TrueTime {
                 // milliseconds. 
                 let curtime = Date.now();
                 // Figure out how far off the time the server tolds us it is from the current time (all is in UTC)
-                let delta = curtime - data.microtime;
+                let delta = data.microtime - curtime;
                 if (!this.validOffset) {
                     // We've never set the offset, so update it now
                     this.updateOffset(delta);

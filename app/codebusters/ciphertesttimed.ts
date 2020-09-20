@@ -467,6 +467,7 @@ export class CipherTestTimed extends CipherTest {
         target.hide();
 
         let interactive = testmodel.root().value();
+        testmodel.close();
 
         // Update the title for the test
         $(".testtitle").text(interactive.title);
@@ -684,7 +685,7 @@ export class CipherTestTimed extends CipherTest {
         let session = answermodel.session().domain();
         this.testTimeInfo.truetime.stopTiming();
         answermodel.close();
-        session.disconnect();
+        answermodel.whenClosed().then(()=> session.dispose());
         this.setTestStatusMessage(message, this.testTimeInfo.endTime);
         $("#topsplit").hide();
         $(".gutter-row-1").hide();

@@ -160,7 +160,7 @@ export class TrueTime {
                 // milliseconds. 
                 let curtime = Date.now();
                 // Figure out how far off the time the server tolds us it is from the current time (all is in UTC)
-                let delta = curtime - data.microtime;
+                let delta = data.microtime - curtime;
                 if (!this.validOffset) {
                     // We've never set the offset, so update it now
                     this.updateOffset(delta);
@@ -176,7 +176,7 @@ export class TrueTime {
                         this.notifyFunc(msg);
                     }
                 }
-                console.log("**Time Result: Delta=", delta + " curtime=" + curtime + " Date:" + Date()); console.log(data);
+                // console.log("**Time Result: Delta=", delta + " curtime=" + curtime + " Date:" + Date()); console.log(data);
                 // Track when we last did this so that we don't ask too often
                 this.lastSyncTime = this.UTCNow();
             })

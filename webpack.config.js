@@ -40,6 +40,13 @@ module.exports = {
                 'dist',
                 'html5sortable.cjs.js'
             ),
+            'datatables.css': path.join(
+                __dirname,
+                'node_modules',
+                'datatables.net-dt',
+                'css',
+                'jquery.dataTables.min.css'
+            ),
             'styles-css': path.join(__dirname, 'styles.css'),
             'flatpickr.css': path.join(
                 __dirname,

@@ -8,6 +8,14 @@ import { buttonInfo, CipherTest, ITestState } from "./ciphertest";
 
 /**
  * CipherTestQuestions - This manages all of the questions to allow deleting/importing/editing
+ *  *
+ *  TestQuestions.html
+ *    This shows all the questions available
+ *      Action         Type     Points     Question   Cipher Text
+ *      <EDIT><DELETE> <type>   <points>   <question> <ciphertext>
+ *  The command buttons available are
+ *      <EXPORT><IMPORT><DELETE ALL PROBLEMS>
+ *
  */
 export class CipherTestQuestions extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;

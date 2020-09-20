@@ -5,8 +5,9 @@ import {
     setCharAt,
     setDisabled,
     StringMap,
+    makeFilledArray,
 } from '../common/ciphercommon';
-import { ITestType, toolMode } from '../common/cipherhandler';
+import { ITestType, toolMode, ITestQuestionFields, IScoreInformation } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { fiveletterwords } from '../common/fiveletterwords';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -115,6 +116,21 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.redocmdButton,
         this.guidanceButton,
     ];
+    /**
+     * getInteractiveTemplate creates the answer template for synchronization of
+     * the realtime answers when the test is being given.
+     * @returns Question arrays to be used at runtime
+     */
+    public getInteractiveTemplate(): ITestQuestionFields {
+        let result = super.getInteractiveTemplate();
+        // Each cipher character corresponds to 5 baconian characters
+        let anslen = this.getEncodingString().length * 5;
+        // We need an answer, separators and replacement boxes for each baconian character worth
+        result.answer = makeFilledArray(anslen, " ");
+        result.separators = makeFilledArray(anslen, " ");
+        result.replacements = makeFilledArray(anslen, " ");
+        return result;
+    }
     /** Where we are in the editing of the words */
     public wordpos: number = 0;
     public baconianWords: string[];
@@ -593,6 +609,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
     /**
      * Generate the HTML to display the answer for a cipher
+     * @param testType Type of test (A/B/C, etc)
+     * @returns HTML Elements for the answer
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
@@ -620,17 +638,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 class: 'TOANSWER',
             }).text(this.state.cipherString)
         );
-
-        return result;
-    }
-    /**
-     * Generate the HTML to display the interactive form of the cipher.
-     * @param qnum Question number.  -1 indicates a timed question
-     * @param testType Type of test
-     */
-    public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let result = this.genQuestion(testType);
-        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
         return result;
     }
     /**
@@ -726,6 +733,147 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         return result;
     }
+    /**
+     * Generates the interactive editing for a cipher table of text
+     * @param strings Array of string arrays to output
+     * @param qnum Question number that the table is for
+     */
+    public genInteractiveBaconianTable(strings: string[][], qnum: number): JQuery<HTMLElement> {
+        let qnumdisp = String(qnum + 1);
+        let table = new JTTable({ class: 'ansblock cipherint baconian SOLVER' });
+        let pos = 0;
+        let stringindex = 2;
+        let inputidbase = "I" + qnumdisp + "_";
+        let spcidbase = "S" + qnumdisp + "_";
+        let workidbase = "R" + qnumdisp + "_";
+
+        for (let splitLines of strings) {
+            let cipherline = splitLines[stringindex];
+            // We need to generate a row of lines for each split up cipher text
+            // The first row is the cipher text
+            let rowcipher = table.addBodyRow();
+            // followed by the replacement characters that they can use for trackign the baconian letters
+            let rowunder = table.addBodyRow();
+            // With boxes for the answers.  Note that we give them 5 boxes so they can put the answer in
+            // any of them (or somewhere close to it)
+            let rowanswer = table.addBodyRow();
+            // With a blank row at the bottom
+            let rowblank = table.addBodyRow();
+
+            for (let c of cipherline) {
+                // The word baconian only needs blocks under the valid characters but the 
+                // others get blocks under every character (since there is no restriction on
+                // what the cipher characters can be)
+                if (this.state.operation !== 'words' || this.isValidChar(c)) {
+                    // We need to identify the cells which get the separator added/removed as a set
+                    let spos = String(pos);
+                    let sepclass = " S" + spos;
+                    // We have a clickable field for the separator character.  It is basically an
+                    // upside down caret that is a part of the cipher text field
+                    let field = $("<div/>")
+                        .append($("<div/>", { class: "ir", id: spcidbase + spos }).html("&#711;"))
+                        .append(c);
+                    rowcipher.add({ settings: { class: 'q v ' + sepclass }, content: field, });
+                    // We have a box for them to put whetever baconian substitution in that they want
+                    rowanswer.add({
+                        celltype: 'td',
+                        content: $("<input/>", {
+                            id: inputidbase + spos,
+                            class: "awc",
+                            type: "text",
+                        }),
+                        settings: { class: 'e v' + sepclass },
+                    });
+                    // And lastly we have a spot for the answer.  Note that we actually have
+                    // five spots per baconian character, but they really should only be filling in one.
+                    rowunder.add({
+                        celltype: 'td',
+                        content: $("<input/>", {
+                            id: workidbase + spos,
+                            class: "awr",
+                            type: "text",
+                        }),
+                        settings: { class: sepclass },
+                    });
+                    pos++;
+                } else {
+                    // Not a character to edit, so just leave a blank column for it.
+                    rowcipher.add(c);
+                    rowanswer.add(c);
+                    rowunder.add(" ");
+                }
+                // And of course we need a blank line between rows
+                rowblank.add({ settings: { class: 's' }, content: ' ' });
+            }
+        }
+        return table.generate();
+    }
+    /**
+     * Generate the HTML to display the interactive form of the cipher.
+     * @param qnum Question number.  -1 indicates a timed question
+     * @param testType Type of test
+     */
+    public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
+        let qnumdisp = String(qnum + 1);
+        let result = $('<div/>', { id: "Q" + qnumdisp });
+        let strings = this.makeReplacement(
+            this.getEncodingString(),
+            this.getEncodeWidth()
+        );
+
+        result.append(this.genInteractiveBaconianTable(strings, qnum));
+
+        result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }))
+        return result;
+    }
+    /**
+     * Generate the score of an answered cipher
+     * @param answerlong - the array of characters from the interactive test.
+     */
+    public genScore(answerlong: string[]): IScoreInformation {
+        // Get what the question layout was so we can extract the answer
+        let strings = this.makeReplacement(
+            this.getEncodingString(),
+            this.getEncodeWidth()
+        );
+
+        let solution: string[] = [];
+        let answer: string[] = [];
+        let stringindex = 0;
+
+        // Figure out what the expected answer should be
+        for (let splitLines of strings) {
+            for (let c of splitLines[stringindex]) {
+                if (this.isValidChar(c)) {
+                    solution.push(c);
+                }
+            }
+        }
+        // We need to pull out what they actually answered.  Essentially
+        // If they answered anything, we will include it.  But if we manage
+        // to go more than 5 blank characters past where we were expecting an
+        // answer then we will force in a blank for them.  It basically lets
+        // them put in characters for answer together but also allows them to put the
+        // answer character anywhere in the 5 blocks under the cipher character
+        for (let i in answerlong) {
+            if (answerlong[i] !== " " && answerlong[i] !== "") {
+                answer.push(answerlong[i]);
+            }
+            if (Math.round((Number(i) - 7) / 5) > answer.length) {
+                answer.push(" ");
+            }
+        }
+        // Pad the answer to match the solution length
+        while (answer.length < solution.length) {
+            answer.push(" ");
+        }
+        // And let calculateScore do all the heavy lifting
+        return this.calculateScore(solution, answer, this.state.points);
+    }
+    /**
+     * Generate the HTML to display the solution for the cipher.
+     * @param testType Type of test
+     */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>');
         if (this.state.operation === 'words') {

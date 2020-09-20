@@ -61,7 +61,7 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Baconian: {
         cipherType: ICipherType.Baconian,
         cipherClass: CipherBaconianEncoder,
-        interactiveClass: CipherHandler,
+        interactiveClass: InteractiveEncoder,
         canPrint: true
     },
     Caesar: {

@@ -168,7 +168,7 @@ export class CipherTestInteractive extends CipherTest {
                 errors.push('Timed Question: ' + qerror);
             }
             // Save the Interactive portion of the test
-            interactive.timed = cipherhandler.saveInteractive(-1, interactive.testtype, true);
+            interactive.timed = cloneObjectClean(cipherhandler.saveInteractive(-1, interactive.testtype, true)) as IState;
             let answertemplate = cipherhandler.getInteractiveTemplate();
             answertemplate.solvetime = 0;
             answerdata.push(answertemplate);
@@ -589,7 +589,7 @@ export class CipherTestInteractive extends CipherTest {
         this.setTestEntry(this.state.test, testentry)
         let callout = $('<div/>', {
             class: 'callout success',
-        }).append($("<a/>", { href: "TestSchedule.html?testID=" + testentry.sourcemodelid, class: "button large" }).text("Schedule Test"));
+        }).append($("<a/>", { href: "TestSchedule.html?testID=" + testentry.sourcemodelid, class: "button large rounded" }).text("Schedule Test"));
         elem.append(callout);
     }
 }

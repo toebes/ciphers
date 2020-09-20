@@ -54,7 +54,7 @@ export class CipherTestPermissions extends CipherTestManage {
      */
     public genTestList(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'testlist' });
-        let table = new JTTable({ class: 'cell shrink testlist permlist' });
+        let table = new JTTable({ class: 'cell shrink permlist' });
         let row = table.addHeaderRow();
         row.add('Action')
             .add('Userid')

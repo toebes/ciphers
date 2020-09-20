@@ -695,10 +695,22 @@ input.awc {
     padding: 0;
 }
 
+table.baconian input.awr {
+    width:100%;
+    border: none;
+}
+
 input.awr {
     width: 2rem;
     background-color: #f0f0f0;
     padding: 0;
+}
+
+input.awc {
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 2px dashed black;
 }
 
 .TOSOLVEC,
@@ -984,6 +996,7 @@ table.found tr th:nth-child(odd) {
     text-align: right;
     border-bottom: 1px solid grey;
 }
+.button.rounded,
 button.rounded {
     border-radius: 0.625rem !important;
 }
@@ -994,11 +1007,19 @@ button.rounded {
     display: block;
 }
 
-.button-group.round,
+/* .button-group.round,
 .input-group-button .round {
     border-radius: 0.625rem !important;
-    overflow: hidden;
+  overflow: hidden;
+} */
+
+.button-group.round.shrink a:first-child {
+    border-radius: .625rem 0 0 .625rem;
 }
+.button-group.round.shrink a:last-child {
+    border-radius: 0 .625rem .625rem 0rem;
+}
+
 .button-group .button {
     margin-right: 0.2rem;
 }
@@ -1255,6 +1276,12 @@ div.vsolv {
 .ansblock .s {
     height: 20px;
 }
+
+.baconian.ansblock .v {
+    font-size: 22px;
+    font-weight: bold;
+}
+
 .ansblock .v {
     border: 1px solid black;
 }
@@ -1360,6 +1387,15 @@ table.hillblock {
 }
 table.hillblock td {
     min-width: 2rem;
+}
+
+table.cipherint td {
+    width: 1.5rem;
+    padding: 0;
+}
+table.baconian.cipherint td {
+    border: none;
+    padding: 0;
 }
 
 table.affineint td {

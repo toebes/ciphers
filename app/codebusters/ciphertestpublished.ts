@@ -25,15 +25,6 @@ export class CipherTestPublished extends CipherTestManage {
     };
     public state: ITestState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [
-        // { title: 'New Test', color: 'primary', id: 'newtest' },
-        // {
-        //     title: 'Export Tests',
-        //     color: 'primary',
-        //     id: 'export',
-        //     download: true,
-        // },
-        // { title: 'Import Tests from File', color: 'primary', id: 'import' },
-        // { title: 'Import Tests from URL', color: 'primary', id: 'importurl' },
     ];
     /**
      * Restore the state from either a saved file or a previous undo record
@@ -45,7 +36,6 @@ export class CipherTestPublished extends CipherTestManage {
         this.state.curlang = curlang;
         this.copyState(this.state, data);
         /** See if we have to import an XML file */
-        this.checkXMLImport();
         if (!suppressOutput) {
             this.setUIDefaults();
             this.updateOutput();
@@ -63,7 +53,7 @@ export class CipherTestPublished extends CipherTestManage {
      */
     public genTestList(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'testlist' });
-        let table = new JTTable({ class: 'cell shrink testlist publist' });
+        let table = new JTTable({ class: 'cell shrink publist' });
         let row = table.addHeaderRow();
         row.add('Action')
             .add('Title')
@@ -71,7 +61,7 @@ export class CipherTestPublished extends CipherTestManage {
             .add('Scheduled');
         result.append(table.generate());
 
-        this.connectRealtime()
+        this.cacheConnectRealtime()
             .then((domain: ConvergenceDomain) => {
                 this.findAllTests(domain);
             });
@@ -102,7 +92,7 @@ export class CipherTestPublished extends CipherTestManage {
                 });
                 this.attachHandlers();
             })
-            .catch(error => { this.reportFailure("Convergence API could not connect: " + error) }
+            .catch(error => { this.reportFailure("Convergence API could not query: " + error) }
             );
     }
     /**
@@ -208,7 +198,7 @@ export class CipherTestPublished extends CipherTestManage {
      * @param sourcemodelid published ID of test
      */
     public downloadPublishedTest(sourcemodelid: string): void {
-        this.connectRealtime()
+        this.cacheConnectRealtime()
             .then((domain: ConvergenceDomain) => {
                 this.doDownloadPublishedTest(domain.models(), sourcemodelid);
             });
@@ -266,7 +256,7 @@ export class CipherTestPublished extends CipherTestManage {
      */
     public deleteTestFromServer(sourcemodelid: string, testmodelid: string) {
         // by calling modelService.remove()
-        this.connectRealtime()
+        this.cacheConnectRealtime()
             .then((domain: ConvergenceDomain) => {
                 this.doDeleteTestFromServer(domain, sourcemodelid, testmodelid);
             });
@@ -313,7 +303,7 @@ export class CipherTestPublished extends CipherTestManage {
                 .on("click", () => {
                     this.deleteTestFromServer(sourcemodelid, testmodelid);
                     $("#delpubdlg").foundation("close");
-                    this.updateOutput();
+                    tr.remove();
                 });
             $("#okdel").removeAttr("disabled");
             $("#delpubdlg").foundation("open");

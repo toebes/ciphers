@@ -343,7 +343,10 @@ export function timestampToFriendly(datetime: number, includeTime?: boolean): st
     let day = date.getDate();
     let year = date.getFullYear().toString().substring(2);
     let hours = date.getHours();
-    let minutes = date.getMinutes();
+    let minutes: string = date.getMinutes().toString();
+    if (minutes.length === 1) {
+        minutes = '0' + minutes;
+    }
     let ampm = ' AM';
     if (hours > 12) {
         ampm = ' PM';

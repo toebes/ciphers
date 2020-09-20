@@ -672,7 +672,6 @@ export class CipherEncoder extends CipherHandler {
      * @param answer - the array of characters from the interactive test.
      */
     public genScore(answer: string[]): IScoreInformation {
-        this.maxEncodeWidth = 99999;
         let strings = this.genTestStrings(ITestType.None);
 
         let toanswer = 1;

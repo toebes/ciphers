@@ -1,10 +1,5 @@
 {
     "defaultSeverity": "error",
-    "extends": [
-        "tslint:recommended",
-        "tslint-plugin-prettier",
-        "tslint-config-prettier"
-    ],
     "jsRules": {
         "object-literal-sort-keys": false
     },

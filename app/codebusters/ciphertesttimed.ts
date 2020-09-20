@@ -91,7 +91,7 @@ export class CipherTestTimed extends CipherTest {
 
         let content = msg;
         if (timestamp !== undefined) {
-            content += timestampToFriendly(timestamp );
+            content += timestampToFriendly(timestamp);
         }
         target.empty().append(makeCallout($("<h3/>").text(content)));
     }
@@ -395,6 +395,15 @@ export class CipherTestTimed extends CipherTest {
                         // 2) Early, but time to load - now < this.testTimeInfo.startTime
                         // 3) Test in progress - now >= this.testTimeInfo.startTime and now <= this.testTimeInfo.endTime (we set endtime to be forever in the future)
                         // 4) Test is over - now > this.testTimeInfo.endTime
+
+                        // We will only let the "interactive-header" show, which contains the test taker
+                        // names.
+                        // Hide default header, the custom header is empty at this  point, so no
+                        // need to hide it here.  All will be revealed in Stage 4 when we get the
+                        // custom header info from the test model.
+                        let target = $('.default-header');
+                        target.hide();
+
                         if (now > this.testTimeInfo.endTime) {
                             this.shutdownTest(answermodel);
                             return;
@@ -404,7 +413,7 @@ export class CipherTestTimed extends CipherTest {
                             answermodel.close();
                         } else {
                             // If they close the window or navigate away, we want to close all our connections
-                            $(window).bind('beforeunload', () => this.shutdownTest(answermodel));
+                            $(window).on('beforeunload', () => this.shutdownTest(answermodel));
                             // Put up a countdown timer..
                             this.waitToLoadTestModel(modelService, testid, answermodel);
                         }
@@ -467,9 +476,18 @@ export class CipherTestTimed extends CipherTest {
         target.hide();
 
         let interactive = testmodel.root().value();
+        testmodel.close();
 
         // Update the title for the test
         $(".testtitle").text(interactive.title);
+
+        // Show custom header or default header.
+        if (interactive.useCustomHeader) {
+            $('.custom-header').append(interactive.customHeader).show()
+        }
+        else {
+            $('.default-header').show()
+        }
         /**
          * Output any running keys used
          */
@@ -628,7 +646,7 @@ export class CipherTestTimed extends CipherTest {
             this.makeInteractive(target, interactive.questions[qnum], qnum, answermodel.elementAt("answers", qnum + 1) as RealTimeObject);
         }
         // Give them an easy way to exit the test
-        target.append($("<button/>", { type: "button", class: "Primary button large rounded centered", id: "exittest" }).text("Exit Test"));
+        target.append($("<button/>", { type: "button", class: "button large rounded centered", id: "exittest" }).text("Exit Test"));
         $("#exittest").on('click', () => { this.shutdownTest(answermodel, "Exit test requested by user.") });
 
         this.setMenuMode(menuMode.test);
@@ -683,8 +701,7 @@ export class CipherTestTimed extends CipherTest {
         $(".iinstructions").hide();
         let session = answermodel.session().domain();
         this.testTimeInfo.truetime.stopTiming();
-        answermodel.close();
-        session.disconnect();
+        answermodel.close().then(() => session.dispose());
         this.setTestStatusMessage(message, this.testTimeInfo.endTime);
         $("#topsplit").hide();
         $(".gutter-row-1").hide();

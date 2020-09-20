@@ -277,7 +277,7 @@ export class InteractiveHandler extends CipherHandler {
                     }
 
                     if (this.isValidChar(newchar) || newchar === ' ') {
-                        console.log('Setting ' + id + ' to ' + newchar);
+                        // console.log('Setting ' + id + ' to ' + newchar);
                         this.markUndo(null);
                         this.setAns(id, newchar, realtimeAnswer);
                         current = focusables.index(event.target);
@@ -286,7 +286,7 @@ export class InteractiveHandler extends CipherHandler {
                             : focusables.eq(0);
                         next.focus();
                     } else {
-                        console.log('Not valid:' + newchar);
+                        // console.log('Not valid:' + newchar);
                     }
                     event.preventDefault();
                 });
@@ -377,7 +377,7 @@ export class InteractiveHandler extends CipherHandler {
                     }
 
                     if (this.isValidChar(newchar) || newchar === ' ') {
-                        console.log('Setting ' + id + ' to ' + newchar);
+                        // console.log('Setting ' + id + ' to ' + newchar);
                         this.markUndo(null);
                         this.setRepl(id, newchar, realtimeReplacement);
                         current = focusables.index(event.target);
@@ -386,7 +386,7 @@ export class InteractiveHandler extends CipherHandler {
                             : focusables.eq(0);
                         next.focus();
                     } else {
-                        console.log('Not valid:' + newchar);
+                        // console.log('Not valid:' + newchar);
                     }
                     event.preventDefault();
                 });

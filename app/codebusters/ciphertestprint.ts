@@ -9,6 +9,7 @@ import { CipherTest, ITestState } from './ciphertest';
  * CipherTestPrint
  *  Displays a printable version of test <n> if it exists (default 0).
  *  Otherwise it provies a link back to TestManage.html
+ * 
  */
 export class CipherTestPrint extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;

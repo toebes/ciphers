@@ -75,40 +75,6 @@ export type ITestManage = 'local' | 'published';
 export type IPublishDisp = ITestManage | 'permissions' | 'schedule' | 'results';
 /**
  * Base support for all the test generation handlers
- * There are five pages that need to be created
- * TestManage.html
- *    This shows a list of all tests.
- *    Each line has a line with buttons at the start
- *       <EDIT> <DELETE> <Test Packet> <Answer Key> Test Title  #questions
- *  The command buttons availableare
- *       <New Test><EXPORT><IMPORT>
- *
- * TestGenerator.html?test=<n>
- *    This edits a specific test.  It requires a test number.  If none
- *    is given, it defaults to the first test.  If there is no test,
- *    it says so and gives a link back to the TestManage.html page
- *    The top shows the list of questions included on the current test in the
- *    test order with the timed question first as a table 6 columns
- *       Question# action          Type   Points    Question    Cipher Text
- *        #        <edit><remove>  <type> <points>  <question>  <ciphertext>
- *  Below that is another list of questions to be added to the test
- *       action         Type     Points    Question    Cipher Text
- *       <edit><add>    <type>   <points>  <question>  <ciphertext>
- *  The command buttons availableare
- *    <Generate Test><Generate Answers><Save><Export><IMPORT>
- *
- *  TestQuestions.html
- *    This shows all the questions available
- *      Action         Type     Points     Question   Cipher Text
- *      <EDIT><DELETE> <type>   <points>   <question> <ciphertext>
- *  The command buttons available are
- *      <EXPORT><IMPORT>
- *
- *  TestPrint.html?test=<n>
- *  Displays a printable version of test <n> if it exists (default 0).
- *  Otherwise it provies a link back to TestManage.html
- *
- *  TestAnswers.html?test=<n>
  */
 export class CipherTest extends CipherHandler {
     public activeToolMode: toolMode = toolMode.codebusters;
@@ -312,6 +278,33 @@ export class CipherTest extends CipherHandler {
                 this.reportFailure('Convergence API could not connect: ' + error)
             })
         return result
+    }
+    /** Cached realtime domain */
+    public cachedDomain: ConvergenceDomain = undefined;
+    /**
+     * Disconnect from the realtime system
+     */
+    public disconnectRealtime() {
+        if (this.cachedDomain !== undefined) {
+            this.cachedDomain.disconnect();
+            this.cachedDomain = undefined;
+        }
+    }
+    /**
+     * Connect to the realtime system (using the cached entry if necessary)
+     * Catch window close events to disconnect from the domain
+     * @returns ConvergenceDomain to use for operations
+     */
+    public cacheConnectRealtime(): Promise<ConvergenceDomain> {
+        if (this.cachedDomain !== undefined) {
+            let result = Promise.resolve(this.cachedDomain);
+            return result;
+        }
+        $(window).on('beforeunload', () => { this.disconnectRealtime(); });
+
+        let result = this.connectRealtime();
+        result.then((domain: ConvergenceDomain) => { this.cachedDomain = domain; });
+        return result;
     }
 
     public setTestEditState(testdisp: ITestDisp): void {

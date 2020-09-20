@@ -404,7 +404,7 @@ export class CipherTestTimed extends CipherTest {
                             answermodel.close();
                         } else {
                             // If they close the window or navigate away, we want to close all our connections
-                            $(window).bind('beforeunload', () => this.shutdownTest(answermodel));
+                            $(window).on('beforeunload', () => this.shutdownTest(answermodel));
                             // Put up a countdown timer..
                             this.waitToLoadTestModel(modelService, testid, answermodel);
                         }

@@ -168,7 +168,7 @@ export class CipherTestInteractive extends CipherTest {
                 errors.push('Timed Question: ' + qerror);
             }
             // Save the Interactive portion of the test
-            interactive.timed = cipherhandler.saveInteractive(-1, interactive.testtype, true);
+            interactive.timed = cloneObjectClean(cipherhandler.saveInteractive(-1, interactive.testtype, true)) as IState;
             let answertemplate = cipherhandler.getInteractiveTemplate();
             answertemplate.solvetime = 0;
             answerdata.push(answertemplate);

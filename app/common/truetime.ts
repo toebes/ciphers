@@ -176,7 +176,7 @@ export class TrueTime {
                         this.notifyFunc(msg);
                     }
                 }
-                console.log("**Time Result: Delta=", delta + " curtime=" + curtime + " Date:" + Date()); console.log(data);
+                // console.log("**Time Result: Delta=", delta + " curtime=" + curtime + " Date:" + Date()); console.log(data);
                 // Track when we last did this so that we don't ask too often
                 this.lastSyncTime = this.UTCNow();
             })

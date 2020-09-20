@@ -697,12 +697,20 @@ input.awc {
 
 table.baconian input.awr {
     width:100%;
+    border: none;
 }
 
 input.awr {
     width: 2rem;
     background-color: #f0f0f0;
     padding: 0;
+}
+
+input.awc {
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 2px dashed black;
 }
 
 .TOSOLVEC,
@@ -1260,6 +1268,12 @@ div.vsolv {
 .ansblock .s {
     height: 20px;
 }
+
+.baconian.ansblock .v {
+    font-size: 22px;
+    font-weight: bold;
+}
+
 .ansblock .v {
     border: 1px solid black;
 }

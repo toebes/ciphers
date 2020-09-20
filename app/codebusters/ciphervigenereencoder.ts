@@ -644,7 +644,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         if (this.state.operation === 'encode') {
             source = 1;
         }
-        result.append(this.genInteractiveCipherTable(strings, source, qnum, "affineint", true));
+        result.append(this.genInteractiveCipherTable(strings, source, qnum, "cipherint", true));
 
         result.append($("<textarea/>", { id: "in" + qnumdisp, class: "intnote" }));
         return result;

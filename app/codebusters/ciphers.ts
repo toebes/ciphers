@@ -31,13 +31,10 @@ import "foundation.css";
 import "foundation-sites";
 import "katex.css";
 import "../common/styles.css";
-<<<<<<< HEAD
 import "flatpickr.css";
-=======
 // import "datatables.net";
-import "datatables.net-dt"; 
-import "datatables.css";
->>>>>>> 729fa241df72f83bf6c1e8a130502dccb06761aa
+// import "datatables.net-dt"; 
+// import "datatables.css";
 
 import { CipherHandler } from "../common/cipherhandler";
 import { CipherFactory } from "./cipherfactory";

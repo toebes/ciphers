@@ -4,5 +4,8 @@
         { "language": "typescriptreact", "autoFix": true }
     ],
     "eslint.autoFixOnSave": true,
-    "eslint.lintTask.enable": true
+    "eslint.lintTask.enable": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    }
 }

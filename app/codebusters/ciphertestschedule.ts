@@ -11,7 +11,7 @@ import { JTFDialog } from "../common/jtfdialog";
 
 import * as _flatpickr from 'flatpickr';
 import { FlatpickrFn } from 'flatpickr/dist/types/instance';
-const flatpickr: FlatpickrFn = _flatpickr as any;
+const flatpickr: FlatpickrFn = _flatpickr as any; 
 /**
  * CipherTestScheduled
  *    This shows a list of all Scheduled tests.
@@ -91,8 +91,8 @@ export class CipherTestSchedule extends CipherTestManage {
         //   https://github.com/amsul/pickadate.js - 
         //   https://github.com/flatpickr/flatpickr - seems to be pretty good, but is picky about the time format
         //   https://www.jqueryscript.net/blog/best-date-time-picker.html - Survey of 10 of them
-        let dateval = timestampToISOLocalString(datetime);
-        // console.log("Date: " + datetime + " Maps to " + dateval);
+        let dateval =new Date(datetime).toISOString();
+        console.log("Date: " + datetime + " Maps to " + dateval);
         let result = $("<span/>")
             .append($("<input/>", { type: "datetime-local", id: id, step: 0, class: "datetimepick", value: dateval }));
 

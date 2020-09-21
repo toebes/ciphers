@@ -657,7 +657,6 @@ export class CipherTestSchedule extends CipherTestManage {
                 altInput: true,
                 enableTime: true,
                 dateFormat: "M j, Y H:i",
-                minDate: "today",
                 allowInput: true,
             })
         });

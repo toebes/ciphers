@@ -3213,6 +3213,7 @@ export class CipherHandler {
                 this.setConfigString("fname", $("#regfname").val() as string);
                 this.setConfigString("lname", $("#reglname").val() as string);
                 $('#Registerdlg').foundation('close');
+                location.reload();
             })
         $('#Registerdlg').foundation('open');
     }

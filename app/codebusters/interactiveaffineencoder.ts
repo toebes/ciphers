@@ -1,7 +1,5 @@
-import { IState, ITestTimeInfo } from "../common/cipherhandler";
-import { IEncoderState } from "./cipherencoder";
-import { cloneObject } from "../common/ciphercommon";
-import { RealTimeObject, RealTimeString, RealTimeArray } from '@convergence/convergence';
+import { ITestTimeInfo } from "../common/cipherhandler";
+import { RealTimeObject, RealTimeArray } from '@convergence/convergence';
 import { bindTextInput } from '@convergence/input-element-bindings'
 import { InteractiveEncoder } from "./interactiveencoder";
 

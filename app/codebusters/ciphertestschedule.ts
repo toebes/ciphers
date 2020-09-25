@@ -2,7 +2,7 @@ import { CipherTestManage } from "./ciphertestmanage";
 import { toolMode, IState } from "../common/cipherhandler";
 import { ITestState, IAnswerTemplate, ITestUser } from './ciphertest';
 import { ICipherType } from "../common/ciphertypes";
-import { cloneObject, timestampToISOLocalString, timestampFromMinutes, BoolMap, timestampForever } from "../common/ciphercommon";
+import { cloneObject, timestampToISOLocalString, timestampFromMinutes, BoolMap, timestampForever, makeFilledArray } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTTable } from "../common/jttable";
 import { ConvergenceDomain, RealTimeModel, ModelService, ModelPermissions, DomainUser, DomainUserType } from "@convergence/convergence";
@@ -43,8 +43,6 @@ export class CipherTestSchedule extends CipherTestManage {
         this.state = cloneObject(this.defaultstate) as IState;
         this.state.curlang = curlang;
         this.copyState(this.state, data);
-        /** See if we have to import an XML file */
-        this.checkXMLImport();
         if (!suppressOutput) {
             this.setUIDefaults();
             this.updateOutput();
@@ -433,6 +431,8 @@ export class CipherTestSchedule extends CipherTestManage {
             datamodel.elementAt("starttime").value(starttime);
             datamodel.elementAt("endtime").value(endtime);
             datamodel.elementAt("endtimed").value(endtimed);
+            let answers = datamodel.elementAt("answers").value();
+            let questions = answers.length + 1;
             let removed: string[] = [];
             let added: string[] = [];
             let assigned: ITestUser[] = datamodel.elementAt("assigned").value();
@@ -456,7 +456,7 @@ export class CipherTestSchedule extends CipherTestManage {
             }
             // Add any users not already on the list
             for (let i = assigned.length; i < userlist.length; i++) {
-                assigned.push({ userid: userlist[i], displayname: userlist[i], starttime: 0, idletime: 0, confidence: 0, notes: "", sessionid: "" });
+                assigned.push({ userid: userlist[i], displayname: userlist[i], starttime: 0, idletime: 0, confidence: makeFilledArray(questions, 0), notes: "", sessionid: "" });
                 if (userlist[i] !== "") {
                     added.push(userlist[i]);
                 }

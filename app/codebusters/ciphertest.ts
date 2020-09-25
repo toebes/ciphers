@@ -57,7 +57,7 @@ export interface ITestUser {
     displayname: string,
     starttime: number,
     idletime: number,
-    confidence: number,
+    confidence: number[],
     notes: string,
     sessionid: string,
 }

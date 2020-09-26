@@ -1,10 +1,10 @@
-import { cloneObject, StringMap, BoolMap, NumberMap } from '../common/ciphercommon';
+import { BoolMap, cloneObject, NumberMap, StringMap } from '../common/ciphercommon';
 import { ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { IEncoderState } from './cipherencoder';
-import { tomorse, frommorse } from '../common/morse';
+import { frommorse, tomorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
-import { CipherMorseEncoder, ctindex, ptindex, morseindex } from './ciphermorseencoder';
+import { CipherMorseEncoder, ctindex, ptindex } from './ciphermorseencoder';
 
 const morbitmap: string[] = [
     'OO',
@@ -1153,6 +1153,7 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
         }
         return false;
     }
+
     /**
      * Generates the solving guide for the cipher
      * @returns DOM to insert into the web page
@@ -1250,5 +1251,54 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
         }
         this.setErrorMsg(msg, 'morgs');
         return result;
+    }
+    /**
+     * Locate the crib in the cipher and return the corresponding cipher text
+     * characters
+     * @param strings Encoded cipher set
+     * @param crib string to look for
+     * @returns String containing Cipher text characters correspond to the crib
+     */
+    public findCrib(strings: string[][], crib: string): string {
+        let cribmatch = crib;
+        let ciphermatch = '';
+        let backtracki = 0;
+        if (crib === undefined) {
+            return '';
+        }
+
+        for (let strset of strings) {
+            for (let i = 0, len = strset[ctindex].length; i < len; i++) {
+                let p = strset[ptindex][i];
+                let c = strset[ctindex][i];
+                if (c !== ' ') {
+                    ciphermatch += c;
+                }
+                if (p !== ' ' && p !== '/') {
+                    if (p === cribmatch[0]) {
+                        if (cribmatch === crib) {
+                            // We are starting a match.  Remember where we we began
+                            // so that we can backtrack to it if we fail along the
+                            // way.
+                            backtracki = i;
+                        }
+                        cribmatch = cribmatch.substr(1);
+                        if (cribmatch === '') {
+                            return ciphermatch;
+                        }
+                    } else {
+                        // If we didn't match, we need to start over again
+                        // looking for the crib, but we have to backtrack to
+                        // where we first attempted to match the crib.
+                        if (cribmatch !== crib) {
+                            i = backtracki;
+                        }
+                        cribmatch = crib;
+                        ciphermatch = '';
+                    }
+                }
+            }
+        }
+        return '';
     }
 }

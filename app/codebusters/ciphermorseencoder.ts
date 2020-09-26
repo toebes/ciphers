@@ -1,9 +1,11 @@
 import { CipherEncoder } from "./cipherencoder";
 import { JTButtonItem } from "../common/jtbuttongroup";
-import { ITestType } from "../common/cipherhandler";
+import { IScoreInformation, ITestQuestionFields, ITestType } from "../common/cipherhandler";
 import { JTRadioButton, JTRadioButtonSet } from "../common/jtradiobutton";
 import { JTFLabeledInput } from "../common/jtflabeledinput";
 import { ICipherType } from "../common/ciphertypes";
+import { makeFilledArray } from "../common/ciphercommon";
+import { JTTable } from "../common/jttable";
 
 export const morseindex = 1;
 export const ctindex = 0;
@@ -18,6 +20,27 @@ export class CipherMorseEncoder extends CipherEncoder {
         this.redocmdButton,
         this.guidanceButton,
     ];
+
+    /**
+     * getInteractiveTemplate creates the answer template for synchronization of
+     * the realtime answers when the test is being given.
+     * @returns Question arrays to be used at runtime
+     */
+    public getInteractiveTemplate(): ITestQuestionFields {
+        let result = super.getInteractiveTemplate();
+        // Each cipher character corresponds to 2 symbols consisting of dots, dashes or xes characters
+        let strings: string[][] = this.makeReplacement(this.state.cipherString, 9999 /*this.maxEncodeWidth*/);
+        let encodedString = strings[ctindex];
+        let anslen = encodedString[0].length;
+        console.log("The encoded string length is " + anslen);
+
+        // We need an answer, separators and replacement boxes for each morse character pair worth
+        result.answer = makeFilledArray(anslen, " ");
+        result.separators = makeFilledArray(anslen, " ");
+        result.replacements = makeFilledArray(anslen, " ");
+        return result;
+    }
+
     /** Save and Restore are done on the CipherEncoder Class */
     public randomize(): void { }
     public setQuestionText(question: string): void {
@@ -144,7 +167,7 @@ export class CipherMorseEncoder extends CipherEncoder {
     /**
      * Generates an HTML representation of a string for display.  Replaces the X, O and -
      * with more visible HTML equivalents
-     * @param str String to normalize (with - X and O representing morese characters)
+     * @param str String to normalize (with - X and O representing morse characters)
      * @returns updated string to display
      */
     public normalizeHTML(str: string): string {
@@ -171,6 +194,46 @@ export class CipherMorseEncoder extends CipherEncoder {
             );
         }
         return result;
+    }
+
+    /**
+     * Generate the score of an answered cipher
+     * @param answerlong - the array of characters from the interactive test.
+     */
+    public genScore(answerlong: string[]): IScoreInformation {
+        // Get what the question layout was so we can extract the answer
+        let strings = this.makeReplacement(
+            this.getEncodingString(),
+            this.maxEncodeWidth
+        );
+
+        let solution: string[] = [];
+        let answer: string[] = [];
+        let stringindex = ptindex;
+
+        // Figure out what the expected answer should be
+        for (let splitLines of strings) {
+            for (let c of splitLines[stringindex]) {
+                if (this.isValidChar(c)) {
+                    solution.push(c);
+                }
+            }
+        }
+        // We need to pull out what they actually answered.  Essentially
+        // If they answered anything, we will include it.  It basically lets
+        // them put in characters for answer together but also allows them to put the
+        // answer character anywhere under the cipher character
+        for (let i in answerlong) {
+            if (answerlong[i] !== " " && answerlong[i] !== "") {
+                answer.push(answerlong[i]);
+            }
+        }
+        // Pad the answer to match the solution length
+        while (answer.length < solution.length) {
+            answer.push(" ");
+        }
+        // And let calculateScore do all the heavy lifting
+        return this.calculateScore(solution, answer, this.state.points);
     }
 
     /**
@@ -201,16 +264,87 @@ export class CipherMorseEncoder extends CipherEncoder {
         }
         return result;
     }
+
     /**
      * Generate the HTML to display the interactive form of the cipher.
      * @param qnum Question number.  -1 indicates a timed question
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let result = this.genQuestion(testType);
-        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
+        let qnumdisp = String(qnum + 1);
+        let result = $('<div/>', {id: "Q" + qnumdisp});
+        let strings = this.makeReplacement(
+            this.getEncodingString(),
+            35 /*this.maxEncodeWidth */
+        );
+        let table = new JTTable({class: 'ansblock cipherint baconian SOLVER'});
+        let pos = 0;
+        let inputidbase = "I" + qnumdisp + "_";
+        let spcidbase = "S" + qnumdisp + "_";
+        let workidbase = "R" + qnumdisp + "_";
+        for (let splitLines of strings) {
+            let cipherline = splitLines[ctindex];
+            // We need to generate a row of lines for each split up cipher text
+            // The first row is the cipher text
+            let rowcipher = table.addBodyRow();
+            // followed by the replacement characters that they can use for trackign the baconian letters
+            let rowunder = table.addBodyRow();
+            // With boxes for the answers.  Note that we give them 2 boxes so they can put the answer in
+            // any of them (or somewhere close to it)
+            let rowanswer = table.addBodyRow();
+            // With a blank row at the bottom
+            let rowblank = table.addBodyRow();
+            for (let c of cipherline) {
+                // The word baconian only needs blocks under the valid characters but the
+                // others get blocks under every character (since there is no restriction on
+                // what the cipher characters can be)
+                if (this.isValidChar(c) || c === ' ') {
+                    // We need to identify the cells which get the separator added/removed as a set
+                    let spos = String(pos);
+                    let sepclass = " S" + spos;
+                    // We have a clickable field for the separator character.  It is basically an
+                    // upside down caret that is a part of the cipher text field
+                    let field = $("<div/>")
+                        .append($("<div/>", {class: "ir", id: spcidbase + spos}).html("&#711;"))
+                        .append(c);
+                    rowcipher.add({settings: {class: 'q v ' + sepclass}, content: field,});
+                    // We have a box for them to put whetever baconian substitution in that they want
+                    rowanswer.add({
+                        celltype: 'td',
+                        content: $("<input/>", {
+                            id: inputidbase + spos,
+                            class: "awc",
+                            type: "text",
+                        }),
+                        settings: {class: 'e v' + sepclass},
+                    });
+                    // And lastly we have a spot for the answer.  Note that we actually have
+                    // five spots per baconian character, but they really should only be filling in one.
+                    rowunder.add({
+                        celltype: 'td',
+                        content: $("<input/>", {
+                            id: workidbase + spos,
+                            class: "awr",
+                            type: "text",
+                        }).attr("isMorse", "1"),
+                        settings: {class: sepclass},
+                    });
+                    pos++;
+                } else {
+                    // Not a character to edit, so just leave a blank column for it.
+                    rowcipher.add(c);
+                    rowanswer.add(c);
+                    rowunder.add(" ");
+                }
+                // And of course we need a blank line between rows
+                rowblank.add({settings: {class: 's'}, content: ' '});
+            }
+        }
+        result.append(table.generate());
+        result.append($("<textarea/>", {id: "in" + String(qnum + 1), class: "intnote"}))
         return result;
     }
+
     /**
      * Generates a displayable state of the current known decoding
      * @param working Current mapping strings
@@ -238,6 +372,7 @@ export class CipherMorseEncoder extends CipherEncoder {
         }
         result.append(ansdiv);
     }
+
     /**
      * Locate the crib in the cipher and return the corresponding cipher text
      * characters
@@ -246,46 +381,33 @@ export class CipherMorseEncoder extends CipherEncoder {
      * @returns String containing Cipher text characters correspond to the crib
      */
     public findCrib(strings: string[][], crib: string): string {
-        let cribmatch = crib;
-        let ciphermatch = '';
-        let backtracki = 0;
-        if (crib === undefined) {
-            return '';
+        let cipherCrib;
+        let cribRegex = '';
+        let plainText = '';
+        let cipherText = '';
+        let notLetters = '###';
+
+        // Get cipher text and plain text all in one string
+        for (let strset of strings) {
+            plainText += strset[ptindex];
+            cipherText += strset[ctindex];
         }
 
-        for (let strset of strings) {
-            for (let i = 0, len = strset[ctindex].length; i < len; i++) {
-                let p = strset[ptindex][i];
-                let c = strset[ctindex][i];
-                if (c !== ' ') {
-                    ciphermatch += c;
-                }
-                if (p !== ' ' && p !== '/') {
-                    if (p === cribmatch[0]) {
-                        if (cribmatch === crib) {
-                            // We are starting a match.  Remember where we we began
-                            // so that we can backtrack to it if we fail along the
-                            // way.
-                            backtracki = i;
-                        }
-                        cribmatch = cribmatch.substr(1);
-                        if (cribmatch === '') {
-                            return ciphermatch;
-                        }
-                    } else {
-                        // If we didn't match, we need to start over again
-                        // looking for the crib, but we have to backtrack to
-                        // where we first attempted to match the crib.
-                        if (cribmatch !== crib) {
-                            i = backtracki;
-                        }
-                        cribmatch = crib;
-                        ciphermatch = '';
-                    }
-                }
-            }
+        // Assuming our operation is cryptanalysis...
+        if (this.state.cipherType === 'pollux') {
+            notLetters = '\\ {0,}';
         }
-        return '';
+
+        // The regex is a sequence of letters, each letter followed by
+        // one or more spaces.
+        for (let i = 0; i < crib.length; i++) {
+            cribRegex += (crib.substr(i,  1) + notLetters);
+        }
+        let regex = new RegExp(cribRegex, 'g');
+        let match = regex.exec(plainText);
+        // The indexes are directly corresponding between letter location and cipher text.
+        cipherCrib = cipherText.substr(match.index, match[0].length);
+        return cipherCrib.trim();
     }
     /**
      * Check the 

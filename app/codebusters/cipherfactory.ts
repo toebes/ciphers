@@ -33,6 +33,7 @@ import { CipherTestSchedule } from "./ciphertestschedule";
 import { CipherTestResults } from "./ciphertestresults";
 import { CipherTakeTest } from "./ciphertaketest";
 import { CipherTestTimed } from "./ciphertesttimed";
+import {InteractiveMorseEncoder} from "./interactivemorseencoder";
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -91,7 +92,7 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Morbit: {
         cipherType: ICipherType.Morbit,
         cipherClass: CipherMorbitEncoder,
-        interactiveClass: CipherHandler,
+        interactiveClass: InteractiveMorseEncoder,
         canPrint: true
     },
     Patristocrat: {
@@ -109,7 +110,7 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Pollux: {
         cipherType: ICipherType.Pollux,
         cipherClass: CipherPolluxEncoder,
-        interactiveClass: CipherHandler,
+        interactiveClass: InteractiveMorseEncoder,
         canPrint: true
     },
     QuoteAnalyze: {

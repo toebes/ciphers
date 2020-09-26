@@ -11,7 +11,7 @@ export class InteractiveRailFenceEncoder extends InteractiveEncoder {
      * @param testTimeInfo Timing information for the current test.
     */
    public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo) {
-       let qnumdisp = String(qnum + 1);
+        let qnumdisp = String(qnum + 1);
         let qdivid = "#Q" + qnumdisp + " ";
 
         let realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
@@ -21,6 +21,5 @@ export class InteractiveRailFenceEncoder extends InteractiveEncoder {
         this.attachInteractiveNotesHandler(qnumdisp, realTimeElement);
         this.bindSingleCharacterField(qdivid, realtimeAnswer, realtimeReplacement);
         this.bindSeparatorsField(qdivid, realtimeSeparators);
-
     }
 }

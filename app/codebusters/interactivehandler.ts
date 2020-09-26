@@ -53,6 +53,19 @@ export class InteractiveHandler extends CipherHandler {
         }
         $("#I" + qnumdisp + "_" + String(index)).val(c);
     }
+
+    /**
+     * Sometimes the replacement isn't a 'validChar', it is a symbol, like a dot or a dash.
+     * The default implementation is to call setRepl(), but this should be over-ridden to
+     * handle non-valid characters...
+     * @param id Replacement slot input field which is being changed
+     * @param newSymbol New symbol to set as the replacement
+     * @param realtimeReplacement Interface to the realtime system
+     */
+    public setReplacementSymbol (id: string, newSymbol: string, realtimeReplacement: RealTimeArray) {
+      this.setRepl(id, newSymbol, realtimeReplacement)
+    }
+
     /**
      * Handle a local user typing an replacement character for the cipher replacement table. 
      * The character is uppercased and checked to be a valid character before
@@ -367,6 +380,7 @@ export class InteractiveHandler extends CipherHandler {
                     let newchar;
                     let target = $(event.target);
                     let id = target.attr("id");
+                    let isMorse = target.attr("ismorse");
                     let current;
                     let next;
                     let focusables = target.closest(".question").find('.awr');
@@ -376,18 +390,31 @@ export class InteractiveHandler extends CipherHandler {
                         newchar = event.key.toUpperCase();
                     }
 
-                    if (this.isValidChar(newchar) || newchar === ' ') {
-                        // console.log('Setting ' + id + ' to ' + newchar);
-                        this.markUndo(null);
-                        this.setRepl(id, newchar, realtimeReplacement);
-                        current = focusables.index(event.target);
-                        next = focusables.eq(current + 1).length
-                            ? focusables.eq(current + 1)
-                            : focusables.eq(0);
-                        next.focus();
-                    } else {
-                        // console.log('Not valid:' + newchar);
-                    }
+                  if (isMorse === '1' && (newchar === 'O' || newchar === '-' || newchar === 'X')) {
+                    newchar = newchar.replace(/O/g, '9679')
+                        .replace(/-/g, '9644')
+                        .replace(/X/g, '9747')
+
+                    // console.log('Setting ' + id + ' to ' + newchar);
+                    this.markUndo(null)
+                    this.setReplacementSymbol(id, newchar, realtimeReplacement)
+                    current = focusables.index(event.target)
+                    next = focusables.eq(current + 1).length
+                        ? focusables.eq(current + 1)
+                        : focusables.eq(0)
+                    next.focus()
+                  } else if (this.isValidChar(newchar) || newchar === ' ') {
+                    console.log('Setting ' + id + ' to ' + newchar)
+                    this.markUndo(null)
+                    this.setRepl(id, newchar, realtimeReplacement)
+                    current = focusables.index(event.target)
+                    next = focusables.eq(current + 1).length
+                        ? focusables.eq(current + 1)
+                        : focusables.eq(0)
+                    next.focus()
+                  } else {
+                    // console.log('Not valid:' + newchar);
+                  }
                     event.preventDefault();
                 });
         }

@@ -83,8 +83,8 @@ export function repeatStr(c: string, count: number): string {
  * @param size Number of elements in the array
  * @param value Initialized value for the array elements
  */
-export function makeFilledArray(size: number, value: string): string[] {
-    let result: string[] = new Array(size);
+export function makeFilledArray(size: number, value: any): any[] {
+    let result: any[] = new Array(size);
     for (let i = 0; i < size; i++) {
         result[i] = value;
     }

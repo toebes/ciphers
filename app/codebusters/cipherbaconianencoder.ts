@@ -857,10 +857,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // answer character anywhere in the 5 blocks under the cipher character
         for (let i in answerlong) {
             if (answerlong[i] !== " " && answerlong[i] !== "") {
+                // Figure out how many spaces we happened to have missed in the meantime
+                while(answer.length < Math.trunc((Number(i)-1)/5)) {
+                    answer.push(" ");
+                }
                 answer.push(answerlong[i]);
-            }
-            if (Math.round((Number(i) - 7) / 5) > answer.length) {
-                answer.push(" ");
             }
         }
         // Pad the answer to match the solution length

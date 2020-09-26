@@ -1,9 +1,8 @@
-import {BoolMap, cloneObject, makeFilledArray, StringMap} from '../common/ciphercommon';
-import {ITestQuestionFields, ITestType, IScoreInformation, toolMode} from '../common/cipherhandler';
+import { BoolMap, cloneObject, makeFilledArray } from '../common/ciphercommon';
+import { ITestQuestionFields, ITestType, IScoreInformation, toolMode } from '../common/cipherhandler';
 import { CipherTypeButtonItem, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
-import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { Mapper } from '../common/mapper';
@@ -348,10 +347,10 @@ export class CipherTableEncoder extends CipherEncoder {
                 }
                 pos++;
             }
-            result.append(table.generate());
         }
+        result.append(table.generate());
 
-        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
+        result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }));
         return result;
     }
     /**

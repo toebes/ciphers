@@ -1,5 +1,5 @@
 import { ITestTimeInfo } from "../common/cipherhandler";
-import {RealTimeArray, RealTimeObject} from '@convergence/convergence';
+import { RealTimeObject } from '@convergence/convergence';
 import { InteractiveEncoder } from "./interactiveencoder";
 
 export class InteractiveRailFenceEncoder extends InteractiveEncoder {
@@ -9,8 +9,8 @@ export class InteractiveRailFenceEncoder extends InteractiveEncoder {
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
      * @param testTimeInfo Timing information for the current test.
-    */
-   public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo) {
+     */
+    public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo) {
         let qnumdisp = String(qnum + 1);
         let qdivid = "#Q" + qnumdisp + " ";
 

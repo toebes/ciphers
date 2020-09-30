@@ -55,7 +55,7 @@ export class ConvergenceAuthentication {
   -----END RSA PRIVATE KEY-----`;
 
     private static formatConnectUrl(baseUrl: string, namespace: string, domain: string) {
-        return baseUrl + '/api/realtime/' + namespace + '/' + domain;
+        return baseUrl + '/realtime/' + namespace + '/' + domain;
     }
 
     public static getLocalPrivateKey(): string {
@@ -114,16 +114,16 @@ export class ConvergenceAuthentication {
      * @param settings ConvergenceSettings to use for connect
      * @param usernames Array of usernames to connect
      */
-    public static connectByUsernames (settings: ConvergenceSettings, usernames: Array<string>): Promise<ConvergenceDomain[]> {
-      const connectPromises: Promise<ConvergenceDomain>[] = []
-      usernames.forEach(username => {
-        connectPromises.push(this.connect(settings, { username: username, firstName: 'Awaiting', lastName: 'Name' }))
-      })
+    public static connectByUsernames(settings: ConvergenceSettings, usernames: Array<string>): Promise<ConvergenceDomain[]> {
+        const connectPromises: Promise<ConvergenceDomain>[] = []
+        usernames.forEach(username => {
+            connectPromises.push(this.connect(settings, { username: username, firstName: 'Awaiting', lastName: 'Name' }))
+        })
 
-      // If we ever target es2020 can use Promise.alLSettled() instead of mapping the error catches as below.
-      // If we want execution to stop of all promises if a fail occurs then comment out line below.
-      connectPromises.map(p => p.catch(e => e))
+        // If we ever target es2020 can use Promise.alLSettled() instead of mapping the error catches as below.
+        // If we want execution to stop of all promises if a fail occurs then comment out line below.
+        connectPromises.map(p => p.catch(e => e))
 
-      return Promise.all(connectPromises)
+        return Promise.all(connectPromises)
     }
 }

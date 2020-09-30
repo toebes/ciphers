@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body>
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+    <%= require('html-loader!./analytics.html') %>
+
+    <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+
+    <div class="timer">
+        <div class="timestamp" id="tremain">Waiting</div>
+        <div class="participant" id="part1">
+            <div class="uid" id="init1">--</div>
+        </div>
+        <div class="participant" id="part2">
+            <div class="uid" id="init2">--</div>
+        </div>
+        <div class="participant" id="part3">
+            <div class="uid" id="init3">--</div>
+        </div>
+    </div>
+    <div class="controls"></div>
+
+    <h2 class="center">Science Olympiad — <span class="testtitle"></span></h2>
+    <h2 class="subheader center"><span class="testyear"></span></h2>
+    <div class="precmds"></div>
+    <div class="cmdbuttons"></div>
+    <div class="testerrors"></div>
+    <div id="scrubslider" class="slider" data-slider data-initial-start="50" data-end="200">
+        <span class="slider-handle"  data-slider-handle role="slider" tabindex="1"></span>
+        <span class="slider-fill" data-slider-fill></span>
+        <input type="hidden">
+      </div>
+
+    <div class="interactive-header">
+        <p>Names of participants:</p>
+        <table class="shrink cell unstriped nameline">
+            <tbody>
+                <tr>
+                    <td colspan="2" class="u" id="user1">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="u" id="user2">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td colspan="2" class="u" id="user3">&nbsp;</td>
+                </tr>
+            </tbody>
+        </table>
+        </p>
+    </div>
+    <div class="default-header">
+        <table class="shrink cell unstriped nameline">
+            <tbody>
+                <tr>
+                    <td>School Name: </td>
+                    <td class="u" id="school"></td>
+                </tr>
+            </tbody>
+        </table>
+        <p>Team:
+            &nbsp;&nbsp;<span id="cvarsity">&#x2611;</span> Varsity
+            &nbsp;&nbsp;&nbsp;&nbsp;<span id="cjv1">&#9723;</span> JV1
+            &nbsp;&nbsp;&nbsp;&nbsp;<span id="cjv2">&#9723;</span> JV2
+            &nbsp;&nbsp;&nbsp;&nbsp;<span id="cjv3">&#9723;</span> JV3
+        </p>
+    </div>
+    <div class="custom-header"></div>
+    <div class="waittimer"></div>
+    <div class="sizeset">
+        <div class="testcontent"></div>
+    </div>
+    <p>&nbsp;</p>
+    </div>
+    </div>
+</body>
+
+</html>

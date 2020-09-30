@@ -903,6 +903,16 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'TestPlayback.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
+                'TestPlayback.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'TestPlayback',
+            title: 'Interactive Test',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TestTimed.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestTimed.html'

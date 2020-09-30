@@ -245,7 +245,7 @@ export class CipherTest extends CipherHandler {
        * @returns ConvergenceSettings (Or null for failure)
        */
     public getConvergenceSettings(): ConvergenceSettings {
-        const baseUrl = this.getConfigString('domain', 'http://toebeshome.myqnapcloud.com:7630/');
+        const baseUrl = this.getConfigString('domain', 'http://toebeshome.myqnapcloud.com:7630/api/');
         const privateKey = ConvergenceAuthentication.getLocalPrivateKey();
         const convergenceNamespace = this.getConfigString('convergenceNamespace', 'convergence');
         const convergenceDomain = this.getConfigString('convergenceDomain', 'scienceolympiad');

@@ -43,7 +43,7 @@ export class InteractiveEncoder extends InteractiveHandler {
             realtimeSolvetime.value(solvetime);
             this.updateTimerCheckButton(realtimeSolvetime);
         } else {
-            alert("Timed question is not correct: " + diffs);
+            alert("Timed question is not correct: ");
 
         }
     }

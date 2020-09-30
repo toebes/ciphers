@@ -33,7 +33,8 @@ import { CipherTestSchedule } from "./ciphertestschedule";
 import { CipherTestResults } from "./ciphertestresults";
 import { CipherTakeTest } from "./ciphertaketest";
 import { CipherTestTimed } from "./ciphertesttimed";
-import {InteractiveMorseEncoder} from "./interactivemorseencoder";
+import { InteractiveMorseEncoder } from "./interactivemorseencoder";
+import { CipherTestPlayback } from "./ciphertestplayback";
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -182,6 +183,12 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     TestPermissions: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestPermissions,
+        interactiveClass: CipherHandler,
+        canPrint: false
+    },
+    TestPlayback: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestPlayback,
         interactiveClass: CipherHandler,
         canPrint: false
     },

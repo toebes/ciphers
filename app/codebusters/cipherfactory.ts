@@ -105,7 +105,7 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     PigPen: {
         cipherType: ICipherType.PigPen,
         cipherClass: CipherPigPenEncoder,
-        interactiveClass: CipherHandler,
+        interactiveClass: InteractiveTableEncoder,
         canPrint: true
     },
     Pollux: {

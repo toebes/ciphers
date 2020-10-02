@@ -1315,6 +1315,16 @@ div.vsolv {
     font-size: 14px;
 }
 
+/* Extra size for elementary school */
+.SOLVER.ansblock.atest tbody td,
+.SOLVER.ansblock.atest tbody th {
+    padding: 0 !important;
+}
+.SOLVER.ansblock.atest .q.v {
+    font-size: 24px;
+    width: 1.5rem;
+}
+
 @font-face {
     font-family: pigpen;
     src: url(fonts/PigpenCipher.woff);

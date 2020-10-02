@@ -1,5 +1,5 @@
-import { cloneObject, StringMap } from '../common/ciphercommon';
-import { ITestType, toolMode } from '../common/cipherhandler';
+import { cloneObject, makeFilledArray, StringMap } from '../common/ciphercommon';
+import { IScoreInformation, ITestQuestionFields, ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
@@ -48,6 +48,19 @@ export class CipherPigPenEncoder extends CipherEncoder {
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
+    }
+    /**
+     * getInteractiveTemplate creates the answer template for synchronization of
+     * the realtime answers when the test is being given.
+     * @returns Template of question fields to be filled in at runtime.
+     */
+    public getInteractiveTemplate(): ITestQuestionFields {
+        let len = this.state.cipherString.length;
+        let result: ITestQuestionFields = {
+            answer: makeFilledArray(len, " "),
+            notes: "",
+        };
+        return result;
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
@@ -100,13 +113,69 @@ export class CipherPigPenEncoder extends CipherEncoder {
         return result;
     }
     /**
+     * Generate the score of an answered cipher
+     * @param answer - the array of characters from the interactive test.
+     */
+    public genScore(answer: string[]): IScoreInformation {
+        this.genAlphabet();
+        let strings = this.makeReplacement(this.state.cipherString, 9999);
+        let toanswer = 1;
+        if (this.state.operation === 'encode') {
+            toanswer = 0;
+        }
+
+        let solution:string[] = [];
+        for (let strset of strings) {
+            solution.concat(strset[toanswer].split(''));
+        }
+
+        return this.calculateScore(solution, answer, this.state.points);
+    }
+    /**
      * Generate the HTML to display the interactive form of the cipher.
      * @param qnum Question number.  -1 indicates a timed question
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let result = this.genQuestion(testType);
-        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
+        let qnumdisp = String(qnum + 1);
+        let idclass = "I" + qnumdisp + "_";
+        let result = $('<div/>', { id: "Q" + qnumdisp });
+        let tosolve = 0;
+        let width = 40;
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            width = 29;
+            extraclass = ' atest';
+        }
+        let pos = 0;
+        let strings = this.makeReplacement(this.state.cipherString, width);
+
+        let table = new JTTable({ class: "SOLVER ansblock pigpen"+extraclass });
+        for (let strset of strings) {
+            let qrow = table.addBodyRow();
+            let arow = table.addBodyRow();
+            for (let c of strset[tosolve]) {
+                let extraclass = "";
+                let spos = String(pos);
+                qrow.add({ settings: { class: "q v" }, content: c });
+                if (this.isValidChar(c)) {
+                    arow.add({
+                        settings: { class: extraclass }, content: $("<input/>", {
+                            id: idclass + spos,
+                            class: "awc",
+                            type: "text",
+                        })
+                    });
+                }
+                else {
+                    arow.add(" ");
+                }
+                pos++;
+            }
+        }
+        result.append(table.generate());
+
+        result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }));
         return result;
     }
     /**
@@ -114,7 +183,6 @@ export class CipherPigPenEncoder extends CipherEncoder {
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'grid-x' });
-        this.genAlphabet();
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {

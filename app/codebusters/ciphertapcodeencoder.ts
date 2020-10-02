@@ -1,5 +1,5 @@
 import { cloneObject, makeFilledArray, StringMap } from '../common/ciphercommon';
-import { ITestQuestionFields, ITestType, toolMode } from '../common/cipherhandler';
+import { IScoreInformation, ITestQuestionFields, ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
@@ -181,15 +181,19 @@ export class CipherTapCodeEncoder extends CipherEncoder {
         let strings = this.makeReplacement(
             this.state.cipherString,
             this.maxEncodeWidth);
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            extraclass = ' atest';
+        }
 
-        let table = new JTTable({ class: "SOLVER ansblock tapcode" });
+        let table = new JTTable({ class: "SOLVER ansblock tapcode" + extraclass });
         for (let strset of strings) {
             let qrow = table.addBodyRow();
             let arow = table.addBodyRow();
             for (let c of strset[tosolve]) {
                 let spos = String(pos);
                 let extraclass = "S" + spos;
-                
+
                 let field = $("<span/>").html(this.normalizeHTML(c))
                     .append($("<div/>", { class: "ir", id: spcclass + spos }).html("&#711;"));
 
@@ -213,6 +217,65 @@ export class CipherTapCodeEncoder extends CipherEncoder {
 
         result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }));
         return result;
+    }
+    /**
+     * Generate the score of an answered cipher
+     * @param answerlong - the array of characters from the interactive test.
+     */
+    public genScore(answerlong: string[]): IScoreInformation {
+        // Get what the question layout was so we can extract the answer
+        let strings = this.makeReplacement(
+            this.state.cipherString,
+            this.maxEncodeWidth);
+
+        let solution: string[] = [];
+        let answer: string[] = [];
+        let anslen: number[] = [];
+        let plainTextSlot = 1;
+        let cipherTextSlot = 0;
+        let lastc = "";
+        let explen = 0;
+        let tokens = 0;
+
+        // Figure out what the expected answer should be
+        for (let splitLines of strings) {
+            for (let i = 0; i < splitLines[plainTextSlot].length; i++) {
+                let p = splitLines[plainTextSlot].substr(i, 1);
+                let c = splitLines[cipherTextSlot].substr(i, 1);
+                if (this.isValidChar(p)) {
+                    solution.push(p);
+                }
+                if (c !== lastc) {
+                    if (lastc === "O") {
+                        tokens++;
+                        explen = Math.trunc(tokens / 2);
+                    }
+                    lastc = c;
+                }
+                anslen.push(explen);
+            }
+        }
+        // We need to pull out what they actually answered.  Essentially
+        // If they answered anything, we will include it.  But if we manage
+        // to go more than 5 blank characters past where we were expecting an
+        // answer then we will force in a blank for them.  It basically lets
+        // them put in characters for answer together but also allows them to put the
+        // answer character anywhere in the 5 blocks under the cipher character
+        for (let i in answerlong) {
+            if (answerlong[i] !== " " && answerlong[i] !== "") {
+                // Figure out how many spaces we happened to have missed in the meantime
+                while (answer.length < anslen[i]) {
+                    answer.push(" ");
+                }
+                answer.push(answerlong[i]);
+            }
+        }
+        // Pad the answer to match the solution length
+        while (answer.length < explen) {
+            answer.push(" ");
+        }
+        // And let calculateScore do all the heavy lifting
+        return this.calculateScore(solution, answer, this.state.points);
     }
     /**
      * Generate the HTML to display the solution for a cipher

@@ -283,6 +283,11 @@ module.exports = {
                     to: path.resolve(__dirname, 'dist', 'Languages'),
                 },
                 {
+                    from: path.join(__dirname, 'app', 'images', 'ncso-main-fullcolor-rgb.jpg'),
+                    to: path.resolve(__dirname, 'dist', 'images',),
+                    flatten: true,
+                },
+                {
                     from: path.join(__dirname, 'app', 'images', 'BaconianA.png'),
                     to: path.resolve(__dirname, 'dist', 'images',),
                     flatten: true,

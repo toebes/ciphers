@@ -1342,6 +1342,10 @@ div.vsolv {
     padding: 0.1rem;
 }
 
+table.SOLVER.ansblock.tapcode td {
+    border: none;
+}
+
 .formulabox {
     height: 3rem;
     width: 80%;

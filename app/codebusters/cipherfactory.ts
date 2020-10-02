@@ -153,7 +153,7 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     TapCode: {
         cipherType: ICipherType.TapCode,
         cipherClass: CipherTapCodeEncoder,
-        interactiveClass: CipherHandler,
+        interactiveClass: InteractiveEncoder,
         canPrint: true
     },
     TestAnswers: {

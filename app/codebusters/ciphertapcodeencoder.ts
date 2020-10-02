@@ -1,7 +1,8 @@
-import { cloneObject, StringMap } from '../common/ciphercommon';
-import { ITestType, toolMode } from '../common/cipherhandler';
+import { cloneObject, makeFilledArray, StringMap } from '../common/ciphercommon';
+import { ITestQuestionFields, ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 const tapcode = require('../images/tapcode.png');
 /**
@@ -80,11 +81,28 @@ export class CipherTapCodeEncoder extends CipherEncoder {
             .empty()
             .append(this.build())
             .append(this.genSolution(ITestType.None));
-
-        // Show the update frequency values
-        this.displayFreq();
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
+    }
+    /**
+     * getInteractiveTemplate creates the answer template for synchronization of
+     * the realtime answers when the test is being given.
+     * @returns Template of question fields to be filled in at runtime.
+     */
+    public getInteractiveTemplate(): ITestQuestionFields {
+        let strings = this.makeReplacement(
+            this.state.cipherString,
+            this.maxEncodeWidth);
+        let len = 0;
+        for (let strset of strings) {
+            len += strset[0].length;
+        }
+        let result: ITestQuestionFields = {
+            answer: makeFilledArray(len, " "),
+            notes: "",
+            separators: makeFilledArray(len, " ")
+        };
+        return result;
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
@@ -154,8 +172,46 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let result = this.genQuestion(testType);
-        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
+        let qnumdisp = String(qnum + 1);
+        let idclass = "I" + qnumdisp + "_";
+        let result = $('<div/>', { id: "Q" + qnumdisp });
+        let tosolve = 0;
+        let pos = 0;
+        let spcclass = "S" + qnumdisp + "_";
+        let strings = this.makeReplacement(
+            this.state.cipherString,
+            this.maxEncodeWidth);
+
+        let table = new JTTable({ class: "SOLVER ansblock tapcode" });
+        for (let strset of strings) {
+            let qrow = table.addBodyRow();
+            let arow = table.addBodyRow();
+            for (let c of strset[tosolve]) {
+                let spos = String(pos);
+                let extraclass = "S" + spos;
+                
+                let field = $("<span/>").html(this.normalizeHTML(c))
+                    .append($("<div/>", { class: "ir", id: spcclass + spos }).html("&#711;"));
+
+                qrow.add({ settings: { class: "q v " + extraclass }, content: field });
+                if (this.isValidChar(c)) {
+                    arow.add({
+                        settings: { class: extraclass }, content: $("<input/>", {
+                            id: idclass + spos,
+                            class: "awc",
+                            type: "text",
+                        })
+                    });
+                }
+                else {
+                    arow.add({ settings: { class: "q v " + extraclass }, content: " " });
+                }
+                pos++;
+            }
+        }
+        result.append(table.generate());
+
+        result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }));
         return result;
     }
     /**

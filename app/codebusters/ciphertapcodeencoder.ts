@@ -190,6 +190,8 @@ export class CipherTapCodeEncoder extends CipherEncoder {
         for (let strset of strings) {
             let qrow = table.addBodyRow();
             let arow = table.addBodyRow();
+            let erow = table.addBodyRow();
+            erow.add({ settings: { class: "q v " + extraclass }, content: ($("<span/>").html("&nbsp;")) });
             for (let c of strset[tosolve]) {
                 let spos = String(pos);
                 let extraclass = "S" + spos;
@@ -208,7 +210,7 @@ export class CipherTapCodeEncoder extends CipherEncoder {
                     });
                 }
                 else {
-                    arow.add({ settings: { class: "q v " + extraclass }, content: " " });
+                    arow.add({ settings: { class: extraclass }, content: " " });
                 }
                 pos++;
             }

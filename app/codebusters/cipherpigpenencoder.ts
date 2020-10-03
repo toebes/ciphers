@@ -124,7 +124,7 @@ export class CipherPigPenEncoder extends CipherEncoder {
             toanswer = 0;
         }
 
-        let solution:string[] = [];
+        let solution: string[] = [];
         for (let strset of strings) {
             solution.concat(strset[toanswer].split(''));
         }
@@ -150,10 +150,12 @@ export class CipherPigPenEncoder extends CipherEncoder {
         let pos = 0;
         let strings = this.makeReplacement(this.state.cipherString, width);
 
-        let table = new JTTable({ class: "SOLVER ansblock pigpen"+extraclass });
+        let table = new JTTable({ class: "SOLVER ansblock pigpen" + extraclass });
         for (let strset of strings) {
             let qrow = table.addBodyRow();
             let arow = table.addBodyRow();
+            let erow = table.addBodyRow();
+            erow.add({ settings: { class: "q v " + extraclass }, content: ($("<span/>").html("&nbsp;")) });
             for (let c of strset[tosolve]) {
                 let extraclass = "";
                 let spos = String(pos);

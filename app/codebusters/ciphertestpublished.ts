@@ -1,11 +1,10 @@
 import { cloneObject } from '../common/ciphercommon';
-import { IState, menuMode, toolMode } from '../common/cipherhandler';
+import { IState, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { ITestState } from './ciphertest';
 import { CipherTestManage } from './ciphertestmanage';
-import { Convergence } from '@convergence/convergence';
 import { ConvergenceDomain, RealTimeModel } from '@convergence/convergence';
 import { JTFDialog } from '../common/jtfdialog';
 

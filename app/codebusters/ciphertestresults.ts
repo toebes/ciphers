@@ -307,7 +307,7 @@ export class CipherTestResults extends CipherTestManage {
             .catch(error => { this.reportFailure("findScheduledTests Convergence API error: " + error) });
     }
     public gotoTestPlayback(testID: string): void {
-        location.assign('TestPlayBack.html?testID=' + String(testID));
+        location.assign('TestPlayback.html?testID=' + String(testID));
     }
     /**
      * Attach all the UI handlers for created DOM elements

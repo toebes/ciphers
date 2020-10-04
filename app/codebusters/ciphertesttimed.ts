@@ -493,7 +493,7 @@ export class CipherTestTimed extends CipherTest {
          */
         if (interactive.runningKeys !== undefined) {
             $('#runningkeys').append($('<h2/>').text('Famous Phrases'));
-            for (let ent of this.runningKeys) {
+            for (let ent of interactive.runningKeys) {
                 $('#runningkeys').append(
                     $('<div/>', {
                         class: 'runtitle',

@@ -62,8 +62,8 @@ export class InteractiveHandler extends CipherHandler {
      * @param newSymbol New symbol to set as the replacement
      * @param realtimeReplacement Interface to the realtime system
      */
-    public setReplacementSymbol (id: string, newSymbol: string, realtimeReplacement: RealTimeArray) {
-      this.setRepl(id, newSymbol, realtimeReplacement)
+    public setReplacementSymbol(id: string, newSymbol: string, realtimeReplacement: RealTimeArray) {
+        this.setRepl(id, newSymbol, realtimeReplacement)
     }
 
     /**
@@ -237,8 +237,8 @@ export class InteractiveHandler extends CipherHandler {
     public bindSingleCharacterField(qdivid: string, realtimeAnswer: RealTimeArray, realtimeReplacement: RealTimeArray) {
         if (realtimeAnswer != null) {
             $(qdivid + '.awc')
-                .off('keyup')
-                .on('keyup', event => {
+                .off('keydown')
+                .on('keydown', event => {
                     let target = $(event.target);
                     let id = target.attr("id");
                     // The ID should be of the form Dx_y where x is the question number and y is the offset of the string
@@ -255,6 +255,7 @@ export class InteractiveHandler extends CipherHandler {
                             next = focusables.eq(current - 1);
                         }
                         next.focus();
+                        event.preventDefault();
                     } else if (event.which === 39) {
                         // right
                         current = focusables.index(event.target);
@@ -262,18 +263,31 @@ export class InteractiveHandler extends CipherHandler {
                             ? focusables.eq(current + 1)
                             : focusables.eq(0);
                         next.focus();
-                    } else if (event.which === 46 || event.which === 8) {
+                        event.preventDefault();
+                    } else if (event.which === 46) {
+                        // delete key
                         this.markUndo(null);
                         this.setAns(id, ' ', realtimeAnswer);
-                        current = focusables.index(event.target);
-                        if (current === 0) {
-                            next = focusables.last();
-                        } else {
-                            next = focusables.eq(current - 1);
+                        event.preventDefault();
+                    } else if (event.which === 8) {
+                        // Backspace key.  
+                        let c = target.val();
+                        let pos = target.prop("selectionStart");
+                        if (c === ' ' || c === '' || pos === 0) {
+                            // We are at the beginning so we need to go to the previous element
+                            current = focusables.index(event.target);
+                            if (current === 0) {
+                                next = focusables.last();
+                            } else {
+                                next = focusables.eq(current - 1);
+                            }
+                            id = next.attr("id");
+                            next.focus();
                         }
-                        next.focus();
+                        this.markUndo(null);
+                        this.setAns(id, ' ', realtimeAnswer);
+                        event.preventDefault();
                     }
-                    event.preventDefault();
                 })
                 .off('keypress')
                 .on('keypress', event => {
@@ -306,8 +320,8 @@ export class InteractiveHandler extends CipherHandler {
         }
         if (realtimeReplacement != null) {
             $(qdivid + '.awr')
-                .off('keyup')
-                .on('keyup', event => {
+                .off('keydown')
+                .on('keydown', event => {
                     let target = $(event.target);
                     let id = target.attr("id");
                     // The ID should be of the form Dx_y where x is the question number and y is the offset of the string
@@ -331,6 +345,7 @@ export class InteractiveHandler extends CipherHandler {
                             next = focusables.eq(current - 1);
                         }
                         next.focus();
+                        event.preventDefault();
                     } else if ((event.which === 38 || event.which === 40) && isRails == "1") {
                         // navigate RailFence rails up and down... no wrapping.
                         // This is used only for RailFence where the 'replacements' array is lengthened
@@ -355,6 +370,7 @@ export class InteractiveHandler extends CipherHandler {
                             next = focusables.eq(current + (direction * lineLength));
                         }
                         next.focus();
+                        event.preventDefault();
                     } else if (event.which === 39) {
                         // right
                         current = focusables.index(event.target);
@@ -362,18 +378,31 @@ export class InteractiveHandler extends CipherHandler {
                             ? focusables.eq(current + 1)
                             : focusables.eq(0);
                         next.focus();
-                    } else if (event.which === 46 || event.which === 8) {
+                        event.preventDefault();
+                    } else if (event.which === 46) {
+                        // delete key
                         this.markUndo(null);
-                        this.setRepl(id, ' ', realtimeReplacement);
-                        current = focusables.index(event.target);
-                        if (current === 0) {
-                            next = focusables.last();
-                        } else {
-                            next = focusables.eq(current - 1);
+                        this.setRepl(id, ' ', realtimeAnswer);
+                        event.preventDefault();
+                    } else if (event.which === 8) {
+                        // Backspace key.  
+                        let c = target.val();
+                        let pos = target.prop("selectionStart");
+                        if (c === ' ' || c === '' || pos === 0) {
+                            // We are at the beginning so we need to go to the previous element
+                            current = focusables.index(event.target);
+                            if (current === 0) {
+                                next = focusables.last();
+                            } else {
+                                next = focusables.eq(current - 1);
+                            }
+                            id = next.attr("id");
+                            next.focus();
                         }
-                        next.focus();
+                        this.markUndo(null);
+                        this.setRepl(id, ' ', realtimeAnswer);
+                        event.preventDefault();
                     }
-                    event.preventDefault();
                 })
                 .off('keypress')
                 .on('keypress', event => {
@@ -390,31 +419,31 @@ export class InteractiveHandler extends CipherHandler {
                         newchar = event.key.toUpperCase();
                     }
 
-                  if (isMorse === '1' && (newchar === 'O' || newchar === '-' || newchar === 'X')) {
-                    newchar = newchar.replace(/O/g, '9679')
-                        .replace(/-/g, '9644')
-                        .replace(/X/g, '9747')
+                    if (isMorse === '1' && (newchar === 'O' || newchar === '-' || newchar === 'X')) {
+                        newchar = newchar.replace(/O/g, '9679')
+                            .replace(/-/g, '9644')
+                            .replace(/X/g, '9747')
 
-                    // console.log('Setting ' + id + ' to ' + newchar);
-                    this.markUndo(null)
-                    this.setReplacementSymbol(id, newchar, realtimeReplacement)
-                    current = focusables.index(event.target)
-                    next = focusables.eq(current + 1).length
-                        ? focusables.eq(current + 1)
-                        : focusables.eq(0)
-                    next.focus()
-                  } else if (this.isValidChar(newchar) || newchar === ' ') {
-                    console.log('Setting ' + id + ' to ' + newchar)
-                    this.markUndo(null)
-                    this.setRepl(id, newchar, realtimeReplacement)
-                    current = focusables.index(event.target)
-                    next = focusables.eq(current + 1).length
-                        ? focusables.eq(current + 1)
-                        : focusables.eq(0)
-                    next.focus()
-                  } else {
-                    // console.log('Not valid:' + newchar);
-                  }
+                        // console.log('Setting ' + id + ' to ' + newchar);
+                        this.markUndo(null)
+                        this.setReplacementSymbol(id, newchar, realtimeReplacement)
+                        current = focusables.index(event.target)
+                        next = focusables.eq(current + 1).length
+                            ? focusables.eq(current + 1)
+                            : focusables.eq(0)
+                        next.focus()
+                    } else if (this.isValidChar(newchar) || newchar === ' ') {
+                        // console.log('Setting ' + id + ' to ' + newchar)
+                        this.markUndo(null)
+                        this.setRepl(id, newchar, realtimeReplacement)
+                        current = focusables.index(event.target)
+                        next = focusables.eq(current + 1).length
+                            ? focusables.eq(current + 1)
+                            : focusables.eq(0)
+                        next.focus()
+                    } else {
+                        // console.log('Not valid:' + newchar);
+                    }
                     event.preventDefault();
                 });
         }

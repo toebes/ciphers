@@ -136,6 +136,7 @@ export class CipherTestResults extends CipherTestManage {
                         let testStarted = timestampToFriendly(startTime);
                         let endTime = result.data.endtime;
                         let testEnded = timestampToFriendly(endTime);
+                        let bonusWindow = 0;
                         let bonusTime = 0;
                         let users = result.data.assigned;
 
@@ -166,9 +167,6 @@ export class CipherTestResults extends CipherTestManage {
                         let testInformation = theTest['TEST.0'];
                         let timeQuestion = testInformation['timed'];
                         if (timeQuestion != -1) {
-
-                        }
-                        if (timeQuestion != -1) {
                             hasTimed = true;
                             let question = 'CIPHER.' + timeQuestion;
                             let state = theTest[question]
@@ -176,9 +174,11 @@ export class CipherTestResults extends CipherTestManage {
                             ihandler.restore(state, true);
                             scoreInformation = ihandler.genScore(answers[0].answer);
                             testScore += scoreInformation.score;
-                            bonusTime = answers[0].solvetime;
-                            // tally final score which includes the bonus.
-                            testScore += this.calculateTimingBonus(bonusTime);
+                            // solvetime is in milliseconds, so needs to be rounded...
+                            bonusTime = Math.round(answers[0].solvetime / 1000 );
+                            bonusWindow = (result.data.endtimed - startTime) / 1000; // remove milliseconds
+                            // add any bonus points to final score.
+                            testScore += this.calculateTimingBonus(bonusTime, bonusWindow);
                             let viewTableRow = viewTable.addBodyRow();
                             viewTableRow.add('Timed')
                                 .add(state.points.toString())
@@ -223,12 +223,20 @@ export class CipherTestResults extends CipherTestManage {
 
                         if (hasTimed) {
                             let bonusTableRow = viewTable.addFooterRow();
+                            let bonusClass = '';
+                            // If the bonus time was not 10 minutes, then shade the bonus value.
+                            if (bonusWindow !== 600) {
+                                bonusClass = 'deviation';
+                            }
                             bonusTableRow.add('Bonus')
                                 .add({
                                     settings: { colspan: 4, class: 'grey' },
                                     content: '',
                                 })
-                                .add(this.calculateTimingBonus(bonusTime).toString());
+                                .add({
+                                    settings: { class: bonusClass },
+                                    content: this.calculateTimingBonus(bonusTime, bonusWindow).toString(),
+                                });
                         }
                         let totalTableRow = viewTable.addFooterRow();
                         totalTableRow.add('Final score')
@@ -326,11 +334,12 @@ export class CipherTestResults extends CipherTestManage {
      * Calculate the timed question bonus based on the published formula
      * @param solvedTime the number of seconds after the start of the test when the
      *                   time question was successfully solved.
+     * @param bonusWindow The number of seconds the bonus for which the bonus can be earned...the rules say 600 (10 minutes)
      */
-    calculateTimingBonus(solvedTime: number): number {
+    calculateTimingBonus(solvedTime: number, bonusWindow: number = 600): number {
         let returnValue: number = 0;
         if (solvedTime !== 0) {
-            returnValue = 4 * (600 - solvedTime);
+            returnValue = 4 * (bonusWindow - solvedTime);
             if (returnValue < 0) {
                 returnValue = 0;
             }

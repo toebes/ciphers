@@ -1495,6 +1495,9 @@ table.testscores td.t {
 table.testscores td.grey {
     background-color: grey;
 }
+table.testscores td.deviation {
+    background-color: tomato;
+}
 table.tiebreak {
     text-align: center;
     margin: 1rem auto;

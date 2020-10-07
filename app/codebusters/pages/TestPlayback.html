@@ -35,12 +35,23 @@
     <div class="precmds"></div>
     <div class="cmdbuttons"></div>
     <div class="testerrors"></div>
-    <div id="scrubslider" class="slider" data-slider data-initial-start="50" data-end="200">
-        <span class="slider-handle"  data-slider-handle role="slider" tabindex="1"></span>
-        <span class="slider-fill" data-slider-fill></span>
-        <input type="hidden">
-      </div>
+    <div class="ans"></div>
 
+    <div class="playback">
+        <div class="button-group round shrink">
+            <a type="button" class="skipstart noplay button secondary">&#x23EE;</a>
+            <a type="button" class="rewind noplay button secondary">&#x23EA;&#xFE0E;</a>
+            <a type="button" class="reverse noplay button secondary">&#x23F4;</a>
+            <a type="button" class="playstop button secondary">&#x23F5;</a>
+            <a type="button" class="fastforward noplay button secondary">&#x23E9;&#xFE0E;</a>
+            <a type="button" class="skipend noplay button secondary">&#x23ED;</a>
+        </div>
+        <div id="scrubslider" class="slider">
+            <span class="slider-handle" data-slider-handle role="slider" tabindex="1" aria-controls="scrubvalue"></span>
+            <span class="slider-fill" data-slider-fill></span>
+            <input type="hidden" id="scrubvalue" class="noshow" />
+        </div>
+    </div>
     <div class="interactive-header">
         <p>Names of participants:</p>
         <table class="shrink cell unstriped nameline">

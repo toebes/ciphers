@@ -1,26 +1,30 @@
 import { CipherTest, ITestState, IAnswerTemplate } from "./ciphertest";
 import { toolMode, ITestTimeInfo, menuMode, IState } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
-import { cloneObject, makeCallout, timestampToFriendly, timestampFromMinutes, formatTime, timestampFromSeconds, NumberMap, StringMap } from "../common/ciphercommon";
+import { cloneObject, makeCallout, formatTime, NumberMap, timestampFromSeconds } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { TrueTime } from "../common/truetime";
-import { ConvergenceDomain, RealTimeModel, ModelCollaborator, StringSetValueEvent, HistoricalModel, HistoricalObject, RealTimeObject } from "@convergence/convergence";
+import { ConvergenceDomain, RealTimeModel, HistoricalModel, HistoricalObject, RealTimeObject, ModelService } from "@convergence/convergence";
 import { CipherInteractiveFactory } from "./cipherfactory";
 import { JTTable } from "../common/jttable";
-import Split from 'split-grid';
-import { JTFDialog } from "../common/jtfdialog";
 import { ObservableObject } from "@convergence/convergence/typings/model/observable/ObservableObject";
 
+// TrueTimePlayback provides an override for the time that the test sees.
+// In reality it doesn't time anything but just remembers the current time.
 class TrueTimePlayback extends TrueTime {
+    private now: number = 0;
     public UTCNow(): number {
-        return 0
+        return this.now;
+    }
+    public setTime(now: number) {
+        this.now = now;
     }
     public startTiming() { }
     public syncTime() { }
 }
 /**
  * CipherTestPlayback
- *  Creates the interactive version of a test.
+ *  Creates the playback version of a test.
  */
 export class CipherTestPlayback extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;
@@ -29,6 +33,8 @@ export class CipherTestPlayback extends CipherTest {
         cipherType: ICipherType.Test,
         test: 0,
     };
+    public shadowanswermodel: HistoricalModel = undefined;
+    public answermodel: HistoricalModel = undefined;
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
     public pageNumber: number = 0;
@@ -38,7 +44,10 @@ export class CipherTestPlayback extends CipherTest {
         endTime: 0,
         endTimedQuestion: 0
     };
-
+    public shadowOffsets: NumberMap = {};
+    private playbackTimer: NodeJS.Timeout = undefined;
+    private playbackInterval: number = 0;
+    private inScrubTo: boolean = false;
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -65,133 +74,212 @@ export class CipherTestPlayback extends CipherTest {
             $(".timer").hide();
             this.displayInteractiveTest(this.state.testID);
         } else {
-            this.setTestStatusMessage("No test id was provided to playback.");
+            $('.testcontent').empty().append(makeCallout($("<h3/>").text("No test id was provided to playback.")));
         }
+        this.attachHandlers();
     }
     /**
-     * Sets up the timer so that it displays the countdown
-     * @param msg Message string for the timer
+     * Update the current time
+     * @param newTime New time to set the playback clock to
      */
-    public setTimerMessage(msg: string) {
-        let target = $('.waittimer');
-        let intervalInfo = $("<h3/>").text(msg).append($("<span/>", { id: "remaintime", class: "timestamp" }));
+    private updatePlaybackClock(newTime: number) {
+        // Set our global time
+        let trueTimePlayback = this.testTimeInfo.truetime as TrueTimePlayback;
+        trueTimePlayback.setTime(newTime);
+        // Move the slider to the corresponding spot
+        $("#scrubslider input").val(newTime).trigger('change');
+        // And update the clock at the top
+        $("#tremain").text(formatTime(this.testTimeInfo.endTime - this.testTimeInfo.truetime.UTCNow()));
+    }
+    /**
+     * scrubTo moves the current time in the model to the requested time.  Note
+     * that it is unlikely that we have an event at this exact milisecond being requested
+     * so we need to find the event that was live at the time of the request
+     * NOTE: This is an async routine and not a promise, so it will run multiple operations
+     * along the way and could take a while.  We need to do an async version because if we
+     * did it as nested promises, it could end up being very deeply recursive.
+     * @param scrubTime Time to advance to
+     */
+    public async scrubTo(scrubTime: number) {
+        // this.shadowanswermodel.minTime();
+        // this.shadowanswermodel.maxTime();
+        // Make sure that we could be successful.  Note that if we are already in the process
+        // of doing a scrubTo, we will just have to ignore any additional requests because
+        // the shadowmodel is already in use.
+        if (this.shadowanswermodel === undefined || this.inScrubTo) {
+            return;
+        }
+        this.inScrubTo = true;
 
-        target.empty().append(makeCallout(intervalInfo, "primary"));
-    }
-    /**
-     * Update the remaining time for the test
-     * @param remaining Time in ms remaining before test start
-     */
-    private updateTimer(remaining: number) {
-        $("#remaintime").text(formatTime(remaining));
-    }
-    /**
-     * Update the main status message about the state of the test.
-     * This is used in lieu of the actual test to let them know that the test is over
-     * or is not available to start yet.
-     * @param msg Message about the test
-     * @param timestamp optional time to be included with the message
-     */
-    public setTestStatusMessage(msg: string, timestamp?: number) {
-        let target = $('.testcontent');
-
-        let content = msg;
-        if (timestamp !== undefined) {
-            content += timestampToFriendly(timestamp);
-        }
-        target.empty().append(makeCallout($("<h3/>").text(content)));
-    }
-    /**
-     * Generates a 2 letter initials for a name
-     * @param name Name to compute initials for
-     */
-    public computeInitials(name: string): string {
-        let result = "";
-        if (name !== "" && name !== undefined) {
-            // Figure out the initials 
-            let parts = name.split(" ");
-            result = parts[0].substr(0, 1).toUpperCase();
-            if (parts.length > 1) {
-                result += parts[parts.length - 1].substr(0, 1).toUpperCase();
-            }
-        }
-        return result;
-    }
-    /**
-     * Update the test display of who is connected to the current test
-     * @param answermodel Interactive answer model
-     * @param collaborators Array of collaborators currently on the test
-     */
-    private updateUserStatus(answermodel: RealTimeModel, collaborators: ModelCollaborator[]) {
-        let answertemplate = answermodel.root().value() as IAnswerTemplate;
-        for (let i = 1; i <= 3; i++) {
-            $("#part" + String(i)).removeClass("connected");
-        }
-        // First find all the users that are taking the test
-        let useridid: StringMap = {};
-        for (let i in answertemplate.assigned) {
-            let userid = answertemplate.assigned[i].userid;
-            if (userid !== "") {
-                useridid[userid] = String(Number(i) + 1);
-            }
-        }
-        collaborators.forEach((collaborator: ModelCollaborator) => {
-            let email = collaborator.user.email;
-            if (email === "") {
-                email = collaborator.user.username;
-            }
-            if (useridid.hasOwnProperty(email)) {
-                let idslot = useridid[email];
-                let displayname = collaborator.user.displayName;
-                if (displayname === undefined || displayname === "") {
-                    displayname = email;
+        let lastSlot = this.shadowanswermodel.maxVersion();
+        let currentSlot = this.shadowanswermodel.version();
+        let currentTime = this.shadowanswermodel.time().valueOf();
+        // Just in case we haven't cached the current slot (like the first time we are called)
+        this.shadowOffsets[currentSlot] = currentTime;
+        let targetslot = currentSlot;
+        // See if we are going forward or backwards
+        if (scrubTime < currentTime) {
+            // Going backwards.  We want to keep checking the time until 
+            // we get to a slot which is less than the target time (or we hit the first one)
+            // That will be the one which would be live at the time requested
+            while (targetslot > 0 && scrubTime < currentTime) {
+                // Back up one
+                targetslot--;
+                // And look to see if we have the time for it cached
+                currentTime = this.shadowOffsets[targetslot];
+                if (currentTime === undefined) {
+                    // Not cached, so we need to ask the system to back up to it.
+                    // console.log("Before backwards: " + this.shadowanswermodel.version() + " at " + this.shadowanswermodel.time().valueOf())
+                    // Remember that we are unlikely to be sitting on the exact one we want, but we can step back to get to it by the
+                    // current distance.  Note that we don't have to ask about the time of the other ones along the way because
+                    // we should already have them cached
+                    let saveslot = this.shadowanswermodel.version();
+                    if (saveslot !== currentSlot) {
+                        console.log("Starting off backwards bad: at " + saveslot + " but thought at " + currentSlot);
+                    }
+                    // await this.shadowanswermodel.backward(currentSlot - targetslot);
+                    await this.shadowanswermodel.playTo(targetslot);
+                    // Figure out where we ended up at and save it in the cache
+                    currentSlot = this.shadowanswermodel.version();
+                    currentTime = this.shadowanswermodel.time().valueOf();
+                    // console.log("After Backward: " + currentSlot + " at " + currentTime + " going to " + scrubTime);
+                    this.shadowOffsets[currentSlot] = currentTime;
+                    // Just to be certain, let's make sure that we actually ended up where we expected.
+                    if (currentSlot !== targetslot) {
+                        console.log("Failed to move backwards to " + targetslot + " but ended at " + currentSlot + " we were at " + saveslot);
+                    }
                 }
-                let initials = this.computeInitials(displayname);
-                $("#user" + idslot).text(displayname);
-                $("#init" + idslot).text(initials);
-                $("#part" + idslot).addClass("connected");
+                // All is good just report where we ended up at
+                // console.log("-- new time:" + currentTime + " Going to " + scrubTime);
             }
-        });
+        } else if (scrubTime > currentTime) {
+            // Going forwards.  We will check the time until we go past it
+            // and then know that we may back up one if we didn't hit the end.
+            while (targetslot < lastSlot && scrubTime > currentTime) {
+                targetslot++;
+                currentTime = this.shadowOffsets[targetslot];
+                if (currentTime === undefined) {
+                    // console.log("Before forwards: " + this.shadowanswermodel.version() + " at " + this.shadowanswermodel.time().valueOf())
+                    let saveslot = this.shadowanswermodel.version();
+                    // await this.shadowanswermodel.forward(targetslot-currentSlot);
+                    await this.shadowanswermodel.playTo(targetslot);
+                    currentSlot = this.shadowanswermodel.version();
+                    let newTime = this.shadowanswermodel.time().valueOf();
+                    // console.log("After Forward: " + currentSlot + " at " + newTime + " going to " + scrubTime);
+                    this.shadowOffsets[currentSlot] = newTime;
+                    if (currentSlot !== targetslot) {
+                        console.log("Failed to move forward to " + targetslot + " at " + currentSlot + " we were at " + saveslot);
+                    }
+                }
+                currentTime = this.shadowOffsets[targetslot];
+                // console.log("++ new time:" + currentTime + " Going to " + scrubTime);
+            }
+            // See if we need to back up.
+            if (scrubTime < currentTime && targetslot > 0) {
+                targetslot--;
+            }
+        }
+        // Now that we know the target slot (which we got using the shadow model)
+        // See if we need to move to the slot on the real model
+        let actualslot = this.answermodel.version();
+        if (actualslot < targetslot) {
+            this.answermodel.forward(targetslot - actualslot)
+                .then(() => {
+                    this.updatePlaybackClock(scrubTime);
+                    this.inScrubTo = false;
+                })
+                .catch((error) => {
+                    this.reportFailure("Convergence API problem moving forward: " + error);
+                    this.inScrubTo = false;
+                });
+        } else if (actualslot > targetslot) {
+            this.answermodel.backward(actualslot - targetslot)
+                .then(() => {
+                    this.updatePlaybackClock(scrubTime);
+                    this.inScrubTo = false;
+                })
+                .catch((error) => {
+                    this.reportFailure("Convergence API problem moving backward: " + error);
+                    this.inScrubTo = false;
+                });
+        } else {
+            // The new time is on the same slot, so just update the timer
+            this.updatePlaybackClock(scrubTime);
+            this.inScrubTo = false;
+        }
+        // console.log("Scrub position: " + targetslot + " for " + scrubTime + " Under " + currentTime);
     }
     /**
-     * Track changes to who is working on the test
-     * @param answermodel Interactive answer model
+     * Stop any active playback and update the UI controls
      */
-    private trackUsers(answermodel: RealTimeModel) {
-        answermodel.collaboratorsAsObservable().subscribe((collaborators: ModelCollaborator[]) => {
-            this.updateUserStatus(answermodel, collaborators);
-        });
+    public stopPlayback(): void {
+        $(".noplay").removeAttr('disabled').removeClass("primary").addClass("secondary");
+        $(".playstop").removeClass("alert").addClass("secondary").html("&#x23F5;"); // .text("▶");
+        if (this.playbackTimer !== undefined) {
+            clearInterval(this.playbackTimer);
+        }
+        this.playbackInterval = 0;
     }
     /**
-     * Create the hidden dialog for selecting a cipher to open
-     * @returns DOM element for the dialog
+     * Start playback
+     * @param speed Speed to play (1 = normal, negative is reverse) as a multiplier of units per second
      */
-    private createmultiLoginDlg(): JQuery<HTMLElement> {
-        let dlgContents = $("<div/>", {
-            class: "callout alert",
-        }).text("Your userid is already being used to take this test currently." +
-            "  This may be because a web page is already open to the test or " +
-            "someone may have logged into your account without you knowing.  " +
-            "You can take the test in this window or exit and let that session continue running."
-        );
-        let MultiLoginDlg = JTFDialog(
-            "multilogindlg",
-            "User already taking test",
-            dlgContents,
-            "okdisc",
-            "Disconnect other session and take test here!"
-        );
-        return MultiLoginDlg;
+    public startPlayback(speed: number, button: string): void {
+        this.stopPlayback();
+        $(".noplay").prop('disabled', true).removeClass("primary").addClass("secondary");
+        $("." + button).removeClass("secondary").addClass("primary");
+        $(".playstop").removeClass("primary secondary").addClass("alert").html("&#x23F9;&#xFE0E;") //.text("⏹");
+        let tickspersec = 10;
+        this.playbackInterval = timestampFromSeconds(1 / tickspersec);
+        this.playbackTimer = setInterval(() => {
+            let newTime = this.testTimeInfo.truetime.UTCNow() + (this.playbackInterval * speed);
+            // console.log("Tick: " + newTime + " (" + timestampToFriendly(newTime) + ") interval=" + this.playbackInterval);
+            this.scrubTo(newTime);
+        }, this.playbackInterval)
+        let now: number = this.testTimeInfo.truetime.UTCNow();
+        // console.log("Start to play from " + now + " (" + timestampToFriendly(now) + ") speed=" + speed + " interval=" + this.playbackInterval);
     }
     /**
-     * Create the main menu at the top of the page.
-     * This also creates any needed hidden dialogs
+     * Stop playing and jump to earliest entry
      */
-    public createMainMenu(): JQuery<HTMLElement> {
-        let result = super.createMainMenu();
-        // Create the dialog for prompting about multiple test takers
-        result.append(this.createmultiLoginDlg());
-        return result;
+    public playFirst(): void {
+        this.stopPlayback();
+        this.scrubTo(this.testTimeInfo.startTime);
+    }
+    /**
+     * Play doublespeed reverse
+     */
+    public playRewind(): void {
+        this.startPlayback(-10, "rewind");
+    }
+    /**
+     * Play single speed reverse
+     */
+    public playReverse(): void {
+        this.startPlayback(-1, "reverse");
+    }
+    /**
+     * Start/Stop playing
+     */
+    public playStop(): void {
+        if (this.playbackInterval === 0) {
+            this.startPlayback(1, "playstop")
+        } else {
+            this.stopPlayback();
+        }
+    }
+    /**
+     * Play forward double speed
+     */
+    public playFastForward(): void {
+        this.startPlayback(10, "fastforward");
+    }
+    /**
+     * Stop playing and Skip to the end
+     */
+    public playEnd(): void {
+        this.stopPlayback();
+        this.scrubTo(this.testTimeInfo.endTime);
     }
     /**
      * makeInteractive creates an interactive question by invoking the appropriate factory for the saved state
@@ -269,66 +357,86 @@ export class CipherTestPlayback extends CipherTest {
     /**
      * Stage 1: Start the process for displaying an interactive test.  
      * Check the time and user information to make sure that we are in the window to run the test
-     * @param testUID answer template id
+     * @param answerModelID answer template id
      */
-    public displayInteractiveTest(testUID: string) {
+    public displayInteractiveTest(answerModelID: string) {
         this.connectRealtime()
             .then((domain: ConvergenceDomain) => {
                 // 2. Initializes the application after connecting by opening a model.
                 const modelService = domain.models();
-                modelService.history(testUID)
+                modelService.history(answerModelID)
                     .then((answermodel: HistoricalModel) => {
                         let answertemplate = answermodel.root().value() as IAnswerTemplate;
+                        this.answermodel = answermodel;
+
                         // Populate the time from the answer template
                         this.testTimeInfo.startTime = answertemplate.starttime;
                         this.testTimeInfo.endTimedQuestion = answertemplate.endtimed;
                         this.testTimeInfo.endTime = answertemplate.endtime;
-                        let testid = answertemplate.testid;
+                        let testModelID = answertemplate.testid;
 
-                        let startTime = answermodel.minTime().getTime();
-                        let endTime = answermodel.maxTime().getTime();
+                        // let startTime = this.answermodel.minTime().getTime();
+                        // let endTime = this.answermodel.maxTime().getTime();
+                        // if (startTime < this.testTimeInfo.startTime) {
+                        //     startTime = this.testTimeInfo.startTime;
+                        // }
+                        // if (endTime > this.testTimeInfo.endTime) {
+                        //     endTime = this.testTimeInfo.endTime;
+                        // }
+
 
                         let elem = new Foundation.Slider($("#scrubslider"), {
-                            start: startTime,
-                            end: endTime
+                            start: answertemplate.starttime,
+                            end: answertemplate.endtime,
+                            initialStart: answertemplate.endtime
                         });
                         let target = $('.default-header');
                         target.hide();
-
+                        $("#scrubslider").on('changed.zf.slider', () => {
+                            let newTime = parseInt($("#scrubslider input").val() as string);
+                            this.scrubTo(newTime);
+                        })
                         // If they close the window or navigate away, we want to close all our connections
-                        $(window).on('beforeunload', () => this.shutdownTest(answermodel));
-                        // Put up a countdown timer..
-                        this.openTestModel(modelService, testid, answermodel);
+                        $(window).on('beforeunload', () => this.shutdownTest());
+                        this.openTestModel(modelService, testModelID, answerModelID);
                     })
             })
             .catch((error) => { this.reportFailure("Convergence API could not open test model: " + error); });
     }
     /**
-      * Stage 3: (5 minute mark)
       * Open the test model for the test template.
       * @param modelService 
-      * @param testid 
-      * @param answermodel Interactive answer model
-      * @param elem 
+      * @param testModelID 
+      * @param answermodelID Interactive answer model
       */
-    private openTestModel(modelService, testid: any, answermodel: HistoricalModel) {
-        modelService.open(testid)
+    private openTestModel(modelService: ModelService, testModelID: string, answerModelID: string) {
+        modelService.open(testModelID)
             .then((testmodel: RealTimeModel) => {
-                console.log("Fully opened: testmodel");
-                this.buildScoreTemplateAndHints(testmodel, answermodel);
+                let interactive = testmodel.root().value();
+                testmodel.close();
+                this.openShadowAnswerModel(modelService, answerModelID, interactive);
             })
             .catch((error) => { this.reportFailure("Convergence API could not open data model: " + error); });
     }
     /**
-     * Stage 4: (5 minute mark)
+     * 
+     * @param modelService 
+     * @param answerModelID 
+     * @param interactive Test template
+     */
+    private openShadowAnswerModel(modelService: ModelService, answerModelID: string, interactive: any) {
+        modelService.history(answerModelID)
+            .then((shadowanswermodel: HistoricalModel) => {
+                this.shadowanswermodel = shadowanswermodel;
+                this.buildInteractiveTest(interactive);
+            })
+            .catch((error) => { this.reportFailure("Convergence API could not open shadow history model: " + error); });
+    }
+    /**
      * Construct the score template and populate the hints that they will need
      * @param interactive Test template
-     * @param answermodel Interactive answer model
      */
-    public buildScoreTemplateAndHints(testmodel: RealTimeModel, answermodel: HistoricalModel) {
-        let interactive = testmodel.root().value();
-        testmodel.close();
-
+    public buildInteractiveTest(interactive: any) {
         // Update the title for the test
         $(".testtitle").text(interactive.title);
 
@@ -371,13 +479,6 @@ export class CipherTestPlayback extends CipherTest {
                     settings: { class: 'v' },
                     content: String(qitem.points),
                 });
-            //             if (this.) {
-            //     trow.                .add({
-            //         settings: { colspan: 2, class: 'grey' },
-            //         content: '',
-            //     }).add('');
-
-            // } else {
             trow.add('')
                 .add('')
                 .add('');
@@ -405,26 +506,57 @@ export class CipherTestPlayback extends CipherTest {
         let target = $('.testcontent');
         // Generate the questions
         if (interactive.timed !== undefined) {
-            this.makeInteractive(target, interactive.timed, -1, answermodel.elementAt("answers", 0) as HistoricalObject);
+            this.makeInteractive(target, interactive.timed, -1, this.answermodel.elementAt("answers", 0) as HistoricalObject);
         }
         for (let qnum = 0; qnum < interactive.count; qnum++) {
-            this.makeInteractive(target, interactive.questions[qnum], qnum, answermodel.elementAt("answers", qnum + 1) as HistoricalObject);
+            this.makeInteractive(target, interactive.questions[qnum], qnum, this.answermodel.elementAt("answers", qnum + 1) as HistoricalObject);
         }
+        // Make all the input fields readonly when in playback mode
+        $(".awc").prop("readonly", true);
+        $(".awr").prop("readonly", true);
+        $(".intnote").prop("readonly", true);
+        $(".ir").off("click");
+        $(".timer").show();
         this.setMenuMode(menuMode.test);
     }
     /**
      * Stage 8: Cleanup.
-     * @param answermodel Interactive answer model
+     * @param message Shutdown message
      */
-    private shutdownTest(answermodel: HistoricalModel, message?: string) {
-        let session = answermodel.session().domain();
-        this.testTimeInfo.truetime.stopTiming();
-        session.dispose();
-        this.setTestStatusMessage(message, this.testTimeInfo.endTime);
+    private shutdownTest() {
+        $(window).off('beforeunload');
+        if (this.answermodel !== undefined) {
+            let session = this.answermodel.session().domain();
+            this.testTimeInfo.truetime.stopTiming();
+            session.dispose();
+            this.answermodel = undefined;
+        }
         $("#topsplit").hide();
         $(".gutter-row-1").hide();
         $(".timer").hide();
         $('.testcontent').show();
         $(".mainmenubar").show();
+    }
+
+    public attachHandlers(): void {
+        $(".skipstart").off('click').on('click', () => {
+            this.playFirst();
+        });
+        $(".rewind").off('click').on('click', () => {
+            this.playRewind();
+        });
+        $(".reverse").off('click').on('click', () => {
+            this.playReverse()
+        });
+        $(".playstop").off('click').on('click', () => {
+            this.playStop();
+        });
+        $(".fastforward").off('click').on('click', () => {
+            this.playFastForward();
+        });
+        $(".skipend").off('click').on('click', () => {
+            this.playEnd();
+        });
+        super.attachHandlers();
     }
 }

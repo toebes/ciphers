@@ -694,6 +694,7 @@ export class CipherTestTimed extends CipherTest {
      * @param answermodel Interactive answer model
      */
     private shutdownTest(answermodel: RealTimeModel, message?: string) {
+        $(window).off('beforeunload');
         if (message === undefined) {
             message = "Time is up. The test is now over.  Scheduled end time ";
         }

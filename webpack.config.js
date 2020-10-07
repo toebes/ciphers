@@ -914,7 +914,7 @@ module.exports = {
             ),
             chunks: ['codebusters'],
             cipher: 'TestPlayback',
-            title: 'Interactive Test',
+            title: 'Test Playback',
         }),
         new HtmlWebpackPlugin({
             inject: false,

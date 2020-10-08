@@ -10,6 +10,13 @@
 :target {
     background-color: #ffffcc !important;
 }
+
+table.sticky thead tr th {
+    position: sticky;
+    z-index: 100;
+    top: 0;
+}
+
 .hidden,
 .qplain {
     display: none;

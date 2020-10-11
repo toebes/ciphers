@@ -1,10 +1,10 @@
 import { CipherTest, ITestState, IAnswerTemplate } from "./ciphertest";
 import { toolMode, ITestTimeInfo, menuMode, IState } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
-import { cloneObject, makeCallout, timestampToFriendly, timestampFromMinutes, formatTime, timestampFromSeconds, NumberMap, StringMap } from "../common/ciphercommon";
+import { cloneObject, makeCallout, timestampToFriendly, timestampFromMinutes, formatTime, timestampFromSeconds, StringMap } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { TrueTime } from "../common/truetime";
-import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelCollaborator, RealTimeString, StringSetValueEvent } from "@convergence/convergence";
+import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelCollaborator, RealTimeString, StringSetValueEvent, RealTimeNumber, NumberSetValueEvent, ModelService } from "@convergence/convergence";
 import { CipherInteractiveFactory } from "./cipherfactory";
 import { JTTable } from "../common/jttable";
 import Split from 'split-grid';
@@ -343,9 +343,8 @@ export class CipherTestTimed extends CipherTest {
                     .then((answermodel: RealTimeModel) => {
                         let answertemplate = answermodel.root().value() as IAnswerTemplate;
                         // Populate the time from the answer template
-                        this.testTimeInfo.startTime = answertemplate.starttime;
-                        this.testTimeInfo.endTimedQuestion = answertemplate.endtimed;
-                        this.testTimeInfo.endTime = answertemplate.endtime;
+                        this.getTestTimes(answermodel);
+                        // We need to watch the answer template to see if it changes
                         // We need confirm that they are actually allowed to take this test.
                         // this.getConfigString("userid", "") must be non-blank and be present as one
                         // of the slots in answertemplate.assigned
@@ -422,15 +421,33 @@ export class CipherTestTimed extends CipherTest {
             });
     }
     /**
+     * Get the initial timed values for the test and then update the tracking values.
+     * @param answerModel realtime model for the test answers 
+     */
+    private getTestTimes(answermodel: RealTimeModel) {
+        // Get the realtime objects to track changes
+        let starttimeObject = answermodel.elementAt("starttime") as RealTimeNumber;
+        let endtimeObject = answermodel.elementAt("endtime") as RealTimeNumber;
+        let endtimedQuestionObject = answermodel.elementAt("endtimed") as RealTimeNumber;
+        // Populate our initial values
+        this.testTimeInfo.startTime = starttimeObject.value();
+        this.testTimeInfo.endTimedQuestion = endtimeObject.value();
+        this.testTimeInfo.endTime = endtimedQuestionObject.value();
+        // And register interest in changes to the values to update the test
+        starttimeObject.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => { this.testTimeInfo.startTime = event.element.value(); });
+        endtimedQuestionObject.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => { this.testTimeInfo.endTimedQuestion = event.element.value(); });
+        endtimeObject.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => { this.testTimeInfo.endTime = event.element.value(); });
+    }
+
+    /**
      * Stage 2:  (Prior to 5 minutes before the test)
      * Launch but wait until time to prepare the test.  During this time, only a countdown timer is displayed and no data is pulled from
      * the model.  Even if they examine the web page, they won't see any content here.
      * @param modelService 
      * @param testid 
      * @param answermodel Interactive answer model
-     * @param answertemplate 
      */
-    private waitToLoadTestModel(modelService, testid: any, answermodel: RealTimeModel) {
+    private waitToLoadTestModel(modelService: ModelService, testid: string, answermodel: RealTimeModel) {
         if (this.testTimeInfo.truetime.UTCNow() < (this.testTimeInfo.startTime - timestampFromMinutes(5))) {
             this.setTimerMessage("The test will start in ");
             let intervaltimer = setInterval(() => {
@@ -455,7 +472,7 @@ export class CipherTestTimed extends CipherTest {
       * @param answermodel Interactive answer model
       * @param elem 
       */
-    private openTestModel(modelService, testid: any, answermodel: RealTimeModel) {
+    private openTestModel(modelService: ModelService, testid: string, answermodel: RealTimeModel) {
         modelService.open(testid)
             .then((testmodel: RealTimeModel) => {
                 console.log("Fully opened: testmodel");
@@ -554,18 +571,10 @@ export class CipherTestTimed extends CipherTest {
                     settings: { class: 'v' },
                     content: String(qitem.points),
                 });
-            //             if (this.) {
-            //     trow.                .add({
-            //         settings: { colspan: 2, class: 'grey' },
-            //         content: '',
-            //     }).add('');
-
-            // } else {
             trow.add('')
                 .add('')
                 .add('');
         }
-        // }
         // If we had a timed question, we put in the slot for the bonus
         if (hastimed) {
             table

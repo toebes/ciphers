@@ -144,7 +144,7 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
 
 
                     document.getElementById(id).addEventListener('keyup', e => {
-                        let pos = Number(e.target.selectionStart);
+                        let pos = Number($(e.target).prop("selectionStart"));
                         if (event.which === 37) {
                             // left
                             

@@ -134,14 +134,15 @@ export class CipherTakeTest extends CipherTest {
                 $('<a/>', {
                     type: 'button',
                     class: 'taketest button',
-                }).text('Take Test')
+                }).text('Take This Test Now')
             );
-            buttons.append(
-                $('<a/>', {
-                    type: 'button',
-                    class: 'printhint alert button',
-                }).text('Print Hints')
-            );
+            // TODO: Reenable when we have the ability to print it out
+            // buttons.append(
+            //     $('<a/>', {
+            //         type: 'button',
+            //         class: 'printhint alert button',
+            //     }).text('Print Hints')
+            // );
         }
         let testmodelid = answertemplate.testid;
         let starttime = new Date(answertemplate.starttime).toLocaleString();

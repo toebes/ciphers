@@ -67,8 +67,8 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                     let focusables = target.closest(".question").find('.awc');
                     let length = String(target.val()).length;
                     let cursorPos = target.prop("selectionStart");
-                    console.log("cursorPos:" + cursorPos);
-                    console.log("length: " + length);
+                    // console.log("cursorPos:" + cursorPos);
+                    // console.log("length: " + length);
                     // Current caret position
                     if (event.which === 37) {
                         // left
@@ -92,18 +92,7 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                             : focusables.eq(0);
                             next.focus();
                         }
-                    } else if (event.which === 46 || event.which === 8) {
-                        // Backspace and delete
-                        // this.markUndo(null);
-                        // this.setAns(id, ' ', realtimeAnswer);
-                        // current = focusables.index(event.target);
-                        // if (current === 0) {
-                        //     next = focusables.last();
-                        // } else {
-                        //     next = focusables.eq(current - 1);
-                        // }
-                        // next.focus();
-                    }
+                    } 
                     event.preventDefault();
                 })
                 .off('keypress')
@@ -121,21 +110,14 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                     }
 
                     if (this.isValidChar(newchar) || newchar === ' ') {
-                        // console.log('Setting ' + id + ' to ' + newchar);
                         this.markUndo(null);
 
                         let index = Number(id.split("_"));
-                        let ans = String(realtimeAnswer.get(index));
+                        let ans = target.val().toString().toUpperCase();
                         let c = newchar.toUpperCase();
-                        $("#" + id).val(c);
-                        this.setAns(id,(ans + c).toUpperCase(),realtimeAnswer);
-                        // realtimeAnswer.set(index,(ans+c).toUpperCase());
-                        // this.setAns(id,newchar,realtimeAnswer);
-                        // current = focusables.index(event.target);
-                        // next = focusables.eq(current + 1).length
-                        //     ? focusables.eq(current + 1)
-                        //     : focusables.eq(0);
-                        // next.focus();
+                        $("#" + id).val(ans + c);
+                        realtimeAnswer.set(index, ans + c);
+                        $("#" + id).addClass('uppercase');
                     } else {
                         // console.log('Not valid:' + newchar);
                     }

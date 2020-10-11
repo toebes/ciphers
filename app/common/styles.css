@@ -1942,6 +1942,10 @@ table.railfence-sm tbody {
     display: none;
 }
 
+.uppercase{
+    text-transform: uppercase;
+}
+
 @media print {
     .title-bar,
     .top-bar,

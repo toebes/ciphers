@@ -1217,6 +1217,17 @@ button.rounded {
     background: lightcyan;
     padding: 5px 2px;
 }
+
+.timer div.coach {
+    position: relative;
+    top: -5px;
+    float: right;
+    width: 0px;
+    left: -64px;
+    font-weight: bold;
+    color: red;
+}
+
 .participant {
     height: 16px;
     padding: 0px;

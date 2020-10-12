@@ -4,7 +4,7 @@ import { ICipherType } from "../common/ciphertypes";
 import { cloneObject, makeCallout, timestampToFriendly, timestampFromMinutes, formatTime, timestampFromSeconds, StringMap } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { TrueTime } from "../common/truetime";
-import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelCollaborator, RealTimeString, StringSetValueEvent, RealTimeNumber, NumberSetValueEvent, ModelService } from "@convergence/convergence";
+import { ConvergenceDomain, RealTimeModel, RealTimeObject, ModelCollaborator, RealTimeString, StringSetValueEvent, RealTimeNumber, NumberSetValueEvent, ModelService, ModelPermissions } from "@convergence/convergence";
 import { CipherInteractiveFactory } from "./cipherfactory";
 import { JTTable } from "../common/jttable";
 import Split from 'split-grid';
@@ -226,6 +226,24 @@ export class CipherTestTimed extends CipherTest {
         }
     }
     /**
+     * Ensure that the user is actually a coach.  To do this, we need to check the permissions
+     * on the model and make sure that they have Modify permissions
+     * @param answermodel 
+     */
+    private ensureCoach(answermodel: RealTimeModel) {
+        $(".timer").prepend($("<div/>", { class: "coach" }).text("Coach"));
+        let permissionsManager = answermodel.permissionsManager();
+        permissionsManager.getAllUserPermissions()
+            .then((modelPermissionsSet: Map<string, ModelPermissions>) => {
+                let modelPermissions = modelPermissionsSet.get(answermodel.session().user().username)
+                console.log(modelPermissions);
+                if (!modelPermissions.manage) {
+                    this.shutdownTest(answermodel, "You are not assigned to take this test.");
+                }
+            })
+            .catch(() => { this.shutdownTest(answermodel, "You are not assigned to take this test."); });
+    }
+    /**
      * Create the hidden dialog for selecting a cipher to open
      * @returns DOM element for the dialog
      */
@@ -381,11 +399,15 @@ export class CipherTestTimed extends CipherTest {
                         }
                         // Make sure that they were found in the list of active users for this test
                         if (userfound < 0) {
-                            this.shutdownTest(answermodel, "You are not assigned to take this test.");
+                            // Ok they aren't a user, but we can assume that they are a coach since we had permission to open the model.
+                            // We will proceed as if they are a coach, but if the promise tells us otherwise, we can shut down the test
+                            // to the test because it was successfully opened
+                            this.ensureCoach(answermodel);
+                        } else {
+                            let realtimeSessionid = answermodel.elementAt("assigned", userfound, "sessionid") as RealTimeString;
+                            // Make sure that we are the only copy for this yser
+                            this.confirmOnly(answermodel, loggedinuserid, realtimeSessionid);
                         }
-                        let realtimeSessionid = answermodel.elementAt("assigned", userfound, "sessionid") as RealTimeString;
-                        // Make sure that we are the only copy for this yser
-                        this.confirmOnly(answermodel, loggedinuserid, realtimeSessionid);
                         let testid = answertemplate.testid;
                         // Figure out if it is time to run the test
                         let now = this.testTimeInfo.truetime.UTCNow();
@@ -431,8 +453,8 @@ export class CipherTestTimed extends CipherTest {
         let endtimedQuestionObject = answermodel.elementAt("endtimed") as RealTimeNumber;
         // Populate our initial values
         this.testTimeInfo.startTime = starttimeObject.value();
-        this.testTimeInfo.endTimedQuestion = endtimeObject.value();
-        this.testTimeInfo.endTime = endtimedQuestionObject.value();
+        this.testTimeInfo.endTimedQuestion = endtimedQuestionObject.value();
+        this.testTimeInfo.endTime = endtimeObject.value();
         // And register interest in changes to the values to update the test
         starttimeObject.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => { this.testTimeInfo.startTime = event.element.value(); });
         endtimedQuestionObject.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => { this.testTimeInfo.endTimedQuestion = event.element.value(); });

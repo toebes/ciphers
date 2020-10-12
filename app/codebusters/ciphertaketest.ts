@@ -94,12 +94,11 @@ export class CipherTakeTest extends CipherTest {
                             break;
                         }
                     }
-                    if (isAssigned) {
-                        count++;
-                        this.addPublishedEntry(modelService,
-                            result.modelId,
-                            answertemplate);
-                    }
+                    count++;
+                    this.addPublishedEntry(modelService,
+                        result.modelId,
+                        answertemplate,
+                        isAssigned);
                 });
                 if (count === 0) {
                     let callout = $('<div/>', {
@@ -118,10 +117,11 @@ export class CipherTakeTest extends CipherTest {
      * @param answermodelid ID of 
      * @param answertemplate Contents of answer
      */
-    public addPublishedEntry(modelService: Convergence.ModelService, answermodelid: string, answertemplate: IAnswerTemplate) {
+    public addPublishedEntry(modelService: Convergence.ModelService, answermodelid: string, answertemplate: IAnswerTemplate, isAssigned: boolean) {
         let tr = $("<tr/>", { 'data-answer': answermodelid });
         let buttons = $('<div/>', { class: 'button-group round shrink' });
         let now = Date.now();
+        let showCoachedTest = true;
 
         if (answertemplate.endtime < now) {
             let endtime = new Date(answertemplate.endtime).toLocaleString();
@@ -129,6 +129,13 @@ export class CipherTakeTest extends CipherTest {
         } else if (answertemplate.starttime > now + timestampFromMinutes(30)) {
             let starttime = new Date(answertemplate.starttime).toLocaleString();
             buttons.append("Test starts at " + starttime);
+        } else if (!isAssigned) {
+            buttons.append(
+                $('<a/>', {
+                    type: 'button',
+                    class: 'taketest button alert',
+                }).text('Coach Test Now')
+            );
         } else {
             buttons.append(
                 $('<a/>', {
@@ -159,6 +166,12 @@ export class CipherTakeTest extends CipherTest {
             $(".publist").append(tr);
         }
     }
+    /**
+     * 
+     * @param modelService 
+     * @param elem 
+     * @param testmodelid 
+     */
     public fillTitle(modelService: Convergence.ModelService, elem: JQuery<HTMLElement>, testmodelid: string) {
         modelService.open(testmodelid).then(
             (testmodel: RealTimeModel) => {

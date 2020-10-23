@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>
+            <%= htmlWebpackPlugin.options.title %>
+        </title>
+    </head>
+
+    <body>
+        <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+        <% } %> <%= require('html-loader!./analytics.html') %>
+
+        <div data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+        <div id="google-sign-in-container"></div>
+    </body>
+</html>

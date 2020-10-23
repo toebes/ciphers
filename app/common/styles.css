@@ -17,6 +17,17 @@ table.sticky thead tr th {
     top: 0;
 }
 
+.login-info {
+    display: block;
+    float: right;
+}
+
+.login-button {
+    background-color: #1779ba;
+    color: white;
+    border-radius: 0.625rem;
+}
+
 .hidden,
 .qplain {
     display: none;

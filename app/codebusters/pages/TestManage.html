@@ -6,9 +6,18 @@
     <title>
         <%= htmlWebpackPlugin.options.title %>
     </title>
+
+    <!-- <meta name="google-signin-scope" content="profile email">
+    <meta name="google-signin-client_id" content="10183109285-tl1u2rpjntem0n6g9hvgc5go7rcaatuf.apps.googleusercontent.com"> -->
+    <!-- <script src="https://apis.google.com/js/platform.js" async defer></script> -->
 </head>
 
 <body>
+    <!-- <script>
+        function onSignIn(googleUser) {
+            window.cipherTool.onGoogleSuccess(googleUser)
+        }
+    </script> -->
     <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
     <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
     <% } %>

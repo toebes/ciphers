@@ -50,7 +50,7 @@ export class CipherLogin extends CipherHandler {
 
         this.api = new API(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu/'));
 
-        let parms = parseQueryString(window.location.search.substring(1));
+        const parms = parseQueryString(window.location.search.substring(1));
         const parmsReturnUrl = parms.returnUrl;
         if (typeof parmsReturnUrl === 'undefined' || parmsReturnUrl === null) {
             this.returnUrl = 'index.html';

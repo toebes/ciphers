@@ -878,6 +878,16 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'Login.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages',
+                'Login.html'
+            ),
+            chunks: ['codebusters'],
+            cipher: 'Login',
+            title: 'Login',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TestResults.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages',
                 'TestManage.html'

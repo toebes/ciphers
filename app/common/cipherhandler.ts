@@ -1,16 +1,7 @@
 import 'foundation-sites';
-import {
-    BoolMap,
-    cloneObject,
-    NumberMap,
-    StringMap,
-} from '../common/ciphercommon';
+import { BoolMap, cloneObject, NumberMap, StringMap } from '../common/ciphercommon';
 import { CipherMenu } from './ciphermenu';
-import {
-    getCipherEquivalents,
-    getCipherTitle,
-    ICipherType,
-} from './ciphertypes';
+import { getCipherEquivalents, getCipherTitle, ICipherType } from './ciphertypes';
 import { getVersion } from './getversion';
 import { JTButtonGroup, JTButtonItem } from './jtbuttongroup';
 import { JTFDialog } from './jtfdialog';
@@ -20,8 +11,8 @@ import { InitStorage, JTStorage } from './jtstore';
 import { JTTable, JTRow } from './jttable';
 import { parseQueryString } from './parsequerystring';
 import { textStandard } from '../common/readability';
-import { RealTimeObject } from '@convergence/convergence'
-import { TrueTime } from './truetime'
+import { RealTimeObject } from '@convergence/convergence';
+import { TrueTime } from './truetime';
 
 export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
@@ -114,14 +105,14 @@ export const enum ITestType {
     astate = 'astate',
 }
 export const testTypeNames: { [key in keyof typeof ITestType]: string } = {
-    None: "unspecified test type",
-    cregional: "Division C (High School) Regional/Invitational",
-    cstate: "Division C (High School) State/National",
-    bregional: "Division B (Middle School) Regional/Invitational",
-    bstate: "Division B (Middle School) State/National",
-    aregional: "Division A (Elementary School) Regional/Invitational",
-    astate: "Division A (Elementary School) State/National"
-}
+    None: 'unspecified test type',
+    cregional: 'Division C (High School) Regional/Invitational',
+    cstate: 'Division C (High School) State/National',
+    bregional: 'Division B (Middle School) Regional/Invitational',
+    bstate: 'Division B (Middle School) State/National',
+    aregional: 'Division A (Elementary School) Regional/Invitational',
+    astate: 'Division A (Elementary School) State/National',
+};
 /**
  * The save file format of a test
  */
@@ -168,19 +159,19 @@ export interface ITestQuestionFields {
      *  Each spot is a single character.  This includes the answer characters with spaces for non valid characters.
      *   So if the cipher
      *  was  X PDR'M AXVC and the answer typed was:
-     *       I DON'T LIKE 
+     *       I DON'T LIKE
      *  Then the answer array will be {"I", " ", "D", "O", "N", " ", "T", " ", "L", "I", "K", "E"}
-     * 
+     *
      *   Typically the answer is bound to a RealTimeArray
      *      let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;
      *      realtimeAnswer.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => { this.propagateAns(qnumdisp, event.index, event.value.value()); });
-     * 
+     *
      *   The generated HTML fields are typically an input field with the awc class and an ID of the form
-     *      I<qnum>_<offset> 
+     *      I<qnum>_<offset>
      *   Where <qnum> is the question number (0 for timed) and <offset> is the index in the array.
      *   In the array case, usually these fields will only contain a single character and can be populated vi keyup/keypress
      *   events (look in interactiveencoder.ts for an example).
-     * 
+     *
      *   In the case where the field could be a number or string (like in the Hill cipher) instead of binding with a RealTimeArray,
      *   each of the fields are bound as a textInput such as:
      *         let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;
@@ -190,21 +181,21 @@ export interface ITestQuestionFields {
      *              bindTextInput(answerfield[0] as HTMLInputElement, realtimeAnswer.elementAt(i));
      *         }
      **/
-    answer: string[],
-    /** The replacement choices that has been entered on the test. 
-     *  This is applicable to most ciphers 
-     *  
+    answer: string[];
+    /** The replacement choices that has been entered on the test.
+     *  This is applicable to most ciphers
+     *
      *  Like the answer field, this is also typically bound to a RealTimeArray
-     * 
+     *
      *         let realtimeReplacement = realTimeElement.elementAt("replacements") as RealTimeArray;
      *         realtimeReplacement.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => { this.propagateRepl(qnumdisp, event.index, event.value.value()); });
      *
      *   The generated HTML fields are typically an input field with the awr class and an ID of the form
-     *      R<qnum>_<offset> 
+     *      R<qnum>_<offset>
      *   Where <qnum> is the question number (0 for timed) and <offset> is the index in the array.
      *   In the array case, usually these fields will only contain a single character and can be populated vi keyup/keypress
      *   events (look in interactiveencoder.ts for an example).
-     * 
+     *
      *   In the case where the field could be a number or string (like in the Hill cipher) instead of binding with a RealTimeArray,
      *   each of the fields are bound as a textInput such as:
      *         let realtimeReplacement = realTimeElement.elementAt("replacements") as RealTimeArray;
@@ -214,19 +205,19 @@ export interface ITestQuestionFields {
      *              bindTextInput(replacementfield[0] as HTMLInputElement, realtimeReplacement.elementAt(i));
      *         }
      * */
-    replacements?: string[],
+    replacements?: string[];
     /** Deliberate separators between letters to aid in solving a Patristocrat  */
-    separators?: string[],
-    /** Any notes typed in the work section below the cipher 
+    separators?: string[];
+    /** Any notes typed in the work section below the cipher
      *   This is typically bound to a textarea field with a class of intnote and an id of the form
      *      in<qnum>
      *   where <qnum> is the question number (0 for timed)
-     * 
+     *
      *   The textarea is bound with bindTextInput as follows:
      *       const textArea = $("#in" + qnumdisp)[0] as HTMLTextAreaElement;
      *       bindTextInput(textArea, realTimeElement.elementAt("notes") as RealTimeString);
      */
-    notes: string,
+    notes: string;
     /**
      * Time that the timed question was successfully solved.  0 indicates not solved.
      */
@@ -334,46 +325,46 @@ export class CipherHandler {
     public readonly langreplace: {
         [key: string]: { [key1: string]: string };
     } = {
-            en: {},
-            nl: {},
-            de: {},
-            eo: {},
-            es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
-            fr: {
-                Ç: 'C',
-                Â: 'A',
-                À: 'A',
-                É: 'E',
-                Ê: 'E',
-                È: 'E',
-                Ë: 'E',
-                Î: 'I',
-                Ï: 'I',
-                Ô: 'O',
-                Û: 'U',
-                Ù: 'U',
-                Ü: 'U',
-            },
-            it: { À: 'A', É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
-            no: {},
-            pt: {
-                Á: 'A',
-                Â: 'A',
-                Ã: 'A',
-                À: 'A',
-                Ç: 'C',
-                È: 'E',
-                Ê: 'E',
-                Í: 'I',
-                Ó: 'O',
-                Ô: 'O',
-                Õ: 'O',
-                Ú: 'U',
-            },
-            sv: {},
-            ia: {},
-            la: {},
-        };
+        en: {},
+        nl: {},
+        de: {},
+        eo: {},
+        es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
+        fr: {
+            Ç: 'C',
+            Â: 'A',
+            À: 'A',
+            É: 'E',
+            Ê: 'E',
+            È: 'E',
+            Ë: 'E',
+            Î: 'I',
+            Ï: 'I',
+            Ô: 'O',
+            Û: 'U',
+            Ù: 'U',
+            Ü: 'U',
+        },
+        it: { À: 'A', É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
+        no: {},
+        pt: {
+            Á: 'A',
+            Â: 'A',
+            Ã: 'A',
+            À: 'A',
+            Ç: 'C',
+            È: 'E',
+            Ê: 'E',
+            Í: 'I',
+            Ó: 'O',
+            Ô: 'O',
+            Õ: 'O',
+            Ú: 'U',
+        },
+        sv: {},
+        ia: {},
+        la: {},
+    };
     /**
      * This maps which characters are to be used when encoding an ACA cipher
      */
@@ -412,46 +403,46 @@ export class CipherHandler {
     public readonly acalangreplace: {
         [key: string]: { [key1: string]: string };
     } = {
-            en: {},
-            nl: {},
-            de: { Ä: 'A', Ö: 'O', ß: 'SS', Ü: 'U' },
-            eo: { Ĉ: 'C', Ĝ: 'G', Ĥ: 'H', Ĵ: 'J', Ŝ: 'S', Ŭ: 'U' },
-            es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
-            fr: {
-                Ç: 'C',
-                Â: 'A',
-                À: 'A',
-                É: 'E',
-                Ê: 'E',
-                È: 'E',
-                Ë: 'E',
-                Î: 'I',
-                Ï: 'I',
-                Ô: 'O',
-                Û: 'U',
-                Ù: 'U',
-                Ü: 'U',
-            },
-            it: { É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
-            no: {},
-            pt: {
-                Á: 'A',
-                Â: 'A',
-                Ã: 'A',
-                À: 'A',
-                Ç: 'C',
-                È: 'E',
-                Ê: 'E',
-                Í: 'I',
-                Ó: 'O',
-                Ô: 'O',
-                Õ: 'O',
-                Ú: 'U',
-            },
-            sv: {},
-            ia: {},
-            la: {},
-        };
+        en: {},
+        nl: {},
+        de: { Ä: 'A', Ö: 'O', ß: 'SS', Ü: 'U' },
+        eo: { Ĉ: 'C', Ĝ: 'G', Ĥ: 'H', Ĵ: 'J', Ŝ: 'S', Ŭ: 'U' },
+        es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
+        fr: {
+            Ç: 'C',
+            Â: 'A',
+            À: 'A',
+            É: 'E',
+            Ê: 'E',
+            È: 'E',
+            Ë: 'E',
+            Î: 'I',
+            Ï: 'I',
+            Ô: 'O',
+            Û: 'U',
+            Ù: 'U',
+            Ü: 'U',
+        },
+        it: { É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
+        no: {},
+        pt: {
+            Á: 'A',
+            Â: 'A',
+            Ã: 'A',
+            À: 'A',
+            Ç: 'C',
+            È: 'E',
+            Ê: 'E',
+            Í: 'I',
+            Ó: 'O',
+            Ô: 'O',
+            Õ: 'O',
+            Ú: 'U',
+        },
+        sv: {},
+        ia: {},
+        la: {},
+    };
     /**
      * Language character frequency
      */
@@ -820,7 +811,7 @@ export class CipherHandler {
         title: 'Save',
         id: 'save',
         color: 'primary',
-        class: 'save'
+        class: 'save',
     };
 
     public undocmdButton: JTButtonItem = {
@@ -986,7 +977,7 @@ export class CipherHandler {
     public getTestTypeName(testtype: ITestType): string {
         let result = testTypeNames[testtype];
         if (result === undefined) {
-            result = "this type of test";
+            result = 'this type of test';
         }
         return result;
     }
@@ -1020,6 +1011,59 @@ export class CipherHandler {
         }
         return result;
     }
+
+    /**
+     * Key name used to store the convergence token in storage.
+     */
+    public static readonly KEY_CONVERGENCE_TOKEN: string = 'convergenceToken';
+
+    /**
+     * Key name used to store the user's first name in storage.
+     */
+    public static readonly KEY_FIRST_NAME: string = 'fname';
+
+    /**
+     * Key name used to store the user's last name in storage.
+     */
+    public static readonly KEY_LAST_NAME: string = 'lname';
+
+    /**
+     * Key name used to store the user's id in storage.
+     */
+    public static readonly KEY_USER_ID: string = 'userid';
+
+    /**
+     * Checks to see if a convergence token exists. If one does not exist returns false.
+     */
+    public isAuthenticated(): Boolean {
+        return !(this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '').length === 0);
+    }
+
+    /**
+     * Retrieves the current user's full name from storage.
+     */
+    public getUsersFullName(): string {
+        return (
+            this.getConfigString(CipherHandler.KEY_FIRST_NAME, 'Nosmo') +
+            ' ' +
+            this.getConfigString(CipherHandler.KEY_LAST_NAME, 'King')
+        );
+    }
+
+    /**
+     * Sends the user to the authentication page. Upon success sends user back to href.
+     * @param href Location to go to upon successful authentication. If undefined/null uses current window location's href.
+     * @param shouldPerformSignout If a signout should be performed upon loading of authentication page.
+     */
+    protected goToAuthenticationPage(
+        shouldPerformSignout = false,
+        href: string = window.location.href
+    ) {
+        location.assign(
+            'Login.html?returnUrl=' + href + '&shouldPerformSignout=' + shouldPerformSignout
+        );
+    }
+
     /**
      * Writes a configuration entry to local storage.
      * @param config Configuration value to set
@@ -1027,7 +1071,7 @@ export class CipherHandler {
      */
     public setConfigString(config: string, value: string) {
         if (this.storage.isAvailable()) {
-            this.storage.set("config_" + config, value);
+            this.storage.set('config_' + config, value);
         }
     }
     /**
@@ -1036,14 +1080,28 @@ export class CipherHandler {
      * @param defaultVal Default value to be returned if not found
      */
     public getConfigString(config: string, defaultVal: string): string {
-        let result = "";
+        let result = '';
         if (this.storage.isAvailable()) {
-            result = this.storage.get("config_" + config);
+            result = this.storage.get('config_' + config);
         }
         if (result === null || result === undefined || !this.storage.isAvailable()) {
             result = defaultVal;
         }
         return result;
+    }
+
+    /**
+     * Removes a config string. Returns previous value.
+     */
+    public deleteConfigString(config: string): string {
+        if (!this.storage.isAvailable()) {
+            return 'Unable to delete, local storage not defined';
+        }
+
+        const keyName = 'config_' + config;
+        const oldValue = this.storage.get(keyName);
+        this.storage.remove(keyName);
+        return oldValue;
     }
 
     /**
@@ -1143,8 +1201,7 @@ export class CipherHandler {
                 if (allowed.indexOf(fileEntry.cipherType) !== -1) {
                     let entryText = '[' + String(entry) + ']:';
                     if (allowed.length !== 1) {
-                        entryText +=
-                            '(' + getCipherTitle(fileEntry.cipherType) + ') ';
+                        entryText += '(' + getCipherTitle(fileEntry.cipherType) + ') ';
                     }
                     if (
                         fileEntry.question !== '' &&
@@ -1238,13 +1295,13 @@ export class CipherHandler {
      */
     public obverse(str: string): string {
         let repl: StringMap = {};
-        const cmap1: string = "<=> abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const cmap2: string = "YObkT>hFBZRcGV UzvKqptMrDnIPXmHeJuNdiAwCoSsE=xWgLaljQy<f";
+        const cmap1: string = '<=> abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const cmap2: string = 'YObkT>hFBZRcGV UzvKqptMrDnIPXmHeJuNdiAwCoSsE=xWgLaljQy<f';
         for (let i = 0; i < cmap1.length; i++) {
             repl[cmap1[i]] = cmap2[i];
         }
 
-        return str.replace(/[<>= a-z]/gi, c => repl[c])
+        return str.replace(/[<>= a-z]/gi, (c) => repl[c]);
     }
     /**
      * Gets the string that corresponds to a running key entry in local storage
@@ -1306,13 +1363,13 @@ export class CipherHandler {
         $('#files').replaceWith(this.getFileList(this.state.cipherType));
         $('#files')
             .off('change')
-            .on('change', e => {
+            .on('change', (e) => {
                 $('#okopen').removeAttr('disabled');
             });
         $('#okopen').prop('disabled', true);
         $('#okopen')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.savefileentry = Number($('#files option:selected').val());
                 $('#OpenFile').foundation('close');
                 this.markSaved();
@@ -1326,7 +1383,7 @@ export class CipherHandler {
     /**
      * Process imported XML
      */
-    public importXML(data: any): void { }
+    public importXML(data: any): void {}
     /**
      * Put up a dialog to select an XML file to import
      */
@@ -1338,20 +1395,18 @@ export class CipherHandler {
         $('#xmltoimport').text('No File Selected');
         $('#xmlFile')
             .off('change')
-            .on('change', e => {
+            .on('change', (e) => {
                 $('#okimport').removeAttr('disabled');
                 $('#importstatus')
                     .removeClass('secondary')
                     .addClass('success');
-                let fileinput: HTMLInputElement = $(
-                    '#xmlFile'
-                )[0] as HTMLInputElement;
+                let fileinput: HTMLInputElement = $('#xmlFile')[0] as HTMLInputElement;
                 let files = fileinput.files;
                 $('#xmltoimport').text(files[0].name + ' selected');
             });
         $('#xmlurl')
             .off('input')
-            .on('input', e => {
+            .on('input', (e) => {
                 let url = $(e.target).val() as string;
                 if (url !== '') {
                     $('#okimport').removeAttr('disabled');
@@ -1361,20 +1416,16 @@ export class CipherHandler {
             });
         $('#okimport')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 if (useLocalData) {
-                    let fileinput: HTMLInputElement = $(
-                        '#xmlFile'
-                    )[0] as HTMLInputElement;
+                    let fileinput: HTMLInputElement = $('#xmlFile')[0] as HTMLInputElement;
                     let files = fileinput.files;
                     if (files.length && typeof FileReader !== undefined) {
                         let reader = new FileReader();
                         reader.readAsText(files[0]);
-                        reader.onload = e1 => {
+                        reader.onload = (e1) => {
                             try {
-                                let result = JSON.parse(
-                                    reader.result as string
-                                );
+                                let result = JSON.parse(reader.result as string);
                                 $('#ImportFile').foundation('close');
                                 this.importXML(result);
                             } catch (e) {
@@ -1385,7 +1436,7 @@ export class CipherHandler {
                 } else {
                     // They gave us a URL so let's do an AJAX call to pull it in
                     let url = $('#xmlurl').val() as string;
-                    $.getJSON(url, data => {
+                    $.getJSON(url, (data) => {
                         $('#ImportFile').foundation('close');
                         this.importXML(data);
                     }).fail((jqxhr, settings, exception) => {
@@ -1493,14 +1544,14 @@ export class CipherHandler {
             replmap[charset[i]] = alphabet[i];
         }
         // We have the map, so just map each of the characters one at a time
-        let result = "";
+        let result = '';
         for (let i = 0, len = str.length; i < len; i++) {
             // Make sure the character is valid for mapping
             if (replmap.hasOwnProperty(str[i])) {
                 result += replmap[str[i]];
             } else {
                 // If not it gets a ? to map against
-                result += "?";
+                result += '?';
             }
         }
         return result;
@@ -1560,7 +1611,7 @@ export class CipherHandler {
      * the realtime answers when the test is being given.
      */
     public getInteractiveTemplate(): ITestQuestionFields {
-        let result: ITestQuestionFields = { answer: [], notes: "" };
+        let result: ITestQuestionFields = { answer: [], notes: '' };
         return result;
     }
     /**
@@ -1570,7 +1621,11 @@ export class CipherHandler {
      * encodeType tells the type of encoding to print.  If it is 'random' then
      * we leave it blank.
      */
-    public genInteractiveFreqTable(qnum: number, encodeType: string, extraclass: string): JQElement {
+    public genInteractiveFreqTable(
+        qnum: number,
+        encodeType: string,
+        extraclass: string
+    ): JQElement {
         let table = new JTTable({
             class: 'shrink unstriped intfreq' + extraclass,
         });
@@ -1597,7 +1652,7 @@ export class CipherHandler {
         freqrow.add({ celltype: 'th', content: 'Frequency' });
         replrow.add({ celltype: 'th', content: 'Replacement' });
 
-        let pos = 0
+        let pos = 0;
         for (let c of charset.toUpperCase()) {
             headrow.add(c);
             let freq = String(this.freq[c]);
@@ -1606,11 +1661,12 @@ export class CipherHandler {
             }
             freqrow.add(freq);
             replrow.add({
-                celltype: 'td', content: $("<input/>", {
-                    id: "R" + String(qnum + 1) + "_" + pos,
-                    class: "awr",
-                    type: "text",
-                })
+                celltype: 'td',
+                content: $('<input/>', {
+                    id: 'R' + String(qnum + 1) + '_' + pos,
+                    class: 'awr',
+                    type: 'text',
+                }),
             });
             pos++;
         }
@@ -1682,14 +1738,14 @@ export class CipherHandler {
      * @returns String indicating error or blank for success
      */
     public CheckAppropriate(testType: ITestType): string {
-        return "";
+        return '';
     }
 
     public genTestUsage(result: JQuery<HTMLElement>): void {
         result.append($('<div/>', { class: 'testuse' }));
     }
     public updateTestUsage(): void {
-        let result = $(".testuse");
+        let result = $('.testuse');
         result.empty().removeClass('alert primary');
         let prefix = 'Used on test(s):';
         if (this.savefileentry !== -1) {
@@ -1746,14 +1802,14 @@ export class CipherHandler {
                         href: 'TestGenerator.html?test=' + String(entry),
                     }).text(test.title + ' ' + use);
                     if (usemsg !== '') {
-                        link.append($("<span/>", { class: 'usemsg' }).text(usemsg));
+                        link.append($('<span/>', { class: 'usemsg' }).text(usemsg));
                     }
                     result.addClass('callout ' + calloutclass);
                     if (prefix !== '') {
-                        result.append($("<div/>", { class: "usedon" }).text("Used on test(s):"));
+                        result.append($('<div/>', { class: 'usedon' }).text('Used on test(s):'));
                         prefix = '';
                     }
-                    let testset = $("<div/>", { class: "testset" });
+                    let testset = $('<div/>', { class: 'testset' });
 
                     if (prevq !== undefined) {
                         let linkprev = $('<a/>', {
@@ -1778,11 +1834,11 @@ export class CipherHandler {
     /**
      * Loads new data into a solver, preserving all solving matches made
      */
-    public load(): void { }
+    public load(): void {}
     /**
      * Loads new data into a solver, resetting any solving matches made
      */
-    public reset(): void { }
+    public reset(): void {}
 
     public genCmdButtons(): JQElement {
         return JTButtonGroup(this.cmdButtons);
@@ -1846,21 +1902,26 @@ export class CipherHandler {
         $('.langsel').each((i: number, elem: HTMLElement) => {
             this.genLangDropdown($(elem));
         });
+
+        if (this.isAuthenticated()) {
+            $('.login-button').hide();
+            $('#logged-in-user').text('Welcome ' + this.getUsersFullName());
+        }
     }
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: IState, suppressOutput: boolean = false): void { }
+    public restore(data: IState, suppressOutput: boolean = false): void {}
     public save(): IState {
         return { cipherType: ICipherType.None, cipherString: '' };
     }
     /**
-    * saveInteractive saves the test template html for a question
-    * @param qnum Question number to generate test for
-    * @param testType Type of test that the question is for
-    * @param isTimed Save information for solving a timed question
-    */
+     * saveInteractive saves the test template html for a question
+     * @param qnum Question number to generate test for
+     * @param testType Type of test that the question is for
+     * @param isTimed Save information for solving a timed question
+     */
     public saveInteractive(qnum: number, testType: ITestType, isTimed: boolean): IState {
         return this.save();
     }
@@ -1943,19 +2004,23 @@ export class CipherHandler {
             this.undoPosition--;
             let state = this.undoStack[this.undoPosition];
             this.restore(state);
-            this.isModified = (this.undoPosition !== this.savedPosition);
+            this.isModified = this.undoPosition !== this.savedPosition;
             this.markUndoUI(this.undoPosition <= 0, false);
         }
     }
-    /** 
-     * Update the UI to indicate whether or not the current cipher has 
+    /**
+     * Update the UI to indicate whether or not the current cipher has
      * been modified and needs to be saved.
      */
     public showModified(): void {
         if (this.isModified) {
-            $(".save").removeClass('primary').addClass('alert');
+            $('.save')
+                .removeClass('primary')
+                .addClass('alert');
         } else {
-            $(".save").removeClass('alert').addClass('primary');
+            $('.save')
+                .removeClass('alert')
+                .addClass('primary');
         }
     }
     /**
@@ -1981,7 +2046,6 @@ export class CipherHandler {
      */
     public abandonAndContinue(targetURL: string): void {
         location.assign(targetURL);
-
     }
     /**
      * Update the UI to indicate the state of the Undo/Redo buttons
@@ -2019,11 +2083,8 @@ export class CipherHandler {
             // what we have currently
             this.undoCanMerge = true;
             this.lastUndoRequest = undefined;
-            this.isModified = (this.undoPosition !== this.savedPosition);
-            this.markUndoUI(
-                false,
-                this.undoPosition >= this.undoStack.length - 1
-            );
+            this.isModified = this.undoPosition !== this.savedPosition;
+            this.markUndoUI(false, this.undoPosition >= this.undoStack.length - 1);
         }
     }
     public setMenuMode(mode: menuMode): void {
@@ -2090,12 +2151,12 @@ export class CipherHandler {
      * values are legitimate for the cipher handler
      * Generally you will call updateOutput() after calling setUIDefaults()
      */
-    public setUIDefaults(): void { }
+    public setUIDefaults(): void {}
     /**
      * Update the output based on current state settings.  This propagates
      * All values to the UI
      */
-    public updateOutput(): void { }
+    public updateOutput(): void {}
     /**
      * Builds the output for the current state data.
      */
@@ -2113,13 +2174,13 @@ export class CipherHandler {
      * Process the change, but first we need to swap around any other character which
      * is using what we are changing to.
      */
-    public updateSel(item: string, val: string): void { }
+    public updateSel(item: string, val: string): void {}
     /**
      * Adds a set of answer rows to a table.
      * @param table Table to add the rows to
      * @param overline specifies answer characters (typically from a vigenere or running key)
      *                 that someone would use to compute the answer.  undefined indicates not to use it
-     * @param cipherline the line that they are being asked to encode/decode 
+     * @param cipherline the line that they are being asked to encode/decode
      * @param answerline the answer (if any).  undefined to leave it blank
      * @param blankline true=add an extra line to the table.
      */
@@ -2184,9 +2245,15 @@ export class CipherHandler {
      * @param extraclass Extra class to add to the table
      * @param genover True=generate the replacement string over the top of the table
      */
-    public genInteractiveCipherTable(strings: string[][], stringindex: number, qnum: number, extraclass: string, genover: boolean): JQuery<HTMLElement> {
+    public genInteractiveCipherTable(
+        strings: string[][],
+        stringindex: number,
+        qnum: number,
+        extraclass: string,
+        genover: boolean
+    ): JQuery<HTMLElement> {
         let qnumdisp = String(qnum + 1);
-        let table = new JTTable({ class: 'ansblock shrink cell unstriped ' + extraclass, });
+        let table = new JTTable({ class: 'ansblock shrink cell unstriped ' + extraclass });
         let pos = 0;
         // Add the split up lines to the output table.
         for (let splitLines of strings) {
@@ -2202,11 +2269,12 @@ export class CipherHandler {
             for (let i = 0; i < cipherline.length; i++) {
                 if (genover) {
                     rowover.add({
-                        celltype: 'td', content: $("<input/>", {
-                            id: "R" + qnumdisp + "_" + pos,
-                            class: "awr",
-                            type: "text",
-                        })
+                        celltype: 'td',
+                        content: $('<input/>', {
+                            id: 'R' + qnumdisp + '_' + pos,
+                            class: 'awr',
+                            type: 'text',
+                        }),
                     });
                 }
                 let c = cipherline.substr(i, 1);
@@ -2217,15 +2285,14 @@ export class CipherHandler {
                     });
                     rowanswer.add({
                         celltype: 'td',
-                        content: $("<input/>", {
-                            id: "I" + qnumdisp + "_" + pos,
-                            class: "awc",
-                            type: "text",
+                        content: $('<input/>', {
+                            id: 'I' + qnumdisp + '_' + pos,
+                            class: 'awc',
+                            type: 'text',
                         }),
                         settings: { class: 'e v' },
                     });
-                }
-                else {
+                } else {
                     rowcipher.add(c);
                     rowanswer.add(c);
                 }
@@ -2239,12 +2306,11 @@ export class CipherHandler {
      * Generate the score of an answered cipher
      */
     public genScore(answer: string[]): IScoreInformation {
-        let scoreInformation: IScoreInformation =
-        {
+        let scoreInformation: IScoreInformation = {
             correctLetters: 0,
             incorrectLetters: 'all',
             deduction: 'max',
-            score: 1000000
+            score: 1000000,
         };
         return scoreInformation;
     }
@@ -2252,24 +2318,20 @@ export class CipherHandler {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(testType: ITestType): JQElement {
-        return $('<h3>').text(
-            'This cipher does not support printing the Answer yet'
-        );
+        return $('<h3>').text('This cipher does not support printing the Answer yet');
     }
     /**
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(testType: ITestType): JQElement {
-        return $('<h3>').text(
-            'This cipher does not support printing the Question yet'
-        );
+        return $('<h3>').text('This cipher does not support printing the Question yet');
     }
     /**
      * Generate the HTML to display the question for a cipher
      */
     public genInteractive(qnum: number, testType: ITestType): JQElement {
         let result = this.genQuestion(testType);
-        result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }));
+        result.append($('<textarea/>', { id: 'in' + String(qnum + 1), class: 'intnote' }));
         return result;
     }
     /**
@@ -2279,11 +2341,7 @@ export class CipherHandler {
      * @param newchar Character to replace it with
      * @param elem Optional HTML Element triggering the request
      */
-    public setChar(
-        repchar: string,
-        newchar: string,
-        elem?: JQuery<HTMLElement>
-    ): void {
+    public setChar(repchar: string, newchar: string, elem?: JQuery<HTMLElement>): void {
         // console.log("handler setChar data-char=" + repchar + " newchar=" + newchar)
         // See if any other slots have this character and reset it
         if (newchar !== '') {
@@ -2307,15 +2365,15 @@ export class CipherHandler {
     /**
      * Change multiple characters at once.
      */
-    public setMultiChars(reqstr: string): void { }
+    public setMultiChars(reqstr: string): void {}
     /**
      * Update all of the match dropdowns in response to a change in the cipher mapping
      */
-    public updateMatchDropdowns(reqstr: string): void { }
+    public updateMatchDropdowns(reqstr: string): void {}
     /**
      * Locate a string and update the results
      */
-    public findPossible(str: string): void { }
+    public findPossible(str: string): void {}
     /**
      * Generate a solving aid for a cipher
      */
@@ -2327,7 +2385,7 @@ export class CipherHandler {
      */
     public cleanString(str: string): string {
         if (str === undefined) {
-            return "";
+            return '';
         }
         let pattern: string = '[\r\n ]+';
         let re = new RegExp(pattern, 'g');
@@ -2476,7 +2534,7 @@ export class CipherHandler {
             // we encode (like the Tap Code Cipher) we need to pad the
             // original string
             if (t.length > 1) {
-                decodeline += this.repeatStr(" ", t.length - 1);
+                decodeline += this.repeatStr(' ', t.length - 1);
             }
             // See if we have to split the line now
             if (encodeline.length >= maxEncodeWidth) {
@@ -2537,9 +2595,7 @@ export class CipherHandler {
             let c = charset.substr(i, 1);
             let expected = this.langfreq[this.state.curlang][c];
             if (expected !== undefined && expected !== 0) {
-                chiSquare +=
-                    Math.pow(counts[i] - total * expected, 2) /
-                    (total * expected);
+                chiSquare += Math.pow(counts[i] - total * expected, 2) / (total * expected);
             }
         }
         return chiSquare;
@@ -2560,9 +2616,7 @@ export class CipherHandler {
         for (let c in matchfreq) {
             let expected = this.langfreq[this.state.curlang][c];
             if (expected !== undefined && expected !== 0) {
-                chiSquare +=
-                    Math.pow(matchfreq[c] - total * expected, 2) /
-                    (total * expected);
+                chiSquare += Math.pow(matchfreq[c] - total * expected, 2) / (total * expected);
             }
         }
         return chiSquare;
@@ -2626,6 +2680,10 @@ export class CipherHandler {
                 this.realtimeconfig();
                 break;
 
+            case 'signout':
+                this.goToAuthenticationPage(true);
+                break;
+
             default:
                 console.log('Unknown action: ' + action);
                 break;
@@ -2680,11 +2738,7 @@ export class CipherHandler {
      * Determines if a string is a valid match for the known matching characters
      * This is used to generate the candidates in the dropdown dialog
      */
-    public isValidReplacement(
-        str: string,
-        repl: string[],
-        used: BoolMap
-    ): boolean {
+    public isValidReplacement(str: string, repl: string[], used: BoolMap): boolean {
         //   console.log(str)
         for (let i = 0, len = str.length; i < len; i++) {
             let c = str.substr(i, 1);
@@ -2716,11 +2770,14 @@ export class CipherHandler {
             // The estimation for strings < 15 characters is wildly inaccurate
             // so we don't bother to tell them anything
             if (cipherString.length < 15) {
-                $(".difficulty").empty().removeClass('callout primary small');
+                $('.difficulty')
+                    .empty()
+                    .removeClass('callout primary small');
             } else {
                 let fs = textStandard(cipherString);
                 let msg = 'Estimated readability score between ' + fs;
-                $(".difficulty").text(msg)
+                $('.difficulty')
+                    .text(msg)
                     .addClass('callout primary small');
             }
         }
@@ -2845,10 +2902,7 @@ export class CipherHandler {
         $('#loadeng').hide();
         this.state.curlang = lang;
         this.setCharset(this.langcharset[lang]);
-        this.showLangStatus(
-            'warning',
-            'Attempting to load ' + this.langmap[lang] + '...'
-        );
+        this.showLangStatus('warning', 'Attempting to load ' + this.langmap[lang] + '...');
         $.getScript('Languages/' + lang + '.js', (data, textStatus, jqxhr) => {
             this.showLangStatus('secondary', '');
             this.updateMatchDropdowns('');
@@ -2862,12 +2916,9 @@ export class CipherHandler {
      * lang Language to load (2 character abbreviation)
      */
     public loadRawLanguage(lang: string): void {
-        let jqxhr = $.get('Languages/' + lang + '.txt', () => { }).done(data => {
+        let jqxhr = $.get('Languages/' + lang + '.txt', () => {}).done((data) => {
             // empty out all the frequent words
-            this.showLangStatus(
-                'warning',
-                'Processing ' + this.langmap[lang] + '...'
-            );
+            this.showLangStatus('warning', 'Processing ' + this.langmap[lang] + '...');
             this.Frequent[lang] = {};
             this.state.curlang = lang;
             let charset = this.langcharset[lang];
@@ -2888,12 +2939,7 @@ export class CipherHandler {
                     if (charset.indexOf(c) < 0) {
                         if (typeof langreplace[c] === 'undefined') {
                             console.log(
-                                'skipping out on ' +
-                                pieces[0] +
-                                ' for ' +
-                                c +
-                                ' against ' +
-                                charset
+                                'skipping out on ' + pieces[0] + ' for ' + c + ' against ' + charset
                             );
                             legal = false;
                             break;
@@ -2903,12 +2949,7 @@ export class CipherHandler {
                 }
                 if (legal) {
                     let pat = this.makeUniquePattern(pieces[0], 1);
-                    let elem: patelem = [
-                        pieces[0].toUpperCase(),
-                        i,
-                        pieces[1],
-                        0,
-                    ];
+                    let elem: patelem = [pieces[0].toUpperCase(), i, pieces[1], 0];
                     if (i < 500) {
                         elem[3] = 0;
                     } else if (i < 1000) {
@@ -2928,10 +2969,7 @@ export class CipherHandler {
             }
             // console.log(this.Frequent)
             $('.langout').each((i: number, elem: HTMLElement) => {
-                this.showLangStatus(
-                    'warning',
-                    'Dumping ' + this.langmap[lang] + '...'
-                );
+                this.showLangStatus('warning', 'Dumping ' + this.langmap[lang] + '...');
                 $(elem).text(this.dumpLang(lang));
             });
             this.showLangStatus('secondary', '');
@@ -3019,13 +3057,7 @@ export class CipherHandler {
             class: 'filelist',
             size: 10,
         });
-        let openFileDlg = JTFDialog(
-            'OpenFile',
-            'Select File to Open',
-            dlgContents,
-            'okopen',
-            'OK'
-        );
+        let openFileDlg = JTFDialog('OpenFile', 'Select File to Open', dlgContents, 'okopen', 'OK');
         return openFileDlg;
     }
     /**
@@ -3057,13 +3089,7 @@ export class CipherHandler {
                 }).text('No File Selected')
             )
             .append(
-                JTFLabeledInput(
-                    'URL',
-                    'text',
-                    'xmlurl',
-                    '',
-                    'impurl small-12 medium-6 large-6'
-                )
+                JTFLabeledInput('URL', 'text', 'xmlurl', '', 'impurl small-12 medium-6 large-6')
             );
         let importDlg = JTFDialog(
             'ImportFile',
@@ -3080,15 +3106,18 @@ export class CipherHandler {
     public createRealtimeConfigDlg(): JQElement {
         let dlgContents = $('<div/>', {
             id: 'realtimeconf',
-            class: 'callout secondary'
+            class: 'callout secondary',
         })
-            .append("<div/>").text("This is only for testing, do not change it unless you know what you are doing because you will break things.")
-            .append(JTFLabeledInput("Base URL:", "text", "baseUrl", "", ""))
-            .append(JTFLabeledInput("Realtime Name Space:", "text", "convergenceNamespace", "", ""))
-            .append(JTFLabeledInput("Realtime Domain:", "text", "convergenceDomain", "", ""))
-            .append(JTFLabeledInput("Realtime KeyID:", "text", "convergenceKeyId", "", ""))
-            .append(JTFLabeledInput("Debug:", "text", "convergenceDebug", "", ""));
-
+            .append('<div/>')
+            .text(
+                'This is only for testing, do not change it unless you know what you are doing because you will break things.'
+            )
+            .append(JTFLabeledInput('Base URL:', 'text', 'baseUrl', '', ''))
+            .append(JTFLabeledInput('Authentication Base URL:', 'text', 'authUrl', '', ''))
+            .append(JTFLabeledInput('Realtime Name Space:', 'text', 'convergenceNamespace', '', ''))
+            .append(JTFLabeledInput('Realtime Domain:', 'text', 'convergenceDomain', '', ''))
+            .append(JTFLabeledInput('Realtime KeyID:', 'text', 'convergenceKeyId', '', ''))
+            .append(JTFLabeledInput('Debug:', 'text', 'convergenceDebug', '', ''));
 
         let realtimeConfigDlg = JTFDialog(
             'Realtimedlg',
@@ -3105,12 +3134,39 @@ export class CipherHandler {
     public createRegisterDlg(): JQElement {
         let dlgContents = $('<div/>', {
             id: 'registercont',
-            class: 'callout secondary'
+            class: 'callout secondary',
         })
-            .append("<div/>").text("This is only for testing, you can select any userid/name and it is not validated.")
-            .append(JTFLabeledInput("Userid:", "text", "reguserid", this.getConfigString("userid", ""), ""))
-            .append(JTFLabeledInput("First Name:", "text", "regfname", this.getConfigString("fname", ""), ""))
-            .append(JTFLabeledInput("Last Name:", "text", "reglname", this.getConfigString("lname", ""), ""));
+            .append('<div/>')
+            .text(
+                'This is only for testing, you can select any userid/name and it is not validated.'
+            )
+            .append(
+                JTFLabeledInput(
+                    'Userid:',
+                    'text',
+                    'reguserid',
+                    this.getConfigString('userid', ''),
+                    ''
+                )
+            )
+            .append(
+                JTFLabeledInput(
+                    'First Name:',
+                    'text',
+                    'regfname',
+                    this.getConfigString('fname', ''),
+                    ''
+                )
+            )
+            .append(
+                JTFLabeledInput(
+                    'Last Name:',
+                    'text',
+                    'reglname',
+                    this.getConfigString('lname', ''),
+                    ''
+                )
+            );
 
         let registerDlg = JTFDialog(
             'Registerdlg',
@@ -3127,16 +3183,12 @@ export class CipherHandler {
     public createAboutDlg(): JQElement {
         let dlgContents = $('<table class="version-table"/>');
         dlgContents.append(
-            '<tr class="version"><td>Version:</td><td>' +
-            getVersion() +
-            '</td></tr>'
+            '<tr class="version"><td>Version:</td><td>' + getVersion() + '</td></tr>'
         );
         dlgContents.append(
             '<tr class="latest-version"><td>Latest version:</td><td><span class="remote-version">Unknown</span></td></tr>'
         );
-        dlgContents.append(
-            '<tr><td>Built  :</td><td>[AIV]{date}[/AIV]</td></tr>'
-        );
+        dlgContents.append('<tr><td>Built  :</td><td>[AIV]{date}[/AIV]</td></tr>');
 
         let aboutDlg = JTFDialog(
             'About',
@@ -3153,12 +3205,28 @@ export class CipherHandler {
      */
     public createMainMenu(): JQElement {
         let result = $('<div/>');
-        result.append(JTCreateMenu(CipherMenu, 'cmainmenu', 'Cipher Tools'))
+
+        const divLoginInfo = $('<div/>', {
+            class: 'login-info',
+        })
+            .append(
+                $('<div/>', {
+                    class: 'login-button',
+                }).text('Login')
+            )
+            .append(
+                $('<div/>', {
+                    id: 'logged-in-user',
+                })
+            );
+
+        result
+            .append(JTCreateMenu(CipherMenu, 'cmainmenu', 'Cipher Tools', divLoginInfo))
             // Create the dialog for selecting which cipher to load
             .append(this.createOpenFileDlg())
             .append(this.createImportFileDlg())
             .append(this.createAboutDlg())
-            .append(this.createRegisterDlg())
+            // .append(this.createRegisterDlg())
             .append(this.createRealtimeConfigDlg());
         return result;
     }
@@ -3205,42 +3273,46 @@ export class CipherHandler {
      * Show the testing register dialog.
      */
     public register(): void {
-        $("#reguserid").val(this.getConfigString("userid", ""));
-        $("#regfname").val(this.getConfigString("fname", ""));
-        $("#reglname").val(this.getConfigString("lname", ""));
+        $('#reguserid').val(this.getConfigString('userid', ''));
+        $('#regfname').val(this.getConfigString('fname', ''));
+        $('#reglname').val(this.getConfigString('lname', ''));
         $('#okregister')
             .removeAttr('disabled')
             .off('click')
-            .on('click', e => {
-                this.setConfigString("userid", $("#reguserid").val() as string);
-                this.setConfigString("fname", $("#regfname").val() as string);
-                this.setConfigString("lname", $("#reglname").val() as string);
+            .on('click', (e) => {
+                this.setConfigString('userid', $('#reguserid').val() as string);
+                this.setConfigString('fname', $('#regfname').val() as string);
+                this.setConfigString('lname', $('#reglname').val() as string);
                 $('#Registerdlg').foundation('close');
                 location.reload();
-            })
+            });
         $('#Registerdlg').foundation('open');
     }
     public realtimeconfig(): void {
-        $("#baseUrl").val(this.getConfigString("domain", "http://toebeshome.myqnapcloud.com:7630/"));
-        $("#convergenceNamespace").val(this.getConfigString("convergenceNamespace", "convergence"));
-        $("#convergenceDomain").val(this.getConfigString("convergenceDomain", "scienceolympiad"));
-        $("#convergenceKeyId").val(this.getConfigString("convergenceKeyId", "TestingKeyId"));
-        $("#convergenceDebug").val(this.getConfigString("convergenceDebug", ""));
+        $('#baseUrl').val(this.getConfigString('domain', 'https://cosso.oit.ncsu.edu'));
+        $('#authUrl').val(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
+        $('#convergenceNamespace').val(this.getConfigString('convergenceNamespace', 'convergence'));
+        $('#convergenceDomain').val(this.getConfigString('convergenceDomain', 'scienceolympiad'));
+        $('#convergenceKeyId').val(this.getConfigString('convergenceKeyId', 'TestingKeyId'));
+        $('#convergenceDebug').val(this.getConfigString('convergenceDebug', ''));
 
         $('#okrealtime')
             .removeAttr('disabled')
             .off('click')
-            .on('click', e => {
-                this.setConfigString("domain", $("#baseUrl").val() as string);
-                this.setConfigString("convergenceNamespace", $("#convergenceNamespace").val() as string);
-                this.setConfigString("convergenceDomain", $("#convergenceDomain").val() as string);
-                this.setConfigString("convergenceKeyId", $("#convergenceKeyId").val() as string);
-                this.setConfigString("convergenceDebug", $("#convergenceDebug").val() as string);
+            .on('click', (e) => {
+                this.setConfigString('domain', $('#baseUrl').val() as string);
+                this.setConfigString('authUrl', $('#authUrl').val() as string);
+                this.setConfigString(
+                    'convergenceNamespace',
+                    $('#convergenceNamespace').val() as string
+                );
+                this.setConfigString('convergenceDomain', $('#convergenceDomain').val() as string);
+                this.setConfigString('convergenceKeyId', $('#convergenceKeyId').val() as string);
+                this.setConfigString('convergenceDebug', $('#convergenceDebug').val() as string);
                 $('#Realtimedlg').foundation('close');
-            })
+            });
         $('#Realtimedlg').foundation('open');
     }
-
 
     /**
      * Download the zip file is the 'download' button is not disabled
@@ -3248,16 +3320,13 @@ export class CipherHandler {
     public download(): void {
         $('#okdownload')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 if (!$('#okdownload').prop('disabled')) {
                     console.log(
-                        'disable download prop: >' +
-                        $('#okdownload').prop('disabled') +
-                        '<'
+                        'disable download prop: >' + $('#okdownload').prop('disabled') + '<'
                     );
                     e.preventDefault();
-                    window.location.href =
-                        'https://toebes.com/codebusters/CipherTools.zip';
+                    window.location.href = 'https://toebes.com/codebusters/CipherTools.zip';
                 }
             });
     }
@@ -3283,21 +3352,21 @@ export class CipherHandler {
             url: 'https://toebes.com/codebusters/siteVersion.txt',
             dataType: 'jsonp',
             jsonpCallback: 'getVersion',
-            success: function (a: any, b: string, c: JQueryXHR): void {
+            success: function(a: any, b: string, c: JQueryXHR): void {
                 console.log('A Success ' + JSON.stringify(a));
                 console.log('B Success ' + b);
                 console.log('C Success ' + c);
                 remote_version = a['version'];
                 console.log('Set remote version to: ' + remote_version);
             },
-            error: function (a: JQueryXHR, b: string, c: string): void {
+            error: function(a: JQueryXHR, b: string, c: string): void {
                 console.log('A Error ' + JSON.stringify(a));
                 console.log('B Error ' + b);
                 console.log('C Error ' + c);
                 console.log('Disable the download button...');
                 $('#okdownload').prop('disabled', true);
             },
-        }).done(function (a: any, b: string, c: JQueryXHR): void {
+        }).done(function(a: any, b: string, c: JQueryXHR): void {
             $('.remote-version').html(remote_version);
             // enable the down load buttin if appropriate
             console.log('Enable download button?');
@@ -3396,9 +3465,15 @@ export class CipherHandler {
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     public attachHandlers(): void {
+        $('.login-button')
+            .off('click')
+            .on('click', () => {
+                this.goToAuthenticationPage();
+            });
+
         $('.sli')
             .off('keyup')
-            .on('keyup', event => {
+            .on('keyup', (event) => {
                 let target = $(event.target);
                 let repchar = target.attr('data-char');
                 let current;
@@ -3428,7 +3503,7 @@ export class CipherHandler {
                 event.preventDefault();
             })
             .off('keypress')
-            .on('keypress', event => {
+            .on('keypress', (event) => {
                 let newchar;
                 let target = $(event.target);
                 let repchar = target.attr('data-char');
@@ -3459,32 +3534,28 @@ export class CipherHandler {
                 event.preventDefault();
             })
             .off('blur')
-            .on('blur', e => {
+            .on('blur', (e) => {
                 let tohighlight = $(e.target).attr('data-char');
                 $("[data-char='" + tohighlight + "']").removeClass('allfocus');
                 let althighlight = $(e.target).attr('data-schar');
                 if (althighlight !== '') {
-                    $("[data-schar='" + althighlight + "']").removeClass(
-                        'allfocus'
-                    );
+                    $("[data-schar='" + althighlight + "']").removeClass('allfocus');
                 }
                 $(e.target).removeClass('focus');
             })
             .off('focus')
-            .on('focus', e => {
+            .on('focus', (e) => {
                 let tohighlight = $(e.target).attr('data-char');
                 $("[data-char='" + tohighlight + "']").addClass('allfocus');
                 let althighlight = $(e.target).attr('data-schar');
                 if (althighlight !== '') {
-                    $("[data-schar='" + althighlight + "']").addClass(
-                        'allfocus'
-                    );
+                    $("[data-schar='" + althighlight + "']").addClass('allfocus');
                 }
                 $(e.target).addClass('focus');
             });
         $('[name="operation"]')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 $(e.target)
                     .siblings()
                     .removeClass('is-active');
@@ -3495,7 +3566,7 @@ export class CipherHandler {
             });
         $('.input-number-increment')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 let $input = $(e.target)
                     .parents('.input-group')
                     .find('.input-number');
@@ -3506,7 +3577,7 @@ export class CipherHandler {
             });
         $('.input-number-decrement')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 let $input = $(e.target)
                     .parents('.input-group')
                     .find('.input-number');
@@ -3517,7 +3588,7 @@ export class CipherHandler {
             });
         $('[name="ciphertype"]')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 $(e.target)
                     .siblings()
                     .removeClass('is-active');
@@ -3570,7 +3641,7 @@ export class CipherHandler {
             });
         $('a[data-action]')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 if ($(e.target).hasClass('disabled_menu')) {
                     e.preventDefault();
                 } else {
@@ -3579,26 +3650,26 @@ export class CipherHandler {
             });
         $('.msli')
             .off('change')
-            .on('change', e => {
+            .on('change', (e) => {
                 this.markUndo(null);
                 let toupdate = $(e.target).attr('data-char');
                 this.updateSel(toupdate, (e.target as HTMLInputElement).value);
             });
         $('.lang')
             .off('change')
-            .on('change', e => {
+            .on('change', (e) => {
                 this.loadLanguage($(e.target).val() as string);
             });
         $('#find')
             .off('input')
-            .on('input', e => {
+            .on('input', (e) => {
                 this.markUndo('find');
                 let findStr = $(e.target).val() as string;
                 this.findPossible(findStr);
             });
         $('.tablesort th[data-col]')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 let col = $(e.target).attr('data-col');
                 if (col !== undefined) {
                     this.sortTable(e.target, Number(col));
@@ -3606,7 +3677,7 @@ export class CipherHandler {
             });
         $('.moreprev')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 $('.prev').show();
                 $('.moreprev').hide();
             });
@@ -3616,9 +3687,12 @@ export class CipherHandler {
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
      * @param testTimeInfo Timing information for the current test.
-    */
-    public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo) {
-    }
+     */
+    public attachInteractiveHandlers(
+        qnum: number,
+        realTimeElement: RealTimeObject,
+        testTimeInfo: ITestTimeInfo
+    ) {}
 
     /**
      * Calculate the score for the answer from an interactive test.  We calculate the solution
@@ -3628,14 +3702,17 @@ export class CipherHandler {
      * @param points - number of points assigned to this question.
      */
     public calculateScore(solution: string[], answer: string[], points: number): IScoreInformation {
-
-        console.log("Length of solution: " + solution.length.toString() +
-            "\nLength of answer:  " + answer.length.toString());
+        console.log(
+            'Length of solution: ' +
+                solution.length.toString() +
+                '\nLength of answer:  ' +
+                answer.length.toString()
+        );
         let scoreInformation: IScoreInformation = {
             correctLetters: 0,
             incorrectLetters: '-',
             deduction: '-',
-            score: 0
+            score: 0,
         };
         let score: number;
         let wrongCount = 0;
@@ -3657,11 +3734,10 @@ export class CipherHandler {
         penaltyLetters = wrongCount - 2;
         if (penaltyLetters < 0) {
             score = points;
-        }
-        else {
+        } else {
             // Incorrect characters are penalized 100 points each, upto the
             // maximum number of points.
-            score = points - (100 * penaltyLetters);
+            score = points - 100 * penaltyLetters;
             if (score < 0) {
                 score = 0;
             }
@@ -3673,4 +3749,3 @@ export class CipherHandler {
         return scoreInformation;
     }
 }
-

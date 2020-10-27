@@ -15,7 +15,12 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
 import { ConvergenceDomain } from '@convergence/convergence';
-import { ConvergenceAuthentication, ConvergenceSettings, ConvergenceLoginParameters } from './authentication';
+import {
+    ConvergenceAuthentication,
+    ConvergenceSettings,
+    ConvergenceLoginParameters,
+} from './authentication';
+import Convergence = require('@convergence/convergence');
 
 export interface buttonInfo {
     title: string;
@@ -53,21 +58,21 @@ interface ITestTypeInfo {
 }
 
 export interface ITestUser {
-    userid: string,
-    displayname: string,
-    starttime: number,
-    idletime: number,
-    confidence: number[],
-    notes: string,
-    sessionid: string,
+    userid: string;
+    displayname: string;
+    starttime: number;
+    idletime: number;
+    confidence: number[];
+    notes: string;
+    sessionid: string;
 }
 export interface IAnswerTemplate {
-    testid: string,
-    starttime: number,
-    endtime: number,
-    endtimed: number,
-    answers: ITestQuestionFields[],
-    assigned: ITestUser[],
+    testid: string;
+    starttime: number;
+    endtime: number;
+    endtimed: number;
+    answers: ITestQuestionFields[];
+    assigned: ITestUser[];
 }
 
 export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols' | 'testint';
@@ -100,28 +105,29 @@ export class CipherTest extends CipherHandler {
         {
             title: 'C (High School) - Invitational/Regional',
             type: ITestType.cregional,
-            id: 'cregional'
+            id: 'cregional',
         },
         {
             title: 'C (High School) - State/National',
             type: ITestType.cstate,
-            id: 'cstate'
+            id: 'cstate',
         },
         {
             title: 'B (Middle School) - Invitational/Regional',
             type: ITestType.bregional,
-            id: 'bregional'
+            id: 'bregional',
         },
         {
             title: 'B (Middle School) - State/National',
             type: ITestType.bstate,
-            id: 'bstate'
+            id: 'bstate',
         },
         {
             title: 'A (Elementary School) - Invitational/Regional',
             type: ITestType.aregional,
-            id: 'aregional'
-        }];
+            id: 'aregional',
+        },
+    ];
     public cipherChoices: INewCipherEntry[] = [
         { cipherType: ICipherType.Affine },
         { cipherType: ICipherType.Caesar },
@@ -212,9 +218,18 @@ export class CipherTest extends CipherHandler {
      */
     public reportFailure(msg: string) {
         console.log(msg);
-        $(".ans").append($("<div/>", { class: "callout warning", "data-closable": "" })
-            .append($("<p/>").text(msg))
-            .append($("<button/>", { class: "close-button", "aria-label": "Dismiss alert", type: "button", "data-close": "" }).append($("<span/>", { "aria-hidden": "true" }).html("&times;"))));
+        $('.ans').append(
+            $('<div/>', { class: 'callout warning', 'data-closable': '' })
+                .append($('<p/>').text(msg))
+                .append(
+                    $('<button/>', {
+                        class: 'close-button',
+                        'aria-label': 'Dismiss alert',
+                        type: 'button',
+                        'data-close': '',
+                    }).append($('<span/>', { 'aria-hidden': 'true' }).html('&times;'))
+                )
+        );
     }
     /**
      * getInteractiveURI gets the URI to call for the interactive collaboration.
@@ -223,8 +238,10 @@ export class CipherTest extends CipherHandler {
      */
     public getInteractiveURI(): string {
         // return this.getConfigString("domain", "https://codebusters.alyzee.org/") +
-        return this.getConfigString("domain", "http://toebeshome.myqnapcloud.com:7630/") +
-            "api/realtime/convergence/scienceolympiad";
+        return (
+            this.getConfigString('domain', 'http://toebeshome.myqnapcloud.com:7630/') +
+            'api/realtime/convergence/scienceolympiad'
+        );
     }
 
     /**
@@ -233,28 +250,36 @@ export class CipherTest extends CipherHandler {
      * @returns ConvergenceLoginParameters
      */
     public getConvergenceLoginParameters(): ConvergenceLoginParameters {
-        const username = this.getConfigString('userid', 'Anonymous')
-        const firstName = this.getConfigString('fname', 'No')
-        const lastName = this.getConfigString('lname', 'Name')
-        return { username: username, firstName: firstName, lastName: lastName }
+        const username = this.getConfigString('userid', 'Anonymous');
+        const firstName = this.getConfigString('fname', 'No');
+        const lastName = this.getConfigString('lname', 'Name');
+        return { username: username, firstName: firstName, lastName: lastName };
     }
 
     /**
-       * Creates the default convergence settings to use for authentication.
-       * If any field is missing will return null.
-       * @returns ConvergenceSettings (Or null for failure)
-       */
+     * Creates the default convergence settings to use for authentication.
+     * If any field is missing will return null.
+     * @returns ConvergenceSettings (Or null for failure)
+     */
     public getConvergenceSettings(): ConvergenceSettings {
-        const baseUrl = this.getConfigString('domain', 'http://toebeshome.myqnapcloud.com:7630/api/');
+        const baseUrl = this.getConfigString(
+            'domain',
+            'http://toebeshome.myqnapcloud.com:7630/api/'
+        );
         const privateKey = ConvergenceAuthentication.getLocalPrivateKey();
         const convergenceNamespace = this.getConfigString('convergenceNamespace', 'convergence');
         const convergenceDomain = this.getConfigString('convergenceDomain', 'scienceolympiad');
         const convergenceKeyId = this.getConfigString('convergenceKeyId', 'TestingKeyId');
         const convergenceDebug = this.getConfigString('convergenceDebug', '');
 
-
-        if (baseUrl === null || privateKey === null || convergenceNamespace == null || convergenceDomain === null || convergenceKeyId === null) {
-            return null
+        if (
+            baseUrl === null ||
+            privateKey === null ||
+            convergenceNamespace == null ||
+            convergenceDomain === null ||
+            convergenceKeyId === null
+        ) {
+            return null;
         } else {
             return {
                 baseUrl: baseUrl,
@@ -262,8 +287,8 @@ export class CipherTest extends CipherHandler {
                 privateKey: privateKey,
                 domain: convergenceDomain,
                 keyId: convergenceKeyId,
-                debug: (convergenceDebug !== "")
-            }
+                debug: convergenceDebug !== '',
+            };
         }
     }
 
@@ -271,14 +296,26 @@ export class CipherTest extends CipherHandler {
      * @returns Promise ConvergenceDomain to interact with
      */
     public connectRealtime(): Promise<ConvergenceDomain> {
-        const loginParameters = this.getConvergenceLoginParameters()
-        const loginSettings = this.getConvergenceSettings()
-        let result = ConvergenceAuthentication.connect(loginSettings, loginParameters)
-            .catch((error) => {
-                this.reportFailure('Convergence API could not connect: ' + error)
-            })
-        return result
+        const loginSettings = this.getConvergenceSettings();
+        const connectUrl = ConvergenceAuthentication.formatConnectUrl(
+            loginSettings.baseUrl,
+            loginSettings.namespace,
+            loginSettings.domain
+        );
+
+        const convergenceToken = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
+        const result = Convergence.connectWithJwt(connectUrl, convergenceToken).catch((error) => {
+            if (convergenceToken.length === 0) {
+                this.reportFailure('Please sign in to see this page');
+            } else {
+                console.log('An error occurred while trying to connect to realtime: ' + error);
+                this.deleteConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN);
+                this.goToAuthenticationPage();
+            }
+        });
+        return result;
     }
+
     /** Cached realtime domain */
     public cachedDomain: ConvergenceDomain = undefined;
     /**
@@ -300,10 +337,15 @@ export class CipherTest extends CipherHandler {
             let result = Promise.resolve(this.cachedDomain);
             return result;
         }
-        $(window).on('beforeunload', () => { this.disconnectRealtime(); });
+
+        $(window).on('beforeunload', () => {
+            this.disconnectRealtime();
+        });
 
         let result = this.connectRealtime();
-        result.then((domain: ConvergenceDomain) => { this.cachedDomain = domain; });
+        result.then((domain: ConvergenceDomain) => {
+            this.cachedDomain = domain;
+        });
         return result;
     }
 
@@ -329,7 +371,7 @@ export class CipherTest extends CipherHandler {
      * @param testtype Test type to map
      */
     public mapTestTypeID(testtype: ITestType): string {
-        let result = "";
+        let result = '';
         for (let entry of this.testTypeMap) {
             if (entry.type === testtype) {
                 result = entry.id;
@@ -352,7 +394,7 @@ export class CipherTest extends CipherHandler {
         if (this.state.importURL !== undefined) {
             if (this.state.importURL !== '') {
                 let url = this.state.importURL;
-                $.getJSON(url, data => {
+                $.getJSON(url, (data) => {
                     this.importXML(data);
                 }).fail(() => {
                     alert('Unable to load file ' + url);
@@ -372,7 +414,7 @@ export class CipherTest extends CipherHandler {
         });
         location.reload();
     }
-    public exportTests(): void { }
+    public exportTests(): void {}
     public importTests(useLocalData: boolean): void {
         this.openXMLImport(useLocalData);
     }
@@ -386,15 +428,13 @@ export class CipherTest extends CipherHandler {
      */
     public generateTestData(test: ITest): any {
         let result = {};
-        result["TEST.0"] = test;
+        result['TEST.0'] = test;
 
         if (test.timed !== -1) {
-            result["CIPHER." + String(test.timed)] = this.getFileEntry(
-                test.timed
-            );
+            result['CIPHER.' + String(test.timed)] = this.getFileEntry(test.timed);
         }
         for (let entry of test.questions) {
-            result["CIPHER." + String(entry)] = this.getFileEntry(entry);
+            result['CIPHER.' + String(entry)] = this.getFileEntry(entry);
         }
         return result;
     }
@@ -526,10 +566,7 @@ export class CipherTest extends CipherHandler {
             alert('No editor found');
         }
     }
-    public genQuestionTable(
-        filter: number,
-        buttons: buttonInfo[]
-    ): JQuery<HTMLElement> {
+    public genQuestionTable(filter: number, buttons: buttonInfo[]): JQuery<HTMLElement> {
         // Figure out what items we will not display if they gave us a filter
         let useditems: { [index: string]: boolean } = {};
         if (filter !== undefined) {
@@ -601,7 +638,6 @@ export class CipherTest extends CipherHandler {
                     prevuse = testuse[entry];
                 }
                 this.addQuestionRow(table, entry, entry, buttons, true, undefined, prevuse);
-
             }
         }
         result.append(table.generate());
@@ -703,9 +739,7 @@ export class CipherTest extends CipherHandler {
         }
         if (cipherCount > 0) {
             select.append(
-                $('<option/>', { value: ICipherType.None }).html(
-                    '**Choose Existing Cipher**'
-                )
+                $('<option/>', { value: ICipherType.None }).html('**Choose Existing Cipher**')
             );
         }
         inputgroup.append(select);
@@ -739,8 +773,7 @@ export class CipherTest extends CipherHandler {
                 class: 'callout warning',
             }).text('No Timed Question!  Add one from below');
             callout.append(
-                this.genNewCipherDropdown('addnewtimed',
-                    'New Timed Question', testtype)
+                this.genNewCipherDropdown('addnewtimed', 'New Timed Question', testtype)
             );
             row.add({
                 celltype: 'td',
@@ -759,8 +792,7 @@ export class CipherTest extends CipherHandler {
                 };
             }
             if (testtype === ITestType.aregional && order === -1) {
-                qerror = 'Timed question not allowed for ' +
-                    this.getTestTypeName(testtype);
+                qerror = 'Timed question not allowed for ' + this.getTestTypeName(testtype);
             } else if (testtype !== undefined) {
                 // If we know the type of test, see if it has any problems with the question
                 let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
@@ -788,9 +820,7 @@ export class CipherTest extends CipherHandler {
                 }
                 buttonset.append(button);
             }
-            row.add($('<div/>', { class: 'grid-x' }).append(buttonset)).add(
-                state.cipherType
-            );
+            row.add($('<div/>', { class: 'grid-x' }).append(buttonset)).add(state.cipherType);
             if (prevuse !== undefined) {
                 row.add(prevuse);
             }
@@ -820,15 +850,15 @@ export class CipherTest extends CipherHandler {
         return;
     }
     public AddTestError(qnum: number, message: string): void {
-        if (message !== "") {
+        if (message !== '') {
             let qtxt = 'Timed Question: ';
             if (qnum !== -1) {
-                qtxt = "Question " + String(qnum) + ": ";
+                qtxt = 'Question ' + String(qnum) + ': ';
             }
             let callout = $('<div/>', {
                 class: 'callout alert',
             }).text(qtxt + message);
-            $(".testerrors").append(callout);
+            $('.testerrors').append(callout);
         }
     }
     public GetPrintFactory(question: number): CipherHandler {
@@ -1086,10 +1116,7 @@ export class CipherTest extends CipherHandler {
                 // and questions
                 let newTest: ITest = data[ent];
                 // Go through and fix up all the entries.  First the timed question
-                if (
-                    newTest.timed !== -1 &&
-                    inputMap[newTest.timed] !== undefined
-                ) {
+                if (newTest.timed !== -1 && inputMap[newTest.timed] !== undefined) {
                     newTest.timed = inputMap[newTest.timed];
                 } else {
                     newTest.timed = -1;
@@ -1097,8 +1124,7 @@ export class CipherTest extends CipherHandler {
                 // and then all of the entries
                 for (let entry = 0; entry < newTest.questions.length; entry++) {
                     if (inputMap[newTest.questions[entry]] !== undefined) {
-                        newTest.questions[entry] =
-                            inputMap[newTest.questions[entry]];
+                        newTest.questions[entry] = inputMap[newTest.questions[entry]];
                     } else {
                         newTest.questions[entry] = 0;
                     }
@@ -1139,12 +1165,12 @@ export class CipherTest extends CipherHandler {
             });
         $('.entryedit')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.gotoEditCipher(Number($(e.target).attr('data-entry')));
             });
         $('[name="testdisp"]')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 $(e.target)
                     .siblings()
                     .removeClass('is-active');
@@ -1154,7 +1180,7 @@ export class CipherTest extends CipherHandler {
             });
         $('[name="testmanage"]')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 $(e.target)
                     .siblings()
                     .removeClass('is-active');
@@ -1164,7 +1190,7 @@ export class CipherTest extends CipherHandler {
             });
         $('[name="pubdisp"]')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 $(e.target)
                     .siblings()
                     .removeClass('is-active');

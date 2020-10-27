@@ -24,10 +24,7 @@ export interface menuItem {
 /**
  * Creates a submenu from a menuitem array
  */
-export function JTAppendSubMenu(
-    parent: JQuery<HTMLElement>,
-    submenu: menuItem[]
-): void {
+export function JTAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]): void {
     for (let item of submenu) {
         let li = $('<li/>');
         let href = '#';
@@ -70,12 +67,13 @@ export function JTAppendSubMenu(
 export function JTCreateMenu(
     menu: menuItem[],
     id: string,
-    menutext: string
+    menutext: string,
+    extra?: JQuery<HTMLElement>
 ): JQuery<HTMLElement> {
     // let parms = parseQueryString(window.location.search.substring(1))
     // let ciphertype: ICipherType = parms['cipherType'] as ICipherType
 
-    let result = $('<div/>', { class: "mainmenubar" });
+    let result = $('<div/>', { class: 'mainmenubar' });
     let titlebar = $('<div/>', {
         class: 'title-bar',
         'data-responsive-toggle': id,
@@ -92,15 +90,18 @@ export function JTCreateMenu(
     result.append(titlebar);
 
     let topbar = $('<div/>', { class: 'top-bar stacked-for-medium', id: id });
+
     let topbarleft = $('<div/>', { class: 'top-bar-left' });
+    if (extra !== null) {
+        topbarleft.append(extra);
+    }
+
     let dropdownmenu = $('<ul/>', {
         class: 'dropdown menu',
         'data-dropdown-menu': '',
     });
     dropdownmenu.append(
-        $('<li/>', { class: 'menu-text' }).append(
-            $('<a/>', { href: 'index.html' }).text(menutext)
-        )
+        $('<li/>', { class: 'menu-text' }).append($('<a/>', { href: 'index.html' }).text(menutext))
     );
     JTAppendSubMenu(dropdownmenu, menu);
     topbarleft.append(dropdownmenu);
@@ -123,11 +124,7 @@ export function JTCreateMenu(
     return result;
 }
 
-export function JTGetURL(
-    menu: menuItem[],
-    ciphertype: ICipherType,
-    lang: string
-): string {
+export function JTGetURL(menu: menuItem[], ciphertype: ICipherType, lang: string): string {
     let url = '';
     // Handle the case where we saved a cipher with Xenocrypt instead of
     // Aristocrat in order to look it up.
@@ -135,11 +132,7 @@ export function JTGetURL(
         ciphertype = ICipherType.Aristocrat;
     }
     for (let item of menu) {
-        if (
-            item.cipherType !== undefined &&
-            item.cipherType === ciphertype &&
-            item.lang === lang
-        ) {
+        if (item.cipherType !== undefined && item.cipherType === ciphertype && item.lang === lang) {
             url = item.href + '?cipherType=' + String(ciphertype);
             return url;
         }
@@ -153,16 +146,10 @@ export function JTGetURL(
     return '';
 }
 
-export function JTGetSolveURL(
-    menu: menuItem[],
-    ciphertype: ICipherType
-): string {
+export function JTGetSolveURL(menu: menuItem[], ciphertype: ICipherType): string {
     let url = '';
     for (let item of menu) {
-        if (
-            item.solveType !== undefined &&
-            item.solveType.indexOf(ciphertype) !== -1
-        ) {
+        if (item.solveType !== undefined && item.solveType.indexOf(ciphertype) !== -1) {
             return item.href;
         }
         if (item.menu !== undefined) {

@@ -54,7 +54,7 @@ export class ConvergenceAuthentication {
   sSRrkGTbVtr3OlrTfk3k3YZdjSjlvqb2GWHbzU7bkomLdIsG0Xx3Xg==
   -----END RSA PRIVATE KEY-----`;
 
-    private static formatConnectUrl(baseUrl: string, namespace: string, domain: string) {
+    public static formatConnectUrl(baseUrl: string, namespace: string, domain: string) {
         return baseUrl + '/realtime/' + namespace + '/' + domain;
     }
 

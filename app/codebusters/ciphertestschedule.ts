@@ -432,8 +432,9 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param usernames User to ensure exists
      */
     public ensureUsersExist(modelService: ModelService, usernames: string[]): Promise<any> {
-        const convergenceNamespace = '';
-        const convergenceDomainID = '';
+        const settings = this.getConvergenceSettings();
+        const convergenceNamespace = settings.namespace;
+        const convergenceDomainID = settings.domain;
         const parameters: EnsureUsersExistParameters = {
             convergenceDomainID: convergenceDomainID,
             convergenceNamespace: convergenceNamespace,

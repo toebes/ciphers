@@ -299,7 +299,7 @@ export class CipherHandler {
         ia: 'Interlingua',
         la: 'Latin',
     };
-    public guidanceURL: string = 'TestGuidance.html';
+    public guidanceURL = 'TestGuidance.html';
     /**
      * This maps which characters are legal in a cipher for a given language
      */
@@ -877,57 +877,57 @@ export class CipherHandler {
     /** Any special running key not in the default set used by this cipher */
     public extraRunningKey: string;
     /** Indicates that the cipher uses a running key */
-    public usesRunningKey: boolean = false;
+    public usesRunningKey = false;
     /** Indicates that the cupher uses a morse code table */
-    public usesMorseTable: boolean = false;
+    public usesMorseTable = false;
     /** The direction of the last advance */
-    public advancedir: number = 0;
+    public advancedir = 0;
     /** The Jquery element associated with a keypress */
     public keyTarget: JQuery<HTMLElement>;
-    public cipherWidth: number = 1;
-    public charset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    public sourcecharset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    public unassigned: string = '';
-    public holdupdates: boolean = false;
+    public cipherWidth = 1;
+    public charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    public sourcecharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    public unassigned = '';
+    public holdupdates = false;
     /** A modification to the current cipher has not been saved */
-    public isModified: boolean = false;
+    public isModified = false;
     /** Position on the save stack where the current cipher was loaded/saved */
-    public savedPosition: number = -1;
+    public savedPosition = -1;
     /** Stack of current Undo/Redo operations */
     public undoStack: IState[] = [];
     /** We can merge the next operation */
-    public undoCanMerge: boolean = false;
+    public undoCanMerge = false;
     /** The type of the last undo requested */
     public lastUndoRequest: string = undefined;
     /** Where we are in the undo stack */
-    public undoPosition: number = 0;
+    public undoPosition = 0;
     /** Indicates that we need to queue an undo item before executing an Undo */
     public undoNeeded: string = undefined;
     public activeToolMode: toolMode = toolMode.aca;
     /** Strings for managing storage of ciphers */
-    public storageTestCountName: string = 'Cipher-Test-Count';
-    public storageTestEntryPrefix: string = 'Cipher-Test';
-    public storageCipherCountName: string = 'Cipher-Count';
-    public storageCipherEntryPrefix: string = 'Cipher-Data';
+    public storageTestCountName = 'Cipher-Test-Count';
+    public storageTestEntryPrefix = 'Cipher-Test';
+    public storageCipherCountName = 'Cipher-Count';
+    public storageCipherEntryPrefix = 'Cipher-Data';
     /**
      * The maximum number of characters to
      * be shown on an encoded line so that it can be readily pasted into a test
      * This is a global config that no ciphers actually set
      */
-    public maxEncodeWidth: number = 53;
+    public maxEncodeWidth = 53;
     /**
      * Output the reverse replacement row in the frequency table.  This is set
      * by the individual cipher types on initialization
      */
-    public ShowRevReplace: boolean = true;
+    public ShowRevReplace = true;
     /**
      * Input string cleaned up.  This does not need to be saved because it is
      * rebuild by the build() function based in this.state.cipherString
      */
-    public encodedString: string = '';
+    public encodedString = '';
     public Frequent: { [key: string]: { [key: string]: patelem[] } } = {};
     public freq: { [key: string]: number } = {};
-    public savefileentry: number = -1;
+    public savefileentry = -1;
     public storage: JTStorage;
     constructor() {
         this.storage = InitStorage();
@@ -955,7 +955,7 @@ export class CipherHandler {
     public getTestCount(): number {
         let result = 0;
         if (this.storage.isAvailable()) {
-            let val = Number(this.storage.get(this.storageTestCountName));
+            const val = Number(this.storage.get(this.storageTestCountName));
             if (!isNaN(val)) {
                 result = val;
             }
@@ -999,7 +999,7 @@ export class CipherHandler {
             testtype: ITestType.None,
         };
         if (this.storage.isAvailable()) {
-            let testCount = this.getTestCount();
+            const testCount = this.getTestCount();
             if (entry < testCount) {
                 result = this.storage.getJSON(this.getTestName(entry));
             }
@@ -1033,7 +1033,7 @@ export class CipherHandler {
     /**
      * Checks to see if a convergence token exists. If one does not exist returns false.
      */
-    public isAuthenticated(): Boolean {
+    public isAuthenticated(): boolean {
         return !(this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '').length === 0);
     }
 
@@ -1056,7 +1056,7 @@ export class CipherHandler {
     protected goToAuthenticationPage(
         shouldPerformSignout = false,
         href: string = window.location.href
-    ) {
+    ): void {
         location.assign(
             'Login.html?returnUrl=' + href + '&shouldPerformSignout=' + shouldPerformSignout
         );
@@ -1067,7 +1067,7 @@ export class CipherHandler {
      * @param config Configuration value to set
      * @param value Value to set
      */
-    public setConfigString(config: string, value: string) {
+    public setConfigString(config: string, value: string): void {
         if (this.storage.isAvailable()) {
             this.storage.set('config_' + config, value);
         }
@@ -1113,7 +1113,7 @@ export class CipherHandler {
         if (!this.storage.isAvailable()) {
             return -1;
         }
-        let testCount = this.getTestCount();
+        const testCount = this.getTestCount();
         if (entry > testCount || entry === -1) {
             entry = testCount;
             this.setTestCount(entry + 1);
@@ -1128,7 +1128,7 @@ export class CipherHandler {
         if (!this.storage.isAvailable()) {
             return 'Unable to delete, local storage not defined';
         }
-        let testCount = this.getTestCount();
+        const testCount = this.getTestCount();
         if (entry < testCount && entry >= 0) {
             for (let pos = entry + 1; pos < testCount; pos++) {
                 this.storage.set(
@@ -1147,7 +1147,7 @@ export class CipherHandler {
     public getCipherCount(): number {
         let result = 0;
         if (this.storage.isAvailable()) {
-            let val = Number(this.storage.get(this.storageCipherCountName));
+            const val = Number(this.storage.get(this.storageCipherCountName));
             if (!isNaN(val)) {
                 result = val;
             }
@@ -1167,7 +1167,7 @@ export class CipherHandler {
     public getFileEntry(entry: number): IState {
         let result: IState = null;
         if (this.storage.isAvailable()) {
-            let cipherCount = this.getCipherCount();
+            const cipherCount = this.getCipherCount();
             if (entry < cipherCount) {
                 result = this.storage.getJSON(this.getEntryName(entry));
             }
@@ -1179,7 +1179,7 @@ export class CipherHandler {
      */
     public getFileList(ciphertype: ICipherType): JQElement {
         let result = null;
-        let cipherCount = this.getCipherCount();
+        const cipherCount = this.getCipherCount();
         $('#okopen').prop('disabled', true);
         if (cipherCount === 0) {
             result = $('<div/>', {
@@ -1188,14 +1188,14 @@ export class CipherHandler {
             }).text('No files found');
         } else {
             // Generate a list of the types of ciphers that we allow
-            let allowed = getCipherEquivalents(ciphertype);
+            const allowed = getCipherEquivalents(ciphertype);
             result = $('<select/>', {
                 id: 'files',
                 class: 'filelist',
                 size: 10,
             });
             for (let entry = 0; entry < cipherCount; entry++) {
-                let fileEntry = this.getFileEntry(entry);
+                const fileEntry = this.getFileEntry(entry);
                 if (allowed.indexOf(fileEntry.cipherType) !== -1) {
                     let entryText = '[' + String(entry) + ']:';
                     if (allowed.length !== 1) {
@@ -1241,7 +1241,7 @@ export class CipherHandler {
         if (!this.storage.isAvailable()) {
             return -1;
         }
-        let cipherCount = this.getCipherCount();
+        const cipherCount = this.getCipherCount();
         if (entry > cipherCount || entry === -1) {
             entry = cipherCount;
             this.setCipherCount(entry + 1);
@@ -1256,7 +1256,7 @@ export class CipherHandler {
         if (!this.storage.isAvailable()) {
             return 'Unable to delete, local storage not defined';
         }
-        let cipherCount = this.getCipherCount();
+        const cipherCount = this.getCipherCount();
         if (entry < cipherCount && entry >= 0) {
             for (let pos = entry + 1; pos < cipherCount; pos++) {
                 this.storage.set(
@@ -1267,9 +1267,9 @@ export class CipherHandler {
             this.storage.remove(this.getEntryName(cipherCount));
             this.setCipherCount(cipherCount - 1);
         }
-        let testCount = this.getTestCount();
+        const testCount = this.getTestCount();
         for (let pos = 0; pos < testCount; pos++) {
-            let test = this.getTestEntry(pos);
+            const test = this.getTestEntry(pos);
             if (test.timed > entry) {
                 test.timed--;
             } else if (test.timed === entry) {
@@ -1292,9 +1292,9 @@ export class CipherHandler {
      * @param str String to revewse
      */
     public obverse(str: string): string {
-        let repl: StringMap = {};
-        const cmap1: string = '<=> abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const cmap2: string = 'YObkT>hFBZRcGV UzvKqptMrDnIPXmHeJuNdiAwCoSsE=xWgLaljQy<f';
+        const repl: StringMap = {};
+        const cmap1 = '<=> abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const cmap2 = 'YObkT>hFBZRcGV UzvKqptMrDnIPXmHeJuNdiAwCoSsE=xWgLaljQy<f';
         for (let i = 0; i < cmap1.length; i++) {
             repl[cmap1[i]] = cmap2[i];
         }
@@ -1343,9 +1343,9 @@ export class CipherHandler {
      * We only want to have 4 for space on the test
      */
     public getRunningKeyStrings(): IRunningKey[] {
-        let result: IRunningKey[] = [];
+        const result: IRunningKey[] = [];
         for (let entry = 0; entry < 10; entry++) {
-            let ikey = this.getRunningKey(entry);
+            const ikey = this.getRunningKey(entry);
             if (ikey === undefined) {
                 break;
             }
@@ -1398,14 +1398,14 @@ export class CipherHandler {
                 $('#importstatus')
                     .removeClass('secondary')
                     .addClass('success');
-                let fileinput: HTMLInputElement = $('#xmlFile')[0] as HTMLInputElement;
-                let files = fileinput.files;
+                const fileinput: HTMLInputElement = $('#xmlFile')[0] as HTMLInputElement;
+                const files = fileinput.files;
                 $('#xmltoimport').text(files[0].name + ' selected');
             });
         $('#xmlurl')
             .off('input')
             .on('input', (e) => {
-                let url = $(e.target).val() as string;
+                const url = $(e.target).val() as string;
                 if (url !== '') {
                     $('#okimport').removeAttr('disabled');
                 } else {
@@ -1416,14 +1416,14 @@ export class CipherHandler {
             .off('click')
             .on('click', (e) => {
                 if (useLocalData) {
-                    let fileinput: HTMLInputElement = $('#xmlFile')[0] as HTMLInputElement;
-                    let files = fileinput.files;
+                    const fileinput: HTMLInputElement = $('#xmlFile')[0] as HTMLInputElement;
+                    const files = fileinput.files;
                     if (files.length && typeof FileReader !== undefined) {
-                        let reader = new FileReader();
+                        const reader = new FileReader();
                         reader.readAsText(files[0]);
                         reader.onload = (e1) => {
                             try {
-                                let result = JSON.parse(reader.result as string);
+                                const result = JSON.parse(reader.result as string);
                                 $('#ImportFile').foundation('close');
                                 this.importXML(result);
                             } catch (e) {
@@ -1433,7 +1433,7 @@ export class CipherHandler {
                     }
                 } else {
                     // They gave us a URL so let's do an AJAX call to pull it in
-                    let url = $('#xmlurl').val() as string;
+                    const url = $('#xmlurl').val() as string;
                     $.getJSON(url, (data) => {
                         $('#ImportFile').foundation('close');
                         this.importXML(data);
@@ -1457,7 +1457,7 @@ export class CipherHandler {
      */
     public saveCipher(): void {
         this.undoCanMerge = false;
-        let state = this.save();
+        const state = this.save();
         this.markSaved();
         this.savefileentry = this.setFileEntry(this.savefileentry, state);
 
@@ -1507,7 +1507,7 @@ export class CipherHandler {
      * in the destination
      */
     public copyState(dest: IState, source: IState): void {
-        for (let elem of Object.keys(source)) {
+        for (const elem of Object.keys(source)) {
             if (Array.isArray(source[elem])) {
                 dest[elem] = source[elem].slice();
             } else if (typeof source[elem] === 'object') {
@@ -1536,8 +1536,8 @@ export class CipherHandler {
      */
     public encipherString(str: string, alphabet: string): string {
         // Build up a mapping of the charaters to the enciphered string
-        let charset = this.getCharset();
-        let replmap: StringMap = {};
+        const charset = this.getCharset();
+        const replmap: StringMap = {};
         for (let i = charset.length - 1; i >= 0; i--) {
             replmap[charset[i]] = alphabet[i];
         }
@@ -1570,7 +1570,7 @@ export class CipherHandler {
         let differences = Math.abs(str1.length - str2.length);
         // We want to compare only characters that exist.  We could use the
         // min of the lengths, but since we know the difference... just calculate it
-        let len = (str1.length + str2.length - differences) / 2;
+        const len = (str1.length + str2.length - differences) / 2;
         // Go though letter by letter comparing, recording anything that doesn't match
         for (let i = 0; i < len; i++) {
             if (str1[i] != str2[i]) {
@@ -1609,7 +1609,7 @@ export class CipherHandler {
      * the realtime answers when the test is being given.
      */
     public getInteractiveTemplate(): ITestQuestionFields {
-        let result: ITestQuestionFields = { answer: [], notes: '' };
+        const result: ITestQuestionFields = { answer: [], notes: '' };
         return result;
     }
     /**
@@ -1624,10 +1624,10 @@ export class CipherHandler {
         encodeType: string,
         extraclass: string
     ): JQElement {
-        let table = new JTTable({
+        const table = new JTTable({
             class: 'shrink unstriped intfreq' + extraclass,
         });
-        let charset = this.getSourceCharset();
+        const charset = this.getSourceCharset();
         if (encodeType === 'random' || encodeType === undefined) {
             encodeType = '';
         }
@@ -1636,8 +1636,8 @@ export class CipherHandler {
         if (encodeType === 'k2') {
             replrow = table.addHeaderRow();
         }
-        let headrow = table.addHeaderRow();
-        let freqrow = table.addBodyRow();
+        const headrow = table.addHeaderRow();
+        const freqrow = table.addBodyRow();
         // For all other cipher types, the replacement row is below the frequency
         if (encodeType !== 'k2') {
             replrow = table.addBodyRow();
@@ -1651,7 +1651,7 @@ export class CipherHandler {
         replrow.add({ celltype: 'th', content: 'Replacement' });
 
         let pos = 0;
-        for (let c of charset.toUpperCase()) {
+        for (const c of charset.toUpperCase()) {
             headrow.add(c);
             let freq = String(this.freq[c]);
             if (freq === '0') {
@@ -1681,16 +1681,16 @@ export class CipherHandler {
      * @param extraclass Extra class to add to the generated table
      */
     public genFreqTable(showanswers: boolean, encodeType: string, extraclass: string): JQElement {
-        let table = new JTTable({
+        const table = new JTTable({
             class: 'prfreq shrink cell unstriped' + extraclass,
         });
-        let charset = this.getSourceCharset();
+        const charset = this.getSourceCharset();
         let replalphabet = this.state.replacement;
         if (encodeType === 'random' || encodeType === undefined) {
             encodeType = '';
         } else if (encodeType === 'k2') {
             replalphabet = {};
-            for (let c of charset.toUpperCase()) {
+            for (const c of charset.toUpperCase()) {
                 replalphabet[this.state.replacement[c]] = c;
             }
         }
@@ -1699,8 +1699,8 @@ export class CipherHandler {
         if (encodeType === 'k2') {
             replrow = table.addHeaderRow();
         }
-        let headrow = table.addHeaderRow();
-        let freqrow = table.addBodyRow();
+        const headrow = table.addHeaderRow();
+        const freqrow = table.addBodyRow();
         // For all other cipher types, the replacement row is below the frequency
         if (encodeType !== 'k2') {
             replrow = table.addBodyRow();
@@ -1713,7 +1713,7 @@ export class CipherHandler {
         freqrow.add({ celltype: 'th', content: 'Frequency' });
         replrow.add({ celltype: 'th', content: 'Replacement' });
 
-        for (let c of charset.toUpperCase()) {
+        for (const c of charset.toUpperCase()) {
             let repl = '';
             if (showanswers) {
                 repl = replalphabet[c];
@@ -1743,14 +1743,14 @@ export class CipherHandler {
         result.append($('<div/>', { class: 'testuse' }));
     }
     public updateTestUsage(): void {
-        let result = $('.testuse');
+        const result = $('.testuse');
         result.empty().removeClass('alert primary');
         let prefix = 'Used on test(s):';
         if (this.savefileentry !== -1) {
             // Find out what tests this is a part of
-            let testCount = this.getTestCount();
+            const testCount = this.getTestCount();
             for (let entry = 0; entry < testCount; entry++) {
-                let test = this.getTestEntry(entry);
+                const test = this.getTestEntry(entry);
                 let use = '';
                 let prevq, nextq, prevtxt, nexttxt;
                 // If this is the timed question, we will have a next question
@@ -1764,7 +1764,7 @@ export class CipherHandler {
                     }
                 } else {
                     // See if this is one of the questions on the test
-                    let qnum = test.questions.indexOf(this.savefileentry);
+                    const qnum = test.questions.indexOf(this.savefileentry);
                     if (qnum !== -1) {
                         // It is, so find the previous question.
                         use = 'Question #' + String(qnum + 1);
@@ -1795,7 +1795,7 @@ export class CipherHandler {
                         calloutclass = 'alert';
                         usemsg = ' - ' + usemsg;
                     }
-                    let link = $('<a/>', {
+                    const link = $('<a/>', {
                         class: 'chkmod',
                         href: 'TestGenerator.html?test=' + String(entry),
                     }).text(test.title + ' ' + use);
@@ -1807,10 +1807,10 @@ export class CipherHandler {
                         result.append($('<div/>', { class: 'usedon' }).text('Used on test(s):'));
                         prefix = '';
                     }
-                    let testset = $('<div/>', { class: 'testset' });
+                    const testset = $('<div/>', { class: 'testset' });
 
                     if (prevq !== undefined) {
-                        let linkprev = $('<a/>', {
+                        const linkprev = $('<a/>', {
                             class: 'prevnav chkmod',
                             href: this.getEntryURL(prevq),
                         }).text(prevtxt);
@@ -1818,7 +1818,7 @@ export class CipherHandler {
                     }
                     testset.append(link);
                     if (nextq !== undefined) {
-                        let linknext = $('<a/>', {
+                        const linknext = $('<a/>', {
                             class: 'nxtnav  chkmod',
                             href: this.getEntryURL(nextq),
                         }).text(nexttxt);
@@ -1846,7 +1846,7 @@ export class CipherHandler {
      * Creates the Undo and Redo command buttons
      */
     public genUndoRedoButtons(): JQElement {
-        let buttons = $('<div/>');
+        const buttons = $('<div/>');
 
         buttons.append(
             $('<input/>', {
@@ -1910,7 +1910,7 @@ export class CipherHandler {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: IState, suppressOutput: boolean = false): void {}
+    public restore(data: IState, suppressOutput = false): void {}
     public save(): IState {
         return { cipherType: ICipherType.None, cipherString: '' };
     }
@@ -1969,7 +1969,7 @@ export class CipherHandler {
      *    Change Offset=3    undefined  push  [initial][off=1][find=ABC,off=1][find=ABC,off=2]
      */
     public pushUndo(undotype: string): void {
-        let undodata = this.save();
+        const undodata = this.save();
         // See if we can merge this (such as a find operation) with the previous undo
         if (this.undoCanMerge) {
             this.undoStack[this.undoStack.length - 1] = undodata;
@@ -2000,7 +2000,7 @@ export class CipherHandler {
         this.lastUndoRequest = undefined;
         if (this.undoPosition > 0) {
             this.undoPosition--;
-            let state = this.undoStack[this.undoPosition];
+            const state = this.undoStack[this.undoPosition];
             this.restore(state);
             this.isModified = this.undoPosition !== this.savedPosition;
             this.markUndoUI(this.undoPosition <= 0, false);
@@ -2074,7 +2074,7 @@ export class CipherHandler {
     public reDo(): void {
         if (this.undoPosition < this.undoStack.length - 1) {
             this.undoPosition++;
-            let state = this.undoStack[this.undoPosition];
+            const state = this.undoStack[this.undoPosition];
             this.restore(state);
             this.undoNeeded = undefined;
             // Prevent creating a new entry on the stack since it will match
@@ -2123,7 +2123,7 @@ export class CipherHandler {
      * the initial state values.
      */
     public layout(): void {
-        let parms = parseQueryString(window.location.search.substring(1));
+        const parms = parseQueryString(window.location.search.substring(1));
         let saveSet = this.save();
         this.savefileentry = -1;
         if (parms.editEntry !== undefined) {
@@ -2132,7 +2132,7 @@ export class CipherHandler {
             saveSet = this.getFileEntry(this.savefileentry);
         }
         // Copy over any additional parameters they might have given
-        for (let v in parms) {
+        for (const v in parms) {
             if (parms.hasOwnProperty(v)) {
                 saveSet[v] = parms[v];
             }
@@ -2193,12 +2193,12 @@ export class CipherHandler {
         if (overline !== undefined) {
             rowover = table.addBodyRow();
         }
-        let rowcipher = table.addBodyRow();
-        let rowanswer = table.addBodyRow();
-        let rowblank = table.addBodyRow();
+        const rowcipher = table.addBodyRow();
+        const rowanswer = table.addBodyRow();
+        const rowblank = table.addBodyRow();
 
         for (let i = 0; i < cipherline.length; i++) {
-            let c = cipherline.substr(i, 1);
+            const c = cipherline.substr(i, 1);
             let aclass = 'e v';
             let a = ' ';
             if (answerline !== undefined) {
@@ -2250,19 +2250,19 @@ export class CipherHandler {
         extraclass: string,
         genover: boolean
     ): JQuery<HTMLElement> {
-        let qnumdisp = String(qnum + 1);
-        let table = new JTTable({ class: 'ansblock shrink cell unstriped ' + extraclass });
+        const qnumdisp = String(qnum + 1);
+        const table = new JTTable({ class: 'ansblock shrink cell unstriped ' + extraclass });
         let pos = 0;
         // Add the split up lines to the output table.
-        for (let splitLines of strings) {
-            let cipherline = splitLines[stringindex];
+        for (const splitLines of strings) {
+            const cipherline = splitLines[stringindex];
             let rowover: JTRow;
             if (genover) {
                 rowover = table.addBodyRow();
             }
-            let rowcipher = table.addBodyRow();
-            let rowanswer = table.addBodyRow();
-            let rowblank = table.addBodyRow();
+            const rowcipher = table.addBodyRow();
+            const rowanswer = table.addBodyRow();
+            const rowblank = table.addBodyRow();
 
             for (let i = 0; i < cipherline.length; i++) {
                 if (genover) {
@@ -2275,7 +2275,7 @@ export class CipherHandler {
                         }),
                     });
                 }
-                let c = cipherline.substr(i, 1);
+                const c = cipherline.substr(i, 1);
                 if (this.isValidChar(c)) {
                     rowcipher.add({
                         settings: { class: 'q v' },
@@ -2304,7 +2304,7 @@ export class CipherHandler {
      * Generate the score of an answered cipher
      */
     public genScore(answer: string[]): IScoreInformation {
-        let scoreInformation: IScoreInformation = {
+        const scoreInformation: IScoreInformation = {
             incorrect: 'all',
             deduction: 'max',
             score: 1000000,
@@ -2327,7 +2327,7 @@ export class CipherHandler {
      * Generate the HTML to display the question for a cipher
      */
     public genInteractive(qnum: number, testType: ITestType): JQElement {
-        let result = this.genQuestion(testType);
+        const result = this.genQuestion(testType);
         result.append($('<textarea/>', { id: 'in' + String(qnum + 1), class: 'intnote' }));
         return result;
     }
@@ -2342,7 +2342,7 @@ export class CipherHandler {
         // console.log("handler setChar data-char=" + repchar + " newchar=" + newchar)
         // See if any other slots have this character and reset it
         if (newchar !== '') {
-            for (let i in this.state.replacement) {
+            for (const i in this.state.replacement) {
                 if (this.state.replacement[i] === newchar && i !== repchar) {
                     this.setChar(i, '');
                 }
@@ -2384,17 +2384,17 @@ export class CipherHandler {
         if (str === undefined) {
             return '';
         }
-        let pattern: string = '[\r\n ]+';
-        let re = new RegExp(pattern, 'g');
+        const pattern = '[\r\n ]+';
+        const re = new RegExp(pattern, 'g');
         return str.replace(re, ' ');
     }
     /**
      * Eliminate all characters which are not in the charset
      */
     public minimizeString(str: string): string {
-        let res: string = '';
+        let res = '';
         if (str !== undefined) {
-            for (let c of str.toUpperCase()) {
+            for (const c of str.toUpperCase()) {
                 if (this.isValidChar(c)) {
                     res += c;
                 }
@@ -2410,9 +2410,9 @@ export class CipherHandler {
      */
     public chunk(inputString: string, chunkSize: number): string {
         let chunkIndex = 1;
-        let charset = this.getCharset();
+        const charset = this.getCharset();
         let chunkedString = '';
-        for (let c of inputString) {
+        for (const c of inputString) {
             // Skip anthing that is not in the character set (i.e spaces,
             // punctuation, etc.)
             if (charset.indexOf(c.toUpperCase()) < 0) {
@@ -2474,9 +2474,9 @@ export class CipherHandler {
         this.attachHandlers();
     }
     public getReverseReplacement(): StringMap {
-        let revRepl: StringMap = {};
+        const revRepl: StringMap = {};
         // Build a reverse replacement map so that we can encode the string
-        for (let repc in this.state.replacement) {
+        for (const repc in this.state.replacement) {
             if (this.state.replacement.hasOwnProperty(repc)) {
                 revRepl[this.state.replacement[repc]] = repc;
             }
@@ -2492,14 +2492,14 @@ export class CipherHandler {
      * it also updates the frequency table
      */
     public makeReplacement(str: string, maxEncodeWidth: number): string[][] {
-        let charset = this.getCharset();
-        let sourcecharset = this.getSourceCharset();
-        let revRepl = this.getReverseReplacement();
-        let langreplace = this.langreplace[this.state.curlang];
+        const charset = this.getCharset();
+        const sourcecharset = this.getSourceCharset();
+        const revRepl = this.getReverseReplacement();
+        const langreplace = this.langreplace[this.state.curlang];
         let encodeline = '';
         let decodeline = '';
         let lastsplit = -1;
-        let result: string[][] = [];
+        const result: string[][] = [];
 
         // Zero out the frequency table
         this.freq = {};
@@ -2515,7 +2515,7 @@ export class CipherHandler {
             }
             decodeline += t;
             // Make sure that this is a valid character to map from
-            let pos = charset.indexOf(t);
+            const pos = charset.indexOf(t);
             if (pos >= 0) {
                 t = revRepl[t];
                 if (isNaN(this.freq[t])) {
@@ -2540,8 +2540,8 @@ export class CipherHandler {
                     encodeline = '';
                     decodeline = '';
                 } else {
-                    let encodepart = encodeline.substr(0, lastsplit);
-                    let decodepart = decodeline.substr(0, lastsplit);
+                    const encodepart = encodeline.substr(0, lastsplit);
+                    const decodepart = decodeline.substr(0, lastsplit);
                     encodeline = encodeline.substr(lastsplit);
                     decodeline = decodeline.substr(lastsplit);
                     result.push([encodepart, decodepart]);
@@ -2572,16 +2572,16 @@ export class CipherHandler {
      * language character frequency
      */
     public CalculateChiSquare(str: string): number {
-        let charset = this.getCharset();
-        let len = charset.length;
-        let counts = new Array(len);
+        const charset = this.getCharset();
+        const len = charset.length;
+        const counts = new Array(len);
         let total = 0;
         for (let i = 0; i < len; i++) {
             counts[i] = 0;
         }
         for (let i = 0; i < str.length; i++) {
-            let c = str.substr(i, 1).toUpperCase();
-            let pos = charset.indexOf(c);
+            const c = str.substr(i, 1).toUpperCase();
+            const pos = charset.indexOf(c);
             if (pos >= 0) {
                 counts[pos]++;
                 total++;
@@ -2589,8 +2589,8 @@ export class CipherHandler {
         }
         let chiSquare = 0.0;
         for (let i = 0; i < len; i++) {
-            let c = charset.substr(i, 1);
-            let expected = this.langfreq[this.state.curlang][c];
+            const c = charset.substr(i, 1);
+            const expected = this.langfreq[this.state.curlang][c];
             if (expected !== undefined && expected !== 0) {
                 chiSquare += Math.pow(counts[i] - total * expected, 2) / (total * expected);
             }
@@ -2602,16 +2602,16 @@ export class CipherHandler {
      * language character frequency
      */
     public CalculateCribChiSquare(matchfreq: NumberMap): number {
-        let charset = this.getCharset();
-        let len = charset.length;
-        let counts = new Array(len);
+        const charset = this.getCharset();
+        const len = charset.length;
+        const counts = new Array(len);
         let total = 0;
-        for (let val in this.freq) {
+        for (const val in this.freq) {
             total += this.freq[val];
         }
         let chiSquare = 0.0;
-        for (let c in matchfreq) {
-            let expected = this.langfreq[this.state.curlang][c];
+        for (const c in matchfreq) {
+            const expected = this.langfreq[this.state.curlang][c];
             if (expected !== undefined && expected !== 0) {
                 chiSquare += Math.pow(matchfreq[c] - total * expected, 2) / (total * expected);
             }
@@ -2691,19 +2691,19 @@ export class CipherHandler {
      * Fills in the frequency portion of the frequency table
      */
     public displayFreq(): void {
-        let charset = this.getCharset();
+        const charset = this.getCharset();
         this.holdupdates = true;
-        for (let c in this.freq) {
+        for (const c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
-                let subval: string = String(this.freq[c]);
+                let subval = String(this.freq[c]);
                 if (subval === '0') {
                     subval = '';
                 }
                 $('#f' + c).text(subval);
             }
         }
-        for (let c in this.state.replacement) {
-            let r = this.state.replacement[c];
+        for (const c in this.state.replacement) {
+            const r = this.state.replacement[c];
             $('#m' + c).text(r);
             $('#rf' + r).text(c);
         }
@@ -2721,8 +2721,8 @@ export class CipherHandler {
      * And were given the input string of "RJCXC" then the result would be " HE E"
      */
     public genReplPattern(str: string): string[] {
-        let res = [];
-        for (let c of str) {
+        const res = [];
+        for (const c of str) {
             if (this.state.replacement[c] === undefined) {
                 res.push('');
             } else {
@@ -2738,7 +2738,7 @@ export class CipherHandler {
     public isValidReplacement(str: string, repl: string[], used: BoolMap): boolean {
         //   console.log(str)
         for (let i = 0, len = str.length; i < len; i++) {
-            let c = str.substr(i, 1);
+            const c = str.substr(i, 1);
             if (repl[i] !== '') {
                 if (c !== repl[i]) {
                     //             console.log("No match c=" + c + " repl[" + i + "]=" + repl[i])
@@ -2771,8 +2771,8 @@ export class CipherHandler {
                     .empty()
                     .removeClass('callout primary small');
             } else {
-                let fs = textStandard(cipherString);
-                let msg = 'Estimated readability score between ' + fs;
+                const fs = textStandard(cipherString);
+                const msg = 'Estimated readability score between ' + fs;
                 $('.difficulty')
                     .text(msg)
                     .addClass('callout primary small');
@@ -2811,15 +2811,15 @@ export class CipherHandler {
      * This makes it easy to search for a pattern in any input cryptogram
      */
     public makeUniquePattern(str: string, width: number): string {
-        let cmap = {};
+        const cmap = {};
         let res = '';
-        let mapval: number = 0;
-        let len = str.length;
+        let mapval = 0;
+        const len = str.length;
         // in case they give us an odd length string, just padd it with enough Xs
         str += 'XXXX';
 
         for (let i = 0; i < len; i += width) {
-            let c = str.substr(i, width);
+            const c = str.substr(i, width);
             if (typeof cmap[c] === 'undefined') {
                 cmap[c] = mapval.toString(36).toUpperCase();
                 mapval++;
@@ -2834,11 +2834,11 @@ export class CipherHandler {
     public dumpLang(lang: string): string {
         let extra = '';
         let res = 'cipherTool.Frequent[' + this.quote(lang) + ']={';
-        for (let pat in this.Frequent[lang]) {
+        for (const pat in this.Frequent[lang]) {
             if (this.Frequent[lang].hasOwnProperty(pat) && pat !== '') {
                 res += extra + '"' + pat + '":[';
                 let extra1 = '';
-                let matches = this.Frequent[lang][pat];
+                const matches = this.Frequent[lang][pat];
                 for (let i = 0, len = matches.length; i < len; i++) {
                     // console.log(matches[i])
                     res +=
@@ -2866,13 +2866,13 @@ export class CipherHandler {
      */
     public genLangDropdown(result: JQuery<HTMLElement>): void {
         $('#loadeng').hide();
-        let inputgroup = $('<div/>', { class: 'cell input-group' });
+        const inputgroup = $('<div/>', { class: 'cell input-group' });
         inputgroup.append(
             $('<span/>', {
                 class: 'input-group-label',
             }).text('Language')
         );
-        let select = $('<select/>', {
+        const select = $('<select/>', {
             class: 'lang input-group-field',
         });
         select.append(
@@ -2880,7 +2880,7 @@ export class CipherHandler {
                 value: '',
             }).text('--Select a language--')
         );
-        for (let lang in this.langmap) {
+        for (const lang in this.langmap) {
             if (this.langmap.hasOwnProperty(lang)) {
                 select.append(
                     $('<option />', {
@@ -2913,26 +2913,26 @@ export class CipherHandler {
      * lang Language to load (2 character abbreviation)
      */
     public loadRawLanguage(lang: string): void {
-        let jqxhr = $.get('Languages/' + lang + '.txt', () => {}).done((data) => {
+        const jqxhr = $.get('Languages/' + lang + '.txt', () => {}).done((data) => {
             // empty out all the frequent words
             this.showLangStatus('warning', 'Processing ' + this.langmap[lang] + '...');
             this.Frequent[lang] = {};
             this.state.curlang = lang;
             let charset = this.langcharset[lang];
-            let langreplace = this.langreplace[lang];
+            const langreplace = this.langreplace[lang];
             this.setCharset(charset);
-            let lines = data.split('\n');
-            let len = lines.length;
+            const lines = data.split('\n');
+            const len = lines.length;
             charset = charset.toUpperCase();
             for (let i = 0; i < len; i++) {
-                let pieces = lines[i]
+                const pieces = lines[i]
                     .replace(/\r/g, ' ')
                     .toUpperCase()
                     .split(/ /);
                 // make sure that all the characters in the pieces are valid
                 // for this character set.  Otherwise we can throw it away
                 let legal = true;
-                for (let c of pieces[0]) {
+                for (const c of pieces[0]) {
                     if (charset.indexOf(c) < 0) {
                         if (typeof langreplace[c] === 'undefined') {
                             console.log(
@@ -2945,8 +2945,8 @@ export class CipherHandler {
                     }
                 }
                 if (legal) {
-                    let pat = this.makeUniquePattern(pieces[0], 1);
-                    let elem: patelem = [pieces[0].toUpperCase(), i, pieces[1], 0];
+                    const pat = this.makeUniquePattern(pieces[0], 1);
+                    const elem: patelem = [pieces[0].toUpperCase(), i, pieces[1], 0];
                     if (i < 500) {
                         elem[3] = 0;
                     } else if (i < 1000) {
@@ -2998,9 +2998,9 @@ export class CipherHandler {
      * Retrieve all of the replacement characters that have been selected so far
      */
     public UpdateReverseReplacements(): void {
-        let charset = this.getSourceCharset().toUpperCase();
+        const charset = this.getSourceCharset().toUpperCase();
         $('[id^=rf]').text('');
-        for (let c of charset) {
+        for (const c of charset) {
             $('#rf' + this.state.replacement[c]).text(c);
         }
     }
@@ -3023,7 +3023,7 @@ export class CipherHandler {
      * @param entry Entry to get editing URL for
      */
     public getEntryURL(entry: number): string {
-        let state = this.getFileEntry(entry);
+        const state = this.getFileEntry(entry);
         let entryURL = this.getEditURL(state);
         if (entryURL !== '') {
             if (entryURL.indexOf('?') > -1) {
@@ -3049,19 +3049,25 @@ export class CipherHandler {
      * Create the hidden dialog for selecting a cipher to open
      */
     private createOpenFileDlg(): JQElement {
-        let dlgContents = $('<select/>', {
+        const dlgContents = $('<select/>', {
             id: 'files',
             class: 'filelist',
             size: 10,
         });
-        let openFileDlg = JTFDialog('OpenFile', 'Select File to Open', dlgContents, 'okopen', 'OK');
+        const openFileDlg = JTFDialog(
+            'OpenFile',
+            'Select File to Open',
+            dlgContents,
+            'okopen',
+            'OK'
+        );
         return openFileDlg;
     }
     /**
      * Creates the hidden dialog for selecting an XML file to import
      */
     private createImportFileDlg(): JQElement {
-        let dlgContents = $('<div/>', {
+        const dlgContents = $('<div/>', {
             id: 'importstatus',
             class: 'callout secondary',
         })
@@ -3088,7 +3094,7 @@ export class CipherHandler {
             .append(
                 JTFLabeledInput('URL', 'text', 'xmlurl', '', 'impurl small-12 medium-6 large-6')
             );
-        let importDlg = JTFDialog(
+        const importDlg = JTFDialog(
             'ImportFile',
             'Import Test Data',
             dlgContents,
@@ -3101,7 +3107,7 @@ export class CipherHandler {
      * Creates the hidden dialog showing version/build information
      */
     public createRealtimeConfigDlg(): JQElement {
-        let dlgContents = $('<div/>', {
+        const dlgContents = $('<div/>', {
             id: 'realtimeconf',
             class: 'callout secondary',
         })
@@ -3116,7 +3122,7 @@ export class CipherHandler {
             .append(JTFLabeledInput('Realtime KeyID:', 'text', 'convergenceKeyId', '', ''))
             .append(JTFLabeledInput('Debug:', 'text', 'convergenceDebug', '', ''));
 
-        let realtimeConfigDlg = JTFDialog(
+        const realtimeConfigDlg = JTFDialog(
             'Realtimedlg',
             '[Testing] Realtime Configuration',
             dlgContents,
@@ -3129,7 +3135,7 @@ export class CipherHandler {
      * Creates the hidden dialog showing version/build information
      */
     public createRegisterDlg(): JQElement {
-        let dlgContents = $('<div/>', {
+        const dlgContents = $('<div/>', {
             id: 'registercont',
             class: 'callout secondary',
         })
@@ -3165,7 +3171,7 @@ export class CipherHandler {
                 )
             );
 
-        let registerDlg = JTFDialog(
+        const registerDlg = JTFDialog(
             'Registerdlg',
             '[Testing] Register',
             dlgContents,
@@ -3178,7 +3184,7 @@ export class CipherHandler {
      * Creates the hidden dialog showing version/build information
      */
     public createAboutDlg(): JQElement {
-        let dlgContents = $('<table class="version-table"/>');
+        const dlgContents = $('<table class="version-table"/>');
         dlgContents.append(
             '<tr class="version"><td>Version:</td><td>' + getVersion() + '</td></tr>'
         );
@@ -3187,7 +3193,7 @@ export class CipherHandler {
         );
         dlgContents.append('<tr><td>Built  :</td><td>[AIV]{date}[/AIV]</td></tr>');
 
-        let aboutDlg = JTFDialog(
+        const aboutDlg = JTFDialog(
             'About',
             'Cipher Tools',
             dlgContents,
@@ -3201,7 +3207,7 @@ export class CipherHandler {
      * This also creates the hidden dialogs used for opening and importing files
      */
     public createMainMenu(): JQElement {
-        let result = $('<div/>');
+        const result = $('<div/>');
 
         const divLoginInfo = $('<div/>', {
             class: 'login-info',
@@ -3235,7 +3241,7 @@ export class CipherHandler {
         $('#freqtable')
             .children()
             .each((i, elem) => {
-                let eid = $(elem).attr('id');
+                const eid = $(elem).attr('id');
                 replOrder += eid.substr(eid.length - 1);
             });
         this.state.replOrder = replOrder;
@@ -3249,8 +3255,8 @@ export class CipherHandler {
      * If online is newer, enable download button for zip file.
      */
     public about(): void {
-        let served_from = window.location.href;
-        let local_version = getVersion();
+        const served_from = window.location.href;
+        const local_version = getVersion();
         console.log('Local version: ' + local_version);
         console.log('served from: ' + served_from.substring(0, 4));
         $('.version-table tr.latest-version').hide();
@@ -3390,11 +3396,11 @@ export class CipherHandler {
     public sortTable(th: HTMLElement, n: number): void {
         let switchcount = 0;
         let switching = true;
-        let table = th.closest('table');
-        let thlist = table.getElementsByTagName('TH');
+        const table = th.closest('table');
+        const thlist = table.getElementsByTagName('TH');
         // tslint:disable-next-line:prefer-for-of
         for (let i = 0; i < thlist.length; i++) {
-            let thc = thlist[i];
+            const thc = thlist[i];
             thc.classList.remove('asc', 'desc');
         }
         // Set the sorting direction to ascending:
@@ -3404,7 +3410,7 @@ export class CipherHandler {
             // Start by saying: no switching is done:
             let shouldSwitch = false;
             switching = false;
-            let rows = table.getElementsByTagName('TR');
+            const rows = table.getElementsByTagName('TR');
             let i;
             // Loop through all table rows (except the first, which contains table headers):
             for (i = 1; i < rows.length - 1; i++) {
@@ -3471,11 +3477,11 @@ export class CipherHandler {
         $('.sli')
             .off('keyup')
             .on('keyup', (event) => {
-                let target = $(event.target);
-                let repchar = target.attr('data-char');
+                const target = $(event.target);
+                const repchar = target.attr('data-char');
                 let current;
                 let next;
-                let focusables = $('.sli');
+                const focusables = $('.sli');
 
                 if (event.keyCode === 37) {
                     // left
@@ -3502,11 +3508,11 @@ export class CipherHandler {
             .off('keypress')
             .on('keypress', (event) => {
                 let newchar;
-                let target = $(event.target);
-                let repchar = target.attr('data-char');
+                const target = $(event.target);
+                const repchar = target.attr('data-char');
                 let current;
                 let next;
-                let focusables = $('.sli');
+                const focusables = $('.sli');
                 if (typeof event.key === 'undefined') {
                     newchar = String.fromCharCode(event.keyCode).toUpperCase();
                 } else {
@@ -3532,9 +3538,9 @@ export class CipherHandler {
             })
             .off('blur')
             .on('blur', (e) => {
-                let tohighlight = $(e.target).attr('data-char');
+                const tohighlight = $(e.target).attr('data-char');
                 $("[data-char='" + tohighlight + "']").removeClass('allfocus');
-                let althighlight = $(e.target).attr('data-schar');
+                const althighlight = $(e.target).attr('data-schar');
                 if (althighlight !== '') {
                     $("[data-schar='" + althighlight + "']").removeClass('allfocus');
                 }
@@ -3542,9 +3548,9 @@ export class CipherHandler {
             })
             .off('focus')
             .on('focus', (e) => {
-                let tohighlight = $(e.target).attr('data-char');
+                const tohighlight = $(e.target).attr('data-char');
                 $("[data-char='" + tohighlight + "']").addClass('allfocus');
-                let althighlight = $(e.target).attr('data-schar');
+                const althighlight = $(e.target).attr('data-schar');
                 if (althighlight !== '') {
                     $("[data-schar='" + althighlight + "']").addClass('allfocus');
                 }
@@ -3564,10 +3570,10 @@ export class CipherHandler {
         $('.input-number-increment')
             .off('click')
             .on('click', (e) => {
-                let $input = $(e.target)
+                const $input = $(e.target)
                     .parents('.input-group')
                     .find('.input-number');
-                let val = Number($input.val());
+                const val = Number($input.val());
                 this.advancedir = 1;
                 $input.val(val + this.advancedir);
                 $input.trigger('input');
@@ -3575,10 +3581,10 @@ export class CipherHandler {
         $('.input-number-decrement')
             .off('click')
             .on('click', (e) => {
-                let $input = $(e.target)
+                const $input = $(e.target)
                     .parents('.input-group')
                     .find('.input-number');
-                let val = Number($input.val());
+                const val = Number($input.val());
                 this.advancedir = -1;
                 $input.val(val + this.advancedir);
                 $input.trigger('input');
@@ -3649,7 +3655,7 @@ export class CipherHandler {
             .off('change')
             .on('change', (e) => {
                 this.markUndo(null);
-                let toupdate = $(e.target).attr('data-char');
+                const toupdate = $(e.target).attr('data-char');
                 this.updateSel(toupdate, (e.target as HTMLInputElement).value);
             });
         $('.lang')
@@ -3661,13 +3667,13 @@ export class CipherHandler {
             .off('input')
             .on('input', (e) => {
                 this.markUndo('find');
-                let findStr = $(e.target).val() as string;
+                const findStr = $(e.target).val() as string;
                 this.findPossible(findStr);
             });
         $('.tablesort th[data-col]')
             .off('click')
             .on('click', (e) => {
-                let col = $(e.target).attr('data-col');
+                const col = $(e.target).attr('data-col');
                 if (col !== undefined) {
                     this.sortTable(e.target, Number(col));
                 }
@@ -3705,7 +3711,7 @@ export class CipherHandler {
                 '\nLength of answer:  ' +
                 answer.length.toString()
         );
-        let scoreInformation: IScoreInformation = {
+        const scoreInformation: IScoreInformation = {
             incorrect: '-',
             deduction: '-',
             score: 0,

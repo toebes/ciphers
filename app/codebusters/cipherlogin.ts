@@ -1,4 +1,4 @@
-import { CipherHandler, IState } from '../common/cipherhandler';
+import { CipherHandler } from '../common/cipherhandler';
 import { parseQueryString } from '../common/parsequerystring';
 import { API } from './api';
 
@@ -77,7 +77,7 @@ export class CipherLogin extends CipherHandler {
      * When called navigates back to the url that called the authentication page to be presented.
      * If the url is not defined or null will return to index page.
      */
-    private returnToCaller() {
+    private returnToCaller(): void {
         location.assign(this.returnUrl);
     }
 
@@ -85,7 +85,7 @@ export class CipherLogin extends CipherHandler {
      * Called when a google user is sucessfully signed in.
      * @param googleUser Reference to the user who just signed in.
      */
-    public onGoogleSuccess(googleUser: gapi.auth2.GoogleUser) {
+    public onGoogleSuccess(googleUser: gapi.auth2.GoogleUser): void {
         console.log('Google user has logged in.');
         const profile = googleUser.getBasicProfile();
 
@@ -115,14 +115,14 @@ export class CipherLogin extends CipherHandler {
     /**
      * Perform any signout actions particular for Google
      */
-    private performGoogleSignout() {
+    private performGoogleSignout(): void {
         gapi.auth2.getAuthInstance().disconnect();
     }
 
     /**
      * Signs out of any authentication providers and removes any local data associated with user session.
      */
-    private performSignout() {
+    private performSignout(): void {
         this.performGoogleSignout();
 
         this.deleteConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN);

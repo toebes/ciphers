@@ -58,7 +58,7 @@ export class CipherTestSchedule extends CipherTestManage {
     constructor() {
         super();
 
-        this.api = new API(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu/'));
+        this.api = new API(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
     }
 
     /**

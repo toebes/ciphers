@@ -1,6 +1,6 @@
 import { CipherHandler } from '../common/cipherhandler';
 import { parseQueryString } from '../common/parsequerystring';
-import { API } from './api';
+import { API, GenerateUserSpecificConvergenceToken } from './api';
 
 export class CipherLogin extends CipherHandler {
     /**
@@ -48,7 +48,7 @@ export class CipherLogin extends CipherHandler {
     constructor() {
         super();
 
-        this.api = new API(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu/'));
+        this.api = new API(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
 
         const parms = parseQueryString(window.location.search.substring(1));
         const parmsReturnUrl = parms.returnUrl;
@@ -108,7 +108,42 @@ export class CipherLogin extends CipherHandler {
             })
             .catch((reason) => {
                 console.log('getConvergenceToken error: ' + reason);
-                // TODO: Report to user that an error occurred reaching server on the page.
+                const convergenceUsername = this.getConfigString('convergenceAdminUsername', '');
+                const convergencePassword = this.getConfigString('convergenceAdminPassword', '');
+                const convergenceProxyUsername = this.getConfigString(
+                    'convergenceProxyUsername',
+                    ''
+                );
+
+                if (
+                    convergenceProxyUsername.length > 0 &&
+                    convergenceUsername.length > 0 &&
+                    convergencePassword.length > 0
+                ) {
+                    const parameters: GenerateUserSpecificConvergenceToken = {
+                        convergencePassword: convergencePassword,
+                        convergenceUsername: convergenceUsername,
+                        userid: convergenceProxyUsername,
+                    };
+
+                    this.api
+                        .generateSpecificUserConvergenceToken(parameters)
+                        .then((value) => {
+                            if (!(value instanceof String) && value.convergenceToken) {
+                                const convergenceToken = value.convergenceToken;
+                                this.setConfigString(
+                                    CipherHandler.KEY_CONVERGENCE_TOKEN,
+                                    convergenceToken
+                                );
+                                this.returnToCaller();
+                            } else {
+                                console.log('No convergence token was given.\n' + value);
+                            }
+                        })
+                        .catch((error) => {
+                            console.log('fatal error: ' + error);
+                        });
+                }
             });
     }
 

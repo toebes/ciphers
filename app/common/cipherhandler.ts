@@ -3120,6 +3120,9 @@ export class CipherHandler {
             )
             .append(JTFLabeledInput('Base URL:', 'text', 'baseUrl', '', ''))
             .append(JTFLabeledInput('Authentication Base URL:', 'text', 'authUrl', '', ''))
+            .append(JTFLabeledInput('Admin Username:', 'text', 'convergenceAdminUsername', '', ''))
+            .append(JTFLabeledInput('Admin Password:', 'text', 'convergenceAdminPassword', '', ''))
+            .append(JTFLabeledInput('Proxy Username:', 'text', 'convergenceProxyUsername', '', ''))
             .append(JTFLabeledInput('Realtime Name Space:', 'text', 'convergenceNamespace', '', ''))
             .append(JTFLabeledInput('Realtime Domain:', 'text', 'convergenceDomain', '', ''))
             .append(JTFLabeledInput('Realtime KeyID:', 'text', 'convergenceKeyId', '', ''))
@@ -3297,6 +3300,17 @@ export class CipherHandler {
     public realtimeconfig(): void {
         $('#baseUrl').val(this.getConfigString('domain', 'https://cosso.oit.ncsu.edu'));
         $('#authUrl').val(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
+
+        $('#convergenceAdminUsername').val(
+            this.getConfigString('convergenceAdminUsername', 'convergence')
+        );
+        $('#convergenceAdminPassword').val(
+            this.getConfigString('convergenceAdminPassword', 'convergence')
+        );
+        $('#convergenceProxyUsername').val(
+            this.getConfigString('convergenceProxyUsername', 'convergence')
+        );
+
         $('#convergenceNamespace').val(this.getConfigString('convergenceNamespace', 'convergence'));
         $('#convergenceDomain').val(this.getConfigString('convergenceDomain', 'scienceolympiad'));
         $('#convergenceKeyId').val(this.getConfigString('convergenceKeyId', 'TestingKeyId'));
@@ -3308,6 +3322,22 @@ export class CipherHandler {
             .on('click', (e) => {
                 this.setConfigString('domain', $('#baseUrl').val() as string);
                 this.setConfigString('authUrl', $('#authUrl').val() as string);
+
+                this.setConfigString(
+                    'convergenceAdminUsername',
+                    $('#convergenceAdminUsername').val() as string
+                );
+
+                this.setConfigString(
+                    'convergenceAdminPassword',
+                    $('#convergenceAdminPassword').val() as string
+                );
+
+                this.setConfigString(
+                    'convergenceProxyUsername',
+                    $('#convergenceProxyUsername').val() as string
+                );
+
                 this.setConfigString(
                     'convergenceNamespace',
                     $('#convergenceNamespace').val() as string

@@ -46,7 +46,6 @@ export class API {
             UserID: parameters.userid,
         };
 
-        console.log('Testing: ' + JSON.stringify(content));
         return new Promise((resolve, reject) => {
             fetch(url, {
                 method: 'POST',
@@ -87,10 +86,11 @@ export class API {
     public ensureUsersExist(parameters: EnsureUsersExistParameters): Promise<any> {
         const url = this.getEnsureUsersExistUrl();
 
-        const content = new Map<string, any>();
-        content.set('ConvergenceNamespace', parameters.convergenceNamespace);
-        content.set('ConvergenceDomain', parameters.convergenceDomainID);
-        content.set('Usernames', parameters.usernames);
+        const content = {
+            ConvergenceNamespace: parameters.convergenceNamespace,
+            ConvergenceDomain: parameters.convergenceDomainID,
+            Usernames: parameters.usernames,
+        };
 
         return new Promise((resolve, reject) => {
             fetch(url, {
@@ -132,8 +132,9 @@ export class API {
     public getConvergenceToken(parameters: GetConvergenceTokenParameters): Promise<any> {
         const googleSignInUrl = this.getGoogleSignInUrl();
 
-        const content = new Map<string, string>();
-        content.set('IDToken', parameters.googleIdToken);
+        const content = {
+            IDToken: parameters.googleIdToken,
+        };
 
         return new Promise((resolve, reject) => {
             fetch(googleSignInUrl, {

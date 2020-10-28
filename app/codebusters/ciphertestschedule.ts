@@ -487,8 +487,7 @@ export class CipherTestSchedule extends CipherTestManage {
                     }
                 }
                 // For now we have to make sure we dont' call ensureUsersExist with zero entries
-                if (toadd.length < 0) {
-                    // Temporarily disable calling
+                if (toadd.length > 0) {
                     this.ensureUsersExist(modelService, toadd).then(() => {
                         // We have updated the permissions, so save it back.
                         permissionManager.setAllUserPermissions(allPermissions).catch((error) => {

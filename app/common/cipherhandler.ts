@@ -3302,13 +3302,13 @@ export class CipherHandler {
         $('#authUrl').val(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
 
         $('#convergenceAdminUsername').val(
-            this.getConfigString('convergenceAdminUsername', 'convergence')
+            this.getConfigString('convergenceAdminUsername', 'admin')
         );
         $('#convergenceAdminPassword').val(
-            this.getConfigString('convergenceAdminPassword', 'convergence')
+            this.getConfigString('convergenceAdminPassword', 'password')
         );
         $('#convergenceProxyUsername').val(
-            this.getConfigString('convergenceProxyUsername', 'convergence')
+            this.getConfigString('convergenceProxyUsername', 'user@example.com')
         );
 
         $('#convergenceNamespace').val(this.getConfigString('convergenceNamespace', 'convergence'));

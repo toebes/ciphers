@@ -1015,7 +1015,7 @@ export class CipherHillEncoder extends CipherEncoder {
      */
     public genScore(answer: string[]): IScoreInformation {
         let scoreInformation: IScoreInformation =
-            { incorrect: '0', deduction: '0', score: 0};
+            { correctLetters: 0, incorrectLetters: '0', deduction: '0', score: 0};
         let vals = this.getValidKey(this.state.keyword);
         if (this.state.operation === 'compute') {
             let modinv = mod26InverseMatrix(vals);
@@ -1030,7 +1030,8 @@ export class CipherHillEncoder extends CipherEncoder {
                 }
             }
             // Scoring for compute matix problems is all or nothing...
-            scoreInformation.incorrect = errorCount.toString();
+            scoreInformation.incorrectLetters = errorCount.toString();
+            scoreInformation.correctLetters = count - errorCount;
             if (errorCount === 0) {
                 // all points
                 scoreInformation.score = this.state.points;

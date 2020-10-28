@@ -2,18 +2,19 @@ import { CipherTestManage } from "./ciphertestmanage";
 import { IState, toolMode } from "../common/cipherhandler";
 import { ITestState } from './ciphertest';
 import { ICipherType } from "../common/ciphertypes";
-import { cloneObject, formatTime, timestampFromSeconds, timestampToFriendly } from "../common/ciphercommon";
+import { cloneObject, formatTime, timestampToFriendly } from "../common/ciphercommon";
 import { JTButtonItem } from "../common/jtbuttongroup";
 import { JTTable } from "../common/jttable";
 import { ConvergenceDomain, ModelService } from "@convergence/convergence";
 import { CipherPrintFactory } from "./cipherfactory";
+import {CipherTestScorer, ITestQuestion, ITestResultsData} from "./ciphertestscorer";
 
 /**
  * CipherTestPublished
  *    This shows a list of all published tests.
  *    Each line has a line with buttons at the start
  *       <DETAILS> <ANALYZE> Starttime endtime timedquestion takers score
- *  The command buttons availableare
+ *  The command buttons available are
  */
 export class CipherTestResults extends CipherTestManage {
     public activeToolMode: toolMode = toolMode.codebusters;
@@ -115,7 +116,8 @@ export class CipherTestResults extends CipherTestManage {
             .then(results => {
                 let total = 0;
                 let templatecount = 0;
-                let table: JTTable = undefined
+                let table: JTTable = undefined;
+                let scheduledTestScores: CipherTestScorer = new CipherTestScorer();
 
                 results.data.forEach(result => {
                     if (result.modelId === answermodelid) {
@@ -131,7 +133,19 @@ export class CipherTestResults extends CipherTestManage {
                                 .add('Takers')
                                 .add('Score');
                         }
-                        let row = table.addBodyRow();
+                        let testResultsData: ITestResultsData = {
+                            bonusBasis: 0,
+                            hasTimed: false,
+                            testId: result.modelId,
+                            isTieBroke: false,
+                            startTime: '',
+                            endTime: '',
+                            bonusTime: 0,
+                            testTakers: '',
+                            score: 0,
+                            questions: []
+                        }
+
                         let startTime = result.data.starttime;
                         let testStarted = timestampToFriendly(startTime);
                         let endTime = result.data.endtime;
@@ -149,25 +163,24 @@ export class CipherTestResults extends CipherTestManage {
                         }
 
                         // Create a table with this test's detailed results
-                        let viewTable = new JTTable({ class: 'cell shrink testscores' });
-                        let hasTimed = false;
-                        let viewTableHeader = viewTable.addHeaderRow();
-                        viewTableHeader.add('Question')
-                            .add('Value')
-                            .add('Cipher type')
-                            .add('Incorrect letters')
-                            .add('Deduction')
-                            .add('Score');
-
                         let answers = result.data.answers;
                         // Loop thru questions to tabulate the score.
                         //console.log("The answer count is: " + answers.length.toString());
                         let testScore = 0;
                         let scoreInformation = undefined;
                         let testInformation = theTest['TEST.0'];
+                        let questionInformation: ITestQuestion = {
+                            correctLetters: 0,
+                            questionNumber: 0,
+                            points: 0,
+                            cipherType: '',
+                            incorrectLetters: 0,
+                            deduction: 0,
+                            score: 0,
+                        }
                         let timeQuestion = testInformation['timed'];
                         if (timeQuestion != -1) {
-                            hasTimed = true;
+                            testResultsData.hasTimed = true;
                             let question = 'CIPHER.' + timeQuestion;
                             let state = theTest[question]
                             let ihandler = CipherPrintFactory(state.cipherType, state.curlang);
@@ -177,20 +190,30 @@ export class CipherTestResults extends CipherTestManage {
                             // solvetime is in milliseconds, so needs to be rounded...
                             bonusTime = Math.round(answers[0].solvetime / 1000 );
                             bonusWindow = (result.data.endtimed - startTime) / 1000; // remove milliseconds
+                            testResultsData.bonusBasis = bonusWindow;
                             // add any bonus points to final score.
                             testScore += this.calculateTimingBonus(bonusTime, bonusWindow);
-                            let viewTableRow = viewTable.addBodyRow();
-                            viewTableRow.add('Timed')
-                                .add(state.points.toString())
-                                .add(state.cipherType)
-                                .add(scoreInformation.incorrect)
-                                .add(scoreInformation.deduction)
-                                .add(scoreInformation.score.toString());
+                            questionInformation.correctLetters = scoreInformation.correctLetters;
+                            questionInformation.points = state.points;
+                            questionInformation.cipherType = state.cipherType;
+                            questionInformation.incorrectLetters = scoreInformation.incorrectLetters;
+                            questionInformation.deduction = scoreInformation.deduction;
+                            questionInformation.score = scoreInformation.score;
                         }
+                        testResultsData.questions[0] = questionInformation;
+
                         let questions = testInformation['questions'];
                         for (let i = 1; i < answers.length; i++) {
+                            let questionInformation: ITestQuestion = {
+                                correctLetters: 0,
+                                questionNumber: 0,
+                                points: 0,
+                                cipherType: '',
+                                incorrectLetters: 0,
+                                deduction: 0,
+                                score: 0,
+                            }
                             let answer = answers[i].answer;
-                            let viewTableRow = viewTable.addBodyRow();
                             console.log("Answer " + i + " is " + answer);
                             // Find the right class to render the cipher but questions array does not
                             // contain the timed question.
@@ -203,9 +226,9 @@ export class CipherTestResults extends CipherTestManage {
                             try {
                                 scoreInformation = ihandler.genScore(answer);
                                 console.log("This question scored at: " + scoreInformation.score.toString());
-
                             } catch (e) {
-                                scoreInformation.incorrect = '?';
+                                scoreInformation.correctLetters = 0;
+                                scoreInformation.incorrectLetters = '?';
                                 scoreInformation.deduction = '?';
                                 scoreInformation.score = 1;
                                 console.log("Unable to handle genScore() in cipher: " + state.cipherType +
@@ -213,19 +236,84 @@ export class CipherTestResults extends CipherTestManage {
                                 e.stackTrace
                             }
                             testScore += scoreInformation.score;
-                            viewTableRow.add(i.toString())
-                                .add(state.points.toString())
-                                .add(state.cipherType)
-                                .add(scoreInformation.incorrect)
-                                .add(scoreInformation.deduction)
-                                .add(scoreInformation.score.toString());
+                            questionInformation.correctLetters = scoreInformation.correctLetters
+                            questionInformation.questionNumber = i;
+                            questionInformation.points = state.points;
+                            questionInformation.cipherType = state.cipherType;
+                            questionInformation.incorrectLetters = scoreInformation.incorrectLetters;
+                            questionInformation.deduction = scoreInformation.deduction;
+                            questionInformation.score = scoreInformation.score;
+                            testResultsData.questions[i] = questionInformation;
                         }
 
-                        if (hasTimed) {
+                        testResultsData.startTime = testStarted;
+                        testResultsData.endTime = testEnded;
+                        testResultsData.bonusTime = bonusTime;
+                        testResultsData.testTakers = userList;
+                        testResultsData.score = testScore;
+                        scheduledTestScores.addTest(testResultsData);
+
+                        total++;
+                    }
+                });
+                if (total === 0) {
+                    $(".testlist").append(
+                        $("<div/>", { class: "callout warning" }).text(
+                            'No tests results available for "' + theTest['TEST.0'].title + '"'
+                        ));
+                    if (templatecount === 0) {
+                        this.reportFailure("Test Answer Template is missing");
+                    }
+                } else {
+                    // Fill in the results table for this test...
+                    console.log(scheduledTestScores.toString());
+                    let scoredTests = scheduledTestScores.scoreTests();
+                    // Create the results table from the tests after breaking any ties
+                    scoredTests.forEach((itemTest, indexTest) => {
+
+                        let testQuestions = scoredTests[indexTest].questions;
+                        // Create the table containing the details for this test.
+                        let viewTable = new JTTable({class: 'cell shrink testscores'});
+                        let viewTableHeader = viewTable.addHeaderRow();
+                        viewTableHeader.add('Question')
+                            .add('Value')
+                            .add('Cipher type')
+                            .add('Incorrect letters')
+                            .add('Deduction')
+                            .add('Score');
+
+                        testQuestions.forEach((itemQuestion, indexQuestion) =>
+                        {
+                            // Check the first question for a ciphertype to determine if there
+                            // is a timed question in this test.
+                            if (indexQuestion === 0 && itemTest.hasTimed) {
+                                // Timed question
+                                let viewTableRow = viewTable.addBodyRow();
+                                viewTableRow.add('Timed')
+                                    .add(itemQuestion.points.toString())
+                                    .add(itemQuestion.cipherType)
+                                    .add(itemQuestion.incorrectLetters.toString())
+                                    .add(itemQuestion.deduction.toString())
+                                    .add(itemQuestion.score.toString());
+                            }
+
+                            // Remaining questions
+                            if (indexQuestion >= 1) {
+                                let viewTableRow = viewTable.addBodyRow();
+                                viewTableRow.add(indexQuestion.toString())
+                                    .add(itemQuestion.points.toString())
+                                    .add(itemQuestion.cipherType)
+                                    .add(itemQuestion.incorrectLetters.toString())
+                                    .add(itemQuestion.deduction.toString())
+                                    .add(itemQuestion.score.toString());
+                            }
+                        });
+                        // Bonus row
+                        if (itemTest.hasTimed) {
                             let bonusTableRow = viewTable.addFooterRow();
                             let bonusClass = '';
                             // If the bonus time was not 10 minutes, then shade the bonus value.
-                            if (bonusWindow !== 600) {
+                            if (itemTest.bonusBasis !== 600) {
                                 bonusClass = 'deviation';
                             }
                             bonusTableRow.add('Bonus')
@@ -235,20 +323,22 @@ export class CipherTestResults extends CipherTestManage {
                                 })
                                 .add({
                                     settings: { class: bonusClass },
-                                    content: this.calculateTimingBonus(bonusTime, bonusWindow).toString(),
+                                    content: this.calculateTimingBonus(itemTest.bonusTime, itemTest.bonusBasis).toString(),
                                 });
                         }
+                        // Final (totals) row
                         let totalTableRow = viewTable.addFooterRow();
                         totalTableRow.add('Final score')
                             .add({
-                                settings: { colspan: 4, class: 'grey' },
+                                settings: {colspan: 4, class: 'grey'},
                                 content: '',
                             })
-                            .add(testScore.toString());
-                        let solvedTime = "No Bonus";
-                        if (bonusTime !== 0) {
-                            solvedTime = formatTime(bonusTime * timestampFromSeconds(1));
-                        }
+                            .add(itemTest.score.toString());
+
+
+                        // Fill in the results summary
+                        let row = table.addBodyRow();
+                        // Create the buttons (first column of results table)
                         let buttons = $('<div/>', { class: 'button-group round shrink' });
                         // For the details button we need to store the child html as an attribute
                         buttons.append(
@@ -262,29 +352,31 @@ export class CipherTestResults extends CipherTestManage {
                         );
                         buttons.append(
                             $('<a/>', {
-                                'data-source': result.modelId,
+                                'data-source': itemTest.testId,
                                 type: 'button',
                                 class: 'pubanalyze button',
                             }).text('Analyze')
                         );
+                        let solvedTime = "No Bonus";
+                        if (itemTest.bonusTime !== 0) {
+                            solvedTime = formatTime(itemTest.bonusTime);
+                        }
+
+                        let tieBreakClass = '';
+                        if (itemTest.isTieBroke) {
+                            tieBreakClass = 'tiebreak';
+                        }
                         row.add(buttons)
-                            .add(testStarted) // Start Time
-                            .add(testEnded) // End Time
+                            .add(itemTest.startTime) // Start Time
+                            .add(itemTest.endTime) // End Time
                             .add(solvedTime) // Timed question End
-                            .add(userList)
-                            .add(/*testScorePromise.then(toString()*/testScore.toString());
-                        total++;
-                    }
-                });
-                if (total === 0) {
-                    $(".testlist").append(
-                        $("<div/>", { class: "callout warning" }).text(
-                            'No tests results available for "' + theTest['TEST.0'].title + '"'
-                        ));
-                    if (templatecount === 0) {
-                        this.reportFailure("Test Answer Template is missing");
-                    }
-                } else {
+                            .add(itemTest.testTakers)
+                            .add({
+                                settings: { class: tieBreakClass },
+                                content: itemTest.score.toString(),
+                            });
+                    });
+
                     $(".testlist")
                         .append($("<h3/>").text('Results for test: "' + theTest['TEST.0'].title + '"'))
                         .append(table.generate());
@@ -311,6 +403,7 @@ export class CipherTestResults extends CipherTestManage {
                         });
                     this.attachHandlers();
                 }
+
             })
             .catch(error => { this.reportFailure("findScheduledTests Convergence API error: " + error) });
     }

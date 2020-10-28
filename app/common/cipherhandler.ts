@@ -268,8 +268,10 @@ export interface IInteractiveTest {
  * All the information about the score of a question.
  */
 export interface IScoreInformation {
-    /** Totals incorrect letters -- goes right in the result table */
-    incorrect: string;
+    /** Total count of correct letters */
+    correctLetters: number;
+    /** Total count of incorrect letters -- goes right in the result table */
+    incorrectLetters: string;
     /** Deduction, max is number of points -- goes right in the result table*/
     deduction: string;
     /** Score for this question -- added to running total score */
@@ -2305,7 +2307,8 @@ export class CipherHandler {
      */
     public genScore(answer: string[]): IScoreInformation {
         const scoreInformation: IScoreInformation = {
-            incorrect: 'all',
+            correctLetters: 0,
+            incorrectLetters: 'all',
             deduction: 'max',
             score: 1000000,
         };
@@ -3711,21 +3714,25 @@ export class CipherHandler {
                 '\nLength of answer:  ' +
                 answer.length.toString()
         );
+
         const scoreInformation: IScoreInformation = {
-            incorrect: '-',
+            correctLetters: 0,
+            incorrectLetters: '-',
             deduction: '-',
             score: 0,
         };
         let score: number;
         let wrongCount = 0;
+        let correctCount = 0;
         let penaltyLetters = 0;
 
         for (let s = 0; s < solution.length; s++) {
             //console.log("Solution: " + solution[s] + " == " + answer[s] + " :Answer");
             if (this.isValidChar(solution[s])) {
                 if (solution[s] !== answer[s]) {
-                    //console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
                     wrongCount++;
+                } else {
+                    correctCount++;
                 }
             }
         }
@@ -3741,7 +3748,8 @@ export class CipherHandler {
                 score = 0;
             }
         }
-        scoreInformation.incorrect = wrongCount.toString();
+        scoreInformation.correctLetters = correctCount;
+        scoreInformation.incorrectLetters = wrongCount.toString();
         scoreInformation.deduction = (points - score).toString();
         scoreInformation.score = score;
         return scoreInformation;

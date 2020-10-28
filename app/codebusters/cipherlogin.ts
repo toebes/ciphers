@@ -135,6 +135,15 @@ export class CipherLogin extends CipherHandler {
                                     CipherHandler.KEY_CONVERGENCE_TOKEN,
                                     convergenceToken
                                 );
+                                this.setConfigString(
+                                    CipherHandler.KEY_USER_ID,
+                                    convergenceProxyUsername
+                                );
+                                this.setConfigString(CipherHandler.KEY_FIRST_NAME, 'Proxy');
+                                this.setConfigString(
+                                    CipherHandler.KEY_LAST_NAME,
+                                    convergenceProxyUsername
+                                );
                                 this.returnToCaller();
                             } else {
                                 console.log('No convergence token was given.\n' + value);

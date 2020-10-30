@@ -124,7 +124,7 @@ export class CipherTestResults extends CipherTestManage {
                         templatecount++;
                     } else {
                         if (table === undefined) {
-                            table = new JTTable({ class: 'cell shrink publist' });
+                            table = new JTTable({ class: 'cell shrink publist testresults' });
                             let row = table.addHeaderRow();
                             row.add('Action')
                                 .add('Start Time')

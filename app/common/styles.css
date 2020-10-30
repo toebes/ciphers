@@ -1500,6 +1500,10 @@ table.instlfreq {
     border: none;
 }
 
+table.testresults td.tiebreak {
+    background-color: #ffcc33;
+}
+
 table.testscores {
     border: 1px solid black;
     width: 110 rem;

@@ -8,6 +8,7 @@ export class InteractiveHandler extends CipherHandler {
     /**
      * Restore the state from a stored record
      * @param data Saved state to restore
+     * @param suppressOutput do not update UI if true
      */
     public restore(data: IEncoderState, suppressOutput: boolean = false): void {
         this.state = cloneObject(this.defaultstate) as IState;
@@ -419,10 +420,12 @@ export class InteractiveHandler extends CipherHandler {
                         newchar = event.key.toUpperCase();
                     }
 
-                    if (isMorse === '1' && (newchar === 'O' || newchar === '-' || newchar === 'X')) {
+                    if (isMorse === '1' && (newchar === 'O' || newchar === '.' ||
+                                            newchar === '-' || newchar === 'X')) {
                         newchar = newchar.replace(/O/g, '9679')
+                            .replace(/\./g, '9679')
                             .replace(/-/g, '9644')
-                            .replace(/X/g, '9747')
+                            .replace(/X/g, '9747');
 
                         // console.log('Setting ' + id + ' to ' + newchar);
                         this.markUndo(null)

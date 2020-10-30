@@ -28,6 +28,19 @@ export class InteractiveMorseEncoder extends InteractiveEncoder {
     }
 
     /**
+     * Propagate a replacement string from the realtime system to the local interface
+     * The morse code related questions already have the replacements converted to symbols,
+     * so we don't want to sanitize the value...just use it straight away.
+     *
+     * @param qnumdisp Question number formated for using in an ID ("0" is the timed question)
+     * @param index Which character index to update
+     * @param value New replacement character for that index
+     */
+    public propagateRepl(qnumdisp: string, index: number, value: string) {
+        $("#R" + qnumdisp + "_" + String(index)).val(value);
+    }
+
+    /**
      * attachInteractiveHandlers attaches the realtime updates to all of the fields
      * Table encoder only has answer field and notes.
      * @param qnum Question number to set handler for

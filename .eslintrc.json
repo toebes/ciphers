@@ -12,7 +12,6 @@
         "ecmaVersion": 2018,
         "sourceType": "module"
     },
-    "rules": {},
     "overrides": [
         {
             "files": ["**/*.ts", "**/*.tsx"],
@@ -23,5 +22,11 @@
             },
             "plugins": ["@typescript-eslint"]
         }
-    ]
+    ],
+    "rules": {
+        "camelcase": "off",
+        "@typescript-eslint/camelcase": "off",
+        "class-name-casing": "off",
+        "@typescript-eslint/class-name-casing": "off"
+    }
 }

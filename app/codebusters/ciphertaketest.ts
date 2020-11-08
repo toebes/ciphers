@@ -1,11 +1,11 @@
-import { toolMode, IState, menuMode } from "../common/cipherhandler";
-import { ITestState, IAnswerTemplate } from "./ciphertest";
-import { ICipherType } from "../common/ciphertypes";
-import { cloneObject, timestampFromMinutes } from "../common/ciphercommon";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTTable } from "../common/jttable";
-import { ConvergenceDomain, RealTimeModel } from "@convergence/convergence";
-import { CipherTest } from "./ciphertest";
+import { toolMode, IState, menuMode } from '../common/cipherhandler';
+import { ITestState, IAnswerTemplate } from './ciphertest';
+import { ICipherType } from '../common/ciphertypes';
+import { cloneObject, timestampFromMinutes } from '../common/ciphercommon';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTTable } from '../common/jttable';
+import { ConvergenceDomain, RealTimeModel } from '@convergence/convergence';
+import { CipherTest } from './ciphertest';
 
 /**
  * CipherTakeTest
@@ -22,8 +22,7 @@ export class CipherTakeTest extends CipherTest {
         cipherType: ICipherType.Test,
     };
     public state: ITestState = cloneObject(this.defaultstate) as IState;
-    public cmdButtons: JTButtonItem[] = [
-    ];
+    public cmdButtons: JTButtonItem[] = [];
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -53,11 +52,18 @@ export class CipherTakeTest extends CipherTest {
      */
     public genTestList(): JQuery<HTMLElement> {
         let result = $('<div/>', { class: 'testlist' });
-        let userid = this.getConfigString("userid", "");
-        if (userid === "") {
+        let userid = this.getConfigString('userid', '');
+        if (userid === '') {
             let callout = $('<div/>', {
                 class: 'callout alert',
-            }).text("Please log in in order to see tests assigned to you.");
+            })
+                .append('Please ')
+                .append(
+                    $('<div/>', {
+                        class: 'login-button button',
+                    }).text('Login')
+                )
+                .append(' in order to see tests assigned to you.');
             result.append(callout);
         } else {
             let table = new JTTable({ class: 'cell shrink publist' });
@@ -67,10 +73,9 @@ export class CipherTakeTest extends CipherTest {
                 .add('Start Time');
             result.append(table.generate());
 
-            this.connectRealtime()
-                .then((domain: ConvergenceDomain) => {
-                    this.findAllTests(domain);
-                });
+            this.connectRealtime().then((domain: ConvergenceDomain) => {
+                this.findAllTests(domain);
+            });
         }
         return result;
     }
@@ -80,13 +85,14 @@ export class CipherTakeTest extends CipherTest {
      */
     private findAllTests(domain: ConvergenceDomain) {
         const modelService = domain.models();
-        let userid = this.getConfigString("userid", "NOBODY");
-        modelService.query("SELECT * FROM codebusters_answers")
-            .then(results => {
+        let userid = this.getConfigString('userid', 'NOBODY');
+        modelService
+            .query('SELECT * FROM codebusters_answers')
+            .then((results) => {
                 let count = 0;
-                results.data.forEach(result => {
+                results.data.forEach((result) => {
                     let answertemplate = result.data as IAnswerTemplate;
-                    // Check to see if they are permitted 
+                    // Check to see if they are permitted
                     let isAssigned = false;
                     for (let asn of answertemplate.assigned) {
                         if (asn.userid === userid) {
@@ -95,40 +101,48 @@ export class CipherTakeTest extends CipherTest {
                         }
                     }
                     count++;
-                    this.addPublishedEntry(modelService,
+                    this.addPublishedEntry(
+                        modelService,
                         result.modelId,
                         answertemplate,
-                        isAssigned);
+                        isAssigned
+                    );
                 });
                 if (count === 0) {
                     let callout = $('<div/>', {
                         class: 'callout alert',
-                    }).text("There are currently no tests assigned for you to take.");
-                    $(".testlist").append(callout);
+                    }).text('There are currently no tests assigned for you to take.');
+                    $('.testlist').append(callout);
                 }
                 this.attachHandlers();
             })
-            .catch(error => { this.reportFailure("Convergence API could not connect: " + error) }
-            );
+            .catch((error) => {
+                this.reportFailure('Convergence API could not connect: ' + error);
+            });
     }
     /**
      * Add/replace a test entry to the table of all tests along with the buttons to interact with the test.
      * @param modelService Convergence model service for making calls
-     * @param answermodelid ID of 
+     * @param answermodelid ID of
      * @param answertemplate Contents of answer
      */
-    public addPublishedEntry(modelService: Convergence.ModelService, answermodelid: string, answertemplate: IAnswerTemplate, isAssigned: boolean) {
-        let tr = $("<tr/>", { 'data-answer': answermodelid });
+    public addPublishedEntry(
+        modelService: Convergence.ModelService,
+        answermodelid: string,
+        answertemplate: IAnswerTemplate,
+        isAssigned: boolean
+    ) {
+        let tr = $('<tr/>', { 'data-answer': answermodelid });
         let buttons = $('<div/>', { class: 'button-group round shrink' });
         let now = Date.now();
         let showCoachedTest = true;
 
         if (answertemplate.endtime < now) {
             let endtime = new Date(answertemplate.endtime).toLocaleString();
-            buttons.append("Test ended at " + endtime);
+            buttons.append('Test ended at ' + endtime);
         } else if (answertemplate.starttime > now + timestampFromMinutes(30)) {
             let starttime = new Date(answertemplate.starttime).toLocaleString();
-            buttons.append("Test starts at " + starttime);
+            buttons.append('Test starts at ' + starttime);
         } else if (!isAssigned) {
             buttons.append(
                 $('<a/>', {
@@ -153,33 +167,39 @@ export class CipherTakeTest extends CipherTest {
         }
         let testmodelid = answertemplate.testid;
         let starttime = new Date(answertemplate.starttime).toLocaleString();
-        let testtitle = $("<span/>").text("..Loading...");
-        tr.append($("<td/>").append($('<div/>', { class: 'grid-x' }).append(buttons)))
-            .append($("<td/>").append(testtitle))
-            .append($("<td/>").text(starttime));
+        let testtitle = $('<span/>').text('..Loading...');
+        tr.append($('<td/>').append($('<div/>', { class: 'grid-x' }).append(buttons)))
+            .append($('<td/>').append(testtitle))
+            .append($('<td/>').text(starttime));
 
         this.fillTitle(modelService, testtitle, testmodelid);
         var curtr = $('tr[data-answer="' + answermodelid + '"]');
         if (curtr.length > 0) {
             curtr.replaceWith(tr);
         } else {
-            $(".publist").append(tr);
+            $('.publist').append(tr);
         }
     }
     /**
-     * 
-     * @param modelService 
-     * @param elem 
-     * @param testmodelid 
+     *
+     * @param modelService
+     * @param elem
+     * @param testmodelid
      */
-    public fillTitle(modelService: Convergence.ModelService, elem: JQuery<HTMLElement>, testmodelid: string) {
-        modelService.open(testmodelid).then(
-            (testmodel: RealTimeModel) => {
-                let title = testmodel.elementAt("title").value();
-                elem.empty().append($("<span/>").text(title));
-            }
-        )
-            .catch(error => { this.reportFailure("Unable to get model title for " + testmodelid + ": " + error) });
+    public fillTitle(
+        modelService: Convergence.ModelService,
+        elem: JQuery<HTMLElement>,
+        testmodelid: string
+    ) {
+        modelService
+            .open(testmodelid)
+            .then((testmodel: RealTimeModel) => {
+                let title = testmodel.elementAt('title').value();
+                elem.empty().append($('<span/>').text(title));
+            })
+            .catch((error) => {
+                this.reportFailure('Unable to get model title for ' + testmodelid + ': ' + error);
+            });
     }
     /**
      * Run a test
@@ -192,16 +212,15 @@ export class CipherTakeTest extends CipherTest {
      * Print hints for a test
      * @param testid Id of test model
      */
-    public printHints(testid: string) {
-    }
+    public printHints(testid: string) {}
     /**
      * Locate the model id for an element.  This looks for the data-source attribute of the containing TR
      * @param elem element to get information for
      * @returns model id stored on the TR element
      */
     public getModelID(elem: JQuery<HTMLElement>): string {
-        let tr = elem.closest("tr");
-        let id = tr.attr("data-answer") as string;
+        let tr = elem.closest('tr');
+        let id = tr.attr('data-answer') as string;
         return id;
     }
     /**
@@ -211,13 +230,13 @@ export class CipherTakeTest extends CipherTest {
         super.attachHandlers();
         $('.taketest')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.gotoTakeTest(this.getModelID($(e.target)));
                 //                this.downloadPublishedTest($(e.target).attr('data-source'));
             });
         $('.printhint')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.printHints(this.getModelID($(e.target)));
             });
     }

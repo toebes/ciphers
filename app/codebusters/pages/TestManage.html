@@ -1,37 +1,25 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>
+            <%= htmlWebpackPlugin.options.title %>
+        </title>
+    </head>
 
-<head>
-    <meta charset="utf-8">
-    <title>
-        <%= htmlWebpackPlugin.options.title %>
-    </title>
+    <body>
+        <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+        <% } %> <%= require('html-loader!./analytics.html') %>
 
-    <!-- <meta name="google-signin-scope" content="profile email">
-    <meta name="google-signin-client_id" content="10183109285-tl1u2rpjntem0n6g9hvgc5go7rcaatuf.apps.googleusercontent.com"> -->
-    <!-- <script src="https://apis.google.com/js/platform.js" async defer></script> -->
-</head>
-
-<body>
-    <!-- <script>
-        function onSignIn(googleUser) {
-            window.cipherTool.onGoogleSuccess(googleUser)
-        }
-    </script> -->
-    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
-    <% } %>
-    <%= require('html-loader!./analytics.html') %>
-
-    <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-    <h2>
-        <%= htmlWebpackPlugin.options.title %>
-    </h2>
-    <div class="precmds"></div>
-    <div class="testlist"></div>
-    <div class="ans clearfix" id="answer"></div>
-    <div class="err" id="err"></div>
-    <div class="cmdbuttons"></div>
-</body>
-
+        <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+        <h2>
+            <%= htmlWebpackPlugin.options.title %>
+        </h2>
+        <div class="precmds"></div>
+        <div class="testlist"></div>
+        <div class="ans clearfix" id="answer"></div>
+        <div class="err" id="err"></div>
+        <div class="cmdbuttons"></div>
+    </body>
 </html>

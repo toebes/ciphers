@@ -15,14 +15,14 @@ export interface NumberMap {
  * @param source Object to copy
  */
 export function cloneObject(source: object): object {
-    let clone = {};
+    const clone = {};
     if (source !== null) {
-        for (let elem of Object.keys(source)) {
+        for (const elem of Object.keys(source)) {
             if (source[elem] === null) {
                 clone[elem] = null;
             } else if (Array.isArray(source[elem])) {
                 clone[elem] = source[elem].slice();
-            } else if (typeof source[elem] === "object") {
+            } else if (typeof source[elem] === 'object') {
                 clone[elem] = cloneObject(source[elem]);
             } else {
                 clone[elem] = source[elem];
@@ -36,14 +36,14 @@ export function cloneObject(source: object): object {
  * @param source Object to copy
  */
 export function cloneObjectClean(source: object): object {
-    let clone = {};
+    const clone = {};
     if (source !== null) {
-        for (let elem of Object.keys(source)) {
+        for (const elem of Object.keys(source)) {
             if (source[elem] === null) {
                 clone[elem] = null;
             } else if (Array.isArray(source[elem])) {
                 clone[elem] = source[elem].slice();
-            } else if (typeof source[elem] === "object") {
+            } else if (typeof source[elem] === 'object') {
                 clone[elem] = cloneObjectClean(source[elem]);
             } else if (source[elem] !== undefined) {
                 clone[elem] = source[elem];
@@ -72,7 +72,7 @@ export function setCharAt(str: string, index: number, chr: string): string {
  * @param count number of times to repeat the string
  */
 export function repeatStr(c: string, count: number): string {
-    let res = "";
+    let res = '';
     for (let i = 0; i < count; i++) {
         res += c;
     }
@@ -84,7 +84,7 @@ export function repeatStr(c: string, count: number): string {
  * @param value Initialized value for the array elements
  */
 export function makeFilledArray(size: number, value: any): any[] {
-    let result: any[] = new Array(size);
+    const result: any[] = new Array(size);
     for (let i = 0; i < size; i++) {
         result[i] = value;
     }
@@ -96,15 +96,15 @@ export function makeFilledArray(size: number, value: any): any[] {
  * @param m String to match length of
  */
 export function padToMatch(c: string, m: string): string {
-    return c + repeatStr(" ", m.length - c.length);
+    return c + repeatStr(' ', m.length - c.length);
 }
 /**
  * Remove all whitespace from a string and convert it to all upper case.
  * @param text String to remove whitespace from
  * @param keepCase Boolean indicating you want the string back without bein coverted to upper case
  */
-export function sanitizeString(text: string, keepCase: boolean = false): string {
-    let returnValue: string = text.replace(/[\s,.?'";:!$&-+=]/g, "");
+export function sanitizeString(text: string, keepCase = false): string {
+    let returnValue: string = text.replace(/[\s,.?'";:!$&-+=]/g, '');
     if (!keepCase) {
         returnValue = returnValue.toUpperCase();
     }
@@ -117,9 +117,9 @@ export function sanitizeString(text: string, keepCase: boolean = false): string 
  */
 export function setDisabled(sel: string, disabled: boolean): void {
     if (disabled) {
-        $(sel).prop("disabled", true);
+        $(sel).prop('disabled', true);
     } else {
-        $(sel).removeAttr("disabled");
+        $(sel).removeAttr('disabled');
     }
 }
 /**
@@ -130,7 +130,7 @@ export function setDisabled(sel: string, disabled: boolean): void {
  * @param width Number of spaces to pad/truncate the number to
  */
 export function padLeft(val: number, width: number): string {
-    let result = repeatStr(" ", width) + String(val);
+    const result = repeatStr(' ', width) + String(val);
     return result.slice(-width);
 }
 /**
@@ -140,15 +140,15 @@ export function padLeft(val: number, width: number): string {
 export function extractKey(str: string): string {
     let lastc;
     for (let i = str.length - 1; i >= 0; i--) {
-        let c = str.substr(i, 1);
-        if (c !== "?") {
+        const c = str.substr(i, 1);
+        if (c !== '?') {
             if (lastc !== undefined && c > lastc) {
                 return str.substr(0, i + 1);
             }
         }
         lastc = c;
     }
-    return "";
+    return '';
 }
 /**
  * Determines the best key for a polybius square.  This checks horizontal,
@@ -158,30 +158,30 @@ export function extractKey(str: string): string {
  */
 export function getPolybiusKey(polybius: string[][]): string {
     // Make sure that we are dealing with a square
-    let height = polybius.length;
+    const height = polybius.length;
     // The array is empty, so return nothing
     if (height === 0) {
-        return "";
+        return '';
     }
     // The array isn't square so we also return nothing.
     if (height !== polybius[0].length) {
-        return "";
+        return '';
     }
-    let horizkey = "";
-    let vertkey = "";
-    let clockkey = "";
-    let counterclockkey = "";
+    let horizkey = '';
+    let vertkey = '';
+    let clockkey = '';
+    let counterclockkey = '';
     // get the horizontal and vertical ones
     for (let i = 0; i < height; i++) {
         for (let j = 0; j < height; j++) {
             let c = polybius[i][j];
             if (c === undefined) {
-                c = "?";
+                c = '?';
             }
             horizkey += c;
             c = polybius[j][i];
             if (c === undefined) {
-                c = "?";
+                c = '?';
             }
             vertkey += c;
         }
@@ -199,12 +199,12 @@ export function getPolybiusKey(polybius: string[][]): string {
     for (let spot = 0; spot < height * height; spot++) {
         let c = polybius[y][x];
         if (c === undefined) {
-            c = "?";
+            c = '?';
         }
         clockkey += c;
         c = polybius[y][height - 1 - x];
         if (c === undefined) {
-            c = "?";
+            c = '?';
         }
         counterclockkey += c;
         if (xdelta !== 0) {
@@ -260,34 +260,34 @@ export function getPolybiusKey(polybius: string[][]): string {
     return bestkey;
 }
 /**
- * Format an interval as hh:mm:ss if it is greater than an hour and mm:ss if it is under an hour
- * @param interval Interval in milliseconds to convert to a displayable type 
- */
-export function formatTime(interval: number): string {
-    let result = "";
-    let minutepad = " ";
-    interval /= timestampFromSeconds(1);
-    // Only put the hour on there if the interval is more than an hour.
-    let hours = Math.trunc(interval / (60 * 60));
-    if (hours > 0) {
-        result = String(hours).padStart(2, " ") + ":";
-        interval -= (hours * 60 * 60);
-        minutepad = "0";
-    } else {
-        result = "   ";
-    }
-    let minutes = Math.trunc(interval / 60);
-    let seconds = Math.trunc(interval % 60);
-    result += String(minutes).padStart(2, minutepad) + ":" + String(seconds).padStart(2, "0");
-    return result;
-}
-/**
  * Converts the number of seconds to the timestamp interval vale
  * @param seconds number of seconds to convert
  * @returns number of miliseconds in a timestamp
  */
 export function timestampFromSeconds(seconds: number): number {
     return seconds * 1000;
+}
+/**
+ * Format an interval as hh:mm:ss if it is greater than an hour and mm:ss if it is under an hour
+ * @param interval Interval in milliseconds to convert to a displayable type
+ */
+export function formatTime(interval: number): string {
+    let result = '';
+    let minutepad = ' ';
+    interval /= timestampFromSeconds(1);
+    // Only put the hour on there if the interval is more than an hour.
+    const hours = Math.trunc(interval / (60 * 60));
+    if (hours > 0) {
+        result = String(hours).padStart(2, ' ') + ':';
+        interval -= hours * 60 * 60;
+        minutepad = '0';
+    } else {
+        result = '   ';
+    }
+    const minutes = Math.trunc(interval / 60);
+    const seconds = Math.trunc(interval % 60);
+    result += String(minutes).padStart(2, minutepad) + ':' + String(seconds).padStart(2, '0');
+    return result;
 }
 /**
  * Converts the number of minutes to the timestamp interval vale
@@ -309,39 +309,41 @@ export function timestampFromMinutes(minutes: number): number {
  *     2020-09-06T10:40
  * If you want to edit to the second, you need the three more characters to get to 19:
  *     2020-09-06T10:40:31
- * 
+ *
  * Note that the miliseconds and the Z get chopped because they don't seem to be tolerated by
  * the datetime-local input field.
- * 
- * If you want a good tool for printing out epoch values: https://www.epochconverter.com/ 
+ *
+ * If you want a good tool for printing out epoch values: https://www.epochconverter.com/
  * @param datetime Timestamp to convert
  * @param includeseconds? True says to include the seconds in the output format
  * @returns Localized time stamp in ISO format
  */
-export function timestampToISOLocalString(datetime: number, includeseconds?: boolean) {
-    let tzOffset = timestampFromMinutes(new Date().getTimezoneOffset());
-    let dateobj = new Date(datetime - tzOffset);
-    let iso = dateobj.toISOString();
+export function timestampToISOLocalString(datetime: number, includeseconds?: boolean): string {
+    const tzOffset = timestampFromMinutes(new Date().getTimezoneOffset());
+    const dateobj = new Date(datetime - tzOffset);
+    const iso = dateobj.toISOString();
     let len = 16;
     if (includeseconds !== undefined && includeseconds) {
         len += 3;
     }
     return iso.substr(0, len);
 }
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /**
- * Generate a friendly date.  
+ * Generate a friendly date.
  * @param datetime Timestamp to be printed
  * @returns string human readable localized time
  */
-export function timestampToFriendly(datetime: number, includeTime?: boolean): string {
+export function timestampToFriendly(datetime: number, includeTime = true): string {
     // dd-MMM-yy hh:mm ap
-    let date = new Date(datetime);
-    let month = MONTHS[date.getMonth()];
-    let day = date.getDate();
-    let year = date.getFullYear().toString().substring(2);
+    const date = new Date(datetime);
+    const month = MONTHS[date.getMonth()];
+    const day = date.getDate();
+    const year = date
+        .getFullYear()
+        .toString()
+        .substring(2);
     let hours = date.getHours();
     let minutes: string = date.getMinutes().toString();
     if (minutes.length === 1) {
@@ -357,37 +359,43 @@ export function timestampToFriendly(datetime: number, includeTime?: boolean): st
     }
 
     let dateStamp = day + '-' + month + '-' + year;
-    let timeStamp = hours + ':' + minutes +  ampm;
-    return dateStamp + ' ' + timeStamp;
+    if (includeTime) {
+        const timeStamp = hours + ':' + minutes + ampm;
+        dateStamp += ' ' + timeStamp;
+    }
+    return dateStamp;
 }
 /**
  * A timestamp which represents as far into the future as possible.  For now
- * we assume the limitaions of a 32 bit signed integer 
+ * we assume the limitaions of a 32 bit signed integer
  *   https://en.wikipedia.org/wiki/Year_2038_problem
  * at some point in the future this probably should be updated..
  * @type number Timestamp representing forever
  */
 export const timestampForever = new Date('1-1-2038').valueOf();
 /**
- * calloutTypes are the various callout renderings based on 
+ * calloutTypes are the various callout renderings based on
  * Foundation
  * see:  https://get.foundation/sites/docs/callout.html
  */
-export type calloutTypes = "secondary" | "primary" | "success" | "warning" | "alert"
+export type calloutTypes = 'secondary' | 'primary' | 'success' | 'warning' | 'alert';
 /**
- * makeCallout constructs a callout 
+ * makeCallout constructs a callout
  * @param content Content for the callout
  * @param type Type of callout (default=alert)
  * @returns HTML Dom for callout
  */
-export function makeCallout(content: string | JQuery<HTMLElement>, type?: calloutTypes) {
+export function makeCallout(
+    content: string | JQuery<HTMLElement>,
+    type?: calloutTypes
+): JQuery<HTMLElement> {
     if (type === undefined) {
-        type = "alert";
+        type = 'alert';
     }
-    let callout = $('<div/>', {
+    const callout = $('<div/>', {
         class: 'callout ' + type,
     });
-    if (jQuery.type(content) === "string") {
+    if (jQuery.type(content) === 'string') {
         callout.text(content as string);
     } else {
         callout.append(content);

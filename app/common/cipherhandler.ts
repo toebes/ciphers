@@ -279,7 +279,6 @@ export interface IScoreInformation {
 }
 
 type patelem = [string, number, number, number];
-type JQElement = JQuery<HTMLElement>;
 /**
  * Base class for all the Cipher Encoders/Decoders
  */
@@ -1069,7 +1068,7 @@ export class CipherHandler {
      * @param config Configuration value to set
      * @param value Value to set
      */
-    public setConfigString(config: string, value: string): void {
+    public setConfigString(config: string, value: string) {
         if (this.storage.isAvailable()) {
             this.storage.set('config_' + config, value);
         }
@@ -1179,7 +1178,7 @@ export class CipherHandler {
     /**
      * Populate the file list dialog to match all the entries of a given type
      */
-    public getFileList(ciphertype: ICipherType): JQElement {
+    public getFileList(ciphertype: ICipherType): JQuery<HTMLElement> {
         let result = null;
         const cipherCount = this.getCipherCount();
         $('#okopen').prop('disabled', true);
@@ -1381,6 +1380,23 @@ export class CipherHandler {
         $('#OpenFile').foundation('open');
     }
     /**
+     * Process the imported file
+     * @param reader File to process
+     */
+    public processImport(file: File): void {
+        const reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload = (e) => {
+            try {
+                const result = JSON.parse(e.target.result as string);
+                this.importXML(result);
+                $('#ImportFile').foundation('close');
+            } catch (e) {
+                $('#xmlerr').text('Not a valid import file');
+            }
+        };
+    }
+    /**
      * Process imported XML
      */
     public importXML(data: any): void {}
@@ -1421,17 +1437,7 @@ export class CipherHandler {
                     const fileinput: HTMLInputElement = $('#xmlFile')[0] as HTMLInputElement;
                     const files = fileinput.files;
                     if (files.length && typeof FileReader !== undefined) {
-                        const reader = new FileReader();
-                        reader.readAsText(files[0]);
-                        reader.onload = (e1) => {
-                            try {
-                                const result = JSON.parse(reader.result as string);
-                                $('#ImportFile').foundation('close');
-                                this.importXML(result);
-                            } catch (e) {
-                                $('#xmlerr').text('Not a valid import file');
-                            }
-                        };
+                        this.processImport(files[0]);
                     }
                 } else {
                     // They gave us a URL so let's do an AJAX call to pull it in
@@ -1603,7 +1609,7 @@ export class CipherHandler {
      * Creates an HTML table to display the frequency of characters
      * @returns DOM elements of constructed table.
      */
-    public createFreqEditTable(): JQElement {
+    public createFreqEditTable(): JQuery<HTMLElement> {
         return null;
     }
     /**
@@ -1625,7 +1631,7 @@ export class CipherHandler {
         qnum: number,
         encodeType: string,
         extraclass: string
-    ): JQElement {
+    ): JQuery<HTMLElement> {
         const table = new JTTable({
             class: 'shrink unstriped intfreq' + extraclass,
         });
@@ -1682,7 +1688,11 @@ export class CipherHandler {
      * @param encodeType The type of encoding (random/k1/k2)
      * @param extraclass Extra class to add to the generated table
      */
-    public genFreqTable(showanswers: boolean, encodeType: string, extraclass: string): JQElement {
+    public genFreqTable(
+        showanswers: boolean,
+        encodeType: string,
+        extraclass: string
+    ): JQuery<HTMLElement> {
         const table = new JTTable({
             class: 'prfreq shrink cell unstriped' + extraclass,
         });
@@ -1840,14 +1850,14 @@ export class CipherHandler {
      */
     public reset(): void {}
 
-    public genCmdButtons(): JQElement {
+    public genCmdButtons(): JQuery<HTMLElement> {
         return JTButtonGroup(this.cmdButtons);
     }
 
     /**
      * Creates the Undo and Redo command buttons
      */
-    public genUndoRedoButtons(): JQElement {
+    public genUndoRedoButtons(): JQuery<HTMLElement> {
         const buttons = $('<div/>');
 
         buttons.append(
@@ -1874,7 +1884,7 @@ export class CipherHandler {
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
      * @returns HTML DOM elements to display in the section
      */
-    public genPreCommands(): JQElement {
+    public genPreCommands(): JQuery<HTMLElement> {
         return null;
     }
     /**
@@ -2160,13 +2170,13 @@ export class CipherHandler {
     /**
      * Builds the output for the current state data.
      */
-    public build(): JQElement {
+    public build(): JQuery<HTMLElement> {
         return null;
     }
     /**
      * Create an edit field for a dropdown
      */
-    public makeFreqEditField(c: string): JQElement {
+    public makeFreqEditField(c: string): JQuery<HTMLElement> {
         return null;
     }
     /**
@@ -2317,19 +2327,19 @@ export class CipherHandler {
     /**
      * Generate the HTML to display the answer for a cipher
      */
-    public genAnswer(testType: ITestType): JQElement {
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         return $('<h3>').text('This cipher does not support printing the Answer yet');
     }
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genQuestion(testType: ITestType): JQElement {
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         return $('<h3>').text('This cipher does not support printing the Question yet');
     }
     /**
      * Generate the HTML to display the question for a cipher
      */
-    public genInteractive(qnum: number, testType: ITestType): JQElement {
+    public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
         const result = this.genQuestion(testType);
         result.append($('<textarea/>', { id: 'in' + String(qnum + 1), class: 'intnote' }));
         return result;
@@ -2377,7 +2387,7 @@ export class CipherHandler {
     /**
      * Generate a solving aid for a cipher
      */
-    public genSolution(testType: ITestType): JQElement {
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
         return null;
     }
     /**
@@ -2624,7 +2634,7 @@ export class CipherHandler {
     /**
      * Analyze the encoded text and update the UI output
      */
-    public genAnalysis(encoded: string): JQElement {
+    public genAnalysis(encoded: string): JQuery<HTMLElement> {
         return null;
     }
     /**
@@ -3042,7 +3052,6 @@ export class CipherHandler {
      * @param state Saved cipher
      */
     public getSolveURL(state: IState): string {
-        let lang;
         if (state.cipherType === undefined) {
             return '';
         }
@@ -3051,7 +3060,7 @@ export class CipherHandler {
     /**
      * Create the hidden dialog for selecting a cipher to open
      */
-    private createOpenFileDlg(): JQElement {
+    private createOpenFileDlg(): JQuery<HTMLElement> {
         const dlgContents = $('<select/>', {
             id: 'files',
             class: 'filelist',
@@ -3069,7 +3078,7 @@ export class CipherHandler {
     /**
      * Creates the hidden dialog for selecting an XML file to import
      */
-    private createImportFileDlg(): JQElement {
+    public createImportFileDlg(): JQuery<HTMLElement> {
         const dlgContents = $('<div/>', {
             id: 'importstatus',
             class: 'callout secondary',
@@ -3109,7 +3118,7 @@ export class CipherHandler {
     /**
      * Creates the hidden dialog showing version/build information
      */
-    public createRealtimeConfigDlg(): JQElement {
+    public createRealtimeConfigDlg(): JQuery<HTMLElement> {
         const dlgContents = $('<div/>', {
             id: 'realtimeconf',
             class: 'callout secondary',
@@ -3140,7 +3149,7 @@ export class CipherHandler {
     /**
      * Creates the hidden dialog showing version/build information
      */
-    public createRegisterDlg(): JQElement {
+    public createRegisterDlg(): JQuery<HTMLElement> {
         const dlgContents = $('<div/>', {
             id: 'registercont',
             class: 'callout secondary',
@@ -3189,7 +3198,7 @@ export class CipherHandler {
     /**
      * Creates the hidden dialog showing version/build information
      */
-    public createAboutDlg(): JQElement {
+    public createAboutDlg(): JQuery<HTMLElement> {
         const dlgContents = $('<table class="version-table"/>');
         dlgContents.append(
             '<tr class="version"><td>Version:</td><td>' + getVersion() + '</td></tr>'
@@ -3212,7 +3221,7 @@ export class CipherHandler {
      * Create the main menu at the top of the page.
      * This also creates the hidden dialogs used for opening and importing files
      */
-    public createMainMenu(): JQElement {
+    public createMainMenu(): JQuery<HTMLElement> {
         const result = $('<div/>');
 
         const divLoginInfo = $('<div/>', {
@@ -3220,7 +3229,7 @@ export class CipherHandler {
         })
             .append(
                 $('<div/>', {
-                    class: 'login-button',
+                    class: 'login-button button',
                 }).text('Login')
             )
             .append(

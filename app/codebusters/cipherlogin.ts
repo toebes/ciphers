@@ -198,7 +198,7 @@ export class CipherLogin extends CipherHandler {
                             scope: CipherLogin.GOOGLE_SCOPE,
                             width: 240,
                             height: 50,
-                            longtitle: false,
+                            longtitle: true,
                             theme: 'dark',
                             onsuccess: (user) => {
                                 this.onGoogleSuccess(user);

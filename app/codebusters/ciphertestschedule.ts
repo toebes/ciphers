@@ -4,29 +4,48 @@ import { ITestState, IAnswerTemplate, ITestUser } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
 import {
     cloneObject,
-    timestampToISOLocalString,
     timestampFromMinutes,
     BoolMap,
     timestampForever,
     makeFilledArray,
+    timestampToFriendly,
 } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
-import { JTTable } from '../common/jttable';
+import { JTRow, JTTable } from '../common/jttable';
 import {
     ConvergenceDomain,
     RealTimeModel,
     ModelService,
     ModelPermissions,
-    DomainUser,
-    DomainUserType,
 } from '@convergence/convergence';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFDialog } from '../common/jtfdialog';
 
 import * as _flatpickr from 'flatpickr';
 import { FlatpickrFn } from 'flatpickr/dist/types/instance';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { API, EnsureUsersExistParameters } from './api';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const flatpickr: FlatpickrFn = _flatpickr as any;
+
+import * as XLSX from 'xlsx';
+
+interface testInfo {
+    /** Time that the test is scheduled to start */
+    starttime: number;
+    /** length of the test in minutes */
+    testlength: number;
+    /** Time allocated for the timed question bonus */
+    timedlength: number;
+    /** Users who are assigned to take the test */
+    assigned: string[];
+    /** Name of the team taking the test */
+    teamname: string;
+    /** Type of team (Varsity, JV, JV2, etc) taking the test */
+    teamtype: string;
+}
+
 /**
  * CipherTestScheduled
  *    This shows a list of all Scheduled tests.
@@ -44,8 +63,8 @@ export class CipherTestSchedule extends CipherTestManage {
     public state: ITestState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [
         { title: 'Add One', color: 'primary', id: 'addsched' },
-        { title: 'Propagate Time', color: 'primary', id: 'propsched' },
-        { title: 'Import Schedule', color: 'primary', id: 'importsched', disabled: true },
+        { title: 'Import Schedule', color: 'primary', id: 'importsched' },
+        { title: 'Reschedule All', color: 'primary', id: 'propsched' },
         { title: 'Save All', color: 'primary', id: 'savesched', disabled: true },
         { title: 'Delete All', color: 'alert', id: 'delallsched' },
     ];
@@ -60,7 +79,6 @@ export class CipherTestSchedule extends CipherTestManage {
 
         this.api = new API(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
     }
-
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -90,8 +108,9 @@ export class CipherTestSchedule extends CipherTestManage {
 
         // First we need to get the test template from the testsource
         // Once we have the test template, then we will be able to find all the scheduled tests
-        this.connectRealtime().then((domain: ConvergenceDomain) => {
-            this.openTestSource(domain, this.state.testID);
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+            const modelService = domain.models();
+            this.openTestSource(modelService, this.state.testID);
         });
         return result;
     }
@@ -100,8 +119,7 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param domain Convergence Domain to query against
      * @param sourcemodelid Source test to open
      */
-    private openTestSource(domain: ConvergenceDomain, sourcemodelid: string) {
-        const modelService = domain.models();
+    private openTestSource(modelService: ModelService, sourcemodelid: string): void {
         modelService
             .open(sourcemodelid)
             .then((realtimeModel) => {
@@ -120,13 +138,13 @@ export class CipherTestSchedule extends CipherTestManage {
                 this.reportFailure('Could not open model for ' + sourcemodelid + ' Error:' + error);
             });
     }
+    /**
+     * Create an input field that allows the user to enter a date/time value
+     * @param id ID for the input field to create
+     * @param datetime Date/time value to initialize the field with
+     */
     public dateTimeInput(id: string, datetime: number): JQuery<HTMLElement> {
-        // Alternative Date Time Input options:
-        //   https://github.com/amsul/pickadate.js -
-        //   https://github.com/flatpickr/flatpickr - seems to be pretty good, but is picky about the time format
-        //   https://www.jqueryscript.net/blog/best-date-time-picker.html - Survey of 10 of them
         const dateval = new Date(datetime).toISOString();
-        console.log('Date: ' + datetime + ' Maps to ' + dateval);
         const result = $('<span/>').append(
             $('<input/>', {
                 type: 'datetime-local',
@@ -136,8 +154,78 @@ export class CipherTestSchedule extends CipherTestManage {
                 value: dateval,
             })
         );
-
         return result;
+    }
+    /**
+     * Creates the test table for displaying all active tests
+     */
+    private createTestTable(): JTTable {
+        const table = new JTTable({ class: 'cell shrink publist' });
+        const row = table.addHeaderRow();
+        row.add('Action')
+            .add('Takers')
+            .add('Start Time')
+            .add('Test Duration')
+            .add('Timed Question')
+            .add('Team Name')
+            .add('Team Type');
+        return table;
+    }
+    /**
+     * Populate a JTRow object to insert into the table
+     * @param row Row item to populate
+     * @param rowID ID for the row
+     * @param answerModelID ID for the stored answer model
+     * @param answertemplate Contents for the answer
+     */
+    private populateRow(
+        row: JTRow,
+        rownum: number,
+        answerModelID: string,
+        answertemplate: IAnswerTemplate
+    ): void {
+        const rowID = String(rownum);
+        row.attr({ id: 'R' + rowID, 'data-source': answerModelID });
+        const buttons = $('<div/>', { class: 'button-group round shrink' });
+        buttons.append(
+            $('<a/>', {
+                type: 'button',
+                class: 'pubdel alert button',
+            }).text('Delete')
+        );
+        buttons.append(
+            $('<a/>', {
+                type: 'button',
+                class: 'pubsave primary button',
+                id: 'SV' + rowID,
+                disabled: 'disabled',
+            }).text('Save')
+        );
+        const userids = ['', '', ''];
+        for (const i in answertemplate.assigned) {
+            userids[i] = answertemplate.assigned[i].userid;
+        }
+        let testlength = Math.round(
+            (answertemplate.endtime - answertemplate.starttime) / timestampFromMinutes(1)
+        );
+        if (answertemplate.endtime === timestampForever) {
+            testlength = 0;
+        }
+        const timedlength = Math.round(
+            (answertemplate.endtimed - answertemplate.starttime) / timestampFromMinutes(1)
+        );
+        row.add(buttons)
+            .add(
+                $('<div>')
+                    .append($('<input/>', { type: 'text', id: 'U0_' + rowID, value: userids[0] }))
+                    .append($('<input/>', { type: 'text', id: 'U1_' + rowID, value: userids[1] }))
+                    .append($('<input/>', { type: 'text', id: 'U2_' + rowID, value: userids[2] }))
+            )
+            .add(this.dateTimeInput('S_' + rowID, answertemplate.starttime))
+            .add(JTFIncButton('Test Duration', 'D_' + rowID, testlength, 'kval small-1'))
+            .add(JTFIncButton('Timed Limit', 'T_' + rowID, timedlength, 'kval small-1'))
+            .add($('<input/>', { type: 'text', id: 'N_' + rowID, value: userids[0] }))
+            .add($('<input/>', { type: 'text', id: 'C_' + rowID, value: userids[0] }));
     }
     /**
      * Find all the tests scheduled for a given test template
@@ -145,10 +233,10 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param sourcemodelid
      */
     public findScheduledTests(
-        modelService: Convergence.ModelService,
+        modelService: ModelService,
         testmodelid: string,
         answermodelid: string
-    ) {
+    ): void {
         modelService
             .query("SELECT * FROM codebusters_answers where testid='" + testmodelid + "'")
             .then((results) => {
@@ -162,85 +250,10 @@ export class CipherTestSchedule extends CipherTestManage {
                         this.answerTemplate = answertemplate;
                     } else {
                         if (table === undefined) {
-                            table = new JTTable({ class: 'cell shrink publist' });
-                            const row = table.addHeaderRow();
-                            row.add('Action')
-                                .add('Takers')
-                                .add('Start Time')
-                                .add('Test Duration')
-                                .add('Timed Question');
+                            table = this.createTestTable();
                         }
-                        const eid = String(total);
-                        const row = table
-                            .addBodyRow()
-                            .attr({ id: 'R' + eid, 'data-source': result.modelId });
-                        const buttons = $('<div/>', { class: 'button-group round shrink' });
-                        buttons.append(
-                            $('<a/>', {
-                                type: 'button',
-                                class: 'pubdel alert button',
-                            }).text('Delete')
-                        );
-                        buttons.append(
-                            $('<a/>', {
-                                type: 'button',
-                                class: 'pubsave primary button',
-                                id: 'SV' + eid,
-                                disabled: 'disabled',
-                            }).text('Save')
-                        );
-                        const userids = ['', '', ''];
-                        for (const i in answertemplate.assigned) {
-                            userids[i] = answertemplate.assigned[i].userid;
-                        }
-                        let testlength = Math.round(
-                            (answertemplate.endtime - answertemplate.starttime) /
-                                timestampFromMinutes(1)
-                        );
-                        if (answertemplate.endtime === timestampForever) {
-                            testlength = 0;
-                        }
-                        const timedlength = Math.round(
-                            (answertemplate.endtimed - answertemplate.starttime) /
-                                timestampFromMinutes(1)
-                        );
-                        row.add(buttons)
-                            .add(
-                                $('<div>')
-                                    .append(
-                                        $('<input/>', {
-                                            type: 'text',
-                                            id: 'U0_' + eid,
-                                            value: userids[0],
-                                        })
-                                    )
-                                    .append(
-                                        $('<input/>', {
-                                            type: 'text',
-                                            id: 'U1_' + eid,
-                                            value: userids[1],
-                                        })
-                                    )
-                                    .append(
-                                        $('<input/>', {
-                                            type: 'text',
-                                            id: 'U2_' + eid,
-                                            value: userids[2],
-                                        })
-                                    )
-                            )
-                            .add(this.dateTimeInput('S_' + eid, answertemplate.starttime))
-                            .add(
-                                JTFIncButton(
-                                    'Test Duration',
-                                    'D_' + eid,
-                                    testlength,
-                                    'kval small-1'
-                                )
-                            )
-                            .add(
-                                JTFIncButton('Timed Limit', 'T_' + eid, timedlength, 'kval small-1')
-                            );
+                        const row = table.addBodyRow();
+                        this.populateRow(row, total, result.modelId, answertemplate);
                         // Keep track of how many entries we created so that they each have a unique id
                         total++;
                     }
@@ -266,39 +279,93 @@ export class CipherTestSchedule extends CipherTestManage {
     /**
      * Makes a copy of the answer template and schedules a new test.
      */
-    public copyAnswerTemplate() {
-        this.connectRealtime().then((domain: ConvergenceDomain) => {
+    public copyAnswerTemplate(): void {
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
             const modelService = domain.models();
-            const starttime = Date.now();
-            const newAnswerTemplate: IAnswerTemplate = {
-                testid: this.answerTemplate.testid,
-                starttime: starttime,
-                endtime: starttime + timestampFromMinutes(50),
-                endtimed: starttime + timestampFromMinutes(10),
+            const copyInfo: testInfo = {
+                starttime: Date.now(),
+                testlength: 50,
+                timedlength: 10,
                 assigned: [],
-                answers: this.answerTemplate.answers,
+                teamname: '',
+                teamtype: 'Varsity',
             };
-            modelService
-                .openAutoCreate({
-                    collection: 'codebusters_answers',
-                    overrideCollectionWorldPermissions: false,
-                    data: newAnswerTemplate,
-                })
-                .then((datamodel: RealTimeModel) => {
-                    datamodel.close();
-                    this.updateOutput();
-                })
-                .catch((error) => {
-                    this.reportFailure('Could not autocreate: ' + error);
-                });
+            this.makeAnswerTemplate(modelService, copyInfo);
         });
     }
     /**
-     *
+     * Makes a copy of the answer template and schedules a new test.
      * @param modelService Domain Model service object for making requests
-     * @param modelid
+     * @param testinfo Description of the new test to add
      */
-    private doDeletePublished(modelService: ModelService, modelid: string) {
+    public makeAnswerTemplate(modelService: ModelService, testinfo: testInfo): void {
+        const answerTemplate: IAnswerTemplate = {
+            testid: this.answerTemplate.testid,
+            starttime: testinfo.starttime,
+            endtime: testinfo.starttime + timestampFromMinutes(testinfo.testlength),
+            endtimed: testinfo.starttime + timestampFromMinutes(testinfo.timedlength),
+            assigned: [],
+            teamname: testinfo.teamname,
+            teamtype: testinfo.teamtype,
+            answers: this.answerTemplate.answers,
+        };
+        for (const userid of testinfo.assigned) {
+            const userinfo: ITestUser = {
+                userid: userid,
+                displayname: '',
+                starttime: 0,
+                idletime: 0,
+                confidence: [],
+                notes: '',
+                sessionid: '',
+            };
+            answerTemplate.assigned.push(userinfo);
+        }
+        console.log(answerTemplate);
+        modelService
+            .openAutoCreate({
+                collection: 'codebusters_answers',
+                overrideCollectionWorldPermissions: false,
+                data: answerTemplate,
+            })
+            .then((datamodel: RealTimeModel) => {
+                const modelid = datamodel.modelId();
+                const rowID = 0;
+                datamodel.close();
+                //
+                // Now we need to get the new entry on the screen.
+                // If we don't have a table already we will need to create one
+                //
+                if ($('.publist').length === 0) {
+                    // No table at all so just create one with our row put in it
+                    const table = this.createTestTable();
+                    const row = table.addBodyRow();
+                    this.populateRow(row, rowID, modelid, answerTemplate);
+                    $('.testlist')
+                        .empty()
+                        .append(table.generate());
+                } else {
+                    // Find the id of the last row
+                    const lastid = $('.publist tr:last').attr('id');
+                    const rowID = Number(lastid.substr(1)) + 1;
+                    // And create a row with the next ID
+                    const row = new JTRow();
+                    this.populateRow(row, rowID, modelid, answerTemplate);
+                    // And put it into the table
+                    $('.publist tbody').append(row.generate());
+                }
+                this.attachHandlers();
+            })
+            .catch((error) => {
+                this.reportFailure('Could not autocreate: ' + error);
+            });
+    }
+    /**
+     * Delete a model from the server
+     * @param modelService Domain Model service object for making requests
+     * @param modelid Model to delete
+     */
+    private doDeletePublished(modelService: ModelService, modelid: string): void {
         modelService.remove(modelid).catch((error) => {
             this.reportFailure('Could not remove ' + modelid + ' ' + error);
         });
@@ -309,8 +376,8 @@ export class CipherTestSchedule extends CipherTestManage {
     public gotoDeleteAllScheduled(): void {
         $('#okdelall')
             .off('click')
-            .on('click', (e) => {
-                this.connectRealtime().then((domain: ConvergenceDomain) => {
+            .on('click', () => {
+                this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                     const modelService = domain.models();
                     $('tr[id^="R"]').each((i, elem) => {
                         const modelid = $(elem).attr('data-source');
@@ -328,7 +395,7 @@ export class CipherTestSchedule extends CipherTestManage {
      *
      * @param id Which button was clicked on
      */
-    public setChanged(id: string) {
+    public setChanged(id: string): void {
         $('#SV' + id).removeAttr('disabled');
         $('#savesched').removeAttr('disabled');
     }
@@ -337,7 +404,7 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param eid Row ID to save
      * @param testid Model to save it do
      */
-    public saveScheduled(eid: string, testid: string) {
+    public saveScheduled(eid: string, testid: string): void {
         const userlist: string[] = [];
         const name1 = $('#U0_' + eid).val() as string;
         const name2 = $('#U1_' + eid).val() as string;
@@ -362,7 +429,7 @@ export class CipherTestSchedule extends CipherTestManage {
         const endtimed = starttime + timestampFromMinutes(timedDuration);
         $('#SV' + eid).attr('disabled', 'disabled');
 
-        this.connectRealtime().then((domain: ConvergenceDomain) => {
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
             const modelService = domain.models();
             this.saveAnswerTemplate(modelService, testid, userlist, starttime, endtime, endtimed);
         });
@@ -385,7 +452,7 @@ export class CipherTestSchedule extends CipherTestManage {
         $('#okprop')
             .removeAttr('disabled')
             .off('click')
-            .on('click', (e) => {
+            .on('click', () => {
                 $('#propscheddlg').foundation('close');
                 // First get the starting times.  It will be the first row
                 if ($('#S_0').length > 0) {
@@ -424,14 +491,149 @@ export class CipherTestSchedule extends CipherTestManage {
         // Put up the dialog to ask them.
         $('#propscheddlg').foundation('open');
     }
-    public importSchedule(): void {}
+    /**
+     * Process the imported file
+     * @param reader File to process
+     */
+    public processImport(file: File): void {
+        const reader = new FileReader();
+        reader.onload = (): void => {
+            try {
+                this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+                    const modelService = domain.models();
 
+                    const data = new Uint8Array(reader.result as ArrayBuffer);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]]; // get the first worksheet
+                    const epoch1904 = workbook.Workbook.WBProps.date1904;
+                    const json = XLSX.utils.sheet_to_json(sheet) as { [index: string]: unknown }[];
+                    let timefield = 'Time';
+                    let userfields: string[] = [];
+                    let schoolnamefield = 'School';
+                    let teamtypefield = 'Type';
+                    let lengthfield = 'Length';
+                    let timedfield = 'Timed';
+                    if (json.length > 0) {
+                        // Figure out what columns are to be used
+                        const firstelem = json[0];
+                        for (const fieldname in firstelem) {
+                            const fieldupper = fieldname.toUpperCase().replace(/[^A-Z]/gi, '');
+                            switch (fieldupper) {
+                                case 'TIME':
+                                    timefield = fieldname;
+                                    break;
+                                case 'LENGTH':
+                                    lengthfield = fieldname;
+                                    break;
+                                case 'SCHOOL':
+                                case 'TEAM':
+                                    schoolnamefield = fieldname;
+                                    break;
+                                case 'TYPE':
+                                    teamtypefield = fieldname;
+                                    break;
+                                case 'USER':
+                                case 'STUDENT':
+                                    userfields.push(fieldname);
+                                    break;
+                                case 'TIMED':
+                                    timedfield = fieldname;
+                                    break;
+                                default:
+                                    console.log(
+                                        'Ignoring: ' + fieldname + ' mapped as ' + fieldupper
+                                    );
+                            }
+                        }
+                        // Take up to three user fields
+                        userfields = userfields.sort().slice(0, 3);
+                        // If we have more than three userfields
+                        const defaultTest: testInfo = {
+                            starttime: Date.now(),
+                            testlength: 50,
+                            timedlength: 10,
+                            assigned: [],
+                            teamname: '',
+                            teamtype: '',
+                        };
+                        // Now we go through the records and process them
+                        for (const record of json) {
+                            console.log(record);
+                            const newTest = cloneObject(defaultTest) as testInfo;
+                            let starttime = record[timefield] as number;
+                            if (starttime !== undefined) {
+                                console.log('Start time =' + starttime);
+                                // If the time is less than one day then they didn't give us a date, only a time
+                                // so we are going to assume that it is starting today at the time they gave us
+                                if (starttime < 1) {
+                                    const d = new Date();
+                                    d.setHours(0, 0, 0, 0); // last midnight
+                                    starttime =
+                                        Number(d) + starttime * timestampFromMinutes(60 * 24);
+                                } else {
+                                    // We have to adjust the date based on the epoch in the file.
+                                    // By default an excel file will have an epoch either January 1, 1900 or January 1, 1904
+                                    // depending on whether the file was done on a mac or a PC originally.
+                                    if (epoch1904) {
+                                        starttime -= 25569 - 1461;
+                                    } else {
+                                        starttime -= 25569;
+                                    }
+                                    starttime *= timestampFromMinutes(60 * 24);
+                                }
+                                console.log('Mapped to ' + timestampToFriendly(starttime));
+                                newTest.starttime = starttime;
+                            }
+                            const testlength = record[lengthfield] as number;
+                            if (testlength !== undefined) {
+                                newTest.testlength = testlength;
+                            }
+                            const timedlength = record[timedfield] as number;
+                            if (timedlength !== undefined) {
+                                newTest.timedlength = timedlength;
+                            }
+                            const teamname = record[schoolnamefield] as string;
+                            if (teamname !== undefined) {
+                                newTest.teamname = teamname;
+                            }
+                            const teamtype = record[teamtypefield] as string;
+                            if (teamtype !== undefined) {
+                                newTest.teamtype = teamtypefield;
+                            }
+                            for (const userfield of userfields) {
+                                const username = record[userfield] as string;
+                                if (username !== undefined) {
+                                    newTest.assigned.push(username);
+                                }
+                            }
+                            // Save out the new record
+                            this.makeAnswerTemplate(modelService, newTest);
+                            // Save the defaults for the next round
+                            defaultTest.starttime = newTest.starttime;
+                            defaultTest.testlength = newTest.testlength;
+                            defaultTest.timedlength = newTest.timedlength;
+                        }
+                        $('#ImportFile').foundation('close');
+                    }
+                });
+            } catch (e) {
+                $('#xmlerr').text('Not a valid import file');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+    /**
+     * Import a schedule
+     */
+    public importSchedule(): void {
+        this.openXMLImport(true);
+    }
     /**
      * Creates convergence domain users if they do not exist already.
      * @param modelService Domain Model service object for making requests
      * @param usernames User to ensure exists
      */
-    public ensureUsersExist(modelService: ModelService, usernames: string[]): Promise<any> {
+    public ensureUsersExist(modelService: ModelService, usernames: string[]): Promise<unknown> {
         const settings = this.getConvergenceSettings();
         const convergenceNamespace = settings.namespace;
         const convergenceDomainID = settings.domain;
@@ -456,7 +658,7 @@ export class CipherTestSchedule extends CipherTestManage {
         modelid: string,
         toremove: string[],
         toadd: string[]
-    ) {
+    ): void {
         const permissionManager = modelService.permissions(modelid);
         permissionManager
             .getAllUserPermissions()
@@ -521,7 +723,7 @@ export class CipherTestSchedule extends CipherTestManage {
         starttime: number,
         endtime: number,
         endtimed: number
-    ) {
+    ): void {
         const usermap: BoolMap = {};
         for (const user of userlist) {
             usermap[user] = true;
@@ -562,7 +764,7 @@ export class CipherTestSchedule extends CipherTestManage {
                         displayname: userlist[i],
                         starttime: 0,
                         idletime: 0,
-                        confidence: makeFilledArray(questions, 0),
+                        confidence: makeFilledArray(questions, 0) as number[],
                         notes: '',
                         sessionid: '',
                     });
@@ -586,11 +788,11 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param id Which row to delete from
      * @param modelid Model to be deleted
      */
-    public deleteScheduled(id: string, modelid: string) {
+    public deleteScheduled(id: string, modelid: string): void {
         $('#okdelsched')
             .off('click')
-            .on('click', (e) => {
-                this.connectRealtime().then((domain: ConvergenceDomain) => {
+            .on('click', () => {
+                this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                     const modelService = domain.models();
                     this.doDeletePublished(modelService, modelid);
                     $('tr#R' + id).remove();
@@ -676,6 +878,47 @@ export class CipherTestSchedule extends CipherTestManage {
             .append(this.createPropagateScheduledDlg());
         return result;
     }
+    /**
+     * Creates the hidden dialog for selecting an XML file to import
+     */
+    public createImportFileDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>', {
+            id: 'importstatus',
+            class: 'callout secondary',
+        })
+            .append(
+                $('<label/>', {
+                    for: 'xmlFile',
+                    class: 'impfile button',
+                }).text('Select File')
+            )
+            .append(
+                $('<input/>', {
+                    type: 'file',
+                    id: 'xmlFile',
+                    accept: '.xls,.xlsx,.csv',
+                    class: 'impfile show-for-sr',
+                })
+            )
+            .append(
+                $('<span/>', {
+                    id: 'xmltoimport',
+                    class: 'impfile',
+                }).text('No File Selected')
+            )
+            .append(
+                JTFLabeledInput('URL', 'text', 'xmlurl', '', 'impurl small-12 medium-6 large-6')
+            );
+        const importDlg = JTFDialog(
+            'ImportFile',
+            'Import Test Data',
+            dlgContents,
+            'okimport',
+            'Import'
+        );
+        return importDlg;
+    }
+
     /**
      * Locate the row id for an element.  This looks for the ID of the containing TR
      * @param elem element to get information for
@@ -765,7 +1008,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 this.setChanged(this.getRowID($(e.target)));
             });
         $('.datetimepick').each((i, elem) => {
-            const x = flatpickr(elem, {
+            flatpickr(elem, {
                 altInput: true,
                 enableTime: true,
                 dateFormat: 'M j, Y H:i',

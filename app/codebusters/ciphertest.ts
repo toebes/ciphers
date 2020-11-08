@@ -73,6 +73,8 @@ export interface IAnswerTemplate {
     endtimed: number;
     answers: ITestQuestionFields[];
     assigned: ITestUser[];
+    teamname: string;
+    teamtype: string;
 }
 
 export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols' | 'testint';

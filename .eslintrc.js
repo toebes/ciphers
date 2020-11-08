@@ -20,6 +20,6 @@ module.exports = {
         '@typescript-eslint/camelcase': 'off',
         'class-name-casing': 'off',
         '@typescript-eslint/class-name-casing': 'off',
-        '@typescript-eslint/no-empty-function': { allow: ['methods'] },
+        '@typescript-eslint/no-empty-function': 'off',
     },
 };

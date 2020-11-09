@@ -1,219 +1,315 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title><%= htmlWebpackPlugin.options.title %></title>
+    </head>
 
-<head>
-    <meta charset="utf-8" />
-    <title><%= htmlWebpackPlugin.options.title %></title>
-</head>
-
-<body>
-    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
-    <% } %> <%= require('html-loader!./analytics.html') %>
-    <div class="callout primary">
-        <div class="cell clearfix">
-            <a class="float-right" href="https://ncscienceolympiad.ncsu.edu/resources/high-school/codebusters/"><img
-                    src="images/ncso-main-fullcolor-rgb.jpg" width="180" /></a>
-            <a class="float-right" href="https://www.soinc.org/codebusters-c"><img
-                    src="https://www.soinc.org/sites/default/files/SCI_OLY_LOGO.jpeg" width="180" height="120" /></a>
-            <h2>
-                <span class="scioly">S<span class="t">cience</span> O<span class="t">lympiad</span>
-                    C<span class="t">ode</span>B<span class="t">usters</span></span>
-            </h2>
-            <div class="cell">
-                <a class="button large rounded" href="TakeTest.html">Take a Test</a>
+    <body>
+        <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+        <% } %> <%= require('html-loader!./analytics.html') %>
+        <div class="callout primary">
+            <div class="cell clearfix">
+                <a
+                    class="float-right"
+                    href="https://ncscienceolympiad.ncsu.edu/resources/high-school/codebusters/"
+                    ><img src="images/ncso-main-fullcolor-rgb.jpg" width="180"
+                /></a>
+                <a class="float-right" href="https://www.soinc.org/codebusters-c"
+                    ><img
+                        src="https://www.soinc.org/sites/default/files/SCI_OLY_LOGO.jpeg"
+                        width="180"
+                        height="120"
+                /></a>
+                <h2>
+                    <span class="scioly"
+                        >S<span class="t">cience</span> O<span class="t">lympiad</span> C<span
+                            class="t"
+                            >ode</span
+                        >B<span class="t">usters</span></span
+                    >
+                </h2>
+                <div class="cell">
+                    <a class="button large rounded" href="TakeTest.html">Take a Test</a>
+                </div>
+                <div class="cell">
+                    <a class="button rounded" href="TestManage.html">Test Manager</a> -
+                    Create/Delete/Edit Tests
+                </div>
+                <div class="cell">
+                    <a class="button rounded" href="TestQuestions.html">Question Manager</a>
+                    - Manage/Delete unused questions
+                </div>
             </div>
             <div class="cell">
-                <a class="button rounded" href="TestManage.html">Test Manager</a> -
-                Create/Delete/Edit Tests
+                <h4>Summary of what's new:</h4>
+                <ul>
+                    <li>Version 3.0.0</li>
+                    <ul>
+                        <li>
+                            Support for interactive online testing!
+                        </li>
+                    </ul>
+                    <a href="versions.html">Previous Versions...</a>
+                </ul>
+                <hr class="prev" />
             </div>
             <div class="cell">
-                <a class="button rounded" href="TestQuestions.html">Question Manager</a>
-                - Manage/Delete unused questions
+                <p>
+                    An quick tutorial of using the tool can be seen at
+                    <a href="https://www.youtube.com/watch?v=pcz_3ql8ebM"
+                        >https://www.youtube.com/watch?v=pcz_3ql8ebM</a
+                    >
+                </p>
             </div>
-        </div>
-        <div class="cell">
-            <h4>Summary of what's new:</h4>
-            <ul>
-                <li>Version 2.3.4</li>
+            <div class="cell">
+                <em>Please report any problems at </em
+                ><a href="https://github.com/toebes/ciphers/issues"
+                    >github.com/toebes/ciphers/issues</a
+                >
+            </div>
+            <div class="cell callout warning small">
+                <em
+                    ><u><b>Are you a coach looking for hints and solving guides?</b></u></em
+                >
+                Here are three places to go:
                 <ul>
                     <li>
-                        Fix the menu so that it show properly on wide screens
+                        Use the Answers and Solutions automatically generated for any question
+                    </li>
+                    <li>
+                        Use the resources listed on the
+                        <a href="https://www.soinc.org/codebusters-c"
+                            >national Science Olympiad CodeBusters site</a
+                        >
+                    </li>
+                    <li>
+                        The
+                        <a href="https://twitter.com/NCSO_cb">
+                            <img height="20" width="20" src="images/Twitter_Logo.png" />@NCSO_cb
+                            twitter feed</a
+                        >
+                        includes guides for solving just about every type of problem in the event
                     </li>
                 </ul>
-                <a href="versions.html">Previous Versions...</a>
-            </ul>
-            <hr class="prev" />
+            </div>
+            <div class="cell callout warning small">
+                <em
+                    ><u
+                        ><b
+                            >Are you an Event leader looking to create a Division C Regional or
+                            Invitational test?</b
+                        ></u
+                    ></em
+                >
+                You can use
+                <a
+                    href="TestManage.html?importURL=https://toebes.com/codebusters/2020_sample_c_regional_test.json"
+                    >this sample test</a
+                >
+                as a starting point for a good mix of questions and nominal score values. Don't
+                forget to Randomize the Aristocrats and pick new values for the questions. You can
+                also randomize the order of the questions when editing the test.
+            </div>
         </div>
-        <div class="cell">
-            <p>
-                An quick tutorial of using the tool can be seen at
-                <a href="https://www.youtube.com/watch?v=pcz_3ql8ebM">https://www.youtube.com/watch?v=pcz_3ql8ebM</a>
-            </p>
-        </div>
-        <div class="cell">
-            <em>Please report any problems at </em><a
-                href="https://github.com/toebes/ciphers/issues">github.com/toebes/ciphers/issues</a>
-        </div>
-        <div class="cell callout warning small">
-            <em><u><b>Are you a coach looking for hints and solving
-                        guides?</b></u></em>
-            Here are three places to go:
-            <ul>
-                <li>
-                    Use the Answers and Solutions automatically generated
-                    for any question
-                </li>
-                <li>
-                    Use the resources listed on the
-                    <a href="https://www.soinc.org/codebusters-c">national Science Olympiad CodeBusters site</a>
-                </li>
-                <li>
-                    The
-                    <a href="https://twitter.com/NCSO_cb">
-                        <img height="20" width="20" src="images/Twitter_Logo.png" />@NCSO_cb twitter feed</a>
-                    includes guides for solving just about every type of
-                    problem in the event
-                </li>
-            </ul>
-        </div>
-        <div class="cell callout warning small">
-            <em><u><b>Are you an Event leader looking to create a Division C
-                        Regional or Invitational test?</b></u></em>
-            You can use
-            <a href="TestManage.html?importURL=https://toebes.com/codebusters/2020_sample_c_regional_test.json">this
-                sample
-                test</a>
-            as a starting point for a good mix of questions and nominal
-            score values. Don't forget to Randomize the Aristocrats and pick
-            new values for the questions. You can also randomize the order
-            of the questions when editing the test.
-        </div>
-    </div>
-    <div class="callout secondary">
-        <div class="grid-x">
-            <div class="cell small-12">
-                <h4>Create individual questions</h4>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="AffineEncrypt.html?cipherType=affine">Affine<div class="divb">
-                        Div B
-                    </div>
-                    <div class="divc">Div C</div>
-                </a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="AristocratEncrypt.html?cipherType=aristocrat">Aristocrat<div
-                        class="diva">Div A</div>
-                    <div class="divb">Div B</div>
-                    <div class="divc">Div C</div>
-                </a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="Atbash.html?cipherType=atbash">Atbash<div class="diva">Div A
-                    </div>
-                    <div class="divb">Div B</div>
-                </a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="Baconian.html?cipherType=baconian">Baconian<div class="divb">
-                        Div B
-                    </div>
-                    <div class="divc">Div C</div>
-                </a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="Caesar.html?cipherType=caesar">Caesar<div class="diva">Div A
-                    </div>
-                    <div class="divb">Div B</div>
-                    <div class="divc">Div C</div>
-                </a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="HillEncrypt.html?cipherType=hill">Hill (2x2 and 3x3)<div
-                        class="divc">
-                        Div C</div></a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="MorbitEncrypt.html">Morbit<div class="divb">Div B</div>
-                    <div class="divc">Div C</div>
-                </a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="PatristocratEncrypt.html?cipherType=patristocrat">Patristocrat
-                    <div class="divb">Div B</div>
-                    <div class="divc">Div C</div>
-                </a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="PigPenEncrypt.html">PigPen/Masonic<div class="diva">Div A
-                    </div></a>
-            </div>
-            <!-- <div class="cell small-4 medium-3">
+        <div class="callout secondary">
+            <div class="grid-x">
+                <div class="cell small-12">
+                    <h4>Create individual questions</h4>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a class="button secondary rounded" href="AffineEncrypt.html?cipherType=affine"
+                        >Affine
+                        <div class="divb">
+                            Div B
+                        </div>
+                        <div class="divc">Div C</div>
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary rounded"
+                        href="AristocratEncrypt.html?cipherType=aristocrat"
+                        >Aristocrat
+                        <div class="diva">Div A</div>
+                        <div class="divb">Div B</div>
+                        <div class="divc">Div C</div>
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a class="button secondary rounded" href="Atbash.html?cipherType=atbash"
+                        >Atbash
+                        <div class="diva">Div A</div>
+                        <div class="divb">Div B</div>
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a class="button secondary rounded" href="Baconian.html?cipherType=baconian"
+                        >Baconian
+                        <div class="divb">
+                            Div B
+                        </div>
+                        <div class="divc">Div C</div>
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a class="button secondary rounded" href="Caesar.html?cipherType=caesar"
+                        >Caesar
+                        <div class="diva">Div A</div>
+                        <div class="divb">Div B</div>
+                        <div class="divc">Div C</div>
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a class="button secondary rounded" href="HillEncrypt.html?cipherType=hill"
+                        >Hill (2x2 and 3x3)
+                        <div class="divc">
+                            Div C
+                        </div></a
+                    >
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a class="button secondary rounded" href="MorbitEncrypt.html"
+                        >Morbit
+                        <div class="divb">Div B</div>
+                        <div class="divc">Div C</div>
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary rounded"
+                        href="PatristocratEncrypt.html?cipherType=patristocrat"
+                        >Patristocrat
+                        <div class="divb">Div B</div>
+                        <div class="divc">Div C</div>
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a class="button secondary rounded" href="PigPenEncrypt.html"
+                        >PigPen/Masonic
+                        <div class="diva">Div A</div></a
+                    >
+                </div>
+                <!-- <div class="cell small-4 medium-3">
                     <a
                         class="button secondary rounded"
                         href="RunningKeyEncoder.html?cipherType=runningKey"
                         >Running Key [NOT THIS YEAR]
                     </a>
                 </div> -->
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="PolluxEncrypt.html">Pollux<div class="divb">Div B</div>
-                    <div class="divc">Div C</div>
-                </a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="RailFenceEncrypt.html">Rail Fence<div class="divb">Div B</div>
-                </a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="RSAEncrypt.html">RSA
-                    <div class="divc">Div C State/Nat Only</div>
-                </a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="TapCodeEncrypt.html">Tap Code<div class="diva">Div A</div></a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="VigenereEncrypt.html?cipherType=vigenere">Vigen&egrave;re<div
-                        class="diva">Div A</div>
-                    <div class="divb">Div B</div>
-                    <div class="divc">Div C</div>
-                </a>
-            </div>
-            <div class="cell small-4 medium-3">
-                <a class="button secondary rounded" href="XenocryptEncrypt.html?cipherType=aristocrat&lang=es">Xenocrypt
-                    <div class="divb">Div B</div>
-                    <div class="divc">Div C</div>
-                </a>
+                <div class="cell small-4 medium-3">
+                    <a class="button secondary rounded" href="PolluxEncrypt.html"
+                        >Pollux
+                        <div class="divb">Div B</div>
+                        <div class="divc">Div C</div>
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a class="button secondary rounded" href="RailFenceEncrypt.html"
+                        >Rail Fence
+                        <div class="divb">Div B</div>
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a class="button secondary rounded" href="RSAEncrypt.html"
+                        >RSA
+                        <div class="divc">Div C State/Nat Only</div>
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a class="button secondary rounded" href="TapCodeEncrypt.html"
+                        >Tap Code
+                        <div class="diva">Div A</div></a
+                    >
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary rounded"
+                        href="VigenereEncrypt.html?cipherType=vigenere"
+                        >Vigen&egrave;re
+                        <div class="diva">Div A</div>
+                        <div class="divb">Div B</div>
+                        <div class="divc">Div C</div>
+                    </a>
+                </div>
+                <div class="cell small-4 medium-3">
+                    <a
+                        class="button secondary rounded"
+                        href="XenocryptEncrypt.html?cipherType=aristocrat&lang=es"
+                        >Xenocrypt
+                        <div class="divb">Div B</div>
+                        <div class="divc">Div C</div>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="callout secondary">
-        <h3>2020 Sample Tests</h3>
-        <hr />
-        <ul>
-            <!-- <li>
+        <div class="callout secondary">
+            <h3>2020 Sample Tests</h3>
+            <hr />
+            <ul>
+                <!-- <li>
                 <a href="TestManage.html?importURL=https://toebes.com/codebusters/Coaches_Institute_2019.json">Coaches
                     Institute 2019</a>
             </li> -->
-            <li>
-                <a href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_01_2020.json">2020 Sample 1</a>
-            </li>
-            <li>
-                <a href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_02_2020.json">2020 Sample 2</a>
-            </li>
-            <li>
-                <a href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_03_2020.json">2020 Sample 3</a>
-            </li>
-            <li>
-                <a href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_04_2020.json">2020 Sample 4</a>
-            </li>
-            <li>
-                <a href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_05_2020.json">2020 Sample 5</a>
-            </li>
-        </ul>
-        <a href="samples.html">Other Samples</a>
-    </div>
-</body>
-
+                <li>
+                    <a
+                        href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_01_2020.json"
+                        >2020 Sample 1</a
+                    >
+                </li>
+                <li>
+                    <a
+                        href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_02_2020.json"
+                        >2020 Sample 2</a
+                    >
+                </li>
+                <li>
+                    <a
+                        href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_03_2020.json"
+                        >2020 Sample 3</a
+                    >
+                </li>
+                <li>
+                    <a
+                        href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_04_2020.json"
+                        >2020 Sample 4</a
+                    >
+                </li>
+                <li>
+                    <a
+                        href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_05_2020.json"
+                        >2020 Sample 5</a
+                    >
+                </li>
+            </ul>
+            <a href="samples.html">Other Samples</a>
+        </div>
+        <div class="callout secondary">
+            <h3>Contributors</h3>
+            <hr />
+            <p>
+                This would not be possible without the tireless volunteer work of a good team of
+                developers:
+            </p>
+            <ul>
+                <li>
+                    <a href="https://www.linkedin.com/in/randy-labaza-084a471/">Randy Labaza</a> -
+                    Many of the interactive tests, automatic scoring, and way too many other items
+                    to list here.
+                </li>
+                <li>
+                    <a href="https://www.linkedin.com/in/sierramike/">Sean McDonald</a> -
+                    Authentication system
+                </li>
+                <li>
+                    <a href="https://www.linkedin.com/in/johntoebes/">John Toebes</a>
+                </li>
+                <li>
+                    <a href="https://www.linkedin.com/in/robert-gan-011651173/">Robert Gan</a> -
+                    Date picker functions.
+                </li>
+            </ul>
+        </div>
+    </body>
 </html>

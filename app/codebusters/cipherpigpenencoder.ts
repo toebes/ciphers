@@ -1,11 +1,16 @@
 import { cloneObject, makeFilledArray, StringMap } from '../common/ciphercommon';
-import { IScoreInformation, ITestQuestionFields, ITestType, toolMode } from '../common/cipherhandler';
+import {
+    IScoreInformation,
+    ITestQuestionFields,
+    ITestType,
+    toolMode,
+} from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
-const pigpen1 = require('../images/pigpen1.png');
-const pigpen2 = require('../images/pigpen2.png');
+import pigpen1 = require('../images/pigpen1.png');
+import pigpen2 = require('../images/pigpen2.png');
 
 /**
  * CipherPigPenEncoder - This class handles all of the actions associated with encoding
@@ -13,18 +18,15 @@ const pigpen2 = require('../images/pigpen2.png');
  */
 export class CipherPigPenEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = 'TestGuidance.html#PigPen';
+    public guidanceURL = 'TestGuidance.html#PigPen';
 
-    public validTests: ITestType[] = [ITestType.None,
-    ITestType.aregional];
+    public validTests: ITestType[] = [ITestType.None, ITestType.aregional];
     public defaultstate: IEncoderState = {
         cipherString: '',
         cipherType: ICipherType.PigPen,
         replacement: {},
     };
-    public state: IEncoderState = cloneObject(
-        this.defaultstate
-    ) as IEncoderState;
+    public state: IEncoderState = cloneObject(this.defaultstate) as IEncoderState;
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
         this.undocmdButton,
@@ -55,10 +57,10 @@ export class CipherPigPenEncoder extends CipherEncoder {
      * @returns Template of question fields to be filled in at runtime.
      */
     public getInteractiveTemplate(): ITestQuestionFields {
-        let len = this.state.cipherString.length;
-        let result: ITestQuestionFields = {
-            answer: makeFilledArray(len, " "),
-            notes: "",
+        const len = this.state.cipherString.length;
+        const result: ITestQuestionFields = {
+            answer: makeFilledArray(len, ' '),
+            notes: '',
         };
         return result;
     }
@@ -67,17 +69,17 @@ export class CipherPigPenEncoder extends CipherEncoder {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
         this.genTestUsage(result);
         this.genQuestionFields(result);
         this.genEncodeField(result);
         return result;
     }
     public getReverseReplacement(): StringMap {
-        let revRepl: StringMap = {};
+        const revRepl: StringMap = {};
         // Build a normal replacement map so that we can encode the string
-        let charset = this.getSourceCharset();
-        for (let c of charset) {
+        const charset = this.getSourceCharset();
+        for (const c of charset) {
             revRepl[c] = c;
         }
         return revRepl;
@@ -86,7 +88,7 @@ export class CipherPigPenEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'grid-x' });
+        const result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
         let width = 40;
         let extraclass = '';
@@ -94,20 +96,14 @@ export class CipherPigPenEncoder extends CipherEncoder {
             width = 29;
             extraclass = ' atest';
         }
-        let strings = this.makeReplacement(this.state.cipherString, width);
-        let table = new JTTable({
+        const strings = this.makeReplacement(this.state.cipherString, width);
+        const table = new JTTable({
             class: 'ansblock shrink cell unstriped pigpen' + extraclass,
         });
-        let tosolve = 0;
-        let toanswer = 1;
-        for (let strset of strings) {
-            this.addCipherTableRows(
-                table,
-                undefined,
-                strset[tosolve],
-                strset[toanswer],
-                true
-            );
+        const tosolve = 0;
+        const toanswer = 1;
+        for (const strset of strings) {
+            this.addCipherTableRows(table, undefined, strset[tosolve], strset[toanswer], true);
         }
         result.append(table.generate());
         return result;
@@ -118,14 +114,14 @@ export class CipherPigPenEncoder extends CipherEncoder {
      */
     public genScore(answer: string[]): IScoreInformation {
         this.genAlphabet();
-        let strings = this.makeReplacement(this.state.cipherString, 9999);
+        const strings = this.makeReplacement(this.state.cipherString, 9999);
         let toanswer = 1;
         if (this.state.operation === 'encode') {
             toanswer = 0;
         }
 
-        let solution: string[] = [];
-        for (let strset of strings) {
+        const solution: string[] = [];
+        for (const strset of strings) {
             solution.concat(strset[toanswer].split(''));
         }
 
@@ -137,10 +133,10 @@ export class CipherPigPenEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let qnumdisp = String(qnum + 1);
-        let idclass = "I" + qnumdisp + "_";
-        let result = $('<div/>', { id: "Q" + qnumdisp });
-        let tosolve = 0;
+        const qnumdisp = String(qnum + 1);
+        const idclass = 'I' + qnumdisp + '_';
+        const result = $('<div/>', { id: 'Q' + qnumdisp });
+        const tosolve = 0;
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {
@@ -148,85 +144,98 @@ export class CipherPigPenEncoder extends CipherEncoder {
             extraclass = ' atest';
         }
         let pos = 0;
-        let strings = this.makeReplacement(this.state.cipherString, width);
+        const strings = this.makeReplacement(this.state.cipherString, width);
 
-        let table = new JTTable({ class: "SOLVER ansblock pigpen" + extraclass });
-        for (let strset of strings) {
-            let qrow = table.addBodyRow();
-            let arow = table.addBodyRow();
-            let erow = table.addBodyRow();
-            erow.add({ settings: { class: "q v " + extraclass }, content: ($("<span/>").html("&nbsp;")) });
-            for (let c of strset[tosolve]) {
-                let extraclass = "";
-                let spos = String(pos);
-                qrow.add({ settings: { class: "q v" }, content: c });
+        const table = new JTTable({ class: 'SOLVER ansblock pigpen' + extraclass });
+        for (const strset of strings) {
+            const qrow = table.addBodyRow();
+            const arow = table.addBodyRow();
+            const erow = table.addBodyRow();
+            erow.add({
+                settings: { class: 'q v ' + extraclass },
+                content: $('<span/>').html('&nbsp;'),
+            });
+            for (const c of strset[tosolve]) {
+                const extraclass = '';
+                const spos = String(pos);
+                qrow.add({ settings: { class: 'q v' }, content: c });
                 if (this.isValidChar(c)) {
                     arow.add({
-                        settings: { class: extraclass }, content: $("<input/>", {
+                        settings: { class: extraclass },
+                        content: $('<input/>', {
                             id: idclass + spos,
-                            class: "awc",
-                            type: "text",
-                        })
+                            class: 'awc',
+                            type: 'text',
+                        }),
                     });
-                }
-                else {
-                    arow.add(" ");
+                } else {
+                    arow.add(' ');
                 }
                 pos++;
             }
         }
         result.append(table.generate());
 
-        result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }));
+        result.append($('<textarea/>', { id: 'in' + String(qnum + 1), class: 'intnote' }));
         return result;
     }
     /**
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'grid-x' });
+        const result = $('<div/>', { class: 'grid-x' });
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {
             width = 30;
             extraclass = ' atest';
         }
-        let strings = this.makeReplacement(this.state.cipherString, width);
-        let table = new JTTable({
+        const strings = this.makeReplacement(this.state.cipherString, width);
+        const table = new JTTable({
             class: 'ansblock shrink cell unstriped pigpen' + extraclass,
         });
         let tosolve = 0;
         if (this.state.operation === 'encode') {
             tosolve = 1;
         }
-        for (let strset of strings) {
-            this.addCipherTableRows(
-                table,
-                undefined,
-                strset[tosolve],
-                undefined,
-                true
-            );
+        for (const strset of strings) {
+            this.addCipherTableRows(table, undefined, strset[tosolve], undefined, true);
         }
         result.append(table.generate());
         return result;
     }
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        result.append($("<h3/>").text("How to Solve"));
-        result.append($("<p/>").text("First you want to create the lookup table " +
-            "by drawing two tic-tac-toe boards followed by two big Xs. "));
-        result.append($("<img/>", { src: pigpen1 }));
-        result.append($("<p/>").text("Then write the alphabet in the tic-tac-toe " +
-            "boards across and then down " +
-            "putting dots on the letters in the second board."));
-        result.append($("<p/>").text("Then fill up the two big Xs starting " +
-            "at the top then left, right and finally bottom, putting dots on the letters in the " +
-            "second X. like:"));
-        result.append($("<img/>", { src: pigpen2 }));
-        result.append($("<p/>").text("With that decode table, it should be quick " +
-            "decode the characters by looking at the shapes and whether " +
-            "the shape has a dot in it or not."));
+        const result = $('<div/>');
+        result.append($('<h3/>').text('How to Solve'));
+        result.append(
+            $('<p/>').text(
+                'First you want to create the lookup table ' +
+                    'by drawing two tic-tac-toe boards followed by two big Xs. '
+            )
+        );
+        result.append($('<img/>', { src: pigpen1 }));
+        result.append(
+            $('<p/>').text(
+                'Then write the alphabet in the tic-tac-toe ' +
+                    'boards across and then down ' +
+                    'putting dots on the letters in the second board.'
+            )
+        );
+        result.append(
+            $('<p/>').text(
+                'Then fill up the two big Xs starting ' +
+                    'at the top then left, right and finally bottom, putting dots on the letters in the ' +
+                    'second X. like:'
+            )
+        );
+        result.append($('<img/>', { src: pigpen2 }));
+        result.append(
+            $('<p/>').text(
+                'With that decode table, it should be quick ' +
+                    'decode the characters by looking at the shapes and whether ' +
+                    'the shape has a dot in it or not.'
+            )
+        );
         return result;
     }
 }

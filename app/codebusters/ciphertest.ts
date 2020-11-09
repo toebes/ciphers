@@ -164,8 +164,8 @@ export class CipherTest extends CipherHandler {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: ITestState, suppressOutput: boolean = false): void {
-        let curlang = this.state.curlang;
+    public restore(data: ITestState, suppressOutput = false): void {
+        const curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;
         this.state.curlang = curlang;
         this.copyState(this.state, data);
@@ -180,7 +180,7 @@ export class CipherTest extends CipherHandler {
      * @returns JQuery elements for managing the state
      */
     public genTestEditState(testdisp: ITestDisp): JQuery<HTMLElement> {
-        let radiobuttons = [
+        const radiobuttons = [
             { title: 'Edit Test', value: 'testedit' },
             { title: 'Test Packet', value: 'testprint' },
             { title: 'Answer Key', value: 'testans' },
@@ -195,7 +195,7 @@ export class CipherTest extends CipherHandler {
      * @returns JQuery elements for managing the state
      */
     public genPublishedEditState(testdisp: IPublishDisp): JQuery<HTMLElement> {
-        let radiobuttons = [
+        const radiobuttons = [
             { title: 'Published', value: 'published' },
             { title: 'Permissions', value: 'permissions' },
             { title: 'Schedule Test', value: 'schedule' },
@@ -208,7 +208,7 @@ export class CipherTest extends CipherHandler {
      * @param testmanage State
      */
     public genTestManageState(testmanage: ITestManage): JQuery<HTMLElement> {
-        let radiobuttons = [
+        const radiobuttons = [
             { title: 'Local', value: 'local' },
             { title: 'Published', value: 'published' },
         ];
@@ -218,7 +218,7 @@ export class CipherTest extends CipherHandler {
      * Report an error to the user.  This creates a closable warning box placed into the ans section
      * @param msg Error message to display
      */
-    public reportFailure(msg: string) {
+    public reportFailure(msg: string): void {
         console.log(msg);
         $('.ans').append(
             $('<div/>', { class: 'callout warning', 'data-closable': '' })
@@ -323,7 +323,7 @@ export class CipherTest extends CipherHandler {
     /**
      * Disconnect from the realtime system
      */
-    public disconnectRealtime() {
+    public disconnectRealtime(): void {
         if (this.cachedDomain !== undefined) {
             this.cachedDomain.disconnect();
             this.cachedDomain = undefined;
@@ -336,7 +336,7 @@ export class CipherTest extends CipherHandler {
      */
     public cacheConnectRealtime(): Promise<ConvergenceDomain> {
         if (this.cachedDomain !== undefined) {
-            let result = Promise.resolve(this.cachedDomain);
+            const result = Promise.resolve(this.cachedDomain);
             return result;
         }
 
@@ -344,7 +344,7 @@ export class CipherTest extends CipherHandler {
             this.disconnectRealtime();
         });
 
-        let result = this.connectRealtime();
+        const result = this.connectRealtime();
         result.then((domain: ConvergenceDomain) => {
             this.cachedDomain = domain;
         });
@@ -360,7 +360,7 @@ export class CipherTest extends CipherHandler {
      */
     public mapTestTypeString(id: string): ITestType {
         let result = ITestType.None;
-        for (let entry of this.testTypeMap) {
+        for (const entry of this.testTypeMap) {
             if (entry.id === id) {
                 result = entry.type;
                 break;
@@ -374,7 +374,7 @@ export class CipherTest extends CipherHandler {
      */
     public mapTestTypeID(testtype: ITestType): string {
         let result = '';
-        for (let entry of this.testTypeMap) {
+        for (const entry of this.testTypeMap) {
             if (entry.type === testtype) {
                 result = entry.id;
                 break;
@@ -384,7 +384,7 @@ export class CipherTest extends CipherHandler {
     }
     public setTestType(testtype: ITestType): boolean {
         let changed = false;
-        let test = this.getTestEntry(this.state.test);
+        const test = this.getTestEntry(this.state.test);
         if (testtype !== test.testtype) {
             changed = true;
             test.testtype = testtype;
@@ -395,7 +395,7 @@ export class CipherTest extends CipherHandler {
     public checkXMLImport(): void {
         if (this.state.importURL !== undefined) {
             if (this.state.importURL !== '') {
-                let url = this.state.importURL;
+                const url = this.state.importURL;
                 $.getJSON(url, (data) => {
                     this.importXML(data);
                 }).fail(() => {
@@ -429,13 +429,13 @@ export class CipherTest extends CipherHandler {
      * @returns string form of the JSON for the test
      */
     public generateTestData(test: ITest): any {
-        let result = {};
+        const result = {};
         result['TEST.0'] = test;
 
         if (test.timed !== -1) {
             result['CIPHER.' + String(test.timed)] = this.getFileEntry(test.timed);
         }
-        for (let entry of test.questions) {
+        for (const entry of test.questions) {
             result['CIPHER.' + String(entry)] = this.getFileEntry(entry);
         }
         return result;
@@ -453,19 +453,19 @@ export class CipherTest extends CipherHandler {
      * @param test Test to duplicate
      */
     public gotoEditCopyTest(test: number): void {
-        let testdata = this.getTestEntry(test);
+        const testdata = this.getTestEntry(test);
         testdata.title = 'DUP ' + testdata.title;
         if (testdata.timed !== -1) {
-            let entry = this.getFileEntry(testdata.timed);
+            const entry = this.getFileEntry(testdata.timed);
             entry.question = 'DUP ' + entry.question;
             testdata.timed = this.setFileEntry(-1, entry);
         }
-        for (let i in testdata.questions) {
-            let entry = this.getFileEntry(testdata.questions[i]);
+        for (const i in testdata.questions) {
+            const entry = this.getFileEntry(testdata.questions[i]);
             entry.question = 'DUP ' + entry.question;
             testdata.questions[i] = this.setFileEntry(-1, entry);
         }
-        let newtest = this.setTestEntry(-1, testdata);
+        const newtest = this.setTestEntry(-1, testdata);
         location.assign('TestGenerator.html?test=' + String(newtest));
     }
     public deleteTest(test: number): void {
@@ -561,7 +561,7 @@ export class CipherTest extends CipherHandler {
         }
     }
     public gotoEditCipher(entry: number): void {
-        let entryURL = this.getEntryURL(entry);
+        const entryURL = this.getEntryURL(entry);
         if (entryURL !== '') {
             location.assign(entryURL);
         } else {
@@ -570,24 +570,24 @@ export class CipherTest extends CipherHandler {
     }
     public genQuestionTable(filter: number, buttons: buttonInfo[]): JQuery<HTMLElement> {
         // Figure out what items we will not display if they gave us a filter
-        let useditems: { [index: string]: boolean } = {};
+        const useditems: { [index: string]: boolean } = {};
         if (filter !== undefined) {
-            let test = this.getTestEntry(this.state.test);
+            const test = this.getTestEntry(this.state.test);
             if (test.timed !== -1) {
                 useditems[test.timed] = true;
             }
-            for (let entry of test.questions) {
+            for (const entry of test.questions) {
                 useditems[entry] = true;
             }
         }
 
-        let testcount = this.getTestCount();
-        let testuse: { [index: string]: JQuery<HTMLElement> } = {};
-        let testNames: NumberMap = {};
+        const testcount = this.getTestCount();
+        const testuse: { [index: string]: JQuery<HTMLElement> } = {};
+        const testNames: NumberMap = {};
 
         // Figure out what tests each entry is used with
         for (let testent = 0; testent < testcount; testent++) {
-            let test = this.getTestEntry(testent);
+            const test = this.getTestEntry(testent);
             // Make sure we have a unique title for the test
             let title = test.title;
             if (title === '') {
@@ -604,7 +604,7 @@ export class CipherTest extends CipherHandler {
                 test.questions.unshift(test.timed);
             }
             // Generate a clickable URL for each entry in the test
-            for (let entry of test.questions) {
+            for (const entry of test.questions) {
                 if (entry in testuse) {
                     // If this is a subsequent entry, separate them with a comma
                     testuse[entry].append(', ');
@@ -620,11 +620,11 @@ export class CipherTest extends CipherHandler {
             }
         }
 
-        let result = $('<div/>', { class: 'questions' });
+        const result = $('<div/>', { class: 'questions' });
 
-        let cipherCount = this.getCipherCount();
-        let table = new JTTable({ class: 'cell stack queslist' });
-        let row = table.addHeaderRow();
+        const cipherCount = this.getCipherCount();
+        const table = new JTTable({ class: 'cell stack queslist' });
+        const row = table.addHeaderRow();
         row.add('Question')
             .add('Action')
             .add('Type')
@@ -655,13 +655,13 @@ export class CipherTest extends CipherHandler {
         title: string,
         testtype: ITestType
     ): JQuery<HTMLElement> {
-        let inputgroup = $('<div/>', {
+        const inputgroup = $('<div/>', {
             class: 'input-group cell small-12 medium-12 large-12',
         });
         $('<span/>', { class: 'input-group-label' })
             .text(title)
             .appendTo(inputgroup);
-        let select = $('<select/>', {
+        const select = $('<select/>', {
             id: id,
             class: 'input-group-field',
         });
@@ -675,7 +675,7 @@ export class CipherTest extends CipherHandler {
         }
         select.append(option);
 
-        for (let entry of this.testTypeMap) {
+        for (const entry of this.testTypeMap) {
             option = $('<option />', {
                 value: entry.id,
             }).html(entry.title);
@@ -697,13 +697,13 @@ export class CipherTest extends CipherHandler {
         title: string,
         testtype: ITestType
     ): JQuery<HTMLElement> {
-        let inputgroup = $('<div/>', {
+        const inputgroup = $('<div/>', {
             class: 'input-group cell small-12 medium-12 large-12',
         });
         $('<span/>', { class: 'input-group-label' })
             .text(title)
             .appendTo(inputgroup);
-        let select = $('<select/>', {
+        const select = $('<select/>', {
             id: id,
             class: 'input-group-field',
         });
@@ -714,11 +714,11 @@ export class CipherTest extends CipherHandler {
                 selected: 'selected',
             }).text('--Select a Cipher Type to add--')
         );
-        for (let entry of this.cipherChoices) {
+        for (const entry of this.cipherChoices) {
             // Make sure that this type of cipher is legal for this type of test
-            let cipherhandler = CipherPrintFactory(entry.cipherType, entry.lang);
+            const cipherhandler = CipherPrintFactory(entry.cipherType, entry.lang);
             if (cipherhandler.CheckAppropriate(testtype) === '') {
-                let option = $('<option />', {
+                const option = $('<option />', {
                     value: entry.cipherType,
                 });
                 if (entry.lang !== undefined) {
@@ -734,7 +734,7 @@ export class CipherTest extends CipherHandler {
         }
         // See if we need to add the ability to add existing ciphers
         let cipherCount = this.getCipherCount();
-        let test = this.getTestEntry(this.state.test);
+        const test = this.getTestEntry(this.state.test);
         cipherCount -= test.questions.length;
         if (test.timed !== -1) {
             cipherCount--;
@@ -771,7 +771,7 @@ export class CipherTest extends CipherHandler {
         let row = table.addBodyRow();
         // We have a timed question on everything except the Division A
         if (order === -1 && qnum === -1 && testtype !== ITestType.aregional) {
-            let callout = $('<div/>', {
+            const callout = $('<div/>', {
                 class: 'callout warning',
             }).text('No Timed Question!  Add one from below');
             callout.append(
@@ -797,7 +797,7 @@ export class CipherTest extends CipherHandler {
                 qerror = 'Timed question not allowed for ' + this.getTestTypeName(testtype);
             } else if (testtype !== undefined) {
                 // If we know the type of test, see if it has any problems with the question
-                let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
+                const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
                 cipherhandler.restore(state);
                 qerror = cipherhandler.CheckAppropriate(testtype);
                 if (qerror !== '') {
@@ -808,11 +808,11 @@ export class CipherTest extends CipherHandler {
                     }
                 }
             }
-            let buttonset = $('<div/>', {
+            const buttonset = $('<div/>', {
                 class: 'button-group round shrink',
             });
-            for (let btninfo of buttons) {
-                let button = $('<button/>', {
+            for (const btninfo of buttons) {
+                const button = $('<button/>', {
                     'data-entry': order,
                     type: 'button',
                     class: btninfo.btnClass + ' button',
@@ -839,7 +839,7 @@ export class CipherTest extends CipherHandler {
                 );
             if (qerror !== '') {
                 row = table.addBodyRow();
-                let callout = $('<div/>', {
+                const callout = $('<div/>', {
                     class: 'callout alert',
                 }).text(qerror);
                 row.add({
@@ -857,15 +857,15 @@ export class CipherTest extends CipherHandler {
             if (qnum !== -1) {
                 qtxt = 'Question ' + String(qnum) + ': ';
             }
-            let callout = $('<div/>', {
+            const callout = $('<div/>', {
                 class: 'callout alert',
             }).text(qtxt + message);
             $('.testerrors').append(callout);
         }
     }
     public GetPrintFactory(question: number): CipherHandler {
-        let state = this.getFileEntry(question);
-        let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
+        const state = this.getFileEntry(question);
+        const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
         cipherhandler.restore(state);
         return cipherhandler;
     }
@@ -880,12 +880,12 @@ export class CipherTest extends CipherHandler {
         extraclass: string,
         printSolution: boolean
     ): JQuery<HTMLElement> {
-        let state = handler.state;
+        const state = handler.state;
         let extratext = '';
-        let result = $('<div/>', {
+        const result = $('<div/>', {
             class: 'question ' + extraclass,
         });
-        let qtext = $('<div/>', { class: 'qtext' });
+        const qtext = $('<div/>', { class: 'qtext' });
         if (qnum === -1) {
             qtext.append(
                 $('<span/>', {
@@ -913,7 +913,7 @@ export class CipherTest extends CipherHandler {
         );
 
         result.append(qtext);
-        let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
+        const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
         cipherhandler.restore(state);
         // Remember this question points so we can generate the tiebreaker order
         this.qdata.push({ qnum: qnum, points: state.points });
@@ -933,12 +933,12 @@ export class CipherTest extends CipherHandler {
         handler: CipherHandler,
         extraclass: string
     ): JQuery<HTMLElement> {
-        let state = handler.state;
+        const state = handler.state;
         let extratext = '';
-        let result = $('<div/>', {
+        const result = $('<div/>', {
             class: 'question ' + extraclass,
         });
-        let qtext = $('<div/>', { class: 'qtext' });
+        const qtext = $('<div/>', { class: 'qtext' });
         if (qnum === -1) {
             qtext.append(
                 $('<span/>', {
@@ -965,7 +965,7 @@ export class CipherTest extends CipherHandler {
             }).html(state.question + extratext)
         );
         result.append(qtext);
-        let cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
+        const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
         cipherhandler.restore(state);
         // Did the handler use a running key
         if (cipherhandler.usesRunningKey) {
@@ -1006,7 +1006,7 @@ export class CipherTest extends CipherHandler {
             }
             // Both are objects, if any element of the object doesn't match
             // then they are not equivalent
-            for (let elem of a) {
+            for (const elem of a) {
                 if (!this.isEquivalent(a[elem], b[elem])) {
                     return false;
                 }
@@ -1022,13 +1022,13 @@ export class CipherTest extends CipherHandler {
      */
     public isSameCipher(state1: IState, state2: IState): boolean {
         // Make sure every element in state1 that is non empty is also in state 2
-        for (let elem in state1) {
+        for (const elem in state1) {
             if (!this.isEquivalent(state1[elem], state2[elem])) {
                 return false;
             }
         }
         // And do the same for everything in reverse
-        for (let elem in state2) {
+        for (const elem in state2) {
             if (!this.isEquivalent(state2[elem], state1[elem])) {
                 return false;
             }
@@ -1037,9 +1037,9 @@ export class CipherTest extends CipherHandler {
     }
     public findTest(newTest: ITest): number {
         // Go through all the tests and build a structure holding them that we will convert to JSON
-        let testcount = this.getTestCount();
+        const testcount = this.getTestCount();
         for (let testnum = 0; testnum < testcount; testnum++) {
-            let test = this.getTestEntry(testnum);
+            const test = this.getTestEntry(testnum);
             if (
                 test.title === newTest.title &&
                 test.timed === newTest.timed &&
@@ -1065,14 +1065,14 @@ export class CipherTest extends CipherHandler {
     public processTestXML(data: any): void {
         // Load in all the ciphers we know of so that we don't end up doing a duplicate
         let cipherCount = this.getCipherCount();
-        let cipherCache: { [index: number]: IState } = {};
-        let inputMap: NumberMap = {};
+        const cipherCache: { [index: number]: IState } = {};
+        const inputMap: NumberMap = {};
         for (let entry = 0; entry < cipherCount; entry++) {
             cipherCache[entry] = this.getFileEntry(entry);
         }
         // First we get all the ciphers defined and add them to the list of ciphers
-        for (let ent in data) {
-            let pieces = ent.split('.');
+        for (const ent in data) {
+            const pieces = ent.split('.');
             // Make sure we have a valid object that we can bring in
             if (
                 pieces[0] === 'CIPHER' &&
@@ -1083,8 +1083,8 @@ export class CipherTest extends CipherHandler {
             ) {
                 // It is a cipher entry // It is an object // with a cipherType // and a cipherString
                 // that we haven't seen before
-                let oldPos = Number(pieces[1]);
-                let toAdd: IState = data[ent];
+                const oldPos = Number(pieces[1]);
+                const toAdd: IState = data[ent];
                 let needNew = true;
                 // Now make sure that we don't already have this cipher loaded
                 for (let oldEnt = 0; oldEnt < cipherCount; oldEnt++) {
@@ -1096,7 +1096,7 @@ export class CipherTest extends CipherHandler {
                 }
                 // If we hadn't found it, let's go ahead and add it
                 if (needNew) {
-                    let newval = this.setFileEntry(-1, toAdd);
+                    const newval = this.setFileEntry(-1, toAdd);
                     cipherCache[newval] = toAdd;
                     inputMap[String(oldPos)] = newval;
                     cipherCount++;
@@ -1104,8 +1104,8 @@ export class CipherTest extends CipherHandler {
             }
         }
         // Now that we have all the ciphers in, we can go back and add the tests
-        for (let ent in data) {
-            let pieces = ent.split('.');
+        for (const ent in data) {
+            const pieces = ent.split('.');
             // Make sure we have a valid object that we can bring in
             if (
                 pieces[0] === 'TEST' &&
@@ -1116,7 +1116,7 @@ export class CipherTest extends CipherHandler {
             ) {
                 // It is a cipher entry // It is an object // with a title // with a timed question
                 // and questions
-                let newTest: ITest = data[ent];
+                const newTest: ITest = data[ent];
                 // Go through and fix up all the entries.  First the timed question
                 if (newTest.timed !== -1 && inputMap[newTest.timed] !== undefined) {
                     newTest.timed = inputMap[newTest.timed];

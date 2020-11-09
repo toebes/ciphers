@@ -85,7 +85,7 @@ export class CipherTestTimed extends CipherTest {
      * Sets up the timer so that it displays the countdown
      * @param msg Message string for the timer
      */
-    public setTimerMessage(msg: string) {
+    public setTimerMessage(msg: string): void {
         const target = $('.waittimer');
         const intervalInfo = $('<h3/>')
             .text(msg)
@@ -97,7 +97,7 @@ export class CipherTestTimed extends CipherTest {
      * Update the remaining time for the test
      * @param remaining Time in ms remaining before test start
      */
-    private updateTimer(remaining: number) {
+    private updateTimer(remaining: number): void {
         $('#remaintime').text(formatTime(remaining));
     }
     /**
@@ -107,7 +107,7 @@ export class CipherTestTimed extends CipherTest {
      * @param msg Message about the test
      * @param timestamp optional time to be included with the message
      */
-    public setTestStatusMessage(msg: string, timestamp?: number) {
+    public setTestStatusMessage(msg: string, timestamp?: number): void {
         const target = $('.testcontent');
 
         let content = msg;
@@ -120,7 +120,7 @@ export class CipherTestTimed extends CipherTest {
      * Report that time has changed.
      * @param msg Msg about time adjustment event
      */
-    public timeAnomaly(msg: string) {
+    public timeAnomaly(msg: string): void {
         console.log('**Time anomaly reported:' + msg);
     }
     /**
@@ -144,7 +144,7 @@ export class CipherTestTimed extends CipherTest {
      * @param answermodel Interactive answer model
      * @param collaborators Array of collaborators currently on the test
      */
-    private updateUserStatus(answermodel: RealTimeModel, collaborators: ModelCollaborator[]) {
+    private updateUserStatus(answermodel: RealTimeModel, collaborators: ModelCollaborator[]): void {
         const answertemplate = answermodel.root().value() as IAnswerTemplate;
         for (let i = 1; i <= 3; i++) {
             $('#part' + String(i)).removeClass('connected');
@@ -179,7 +179,7 @@ export class CipherTestTimed extends CipherTest {
      * Track changes to who is working on the test
      * @param answermodel Interactive answer model
      */
-    private trackUsers(answermodel: RealTimeModel) {
+    private trackUsers(answermodel: RealTimeModel): void {
         answermodel.collaboratorsAsObservable().subscribe((collaborators: ModelCollaborator[]) => {
             this.updateUserStatus(answermodel, collaborators);
         });
@@ -195,7 +195,7 @@ export class CipherTestTimed extends CipherTest {
         answermodel: RealTimeModel,
         userid: string,
         realtimeSessionid: RealTimeString
-    ) {
+    ): void {
         // Figure out who is connected to the test
         const collaborators = answermodel.collaborators();
         let matches = 0;
@@ -258,7 +258,7 @@ export class CipherTestTimed extends CipherTest {
      * on the model and make sure that they have Modify permissions
      * @param answermodel
      */
-    private ensureCoach(answermodel: RealTimeModel) {
+    private ensureCoach(answermodel: RealTimeModel): void {
         $('.timer').prepend($('<div/>', { class: 'coach' }).text('Coach'));
         const permissionsManager = answermodel.permissionsManager();
         permissionsManager
@@ -321,7 +321,7 @@ export class CipherTestTimed extends CipherTest {
         state: IState,
         qnum: number,
         realTimeObject: RealTimeObject
-    ) {
+    ): void {
         // Sometimes the handlers die because of insufficient data passed to them (or because they are accessing something that they shouldn't)
         // We protect from this to also prevent it from popping back to the higher level try/catch which is dealing with any communication
         // errors to the server
@@ -389,7 +389,7 @@ export class CipherTestTimed extends CipherTest {
      * Check the time and user information to make sure that we are in the window to run the test
      * @param testUID answer template id
      */
-    public displayInteractiveTest(testUID: string) {
+    public displayInteractiveTest(testUID: string): void {
         this.connectRealtime().then((domain: ConvergenceDomain) => {
             // 2. Initializes the application after connecting by opening a model.
             const modelService = domain.models();
@@ -495,7 +495,7 @@ export class CipherTestTimed extends CipherTest {
      * Get the initial timed values for the test and then update the tracking values.
      * @param answerModel realtime model for the test answers
      */
-    private getTestTimes(answermodel: RealTimeModel) {
+    private getTestTimes(answermodel: RealTimeModel): void {
         // Get the realtime objects to track changes
         const starttimeObject = answermodel.elementAt('starttime') as RealTimeNumber;
         const endtimeObject = answermodel.elementAt('endtime') as RealTimeNumber;
@@ -528,7 +528,7 @@ export class CipherTestTimed extends CipherTest {
         modelService: ModelService,
         testid: string,
         answermodel: RealTimeModel
-    ) {
+    ): void {
         if (
             this.testTimeInfo.truetime.UTCNow() <
             this.testTimeInfo.startTime - timestampFromMinutes(5)
@@ -556,7 +556,11 @@ export class CipherTestTimed extends CipherTest {
      * @param answermodel Interactive answer model
      * @param elem
      */
-    private openTestModel(modelService: ModelService, testid: string, answermodel: RealTimeModel) {
+    private openTestModel(
+        modelService: ModelService,
+        testid: string,
+        answermodel: RealTimeModel
+    ): void {
         modelService
             .open(testid)
             .then((testmodel: RealTimeModel) => {
@@ -573,7 +577,7 @@ export class CipherTestTimed extends CipherTest {
      * @param interactive Test template
      * @param answermodel Interactive answer model
      */
-    public buildScoreTemplateAndHints(testmodel: RealTimeModel, answermodel: RealTimeModel) {
+    public buildScoreTemplateAndHints(testmodel: RealTimeModel, answermodel: RealTimeModel): void {
         this.setTimerMessage('Connecting to test server... ');
 
         const target = $('.testcontent');
@@ -691,7 +695,10 @@ export class CipherTestTimed extends CipherTest {
      * @param interactive Test template
      * @param answermodel Interactive answer model
      */
-    private waitToDisplayTest(interactive: { [key: string]: any }, answermodel: RealTimeModel) {
+    private waitToDisplayTest(
+        interactive: { [key: string]: any },
+        answermodel: RealTimeModel
+    ): void {
         this.setTimerMessage('Please Standby, The test will start in ');
         this.trackUsers(answermodel);
         $('.timer').show();
@@ -723,7 +730,7 @@ export class CipherTestTimed extends CipherTest {
      * @param interactive Test template
      * @param answermodel Interactive answer model
      */
-    private makeTestLive(interactive: { [key: string]: any }, answermodel: RealTimeModel) {
+    private makeTestLive(interactive: { [key: string]: any }, answermodel: RealTimeModel): void {
         Split({
             minsize: 20,
             rowMinSize: 20,
@@ -792,7 +799,7 @@ export class CipherTestTimed extends CipherTest {
      * Run the test until we hit the time limit
      * @param answermodel Interactive answer model
      */
-    private runTestLive(answermodel: RealTimeModel) {
+    private runTestLive(answermodel: RealTimeModel): void {
         $('.waittimer').empty();
         $('.testcontent').show();
         $('.instructions')
@@ -813,7 +820,7 @@ export class CipherTestTimed extends CipherTest {
      * Stage 8: Cleanup.
      * @param answermodel Interactive answer model
      */
-    private shutdownTest(answermodel: RealTimeModel, message?: string) {
+    private shutdownTest(answermodel: RealTimeModel, message?: string): void {
         $(window).off('beforeunload');
         if (message === undefined) {
             message = 'Time is up. The test is now over.  Scheduled end time ';

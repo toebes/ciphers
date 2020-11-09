@@ -1,6 +1,6 @@
-import { Mapper } from "./mapper";
+import { Mapper } from './mapper';
 
-const Aval = "A".charCodeAt(0);
+const Aval = 'A'.charCodeAt(0);
 
 export class mapPorta extends Mapper {
     /**
@@ -14,10 +14,10 @@ export class mapPorta extends Mapper {
         ckey = ckey.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
         if (cpt.toLowerCase() === cpt || ckey.toLowerCase() === ckey) {
-            return "?";
+            return '?';
         }
-        let keyval = ckey.charCodeAt(0) - Aval;
-        let ptval = cpt.charCodeAt(0) - Aval;
+        const keyval = ckey.charCodeAt(0) - Aval;
+        const ptval = cpt.charCodeAt(0) - Aval;
         let ctval = 0;
         if (ptval < 13) {
             ctval = ((Math.floor(keyval / 2) + ptval) % 13) + 13;
@@ -47,19 +47,16 @@ export class mapPorta extends Mapper {
         cpt = cpt.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
         if (cpt.toLowerCase() === cpt || ct.toLowerCase() === ct) {
-            return "?";
+            return '?';
         }
-        let ctval = ct.charCodeAt(0) - Aval;
-        let ptval = cpt.charCodeAt(0) - Aval;
+        const ctval = ct.charCodeAt(0) - Aval;
+        const ptval = cpt.charCodeAt(0) - Aval;
         // For Porta, since a letter maps to the opposite, you can't have both
         // a ct and PT value on the same side of the alphabet
         if ((ctval < 13 && ptval < 13) || (ctval >= 13 && ptval >= 13)) {
-            return "?";
+            return '?';
         }
-        let keyval =
-            (Math.abs(ct.charCodeAt(0) - Aval - (cpt.charCodeAt(0) - Aval)) %
-                13) *
-            2;
+        const keyval = (Math.abs(ct.charCodeAt(0) - Aval - (cpt.charCodeAt(0) - Aval)) % 13) * 2;
         return this.getCharCode(keyval);
     }
 }

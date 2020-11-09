@@ -1,6 +1,6 @@
-import { ITestTimeInfo } from "../common/cipherhandler";
+import { ITestTimeInfo } from '../common/cipherhandler';
 import { RealTimeObject } from '@convergence/convergence';
-import { InteractiveEncoder } from "./interactiveencoder";
+import { InteractiveEncoder } from './interactiveencoder';
 
 export class InteractiveRailFenceEncoder extends InteractiveEncoder {
     /**
@@ -10,13 +10,23 @@ export class InteractiveRailFenceEncoder extends InteractiveEncoder {
      * @param realTimeElement RealTimeObject for synchronizing the contents
      * @param testTimeInfo Timing information for the current test.
      */
-    public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo) {
-        let qnumdisp = String(qnum + 1);
-        let qdivid = "#Q" + qnumdisp + " ";
+    public attachInteractiveHandlers(
+        qnum: number,
+        realTimeElement: RealTimeObject,
+        testTimeInfo: ITestTimeInfo
+    ): void {
+        const qnumdisp = String(qnum + 1);
+        const qdivid = '#Q' + qnumdisp + ' ';
 
-        let realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
-        let realtimeReplacement = this.attachInteractiveReplacementsHandler(realTimeElement, qnumdisp);
-        let realtimeSeparators = this.attachInteractiveSeparatorsHandler(realTimeElement, qnumdisp);
+        const realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
+        const realtimeReplacement = this.attachInteractiveReplacementsHandler(
+            realTimeElement,
+            qnumdisp
+        );
+        const realtimeSeparators = this.attachInteractiveSeparatorsHandler(
+            realTimeElement,
+            qnumdisp
+        );
 
         this.attachInteractiveNotesHandler(qnumdisp, realTimeElement);
         this.bindSingleCharacterField(qdivid, realtimeAnswer, realtimeReplacement);

@@ -18,15 +18,15 @@ export function parseQueryString(queryString: string): StringMap {
         queryString = window.location.search.substring(1);
     }
 
-    let params = {};
+    const params = {};
 
-    let queries = queryString.split('&');
+    const queries = queryString.split('&');
 
     queries.forEach((indexQuery: string) => {
-        let indexPair = indexQuery.split('=');
+        const indexPair = indexQuery.split('=');
 
-        let queryKey = decodeURIComponent(indexPair[0]);
-        let queryValue = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : '');
+        const queryKey = decodeURIComponent(indexPair[0]);
+        const queryValue = decodeURIComponent(indexPair.length > 1 ? indexPair[1] : '');
 
         // If we want to handle the multi value case
         if (params[queryKey] !== undefined) {

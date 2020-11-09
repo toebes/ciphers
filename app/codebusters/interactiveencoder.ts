@@ -13,7 +13,7 @@ export class InteractiveEncoder extends InteractiveHandler {
      * @param answer Answer string to check
      * @param realtimeSolvetime Handler for the realtime number data for the solution time
      */
-    public checkAnswer(answer: string[], realtimeSolvetime: RealTimeNumber) {
+    public checkAnswer(answer: string[], realtimeSolvetime: RealTimeNumber): void {
         const now = this.testTimeInfo.truetime.UTCNow();
         $('#checktimed').prop('disabled', true);
         let answertest = '';
@@ -52,7 +52,7 @@ export class InteractiveEncoder extends InteractiveHandler {
      * Set the state of the check timed question button based on the current time.
      * @param realtimeSolvetime Handler for the realtime number data for the solution time
      */
-    public updateTimerCheckButton(realtimeSolvetime: RealTimeNumber) {
+    public updateTimerCheckButton(realtimeSolvetime: RealTimeNumber): void {
         const solvetime = realtimeSolvetime.value();
         if (solvetime != undefined && solvetime > 0) {
             $('#checktimed')
@@ -79,7 +79,7 @@ export class InteractiveEncoder extends InteractiveHandler {
      * Process to track if they still can answer the timed question.
      * @param realtimeSolvetime Handler for the realtime number data for the solution time
      */
-    public trackAnswerTime(realtimeSolvetime: RealTimeNumber) {
+    public trackAnswerTime(realtimeSolvetime: RealTimeNumber): void {
         this.updateTimerCheckButton(realtimeSolvetime);
         const now = this.testTimeInfo.truetime.UTCNow();
         if (now < this.testTimeInfo.endTimedQuestion) {
@@ -98,7 +98,7 @@ export class InteractiveEncoder extends InteractiveHandler {
         qnum: number,
         realTimeElement: RealTimeObject,
         testTimeInfo: ITestTimeInfo
-    ) {
+    ): void {
         this.testTimeInfo = testTimeInfo;
         const qnumdisp = String(qnum + 1);
         const qdivid = '#Q' + qnumdisp + ' ';

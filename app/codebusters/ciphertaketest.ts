@@ -27,8 +27,8 @@ export class CipherTakeTest extends CipherTest {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: ITestState, suppressOutput: boolean = false): void {
-        let curlang = this.state.curlang;
+    public restore(data: ITestState, suppressOutput = false): void {
+        const curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;
         this.state.curlang = curlang;
         this.copyState(this.state, data);
@@ -51,10 +51,10 @@ export class CipherTakeTest extends CipherTest {
      * Generates a list of all the tests on the server in a table.
      */
     public genTestList(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'testlist' });
-        let userid = this.getConfigString('userid', '');
+        const result = $('<div/>', { class: 'testlist' });
+        const userid = this.getConfigString('userid', '');
         if (userid === '') {
-            let callout = $('<div/>', {
+            const callout = $('<div/>', {
                 class: 'callout alert',
             })
                 .append('Please ')
@@ -66,8 +66,8 @@ export class CipherTakeTest extends CipherTest {
                 .append(' in order to see tests assigned to you.');
             result.append(callout);
         } else {
-            let table = new JTTable({ class: 'cell shrink publist' });
-            let row = table.addHeaderRow();
+            const table = new JTTable({ class: 'cell shrink publist' });
+            const row = table.addHeaderRow();
             row.add('Action')
                 .add('Title')
                 .add('Start Time');
@@ -83,18 +83,18 @@ export class CipherTakeTest extends CipherTest {
      * Find all the test sources on the server
      * @param domain Convergence Domain to query against
      */
-    private findAllTests(domain: ConvergenceDomain) {
+    private findAllTests(domain: ConvergenceDomain): void {
         const modelService = domain.models();
-        let userid = this.getConfigString('userid', 'NOBODY');
+        const userid = this.getConfigString('userid', 'NOBODY');
         modelService
             .query('SELECT * FROM codebusters_answers')
             .then((results) => {
                 let count = 0;
                 results.data.forEach((result) => {
-                    let answertemplate = result.data as IAnswerTemplate;
+                    const answertemplate = result.data as IAnswerTemplate;
                     // Check to see if they are permitted
                     let isAssigned = false;
-                    for (let asn of answertemplate.assigned) {
+                    for (const asn of answertemplate.assigned) {
                         if (asn.userid === userid) {
                             isAssigned = true;
                             break;
@@ -109,7 +109,7 @@ export class CipherTakeTest extends CipherTest {
                     );
                 });
                 if (count === 0) {
-                    let callout = $('<div/>', {
+                    const callout = $('<div/>', {
                         class: 'callout alert',
                     }).text('There are currently no tests assigned for you to take.');
                     $('.testlist').append(callout);
@@ -131,17 +131,17 @@ export class CipherTakeTest extends CipherTest {
         answermodelid: string,
         answertemplate: IAnswerTemplate,
         isAssigned: boolean
-    ) {
-        let tr = $('<tr/>', { 'data-answer': answermodelid });
-        let buttons = $('<div/>', { class: 'button-group round shrink' });
-        let now = Date.now();
-        let showCoachedTest = true;
+    ): void {
+        const tr = $('<tr/>', { 'data-answer': answermodelid });
+        const buttons = $('<div/>', { class: 'button-group round shrink' });
+        const now = Date.now();
+        // const showCoachedTest = true;
 
         if (answertemplate.endtime < now) {
-            let endtime = new Date(answertemplate.endtime).toLocaleString();
+            const endtime = new Date(answertemplate.endtime).toLocaleString();
             buttons.append('Test ended at ' + endtime);
         } else if (answertemplate.starttime > now + timestampFromMinutes(30)) {
-            let starttime = new Date(answertemplate.starttime).toLocaleString();
+            const starttime = new Date(answertemplate.starttime).toLocaleString();
             buttons.append('Test starts at ' + starttime);
         } else if (!isAssigned) {
             buttons.append(
@@ -165,15 +165,15 @@ export class CipherTakeTest extends CipherTest {
             //     }).text('Print Hints')
             // );
         }
-        let testmodelid = answertemplate.testid;
-        let starttime = new Date(answertemplate.starttime).toLocaleString();
-        let testtitle = $('<span/>').text('..Loading...');
+        const testmodelid = answertemplate.testid;
+        const starttime = new Date(answertemplate.starttime).toLocaleString();
+        const testtitle = $('<span/>').text('..Loading...');
         tr.append($('<td/>').append($('<div/>', { class: 'grid-x' }).append(buttons)))
             .append($('<td/>').append(testtitle))
             .append($('<td/>').text(starttime));
 
         this.fillTitle(modelService, testtitle, testmodelid);
-        var curtr = $('tr[data-answer="' + answermodelid + '"]');
+        const curtr = $('tr[data-answer="' + answermodelid + '"]');
         if (curtr.length > 0) {
             curtr.replaceWith(tr);
         } else {
@@ -190,11 +190,11 @@ export class CipherTakeTest extends CipherTest {
         modelService: Convergence.ModelService,
         elem: JQuery<HTMLElement>,
         testmodelid: string
-    ) {
+    ): void {
         modelService
             .open(testmodelid)
             .then((testmodel: RealTimeModel) => {
-                let title = testmodel.elementAt('title').value();
+                const title = testmodel.elementAt('title').value();
                 elem.empty().append($('<span/>').text(title));
             })
             .catch((error) => {
@@ -205,22 +205,22 @@ export class CipherTakeTest extends CipherTest {
      * Run a test
      * @param testid Id of test model
      */
-    public gotoTakeTest(testid: string) {
+    public gotoTakeTest(testid: string): void {
         location.assign('TestTimed.html?testID=' + testid);
     }
     /**
      * Print hints for a test
      * @param testid Id of test model
      */
-    public printHints(testid: string) {}
+    public printHints(testid: string): void {}
     /**
      * Locate the model id for an element.  This looks for the data-source attribute of the containing TR
      * @param elem element to get information for
      * @returns model id stored on the TR element
      */
     public getModelID(elem: JQuery<HTMLElement>): string {
-        let tr = elem.closest('tr');
-        let id = tr.attr('data-answer') as string;
+        const tr = elem.closest('tr');
+        const id = tr.attr('data-answer') as string;
         return id;
     }
     /**

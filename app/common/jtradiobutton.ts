@@ -22,36 +22,36 @@ export function JTRadioButton(
     buttons: JTRadioButtonSet,
     selected: any
 ): JQuery<HTMLElement> {
-    let result = $("<div/>", { class: "grid-x" });
-    let cellclass = "cell medium-" + width + " medium-offset-2";
+    const result = $('<div/>', { class: 'grid-x' });
+    let cellclass = 'cell medium-' + width + ' medium-offset-2';
     if (width === 0) {
-        cellclass = "cell";
+        cellclass = 'cell';
     }
-    let cell = $("<div/>", { class: "noprint " + cellclass });
-    let appmenu = $("<div/>", {
-        class: "mobile-app-toggle",
-        "data-mobile-app-toggle": "",
+    const cell = $('<div/>', { class: 'noprint ' + cellclass });
+    const appmenu = $('<div/>', {
+        class: 'mobile-app-toggle',
+        'data-mobile-app-toggle': '',
     });
-    for (let choice of buttons) {
-        let options: RadioButtonOptions = {
-            type: "radio",
+    for (const choice of buttons) {
+        const options: RadioButtonOptions = {
+            type: 'radio',
             name: name,
             value: choice.value,
-            class: "button",
+            class: 'button',
         };
         if (choice.id !== undefined) {
             options.id = choice.id;
         }
         if (choice.value === selected) {
-            options.class += " is-active";
+            options.class += ' is-active';
         }
         if (choice.class !== undefined) {
-            options.class += " " + choice.class;
+            options.class += ' ' + choice.class;
         }
         if (choice.disabled !== undefined) {
             options.disabled = choice.disabled;
         }
-        appmenu.append($("<button/>", options).html(choice.title));
+        appmenu.append($('<button/>', options).html(choice.title));
     }
     cell.append(appmenu);
     result.append(cell);
@@ -59,6 +59,6 @@ export function JTRadioButton(
 }
 
 export function JTRadioButtonSet(name: string, selected: any): void {
-    $('[name="' + name + '"]').removeClass("is-active");
-    $('[name="' + name + '"][value="' + selected + '"]').addClass("is-active");
+    $('[name="' + name + '"]').removeClass('is-active');
+    $('[name="' + name + '"][value="' + selected + '"]').addClass('is-active');
 }

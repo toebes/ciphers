@@ -1,6 +1,6 @@
-import { Mapper } from "./mapper";
+import { Mapper } from './mapper';
 
-const Aval = "A".charCodeAt(0);
+const Aval = 'A'.charCodeAt(0);
 
 // ABCDEFGHIJKLM
 // NOPQRSTUVWXYZNOPQRSTUVWXYZ
@@ -12,17 +12,17 @@ const Aval = "A".charCodeAt(0);
 // ACEGIKMOQSUWY
 // BDFHJLNPRTVXZ
 export class mapPortax extends Mapper {
-    private row1: string = "ABCDEFGHIJKLM";
-    private row2: string = "NOPQRSTUVWXYZNOPQRSTUVWXYZ";
-    private row3: string = "ACEGIKMOQSUWYACEGIKMOQSUWY";
-    private row4: string = "BDFHJLNPRTVXZBDFHJLNPRTVXZ";
+    private row1 = 'ABCDEFGHIJKLM';
+    private row2 = 'NOPQRSTUVWXYZNOPQRSTUVWXYZ';
+    private row3 = 'ACEGIKMOQSUWYACEGIKMOQSUWY';
+    private row4 = 'BDFHJLNPRTVXZBDFHJLNPRTVXZ';
 
     private getRowStrings(ckey: string): string[] {
-        let result: string[] = [];
+        const result: string[] = [];
         let keyval = Math.floor((ckey.charCodeAt(0) - Aval) / 2);
-        if (ckey === "?") {
+        if (ckey === '?') {
             keyval = 0;
-            result.push("?????????????");
+            result.push('?????????????');
         } else {
             result.push(this.row1);
         }
@@ -39,15 +39,15 @@ export class mapPortax extends Mapper {
      * @returns cipher text (ct) encoded character
      */
     public encode(cpt: string, ckey: string): string {
-        let rowstrings = this.getRowStrings(ckey);
+        const rowstrings = this.getRowStrings(ckey);
 
-        let result = "??";
+        let result = '??';
         cpt = cpt.toUpperCase();
         ckey = ckey.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
         if (
             cpt.toLowerCase() === cpt ||
-            (ckey !== "?" && ckey.toLowerCase() === ckey) ||
+            (ckey !== '?' && ckey.toLowerCase() === ckey) ||
             cpt.length === 0
         ) {
             return result;
@@ -71,12 +71,9 @@ export class mapPortax extends Mapper {
 
         if (idx1 === idx2) {
             result =
-                rowstrings[1 - row1].substr(idx1, 1) +
-                rowstrings[3 - row2 + 2].substr(idx2, 1);
+                rowstrings[1 - row1].substr(idx1, 1) + rowstrings[3 - row2 + 2].substr(idx2, 1);
         } else {
-            result =
-                rowstrings[row1].substr(idx2, 1) +
-                rowstrings[row2].substr(idx1, 1);
+            result = rowstrings[row1].substr(idx2, 1) + rowstrings[row2].substr(idx1, 1);
         }
         return result;
     }
@@ -107,17 +104,17 @@ export class mapPortax extends Mapper {
             ct.length !== 2 ||
             cpt.length !== 2
         ) {
-            return "?";
+            return '?';
         }
-        let ct1 = ct.substr(0, 1);
-        let ct2 = ct.substr(1, 1);
-        let cpt1 = cpt.substr(0, 1);
-        let cpt2 = cpt.substr(1, 1);
+        const ct1 = ct.substr(0, 1);
+        const ct2 = ct.substr(1, 1);
+        const cpt1 = cpt.substr(0, 1);
+        const cpt2 = cpt.substr(1, 1);
         let ct2row = 3;
         let cpt2row = 3;
         // The starting or the ending characters can't be the same.
         if (ct1 === cpt1 || ct2 === cpt2) {
-            return "!";
+            return '!';
         }
         // Figure out what row and column the ending characters are on
         let idxct2 = this.row3.indexOf(ct2);
@@ -132,11 +129,11 @@ export class mapPortax extends Mapper {
         }
         // If we didn't find them then get out of here
         if (idxct2 === -1 || idxcpt2 === -1) {
-            return "!";
+            return '!';
         }
         // If they are on different rows, then they must be the same column
         if (ct2row !== cpt2row && idxcpt2 !== idxct2) {
-            return "!";
+            return '!';
         }
         let idxct1 = this.row2.indexOf(ct1);
         let idxcpt1 = this.row2.indexOf(cpt1);
@@ -147,17 +144,17 @@ export class mapPortax extends Mapper {
             // characters must also be the same.
             if (idxct1 !== -1) {
                 if (idxct1 !== idxct2 || idxcpt1 !== -1) {
-                    return "!";
+                    return '!';
                 }
                 idx1 = this.row1.indexOf(cpt1);
             } else {
                 if (idxcpt1 !== idxct2) {
-                    return "!";
+                    return '!';
                 }
                 idx1 = this.row1.indexOf(ct1);
             }
             if (idx1 === -1) {
-                return "!";
+                return '!';
             }
             return this.row3.substr(idxct2 - idx1, 1);
         }
@@ -168,20 +165,20 @@ export class mapPortax extends Mapper {
         if (idxct1 !== -1) {
             // If the other character was not on the second row, it is broken
             if (idxcpt1 === -1) {
-                return "!";
+                return '!';
             }
             // Also they must be in the same columns as each other to be valid
             if (idxct1 !== idxcpt2 || idxct2 !== idxcpt1) {
-                return "!";
+                return '!';
             }
             // Everything is good, but.. we have no clue what the key character is because
             // we don't touch the top row.
-            return "?";
+            return '?';
         }
         idxct1 = this.row1.indexOf(ct1);
         idxcpt1 = this.row1.indexOf(cpt1);
         if (idxct1 === -1 || idxcpt1 === -1) {
-            return "!";
+            return '!';
         }
         // Since we think the characters are good. now we need to figure out what
         // the shift character is for mapping
@@ -204,11 +201,8 @@ export class mapPortax extends Mapper {
             // In the second case, the distances are off (12-0 != 4-3)
             // However:  (13+0)-12 = 4-3 so we have to adjust the lower number by 13
             idx2 = Math.max(idxct2, idxcpt2);
-            if (
-                Math.abs(idxct2 - idxcpt2) !==
-                Math.abs(idx1 + 13 - Math.max(idxct1, idxcpt1))
-            ) {
-                return "!";
+            if (Math.abs(idxct2 - idxcpt2) !== Math.abs(idx1 + 13 - Math.max(idxct1, idxcpt1))) {
+                return '!';
             }
         }
         return this.row3.substr(idx2 - idx1, 1);

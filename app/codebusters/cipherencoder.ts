@@ -1,5 +1,5 @@
 import * as InlineEditor from '@ckeditor/ckeditor5-build-inline';
-import { cloneObject, StringMap, makeFilledArray } from '../common/ciphercommon';
+import { cloneObject, makeFilledArray } from '../common/ciphercommon';
 import {
     CipherHandler,
     IEncodeType,
@@ -7,7 +7,8 @@ import {
     ITestType,
     menuMode,
     toolMode,
-    ITestQuestionFields, IScoreInformation,
+    ITestQuestionFields,
+    IScoreInformation,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -44,7 +45,7 @@ export interface IEncoderState extends IState {
  */
 export class CipherEncoder extends CipherHandler {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = 'TestGuidance.html#Aristocrat';
+    public guidanceURL = 'TestGuidance.html#Aristocrat';
 
     public defaultstate: IEncoderState = {
         cipherString: '',
@@ -61,10 +62,14 @@ export class CipherEncoder extends CipherHandler {
         replacement: {},
     };
 
-    public validTests: ITestType[] = [ITestType.None,
-    ITestType.cregional, ITestType.cstate,
-    ITestType.bregional, ITestType.bstate,
-    ITestType.aregional];
+    public validTests: ITestType[] = [
+        ITestType.None,
+        ITestType.cregional,
+        ITestType.cstate,
+        ITestType.bregional,
+        ITestType.bstate,
+        ITestType.aregional,
+    ];
 
     public state: IEncoderState = cloneObject(this.defaultstate) as IState;
     /**
@@ -91,7 +96,7 @@ export class CipherEncoder extends CipherHandler {
      * Make a copy of the current state
      */
     public save(): IEncoderState {
-        let result: IEncoderState = cloneObject(this.state) as IState;
+        const result: IEncoderState = cloneObject(this.state) as IState;
         return result;
     }
     /**
@@ -101,22 +106,25 @@ export class CipherEncoder extends CipherHandler {
      * @param isTimed Save information for solving a timed question
      */
     public saveInteractive(qnum: number, testType: ITestType, isTimed: boolean): IEncoderState {
-        let result: IState = {
+        const result: IState = {
             cipherType: this.state.cipherType,
-            cipherString: "",
+            cipherString: '',
             curlang: this.state.curlang,
             points: this.state.points,
             question: this.state.question,
             encodeType: this.state.encodeType,
             sourceCharset: this.getSourceCharset(),
         };
-        let interactiveContent = $("<div/>").append(this.genInteractive(qnum, testType));
-        let testHTML = interactiveContent.html()
+        const interactiveContent = $('<div/>').append(this.genInteractive(qnum, testType));
+        const testHTML = interactiveContent.html();
         result.testHTML = this.obverse(testHTML);
         // Do we need to save information for testing the solution?
         if (isTimed) {
             result.solMap = this.getRandomAlphabet();
-            result.solCheck = this.encipherString(this.state.cipherString.toUpperCase(), result.solMap);
+            result.solCheck = this.encipherString(
+                this.state.cipherString.toUpperCase(),
+                result.solMap
+            );
         }
         return result;
     }
@@ -125,21 +133,21 @@ export class CipherEncoder extends CipherHandler {
      * the realtime answers when the test is being given.
      */
     public getInteractiveTemplate(): ITestQuestionFields {
-        let result = super.getInteractiveTemplate();
-        let replen = this.getSourceCharset().length;
-        result.answer = makeFilledArray(this.state.cipherString.length, " ");
+        const result = super.getInteractiveTemplate();
+        const replen = this.getSourceCharset().length;
+        result.answer = makeFilledArray(this.state.cipherString.length, ' ');
         // For a patristocrat we need to have a place to store the separators
         if (this.state.cipherType == ICipherType.Patristocrat) {
-            result.separators = makeFilledArray(this.state.cipherString.length, " ");
+            result.separators = makeFilledArray(this.state.cipherString.length, ' ');
         }
-        result.replacements = makeFilledArray(replen, " ");
+        result.replacements = makeFilledArray(replen, ' ');
         return result;
     }
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: IEncoderState, suppressOutput: boolean = false): void {
+    public restore(data: IEncoderState, suppressOutput = false): void {
         this.state = cloneObject(this.defaultstate) as IState;
         this.copyState(this.state, data);
         if (!suppressOutput) {
@@ -226,7 +234,7 @@ export class CipherEncoder extends CipherHandler {
      * Enable / Disable the HTML elements based on the alphabet selection
      */
     public setkvalinputs(): void {
-        let val = this.state.encodeType;
+        const val = this.state.encodeType;
         if (val === 'random') {
             $('#randomize').removeAttr('disabled');
             $('.kval').hide();
@@ -305,7 +313,7 @@ export class CipherEncoder extends CipherHandler {
      */
     public setOffset(offset: number): boolean {
         let changed = false;
-        let charset = this.getCharset();
+        const charset = this.getCharset();
         offset = (offset + charset.length) % charset.length;
         if (this.state.offset !== offset) {
             this.state.offset = offset;
@@ -321,7 +329,7 @@ export class CipherEncoder extends CipherHandler {
      */
     public setOffset2(offset2: number): boolean {
         let changed = false;
-        let charset = this.getCharset();
+        const charset = this.getCharset();
         offset2 = (offset2 + charset.length) % charset.length;
         if (this.state.offset2 !== offset2) {
             this.state.offset2 = offset2;
@@ -337,7 +345,7 @@ export class CipherEncoder extends CipherHandler {
      */
     public setShift(shift: number): boolean {
         let changed = false;
-        let charset = this.getCharset();
+        const charset = this.getCharset();
         shift = (shift + charset.length) % charset.length;
         if (this.state.shift !== shift) {
             this.state.shift = shift;
@@ -350,7 +358,7 @@ export class CipherEncoder extends CipherHandler {
      * Sets the hint value (state.hint)
      * @param hint new hint string
      * @returns Boolean indicating if the value actually changed
-    */
+     */
     public setHint(hint: string): boolean {
         let changed = false;
         if (this.state.hint !== hint) {
@@ -363,7 +371,7 @@ export class CipherEncoder extends CipherHandler {
      * Sets the crib value (state.crib)
      * @param crib new hint string
      * @returns Boolean indicating if the value actually changed
-    */
+     */
     public setCrib(crib: string): boolean {
         let changed = false;
         if (this.state.crib !== crib) {
@@ -413,10 +421,7 @@ export class CipherEncoder extends CipherHandler {
             this.state.alphabetDest !== undefined &&
             this.state.alphabetDest.length === this.state.alphabetSource.length
         ) {
-            this.setReplacement(
-                this.state.alphabetSource,
-                this.state.alphabetDest
-            );
+            this.setReplacement(this.state.alphabetSource, this.state.alphabetDest);
             return;
         }
         if (this.state.encodeType === 'k1') {
@@ -424,11 +429,7 @@ export class CipherEncoder extends CipherHandler {
         } else if (this.state.encodeType === 'k2') {
             this.genAlphabetK2(this.state.keyword, this.state.offset);
         } else if (this.state.encodeType === 'k3') {
-            this.genAlphabetK3(
-                this.state.keyword,
-                this.state.offset,
-                this.state.shift
-            );
+            this.genAlphabetK3(this.state.keyword, this.state.offset, this.state.shift);
         } else if (this.state.encodeType === 'k4') {
             this.genAlphabetK4(
                 this.state.keyword,
@@ -455,8 +456,8 @@ export class CipherEncoder extends CipherHandler {
         // the input chracterset alphabet may not be in the same order as the
         // actual alphabet.
         for (let i = 0, len = repl.length; i < len; i++) {
-            let repc = repl.substr(i, 1);
-            let orig = cset.substr(i, 1);
+            const repc = repl.substr(i, 1);
+            const orig = cset.substr(i, 1);
             // Remember that we are backwards because this an encoder
             this.setChar(orig, repc);
             // Just make sure that we don't happen to have the same character
@@ -476,7 +477,7 @@ export class CipherEncoder extends CipherHandler {
      * offset Offset from the start of the alphabet to place the keyword
      */
     public genAlphabetK1(keyword: string, offset: number): void {
-        let repl = this.genKstring(keyword, offset, this.getCharset());
+        const repl = this.genKstring(keyword, offset, this.getCharset());
         this.setReplacement(this.getSourceCharset(), repl);
     }
     /**
@@ -485,7 +486,7 @@ export class CipherEncoder extends CipherHandler {
      * offset Offset from the start of the alphabet to place the keyword
      */
     public genAlphabetK2(keyword: string, offset: number): void {
-        let repl = this.genKstring(keyword, offset, this.getSourceCharset());
+        const repl = this.genKstring(keyword, offset, this.getSourceCharset());
         this.setReplacement(repl, this.getCharset());
     }
     /**
@@ -500,13 +501,13 @@ export class CipherEncoder extends CipherHandler {
      */
     public genAlphabetK3(keyword: string, offset: number, shift: number): void {
         if (this.getCharset() !== this.getSourceCharset()) {
-            let error = 'Source and encoding character sets must be the same';
+            const error = 'Source and encoding character sets must be the same';
             this.setErrorMsg(error, 'genk3');
             return;
         }
         this.setErrorMsg('', 'genk3');
-        let repl = this.genKstring(keyword, offset, this.getCharset());
-        let cset = repl.substr(shift) + repl.substr(0, shift);
+        const repl = this.genKstring(keyword, offset, this.getCharset());
+        const cset = repl.substr(shift) + repl.substr(0, shift);
         this.setReplacement(cset, repl);
     }
     /**
@@ -516,21 +517,15 @@ export class CipherEncoder extends CipherHandler {
      * keyword2 Keyword for the destination alphabet
      * offset2 Offset for the keyword in the destination alphabet
      */
-    public genAlphabetK4(
-        keyword: string,
-        offset: number,
-        keyword2: string,
-        offset2: number
-    ): void {
+    public genAlphabetK4(keyword: string, offset: number, keyword2: string, offset2: number): void {
         if (this.getCharset().length !== this.getSourceCharset().length) {
-            let error =
-                'Source and encoding character sets must be the same length';
+            const error = 'Source and encoding character sets must be the same length';
             this.setErrorMsg(error, 'genk4');
             return;
         }
         this.setErrorMsg('', 'genk4');
-        let cset = this.genKstring(keyword, offset, this.getCharset());
-        let repl = this.genKstring(keyword2, offset2, this.getSourceCharset());
+        const cset = this.genKstring(keyword, offset, this.getCharset());
+        const repl = this.genKstring(keyword2, offset2, this.getSourceCharset());
         this.setReplacement(cset, repl);
     }
     /**
@@ -538,11 +533,7 @@ export class CipherEncoder extends CipherHandler {
      * keyword Keyword to map into the alphabet
      * offset Offset from the start of the alphabet to place the keyword
      */
-    public genKstring(
-        keyword: string,
-        offset: number,
-        alphabet: string
-    ): string {
+    public genKstring(keyword: string, offset: number, alphabet: string): string {
         let unassigned = alphabet;
         let repl = '';
 
@@ -551,23 +542,20 @@ export class CipherEncoder extends CipherHandler {
         // it, then remove it from the list of legal characters and add it
         // to the output string
         for (let i = 0, len = keyword.length; i < len; i++) {
-            let c = keyword.substr(i, 1).toUpperCase();
+            const c = keyword.substr(i, 1).toUpperCase();
             // Is it one of the characters we haven't used?
-            let pos = unassigned.indexOf(c);
+            const pos = unassigned.indexOf(c);
             if (pos >= 0) {
                 // we hadn't used it, so save it away and remove it from
                 // the list of ones we haven't used
                 repl += c;
-                unassigned =
-                    unassigned.substr(0, pos) + unassigned.substr(pos + 1);
+                unassigned = unassigned.substr(0, pos) + unassigned.substr(pos + 1);
             }
         }
         // See if the replacement string happens to wrap around.
         if (repl.length + offset > alphabet.length) {
-            let off = alphabet.length - offset;
-            repl = repl.substr(off) +
-                unassigned +
-                repl.substr(0, off);
+            const off = alphabet.length - offset;
+            repl = repl.substr(off) + unassigned + repl.substr(0, off);
         } else {
             repl =
                 unassigned.substr(unassigned.length - offset) +
@@ -581,10 +569,9 @@ export class CipherEncoder extends CipherHandler {
      * characters
      */
     public getRepl(): string {
-        let sel = Math.floor(Math.random() * this.unassigned.length);
-        let res = this.unassigned.substr(sel, 1);
-        this.unassigned =
-            this.unassigned.substr(0, sel) + this.unassigned.substr(sel + 1);
+        const sel = Math.floor(Math.random() * this.unassigned.length);
+        const res = this.unassigned.substr(sel, 1);
+        this.unassigned = this.unassigned.substr(0, sel) + this.unassigned.substr(sel + 1);
         return res;
     }
     /**
@@ -597,9 +584,9 @@ export class CipherEncoder extends CipherHandler {
      */
     public getRandomAlphabet(): string {
         let unassigned = this.getCharset();
-        let result = "";
+        let result = '';
         while (unassigned.length > 1) {
-            let sel = Math.floor(Math.random() * unassigned.length);
+            const sel = Math.floor(Math.random() * unassigned.length);
             result += unassigned.substr(sel, 1);
             unassigned = unassigned.substr(0, sel) + unassigned.substr(sel + 1);
         }
@@ -609,19 +596,19 @@ export class CipherEncoder extends CipherHandler {
      *  Generates a random replacement set of characters
      */
     public genAlphabetRandom(): void {
-        let charset = this.getCharset();
+        const charset = this.getCharset();
         this.unassigned = charset;
         let replacement = '';
         let pos = 0;
 
         while (this.unassigned.length > 1) {
-            let orig = charset.substr(pos, 1);
+            const orig = charset.substr(pos, 1);
             let repl = this.getRepl();
             // If the replacement character is the same as the original
             // then we just get another one and put the replacement back at the end
             // This is guaranteed to be unique
             if (orig === repl) {
-                let newrepl = this.getRepl();
+                const newrepl = this.getRepl();
                 this.unassigned += repl;
                 repl = newrepl;
             }
@@ -634,7 +621,7 @@ export class CipherEncoder extends CipherHandler {
             // Just pick a random spot in what we have already done and
             // swap it.  We are guaranteed that it won't be the last character
             // since it matches already
-            let sel = Math.floor(Math.random() * replacement.length);
+            const sel = Math.floor(Math.random() * replacement.length);
             replacement =
                 replacement.substr(0, sel) +
                 this.unassigned +
@@ -655,16 +642,16 @@ export class CipherEncoder extends CipherHandler {
     public CheckAppropriate(testType: ITestType): string {
         if (testType === ITestType.aregional) {
             if (this.state.cipherType === ICipherType.Patristocrat) {
-                return "Patristocrats not appropriate for Division A tests";
+                return 'Patristocrats not appropriate for Division A tests';
             }
             if (this.state.curlang === 'es') {
-                return "Xenocrypts not appropriate for Division A tests";
+                return 'Xenocrypts not appropriate for Division A tests';
             }
         }
         if (testType === undefined || this.validTests.indexOf(testType) >= 0) {
-            return "";
+            return '';
         }
-        return "Not valid for " + this.getTestTypeName(testType);
+        return 'Not valid for ' + this.getTestTypeName(testType);
     }
 
     /**
@@ -672,7 +659,7 @@ export class CipherEncoder extends CipherHandler {
      * @param answer - the array of characters from the interactive test.
      */
     public genScore(answer: string[]): IScoreInformation {
-        let strings = this.genTestStrings(ITestType.None);
+        const strings = this.genTestStrings(ITestType.None);
 
         let toanswer = 1;
         if (this.state.operation === 'encode') {
@@ -680,7 +667,7 @@ export class CipherEncoder extends CipherHandler {
         }
 
         let solution: string[] = [];
-        for (let strset of strings) {
+        for (const strset of strings) {
             solution = solution.concat(strset[toanswer].split(''));
         }
 
@@ -691,8 +678,8 @@ export class CipherEncoder extends CipherHandler {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        let strings = this.genTestStrings(testType);
+        const result = $('<div/>');
+        const strings = this.genTestStrings(testType);
         let extraclass = '';
         if (testType === ITestType.aregional) {
             extraclass = ' atest';
@@ -703,7 +690,7 @@ export class CipherEncoder extends CipherHandler {
             tosolve = 1;
             toanswer = 0;
         }
-        for (let strset of strings) {
+        for (const strset of strings) {
             result.append(
                 $('<div/>', {
                     class: 'TOSOLVE' + extraclass,
@@ -745,14 +732,14 @@ export class CipherEncoder extends CipherHandler {
      * @param testType Type of test
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        let strings = this.genTestStrings(testType);
+        const result = $('<div/>');
+        const strings = this.genTestStrings(testType);
         let extraclass = '';
         if (testType === ITestType.aregional) {
             extraclass = ' atest';
         }
 
-        for (let strset of strings) {
+        for (const strset of strings) {
             result.append(
                 $('<div/>', {
                     class: 'TOSOLVEQ' + extraclass,
@@ -768,48 +755,49 @@ export class CipherEncoder extends CipherHandler {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let strings = this.genTestStrings(testType);
+        const strings = this.genTestStrings(testType);
         let extraclass = '';
         if (testType === ITestType.aregional) {
             extraclass = ' atest';
         }
-        let qnumdisp = String(qnum + 1);
-        let idclass = "I" + qnumdisp + "_";
-        let spcclass = "S" + qnumdisp + "_";
-        let result = $('<div/>', { id: "Q" + qnumdisp });
+        const qnumdisp = String(qnum + 1);
+        const idclass = 'I' + qnumdisp + '_';
+        const spcclass = 'S' + qnumdisp + '_';
+        const result = $('<div/>', { id: 'Q' + qnumdisp });
         let pos = 0;
         // Since we already have the lines spit exactly as they would be on the printed test,
         // go through and generate a table with one cell per character.
-        let table = new JTTable({ class: "SOLVER" });
-        for (let strset of strings) {
-            let qrow = table.addBodyRow()
-            let arow = table.addBodyRow()
-            for (let c of strset[0]) {
-                let extraclass = "";
-                let spos = String(pos);
+        const table = new JTTable({ class: 'SOLVER' });
+        for (const strset of strings) {
+            const qrow = table.addBodyRow();
+            const arow = table.addBodyRow();
+            for (const c of strset[0]) {
+                let extraclass = '';
+                const spos = String(pos);
                 // For a Patristocrat, we need to give them the ability to insert/remove word space indicators
                 // We do this by putting a class on the cell which we will add/remove a spacing class at runtime
                 // in response to them clicking on a separator indicator (a downward V)
                 if (this.state.cipherType == ICipherType.Patristocrat && this.isValidChar(c)) {
-                    extraclass = "S" + spos;
-                    let field = $("<div/>")
-                        .append($("<div/>", { class: "ir", id: spcclass + spos }).html("&#711;"))
+                    extraclass = 'S' + spos;
+                    const field = $('<div/>')
+                        .append($('<div/>', { class: 'ir', id: spcclass + spos }).html('&#711;'))
                         .append(c);
 
-                    qrow.add({ settings: { class: "TOSOLVEC " + extraclass }, content: field });
+                    qrow.add({ settings: { class: 'TOSOLVEC ' + extraclass }, content: field });
                 } else {
-                    qrow.add({ settings: { class: "TOSOLVEC" }, content: c });
+                    qrow.add({ settings: { class: 'TOSOLVEC' }, content: c });
                 }
                 if (this.isValidChar(c)) {
                     arow.add({
-                        settings: { class: extraclass }, content: $("<input/>", {
+                        settings: { class: extraclass },
+                        content: $('<input/>', {
                             id: idclass + spos,
-                            class: "awc",
-                            type: "text",
-                        })
-                    })
+                            class: 'awc',
+                            type: 'text',
+                        }),
+                    });
                 } else {
-                    arow.add("");
+                    arow.add('');
                 }
                 pos++;
             }
@@ -817,26 +805,28 @@ export class CipherEncoder extends CipherHandler {
         result.append(table.generate());
         // Do we need the check solution for a timed question?
         if (qnum === -1) {
-            result.append($("<button/>", { type: "button", class: "button large rounded centered", id: "checktimed" }).text("Checked Timed Question"));
+            result.append(
+                $('<button/>', {
+                    type: 'button',
+                    class: 'button large rounded centered',
+                    id: 'checktimed',
+                }).text('Checked Timed Question')
+            );
         }
 
         result.append(this.genInteractiveFreqTable(qnum, this.state.encodeType, extraclass));
-        result.append($("<textarea/>", { id: "in" + qnumdisp, class: "intnote" }))
+        result.append($('<textarea/>', { id: 'in' + qnumdisp, class: 'intnote' }));
         return result;
     }
 
-
-    public genTestStrings(testType: ITestType) {
+    public genTestStrings(testType: ITestType): string[][] {
         this.genAlphabet();
         let width = this.maxEncodeWidth;
         if (testType === ITestType.aregional) {
             width -= 20;
         }
 
-        let strings = this.makeReplacement(
-            this.getEncodingString(),
-            width
-        );
+        const strings = this.makeReplacement(this.getEncodingString(), width);
         return strings;
     }
 
@@ -847,7 +837,7 @@ export class CipherEncoder extends CipherHandler {
      * as the HTML to be displayed
      */
     public build(): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
 
         // Provide correct guidance message as to which line is
         // plain text and which is cipher text.
@@ -897,9 +887,9 @@ export class CipherEncoder extends CipherHandler {
      * along with specifying the parameters for that alphabet
      */
     public createAlphabetType(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'grid-x' });
+        const result = $('<div/>', { class: 'grid-x' });
 
-        let radiobuttons = [
+        const radiobuttons = [
             { id: 'encrand', value: 'random', title: 'Random' },
             { id: 'enck1', value: 'k1', title: 'K1' },
             { id: 'enck2', value: 'k2', title: 'K2' },
@@ -911,43 +901,17 @@ export class CipherEncoder extends CipherHandler {
                 class: 'cell',
             }).text('Alphabet Type')
         );
-        result.append(
-            JTRadioButton(12, 'enctype', radiobuttons, this.state.encodeType)
-        );
+        result.append(JTRadioButton(12, 'enctype', radiobuttons, this.state.encodeType));
 
+        result.append(JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, 'kval'));
         result.append(
-            JTFLabeledInput(
-                'Keyword',
-                'text',
-                'keyword',
-                this.state.keyword,
-                'kval'
-            )
+            JTFIncButton('Offset', 'offset', this.state.offset, 'kval small-12 medium-6 large-6')
         );
         result.append(
-            JTFIncButton(
-                'Offset',
-                'offset',
-                this.state.offset,
-                'kval small-12 medium-6 large-6'
-            )
+            JTFIncButton('Shift', 'shift', this.state.shift, 'k3val small-12 medium-6 large-6')
         );
         result.append(
-            JTFIncButton(
-                'Shift',
-                'shift',
-                this.state.shift,
-                'k3val small-12 medium-6 large-6'
-            )
-        );
-        result.append(
-            JTFLabeledInput(
-                'Keyword 2',
-                'text',
-                'keyword2',
-                this.state.keyword2,
-                'k4val'
-            )
+            JTFLabeledInput('Keyword 2', 'text', 'keyword2', this.state.keyword2, 'k4val')
         );
         result.append(
             JTFIncButton(
@@ -963,43 +927,51 @@ export class CipherEncoder extends CipherHandler {
         //     $(".err").empty();
     }
     /**
-     * Updates/clears a specific message on the output. If 
+     * Updates/clears a specific message on the output. If
      * @param message Message to set (blank to clear the message)
      * @param id ID of the message to update/clear
      * @param extra Additional data for the messge if not blank
      */
     public setErrorMsg(message: string, id: string, extra?: JQuery<HTMLElement>): void {
-        let espot = $(".err").find('[data-msg=' + id + ']');
+        let espot = $('.err').find('[data-msg=' + id + ']');
         if (message === undefined || message === '' || message === null) {
             // We are removing the message
             if (espot.length !== 0) {
                 // It did exist so make it go away
                 espot.remove();
-                let children = $(".err").children();
+                const children = $('.err').children();
                 // Did that empty out the error section?
-                if ((children.length === 0) ||
-                    (children.length === 1 && children.children().length === 0)) {
+                if (
+                    children.length === 0 ||
+                    (children.length === 1 && children.children().length === 0)
+                ) {
                     // If so, then wipe it out completely.
-                    $(".err").empty();
+                    $('.err').empty();
                 }
             }
         } else {
             // We are setting the message
             if (espot.length === 0) {
                 // See if we need to create the alert div
-                if ($(".err").children().length === 0) {
-                    $(".err").append($('<div/>', {
-                        class: 'callout alert',
-                    }));
+                if ($('.err').children().length === 0) {
+                    $('.err').append(
+                        $('<div/>', {
+                            class: 'callout alert',
+                        })
+                    );
                 }
-                espot = $(".err").children()
-                    .append($('<div/>', { 'data-msg': id })
-                        .text(message)
-                        .append(extra));
+                espot = $('.err')
+                    .children()
+                    .append(
+                        $('<div/>', { 'data-msg': id })
+                            .text(message)
+                            .append(extra)
+                    );
             } else {
                 espot
                     .empty()
-                    .text(message).append(extra);
+                    .text(message)
+                    .append(extra);
             }
         }
     }
@@ -1008,23 +980,23 @@ export class CipherEncoder extends CipherHandler {
      */
     public load(): void {
         // this.hideRevReplace = true
-        let encoded = this.cleanString(this.state.cipherString);
+        const encoded = this.cleanString(this.state.cipherString);
         this.clearErrors();
         this.genAlphabet();
-        let res = this.build();
+        const res = this.build();
         $('#answer')
             .empty()
             .append(res);
 
         /* testStrings */
         for (let teststr of this.testStrings) {
-            let chi1 = this.CalculateChiSquare(teststr);
+            const chi1 = this.CalculateChiSquare(teststr);
             teststr = this.cleanString(teststr);
-            let l = teststr.length;
+            const l = teststr.length;
             console.log(l + '`' + chi1 + '`' + teststr);
         }
 
-        let chi = this.CalculateChiSquare(encoded);
+        const chi = this.CalculateChiSquare(encoded);
 
         let chitext = '';
         if (!isNaN(chi)) {
@@ -1060,7 +1032,7 @@ export class CipherEncoder extends CipherHandler {
     }
 
     public makeFreqEditField(c: string): JQuery<HTMLElement> {
-        let einput = $('<span/>', {
+        const einput = $('<span/>', {
             type: 'text',
             'data-char': c,
             id: 'm' + c,
@@ -1098,14 +1070,14 @@ export class CipherEncoder extends CipherHandler {
                 'small-12 medium-12 large-12'
             )
         );
-        result.append($("<div/>", { class: "difficulty" }));
+        result.append($('<div/>', { class: 'difficulty' }));
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
         this.genTestUsage(result);
         this.genQuestionFields(result);
         this.genLangDropdown(result);
@@ -1123,65 +1095,55 @@ export class CipherEncoder extends CipherHandler {
         return result;
     }
     public copyToClip(str: string): void {
-        function listener(e) {
-            e.clipboardData.setData("text/html", str);
-            e.clipboardData.setData("text/plain", str);
+        function listener(e): void {
+            e.clipboardData.setData('text/html', str);
+            e.clipboardData.setData('text/plain', str);
             e.preventDefault();
         }
-        document.addEventListener("copy", listener);
-        document.execCommand("copy");
-        document.removeEventListener("copy", listener);
-    };
+        document.addEventListener('copy', listener);
+        document.execCommand('copy');
+        document.removeEventListener('copy', listener);
+    }
 
     /**
      * Generates a dialog showing the sample question text
      */
     public createQuestionTextDlg(): JQuery<HTMLElement> {
-        let dlgContents = $("<div/>");
+        const dlgContents = $('<div/>');
+        dlgContents.append($('<div/>', { id: 'sqtext', class: '' }));
         dlgContents.append(
-            $('<div/>', { id: 'sqtext', class: '' }));
-        dlgContents
-            .append($("<div/>", { class: "expanded button-group" })
-                .append($("<a/>", { class: "sqtcpy button" })
-                    .text("Copy to Clipboard"))
-                .append($("<a/>", { class: "sqtins button" })
-                    .text("Replace Question Text"))
-                .append($("<a/>", { class: "secondary button", "data-close": "" })
-                    .text("Close"))
-            );
-        let questionTextDlg = JTFDialog(
-            'SampleQText',
-            'Sample Question Text',
-            dlgContents
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'sqtcpy button' }).text('Copy to Clipboard'))
+                .append($('<a/>', { class: 'sqtins button' }).text('Replace Question Text'))
+                .append($('<a/>', { class: 'secondary button', 'data-close': '' }).text('Close'))
         );
+        const questionTextDlg = JTFDialog('SampleQText', 'Sample Question Text', dlgContents);
         return questionTextDlg;
     }
     /**
      * Generates a dialog showing the sample question text
      */
     public createIsModifiedDlg(): JQuery<HTMLElement> {
-        let dlgContents = $("<div/>");
-        dlgContents.append($('<input>').attr({
-            type: 'hidden',
-            id: 'targeturl',
-            name: 'targeturl'
-        }));
+        const dlgContents = $('<div/>');
         dlgContents.append(
-            $('<div/>', { id: 'sqtext', class: '' }));
-        dlgContents
-            .append($("<div/>", { class: "expanded button-group" })
-                .append($("<a/>", { class: "msave button" })
-                    .text("Save and Continue"))
-                .append($("<a/>", { class: "mlose button" })
-                    .text("Abandon Changes"))
-                .append($("<a/>", { class: "secondary button", "data-close": "" })
-                    .text("Continue Editing"))
-            );
-        let questionTextDlg = JTFDialog(
-            'modifiedDLG',
-            'You have made changes!',
-            dlgContents
+            $('<input>').attr({
+                type: 'hidden',
+                id: 'targeturl',
+                name: 'targeturl',
+            })
         );
+        dlgContents.append($('<div/>', { id: 'sqtext', class: '' }));
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'msave button' }).text('Save and Continue'))
+                .append($('<a/>', { class: 'mlose button' }).text('Abandon Changes'))
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Continue Editing'
+                    )
+                )
+        );
+        const questionTextDlg = JTFDialog('modifiedDLG', 'You have made changes!', dlgContents);
         return questionTextDlg;
     }
     /**
@@ -1192,38 +1154,49 @@ export class CipherEncoder extends CipherHandler {
      */
     public checkModified(targetURL: string): boolean {
         if (this.isModified) {
-            $("#targeturl").val(targetURL);
-            $("#modifiedDLG").foundation('open');
+            $('#targeturl').val(targetURL);
+            $('#modifiedDLG').foundation('open');
             return true;
         }
         return false;
     }
 
     public genSampleHint(): string {
-        return "nothing is known";
+        return 'nothing is known';
     }
     public genSampleQuestionText(): string {
-        return "<p>A quote has been encoded using the " +
-            this.cipherName + " Cipher for you to decode. " +
-            "You are told that " + this.genSampleHint() + "</p>";
+        return (
+            '<p>A quote has been encoded using the ' +
+            this.cipherName +
+            ' Cipher for you to decode. ' +
+            'You are told that ' +
+            this.genSampleHint() +
+            '</p>'
+        );
     }
     public showSampleQuestionText(): void {
-        $("#sqtext").empty().append($(this.genSampleQuestionText()));
-        $("#SampleQText").foundation('open');
+        $('#sqtext')
+            .empty()
+            .append($(this.genSampleQuestionText()));
+        $('#SampleQText').foundation('open');
     }
     public genMonoText(str: string): string {
-        return "<span style=\"font-family:'Courier New', Courier, monospace;\">" +
-            "<strong>" + str + "</strong></span>";
+        return (
+            '<span style="font-family:\'Courier New\', Courier, monospace;">' +
+            '<strong>' +
+            str +
+            '</strong></span>'
+        );
     }
 
     public copySampleQuestionText(): void {
-        this.copyToClip($("#sqtext").html());
-        $("#SampleQText").foundation('close');
+        this.copyToClip($('#sqtext').html());
+        $('#SampleQText').foundation('close');
     }
     public replaceQuestionText(): void {
-        this.setQuestionText($("#sqtext").html());
+        this.setQuestionText($('#sqtext').html());
         this.updateQuestionsOutput();
-        $("#SampleQText").foundation('close');
+        $('#SampleQText').foundation('close');
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
@@ -1232,7 +1205,7 @@ export class CipherEncoder extends CipherHandler {
         super.attachHandlers();
         $('[name="enctype"]')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 $(e.target)
                     .siblings()
                     .removeClass('is-active');
@@ -1244,8 +1217,8 @@ export class CipherEncoder extends CipherHandler {
             });
         $('#offset')
             .off('input')
-            .on('input', e => {
-                let offset = Number($(e.target).val());
+            .on('input', (e) => {
+                const offset = Number($(e.target).val());
                 if (offset !== this.state.offset) {
                     this.markUndo(null);
                     if (this.setOffset(offset)) {
@@ -1255,8 +1228,8 @@ export class CipherEncoder extends CipherHandler {
             });
         $('#shift')
             .off('input')
-            .on('input', e => {
-                let shift = Number($(e.target).val());
+            .on('input', (e) => {
+                const shift = Number($(e.target).val());
                 if (shift !== this.state.shift) {
                     this.markUndo(null);
                     if (this.setShift(shift)) {
@@ -1266,8 +1239,8 @@ export class CipherEncoder extends CipherHandler {
             });
         $('#offset2')
             .off('input')
-            .on('input', e => {
-                let offset2 = Number($(e.target).val());
+            .on('input', (e) => {
+                const offset2 = Number($(e.target).val());
                 if (offset2 !== this.state.offset2) {
                     this.markUndo(null);
                     if (this.setOffset2(offset2)) {
@@ -1277,8 +1250,8 @@ export class CipherEncoder extends CipherHandler {
             });
         $('#keyword')
             .off('input')
-            .on('input', e => {
-                let keyword = $(e.target).val() as string;
+            .on('input', (e) => {
+                const keyword = $(e.target).val() as string;
                 if (keyword !== this.state.keyword) {
                     this.markUndo('keyword');
                     if (this.setKeyword(keyword)) {
@@ -1288,8 +1261,8 @@ export class CipherEncoder extends CipherHandler {
             });
         $('#keyword2')
             .off('input')
-            .on('input', e => {
-                let keyword2 = $(e.target).val() as string;
+            .on('input', (e) => {
+                const keyword2 = $(e.target).val() as string;
                 if (keyword2 !== this.state.keyword2) {
                     this.markUndo('keyword2');
                     if (this.setKeyword2(keyword2)) {
@@ -1299,8 +1272,8 @@ export class CipherEncoder extends CipherHandler {
             });
         $('#toencode')
             .off('input')
-            .on('input', e => {
-                let cipherString = $(e.target).val() as string;
+            .on('input', (e) => {
+                const cipherString = $(e.target).val() as string;
                 if (cipherString !== this.state.cipherString) {
                     this.markUndo('cipherString');
                     if (this.setCipherString(cipherString)) {
@@ -1310,20 +1283,20 @@ export class CipherEncoder extends CipherHandler {
             });
         $('#points')
             .off('input')
-            .on('input', e => {
-                let points = Number($(e.target).val());
+            .on('input', (e) => {
+                const points = Number($(e.target).val());
                 if (points !== this.state.points) {
                     this.markUndo('points');
                     this.state.points = points;
                 }
             });
         $('.richtext').each((i: number, elem: HTMLElement) => {
-            let id = $(elem).prop('id') as string;
+            const id = $(elem).prop('id') as string;
             if (id !== '' && !(id in this.editor)) {
                 this.editor[id] = null;
                 InlineEditor.create(elem)
-                    .then(editor => {
-                        let initialtext = $(elem).val();
+                    .then((editor) => {
+                        const initialtext = $(elem).val();
                         this.editor[id] = editor;
                         if (initialtext !== '') {
                             editor.setData(initialtext);
@@ -1332,7 +1305,7 @@ export class CipherEncoder extends CipherHandler {
                             $(elem).trigger('richchange', editor.getData());
                         });
                     })
-                    .catch(error => {
+                    .catch((error) => {
                         console.error(error);
                         delete this.editor[id];
                     });
@@ -1341,7 +1314,7 @@ export class CipherEncoder extends CipherHandler {
         $('#qtext')
             .off('richchange')
             .on('richchange', (e, newtext) => {
-                let question = newtext;
+                const question = newtext;
                 let oldquestion = this.state.question;
                 if (oldquestion === undefined) {
                     oldquestion = '';
@@ -1353,8 +1326,10 @@ export class CipherEncoder extends CipherHandler {
                     }
                     // Don't push an undo operation if all that happend was that the
                     // rich text editor put a paragraph around our text
-                    if ((question !== '<p>' + oldquestion + '</p>') &&
-                        (question !== '<p>' + oldquestion2 + '</p>')) {
+                    if (
+                        question !== '<p>' + oldquestion + '</p>' &&
+                        question !== '<p>' + oldquestion2 + '</p>'
+                    ) {
                         this.markUndo('question');
                     }
                     this.setQuestionText(question);
@@ -1362,32 +1337,32 @@ export class CipherEncoder extends CipherHandler {
             });
         $('#crib')
             .off('input')
-            .on('input', e => {
-                let chars = $(e.target).val() as string;
+            .on('input', (e) => {
+                const chars = $(e.target).val() as string;
                 this.markUndo('crib');
                 if (this.setCrib(chars)) {
                     this.updateOutput();
                 }
             });
-        $(".sampq")
+        $('.sampq')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.showSampleQuestionText();
             });
-        $(".sqtcpy")
+        $('.sqtcpy')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.copySampleQuestionText();
             });
-        $(".sqtins")
+        $('.sqtins')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.replaceQuestionText();
             });
         $('#translated')
             .off('input')
-            .on('input', e => {
-                let translation = $(e.target).val() as string;
+            .on('input', (e) => {
+                const translation = $(e.target).val() as string;
                 if (translation !== this.state.translation) {
                     this.markUndo('translation');
                     if (this.setTranslation(translation)) {
@@ -1404,20 +1379,20 @@ export class CipherEncoder extends CipherHandler {
             });
         $('.chkmod')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 if (this.checkModified($(e.target).attr('href'))) {
                     e.preventDefault();
                 }
             });
         $('.msave')
             .off('click')
-            .on('click', e => {
-                this.saveAndContinue($("#targeturl").val() as string);
+            .on('click', (e) => {
+                this.saveAndContinue($('#targeturl').val() as string);
             });
         $('.mlose')
             .off('click')
-            .on('click', e => {
-                this.abandonAndContinue($("#targeturl").val() as string);
+            .on('click', (e) => {
+                this.abandonAndContinue($('#targeturl').val() as string);
             });
     }
 }

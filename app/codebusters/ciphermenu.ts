@@ -1,101 +1,101 @@
-import { ICipherType } from "../common/ciphertypes";
-import { menuItem } from "../common/jtmenu";
+import { ICipherType } from '../common/ciphertypes';
+import { menuItem } from '../common/jtmenu';
 
 /**
  * CipherMenu is the main menu for all the Ciphers and defines the navigation for the overall app.
  */
 export const CipherMenu: menuItem[] = [
     {
-        title: "File",
-        classname: "menufile",
+        title: 'File',
+        classname: 'menufile',
         menu: [
-            { title: "New", action: "new" },
-            { title: "Open", action: "open" },
-            { title: "Save", action: "save", classname: "save" }
-        ]
+            { title: 'New', action: 'new' },
+            { title: 'Open', action: 'open' },
+            { title: 'Save', action: 'save', classname: 'save' },
+        ],
     },
     {
-        title: "Edit",
-        classname: "menufile",
+        title: 'Edit',
+        classname: 'menufile',
         menu: [
-            { title: "Undo", action: "undo", classname: "undo disabled_menu" },
-            { title: "Redo", action: "redo", classname: "redo disabled_menu" }
-        ]
+            { title: 'Undo', action: 'undo', classname: 'undo disabled_menu' },
+            { title: 'Redo', action: 'redo', classname: 'redo disabled_menu' },
+        ],
     },
     {
-        title: "Test Generation Tools",
-        classname: "menucb",
+        title: 'Test Generation Tools',
+        classname: 'menucb',
         menu: [
             {
-                title: "Test Manager",
-                href: "TestManage.html",
-                classname: 'chkmod'
+                title: 'Test Manager',
+                href: 'TestManage.html',
+                classname: 'chkmod',
             },
             {
-                title: "Question Manager",
-                href: "TestQuestions.html",
-                classname: 'chkmod'
+                title: 'Question Manager',
+                href: 'TestQuestions.html',
+                classname: 'chkmod',
             },
-            { title: "", classname: "divider" },
+            { title: '', classname: 'divider' },
             {
-                title: "Affine",
-                href: "AffineEncrypt.html",
+                title: 'Affine',
+                href: 'AffineEncrypt.html',
                 cipherType: ICipherType.Affine,
-                classname: 'chkmod menub menuc'
+                classname: 'chkmod menub menuc',
             },
             {
-                title: "Aristocrat",
-                href: "AristocratEncrypt.html",
+                title: 'Aristocrat',
+                href: 'AristocratEncrypt.html',
                 cipherType: ICipherType.Aristocrat,
-                classname: 'chkmod menua menub menuc'
+                classname: 'chkmod menua menub menuc',
             },
             {
-                title: "Atbash",
-                href: "Atbash.html",
+                title: 'Atbash',
+                href: 'Atbash.html',
                 cipherType: ICipherType.Atbash,
-                classname: 'chkmod menua menub'
+                classname: 'chkmod menua menub',
             },
             {
-                title: "Baconian",
-                href: "Baconian.html",
+                title: 'Baconian',
+                href: 'Baconian.html',
                 cipherType: ICipherType.Baconian,
-                classname: 'chkmod menub menuc'
+                classname: 'chkmod menub menuc',
             },
             {
-                title: "Caesar",
-                href: "Caesar.html",
+                title: 'Caesar',
+                href: 'Caesar.html',
                 cipherType: ICipherType.Caesar,
-                classname: 'chkmod menua menub menuc'
+                classname: 'chkmod menua menub menuc',
             },
             {
-                title: "Hill (2x2 and 3x3)",
-                href: "HillEncrypt.html",
+                title: 'Hill (2x2 and 3x3)',
+                href: 'HillEncrypt.html',
                 cipherType: ICipherType.Hill,
-                classname: 'chkmod menuc'
+                classname: 'chkmod menuc',
             },
             {
-                title: "PigPen/Masonic",
-                href: "PigPenEncrypt.html",
+                title: 'PigPen/Masonic',
+                href: 'PigPenEncrypt.html',
                 cipherType: ICipherType.PigPen,
-                classname: 'chkmod menua'
+                classname: 'chkmod menua',
             },
             {
-                title: "Patristocrat",
-                href: "PatristocratEncrypt.html",
+                title: 'Patristocrat',
+                href: 'PatristocratEncrypt.html',
                 cipherType: ICipherType.Patristocrat,
-                classname: 'chkmod menub menuc'
+                classname: 'chkmod menub menuc',
             },
             {
-                title: "Running Key",
-                href: "RunningKeyEncoder.html",
+                title: 'Running Key',
+                href: 'RunningKeyEncoder.html',
                 cipherType: ICipherType.RunningKey,
-                classname: 'chkmod'
+                classname: 'chkmod',
             },
             {
-                title: "RSA",
-                href: "RSAEncrypt.html",
+                title: 'RSA',
+                href: 'RSAEncrypt.html',
                 cipherType: ICipherType.RSA,
-                classname: 'chkmod menuc'
+                classname: 'chkmod menuc',
             },
             // {
             //     title: "Spanish Aristocrat",
@@ -105,118 +105,115 @@ export const CipherMenu: menuItem[] = [
             //     classname: 'chkmod menuc'
             // },
             {
-                title: "Vigen&egrave;re",
-                href: "VigenereEncrypt.html",
+                title: 'Vigen&egrave;re',
+                href: 'VigenereEncrypt.html',
                 cipherType: ICipherType.Vigenere,
-                classname: 'chkmod menua menub menuc'
+                classname: 'chkmod menua menub menuc',
             },
             {
-                title: "Xenocrypt",
-                href: "XenocryptEncrypt.html",
+                title: 'Xenocrypt',
+                href: 'XenocryptEncrypt.html',
                 cipherType: ICipherType.Xenocrypt,
-                classname: 'chkmod menuc'
+                classname: 'chkmod menuc',
             },
-            { title: "", classname: "divider" },
+            { title: '', classname: 'divider' },
             {
-                title: "Report a problem",
-                href: "https://github.com/toebes/ciphers/issues"
-            }
-        ]
+                title: 'Report a problem',
+                href: 'https://github.com/toebes/ciphers/issues',
+            },
+        ],
     },
     {
-        title: "ACA Solving Assistants",
-        classname: "menuaca",
+        title: 'ACA Solving Assistants',
+        classname: 'menuaca',
         menu: [
-            { title: "Problem List", href: "ACAProblems.html" },
-            { title: "", classname: "divider" },
+            { title: 'Problem List', href: 'ACAProblems.html' },
+            { title: '', classname: 'divider' },
             {
-                title: "Aristocrat/Patristocrat Solving Assistant",
-                href: "Solver.html",
-                solveType: [ICipherType.Aristocrat, ICipherType.Patristocrat]
+                title: 'Aristocrat/Patristocrat Solving Assistant',
+                href: 'Solver.html',
+                solveType: [ICipherType.Aristocrat, ICipherType.Patristocrat],
             },
             {
-                title: "Morbit Solving Assistant",
-                href: "MorbitSolver.html",
-                solveType: [ICipherType.Morbit]
+                title: 'Morbit Solving Assistant',
+                href: 'MorbitSolver.html',
+                solveType: [ICipherType.Morbit],
             },
             {
-                title: "Columnar Solving Assistant",
-                href: "ColumnarSolver.html",
-                solveType: [
-                    ICipherType.CompleteColumnar,
-                    ICipherType.IncompleteColumnar
-                ]
+                title: 'Columnar Solving Assistant',
+                href: 'ColumnarSolver.html',
+                solveType: [ICipherType.CompleteColumnar, ICipherType.IncompleteColumnar],
             },
             {
-                title: "Fractionated Morse Solving Assistant",
-                href: "FractionatedMorseSolver.html",
-                solveType: [ICipherType.FractionatedMorse]
+                title: 'Fractionated Morse Solving Assistant',
+                href: 'FractionatedMorseSolver.html',
+                solveType: [ICipherType.FractionatedMorse],
             },
             {
-                title: "Key Phrase Solving Assistant",
-                href: "KeyPhraseSolver.html",
-                solveType: [ICipherType.KeyPhrase]
+                title: 'Key Phrase Solving Assistant',
+                href: 'KeyPhraseSolver.html',
+                solveType: [ICipherType.KeyPhrase],
             },
             {
-                title: "Homophonic Solving Assistant",
-                href: "HomophonicSolver.html",
-                solveType: [ICipherType.Homophonic]
+                title: 'Homophonic Solving Assistant',
+                href: 'HomophonicSolver.html',
+                solveType: [ICipherType.Homophonic],
             },
             {
-                title: "Xenocrypt Solving Assistant",
-                href: "XenocryptSolver.html",
-                solveType: [ICipherType.Xenocrypt]
+                title: 'Xenocrypt Solving Assistant',
+                href: 'XenocryptSolver.html',
+                solveType: [ICipherType.Xenocrypt],
             },
             {
-                title: "Vigen&egrave;re Family Solving Assistant",
-                href: "VigenereSolver.html",
+                title: 'Vigen&egrave;re Family Solving Assistant',
+                href: 'VigenereSolver.html',
                 solveType: [
                     ICipherType.Vigenere,
                     ICipherType.Variant,
                     ICipherType.Beaufort,
                     ICipherType.Gronsfeld,
-                    ICipherType.Porta
-                ]
+                    ICipherType.Porta,
+                ],
             },
             {
-                title: "Gromark Solving Assistant",
-                href: "GromarkSolver.html",
-                solveType: [ICipherType.Gromark]
+                title: 'Gromark Solving Assistant',
+                href: 'GromarkSolver.html',
+                solveType: [ICipherType.Gromark],
             },
             {
-                title: "Cryptarithm Solving Assistant",
-                href: "CryptarithmSolver.html",
-                solveType: [ICipherType.Cryptarithm]
+                title: 'Cryptarithm Solving Assistant',
+                href: 'CryptarithmSolver.html',
+                solveType: [ICipherType.Cryptarithm],
             },
             {
-                title: "Checkerboard Solving Assistant",
-                href: "CheckerboardSolver.html",
-                solveType: [ICipherType.Checkerboard]
+                title: 'Checkerboard Solving Assistant',
+                href: 'CheckerboardSolver.html',
+                solveType: [ICipherType.Checkerboard],
             },
             {
-                title: "Portax Solving Assistant",
-                href: "PortaxSolver.html",
-                solveType: [ICipherType.Portax]
+                title: 'Portax Solving Assistant',
+                href: 'PortaxSolver.html',
+                solveType: [ICipherType.Portax],
             },
             {
-                title: "Ragbaby Solving Assistant",
-                href: "RagbabySolver.html",
-                solveType: [ICipherType.Ragbaby]
+                title: 'Ragbaby Solving Assistant',
+                href: 'RagbabySolver.html',
+                solveType: [ICipherType.Ragbaby],
             },
             {
-                title: "Railfence/Redefence Solving Assistant",
-                href: "RailfenceSolver.html",
-                solveType: [ICipherType.Railfence, ICipherType.Redefence]
-            }
-        ]
+                title: 'Railfence/Redefence Solving Assistant',
+                href: 'RailfenceSolver.html',
+                solveType: [ICipherType.Railfence, ICipherType.Redefence],
+            },
+        ],
     },
     {
-        title: "Help",
-        classname: "menuhelp",
+        title: 'Help',
+        classname: 'menuhelp',
         menu: [
             //            { title: "Download", action: "download", classname: "download" },
-            { title: "About", action: "about", classname: "about" }
-        ]
-    }
+            { title: 'About', action: 'about', classname: 'about' },
+        ],
+    },
 ];
 // { title: "Language Template Processor", href: "GenLanguage.html", },

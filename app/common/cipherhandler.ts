@@ -1068,7 +1068,7 @@ export class CipherHandler {
      * @param config Configuration value to set
      * @param value Value to set
      */
-    public setConfigString(config: string, value: string) {
+    public setConfigString(config: string, value: string): void {
         if (this.storage.isAvailable()) {
             this.storage.set('config_' + config, value);
         }
@@ -1386,7 +1386,7 @@ export class CipherHandler {
     public processImport(file: File): void {
         const reader = new FileReader();
         reader.readAsText(file);
-        reader.onload = (e) => {
+        reader.onload = (e): void => {
             try {
                 const result = JSON.parse(e.target.result as string);
                 this.importXML(result);
@@ -2615,9 +2615,9 @@ export class CipherHandler {
      * language character frequency
      */
     public CalculateCribChiSquare(matchfreq: NumberMap): number {
-        const charset = this.getCharset();
-        const len = charset.length;
-        const counts = new Array(len);
+        // const charset = this.getCharset();
+        // const len = charset.length;
+        // const counts = new Array(len);
         let total = 0;
         for (const val in this.freq) {
             total += this.freq[val];
@@ -2704,7 +2704,7 @@ export class CipherHandler {
      * Fills in the frequency portion of the frequency table
      */
     public displayFreq(): void {
-        const charset = this.getCharset();
+        // const charset = this.getCharset();
         this.holdupdates = true;
         for (const c in this.freq) {
             if (this.freq.hasOwnProperty(c)) {
@@ -2926,7 +2926,7 @@ export class CipherHandler {
      * lang Language to load (2 character abbreviation)
      */
     public loadRawLanguage(lang: string): void {
-        const jqxhr = $.get('Languages/' + lang + '.txt', () => {}).done((data) => {
+        /* const jqxhr = */ $.get('Languages/' + lang + '.txt', () => {}).done((data) => {
             // empty out all the frequent words
             this.showLangStatus('warning', 'Processing ' + this.langmap[lang] + '...');
             this.Frequent[lang] = {};
@@ -3737,7 +3737,7 @@ export class CipherHandler {
         qnum: number,
         realTimeElement: RealTimeObject,
         testTimeInfo: ITestTimeInfo
-    ) {}
+    ): void {}
 
     /**
      * Calculate the score for the answer from an interactive test.  We calculate the solution

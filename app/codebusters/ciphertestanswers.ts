@@ -1,9 +1,9 @@
-import { cloneObject } from "../common/ciphercommon";
-import { ITestType, menuMode, toolMode } from "../common/cipherhandler";
-import { ICipherType } from "../common/ciphertypes";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTTable } from "../common/jttable";
-import { CipherTest, ITestDisp, ITestState } from "./ciphertest";
+import { cloneObject } from '../common/ciphercommon';
+import { ITestType, menuMode, toolMode } from '../common/cipherhandler';
+import { ICipherType } from '../common/ciphertypes';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTTable } from '../common/jttable';
+import { CipherTest, ITestDisp, ITestState } from './ciphertest';
 
 /**
  * CipherTestAnswers
@@ -12,10 +12,10 @@ import { CipherTest, ITestDisp, ITestState } from "./ciphertest";
 export class CipherTestAnswers extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;
     public defaultstate: ITestState = {
-        cipherString: "",
+        cipherString: '',
         cipherType: ICipherType.Test,
         test: 0,
-        sols: "n",
+        sols: 'n',
     };
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
@@ -41,9 +41,9 @@ export class CipherTestAnswers extends CipherTest {
      */
     public setSols(sols: string): boolean {
         let changed = false;
-        let newsols = "n";
-        if (sols !== undefined && sols.toLowerCase().substr(0, 1) === "y") {
-            newsols = "y";
+        let newsols = 'n';
+        if (sols !== undefined && sols.toLowerCase().substr(0, 1) === 'y') {
+            newsols = 'y';
         }
         if (newsols !== this.state.sols) {
             changed = true;
@@ -56,10 +56,10 @@ export class CipherTestAnswers extends CipherTest {
      */
     public getTestEditState(): ITestDisp {
         this.setSols(this.state.sols);
-        if (this.state.sols === "y") {
-            return "testsols";
+        if (this.state.sols === 'y') {
+            return 'testsols';
         }
-        return "testans";
+        return 'testans';
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -70,7 +70,7 @@ export class CipherTestAnswers extends CipherTest {
         this.setMenuMode(menuMode.test);
         this.setTestEditState(this.getTestEditState());
 
-        $(".testcontent").each((i, elem) => {
+        $('.testcontent').each((i, elem) => {
             $(elem).replaceWith(this.genTestAnswers());
         });
         this.attachHandlers();
@@ -95,39 +95,39 @@ export class CipherTestAnswers extends CipherTest {
      */
     public genTestAnswers(): JQuery<HTMLElement> {
         let printSolution = false;
-        if (this.state.sols === "y") {
+        if (this.state.sols === 'y') {
             printSolution = true;
             // Empty the instructions so that they don't print
-            $(".instructions").empty();
+            $('.instructions').empty();
         }
-        $(".testerrors").empty();
-        let testcount = this.getTestCount();
+        $('.testerrors').empty();
+        const testcount = this.getTestCount();
         if (testcount === 0) {
-            return $("<h3/>").text("No Tests Created Yet");
+            return $('<h3/>').text('No Tests Created Yet');
         }
         if (this.state.test > testcount) {
-            return $("<h3/>").text("Test not found");
+            return $('<h3/>').text('Test not found');
         }
 
-        let result = $("<div/>");
+        const result = $('<div/>');
         this.qdata = [];
 
-        let test = this.getTestEntry(this.state.test);
-        $(".testtitle").text(test.title);
-        let dt = new Date();
-        $(".testyear").text(dt.getFullYear());
+        const test = this.getTestEntry(this.state.test);
+        $('.testtitle').text(test.title);
+        const dt = new Date();
+        $('.testyear').text(dt.getFullYear());
         if (test.timed === -1) {
             // Division A doesn't have a timed quesiton, so don't print out
             // a message if it isn't there.
             if (test.testtype !== ITestType.aregional) {
                 result.append(
-                    $("<p/>", {
-                        class: "noprint",
-                    }).text("No timed question")
+                    $('<p/>', {
+                        class: 'noprint',
+                    }).text('No timed question')
                 );
             }
         } else {
-            let cipherhandler = this.GetPrintFactory(test.timed);
+            const cipherhandler = this.GetPrintFactory(test.timed);
             let qerror = '';
             try {
                 result.append(
@@ -135,15 +135,13 @@ export class CipherTestAnswers extends CipherTest {
                         test.testtype,
                         -1,
                         cipherhandler,
-                        "pagebreak",
+                        'pagebreak',
                         printSolution
                     )
                 );
-            }
-            catch (e) {
-                let msg = "Something went wrong generating the Timed Question." +
-                    " Error =" + e;
-                result.append($("<h1>").text(msg));
+            } catch (e) {
+                const msg = 'Something went wrong generating the Timed Question.' + ' Error =' + e;
+                result.append($('<h1>').text(msg));
             }
             // Division A doesn't have a timed question, but if one was
             // there, print it out, but generate an error message
@@ -153,17 +151,19 @@ export class CipherTestAnswers extends CipherTest {
                 qerror = cipherhandler.CheckAppropriate(test.testtype);
             }
             if (qerror !== '') {
-                $(".testerrors").append($('<div/>', {
-                    class: 'callout alert',
-                }).text('Timed Question: ' + qerror));
+                $('.testerrors').append(
+                    $('<div/>', {
+                        class: 'callout alert',
+                    }).text('Timed Question: ' + qerror)
+                );
             }
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
-            let breakclass = "";
+            let breakclass = '';
             if (qnum % 2 === 0) {
-                breakclass = "pagebreak";
+                breakclass = 'pagebreak';
             }
-            let cipherhandler = this.GetPrintFactory(test.questions[qnum]);
+            const cipherhandler = this.GetPrintFactory(test.questions[qnum]);
             try {
                 result.append(
                     this.printTestAnswer(
@@ -175,15 +175,20 @@ export class CipherTestAnswers extends CipherTest {
                     )
                 );
             } catch (e) {
-                let msg = "Something went wrong generating Question #" +
-                    +String(qnum + 1) + ". Error =" + e;
-                result.append($("<h1>").text(msg));
+                const msg =
+                    'Something went wrong generating Question #' +
+                    +String(qnum + 1) +
+                    '. Error =' +
+                    e;
+                result.append($('<h1>').text(msg));
             }
-            let qerror = cipherhandler.CheckAppropriate(test.testtype);
+            const qerror = cipherhandler.CheckAppropriate(test.testtype);
             if (qerror !== '') {
-                $(".testerrors").append($('<div/>', {
-                    class: 'callout alert',
-                }).text('Question' + String(qnum + 1) + ': ' + qerror));
+                $('.testerrors').append(
+                    $('<div/>', {
+                        class: 'callout alert',
+                    }).text('Question' + String(qnum + 1) + ': ' + qerror)
+                );
             }
         }
         // Since the handlers turn on the file menus sometimes, we need to turn them back off
@@ -191,21 +196,21 @@ export class CipherTestAnswers extends CipherTest {
         //
         // Generate the tie breaker order
         //
-        let table = new JTTable({
-            class: "cell shrink tiebreak",
+        const table = new JTTable({
+            class: 'cell shrink tiebreak',
         });
         table
             .addHeaderRow()
-            .add("Tie Breaker Order")
-            .add("Question #");
+            .add('Tie Breaker Order')
+            .add('Question #');
 
         // We have stacked all of the found matches.  Now we need to sort them
         this.qdata.sort(this.tiebreakersort);
         let order = 1;
-        for (let qitem of this.qdata) {
-            let qtitle = "";
+        for (const qitem of this.qdata) {
+            let qtitle = '';
             if (qitem.qnum === -1) {
-                qtitle = "Timed";
+                qtitle = 'Timed';
             } else {
                 qtitle = String(qitem.qnum);
             }
@@ -215,7 +220,7 @@ export class CipherTestAnswers extends CipherTest {
                 .add(qtitle);
             order++;
         }
-        $("#tietable").append(table.generate());
+        $('#tietable').append(table.generate());
         return result;
     }
 }

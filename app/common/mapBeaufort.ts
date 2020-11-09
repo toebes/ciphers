@@ -1,6 +1,6 @@
-const Aval = "A".charCodeAt(0);
+const Aval = 'A'.charCodeAt(0);
 
-import { Mapper } from "./mapper";
+import { Mapper } from './mapper';
 export class mapBeaufort extends Mapper {
     /**
      * Map two unencoded characters using the Beaufort mapping table
@@ -14,9 +14,9 @@ export class mapBeaufort extends Mapper {
         ckey = ckey.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
         if (cpt.toLowerCase() === cpt || ckey.toLowerCase() === ckey) {
-            return "?";
+            return '?';
         }
-        let ctval = ckey.charCodeAt(0) - cpt.charCodeAt(0);
+        const ctval = ckey.charCodeAt(0) - cpt.charCodeAt(0);
         return this.getCharCode(ctval);
     }
     /**
@@ -42,9 +42,9 @@ export class mapBeaufort extends Mapper {
         ct = ct.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
         if (cpt.toLowerCase() === cpt || ct.toLowerCase() === ct) {
-            return "?";
+            return '?';
         }
-        let keyval = ct.charCodeAt(0) - Aval + (cpt.charCodeAt(0) - Aval);
+        const keyval = ct.charCodeAt(0) - Aval + (cpt.charCodeAt(0) - Aval);
         return this.getCharCode(keyval);
     }
     // Test cases to confirm that the Beaufort encoders/decoders work

@@ -1,6 +1,6 @@
-import { ITestTimeInfo } from "../common/cipherhandler";
-import { RealTimeObject} from '@convergence/convergence';
-import { InteractiveEncoder } from "./interactiveencoder";
+import { ITestTimeInfo } from '../common/cipherhandler';
+import { RealTimeObject } from '@convergence/convergence';
+import { InteractiveEncoder } from './interactiveencoder';
 
 export class InteractiveTableEncoder extends InteractiveEncoder {
     /**
@@ -9,12 +9,16 @@ export class InteractiveTableEncoder extends InteractiveEncoder {
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
      * @param testTimeInfo Timing information for the current test.
-    */
-   public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo) {
-       let qnumdisp = String(qnum + 1);
-        let qdivid = "#Q" + qnumdisp + " ";
+     */
+    public attachInteractiveHandlers(
+        qnum: number,
+        realTimeElement: RealTimeObject,
+        testTimeInfo: ITestTimeInfo
+    ): void {
+        const qnumdisp = String(qnum + 1);
+        const qdivid = '#Q' + qnumdisp + ' ';
 
-        let realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
+        const realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
 
         this.attachInteractiveNotesHandler(qnumdisp, realTimeElement);
 

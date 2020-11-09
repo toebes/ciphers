@@ -1,5 +1,11 @@
 import { cloneObject, makeFilledArray } from '../common/ciphercommon';
-import {IState, ITestType, toolMode, ITestQuestionFields, IScoreInformation} from '../common/cipherhandler';
+import {
+    IState,
+    ITestType,
+    toolMode,
+    ITestQuestionFields,
+    IScoreInformation,
+} from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
@@ -17,7 +23,7 @@ import {
     multarray,
 } from '../common/mathsupport';
 import { renderMath } from '../common/renderMath';
-import { CipherEncoder, IEncoderState } from './cipherencoder';
+import { CipherEncoder } from './cipherencoder';
 
 const kmathEquiv = '\\equiv';
 // Configure how we want the multiplication to appear - either as a * or a dot
@@ -28,10 +34,9 @@ const kmathMult = '*';
  */
 export class CipherHillEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = 'TestGuidance.html#Hill_Matrix';
+    public guidanceURL = 'TestGuidance.html#Hill_Matrix';
 
-    public validTests: ITestType[] = [ITestType.None,
-    ITestType.cregional, ITestType.cstate];
+    public validTests: ITestType[] = [ITestType.None, ITestType.cregional, ITestType.cstate];
     public defaultstate: IState = {
         cipherString: '',
         keyword: '' /** The type of cipher we are doing */,
@@ -45,13 +50,13 @@ export class CipherHillEncoder extends CipherEncoder {
         this.redocmdButton,
         this.guidanceButton,
     ];
-    public charset: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    public padval: string = 'Z';
+    public charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    public padval = 'Z';
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: IState, suppressOutput: boolean = false): void {
+    public restore(data: IState, suppressOutput = false): void {
         this.state = cloneObject(this.defaultstate) as IState;
         this.copyState(this.state, data);
         if (!suppressOutput) {
@@ -64,7 +69,7 @@ export class CipherHillEncoder extends CipherEncoder {
      */
     public save(): IState {
         // We need a deep copy of the save state
-        let savestate = cloneObject(this.state) as IState;
+        const savestate = cloneObject(this.state) as IState;
         return savestate;
     }
     /**
@@ -75,17 +80,17 @@ export class CipherHillEncoder extends CipherEncoder {
     public getInteractiveTemplate(): ITestQuestionFields {
         let len = this.state.keyword.length;
         if (this.state.operation !== 'compute') {
-            let vals = this.getValidKey(this.state.keyword);
+            const vals = this.getValidKey(this.state.keyword);
             if (vals !== undefined) {
                 len = this.computeHill(vals).length;
             }
         }
-        let result: ITestQuestionFields = {
-            answer: makeFilledArray(len, " "),
-            notes: "",
+        const result: ITestQuestionFields = {
+            answer: makeFilledArray(len, ' '),
+            notes: '',
         };
         if (this.state.operation !== 'compute') {
-            result.replacements = makeFilledArray(len, "");
+            result.replacements = makeFilledArray(len, '');
         }
         return result;
     }
@@ -97,10 +102,10 @@ export class CipherHillEncoder extends CipherEncoder {
      */
     public CheckAppropriate(testType: ITestType): string {
         let result = super.CheckAppropriate(testType);
-        if (result === "" && testType !== undefined) {
+        if (result === '' && testType !== undefined) {
             if (testType !== ITestType.cstate && this.state.keyword.length === 9) {
-                result = "3x3 Hill Cipher problems are not allowed on " +
-                    this.getTestTypeName(testType);
+                result =
+                    '3x3 Hill Cipher problems are not allowed on ' + this.getTestTypeName(testType);
             }
         }
         return result;
@@ -135,17 +140,17 @@ export class CipherHillEncoder extends CipherEncoder {
      * @param keyword New Keyword for encoding
      */
     public setKeyword(keyword: string): boolean {
-        let changed = super.setKeyword(keyword);
+        const changed = super.setKeyword(keyword);
         if (this.getValidKey(this.state.keyword) !== undefined) {
             $('#err').text('');
         }
         return changed;
     }
     public build(): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        let key = this.state.keyword.toUpperCase();
+        const result = $('<div/>');
+        const key = this.state.keyword.toUpperCase();
         let toencode = this.state.cipherString.toUpperCase();
-        let vals = this.getValidKey(key);
+        const vals = this.getValidKey(key);
         if (vals === undefined) {
             result.append($('<p/>').text('Invalid Key'));
             return result;
@@ -157,14 +162,11 @@ export class CipherHillEncoder extends CipherEncoder {
         if (this.state.operation === 'compute') {
             result.append(this.genInverseFormula(vals));
         } else {
-            let encoded = this.computeHill(vals);
+            const encoded = this.computeHill(vals);
             if (this.state.operation === 'decode') {
                 // For decode, we allow the 2x2 or 3x3 matrix
                 result.append(this.genInverseFormula(vals));
-                toencode += this.repeatStr(
-                    this.padval,
-                    encoded.length - toencode.length
-                );
+                toencode += this.repeatStr(this.padval, encoded.length - toencode.length);
                 result.append(
                     $('<div/>', {
                         class: 'TOSOLVE',
@@ -195,7 +197,7 @@ export class CipherHillEncoder extends CipherEncoder {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
         result.append(
             $('<div/>', {
                 class: 'callout primary',
@@ -208,26 +210,16 @@ export class CipherHillEncoder extends CipherEncoder {
         );
         this.genTestUsage(result);
 
-        let radiobuttons = [
+        const radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
             { id: 'drow', value: 'compute', title: 'Compute Decryption' },
             { id: 'mrow', value: 'decode', title: 'Decode' },
         ];
-        result.append(
-            JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
-        );
+        result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
 
         this.genQuestionFields(result);
         this.genEncodeField(result);
-        result.append(
-            JTFLabeledInput(
-                'Keyword',
-                'text',
-                'keyword',
-                this.state.keyword,
-                ''
-            )
-        );
+        result.append(JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, ''));
         return result;
     }
     /**
@@ -244,10 +236,10 @@ export class CipherHillEncoder extends CipherEncoder {
             .append(this.genSolution(ITestType.None));
     }
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        let key = this.state.keyword.toUpperCase();
-        let toencode = this.minimizeString(this.state.cipherString);
-        let vals = this.getValidKey(key);
+        const result = $('<div/>');
+        const key = this.state.keyword.toUpperCase();
+        const toencode = this.minimizeString(this.state.cipherString);
+        const vals = this.getValidKey(key);
         if (vals === undefined) {
             return result;
         }
@@ -256,16 +248,12 @@ export class CipherHillEncoder extends CipherEncoder {
         if (this.state.operation === 'compute') {
             result.append(this.genInverseMath(vals));
         } else {
-            let encoded = this.computeHill(vals);
+            const encoded = this.computeHill(vals);
             if (this.state.operation === 'decode') {
                 // For decode, we allow the 2x2 or 3x3 matrix
                 result.append(this.genInverseMath(vals));
-                result.append(
-                    $('<p/>').text(
-                        'With the inverse matrix we can now decode'
-                    )
-                );
-                let modinv = mod26InverseMatrix(vals);
+                result.append($('<p/>').text('With the inverse matrix we can now decode'));
+                const modinv = mod26InverseMatrix(vals);
                 result.append(this.genEncodeMath(modinv, encoded));
             } else {
                 result.append(this.genEncodeMath(vals, toencode));
@@ -280,49 +268,45 @@ export class CipherHillEncoder extends CipherEncoder {
      */
     public padstr(str: string, groupsize: number): string {
         let res = '';
-        let charset = this.getCharset();
-        for (let t of str.toUpperCase()) {
-            let x = charset.indexOf(t);
+        const charset = this.getCharset();
+        for (const t of str.toUpperCase()) {
+            const x = charset.indexOf(t);
             if (x >= 0) {
                 res += t;
             }
         }
-        let topad = (groupsize - (res.length % groupsize)) % groupsize;
+        const topad = (groupsize - (res.length % groupsize)) % groupsize;
         res += this.repeatStr(this.padval, topad);
         return res;
     }
 
     public getValidKey(key: string): number[][] {
-        let vals = [];
-        let charset = this.getCharset();
-        let groupsize;
+        const vals = [];
+        const charset = this.getCharset();
         if (key.length !== 4 && key.length !== 9) {
-            $('#err').text(
-                'Invalid key.  It must be either 4 or 9 characters long'
-            );
+            $('#err').text('Invalid key.  It must be either 4 or 9 characters long');
             return undefined;
         }
         // Figure out how big our array for encoding is
-        groupsize = Math.sqrt(key.length);
+        const groupsize = Math.sqrt(key.length);
 
         // Parse out the key and create the matrix to multiply by
         for (let i = 0, len = key.length; i < len; i++) {
-            let row;
-            let t = key.substr(i, 1).toUpperCase();
-            let x = charset.indexOf(t);
+            const t = key.substr(i, 1).toUpperCase();
+            const x = charset.indexOf(t);
             if (x < 0) {
                 console.log('Invalid character:' + t);
                 $('#err').text('Invalid key character:' + t);
                 return undefined;
             }
-            row = Math.floor(i / groupsize);
+            const row = Math.floor(i / groupsize);
             if (typeof vals[row] === 'undefined') {
                 vals[row] = [];
             }
             vals[row][i % groupsize] = x;
         }
 
-        let detval = Math.round(determinant(vals)) as number;
+        const detval = Math.round(determinant(vals)) as number;
         if (detval === 0) {
             $('#err').text('Matrix is not invertable');
             return undefined;
@@ -330,9 +314,9 @@ export class CipherHillEncoder extends CipherEncoder {
         if (!isCoPrime(detval, charset.length)) {
             $('#err').text(
                 'Matrix is not invertable.  Determinant ' +
-                mod26(detval) +
-                ' is not coprime with ' +
-                charset.length
+                    mod26(detval) +
+                    ' is not coprime with ' +
+                    charset.length
             );
             return undefined;
         }
@@ -345,13 +329,12 @@ export class CipherHillEncoder extends CipherEncoder {
         let modinv = [];
         if (vals[0].length === 2) {
             modinv = mod26Inverse2x2(vals);
-        }
-        else if (vals[0].length === 3) {
+        } else if (vals[0].length === 3) {
             modinv = mod26Inverse3x3(vals);
         }
         // add a bit of whitespace with \qquad
-        let kmath = '\\qquad' +
-            this.getKmathMatrix(vals) + '^{-1}=' + this.getKmathMatrix(modinv);
+        const kmath =
+            '\\qquad' + this.getKmathMatrix(vals) + '^{-1}=' + this.getKmathMatrix(modinv);
         return renderMath(kmath);
     }
 
@@ -362,11 +345,9 @@ export class CipherHillEncoder extends CipherEncoder {
     public genInverseMath(vals: number[][]): JQuery<HTMLElement> {
         if (vals[0].length === 2) {
             return this.genInverseMath2x2(vals);
-        }
-        else if (vals[0].length === 3) {
+        } else if (vals[0].length === 3) {
             return this.genInverseMath3x3(vals);
-        }
-        else {
+        } else {
             return undefined;
         }
     }
@@ -375,25 +356,26 @@ export class CipherHillEncoder extends CipherEncoder {
      */
     public genInverseMath2x2(vals: number[][]): JQuery<HTMLElement> {
         // let result: number[][] = []
-        let a = vals[0][0];
-        let b = vals[0][1];
-        let c = vals[1][0];
-        let d = vals[1][1];
-        let modinv = mod26Inverse2x2(vals);
-        let det = a * d - b * c;
-        let detmod26 = mod26(det);
+        const a = vals[0][0];
+        const b = vals[0][1];
+        const c = vals[1][0];
+        const d = vals[1][1];
+        const modinv = mod26Inverse2x2(vals);
+        const det = a * d - b * c;
+        const detmod26 = mod26(det);
         if (typeof modInverse26[detmod26] === undefined) {
             return $('<p/>').text('Matrix invalid - not invertable');
         }
-        let detinv = modInverse26[detmod26];
+        const detinv = modInverse26[detmod26];
         // Since we use this matrix a few times, cache creating it
-        let matinv = this.getKmathMatrix([[d, -b], [-c, a]]);
+        const matinv = this.getKmathMatrix([
+            [d, -b],
+            [-c, a],
+        ]);
 
-        let result = $('<div/>');
+        const result = $('<div/>');
         result.append(
-            $('<p/>').text(
-                'The inverse of the matrix can be computed using the formula:'
-            )
+            $('<p/>').text('The inverse of the matrix can be computed using the formula:')
         );
         let equation =
             '{\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}}^{{-1}}=(ad-bc)^{{-1}}{\\begin{pmatrix}d&-b\\\\-c&a\\end{pmatrix}}';
@@ -403,8 +385,7 @@ export class CipherHillEncoder extends CipherEncoder {
         p.append(renderMath(equation)).append(' Using ');
         p.append(
             $('<a/>', {
-                href:
-                    'https://en.wikipedia.org/wiki/Modular_multiplicative_inverse',
+                href: 'https://en.wikipedia.org/wiki/Modular_multiplicative_inverse',
             }).text('modular multiplicative inverse')
         );
         p.append(' math');
@@ -426,9 +407,7 @@ export class CipherHillEncoder extends CipherEncoder {
         result.append(renderMath(equation));
 
         result.append(
-            $('<p/>').text(
-                'We start by finding the modulo 26 value of the determinent:'
-            )
+            $('<p/>').text('We start by finding the modulo 26 value of the determinent:')
         );
         equation =
             '(' +
@@ -447,19 +426,18 @@ export class CipherHillEncoder extends CipherEncoder {
 
         p = $('<p/>').text(
             'Looking up ' +
-            detmod26 +
-            ' in the table supplied with the test (or by computing it with the '
+                detmod26 +
+                ' in the table supplied with the test (or by computing it with the '
         );
         p.append(
             $('<a/>', {
-                href:
-                    'https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm',
+                href: 'https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm',
             }).text('Extended Euclidean algorithm')
         );
         p.append(
             ') we find that it is ' +
-            detinv +
-            ' which we substitute into the formula to compute the matrix:'
+                detinv +
+                ' which we substitute into the formula to compute the matrix:'
         );
         result.append(p);
         equation =
@@ -521,50 +499,54 @@ export class CipherHillEncoder extends CipherEncoder {
      * @param vals
      */
     public genInverseMath3x3(vals: number[][]): JQuery<HTMLElement> {
-        let a = vals[0][0];
-        let b = vals[0][1];
-        let c = vals[0][2];
-        let d = vals[1][0];
-        let e = vals[1][1];
-        let f = vals[1][2];
-        let g = vals[2][0];
-        let h = vals[2][1];
-        let i = vals[2][2];
-        let A = e * i - f * h;
-        let B = -(d * i - f * g);
-        let C = d * h - e * g;
-        let D = -(b * i - c * h);
-        let E = a * i - c * g;
-        let F = -(a * h - b * g);
-        let G = b * f - c * e;
-        let H = -(a * f - c * d);
-        let I = a * e - b * d;
+        const a = vals[0][0];
+        const b = vals[0][1];
+        const c = vals[0][2];
+        const d = vals[1][0];
+        const e = vals[1][1];
+        const f = vals[1][2];
+        const g = vals[2][0];
+        const h = vals[2][1];
+        const i = vals[2][2];
+        const A = e * i - f * h;
+        const B = -(d * i - f * g);
+        const C = d * h - e * g;
+        const D = -(b * i - c * h);
+        const E = a * i - c * g;
+        const F = -(a * h - b * g);
+        const G = b * f - c * e;
+        const H = -(a * f - c * d);
+        const I = a * e - b * d;
 
-        let modinv = mod26Inverse3x3(vals);
-        let determinant = determinant3x3(vals);
-        let determinantMod26 = mod26(determinant);
+        const modinv = mod26Inverse3x3(vals);
+        const determinant = determinant3x3(vals);
+        const determinantMod26 = mod26(determinant);
         if (typeof modInverse26[determinantMod26] === undefined) {
             return $('<p/>').text('Matrix invalid - not invertable');
         }
-        let determinantInverse = modInverse26[determinantMod26];
+        const determinantInverse = modInverse26[determinantMod26];
 
         // Since we use this matrix a few times, cache creating it
-        let matrixIntermediate = this.getKmathMatrix([[A, B, C], [D, E, F], [G, H, I]]);
+        const matrixIntermediate = this.getKmathMatrix([
+            [A, B, C],
+            [D, E, F],
+            [G, H, I],
+        ]);
         // let matrixTransposed = this.getKmathMatrix([[mod26(A), mod26(D), mod26(G)],
         //                                                    [mod26(B), mod26(E), mod26(H)],
         //                                                    [mod26(C), mod26(F), mod26(I)]]);
-        let matrixTransposed = this.getKmathMatrix([[A, D, G],
-        [B, E, H],
-        [C, F, I]]);
+        const matrixTransposed = this.getKmathMatrix([
+            [A, D, G],
+            [B, E, H],
+            [C, F, I],
+        ]);
 
-        let result = $('<div/>');
+        const result = $('<div/>');
         result.append(
-            $('<p/>').text(
-                'The inverse of the matrix can be computed using the formula:'
-            )
+            $('<p/>').text('The inverse of the matrix can be computed using the formula:')
         );
         let equation =
-            '{M^{{-1}}=\\begin{pmatrix}a&b&c\\\\d&e&f\\\\g&h&i\\end{pmatrix}}^{{-1}}=det(M)^{{-1}}\\begin{pmatrix}A&B&C\\\\D&E&F\\\\G&H&I\\end{pmatrix}^{{T}}=det(M)^{{-1}}\\begin{pmatrix}A&D&G\\\\B&E&H\\\\C&F&I\\end{pmatrix}';//     {\\begin{pmatrix}d&-b\\\\-c&a\\end{pmatrix}}';
+            '{M^{{-1}}=\\begin{pmatrix}a&b&c\\\\d&e&f\\\\g&h&i\\end{pmatrix}}^{{-1}}=det(M)^{{-1}}\\begin{pmatrix}A&B&C\\\\D&E&F\\\\G&H&I\\end{pmatrix}^{{T}}=det(M)^{{-1}}\\begin{pmatrix}A&D&G\\\\B&E&H\\\\C&F&I\\end{pmatrix}'; //     {\\begin{pmatrix}d&-b\\\\-c&a\\end{pmatrix}}';
         result.append(renderMath(equation));
         let p = $('<p/>').text('Where:');
         result.append(p);
@@ -597,17 +579,14 @@ export class CipherHillEncoder extends CipherEncoder {
         p.append(renderMath(equation)).append(' Using ');
         p.append(
             $('<a/>', {
-                href:
-                    'https://en.wikipedia.org/wiki/Invertible_matrix',
+                href: 'https://en.wikipedia.org/wiki/Invertible_matrix',
             }).text('modular multiplicative inverse')
         );
         p.append(' math.');
         result.append(p);
 
         result.append(
-            $('<p/>').text(
-                'We start by finding the modulo 26 value of the determinant:'
-            )
+            $('<p/>').text('We start by finding the modulo 26 value of the determinant:')
         );
         equation =
             'det(M) = (' +
@@ -629,22 +608,20 @@ export class CipherHillEncoder extends CipherEncoder {
         result.append(renderMath(equation));
         p = $('<p/>').text(
             'Looking up ' +
-            determinantMod26 +
-            ' in the table supplied with the test (or by computing it with the '
+                determinantMod26 +
+                ' in the table supplied with the test (or by computing it with the '
         );
         p.append(
             $('<a/>', {
-                href:
-                    'https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm',
+                href: 'https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm',
             }).text('Extended Euclidean algorithm')
         );
         p.append(
             ') we find that the inverse is ' +
-            determinantInverse +
-            ' which we substitute into the formula to compute the matrix:'
+                determinantInverse +
+                ' which we substitute into the formula to compute the matrix:'
         );
         result.append(p);
-
 
         equation =
             this.getKmathMatrix(vals) +
@@ -659,47 +636,51 @@ export class CipherHillEncoder extends CipherEncoder {
             '\\mod{26}';
         result.append(renderMath(equation));
 
-        result.append(
-            $('<p/>').text(
-                'Completing the calculation, we get:'
-            )
-        );
-        equation = this.getKmathMatrix(
-            [[determinantInverse + kmathMult + A,
-            determinantInverse + kmathMult + D,
-            determinantInverse + kmathMult + G],
-            [determinantInverse + kmathMult + b,
-            determinantInverse + kmathMult + E,
-            determinantInverse + kmathMult + H],
-            [determinantInverse + kmathMult + C,
-            determinantInverse + kmathMult + F,
-            determinantInverse + kmathMult + I]]) +
+        result.append($('<p/>').text('Completing the calculation, we get:'));
+        equation =
+            this.getKmathMatrix([
+                [
+                    determinantInverse + kmathMult + A,
+                    determinantInverse + kmathMult + D,
+                    determinantInverse + kmathMult + G,
+                ],
+                [
+                    determinantInverse + kmathMult + b,
+                    determinantInverse + kmathMult + E,
+                    determinantInverse + kmathMult + H,
+                ],
+                [
+                    determinantInverse + kmathMult + C,
+                    determinantInverse + kmathMult + F,
+                    determinantInverse + kmathMult + I,
+                ],
+            ]) +
             '\\mod{26}' +
             kmathEquiv +
-            this.getKmathMatrix(
-                [[determinantInverse * A,
-                determinantInverse * D,
-                determinantInverse * G],
-                [determinantInverse * B,
-                determinantInverse * E,
-                determinantInverse * H],
-                [determinantInverse * C,
-                determinantInverse * F,
-                determinantInverse * I]]
-            ) +
+            this.getKmathMatrix([
+                [determinantInverse * A, determinantInverse * D, determinantInverse * G],
+                [determinantInverse * B, determinantInverse * E, determinantInverse * H],
+                [determinantInverse * C, determinantInverse * F, determinantInverse * I],
+            ]) +
             '\\mod{26}' +
             kmathEquiv +
-            this.getKmathMatrix(
-                [[determinantInverse * A + '\\mod{26}',
-                determinantInverse * D + '\\mod{26}',
-                determinantInverse * G + '\\mod{26}'],
-                [determinantInverse * B + '\\mod{26}',
-                determinantInverse * E + '\\mod{26}',
-                determinantInverse * H + '\\mod{26}'],
-                [determinantInverse * C + '\\mod{26}',
-                determinantInverse * F + '\\mod{26}',
-                determinantInverse * I + '\\mod{26}']]
-            ) +
+            this.getKmathMatrix([
+                [
+                    determinantInverse * A + '\\mod{26}',
+                    determinantInverse * D + '\\mod{26}',
+                    determinantInverse * G + '\\mod{26}',
+                ],
+                [
+                    determinantInverse * B + '\\mod{26}',
+                    determinantInverse * E + '\\mod{26}',
+                    determinantInverse * H + '\\mod{26}',
+                ],
+                [
+                    determinantInverse * C + '\\mod{26}',
+                    determinantInverse * F + '\\mod{26}',
+                    determinantInverse * I + '\\mod{26}',
+                ],
+            ]) +
             kmathEquiv +
             this.getKmathMatrix(modinv);
         result.append(renderMath(equation));
@@ -712,34 +693,32 @@ export class CipherHillEncoder extends CipherEncoder {
      * For a decode, pass in the inverted matrix
      */
     public genEncodeMath(vals: number[][], str: string): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        let charset = this.getCharset();
-        let t, groupsize, x;
+        const result = $('<div/>');
+        const charset = this.getCharset();
+        let t, x;
 
         // Figure out how big our array for encoding is
-        groupsize = vals.length;
+        const groupsize = vals.length;
 
         // pad out the string to contain full groups of the group size
         str = this.padstr(str, groupsize);
 
-        let equations = $('<div/>', { id: 'equations' });
+        const equations = $('<div/>', { id: 'equations' });
         // Go through the string in the group size and perform the math on it
         for (let i = 0, len = str.length; i < len; i += groupsize) {
-            let cluster = [];
+            const cluster = [];
             for (let j = i; j < i + groupsize; j++) {
                 t = str.substr(j, 1);
                 x = charset.indexOf(t);
                 if (x < 0) {
-                    $('#err').text(
-                        'Internal error:' + t + ' invalid character'
-                    );
+                    $('#err').text('Internal error:' + t + ' invalid character');
                     return result;
                 }
                 cluster.push(x); // cluster.push([x]);
             }
             // Generate the math formula showing the encoding
-            let line = this.genEncodeEquation(vals, cluster);
-            let div = $('<div/>', {
+            const line = this.genEncodeEquation(vals, cluster);
+            const div = $('<div/>', {
                 class: 'lineeq',
             }).append(renderMath(line));
             equations.append(div);
@@ -753,11 +732,11 @@ export class CipherHillEncoder extends CipherEncoder {
     public getKmathMatrix(matrix: any[]): string {
         let extra = '';
         let result = '\\begin{pmatrix}';
-        for (let row of matrix) {
+        for (const row of matrix) {
             result += extra;
             if (Array.isArray(row)) {
                 let rowextra = '';
-                for (let c of row) {
+                for (const c of row) {
                     result += rowextra + c;
                     rowextra = '&';
                 }
@@ -773,14 +752,14 @@ export class CipherHillEncoder extends CipherEncoder {
      * Generate the kmath representation of the characters in a matrix
      */
     public getKmathMatrixChars(matrix: number[] | number[][]): string {
-        let charset = this.getCharset();
+        const charset = this.getCharset();
         let extra = '';
         let result = '\\begin{pmatrix}';
-        for (let row of matrix) {
+        for (const row of matrix) {
             result += extra;
             if (Array.isArray(row)) {
                 let rowextra = '';
-                for (let c of row) {
+                for (const c of row) {
                     result += rowextra + charset.substr(c, 1);
                     rowextra = '&';
                 }
@@ -796,30 +775,30 @@ export class CipherHillEncoder extends CipherEncoder {
      * This function builds an equation for a single block of data
      */
     public genEncodeEquation(keyArray: number[][], msgArray: number[]): string {
-        let charset = this.getCharset();
-        let aMultiplying: string[] = [];
-        let aResultValues: number[] = [];
-        let aResultMod26: number[] = [];
+        const charset = this.getCharset();
+        const aMultiplying: string[] = [];
+        const aResultValues: number[] = [];
+        const aResultMod26: number[] = [];
 
         // Compute the values into the various matrixes
-        for (let rowdata of keyArray) {
+        for (const rowdata of keyArray) {
             let extra = '';
             let rowval = 0;
             let strMult = '';
             for (let col = 0; col < rowdata.length; col++) {
-                let spot = rowdata[col];
-                let mult = msgArray[col];
+                const spot = rowdata[col];
+                const mult = msgArray[col];
                 strMult += extra + spot + kmathMult + mult;
                 rowval += spot * mult;
                 extra = '+';
             }
             aMultiplying.push(strMult);
             aResultValues.push(rowval);
-            let rvmod26 = rowval % charset.length;
+            const rvmod26 = rowval % charset.length;
             aResultMod26.push(rvmod26);
         }
         // Build the complete equation string using operators and
-        let equation =
+        const equation =
             this.getKmathMatrixChars(keyArray) +
             kmathMult +
             this.getKmathMatrixChars(msgArray) +
@@ -844,9 +823,9 @@ export class CipherHillEncoder extends CipherEncoder {
      * Given a string, convert it to a matrix
      */
     public makeMatrixFromString(str: string): string[][] {
-        let result: string[][] = [];
+        const result: string[][] = [];
         // Figure out how big our array is
-        let groupsize = Math.sqrt(str.length);
+        const groupsize = Math.sqrt(str.length);
         // As long as it is square, we can generate a matrix from it
         if (groupsize * groupsize === str.length) {
             for (let row = 0; row < groupsize; row++) {
@@ -865,24 +844,24 @@ export class CipherHillEncoder extends CipherEncoder {
      * @param showDecryptionMatrix - whether to show the 'hint' inverse matrix
      *                               (used when displaying/printing the test question).
      */
-    public genQuestionMath(vals: number[][],
-        showDecryptionMatrix: boolean = false): JQuery<HTMLElement> {
-        let kmath =
-            this.getKmathMatrixChars(vals) +
-            kmathEquiv +
-            this.getKmathMatrix(vals);
+    public genQuestionMath(vals: number[][], showDecryptionMatrix = false): JQuery<HTMLElement> {
+        let kmath = this.getKmathMatrixChars(vals) + kmathEquiv + this.getKmathMatrix(vals);
 
         // Provide the decryption matrix if the question is
         // decode a message using a 3x3 matrix.
-        if (showDecryptionMatrix &&
+        if (
+            showDecryptionMatrix &&
             this.state.operation === 'decode' &&
-            this.state.keyword.length === 9) {
-            let decrypt3x3 = '\\qquad Decode ' +
-                this.getKmathMatrixChars(vals) + '^{{-1}}' +
+            this.state.keyword.length === 9
+        ) {
+            const decrypt3x3 =
+                '\\qquad Decode ' +
+                this.getKmathMatrixChars(vals) +
+                '^{{-1}}' +
                 kmathEquiv +
-                this.getKmathMatrix(mod26InverseMatrix(vals))
+                this.getKmathMatrix(mod26InverseMatrix(vals));
 
-            kmath += decrypt3x3
+            kmath += decrypt3x3;
         }
 
         return renderMath(kmath);
@@ -893,12 +872,12 @@ export class CipherHillEncoder extends CipherEncoder {
      * @param extraclass Extra class to add to the table
      */
     public genAnswerMathMatrix(matrix: any[][], extraclsss: string): JQuery<HTMLElement> {
-        let table = new JTTable({
+        const table = new JTTable({
             class: 'hillans ansblock shrink cell unstriped' + extraclsss,
         });
         let first = true;
-        for (let row of matrix) {
-            let tabrow = table.addBodyRow();
+        for (const row of matrix) {
+            const tabrow = table.addBodyRow();
             if (first) {
                 tabrow.add({
                     settings: {
@@ -908,9 +887,9 @@ export class CipherHillEncoder extends CipherEncoder {
                     content: '(',
                 });
             }
-            for (let c of row) {
+            for (const c of row) {
                 let cclass = 'a';
-                if (c === ' ' || typeof (c) !== "string") {
+                if (c === ' ' || typeof c !== 'string') {
                     cclass = 'q';
                 }
                 tabrow.add({
@@ -933,28 +912,28 @@ export class CipherHillEncoder extends CipherEncoder {
     }
     public computeHill(vals: number[][]): string {
         let result = '';
-        let key = this.state.keyword;
+        const key = this.state.keyword;
         let str = this.state.cipherString;
-        let charset = this.getCharset();
+        const charset = this.getCharset();
 
         // Figure out how big our array for encoding is
-        let groupsize = Math.sqrt(key.length);
+        const groupsize = Math.sqrt(key.length);
 
         // pad out the string to contain full groups of the group size
         str = this.padstr(str, groupsize);
 
         // Go through the string in the group size and perform the math on it
         for (let i = 0, len = str.length; i < len; i += groupsize) {
-            let cluster = [];
+            const cluster = [];
             for (let j = i; j < i + groupsize; j++) {
-                let c = str.substr(j, 1);
-                let val = charset.indexOf(c);
+                const c = str.substr(j, 1);
+                const val = charset.indexOf(c);
                 if (val < 0) {
                     return 'Invalid Cipher:' + c + ' invalid character';
                 }
                 cluster.push(val);
             }
-            let clustervals = multarray(vals, cluster);
+            const clustervals = multarray(vals, cluster);
             for (let j = 0; j < groupsize; j++) {
                 result += charset.substr(clustervals[j] % charset.length, 1);
             }
@@ -967,25 +946,24 @@ export class CipherHillEncoder extends CipherEncoder {
      * tests are printed, question/answer text does not run over the page.
      * Based on cipherhandler.makeReplacement(str, maxWidth), but both strings
      * are passed in and assumed to be equal in length.
-     * 
+     *
      * Users (other programmers using this method in their code) need to beware
      * of which line is plaintext and which is encoded, to match their question.
-     * 
+     *
      * @param firstLine plaintext or encoded line of characters
      * @param secondLine encoded or plaintext line of characters
      * @param width number of characters per table line.
      */
     public splitToFit(firstLine: string, secondLine: string, width = 26): string[][] {
         let lastsplit = -1;
-        let lineOne = "";
-        let lineTwo = "";
+        let lineOne = '';
+        let lineTwo = '';
         let count = 0;
-        let theLines: string[][] = [];
-        for (let t of firstLine) {
+        const theLines: string[][] = [];
+        for (const t of firstLine) {
             lineOne += t;
 
-            if (t !== "'")
-                lastsplit = lineOne.length;
+            if (t !== "'") lastsplit = lineOne.length;
             lineTwo += secondLine.charAt(count);
             if (lineTwo.length >= width) {
                 if (lastsplit === -1) {
@@ -993,8 +971,8 @@ export class CipherHillEncoder extends CipherEncoder {
                     lineTwo = '';
                     lineOne = '';
                 } else {
-                    let encodepart = lineTwo.substr(0, lastsplit);
-                    let decodepart = lineOne.substr(0, lastsplit);
+                    const encodepart = lineTwo.substr(0, lastsplit);
+                    const decodepart = lineOne.substr(0, lastsplit);
                     lineTwo = lineTwo.substr(lastsplit);
                     lineOne = lineOne.substr(lastsplit);
                     theLines.push([encodepart, decodepart]);
@@ -1004,9 +982,9 @@ export class CipherHillEncoder extends CipherEncoder {
             count += 1;
         }
         if (lineTwo.length > 0) {
-            theLines.push([lineTwo, lineOne])
+            theLines.push([lineTwo, lineOne]);
         }
-        return theLines
+        return theLines;
     }
 
     /**
@@ -1014,11 +992,15 @@ export class CipherHillEncoder extends CipherEncoder {
      * @param answer - the array of characters from the interactive test.
      */
     public genScore(answer: string[]): IScoreInformation {
-        let scoreInformation: IScoreInformation =
-            { correctLetters: 0, incorrectLetters: '0', deduction: '0', score: 0};
-        let vals = this.getValidKey(this.state.keyword);
+        let scoreInformation: IScoreInformation = {
+            correctLetters: 0,
+            incorrectLetters: '0',
+            deduction: '0',
+            score: 0,
+        };
+        const vals = this.getValidKey(this.state.keyword);
         if (this.state.operation === 'compute') {
-            let modinv = mod26InverseMatrix(vals);
+            const modinv = mod26InverseMatrix(vals);
             let count = 0;
             let errorCount = 0;
             for (let i = 0; i < modinv.length; i++) {
@@ -1035,18 +1017,15 @@ export class CipherHillEncoder extends CipherEncoder {
             if (errorCount === 0) {
                 // all points
                 scoreInformation.score = this.state.points;
-            }
-            else {
+            } else {
                 // no points (initialized to 0)
                 scoreInformation.deduction = this.state.points.toString();
             }
-        }
-        else {
-            let encoded = this.computeHill(vals);
+        } else {
+            const encoded = this.computeHill(vals);
             let plaintext = this.minimizeString(this.state.cipherString);
-            let charset = this.getCharset();
             //TODO: should we need to do this or should it be done on data entry?
-            let upperAnswer: string[] = [];
+            const upperAnswer: string[] = [];
             for (let i = 0; i < answer.length; i++) {
                 upperAnswer[i] = answer[i].trim().toUpperCase();
             }
@@ -1056,8 +1035,7 @@ export class CipherHillEncoder extends CipherEncoder {
 
             if (this.state.operation === 'decode') {
                 // Pad answer if necessary.
-                plaintext += this.repeatStr(this.padval,
-                    encoded.length - plaintext.length);
+                plaintext += this.repeatStr(this.padval, encoded.length - plaintext.length);
 
                 solution = plaintext.split('');
             }
@@ -1070,57 +1048,41 @@ export class CipherHillEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        let vals = this.getValidKey(this.state.keyword);
+        const result = $('<div/>');
+        const vals = this.getValidKey(this.state.keyword);
         if (vals === undefined) {
-            result.append(
-                $('<h3/>').text('Invalid Hill Key: ' + this.state.keyword)
-            );
+            result.append($('<h3/>').text('Invalid Hill Key: ' + this.state.keyword));
             return result;
         }
 
         result.append(this.genQuestionMath(vals, true));
         if (this.state.operation === 'compute') {
-            let modinv = mod26InverseMatrix(vals);
-            result.append(
-                $('<div/>').append(this.genAnswerMathMatrix(modinv, ""))
-            );
+            const modinv = mod26InverseMatrix(vals);
+            result.append($('<div/>').append(this.genAnswerMathMatrix(modinv, '')));
         } else {
             let encoded = this.computeHill(vals);
             let plaintext = this.minimizeString(this.state.cipherString);
-            let charset = this.getCharset();
+            const charset = this.getCharset();
             this.setCharset(charset + ' ');
             if (this.state.operation === 'decode') {
-                plaintext += this.repeatStr(
-                    this.padval,
-                    encoded.length - plaintext.length
-                );
-                let swap = plaintext;
+                plaintext += this.repeatStr(this.padval, encoded.length - plaintext.length);
+                const swap = plaintext;
                 plaintext = encoded;
                 encoded = swap;
             } else {
-                plaintext += this.repeatStr(
-                    ' ',
-                    encoded.length - plaintext.length
-                );
+                plaintext += this.repeatStr(' ', encoded.length - plaintext.length);
             }
 
             // Split up the text so it fits on a page when printed (default split is 26 characters)
-            let strings = this.splitToFit(encoded, plaintext);
+            const strings = this.splitToFit(encoded, plaintext);
 
-            let table = new JTTable({
+            const table = new JTTable({
                 class: 'hillblock ansblock shrink cell unstriped',
             });
 
             // Add the split up lines to the output table.
-            for (let splitLines of strings) {
-                this.addCipherTableRows(
-                    table,
-                    undefined,
-                    splitLines[0],
-                    splitLines[1],
-                    true
-                );
+            for (const splitLines of strings) {
+                this.addCipherTableRows(table, undefined, splitLines[0], splitLines[1], true);
             }
             result.append(table.generate());
             this.setCharset(charset);
@@ -1131,54 +1093,41 @@ export class CipherHillEncoder extends CipherEncoder {
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        let vals = this.getValidKey(this.state.keyword);
+        const result = $('<div/>');
+        const vals = this.getValidKey(this.state.keyword);
         if (vals === undefined) {
-            result.append(
-                $('<h3/>').text('Invalid Hill Key: ' + this.state.keyword)
-            );
+            result.append($('<h3/>').text('Invalid Hill Key: ' + this.state.keyword));
             return result;
         }
 
         result.append(this.genQuestionMath(vals, true));
 
         if (this.state.operation === 'compute') {
-            let outMatrix: string[][] = this.makeMatrixFromString(
+            const outMatrix: string[][] = this.makeMatrixFromString(
                 this.repeatStr(' ', this.state.keyword.length)
             );
-            result.append(
-                $('<div/>').append(this.genAnswerMathMatrix(outMatrix, ""))
-            );
+            result.append($('<div/>').append(this.genAnswerMathMatrix(outMatrix, '')));
         } else {
-            let encoded = this.computeHill(vals);
+            const encoded = this.computeHill(vals);
             let decodetext = this.minimizeString(this.state.cipherString);
-            let charset = this.getCharset();
+            const charset = this.getCharset();
             this.setCharset(charset + ' ');
             if (this.state.operation === 'decode') {
                 decodetext = encoded;
             } else {
-                decodetext += this.repeatStr(
-                    ' ',
-                    encoded.length - decodetext.length
-                );
+                decodetext += this.repeatStr(' ', encoded.length - decodetext.length);
             }
 
             // Split up the text so it fits on a page when printed (default split is 26 characters)
-            let strings = this.splitToFit(decodetext, encoded);
+            const strings = this.splitToFit(decodetext, encoded);
 
-            let table = new JTTable({
+            const table = new JTTable({
                 class: 'hillblock ansblock shrink cell unstriped',
             });
 
             // Add the split up lines to the output table.
-            for (let splitLines of strings) {
-                this.addCipherTableRows(
-                    table,
-                    undefined,
-                    splitLines[1],
-                    undefined,
-                    false
-                );
+            for (const splitLines of strings) {
+                this.addCipherTableRows(table, undefined, splitLines[1], undefined, false);
             }
             result.append(table.generate());
             this.setCharset(charset);
@@ -1191,14 +1140,12 @@ export class CipherHillEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let qnumdisp = String(qnum + 1);
-        let idclass = "I" + qnumdisp + "_";
-        let result = $('<div/>', { id: "Q" + qnumdisp });
-        let vals = this.getValidKey(this.state.keyword);
+        const qnumdisp = String(qnum + 1);
+        const idclass = 'I' + qnumdisp + '_';
+        const result = $('<div/>', { id: 'Q' + qnumdisp });
+        const vals = this.getValidKey(this.state.keyword);
         if (vals === undefined) {
-            result.append(
-                $('<h3/>').text('Invalid Hill Key: ' + this.state.keyword)
-            );
+            result.append($('<h3/>').text('Invalid Hill Key: ' + this.state.keyword));
             return result;
         }
 
@@ -1206,43 +1153,40 @@ export class CipherHillEncoder extends CipherEncoder {
 
         if (this.state.operation === 'compute') {
             // We need to put input fields for each of the matrix entries
-            let outMatrix: JQuery<HTMLElement>[][] = [[]];
+            const outMatrix: JQuery<HTMLElement>[][] = [[]];
             let pos = 0;
             for (let row = 0; row < vals.length; row++) {
                 outMatrix.push([]);
                 for (let col = 0; col < vals[row].length; col++) {
                     outMatrix[row].push(
-                        $("<input/>", {
+                        $('<input/>', {
                             id: idclass + String(pos),
-                            class: "awc",
-                            type: "text",
-                        }));
+                            class: 'awc',
+                            type: 'text',
+                        })
+                    );
                     pos++;
                 }
             }
-            result.append($('<div/>')
-                .append(this.genAnswerMathMatrix(outMatrix, " interactive")));
+            result.append($('<div/>').append(this.genAnswerMathMatrix(outMatrix, ' interactive')));
         } else {
-            let encoded = this.computeHill(vals);
+            const encoded = this.computeHill(vals);
             let decodetext = this.minimizeString(this.state.cipherString);
-            let charset = this.getCharset();
+            const charset = this.getCharset();
             this.setCharset(charset + ' ');
             if (this.state.operation === 'decode') {
                 decodetext = encoded;
             } else {
-                decodetext += this.repeatStr(
-                    ' ',
-                    encoded.length - decodetext.length
-                );
+                decodetext += this.repeatStr(' ', encoded.length - decodetext.length);
             }
 
             // Split up the text so it fits on a page when printed (default split is 26 characters)
-            let strings = this.splitToFit(decodetext, encoded);
-            let tabres = this.genInteractiveCipherTable(strings, 1, qnum, "hillblock", true);
+            const strings = this.splitToFit(decodetext, encoded);
+            const tabres = this.genInteractiveCipherTable(strings, 1, qnum, 'hillblock', true);
             result.append(tabres);
             this.setCharset(charset);
         }
-        result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }))
+        result.append($('<textarea/>', { id: 'in' + String(qnum + 1), class: 'intnote' }));
         return result;
     }
 }

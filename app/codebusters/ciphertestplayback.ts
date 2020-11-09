@@ -119,6 +119,7 @@ export class CipherTestPlayback extends CipherTest {
      * did it as nested promises, it could end up being very deeply recursive.
      * @param scrubTime Time to advance to
      */
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     public async scrubTo(scrubTime: number) {
         // this.shadowanswermodel.minTime();
         // this.shadowanswermodel.maxTime();
@@ -444,6 +445,7 @@ export class CipherTestPlayback extends CipherTest {
                     //     endTime = this.testTimeInfo.endTime;
                     // }
 
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const elem = new Foundation.Slider($('#scrubslider'), {
                         start: answertemplate.starttime,
                         end: answertemplate.endtime,

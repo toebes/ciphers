@@ -1,7 +1,7 @@
-const Aval = "A".charCodeAt(0);
-const zeroval = "0".charCodeAt(0);
+const Aval = 'A'.charCodeAt(0);
+const zeroval = '0'.charCodeAt(0);
 
-import { Mapper } from "./mapper";
+import { Mapper } from './mapper';
 export class mapGronsfeld extends Mapper {
     /**
      * Map two unencoded characters using the Gronsfeld mapping table
@@ -14,9 +14,9 @@ export class mapGronsfeld extends Mapper {
         ckey = ckey.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
         if (cpt.toLowerCase() === cpt || isNaN(parseInt(ckey, 10))) {
-            return "?";
+            return '?';
         }
-        let ctval = cpt.charCodeAt(0) - Aval + (ckey.charCodeAt(0) - zeroval);
+        const ctval = cpt.charCodeAt(0) - Aval + (ckey.charCodeAt(0) - zeroval);
         return this.getCharCode(ctval);
     }
     /**
@@ -31,9 +31,9 @@ export class mapGronsfeld extends Mapper {
         ct = ct.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
         if (isNaN(parseInt(ckey, 10)) || ct.toLowerCase() === ct) {
-            return "?";
+            return '?';
         }
-        let ptval = ct.charCodeAt(0) - Aval - (ckey.charCodeAt(0) - zeroval);
+        const ptval = ct.charCodeAt(0) - Aval - (ckey.charCodeAt(0) - zeroval);
         return this.getCharCode(ptval);
     }
     /**
@@ -48,13 +48,12 @@ export class mapGronsfeld extends Mapper {
         ct = ct.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
         if (cpt.toLowerCase() === cpt || ct.toLowerCase() === ct) {
-            return "?";
+            return '?';
         }
-        let mapstr = "0123456789????????????????";
-        let mapoff =
-            (mapstr.length - (cpt.charCodeAt(0) - Aval)) % mapstr.length;
+        let mapstr = '0123456789????????????????';
+        const mapoff = (mapstr.length - (cpt.charCodeAt(0) - Aval)) % mapstr.length;
         mapstr = mapstr.substr(mapoff) + mapstr.substr(0, mapoff);
-        let keyval = ct.charCodeAt(0) - Aval;
+        const keyval = ct.charCodeAt(0) - Aval;
         return mapstr.substr(keyval, 1);
     }
 }

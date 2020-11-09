@@ -1,4 +1,4 @@
-import * as Cookies from "js-cookie";
+import * as Cookies from 'js-cookie';
 
 /**
  * The base class simply says that storage isn't available and silently throws
@@ -9,7 +9,7 @@ export class JTStorage {
         return false;
     }
     public get(entry: string): string {
-        return "";
+        return '';
     }
     public getJSON(entry: string): any {
         return JSON.parse(this.get(entry));
@@ -27,16 +27,16 @@ export class JTStorage {
  * attempt to access localStorage as long as it is called
  */
 class JTStorageLocal extends JTStorage {
-    public isWorking: boolean = true;
+    public isWorking = true;
     public isAvailable(): boolean {
         return this.isWorking;
     }
     public get(entry: string): string {
-        let result = "";
+        let result = '';
         try {
             result = localStorage.getItem(entry);
         } catch {
-            alert("Something went wrong with localStorage");
+            alert('Something went wrong with localStorage');
             this.isWorking = false;
         }
         return result;
@@ -45,7 +45,7 @@ class JTStorageLocal extends JTStorage {
         // Try to convert the content from JSON if it isn't a string
         // Taken from https://github.com/js-cookie/js-cookie where it was done very well
         try {
-            let result = JSON.stringify(content);
+            const result = JSON.stringify(content);
             if (/^[\{\[]/.test(result)) {
                 content = result;
             }
@@ -54,7 +54,7 @@ class JTStorageLocal extends JTStorage {
         try {
             localStorage.setItem(entry, content);
         } catch {
-            alert("Something went wrong with localStorage");
+            alert('Something went wrong with localStorage');
             this.isWorking = false;
         }
         return;
@@ -63,7 +63,7 @@ class JTStorageLocal extends JTStorage {
         try {
             localStorage.removeItem(entry);
         } catch {
-            alert("Something went wrong with localStorage");
+            alert('Something went wrong with localStorage');
             this.isWorking = false;
         }
         return;
@@ -97,14 +97,14 @@ class JTStorageCookies extends JTStorage {
  */
 export function InitStorage(): JTStorage {
     let canUse = false;
-    let test = "test";
+    const test = 'test';
     // Make sure the browser says we have local storage
-    if (typeof Storage !== "undefined") {
+    if (typeof Storage !== 'undefined') {
         // Ok we will try a simple test (under try/catch) to write/read/remove
         // something from local storage and make sure it really works
         try {
             localStorage.setItem(test, test);
-            let compare = localStorage.getItem(test);
+            const compare = localStorage.getItem(test);
             localStorage.removeItem(test);
             // We got here without failing, make sure what we read back was what
             // we expected
@@ -122,7 +122,7 @@ export function InitStorage(): JTStorage {
     // Try to see if we can get any cookies
     try {
         Cookies.set(test, test);
-        let compare = Cookies.get(test);
+        const compare = Cookies.get(test);
         Cookies.remove(test);
         // We got here without failing, make sure what we read back was what
         // we expected

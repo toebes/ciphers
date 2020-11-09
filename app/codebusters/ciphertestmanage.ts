@@ -36,8 +36,8 @@ export class CipherTestManage extends CipherTest {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: ITestState, suppressOutput: boolean = false): void {
-        let curlang = this.state.curlang;
+    public restore(data: ITestState, suppressOutput = false): void {
+        const curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;
         this.state.curlang = curlang;
         this.copyState(this.state, data);
@@ -65,19 +65,19 @@ export class CipherTestManage extends CipherTest {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        return this.genTestManageState("local");
+        return this.genTestManageState('local');
     }
     /**
-     * 
+     *
      */
     public genTestList(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'testlist' });
-        let testcount = this.getTestCount();
+        const result = $('<div/>', { class: 'testlist' });
+        const testcount = this.getTestCount();
         if (testcount === 0) {
             result.append($('<h3>').text('No Tests Created Yet'));
             return result;
         }
-        let table = new JTTable({ class: 'cell shrink testlist' });
+        const table = new JTTable({ class: 'cell shrink testlist' });
         let row = table.addHeaderRow();
         row.add('Action')
             .add('Title')
@@ -85,12 +85,12 @@ export class CipherTestManage extends CipherTest {
 
         for (let entry = 0; entry < testcount; entry++) {
             row = table.addBodyRow();
-            let test = this.getTestEntry(entry);
+            const test = this.getTestEntry(entry);
             let questioncount = test.count;
             if (test.timed !== undefined && test.timed >= 0) {
                 questioncount++;
             }
-            let buttons = $('<div/>', { class: 'button-group round shrink' });
+            const buttons = $('<div/>', { class: 'button-group round shrink' });
             buttons.append(
                 $('<a/>', {
                     'data-entry': entry,
@@ -149,31 +149,31 @@ export class CipherTestManage extends CipherTest {
         return result;
     }
     public newTest(): void {
-        let test = this.setTestEntry(-1, {
+        const test = this.setTestEntry(-1, {
             timed: -1,
             count: 0,
             questions: [],
             title: 'New Test',
             useCustomHeader: false,
             customHeader: '',
-            testtype: ITestType.None
+            testtype: ITestType.None,
         });
         this.gotoEditTest(test);
     }
     public exportAllTests(link: JQuery<HTMLElement>): void {
-        let result = {};
+        const result = {};
         // Go through all of the questions and build a structure holding them
-        let ciphercount = this.getCipherCount();
+        const ciphercount = this.getCipherCount();
         for (let entry = 0; entry < ciphercount; entry++) {
             result['CIPHER.' + String(entry)] = this.getFileEntry(entry);
         }
         // Go through all the tests and build a structure holding them that we will convert to JSON
-        let testcount = this.getTestCount();
+        const testcount = this.getTestCount();
         for (let testnum = 0; testnum < testcount; testnum++) {
             result['TEST.' + String(testnum)] = this.getTestEntry(testnum);
         }
-        let blob = new Blob([JSON.stringify(result)], { type: 'text/json' });
-        let url = URL.createObjectURL(blob);
+        const blob = new Blob([JSON.stringify(result)], { type: 'text/json' });
+        const url = URL.createObjectURL(blob);
 
         link.attr('download', 'cipher_tests.json');
         link.attr('href', url);
@@ -196,61 +196,57 @@ export class CipherTestManage extends CipherTest {
         super.attachHandlers();
         $('#newtest')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.newTest();
             });
         $('#export')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.exportAllTests($(e.target));
             });
         $('#import')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.importTests(true);
             });
         $('#importurl')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.importTests(false);
             });
         $('.testedit')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.gotoEditTest(Number($(e.target).attr('data-entry')));
             });
         $('.testcopy')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.gotoEditCopyTest(Number($(e.target).attr('data-entry')));
             });
         $('.testdel')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.deleteTest(Number($(e.target).attr('data-entry')));
             });
         $('.testprt')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.gotoPrintTest(Number($(e.target).attr('data-entry')));
             });
         $('.testans')
             .off('click')
-            .on('click', e => {
-                this.gotoPrintTestAnswers(
-                    Number($(e.target).attr('data-entry'))
-                );
+            .on('click', (e) => {
+                this.gotoPrintTestAnswers(Number($(e.target).attr('data-entry')));
             });
         $('.testint')
             .off('click')
-            .on('click', e => {
-                this.gotoInteractiveTest(
-                    Number($(e.target).attr('data-entry'))
-                );
+            .on('click', (e) => {
+                this.gotoInteractiveTest(Number($(e.target).attr('data-entry')));
             });
         $('.testsols')
             .off('click')
-            .on('click', e => {
+            .on('click', (e) => {
                 this.gotoPrintTestSols(Number($(e.target).attr('data-entry')));
             });
     }

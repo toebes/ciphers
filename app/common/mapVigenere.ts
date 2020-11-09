@@ -1,6 +1,6 @@
-import { Mapper } from "./mapper";
+import { Mapper } from './mapper';
 
-const Aval = "A".charCodeAt(0);
+const Aval = 'A'.charCodeAt(0);
 export class mapVigenere extends Mapper {
     /**
      * Map two unencoded characters using the Vigenere mapping table
@@ -13,9 +13,9 @@ export class mapVigenere extends Mapper {
         ckey = ckey.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
         if (cpt.toLowerCase() === cpt || ckey.toLowerCase() === ckey) {
-            return "?";
+            return '?';
         }
-        let ctval = cpt.charCodeAt(0) - Aval + ckey.charCodeAt(0) - Aval;
+        const ctval = cpt.charCodeAt(0) - Aval + ckey.charCodeAt(0) - Aval;
         return this.getCharCode(ctval);
     }
     /**
@@ -29,9 +29,9 @@ export class mapVigenere extends Mapper {
         ct = ct.toUpperCase();
         // If either character is not an alphabetic, then we can't map it
         if (ckey.toLowerCase() === ckey || ct.toLowerCase() === ct) {
-            return "?";
+            return '?';
         }
-        let ptval = ct.charCodeAt(0) - Aval - ckey.charCodeAt(0) - Aval;
+        const ptval = ct.charCodeAt(0) - Aval - ckey.charCodeAt(0) - Aval;
         return this.getCharCode(ptval);
     }
     /**

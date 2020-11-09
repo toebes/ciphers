@@ -597,7 +597,7 @@ export class CipherTestInteractive extends CipherTest {
             'codebusters_tests',
             testData.creator
         );
-        testModelOptions.data = () => {
+        testModelOptions.data = (): any => {
             isOldModel = false;
             return interactive;
         };
@@ -657,7 +657,7 @@ export class CipherTestInteractive extends CipherTest {
             'codebusters_answers',
             testData.creator
         );
-        answerModelOptions.data = () => {
+        answerModelOptions.data = (): any => {
             isOldModel = false;
             return data;
         };
@@ -706,7 +706,7 @@ export class CipherTestInteractive extends CipherTest {
             'codebusters_source',
             testData.creator
         );
-        sourceModelOptions.data = () => {
+        sourceModelOptions.data = (): any => {
             isOldModel = false;
             return data;
         };

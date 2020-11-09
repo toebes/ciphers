@@ -1,8 +1,7 @@
-import { ITestType, toolMode } from "../common/cipherhandler";
-import { JTFIncButton } from "../common/jtfIncButton";
-import { JTFLabeledInput } from "../common/jtflabeledinput";
-import { JTRadioButton } from "../common/jtradiobutton";
-import { CipherVigenereEncoder } from "./ciphervigenereencoder";
+import { ITestType, toolMode } from '../common/cipherhandler';
+import { JTFIncButton } from '../common/jtfIncButton';
+import { JTRadioButton } from '../common/jtradiobutton';
+import { CipherVigenereEncoder } from './ciphervigenereencoder';
 
 /**
  *
@@ -11,14 +10,14 @@ import { CipherVigenereEncoder } from "./ciphervigenereencoder";
  */
 export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = "TestGuidance.html#RunningKey";
+    public guidanceURL = 'TestGuidance.html#RunningKey';
 
     public validTests: ITestType[] = [ITestType.None];
-    public usesRunningKey: boolean = true;
+    public usesRunningKey = true;
     public getRunningKeyIndex(): number {
         // See if the current keyword is one of the valid options
-        let runningKeys = this.getRunningKeyStrings();
-        for (let entry in runningKeys) {
+        const runningKeys = this.getRunningKeyStrings();
+        for (const entry in runningKeys) {
             if (runningKeys[entry].text === this.state.keyword) {
                 return Number(entry);
             }
@@ -36,63 +35,49 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
         if (selopt === -1) {
             // The current string isn't one of the options,
             // so we need to add it to the list of possibilities
-            selopt = $("#runningkey option").length;
-            $("#runningkey").append(
-                $("<option />", { value: selopt }).text(this.state.keyword)
-            );
+            selopt = $('#runningkey option').length;
+            $('#runningkey').append($('<option />', { value: selopt }).text(this.state.keyword));
         }
-        $("#runningkey option[value=" + selopt + "]").attr(
-            "selected",
-            "selected"
-        );
+        $('#runningkey option[value=' + selopt + ']').attr('selected', 'selected');
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        const result = $('<div/>');
         this.genTestUsage(result);
-        let runningKeys = this.getRunningKeyStrings();
-        let radiobuttons = [
-            { id: "wrow", value: "encode", title: "Encode" },
-            { id: "mrow", value: "decode", title: "Decode" },
+        const runningKeys = this.getRunningKeyStrings();
+        const radiobuttons = [
+            { id: 'wrow', value: 'encode', title: 'Encode' },
+            { id: 'mrow', value: 'decode', title: 'Decode' },
         ];
-        result.append(
-            JTRadioButton(6, "operation", radiobuttons, this.state.operation)
-        );
+        result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
         this.genQuestionFields(result);
         this.genEncodeField(result);
 
-        let inputgroup = $("<div/>", {
-            class: "input-group cell small-12 medium-12 large-12",
+        const inputgroup = $('<div/>', {
+            class: 'input-group cell small-12 medium-12 large-12',
         });
-        $("<span/>", { class: "input-group-label" })
-            .text("title")
+        $('<span/>', { class: 'input-group-label' })
+            .text('title')
             .appendTo(inputgroup);
-        let select = $("<select/>", {
-            id: "runningkey",
-            class: "lang input-group-field",
+        const select = $('<select/>', {
+            id: 'runningkey',
+            class: 'lang input-group-field',
         });
-        select.append(
-            $("<option />", { value: "" }).text("--Select a Running Key--")
-        );
-        for (let entry in runningKeys) {
+        select.append($('<option />', { value: '' }).text('--Select a Running Key--'));
+        for (const entry in runningKeys) {
             select.append(
-                $("<option />", { value: entry }).text(
-                    runningKeys[entry].title +
-                    " - " +
-                    runningKeys[entry].text.substr(0, 50) +
-                    "..."
+                $('<option />', { value: entry }).text(
+                    runningKeys[entry].title + ' - ' + runningKeys[entry].text.substr(0, 50) + '...'
                 )
             );
         }
         inputgroup.append(select);
         result.append(inputgroup);
-        let inputbox = $("<div/>", { class: "grid-x grid-margin-x blocksize" });
-        inputbox.append(
-            JTFIncButton("Block Size", "blocksize", this.state.blocksize, "")
-        );
+        const inputbox = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
+        inputbox.append(JTFIncButton('Block Size', 'blocksize', this.state.blocksize, ''));
         result.append(inputbox);
 
         return result;
@@ -102,13 +87,13 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
-        $("#runningkey")
-            .off("change")
-            .on("change", e => {
-                let selopt = Number($("#runningkey option:selected").val());
-                let runningKeys = this.getRunningKeyStrings();
+        $('#runningkey')
+            .off('change')
+            .on('change', (e) => {
+                const selopt = Number($('#runningkey option:selected').val());
+                const runningKeys = this.getRunningKeyStrings();
                 if (selopt >= 0 && selopt < runningKeys.length) {
-                    let keyword = runningKeys[selopt].text;
+                    const keyword = runningKeys[selopt].text;
                     if (this.setKeyword(keyword)) {
                         this.updateOutput();
                     }
@@ -127,8 +112,8 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let result = this.genQuestion(testType);
-        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
+        const result = this.genQuestion(testType);
+        result.append($('<textarea/>', { id: 'in' + String(qnum + 1), class: 'intnote' }));
         return result;
     }
     /**

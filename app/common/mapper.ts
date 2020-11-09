@@ -1,4 +1,4 @@
-const Aval = "A".charCodeAt(0);
+const Aval = 'A'.charCodeAt(0);
 
 export class Mapper {
     /**
@@ -15,7 +15,7 @@ export class Mapper {
      * @returns cipher text (ct) encoded character
      */
     public encode(cpt: string, ckey: string): string {
-        return "?";
+        return '?';
     }
     /**
      * Recover the plain text character using the encode text and a key character
@@ -24,7 +24,7 @@ export class Mapper {
      * ckey Unencoded character
      */
     public decode(ct: string, ckey: string): string {
-        return "?";
+        return '?';
     }
     /**
      * Recover the key character using the encode text and a plain text character
@@ -34,6 +34,6 @@ export class Mapper {
      * cpt Unencoded character
      */
     public decodeKey(ct: string, cpt: string): string {
-        return "?";
+        return '?';
     }
 }

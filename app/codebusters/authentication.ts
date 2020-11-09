@@ -25,8 +25,7 @@ export class ConvergenceAuthentication {
 
     // Yes we know putting the key here is insecure, but it is going to be
     // revoked as soon as we are finished testing.
-    private static readonly TESTING_KEY_ID_PRIVATE_KEY =
-        `-----BEGIN RSA PRIVATE KEY-----
+    private static readonly TESTING_KEY_ID_PRIVATE_KEY = `-----BEGIN RSA PRIVATE KEY-----
   MIIEpAIBAAKCAQEAhx0FDPxUQzyoDuHafI28aj2p/bMll63xxMdQYFkw/AE33nQ4
   zdn0H4soObDIq+AAurwtYZMDx/eUS563HHBQij1THP9XymjL7QDcRgJOlsm/HlGg
   f6U3B4cmQGHpky2szISvHcnMkpQblrpSSmc50jNpg4bmhyNi0R2wOdwTauIhMVRc
@@ -54,7 +53,7 @@ export class ConvergenceAuthentication {
   sSRrkGTbVtr3OlrTfk3k3YZdjSjlvqb2GWHbzU7bkomLdIsG0Xx3Xg==
   -----END RSA PRIVATE KEY-----`;
 
-    public static formatConnectUrl(baseUrl: string, namespace: string, domain: string) {
+    public static formatConnectUrl(baseUrl: string, namespace: string, domain: string): string {
         return baseUrl + '/realtime/' + namespace + '/' + domain;
     }
 
@@ -62,24 +61,31 @@ export class ConvergenceAuthentication {
         return this.TESTING_KEY_ID_PRIVATE_KEY;
     }
 
-    public static connect(settings: ConvergenceSettings, loginParameters: ConvergenceLoginParameters): Promise<ConvergenceDomain> {
-        const connectUrl = this.formatConnectUrl(settings.baseUrl, settings.namespace, settings.domain);
+    public static connect(
+        settings: ConvergenceSettings,
+        loginParameters: ConvergenceLoginParameters
+    ): Promise<ConvergenceDomain> {
+        const connectUrl = this.formatConnectUrl(
+            settings.baseUrl,
+            settings.namespace,
+            settings.domain
+        );
 
         const tNow = KJUR.jws.IntDate.get('now');
         const tEnd = KJUR.jws.IntDate.get('now + 1hour');
 
-        let emailAddress = loginParameters.emailAddress
+        let emailAddress = loginParameters.emailAddress;
         if (emailAddress === undefined || emailAddress == null) {
             emailAddress = loginParameters.username;
         }
 
-        let displayName = loginParameters.displayName
+        let displayName = loginParameters.displayName;
         if (displayName === undefined || displayName == null) {
             displayName = loginParameters.firstName + ' ' + loginParameters.lastName;
         }
 
-        var header = { alg: this.ALG_RS256, typ: 'JWT', kid: settings.keyId }
-        var payload = {
+        const header = { alg: this.ALG_RS256, typ: 'JWT', kid: settings.keyId };
+        const payload = {
             iss: this.JWT_ISSUER,
             sub: loginParameters.username,
             nbf: tNow,
@@ -89,18 +95,23 @@ export class ConvergenceAuthentication {
             firstName: loginParameters.firstName,
             lastName: loginParameters.lastName,
             displayName: displayName,
-            email: emailAddress
+            email: emailAddress,
         };
 
         const stringHeader = JSON.stringify(header);
         const stringPayload = JSON.stringify(payload);
-        const signedJWT = KJUR.jws.JWS.sign(this.ALG_RS256, stringHeader, stringPayload, settings.privateKey);
+        const signedJWT = KJUR.jws.JWS.sign(
+            this.ALG_RS256,
+            stringHeader,
+            stringPayload,
+            settings.privateKey
+        );
         if (settings.debug) {
             Convergence.configureLogging({
                 root: LogLevel.DEBUG,
                 loggers: {
-                    "protocol.ping": LogLevel.SILENT
-                }
+                    'protocol.ping': LogLevel.SILENT,
+                },
             });
         }
 
@@ -114,16 +125,25 @@ export class ConvergenceAuthentication {
      * @param settings ConvergenceSettings to use for connect
      * @param usernames Array of usernames to connect
      */
-    public static connectByUsernames(settings: ConvergenceSettings, usernames: Array<string>): Promise<ConvergenceDomain[]> {
-        const connectPromises: Promise<ConvergenceDomain>[] = []
-        usernames.forEach(username => {
-            connectPromises.push(this.connect(settings, { username: username, firstName: 'Awaiting', lastName: 'Name' }))
-        })
+    public static connectByUsernames(
+        settings: ConvergenceSettings,
+        usernames: Array<string>
+    ): Promise<ConvergenceDomain[]> {
+        const connectPromises: Promise<ConvergenceDomain>[] = [];
+        usernames.forEach((username) => {
+            connectPromises.push(
+                this.connect(settings, {
+                    username: username,
+                    firstName: 'Awaiting',
+                    lastName: 'Name',
+                })
+            );
+        });
 
         // If we ever target es2020 can use Promise.alLSettled() instead of mapping the error catches as below.
         // If we want execution to stop of all promises if a fail occurs then comment out line below.
-        connectPromises.map(p => p.catch(e => e))
+        connectPromises.map((p) => p.catch((e) => e));
 
-        return Promise.all(connectPromises)
+        return Promise.all(connectPromises);
     }
 }

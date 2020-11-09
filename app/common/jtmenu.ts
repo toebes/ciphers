@@ -25,16 +25,16 @@ export interface menuItem {
  * Creates a submenu from a menuitem array
  */
 export function JTAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]): void {
-    for (let item of submenu) {
-        let li = $('<li/>');
+    for (const item of submenu) {
+        const li = $('<li/>');
         let href = '#';
         if (item.href !== undefined) {
             href = item.href;
             if (item.cipherType !== undefined) {
                 href += '?cipherType=' + item.cipherType;
             }
-            let match = '/' + href;
-            let tocheck = '/' + window.location.pathname;
+            const match = '/' + href;
+            const tocheck = '/' + window.location.pathname;
             // See if we are at the location of the href and mark it as such
             if (tocheck.substr(tocheck.length - match.length) === match) {
                 li.addClass('active');
@@ -43,7 +43,7 @@ export function JTAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]
         if (item.classname === 'divider') {
             li.addClass('divider');
         } else {
-            let a = $('<a/>', {
+            const a = $('<a/>', {
                 href: href,
             }).html(item.title);
             if (item.action !== undefined) {
@@ -55,7 +55,7 @@ export function JTAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]
             li.append(a);
             if (item.menu !== undefined) {
                 a.addClass('is-dropdown-submenu-parent');
-                let ul = $('<ul/>', { class: 'menu vertical' });
+                const ul = $('<ul/>', { class: 'menu vertical' });
                 JTAppendSubMenu(ul, item.menu);
                 li.append(ul);
             }
@@ -73,8 +73,8 @@ export function JTCreateMenu(
     // let parms = parseQueryString(window.location.search.substring(1))
     // let ciphertype: ICipherType = parms['cipherType'] as ICipherType
 
-    let result = $('<div/>', { class: 'mainmenubar' });
-    let titlebar = $('<div/>', {
+    const result = $('<div/>', { class: 'mainmenubar' });
+    const titlebar = $('<div/>', {
         class: 'title-bar',
         'data-responsive-toggle': id,
         'data-hide-for': 'medium',
@@ -89,14 +89,14 @@ export function JTCreateMenu(
         .appendTo(titlebar);
     result.append(titlebar);
 
-    let topbar = $('<div/>', { class: 'top-bar stacked-for-medium', id: id });
+    const topbar = $('<div/>', { class: 'top-bar stacked-for-medium', id: id });
 
-    let topbarleft = $('<div/>', { class: 'top-bar-left' });
+    const topbarleft = $('<div/>', { class: 'top-bar-left' });
     if (extra !== null) {
         topbarleft.append(extra);
     }
 
-    let dropdownmenu = $('<ul/>', {
+    const dropdownmenu = $('<ul/>', {
         class: 'dropdown menu',
         'data-dropdown-menu': '',
     });
@@ -107,7 +107,7 @@ export function JTCreateMenu(
     topbarleft.append(dropdownmenu);
     topbar.append(topbarleft);
 
-    let topbarright = $('<div/>', { class: 'top-bar-right' });
+    const topbarright = $('<div/>', { class: 'top-bar-right' });
     // let searchmenu = $("<ul/>", { class: "menu" });
     // $("<li/>")
     //     .append($("<input/>", { type: "search", placeholder: "Search" }))
@@ -131,7 +131,7 @@ export function JTGetURL(menu: menuItem[], ciphertype: ICipherType, lang: string
     if (ciphertype === ICipherType.Xenocrypt) {
         ciphertype = ICipherType.Aristocrat;
     }
-    for (let item of menu) {
+    for (const item of menu) {
         if (item.cipherType !== undefined && item.cipherType === ciphertype && item.lang === lang) {
             url = item.href + '?cipherType=' + String(ciphertype);
             return url;
@@ -148,7 +148,7 @@ export function JTGetURL(menu: menuItem[], ciphertype: ICipherType, lang: string
 
 export function JTGetSolveURL(menu: menuItem[], ciphertype: ICipherType): string {
     let url = '';
-    for (let item of menu) {
+    for (const item of menu) {
         if (item.solveType !== undefined && item.solveType.indexOf(ciphertype) !== -1) {
             return item.href;
         }

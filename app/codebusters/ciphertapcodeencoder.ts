@@ -1,30 +1,33 @@
 import { cloneObject, makeFilledArray, StringMap } from '../common/ciphercommon';
-import { IScoreInformation, ITestQuestionFields, ITestType, toolMode } from '../common/cipherhandler';
+import {
+    IScoreInformation,
+    ITestQuestionFields,
+    ITestType,
+    toolMode,
+} from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
-const tapcode = require('../images/tapcode.png');
+import tapcode = require('../images/tapcode.png');
 /**
  * CipherTapCodeEncoder - This class handles all of the actions associated with encoding
  * a TapCode cipher.
  */
 export class CipherTapCodeEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = 'TestGuidance.html#TapCode';
+    public guidanceURL = 'TestGuidance.html#TapCode';
 
-    public validTests: ITestType[] = [ITestType.None,
-    ITestType.aregional];
+    public validTests: ITestType[] = [ITestType.None, ITestType.aregional];
 
-    public maxEncodeWidth: number = 65;
+    public maxEncodeWidth = 65;
     /**
      * Generates an HTML representation of a string for display.  Replaces the X, O and -
      * with more visible HTML equivalents
      * str String to normalize (with - X and O representing morese characters)
-    */
+     */
     public normalizeHTML(str: string): string {
-        return str
-            .replace(/O/g, "&#9679;")
+        return str.replace(/O/g, '&#9679;');
     }
 
     public readonly TapCodeMap: StringMap = {
@@ -60,9 +63,7 @@ export class CipherTapCodeEncoder extends CipherEncoder {
         cipherType: ICipherType.TapCode,
         replacement: {},
     };
-    public state: IEncoderState = cloneObject(
-        this.defaultstate
-    ) as IEncoderState;
+    public state: IEncoderState = cloneObject(this.defaultstate) as IEncoderState;
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
         this.undocmdButton,
@@ -90,17 +91,15 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      * @returns Template of question fields to be filled in at runtime.
      */
     public getInteractiveTemplate(): ITestQuestionFields {
-        let strings = this.makeReplacement(
-            this.state.cipherString,
-            this.maxEncodeWidth);
+        const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
         let len = 0;
-        for (let strset of strings) {
+        for (const strset of strings) {
             len += strset[0].length;
         }
-        let result: ITestQuestionFields = {
-            answer: makeFilledArray(len, " "),
-            notes: "",
-            separators: makeFilledArray(len, " ")
+        const result: ITestQuestionFields = {
+            answer: makeFilledArray(len, ' '),
+            notes: '',
+            separators: makeFilledArray(len, ' '),
         };
         return result;
     }
@@ -109,7 +108,7 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
         this.genTestUsage(result);
         this.genQuestionFields(result);
         this.genEncodeField(result);
@@ -122,22 +121,21 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      * Fills in the frequency portion of the frequency table.  For the Ragbaby
      * we don't have the frequency table, so this doesn't need to do anything
      */
-    public displayFreq(): void { }
+    public displayFreq(): void {}
     /**
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        let strings = this.makeReplacement(
-            this.state.cipherString,
-            this.maxEncodeWidth);
-        let tosolve = 0;
-        for (let strset of strings) {
+        const result = $('<div/>');
+        const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
+        const tosolve = 0;
+        for (const strset of strings) {
             result.append(
                 $('<div/>', {
                     class: 'TOSOLVEQ',
-                }).html(this.normalizeHTML(strset[tosolve]))
-                    .append($("<br/>"))
+                })
+                    .html(this.normalizeHTML(strset[tosolve]))
+                    .append($('<br/>'))
             );
         }
         return result;
@@ -146,13 +144,11 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        let strings = this.makeReplacement(
-            this.state.cipherString,
-            this.maxEncodeWidth);
-        let tosolve = 0;
-        let toanswer = 1;
-        for (let strset of strings) {
+        const result = $('<div/>');
+        const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
+        const tosolve = 0;
+        const toanswer = 1;
+        for (const strset of strings) {
             result.append(
                 $('<div/>', {
                     class: 'TOSOLVE',
@@ -172,52 +168,54 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let qnumdisp = String(qnum + 1);
-        let idclass = "I" + qnumdisp + "_";
-        let result = $('<div/>', { id: "Q" + qnumdisp });
-        let tosolve = 0;
+        const qnumdisp = String(qnum + 1);
+        const idclass = 'I' + qnumdisp + '_';
+        const result = $('<div/>', { id: 'Q' + qnumdisp });
+        const tosolve = 0;
         let pos = 0;
-        let spcclass = "S" + qnumdisp + "_";
-        let strings = this.makeReplacement(
-            this.state.cipherString,
-            this.maxEncodeWidth);
+        const spcclass = 'S' + qnumdisp + '_';
+        const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
         let extraclass = '';
         if (testType === ITestType.aregional) {
             extraclass = ' atest';
         }
 
-        let table = new JTTable({ class: "SOLVER ansblock tapcode" + extraclass });
-        for (let strset of strings) {
-            let qrow = table.addBodyRow();
-            let arow = table.addBodyRow();
-            let erow = table.addBodyRow();
-            erow.add({ settings: { class: "q v " + extraclass }, content: ($("<span/>").html("&nbsp;")) });
-            for (let c of strset[tosolve]) {
-                let spos = String(pos);
-                let extraclass = "S" + spos;
+        const table = new JTTable({ class: 'SOLVER ansblock tapcode' + extraclass });
+        for (const strset of strings) {
+            const qrow = table.addBodyRow();
+            const arow = table.addBodyRow();
+            const erow = table.addBodyRow();
+            erow.add({
+                settings: { class: 'q v ' + extraclass },
+                content: $('<span/>').html('&nbsp;'),
+            });
+            for (const c of strset[tosolve]) {
+                const spos = String(pos);
+                const extraclass = 'S' + spos;
 
-                let field = $("<span/>").html(this.normalizeHTML(c))
-                    .append($("<div/>", { class: "ir", id: spcclass + spos }).html("&#711;"));
+                const field = $('<span/>')
+                    .html(this.normalizeHTML(c))
+                    .append($('<div/>', { class: 'ir', id: spcclass + spos }).html('&#711;'));
 
-                qrow.add({ settings: { class: "q v " + extraclass }, content: field });
+                qrow.add({ settings: { class: 'q v ' + extraclass }, content: field });
                 if (this.isValidChar(c)) {
                     arow.add({
-                        settings: { class: extraclass }, content: $("<input/>", {
+                        settings: { class: extraclass },
+                        content: $('<input/>', {
                             id: idclass + spos,
-                            class: "awc",
-                            type: "text",
-                        })
+                            class: 'awc',
+                            type: 'text',
+                        }),
                     });
-                }
-                else {
-                    arow.add({ settings: { class: extraclass }, content: " " });
+                } else {
+                    arow.add({ settings: { class: extraclass }, content: ' ' });
                 }
                 pos++;
             }
         }
         result.append(table.generate());
 
-        result.append($("<textarea/>", { id: "in" + String(qnum + 1), class: "intnote" }));
+        result.append($('<textarea/>', { id: 'in' + String(qnum + 1), class: 'intnote' }));
         return result;
     }
     /**
@@ -226,29 +224,27 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      */
     public genScore(answerlong: string[]): IScoreInformation {
         // Get what the question layout was so we can extract the answer
-        let strings = this.makeReplacement(
-            this.state.cipherString,
-            this.maxEncodeWidth);
+        const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
 
-        let solution: string[] = [];
-        let answer: string[] = [];
-        let anslen: number[] = [];
-        let plainTextSlot = 1;
-        let cipherTextSlot = 0;
-        let lastc = "";
+        const solution: string[] = [];
+        const answer: string[] = [];
+        const anslen: number[] = [];
+        const plainTextSlot = 1;
+        const cipherTextSlot = 0;
+        let lastc = '';
         let explen = 0;
         let tokens = 0;
 
         // Figure out what the expected answer should be
-        for (let splitLines of strings) {
+        for (const splitLines of strings) {
             for (let i = 0; i < splitLines[plainTextSlot].length; i++) {
-                let p = splitLines[plainTextSlot].substr(i, 1);
-                let c = splitLines[cipherTextSlot].substr(i, 1);
+                const p = splitLines[plainTextSlot].substr(i, 1);
+                const c = splitLines[cipherTextSlot].substr(i, 1);
                 if (this.isValidChar(p)) {
                     solution.push(p);
                 }
                 if (c !== lastc) {
-                    if (lastc === "O") {
+                    if (lastc === 'O') {
                         tokens++;
                         explen = Math.trunc(tokens / 2);
                     }
@@ -263,18 +259,18 @@ export class CipherTapCodeEncoder extends CipherEncoder {
         // answer then we will force in a blank for them.  It basically lets
         // them put in characters for answer together but also allows them to put the
         // answer character anywhere in the 5 blocks under the cipher character
-        for (let i in answerlong) {
-            if (answerlong[i] !== " " && answerlong[i] !== "") {
+        for (const i in answerlong) {
+            if (answerlong[i] !== ' ' && answerlong[i] !== '') {
                 // Figure out how many spaces we happened to have missed in the meantime
                 while (answer.length < anslen[i]) {
-                    answer.push(" ");
+                    answer.push(' ');
                 }
                 answer.push(answerlong[i]);
             }
         }
         // Pad the answer to match the solution length
         while (answer.length < explen) {
-            answer.push(" ");
+            answer.push(' ');
         }
         // And let calculateScore do all the heavy lifting
         return this.calculateScore(solution, answer, this.state.points);
@@ -283,24 +279,32 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      * Generate the HTML to display the solution for a cipher
      */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        result.append($("<h3/>").text("How to Solve"));
-        result.append($("<p/>").text("First you want to create the lookup table " +
-            "by drawing a grid with 5 horizontal and 5 vertical lines. " +
-            "Then fill in the top with the numbers 1 through 5 and the same on the " +
-            "left side of the grid.  Finally fill in the letters from left to right " +
-            "and then down, remembering to skip the letter K. " +
-            "Once you have filled in all 25 cells, go back and add K to the cell " +
-            "with C in it giving you a table like:"));
-        result.append($("<img/>", { src: tapcode }));
-        result.append($("<p/>").text("Then go through the cipher text and put " +
-            "a mark between each two groups of dots. " +
-            "To decode, count the number of dots in the first group to pick the " +
-            "row in the table and the number of dots in the second group to pick " +
-            "the column and read the letter. " +
-            "Only when you have a single dot followed by three dots " +
-            "(which corresponds to the letter C) do you have to decide whether the " +
-            "letter should be a C or K"));
+        const result = $('<div/>');
+        result.append($('<h3/>').text('How to Solve'));
+        result.append(
+            $('<p/>').text(
+                'First you want to create the lookup table ' +
+                    'by drawing a grid with 5 horizontal and 5 vertical lines. ' +
+                    'Then fill in the top with the numbers 1 through 5 and the same on the ' +
+                    'left side of the grid.  Finally fill in the letters from left to right ' +
+                    'and then down, remembering to skip the letter K. ' +
+                    'Once you have filled in all 25 cells, go back and add K to the cell ' +
+                    'with C in it giving you a table like:'
+            )
+        );
+        result.append($('<img/>', { src: tapcode }));
+        result.append(
+            $('<p/>').text(
+                'Then go through the cipher text and put ' +
+                    'a mark between each two groups of dots. ' +
+                    'To decode, count the number of dots in the first group to pick the ' +
+                    'row in the table and the number of dots in the second group to pick ' +
+                    'the column and read the letter. ' +
+                    'Only when you have a single dot followed by three dots ' +
+                    '(which corresponds to the letter C) do you have to decide whether the ' +
+                    'letter should be a C or K'
+            )
+        );
         return result;
     }
 }

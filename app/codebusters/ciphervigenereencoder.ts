@@ -4,7 +4,8 @@ import {
     IState,
     ITestType,
     toolMode,
-    ITestQuestionFields, IScoreInformation,
+    ITestQuestionFields,
+    IScoreInformation,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -35,12 +36,16 @@ interface ICribInfo {
  */
 export class CipherVigenereEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = 'TestGuidance.html#Vigenere';
+    public guidanceURL = 'TestGuidance.html#Vigenere';
 
-    public validTests: ITestType[] = [ITestType.None,
-    ITestType.cregional, ITestType.cstate,
-    ITestType.bregional, ITestType.bstate,
-    ITestType.aregional];
+    public validTests: ITestType[] = [
+        ITestType.None,
+        ITestType.cregional,
+        ITestType.cstate,
+        ITestType.bregional,
+        ITestType.bstate,
+        ITestType.aregional,
+    ];
     public defaultstate: IVigenereState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.Vigenere,
@@ -53,9 +58,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         operation: 'decode',
         blocksize: 0,
     };
-    public state: IVigenereState = cloneObject(
-        this.defaultstate
-    ) as IVigenereState;
+    public state: IVigenereState = cloneObject(this.defaultstate) as IVigenereState;
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
         this.undocmdButton,
@@ -67,7 +70,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: IState, suppressOutput: boolean = false): void {
+    public restore(data: IState, suppressOutput = false): void {
         this.state = cloneObject(this.defaultstate) as IVigenereState;
         this.copyState(this.state, data);
         if (!suppressOutput) {
@@ -80,7 +83,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public save(): IState {
         // We need a deep copy of the save state
-        let savestate = cloneObject(this.state) as IState;
+        const savestate = cloneObject(this.state) as IState;
         return savestate;
     }
     /**
@@ -89,10 +92,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @returns Template of question fields to be filled in at runtime.
      */
     public getInteractiveTemplate(): ITestQuestionFields {
-        let result: ITestQuestionFields = {
-            answer: makeFilledArray(this.state.cipherString.length, ""),
-            replacements: makeFilledArray(this.state.cipherString.length, ""),
-            notes: "",
+        const result: ITestQuestionFields = {
+            answer: makeFilledArray(this.state.cipherString.length, ''),
+            replacements: makeFilledArray(this.state.cipherString.length, ''),
+            notes: '',
         };
         return result;
     }
@@ -104,18 +107,21 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public CheckAppropriate(testType: ITestType): string {
         let result = super.CheckAppropriate(testType);
-        if (result === "" && testType !== undefined) {
-            if (testType !== ITestType.cregional &&
+        if (result === '' && testType !== undefined) {
+            if (
+                testType !== ITestType.cregional &&
                 testType !== ITestType.cstate &&
-                this.state.operation === 'encode') {
-                result = "Encode problems are not allowed on " +
-                    this.getTestTypeName(testType);
+                this.state.operation === 'encode'
+            ) {
+                result = 'Encode problems are not allowed on ' + this.getTestTypeName(testType);
             }
-            if (testType !== ITestType.bstate &&
+            if (
+                testType !== ITestType.bstate &&
                 testType !== ITestType.cstate &&
-                this.state.operation === 'crypt') {
-                result = "Cryptanalysis problems are not allowed on " +
-                    this.getTestTypeName(testType);
+                this.state.operation === 'crypt'
+            ) {
+                result =
+                    'Cryptanalysis problems are not allowed on ' + this.getTestTypeName(testType);
             }
         }
         return result;
@@ -131,59 +137,70 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public validateQuestion(): void {
         let msg = '';
 
-        let questionText = this.state.question.toUpperCase();
+        const questionText = this.state.question.toUpperCase();
         if (this.state.operation === 'crypt') {
-            if (questionText.indexOf('DECOD') < 0 &&
+            if (
+                questionText.indexOf('DECOD') < 0 &&
                 questionText.indexOf('DECRY') < 0 &&
                 questionText.indexOf('WAS ENC') < 0 &&
-                questionText.indexOf('BEEN ENC') < 0) {
-                msg += "The Question Text doesn't appear to mention that " +
-                    "the cipher needs to be decrypted.";
+                questionText.indexOf('BEEN ENC') < 0
+            ) {
+                msg +=
+                    "The Question Text doesn't appear to mention that " +
+                    'the cipher needs to be decrypted.';
             }
             // Look to see if the crib appears in the question text
-            let crib = this.minimizeString(this.state.crib);
+            const crib = this.minimizeString(this.state.crib);
             if (crib !== '' && questionText.indexOf(crib) < 0) {
-                msg += "The Crib Text '" + this.state.crib +
+                msg +=
+                    "The Crib Text '" +
+                    this.state.crib +
                     "' doesn't appear to be mentioned in the Question Text.";
             }
         } else {
-            // For an encode or decode, they need to mention the key 
-            let key = this.minimizeString(this.state.keyword);
+            // For an encode or decode, they need to mention the key
+            const key = this.minimizeString(this.state.keyword);
             if (key !== '' && questionText.indexOf(key) < 0) {
-                msg += "The Key '" + this.state.keyword +
+                msg +=
+                    "The Key '" +
+                    this.state.keyword +
                     "' doesn't appear to be mentioned in the Question Text.";
             }
             if (this.state.operation === 'encode') {
-                if (questionText.indexOf('ENCOD') < 0 &&
-                    questionText.indexOf('ENCRY') < 0) {
-                    msg += "The Question Text doesn't appear to mention that " +
-                        "the cipher needs to be encoded.";
-                }
-                else if (questionText.indexOf('WAS ENCOD') > 0 ||
+                if (questionText.indexOf('ENCOD') < 0 && questionText.indexOf('ENCRY') < 0) {
+                    msg +=
+                        "The Question Text doesn't appear to mention that " +
+                        'the cipher needs to be encoded.';
+                } else if (
+                    questionText.indexOf('WAS ENCOD') > 0 ||
                     questionText.indexOf('BEEN ENCOD') > 0 ||
                     questionText.indexOf('WAS ENCRY') > 0 ||
-                    questionText.indexOf('BEEN ENCRY') > 0) {
-                    msg += "The Question Text appears to mention that the " +
-                        "cipher needs to be decoded, but this is an encode problem";
+                    questionText.indexOf('BEEN ENCRY') > 0
+                ) {
+                    msg +=
+                        'The Question Text appears to mention that the ' +
+                        'cipher needs to be decoded, but this is an encode problem';
                 }
             } else {
-                if (questionText.indexOf('DECOD') < 0 &&
+                if (
+                    questionText.indexOf('DECOD') < 0 &&
                     questionText.indexOf('DECRY') < 0 &&
                     questionText.indexOf('WAS ENC') < 0 &&
-                    questionText.indexOf('BEEN ENC') < 0) {
-                    msg += "The Question Text doesn't appear to mention that " +
-                        "the cipher needs to be decrypted.";
+                    questionText.indexOf('BEEN ENC') < 0
+                ) {
+                    msg +=
+                        "The Question Text doesn't appear to mention that " +
+                        'the cipher needs to be decrypted.';
                 }
             }
         }
-        let sampleLink = $("<a/>", { class: "sampq" }).
-            text(" Show suggested Question Text");
+        const sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
 
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
     public placeCrib(): ICribInfo {
-        let crib = this.minimizeString(this.state.crib);
-        let strings = this.buildReplacementVigenere(
+        const crib = this.minimizeString(this.state.crib);
+        const strings = this.buildReplacementVigenere(
             this.minimizeString(this.state.cipherString),
             this.minimizeString(this.state.keyword),
             9999
@@ -191,7 +208,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         if (strings.length !== 1) {
             return undefined;
         }
-        let cribpos = strings[0][1].indexOf(crib);
+        const cribpos = strings[0][1].indexOf(crib);
         if (cribpos < 0) {
             return undefined;
         }
@@ -200,7 +217,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             ciphertext: strings[0][0].substr(cribpos, crib.length),
             position: cribpos,
             criblen: crib.length,
-            cipherlen: strings[0][0].length
+            cipherlen: strings[0][0].length,
         };
     }
     /**
@@ -212,7 +229,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public getPositionText(val: number): string {
         let suffix = 'th';
         if (val < 4 || val > 20) {
-            let ones = val % 10;
+            const ones = val % 10;
             if (ones === 1) {
                 suffix = 'st';
             } else if (ones === 2) {
@@ -228,42 +245,49 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @returns HTML as a string
      */
     public genSampleQuestionText(): string {
-        let msg = "";
+        let msg = '';
         if (this.state.operation === 'crypt') {
-            msg = "<p>The following quote has been encoded with the " +
-                "Vigen&egrave;re Cipher using a very common word for the key. ";
+            msg =
+                '<p>The following quote has been encoded with the ' +
+                'Vigen&egrave;re Cipher using a very common word for the key. ';
 
-            let cribpos = this.placeCrib();
+            const cribpos = this.placeCrib();
             if (cribpos === undefined) {
                 msg += 'But <strong>the crib can not be found in the Plain Text</strong>. ';
             } else if (cribpos.position === 0) {
-                msg += "The deciphered text starts with " +
-                    this.genMonoText(cribpos.plaintext) + ". ";
+                msg +=
+                    'The deciphered text starts with ' + this.genMonoText(cribpos.plaintext) + '. ';
             } else if (cribpos.position === cribpos.cipherlen - cribpos.criblen) {
-                msg += "The deciphered text ends with " +
-                    this.genMonoText(cribpos.plaintext) + ". ";
+                msg +=
+                    'The deciphered text ends with ' + this.genMonoText(cribpos.plaintext) + '. ';
             } else {
-                let startpos = this.getPositionText(cribpos.position + 1);
-                let endpos = this.getPositionText(cribpos.position + cribpos.criblen);
-                msg += "The " + startpos + " through " + endpos +
-                    " cipher characters (" +
+                const startpos = this.getPositionText(cribpos.position + 1);
+                const endpos = this.getPositionText(cribpos.position + cribpos.criblen);
+                msg +=
+                    'The ' +
+                    startpos +
+                    ' through ' +
+                    endpos +
+                    ' cipher characters (' +
                     this.genMonoText(cribpos.ciphertext) +
-                    ") decode to be " +
+                    ') decode to be ' +
                     this.genMonoText(cribpos.plaintext);
             }
         } else {
-            let keyword = this.genMonoText(this.minimizeString(this.state.keyword));
+            const keyword = this.genMonoText(this.minimizeString(this.state.keyword));
             if (this.state.operation === 'encode') {
-                msg = "<p>The following quote needs to be encoded " +
-                    " with the Vigen&egrave;re Cipher with a keyword of " +
+                msg =
+                    '<p>The following quote needs to be encoded ' +
+                    ' with the Vigen&egrave;re Cipher with a keyword of ' +
                     keyword;
             } else {
-                msg = "<p>The following quote needs to be decoded " +
-                    " with the Vigen&egrave;re Cipher with a keyword of " +
+                msg =
+                    '<p>The following quote needs to be decoded ' +
+                    ' with the Vigen&egrave;re Cipher with a keyword of ' +
                     keyword;
             }
         }
-        msg += "</p>";
+        msg += '</p>';
         return msg;
     }
 
@@ -284,14 +308,14 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public updateOutput(): void {
         if (this.state.operation !== 'crypt') {
             this.guidanceURL = 'TestGuidance.html#Vigenere';
-            $(".crib").hide();
+            $('.crib').hide();
         } else {
             this.guidanceURL = 'TestGuidance.html#Vigenere_Decrypt';
-            $(".crib").show();
+            $('.crib').show();
         }
         JTRadioButtonSet('operation', this.state.operation);
         $('#blocksize').val(this.state.blocksize);
-        $("#crib").val(this.state.crib);
+        $('#crib').val(this.state.crib);
         super.updateOutput();
     }
     /**
@@ -299,16 +323,14 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
         this.genTestUsage(result);
-        let radiobuttons = [
+        const radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
             { id: 'mrow', value: 'decode', title: 'Decode' },
             { id: 'crow', value: 'crypt', title: 'Cryptanalysis' },
         ];
-        result.append(
-            JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
-        );
+        result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
         result.append(this.createQuestionTextDlg());
         this.genQuestionFields(result);
         this.genEncodeField(result);
@@ -333,10 +355,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
             )
         );
 
-        let inputbox = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
-        inputbox.append(
-            JTFIncButton('Block Size', 'blocksize', this.state.blocksize, '')
-        );
+        const inputbox = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
+        inputbox.append(JTFIncButton('Block Size', 'blocksize', this.state.blocksize, ''));
         result.append(inputbox);
 
         return result;
@@ -359,29 +379,25 @@ export class CipherVigenereEncoder extends CipherEncoder {
         if (key === '') {
             key = 'A';
         }
-        if (
-            this.state.blocksize > 0 &&
-            this.state.blocksize < this.maxEncodeWidth
-        ) {
+        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
             encoded = this.chunk(encoded, this.state.blocksize);
         }
-        let result: string[][] = [];
-        let charset = this.getCharset();
+        const result: string[][] = [];
+        const charset = this.getCharset();
         let message = '';
         let keyIndex = 0;
         let keyString = '';
         let cipher = '';
-        let msgLength = encoded.length;
-        let keyLength = key.length;
+        const msgLength = encoded.length;
+        const keyLength = key.length;
         let lastSplit = -1;
 
-        let factor = msgLength / keyLength;
+        const factor = msgLength / keyLength;
         keyString = this.repeatStr(key.toUpperCase(), factor + 1);
         for (let i = 0; i < msgLength; i++) {
-            let messageChar = encoded.substr(i, 1).toUpperCase();
-            let m = charset.indexOf(messageChar);
+            const messageChar = encoded.substr(i, 1).toUpperCase();
+            const m = charset.indexOf(messageChar);
             if (m >= 0) {
-                let c;
                 let keyChar = keyString.substr(keyIndex, 1).toUpperCase();
                 let k = charset.indexOf(keyChar);
                 while (k < 0) {
@@ -391,7 +407,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 }
 
                 message += messageChar;
-                c = (m + k) % 26;
+                const c = (m + k) % 26;
                 // The substr() basically does modulus with the negative offset
                 // in the decode case.  Thanks JavaScript!
                 cipher += charset.substr(c, 1);
@@ -409,8 +425,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     cipher = '';
                     lastSplit = -1;
                 } else {
-                    let messagePart = message.substr(0, lastSplit);
-                    let cipherPart = cipher.substr(0, lastSplit);
+                    const messagePart = message.substr(0, lastSplit);
+                    const cipherPart = cipher.substr(0, lastSplit);
                     message = message.substr(lastSplit);
                     cipher = cipher.substr(lastSplit);
                     result.push([cipherPart, messagePart]);
@@ -424,7 +440,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     }
 
     public buildVigenere(msg: string, key: string): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
         let source = 1;
         let dest = 0;
         let emsg = '';
@@ -442,7 +458,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         // If we are doing Cryptanalysis, we need tthe Crib text
         emsg = '';
         if (this.state.operation === 'crypt') {
-            let crib = this.minimizeString(this.state.crib);
+            const crib = this.minimizeString(this.state.crib);
             if (crib === '') {
                 emsg = 'No Crib Text provided for Cryptanalysis.';
             } else if (this.minimizeString(msg).indexOf(crib) < 0) {
@@ -451,18 +467,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
         this.setErrorMsg(emsg, 'vcrib');
 
-        let strings = this.buildReplacementVigenere(
-            msg,
-            key,
-            this.maxEncodeWidth
-        );
-        for (let stringset of strings) {
-            result.append(
-                $('<div/>', { class: 'TOSOLVE' }).text(stringset[source])
-            );
-            result.append(
-                $('<div/>', { class: 'TOANSWER' }).text(stringset[dest])
-            );
+        const strings = this.buildReplacementVigenere(msg, key, this.maxEncodeWidth);
+        for (const stringset of strings) {
+            result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
+            result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
         }
         return result;
     }
@@ -472,17 +480,14 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public load(): void {
         let encoded = this.cleanString(this.state.cipherString);
         /* If they want different sizes, rebuild the string in the chunk size */
-        if (
-            this.state.blocksize > 0 &&
-            this.state.blocksize < this.maxEncodeWidth
-        ) {
+        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
             encoded = this.chunk(encoded, this.state.blocksize);
         }
 
-        let key = this.minimizeString(this.state.keyword);
+        const key = this.minimizeString(this.state.keyword);
         this.clearErrors();
         this.validateQuestion();
-        let res = this.buildVigenere(encoded, key);
+        const res = this.buildVigenere(encoded, key);
         $('#answer')
             .empty()
             .append(res);
@@ -495,8 +500,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
         super.attachHandlers();
         $('#blocksize')
             .off('input')
-            .on('input', e => {
-                let blocksize = Number($(e.target).val());
+            .on('input', (e) => {
+                const blocksize = Number($(e.target).val());
                 if (blocksize !== this.state.blocksize) {
                     this.markUndo(null);
                     if (this.setBlocksize(blocksize)) {
@@ -506,8 +511,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
             });
         $('#keyword')
             .off('input')
-            .on('input', e => {
-                let newkeyword = $(e.target).val() as string;
+            .on('input', (e) => {
+                const newkeyword = $(e.target).val() as string;
                 if (newkeyword !== this.state.keyword) {
                     this.markUndo('keyword');
                     if (this.setKeyword(newkeyword)) {
@@ -522,7 +527,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @param answer - the array of characters from the interactive test.
      */
     public genScore(answer: string[]): IScoreInformation {
-        let strings = this.buildReplacementVigenere(
+        const strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
             9999
@@ -532,8 +537,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
             dest = 0;
         }
 
-        let solution = undefined
-        for (let strset of strings) {
+        let solution = undefined;
+        for (const strset of strings) {
             solution = strset[dest].split('');
         }
 
@@ -545,7 +550,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let keypos = 0;
-        let result = $('<div/>', { class: 'grid-x' });
+        const result = $('<div/>', { class: 'grid-x' });
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {
@@ -553,22 +558,22 @@ export class CipherVigenereEncoder extends CipherEncoder {
             extraclass = ' atest';
         }
 
-        let strings = this.buildReplacementVigenere(
+        const strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
             width
         );
         let keyword = '';
-        for (let c of this.state.keyword.toUpperCase()) {
+        for (const c of this.state.keyword.toUpperCase()) {
             if (this.isValidChar(c)) {
                 keyword += c;
             }
         }
 
-        let table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
-        for (let strset of strings) {
+        const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
+        for (const strset of strings) {
             let keystring = '';
-            for (let c of strset[0]) {
+            for (const c of strset[0]) {
                 if (this.isValidChar(c)) {
                     keystring += keyword.substr(keypos, 1);
                     keypos = (keypos + 1) % keyword.length;
@@ -582,13 +587,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 source = 1;
                 dest = 0;
             }
-            this.addCipherTableRows(
-                table,
-                keystring,
-                strset[source],
-                strset[dest],
-                true
-            );
+            this.addCipherTableRows(table, keystring, strset[source], strset[dest], true);
         }
         result.append(table.generate());
         return result;
@@ -598,24 +597,24 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'grid-x' });
+        const result = $('<div/>', { class: 'grid-x' });
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {
             width = 30;
             extraclass = ' atest';
         }
-        let strings = this.buildReplacementVigenere(
+        const strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
             width
         );
-        let table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
+        const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
         let source = 0;
         if (this.state.operation === 'encode') {
             source = 1;
         }
-        for (let strset of strings) {
+        for (const strset of strings) {
             this.addCipherTableRows(table, '', strset[source], undefined, true);
         }
         result.append(table.generate());
@@ -627,15 +626,15 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let qnumdisp = String(qnum + 1);
-        let result = $('<div/>', { id: "Q" + qnumdisp });
+        const qnumdisp = String(qnum + 1);
+        const result = $('<div/>', { id: 'Q' + qnumdisp });
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {
             width = 30;
             extraclass = ' atest';
         }
-        let strings = this.buildReplacementVigenere(
+        const strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
             width
@@ -644,9 +643,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
         if (this.state.operation === 'encode') {
             source = 1;
         }
-        result.append(this.genInteractiveCipherTable(strings, source, qnum, "cipherint", true));
+        result.append(
+            this.genInteractiveCipherTable(strings, source, qnum, 'cipherint' + extraclass, true)
+        );
 
-        result.append($("<textarea/>", { id: "in" + qnumdisp, class: "intnote" }));
+        result.append($('<textarea/>', { id: 'in' + qnumdisp, class: 'intnote' }));
         return result;
     }
 }

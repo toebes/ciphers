@@ -1,11 +1,11 @@
-import { CipherTestManage } from "./ciphertestmanage";
-import { toolMode, IState, menuMode } from "../common/cipherhandler";
+import { CipherTestManage } from './ciphertestmanage';
+import { toolMode, IState } from '../common/cipherhandler';
 import { ITestState } from './ciphertest';
-import { ICipherType } from "../common/ciphertypes";
-import { cloneObject } from "../common/ciphercommon";
-import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTTable } from "../common/jttable";
-import { ConvergenceDomain, ModelPermissions } from "@convergence/convergence";
+import { ICipherType } from '../common/ciphertypes';
+import { cloneObject } from '../common/ciphercommon';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTTable } from '../common/jttable';
+import { ConvergenceDomain, ModelPermissions } from '@convergence/convergence';
 
 /**
  * CipherTestPublished
@@ -30,8 +30,8 @@ export class CipherTestPermissions extends CipherTestManage {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: ITestState, suppressOutput: boolean = false): void {
-        let curlang = this.state.curlang;
+    public restore(data: ITestState, suppressOutput = false): void {
+        const curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as IState;
         this.state.curlang = curlang;
         this.copyState(this.state, data);
@@ -53,41 +53,50 @@ export class CipherTestPermissions extends CipherTestManage {
      * Generates a list of all the tests on the server in a table.
      */
     public genTestList(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'testlist' });
-        let table = new JTTable({ class: 'cell shrink permlist' });
-        let row = table.addHeaderRow();
+        const result = $('<div/>', { class: 'testlist' });
+        const table = new JTTable({ class: 'cell shrink permlist' });
+        const row = table.addHeaderRow();
         row.add('Action')
             .add('Userid')
             .add('Permissions');
         result.append(table.generate());
 
-        this.connectRealtime()
-            .then((domain: ConvergenceDomain) => {
-                this.findPermissions(domain, this.state.testID);
-            });
+        this.connectRealtime().then((domain: ConvergenceDomain) => {
+            this.findPermissions(domain, this.state.testID);
+        });
         return result;
     }
     /**
      * Find all the test sources on the server
      * @param domain Convergence Domain to query against
      */
-    private findPermissions(domain: ConvergenceDomain, testid: string) {
+    private findPermissions(domain: ConvergenceDomain, testid: string): void {
         const modelService = domain.models();
-        let permissionManager = modelService.permissions(testid);
-        permissionManager.getWorldPermissions()
-            .then(worldPermissions => {
+        const permissionManager = modelService.permissions(testid);
+        permissionManager
+            .getWorldPermissions()
+            .then((worldPermissions) => {
                 this.addPermissions(0, undefined, worldPermissions);
             })
-            .catch(error => { this.reportFailure("getWorldPermissions for " + testid + " returned Error:" + error) });
+            .catch((error) => {
+                this.reportFailure(
+                    'getWorldPermissions for ' + testid + ' returned Error:' + error
+                );
+            });
         let slot = 1;
-        permissionManager.getAllUserPermissions()
-            .then(permissions => {
+        permissionManager
+            .getAllUserPermissions()
+            .then((permissions) => {
                 permissions.forEach((permissionset, user) => {
                     this.addPermissions(slot, user, permissionset);
                     slot++;
-                })
+                });
             })
-            .catch(error => { this.reportFailure("getAllUserPermissions for " + testid + " returned Error:" + error) });
+            .catch((error) => {
+                this.reportFailure(
+                    'getAllUserPermissions for ' + testid + ' returned Error:' + error
+                );
+            });
     }
     /**
      * Create a labeled input field
@@ -96,33 +105,34 @@ export class CipherTestPermissions extends CipherTestManage {
      * @param checked Checked or not
      */
     private makeInputField(title: string, id: string, checked: boolean): JQuery<HTMLElement> {
-        let result = $("<span/>");
+        const result = $('<span/>');
         if (checked) {
-            result.append($("<input/>", { type: "checkbox", id: id, name: title, checked: "checked" }))
+            result.append(
+                $('<input/>', { type: 'checkbox', id: id, name: title, checked: 'checked' })
+            );
         } else {
-            result.append($("<input/>", { type: "checkbox", id: id, name: title }))
+            result.append($('<input/>', { type: 'checkbox', id: id, name: title }));
         }
-        result.append($("<label/>", { for: id }).text(title));
+        result.append($('<label/>', { for: id }).text(title));
         return result;
-
     }
     /**
      * Add/replace a test entry to the table for the permissions of a particular user.
-     * @param user 
-     * @param permissionset 
-    */
-    public addPermissions(slot: number, user: string, permissionset: ModelPermissions) {
-        let id = user;
-        let idbase = String(slot);
+     * @param user
+     * @param permissionset
+     */
+    public addPermissions(slot: number, user: string, permissionset: ModelPermissions): void {
+        // let id = user;
+        const idbase = String(slot);
         let userfield: JQuery<HTMLElement>;
         if (user === undefined) {
-            id = "_WORLD";
-            userfield = $("<b/>").text("WORLD");
+            // id = '_WORLD';
+            userfield = $('<b/>').text('WORLD');
         } else {
-            userfield = $("<input/>", { id: "U" + idbase, value: user, type: "text" })
+            userfield = $('<input/>', { id: 'U' + idbase, value: user, type: 'text' });
         }
-        let tr = $("<tr/>", { 'data-id': slot });
-        let buttons = $('<div/>', { class: 'button-group round shrink' });
+        const tr = $('<tr/>', { 'data-id': slot });
+        const buttons = $('<div/>', { class: 'button-group round shrink' });
         buttons.append(
             $('<a/>', {
                 'data-id': slot,
@@ -131,19 +141,22 @@ export class CipherTestPermissions extends CipherTestManage {
             }).text('Delete')
         );
 
-        tr.append($("<td/>").append($('<div/>', { class: 'grid-x' }).append(buttons)))
-            .append($("<td/>").append(userfield));
-        tr.append($("<td/>")
-            .append(this.makeInputField("read", "R" + idbase, permissionset.read))
-            .append(this.makeInputField("write", "W" + idbase, permissionset.write))
-            .append(this.makeInputField("remove", "X" + idbase, permissionset.remove))
-            .append(this.makeInputField("manage", "M" + idbase, permissionset.manage)))
+        tr.append($('<td/>').append($('<div/>', { class: 'grid-x' }).append(buttons))).append(
+            $('<td/>').append(userfield)
+        );
+        tr.append(
+            $('<td/>')
+                .append(this.makeInputField('read', 'R' + idbase, permissionset.read))
+                .append(this.makeInputField('write', 'W' + idbase, permissionset.write))
+                .append(this.makeInputField('remove', 'X' + idbase, permissionset.remove))
+                .append(this.makeInputField('manage', 'M' + idbase, permissionset.manage))
+        );
 
-        var curtr = $('tr[data-id="' + slot + '"]');
+        const curtr = $('tr[data-id="' + slot + '"]');
         if (curtr.length > 0) {
             curtr.replaceWith(tr);
         } else {
-            $(".permlist").append(tr);
+            $('.permlist').append(tr);
         }
     }
     /**

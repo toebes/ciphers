@@ -1,4 +1,4 @@
-import * as katex from "katex";
+import * as katex from 'katex';
 
 /**
  * Render a LaTeX math string with katex.

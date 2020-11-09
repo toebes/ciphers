@@ -7,22 +7,22 @@ export function JTFIncButton(
     val: number,
     sizeClass: string
 ): JQuery<HTMLElement> {
-    let inputgroup = $("<div/>", { class: "input-group cell " + sizeClass });
+    const inputgroup = $('<div/>', { class: 'input-group cell ' + sizeClass });
 
-    $("<span/>", { class: "input-group-label" })
+    $('<span/>', { class: 'input-group-label' })
         .text(title)
         .appendTo(inputgroup);
-    $("<div/>", { class: "input-group-button" })
-        .append($("<span/>", { class: "input-number-decrement" }).text("-"))
+    $('<div/>', { class: 'input-group-button' })
+        .append($('<span/>', { class: 'input-number-decrement' }).text('-'))
         .appendTo(inputgroup);
-    $("<input/>", {
+    $('<input/>', {
         id: id,
-        class: "input-number",
-        type: "number",
-        value: val
+        class: 'input-number',
+        type: 'number',
+        value: val,
     }).appendTo(inputgroup);
-    $("<div/>", { class: "input-group-button" })
-        .append($("<span/>", { class: "input-number-increment" }).text("+"))
+    $('<div/>', { class: 'input-group-button' })
+        .append($('<span/>', { class: 'input-number-increment' }).text('+'))
         .appendTo(inputgroup);
     return inputgroup;
 }

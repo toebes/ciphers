@@ -46,7 +46,7 @@ export class TrueTime {
      * @param interval [seconds] New interval. Must be either blank or positive number <= 60 (one minute)
      *                 any invalid value defaults it to half a minute.
      */
-    public setValidationInterval(interval?: number) {
+    public setValidationInterval(interval?: number): void {
         // Make sure that they don't give us an invalid or very long range.  The choice
         // of making it be within a minute is somewhat arbitrary.
         if (interval === undefined || interval <= 0.0 || interval > 60.0) {
@@ -62,14 +62,14 @@ export class TrueTime {
      * Set the notify callback function.
      * @param notifyCallback Callback function to notify on any changes (undefined to hide notifications)
      */
-    public setNotify(notifyCallback?: ChangeNotifyCallback) {
+    public setNotify(notifyCallback?: ChangeNotifyCallback): void {
         this.notifyFunc = notifyCallback;
     }
     /**
      * Notify of a problem event where time has been changed inappropriately or the clock has drifted too far
      * @param msg Message string to pass to interested parties
      */
-    public notify(msg: string) {
+    public notify(msg: string): void {
         // Only call their notify function if it actally is set.
         if (this.notifyFunc !== undefined) {
             this.notifyFunc(msg);
@@ -91,7 +91,7 @@ export class TrueTime {
     /**
      * Internal timer driven function that checks to see if someone has adjusted the clock
      */
-    private validateInterval() {
+    private validateInterval(): void {
         const curtime = this.UTCNow();
         if (this.previousTime != undefined) {
             // This is our second or subsequent time to be called, check to see if we have a delta that we
@@ -127,7 +127,7 @@ export class TrueTime {
     /**
      * startTiming turns on the interval validation timer
      */
-    public startTiming() {
+    public startTiming(): void {
         // We don't want to start the timer if it is already running.
         this.stopTiming();
         // Since the timer is just getting started, we haven't gotten the time previously
@@ -139,7 +139,7 @@ export class TrueTime {
     /**
      * stopTiming turns off our timer.
      */
-    public stopTiming() {
+    public stopTiming(): void {
         if (this.IntervalTimer !== undefined) {
             clearInterval(this.IntervalTimer);
             this.IntervalTimer = undefined;
@@ -149,7 +149,7 @@ export class TrueTime {
      * Update the time offset value
      * @param offset New time offset
      */
-    public updateOffset(offset: number) {
+    public updateOffset(offset: number): void {
         this.timeOffset = offset;
         this.validOffset = true;
         this.previousTime = undefined;
@@ -157,7 +157,7 @@ export class TrueTime {
     /**
      * syncTime checks to see how far off we are from the server time
      */
-    public syncTime() {
+    public syncTime(): void {
         $.getJSON('https://toebes.com/codebusters/time.php')
             .done((data) => {
                 // We received a response with the current time.  Note that it may have taken

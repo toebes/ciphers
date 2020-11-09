@@ -21,5 +21,8 @@ module.exports = {
         'class-name-casing': 'off',
         '@typescript-eslint/class-name-casing': 'off',
         '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/interface-name-prefix': 'off',
+        '@typescript-eslint/no-unused-vars': ['error', { args: 'none' }],
+        '@typescript-eslint/no-explicit-any': 'off',
     },
 };

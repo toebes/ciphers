@@ -3,15 +3,9 @@ import { IOperationType, ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
-import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
-import {
-    gcd,
-    getRandomIntInclusive,
-    getRandomPrime,
-    modularInverse,
-} from '../common/mathsupport';
+import { gcd, getRandomIntInclusive, getRandomPrime, modularInverse } from '../common/mathsupport';
 import { renderMath } from '../common/renderMath';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 /**
@@ -19,11 +13,7 @@ import { CipherEncoder, IEncoderState } from './cipherencoder';
  * @param str String to display as fixed width
  */
 function fwspan(str: string): string {
-    return (
-        '<span style="font-family:\'Courier New\', Courier, monospace;">' +
-        str +
-        '</span>'
-    );
+    return '<span style="font-family:\'Courier New\', Courier, monospace;">' + str + '</span>';
 }
 /**
  * Use the Rapid Modular Exponentation to encrypt a value given a power and exponent
@@ -34,14 +24,14 @@ function fwspan(str: string): string {
 function RSAEncrypt(val: number, n: number, e: number): number {
     // Note that we can't actually raise it to the power N and not expect an overflow
     // so we have to do it the same way that we expect them to do it on a calculator
-    let binary = n
+    const binary = n
         .toString(2)
         .split('')
         .reverse()
         .join('');
     let result = 1;
     let powerval = val % e;
-    for (let bit of binary) {
+    for (const bit of binary) {
         if (bit === '1') {
             result = (result * powerval) % e;
         }
@@ -118,37 +108,37 @@ const optRSA5Formulas = [
 ];
 const optRSA5TemplateAnswerStrings = [
     "<p>##NAME1## needs to use ##NAME2##'s public key (" +
-    fwspan('<em>n</em> = ##R2N##') +
-    ', ' +
-    fwspan('<em>e</em> = ##R2E##') +
-    ') in order to encrypt the value ##SAFECOMBO##.</p>' +
-    '<p>Hence the formula is: ' +
-    fwspan('value ^ e mod n') +
-    '</p>',
+        fwspan('<em>n</em> = ##R2N##') +
+        ', ' +
+        fwspan('<em>e</em> = ##R2E##') +
+        ') in order to encrypt the value ##SAFECOMBO##.</p>' +
+        '<p>Hence the formula is: ' +
+        fwspan('value ^ e mod n') +
+        '</p>',
     "<p>##NAME2## needs to use ##NAME1##'s public key (" +
-    fwspan('<em>n</em> = ##R1N##') +
-    ', ' +
-    fwspan('<em>e</em> = ##R1E##') +
-    ') in order to encrypt the value ##SAFECOMBO##.</p>' +
-    '<p>Hence the formula is: ' +
-    fwspan('value ^ e mod n') +
-    '</p>',
+        fwspan('<em>n</em> = ##R1N##') +
+        ', ' +
+        fwspan('<em>e</em> = ##R1E##') +
+        ') in order to encrypt the value ##SAFECOMBO##.</p>' +
+        '<p>Hence the formula is: ' +
+        fwspan('value ^ e mod n') +
+        '</p>',
     '<p>##NAME1## needs to use their own private key (' +
-    fwspan('<em>n</em> = ##R1N##') +
-    ', ' +
-    fwspan('<em>d</em> = ##R1D##') +
-    ") because ##NAME2## had to encode it using ##NAME1##'s public key of (##R1N##,##R1E##).</p>" +
-    '<p>In order to decrypt the value ##SAFECOMBO##, ##NAME1## must use the formula: ' +
-    fwspan('value ^ d mod n') +
-    '</p>',
+        fwspan('<em>n</em> = ##R1N##') +
+        ', ' +
+        fwspan('<em>d</em> = ##R1D##') +
+        ") because ##NAME2## had to encode it using ##NAME1##'s public key of (##R1N##,##R1E##).</p>" +
+        '<p>In order to decrypt the value ##SAFECOMBO##, ##NAME1## must use the formula: ' +
+        fwspan('value ^ d mod n') +
+        '</p>',
     '<p>##NAME2## needs to use their own private key (' +
-    fwspan('<em>n</em> = ##R2N##') +
-    ', ' +
-    fwspan('<em>d</em> = ##R2D##') +
-    ") because ##NAME1## had to encode it using ##NAME2##'s public key of (##R2N##,##R2E##).</p>" +
-    '<p>In order to decrypt the value ##SAFECOMBO##, ##NAME2## must use the formula: ' +
-    fwspan('value ^ d mod n') +
-    '</p>',
+        fwspan('<em>n</em> = ##R2N##') +
+        ', ' +
+        fwspan('<em>d</em> = ##R2D##') +
+        ") because ##NAME1## had to encode it using ##NAME2##'s public key of (##R2N##,##R2E##).</p>" +
+        '<p>In order to decrypt the value ##SAFECOMBO##, ##NAME2## must use the formula: ' +
+        fwspan('value ^ d mod n') +
+        '</p>',
 ];
 /**
  * CipherBaconianEncoder - This class handles all of the actions associated with encoding
@@ -156,7 +146,7 @@ const optRSA5TemplateAnswerStrings = [
  */
 export class CipherRSAEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL: string = 'TestGuidance.html#RSA';
+    public guidanceURL = 'TestGuidance.html#RSA';
 
     public validTests: ITestType[] = [ITestType.None, ITestType.cstate];
     public defaultstate: IRSAState = {
@@ -205,7 +195,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      */
     public setDigitsPrime(digitsPrime: number): boolean {
         let changed = false;
-        let newdigits = this.applySliderRange(
+        const newdigits = this.applySliderRange(
             digitsPrime,
             digitsPrimeRange[this.state.operation].min,
             digitsPrimeRange[this.state.operation].max
@@ -222,7 +212,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      */
     public setDigitsCombo(digitsCombo: number): boolean {
         let changed = false;
-        let newdigits = this.applySliderRange(
+        const newdigits = this.applySliderRange(
             digitsCombo,
             digitsComboRange[this.state.operation].min,
             digitsComboRange[this.state.operation].max
@@ -238,7 +228,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param operation New operation type
      */
     public setOperation(operation: IOperationType): boolean {
-        let changed = super.setOperation(operation);
+        const changed = super.setOperation(operation);
         if (changed) {
             this.setUIDefaults();
             this.recalcData();
@@ -277,19 +267,17 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
         this.genTestUsage(result);
 
-        let radiobuttons = [
+        const radiobuttons = [
             { value: 'rsa1', title: 'Safe Combo' },
             { value: 'rsa2', title: 'Quantum Computer' },
             { value: 'rsa3', title: 'Compute <em>d</em>' },
             { value: 'rsa4', title: 'Decode Year' },
             { value: 'rsa5', title: 'Exchange Keys' },
         ];
-        result.append(
-            JTRadioButton(6, 'operation', radiobuttons, this.state.operation)
-        );
+        result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
 
         this.genQuestionFields(result);
         this.genEncodeField(result);
@@ -357,7 +345,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             default:
                 break;
         }
-        let result = $('<div/>')
+        const result = $('<div/>')
             .append(this.genAnswer(ITestType.None))
             .append(this.genSolution(ITestType.None));
         return result;
@@ -391,8 +379,8 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        let result = this.genQuestion(testType);
-        result.append($("<textarea/>", { id: "in" + String(qnum+1), class: "intnote" }));
+        const result = this.genQuestion(testType);
+        result.append($('<textarea/>', { id: 'in' + String(qnum + 1), class: 'intnote' }));
         return result;
     }
     /**
@@ -422,7 +410,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Loads up the values for the encoder
      */
     public load(): void {
-        let res = this.build();
+        const res = this.build();
         $('#answer')
             .empty()
             .append(res);
@@ -436,7 +424,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * familiar to most of the kids taking the test
      */
     public getRandomName(): string {
-        let names = [
+        const names = [
             'Abigail',
             'Alexander',
             'Alexia',
@@ -529,7 +517,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             'William',
             'Zachary',
         ];
-        let index = Math.floor(Math.random() * names.length);
+        const index = Math.floor(Math.random() * names.length);
         return names[index];
     }
     /**
@@ -537,7 +525,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param nDigits Number of digits for the Prime
      */
     public CalculateRSA(nDigits: number): IRSAData {
-        let result: IRSAData = { p: 0, q: 0, n: 0, phi: 0, e: 0, d: 0 };
+        const result: IRSAData = { p: 0, q: 0, n: 0, phi: 0, e: 0, d: 0 };
         do {
             result.p = getRandomPrime(this.state.digitsPrime);
             result.q = getRandomPrime(this.state.digitsPrime);
@@ -564,11 +552,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param templateid placeholder to put in place
      * @param val Old value to substitute for
      */
-    public substituteTemplateVal(
-        str: string,
-        templateid: string,
-        val: number
-    ): string {
+    public substituteTemplateVal(str: string, templateid: string, val: number): string {
         if (val === undefined || isNaN(val)) {
             return str;
         }
@@ -589,19 +573,12 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param templateid placeholder to put in place
      * @param val Old value to substitute for
      */
-    public substituteTemplateStr(
-        str: string,
-        templateid: string,
-        val: string
-    ): string {
+    public substituteTemplateStr(str: string, templateid: string, val: string): string {
         if (val === undefined || val === '') {
             return str;
         }
         // Make sure that the match string isn't at the start or the end so we only have to do one pattern
-        return str.replace(
-            new RegExp('\\b' + val + '\\b', 'g'),
-            '##' + templateid + '##'
-        );
+        return str.replace(new RegExp('\\b' + val + '\\b', 'g'), '##' + templateid + '##');
     }
     /**
      * This reverses a templated string by finding all of the RSA values in
@@ -610,11 +587,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param templateid Template prefix placeholder (R1/R2)
      * @param val RSA values to replace
      */
-    public substituteRSATemplate(
-        str: string,
-        templateid: string,
-        val: IRSAData
-    ): string {
+    public substituteRSATemplate(str: string, templateid: string, val: IRSAData): string {
         // If there is no calculated RSA value, we don't have to do anything
         if (val === undefined) {
             return str;
@@ -622,11 +595,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         let result = this.substituteTemplateVal(str, templateid + 'P', val.p);
         result = this.substituteTemplateVal(result, templateid + 'Q', val.q);
         result = this.substituteTemplateVal(result, templateid + 'N', val.n);
-        result = this.substituteTemplateVal(
-            result,
-            templateid + 'PHI',
-            val.phi
-        );
+        result = this.substituteTemplateVal(result, templateid + 'PHI', val.phi);
         result = this.substituteTemplateVal(result, templateid + 'E', val.e);
         result = this.substituteTemplateVal(result, templateid + 'D', val.d);
         return result;
@@ -646,7 +615,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         if (this.state.question === undefined) {
             isempty = true;
         } else {
-            let question = this.state.question
+            const question = this.state.question
                 .replace('<p>', '')
                 .replace('</p>', '')
                 .replace('&nbsp;', '')
@@ -665,16 +634,8 @@ export class CipherRSAEncoder extends CipherEncoder {
         // first just in case we catch something which isn't
         let result = this.state.question;
         // Find all of the places where we used the RSA1 values
-        result = this.substituteTemplateVal(
-            result,
-            'SAFECOMBO',
-            this.state.combo
-        );
-        result = this.substituteTemplateVal(
-            result,
-            'ENCRYPTED',
-            this.state.encrypted
-        );
+        result = this.substituteTemplateVal(result, 'SAFECOMBO', this.state.combo);
+        result = this.substituteTemplateVal(result, 'ENCRYPTED', this.state.encrypted);
         result = this.substituteTemplateStr(result, 'NAME1', this.state.name1);
         result = this.substituteTemplateStr(result, 'NAME2', this.state.name2);
         result = this.substituteRSATemplate(result, 'R1', this.state.rsa1);
@@ -687,11 +648,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param templateid ID to replace in the template
      * @param val Value to substitute
      */
-    public applyTemplateStr(
-        template: string,
-        templateid: string,
-        val: string
-    ): string {
+    public applyTemplateStr(template: string, templateid: string, val: string): string {
         return template.replace(new RegExp('##' + templateid + '##', 'g'), val);
     }
     /**
@@ -700,27 +657,15 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param templateid ID Prefix (R1/R2)
      * @param val Computed RSA values
      */
-    public applyTemplateRSA(
-        template: string,
-        templateid: string,
-        val: IRSAData
-    ): string {
+    public applyTemplateRSA(template: string, templateid: string, val: IRSAData): string {
         // If we don't have a computed RSA value, we are done
         if (val === undefined) {
             return template;
         }
-        let result = this.applyTemplateStr(
-            template,
-            templateid + 'P',
-            String(val.p)
-        );
+        let result = this.applyTemplateStr(template, templateid + 'P', String(val.p));
         result = this.applyTemplateStr(result, templateid + 'Q', String(val.q));
         result = this.applyTemplateStr(result, templateid + 'N', String(val.n));
-        result = this.applyTemplateStr(
-            result,
-            templateid + 'PHI',
-            String(val.phi)
-        );
+        result = this.applyTemplateStr(result, templateid + 'PHI', String(val.phi));
         result = this.applyTemplateStr(result, templateid + 'E', String(val.e));
         result = this.applyTemplateStr(result, templateid + 'D', String(val.d));
         return result;
@@ -730,18 +675,10 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param template Template string
      */
     public applyTemplate(template: string): string {
-        let result = this.applyTemplateStr(
-            template,
-            'SAFECOMBO',
-            String(this.state.combo)
-        );
+        let result = this.applyTemplateStr(template, 'SAFECOMBO', String(this.state.combo));
         result = this.applyTemplateStr(result, 'NAME1', this.state.name1);
         result = this.applyTemplateStr(result, 'NAME2', this.state.name2);
-        result = this.applyTemplateStr(
-            result,
-            'ENCRYPTED',
-            String(this.state.encrypted)
-        );
+        result = this.applyTemplateStr(result, 'ENCRYPTED', String(this.state.encrypted));
         result = this.applyTemplateRSA(result, 'R1', this.state.rsa1);
         result = this.applyTemplateRSA(result, 'R2', this.state.rsa2);
         return result;
@@ -752,7 +689,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      */
     public getRSATemplate(prefix: string, randomize: boolean): string {
         let result = '<p>';
-        let sortset = [
+        const sortset = [
             { order: Math.random(), label: 'p', template: 'P' },
             { order: Math.random(), label: 'q', template: 'Q' },
             { order: Math.random(), label: 'n', template: 'N' },
@@ -762,20 +699,18 @@ export class CipherRSAEncoder extends CipherEncoder {
         ];
         if (randomize) {
             // Sort them based on the random number
-            sortset.sort(
-                (a: any, b: any): number => {
-                    if (a.order < b.order) {
-                        return -1;
-                    } else if (a.order > b.order) {
-                        return 1;
-                    }
-                    return 0;
+            sortset.sort((a: any, b: any): number => {
+                if (a.order < b.order) {
+                    return -1;
+                } else if (a.order > b.order) {
+                    return 1;
                 }
-            );
+                return 0;
+            });
         }
         let isEven = false;
         let extra = '';
-        for (let item of sortset) {
+        for (const item of sortset) {
             if (isEven) {
                 result += '&nbsp;&nbsp;&nbsp;';
             } else {
@@ -783,12 +718,7 @@ export class CipherRSAEncoder extends CipherEncoder {
                 extra = '<br/>';
             }
             result += fwspan(
-                '&nbsp;&nbsp;&nbsp;<em>' +
-                item.label +
-                '</em> = ##' +
-                prefix +
-                item.template +
-                '##'
+                '&nbsp;&nbsp;&nbsp;<em>' + item.label + '</em> = ##' + prefix + item.template + '##'
             );
             isEven = !isEven;
         }
@@ -799,7 +729,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Scenario 4 - Decode the year given a private key
      */
     public compute1(): void {
-        let defaultQTemplate =
+        const defaultQTemplate =
             '<p>##NAME1## has faithfully followed the steps of the RSA key-generation algorithm. ' +
             'But has forgotten the last step&mdash;how to encrypt a message.' +
             'First, Here are the results from the other steps:</p>' +
@@ -817,7 +747,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             ' in the response email, but encrypted with RSA. ' +
             'What should formula should ##NAME2## compute in order to know the ciphertext to transmit?</p>';
 
-        let question = this.getTemplatedQuestion(defaultQTemplate);
+        const question = this.getTemplatedQuestion(defaultQTemplate);
         if (this.state.name1 === undefined || this.state.name1 === '') {
             this.state.name1 = this.getRandomName();
         }
@@ -842,49 +772,31 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genQuestionAnswer1(showanswers: boolean): JQuery<HTMLElement> {
-        let result = $('<div/>');
-        let cellclass = showanswers ? 'TOANSWER' : 'TOSOLVE';
+        const result = $('<div/>');
+        const cellclass = showanswers ? 'TOANSWER' : 'TOSOLVE';
 
         let formula = $('<span/>').text('');
 
         let answers: string[] = ['', '', ''];
         if (showanswers) {
-            answers = [
-                String(this.state.rsa1.n),
-                String(this.state.rsa1.e),
-                '',
-            ];
+            answers = [String(this.state.rsa1.n), String(this.state.rsa1.e), ''];
             formula = $('<span/>').text(
-                this.state.combo +
-                ' ^ ' +
-                this.state.rsa1.e +
-                ' mod ' +
-                this.state.rsa1.n
+                this.state.combo + ' ^ ' + this.state.rsa1.e + ' mod ' + this.state.rsa1.n
             );
         }
         if (this.state.combo > this.state.rsa1.n) {
             result.append(
                 $('<div/>', {
                     class: 'callout alert',
-                }).text(
-                    'The combination is smaller than N. Please pick larger primes'
-                )
+                }).text('The combination is smaller than N. Please pick larger primes')
             );
             return result;
         }
         result.append(
-            this.genKeyBlock(
-                'Enter the minimum values to transmit:',
-                answers,
-                showanswers
-            )
+            this.genKeyBlock('Enter the minimum values to transmit:', answers, showanswers)
         );
 
-        result.append(
-            $('<div/>').text(
-                'Enter the formula (using correct numbers) to transmit:'
-            )
-        );
+        result.append($('<div/>').text('Enter the formula (using correct numbers) to transmit:'));
 
         result.append(
             $('<div/>', {
@@ -894,10 +806,10 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     public genSolution1(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'vsolv' });
+        const result = $('<div/>', { class: 'vsolv' });
         result.append($('<h3/>').text('How to solve'));
 
-        let template =
+        const template =
             "<p>In order for ##NAME2## to be able to read ##NAME1##'s RSA encrypted message, " +
             '##NAME1## has to transmit their public key (<em>n</em>,<em>e</em>) and nothing else. ' +
             'In this case it is ' +
@@ -917,7 +829,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Scenario 2 - Recover a private key with a factored n
      */
     public compute2(): void {
-        let defaultQTemplate =
+        const defaultQTemplate =
             '<p>Special Agent, ##NAME1##, has the following RSA public key:</p><p>' +
             fwspan('&nbsp;&nbsp;&nbsp;<em>n</em> = ##R1N##') +
             fwspan('&nbsp;&nbsp;&nbsp;<em>e</em> = ##R1E##') +
@@ -928,7 +840,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             '</p>' +
             '<p>Compute the value of their private key:</p>';
 
-        let question = this.getTemplatedQuestion(defaultQTemplate);
+        const question = this.getTemplatedQuestion(defaultQTemplate);
         if (this.state.name1 === undefined || this.state.name1 === '') {
             this.state.name1 = this.getRandomName();
         }
@@ -946,7 +858,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genQuestionAnswer2(showanswers: boolean): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
         let cellclass = 'TOSOLVE';
 
         let answer = '';
@@ -956,10 +868,10 @@ export class CipherRSAEncoder extends CipherEncoder {
         }
         result.append($('<div/>').text('Enter the computed private key:'));
 
-        let table = new JTTable({
+        const table = new JTTable({
             class: 'ansblock shrink cell unstriped',
         });
-        let row = table.addBodyRow();
+        const row = table.addBodyRow();
         row.add({
             settings: {
                 class: 'v rsawide ' + cellclass,
@@ -971,7 +883,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     public genSolution2(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'vsolv' });
+        const result = $('<div/>', { class: 'vsolv' });
         result.append($('<h3/>').text('How to solve'));
 
         result.append(
@@ -981,21 +893,21 @@ export class CipherRSAEncoder extends CipherEncoder {
                 .append(' using the formula:')
         );
         result.append($('<div/>').append(renderMath('Φ=(p-1)*(q-1)')));
-        let p_1 = this.state.rsa1.p - 1;
-        let q_1 = this.state.rsa1.q - 1;
+        const p_1 = this.state.rsa1.p - 1;
+        const q_1 = this.state.rsa1.q - 1;
         result.append(
             $('<div/>').append(
                 renderMath(
                     'Φ=(' +
-                    this.state.rsa1.p +
-                    '-1)*(' +
-                    this.state.rsa1.q +
-                    '-1)=' +
-                    p_1 +
-                    '*' +
-                    q_1 +
-                    '=' +
-                    this.state.rsa1.phi
+                        this.state.rsa1.p +
+                        '-1)*(' +
+                        this.state.rsa1.q +
+                        '-1)=' +
+                        p_1 +
+                        '*' +
+                        q_1 +
+                        '=' +
+                        this.state.rsa1.phi
                 )
             )
         );
@@ -1010,30 +922,19 @@ export class CipherRSAEncoder extends CipherEncoder {
                 .text('Second, we use the ')
                 .append(
                     $('<a/>', {
-                        href:
-                            'https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm',
+                        href: 'https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm',
                     }).text('extended Euclidean Algorithm')
                 )
-                .append(
-                    ' using ' +
-                    this.state.rsa1.e +
-                    ' and ' +
-                    this.state.rsa1.phi
-                )
+                .append(' using ' + this.state.rsa1.e + ' and ' + this.state.rsa1.phi)
         );
-        result.append(
-            this.genTalkativeModulerInverse(
-                this.state.rsa1.e,
-                this.state.rsa1.phi
-            )
-        );
+        result.append(this.genTalkativeModulerInverse(this.state.rsa1.e, this.state.rsa1.phi));
         return result;
     }
     /**
      * Scenario 3 - Compute d given the other 5 values of the algorithm
      */
     public compute3(): void {
-        let defaultQTemplate =
+        const defaultQTemplate =
             '<p>##NAME1##, has faithfully followed the steps of the ' +
             'RSA key-generation algorithm.  Here are the results:</p>' +
             fwspan('&nbsp;&nbsp;&nbsp;<em>p</em> = ##R1P##<br/>') +
@@ -1043,7 +944,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             fwspan('&nbsp;&nbsp;&nbsp;<em>e</em> = ##R1E##') +
             "<p>Unfortunately, ##NAME1## doesn't know how to compute the value of <em>d</em> " +
             'and needs you to do that final step for them.</p>';
-        let question = this.getTemplatedQuestion(defaultQTemplate);
+        const question = this.getTemplatedQuestion(defaultQTemplate);
         if (this.state.name1 === undefined || this.state.name1 === '') {
             this.state.name1 = this.getRandomName();
         }
@@ -1061,7 +962,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genQuestionAnswer3(showanswers: boolean): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
         let cellclass = 'TOSOLVE';
 
         let answer = '';
@@ -1076,10 +977,10 @@ export class CipherRSAEncoder extends CipherEncoder {
                 .append(', NOT the formula.')
         );
 
-        let table = new JTTable({
+        const table = new JTTable({
             class: 'ansblock shrink cell unstriped',
         });
-        let row = table.addBodyRow();
+        const row = table.addBodyRow();
         row.add({
             settings: {
                 class: 'v rsawide ' + cellclass,
@@ -1091,7 +992,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     public genSolution3(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'vsolv' });
+        const result = $('<div/>', { class: 'vsolv' });
         result.append($('<h3/>').text('How to solve'));
 
         result.append(
@@ -1101,8 +1002,7 @@ export class CipherRSAEncoder extends CipherEncoder {
                 .append(', you need to use the  ')
                 .append(
                     $('<a/>', {
-                        href:
-                            'https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm',
+                        href: 'https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm',
                     }).text('extended Euclidean Algorithm')
                 )
                 .append(' to compute the greatest common divisor of integers ')
@@ -1112,24 +1012,18 @@ export class CipherRSAEncoder extends CipherEncoder {
                 .append(' and the integer coefficients of ')
                 .append(
                     $('<a/>', {
-                        href:
-                            'https://en.wikipedia.org/wiki/B%C3%A9zout%27s_identity',
+                        href: 'https://en.wikipedia.org/wiki/B%C3%A9zout%27s_identity',
                     }).append("B&eacute;zout's identity.")
                 )
         );
-        result.append(
-            this.genTalkativeModulerInverse(
-                this.state.rsa1.e,
-                this.state.rsa1.phi
-            )
-        );
+        result.append(this.genTalkativeModulerInverse(this.state.rsa1.e, this.state.rsa1.phi));
         return result;
     }
     /**
      * Scenario 3 - Compute d given the other 5 values of the algorithm
      */
     public compute4(): void {
-        let defaultQTemplate =
+        const defaultQTemplate =
             '<p>##NAME2## and ##NAME1## are accountants for a very large bank, ' +
             'and have started a friendship. They communicate via email, ' +
             'because they live thousands of miles apart. ' +
@@ -1141,7 +1035,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             'and they provides their public key: (##R1N##, ##R1E##). ' +
             '##NAME2## replies with the ciphertext ##ENCRYPTED##. ' +
             '##NAME1##’s private key is ##R1D##. In what year was ##NAME2## born?</p>';
-        let question = this.getTemplatedQuestion(defaultQTemplate);
+        const question = this.getTemplatedQuestion(defaultQTemplate);
         if (this.state.name1 === undefined || this.state.name1 === '') {
             this.state.name1 = this.getRandomName();
         }
@@ -1170,7 +1064,7 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genQuestionAnswer4(showanswers: boolean): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
         let cellclass = 'TOSOLVE';
 
         let answer = '';
@@ -1180,10 +1074,10 @@ export class CipherRSAEncoder extends CipherEncoder {
         }
         result.append($('<div/>').text('Enter the answer:'));
 
-        let table = new JTTable({
+        const table = new JTTable({
             class: 'ansblock shrink cell unstriped',
         });
-        let row = table.addBodyRow();
+        const row = table.addBodyRow();
         row.add({
             settings: {
                 class: 'v rsawide ' + cellclass,
@@ -1195,26 +1089,22 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     public genSolution4(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'vsolv' });
+        const result = $('<div/>', { class: 'vsolv' });
         result.append($('<h3/>').text('How to solve'));
         result.append(
             $('<p/>')
                 .text('In order to decode, we need to use the function: ')
                 .append(renderMath('{value}^d\\mod{n}'))
-                .append(
-                    '. Because of the size of the values, we have to use the '
-                )
+                .append('. Because of the size of the values, we have to use the ')
                 .append(
                     $('<a/>', {
-                        href:
-                            'https://en.wikipedia.org/wiki/Modular_exponentiation',
+                        href: 'https://en.wikipedia.org/wiki/Modular_exponentiation',
                     }).text('Rapid Modular Exponentation')
                 )
                 .append(' method, also known as the ')
                 .append(
                     $('<a/>', {
-                        href:
-                            'https://en.wikipedia.org/wiki/Exponentiation_by_squaring',
+                        href: 'https://en.wikipedia.org/wiki/Exponentiation_by_squaring',
                     }).text('method of repeated squaring')
                 )
                 .append('.')
@@ -1222,15 +1112,9 @@ export class CipherRSAEncoder extends CipherEncoder {
 
         result.append(
             $('<p/>')
-                .text(
-                    'First we need to convert ' +
-                    this.state.name1 +
-                    "'s private key "
-                )
+                .text('First we need to convert ' + this.state.name1 + "'s private key ")
                 .append($('<em/>').text('d'))
-                .append(
-                    ' to binary which will tell us how many operations we will need to do'
-                )
+                .append(' to binary which will tell us how many operations we will need to do')
         );
         result.append(
             this.genTalkativeModulerExponentiation(
@@ -1249,9 +1133,9 @@ export class CipherRSAEncoder extends CipherEncoder {
         if (this.state.qchoice === undefined) {
             this.state.qchoice = Math.floor(Math.random() * 8);
         }
-        let qorder = this.state.qchoice % 2;
-        let questionOpt = Math.floor(this.state.qchoice / 2) % 4;
-        let defaultQTemplate =
+        // const qorder = this.state.qchoice % 2;
+        const questionOpt = Math.floor(this.state.qchoice / 2) % 4;
+        const defaultQTemplate =
             '<p>##NAME1## and ##NAME2## want to communicate with each other using RSA for encryption. ' +
             '##NAME1## generates RSA keys obtaining the following values:</p>' +
             this.getRSATemplate('R1', true) +
@@ -1262,7 +1146,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             '<p>You must also determine what ' +
             optRSA5TemplateOptStrings[questionOpt] +
             '</p>';
-        let question = this.getTemplatedQuestion(defaultQTemplate);
+        const question = this.getTemplatedQuestion(defaultQTemplate);
 
         if (this.state.name1 === undefined || this.state.name1 === '') {
             this.state.name1 = this.getRandomName();
@@ -1291,14 +1175,17 @@ export class CipherRSAEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genQuestionAnswer5(showanswers: boolean): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
 
-        let qorder = this.state.qchoice % 2;
-        let questionOpt = Math.floor(this.state.qchoice / 2) % 4;
+        const qorder = this.state.qchoice % 2;
+        const questionOpt = Math.floor(this.state.qchoice / 2) % 4;
 
-        let cellclass = showanswers ? 'TOANSWER' : 'TOSOLVE';
+        const cellclass = showanswers ? 'TOANSWER' : 'TOSOLVE';
         let formula = $('');
-        let answers: string[][] = [['', '', ''], ['', '', '']];
+        const answers: string[][] = [
+            ['', '', ''],
+            ['', '', ''],
+        ];
 
         let n1pos = 0;
         let n2pos = 1;
@@ -1318,32 +1205,21 @@ export class CipherRSAEncoder extends CipherEncoder {
             // We need to swap the order of the names
             n1pos = 1;
             n2pos = 0;
-            let x = n1;
+            const x = n1;
             n1 = n2;
             n2 = x;
         }
         if (showanswers) {
-            formula = $('<span/>').text(
-                this.applyTemplate(optRSA5Formulas[questionOpt])
-            );
+            formula = $('<span/>').text(this.applyTemplate(optRSA5Formulas[questionOpt]));
 
-            answers[n1pos] = [
-                String(this.state.rsa1.n),
-                String(this.state.rsa1.e),
-                '',
-            ];
-            answers[n2pos] = [
-                String(this.state.rsa2.n),
-                String(this.state.rsa2.e),
-                '',
-            ];
+            answers[n1pos] = [String(this.state.rsa1.n), String(this.state.rsa1.e), ''];
+            answers[n2pos] = [String(this.state.rsa2.n), String(this.state.rsa2.e), ''];
         }
         result.append(this.genKeyBlock(n1, answers[0], showanswers));
         result.append(this.genKeyBlock(n2, answers[1], showanswers));
         result.append(
             $('<div/>').text(
-                'Write the ' +
-                this.applyTemplate(optRSA5TemplateOptStrings[questionOpt])
+                'Write the ' + this.applyTemplate(optRSA5TemplateOptStrings[questionOpt])
             )
         );
 
@@ -1355,30 +1231,30 @@ export class CipherRSAEncoder extends CipherEncoder {
         return result;
     }
     public genSolution5(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'vsolv' });
+        const result = $('<div/>', { class: 'vsolv' });
         result.append($('<h3/>').text('How to solve'));
-        let qorder = this.state.qchoice % 2;
-        let questionOpt = Math.floor(this.state.qchoice / 2) % 4;
+        const qorder = this.state.qchoice % 2;
+        const questionOpt = Math.floor(this.state.qchoice / 2) % 4;
 
-        let div1 = $('<div/>').html(
+        const div1 = $('<div/>').html(
             this.state.name1 +
-            ' needs to send only their public key' +
-            ' (<em>e</em>=' +
-            this.state.rsa1.e +
-            ', <em>n</em>=' +
-            this.state.rsa1.n +
-            ') to ' +
-            this.state.name2
+                ' needs to send only their public key' +
+                ' (<em>e</em>=' +
+                this.state.rsa1.e +
+                ', <em>n</em>=' +
+                this.state.rsa1.n +
+                ') to ' +
+                this.state.name2
         );
-        let div2 = $('<div/>').html(
+        const div2 = $('<div/>').html(
             this.state.name2 +
-            ' needs to send only their public key' +
-            ' (<em>e</em>=' +
-            this.state.rsa2.e +
-            ', <em>n</em>=' +
-            this.state.rsa2.n +
-            ') to ' +
-            this.state.name1
+                ' needs to send only their public key' +
+                ' (<em>e</em>=' +
+                this.state.rsa2.e +
+                ', <em>n</em>=' +
+                this.state.rsa2.n +
+                ') to ' +
+                this.state.name1
         );
         if (qorder === 0) {
             result.append(div1).append(div2);
@@ -1387,9 +1263,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         }
 
         result.append(
-            $('<div/>').html(
-                this.applyTemplate(optRSA5TemplateAnswerStrings[questionOpt])
-            )
+            $('<div/>').html(this.applyTemplate(optRSA5TemplateAnswerStrings[questionOpt]))
         );
 
         return result;
@@ -1405,13 +1279,13 @@ export class CipherRSAEncoder extends CipherEncoder {
         answers: string[],
         showanswers: boolean
     ): JQuery<HTMLElement> {
-        let cellclass = showanswers ? 'TOANSWER' : 'TOSOLVE';
-        let result = $('<div/>');
+        const cellclass = showanswers ? 'TOANSWER' : 'TOSOLVE';
+        const result = $('<div/>');
         result.append($('<div/>').text(title));
-        let table = new JTTable({
+        const table = new JTTable({
             class: 'ansblock shrink cell unstriped',
         });
-        let row = table.addBodyRow();
+        const row = table.addBodyRow();
         for (let i = 0; i < 3; i++) {
             row.add({
                 settings: {
@@ -1423,9 +1297,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         result.append(table.generate());
         if (showanswers) {
             result.append(
-                $('<span/>').append(
-                    $('<em/>').text('These two numbers can be in either order.')
-                )
+                $('<span/>').append($('<em/>').text('These two numbers can be in either order.'))
             );
         }
         return result;
@@ -1447,19 +1319,19 @@ export class CipherRSAEncoder extends CipherEncoder {
         quotient_current: number,
         seq_current: number
     ): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: sclass });
+        const result = $('<div/>', { class: sclass });
         result.append(renderMath(formula));
         result.append(
             $('<div/>').append(
                 renderMath(
                     sequence_of +
-                    '=' +
-                    seq_previous +
-                    '- (' +
-                    quotient_current +
-                    '*' +
-                    seq_current +
-                    ')'
+                        '=' +
+                        seq_previous +
+                        '- (' +
+                        quotient_current +
+                        '*' +
+                        seq_current +
+                        ')'
                 )
             )
         );
@@ -1473,22 +1345,18 @@ export class CipherRSAEncoder extends CipherEncoder {
             $('<div/>').append(
                 renderMath(
                     sequence_of +
-                    '=' +
-                    seq_previous +
-                    '-' +
-                    paren_left +
-                    quotient_current * seq_current +
-                    paren_right
+                        '=' +
+                        seq_previous +
+                        '-' +
+                        paren_left +
+                        quotient_current * seq_current +
+                        paren_right
                 )
             )
         );
         result.append(
             $('<div/>').append(
-                renderMath(
-                    sequence_of +
-                    '=' +
-                    (seq_previous - quotient_current * seq_current)
-                )
+                renderMath(sequence_of + '=' + (seq_previous - quotient_current * seq_current))
             )
         );
         return result;
@@ -1517,19 +1385,19 @@ export class CipherRSAEncoder extends CipherEncoder {
         T_i: number,
         counter: number
     ): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
 
-        let Q_iMinus1 = Math.floor(R_iMinus1 / R_i);
+        const Q_iMinus1 = Math.floor(R_iMinus1 / R_i);
 
         // Remainder
-        let R_iPlus1 = R_iMinus1 - Q_iMinus1 * R_i;
+        const R_iPlus1 = R_iMinus1 - Q_iMinus1 * R_i;
         //Bezout coefficients
-        let S_iPlus1 = S_iMinus1 - Q_iMinus1 * S_i;
+        const S_iPlus1 = S_iMinus1 - Q_iMinus1 * S_i;
         let T_iPlus1 = T_iMinus1 - Q_iMinus1 * T_i;
 
-        let Q_i = Math.floor(R_iMinus1 / R_i); // RTL just integer division
-        let remainder = 'r_{' + String(counter + 1) + '}';
-        let rformula =
+        const Q_i = Math.floor(R_iMinus1 / R_i); // RTL just integer division
+        const remainder = 'r_{' + String(counter + 1) + '}';
+        const rformula =
             'r_{' +
             String(counter + 1) +
             '} = r_{' +
@@ -1539,8 +1407,8 @@ export class CipherRSAEncoder extends CipherEncoder {
             '} * r_{' +
             String(counter) +
             '})';
-        let s_coefficient = 's_{' + String(counter + 1) + '}';
-        let sformula =
+        const s_coefficient = 's_{' + String(counter + 1) + '}';
+        const sformula =
             's_{' +
             String(counter + 1) +
             '} = s_{' +
@@ -1550,8 +1418,8 @@ export class CipherRSAEncoder extends CipherEncoder {
             '} * s_{' +
             String(counter) +
             '})';
-        let t_coefficient = 't_{' + String(counter + 1) + '}';
-        let tformula =
+        const t_coefficient = 't_{' + String(counter + 1) + '}';
+        const tformula =
             't_{' +
             String(counter + 1) +
             '} = t_{' +
@@ -1563,27 +1431,25 @@ export class CipherRSAEncoder extends CipherEncoder {
             '})';
 
         result.append($('<h4/>').text('Iteration ' + String(counter) + ' ...'));
-        let prev_index = counter - 1;
-        let curr_index = counter;
+        const prev_index = counter - 1;
+        const curr_index = counter;
         result.append(
             $('<div/>')
-                .text(
-                    'Start with first set of values for the remainder and coefficients: '
-                )
+                .text('Start with first set of values for the remainder and coefficients: ')
                 .append(
                     renderMath(
                         'r_{' +
-                        prev_index +
-                        '}=' +
-                        R_iMinus1 +
-                        ', s_{' +
-                        prev_index +
-                        '}=' +
-                        S_iMinus1 +
-                        ', t_{' +
-                        prev_index +
-                        '}=' +
-                        T_iMinus1
+                            prev_index +
+                            '}=' +
+                            R_iMinus1 +
+                            ', s_{' +
+                            prev_index +
+                            '}=' +
+                            S_iMinus1 +
+                            ', t_{' +
+                            prev_index +
+                            '}=' +
+                            T_iMinus1
                     )
                 )
         );
@@ -1593,17 +1459,17 @@ export class CipherRSAEncoder extends CipherEncoder {
                 .append(
                     renderMath(
                         'r_{' +
-                        curr_index +
-                        '}=' +
-                        R_i +
-                        ', s_{' +
-                        curr_index +
-                        '}=' +
-                        S_i +
-                        ', t_{' +
-                        curr_index +
-                        '}=' +
-                        T_i
+                            curr_index +
+                            '}=' +
+                            R_i +
+                            ', s_{' +
+                            curr_index +
+                            '}=' +
+                            S_i +
+                            ', t_{' +
+                            curr_index +
+                            '}=' +
+                            T_i
                     )
                 )
         );
@@ -1612,64 +1478,35 @@ export class CipherRSAEncoder extends CipherEncoder {
                 .append('The quotient for this step is computed from ')
                 .append(
                     renderMath(
-                        'q_{i} = \\lfloor' +
-                        R_iMinus1 +
-                        ' \\div ' +
-                        R_i +
-                        '\\rfloor =' +
-                        Q_i
+                        'q_{i} = \\lfloor' + R_iMinus1 + ' \\div ' + R_i + '\\rfloor =' + Q_i
                     )
                 )
         );
 
         result.append(
-            this.nextSequenceCalculation(
-                remainder,
-                'rn',
-                rformula,
-                R_iMinus1,
-                Q_iMinus1,
-                R_i
-            )
+            this.nextSequenceCalculation(remainder, 'rn', rformula, R_iMinus1, Q_iMinus1, R_i)
         );
         result.append(
-            this.nextSequenceCalculation(
-                s_coefficient,
-                'sn',
-                sformula,
-                S_iMinus1,
-                Q_iMinus1,
-                S_i
-            )
+            this.nextSequenceCalculation(s_coefficient, 'sn', sformula, S_iMinus1, Q_iMinus1, S_i)
         );
         result.append(
-            this.nextSequenceCalculation(
-                t_coefficient,
-                'tn',
-                tformula,
-                T_iMinus1,
-                Q_iMinus1,
-                T_i
-            )
+            this.nextSequenceCalculation(t_coefficient, 'tn', tformula, T_iMinus1, Q_iMinus1, T_i)
         );
 
         if (R_iPlus1 === 1) {
-            let success = $('<div/>', {
+            const success = $('<div/>', {
                 class: 'callout success small',
             }).append($('<h3/>').text('Success!'));
 
             if (T_iPlus1 < 0) {
                 success.append(
                     $('<div/>').append(
-                        'Since the value for <em>d</em> is negative, add the modulus ' +
-                        phi
+                        'Since the value for <em>d</em> is negative, add the modulus ' + phi
                     )
                 );
                 success.append(
                     $('<div/>').append(
-                        renderMath(
-                            T_iPlus1 + ' + ' + phi + ' = ' + (T_iPlus1 + phi)
-                        )
+                        renderMath(T_iPlus1 + ' + ' + phi + ' = ' + (T_iPlus1 + phi))
                     )
                 );
                 T_iPlus1 = T_iPlus1 + phi;
@@ -1684,40 +1521,22 @@ export class CipherRSAEncoder extends CipherEncoder {
             );
 
             success.append(
-                $('<div/>').append(
-                    renderMath(T_iPlus1 + '\\cdot' + e + ' = 1 \\mod ' + phi)
-                )
+                $('<div/>').append(renderMath(T_iPlus1 + '\\cdot' + e + ' = 1 \\mod ' + phi))
             );
+            success.append($('<div/>').append(renderMath(T_iPlus1 * e + ' = 1 \\mod ' + phi)));
+            success.append(
+                $('<div/>').append(renderMath('1 + ' + (T_iPlus1 * e - 1) + ' = 1 \\mod ' + phi))
+            );
+            const factor = (T_iPlus1 * e - 1) / phi;
             success.append(
                 $('<div/>').append(
-                    renderMath(T_iPlus1 * e + ' = 1 \\mod ' + phi)
-                )
-            );
-            success.append(
-                $('<div/>').append(
-                    renderMath(
-                        '1 + ' + (T_iPlus1 * e - 1) + ' = 1 \\mod ' + phi
-                    )
-                )
-            );
-            let factor = (T_iPlus1 * e - 1) / phi;
-            success.append(
-                $('<div/>').append(
-                    renderMath(
-                        '1 + (' + factor + '\\cdot' + phi + ') = 1 \\mod ' + phi
-                    )
+                    renderMath('1 + (' + factor + '\\cdot' + phi + ') = 1 \\mod ' + phi)
                 )
             );
 
             // Not sure about this...
             success.append(
-                $('<h4/>').text(
-                    'Hence ' +
-                    T_iPlus1 +
-                    ' and ' +
-                    phi +
-                    ' are inverses of each other'
-                )
+                $('<h4/>').text('Hence ' + T_iPlus1 + ' and ' + phi + ' are inverses of each other')
             );
             result.append(success);
         } else if (R_iPlus1 === 0) {
@@ -1749,58 +1568,42 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param element Element to divide
      * @param modulus Modulus value
      */
-    public genTalkativeModulerInverse(
-        element: number,
-        modulus: number
-    ): JQuery<HTMLElement> {
-        let result = $('<div/>');
+    public genTalkativeModulerInverse(element: number, modulus: number): JQuery<HTMLElement> {
+        const result = $('<div/>');
         result
             .append('In each iteration, the quotient ')
             .append(renderMath('q_{i}'))
             .append(' is calculated by:');
         result.append(
             $('<div/>').append(
-                renderMath(
-                    'q_{i} = \\lfloor r_{i-1}' + ' \\div ' + 'r_{i} \\rfloor'
-                )
+                renderMath('q_{i} = \\lfloor r_{i-1}' + ' \\div ' + 'r_{i} \\rfloor')
             )
         );
-        result.append(
-            'The remainder and two coefficients are calculated with the formulas:'
-        );
+        result.append('The remainder and two coefficients are calculated with the formulas:');
         result.append(
             $('<div>')
                 .append(
                     $('<div/>', { class: 'rn' }).append(
-                        $('<div/>').append(
-                            renderMath('r_{i+1} = r_{i-1} - q_{i} r_{i}')
-                        )
+                        $('<div/>').append(renderMath('r_{i+1} = r_{i-1} - q_{i} r_{i}'))
                     )
                 )
                 .append(
                     $('<div/>', { class: 'sn' }).append(
-                        $('<div/>').append(
-                            renderMath('s_{i+1} = s_{i-1} - q_{i} s_{i}')
-                        )
+                        $('<div/>').append(renderMath('s_{i+1} = s_{i-1} - q_{i} s_{i}'))
                     )
                 )
                 .append(
                     $('<div/>', { class: 'tn' }).append(
-                        $('<div/>').append(
-                            renderMath('t_{i+1} = t_{i-1} - q_{i} t_{i}')
-                        )
+                        $('<div/>').append(renderMath('t_{i+1} = t_{i-1} - q_{i} t_{i}'))
                     )
                 )
         );
         result.append(
             $('<div/>')
-                .append(
-                    'Therefore, using the initial conditions as specified for the '
-                )
+                .append('Therefore, using the initial conditions as specified for the ')
                 .append(
                     $('<a/>', {
-                        href:
-                            'https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm',
+                        href: 'https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm',
                     }).text('extended Euclidean Algorithm')
                 )
                 .append(':')
@@ -1809,16 +1612,8 @@ export class CipherRSAEncoder extends CipherEncoder {
             $('<div>')
                 .append(
                     $('<div/>', { class: 'rn' })
-                        .append(
-                            $('<div/>').append(
-                                renderMath('r_{0} = ' + String(modulus))
-                            )
-                        )
-                        .append(
-                            $('<div/>').append(
-                                renderMath('r_{1} = ' + String(element))
-                            )
-                        )
+                        .append($('<div/>').append(renderMath('r_{0} = ' + String(modulus))))
+                        .append($('<div/>').append(renderMath('r_{1} = ' + String(element))))
                 )
                 .append(
                     $('<div/>', { class: 'sn' })
@@ -1854,17 +1649,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         );
 
         result.append(
-            this.genTalkativeModularInverseStep(
-                modulus,
-                element,
-                modulus,
-                1,
-                0,
-                element,
-                0,
-                1,
-                1
-            )
+            this.genTalkativeModularInverseStep(modulus, element, modulus, 1, 0, element, 0, 1, 1)
         );
         return result;
     }
@@ -1873,21 +1658,19 @@ export class CipherRSAEncoder extends CipherEncoder {
         d: number,
         mod: number
     ): JQuery<HTMLElement> {
-        let result = $('<div/>');
+        const result = $('<div/>');
         // Get us a binary string
         let binary = d.toString(2);
-        result.append(
-            $('<div/>').append(renderMath('d=' + d + '=binary(' + binary + ')'))
-        );
+        result.append($('<div/>').append(renderMath('d=' + d + '=binary(' + binary + ')')));
         // Now reverse the string to be easier to work with
         binary = binary
             .split('')
             .reverse()
             .join('');
-        let div = $('<div/>').text('We need to compute the following powers: ');
+        const div = $('<div/>').text('We need to compute the following powers: ');
         let power = 1;
         let extra = '';
-        for (let bit of binary.substr(0, binary.length - 1) + '2') {
+        for (const bit of binary.substr(0, binary.length - 1) + '2') {
             if (bit !== '0') {
                 if (bit === '2') {
                     div.append(' and ');
@@ -1904,40 +1687,36 @@ export class CipherRSAEncoder extends CipherEncoder {
         let rval = 1;
         power = 1;
         let first = true;
-        for (let bit of binary) {
+        for (const bit of binary) {
             if (power === 1) {
                 powerval = encrypted;
                 result.append(
                     result.append(
-                        $('<div/>').append(
-                            renderMath(
-                                encrypted + '^{' + power + '}=' + encrypted
-                            )
-                        )
+                        $('<div/>').append(renderMath(encrypted + '^{' + power + '}=' + encrypted))
                     )
                 );
             } else {
-                let mult = powerval * powerval;
-                let newpowerval = mult % mod;
+                const mult = powerval * powerval;
+                const newpowerval = mult % mod;
                 result.append(
                     result.append(
                         $('<div/>').append(
                             renderMath(
                                 encrypted +
-                                '^{' +
-                                power +
-                                '}\\equiv ' +
-                                powerval +
-                                '^2\\equiv{' +
-                                powerval +
-                                '^2}\\mod{' +
-                                mod +
-                                '}\\equiv ' +
-                                mult +
-                                '\\mod{' +
-                                mod +
-                                '}\\equiv ' +
-                                newpowerval
+                                    '^{' +
+                                    power +
+                                    '}\\equiv ' +
+                                    powerval +
+                                    '^2\\equiv{' +
+                                    powerval +
+                                    '^2}\\mod{' +
+                                    mod +
+                                    '}\\equiv ' +
+                                    mult +
+                                    '\\mod{' +
+                                    mod +
+                                    '}\\equiv ' +
+                                    newpowerval
                             )
                         )
                     )
@@ -1950,31 +1729,29 @@ export class CipherRSAEncoder extends CipherEncoder {
                     rval = powerval;
                     result.append(
                         $('<div/>')
-                            .append(
-                                'Since this is the first powers we start our result: '
-                            )
+                            .append('Since this is the first powers we start our result: ')
                             .append(renderMath('result=' + rval))
                     );
                 } else {
-                    let mult = rval * powerval;
-                    let newrval = mult % mod;
+                    const mult = rval * powerval;
+                    const newrval = mult % mod;
                     result.append(
                         $('<div/>')
                             .append('We need this power, so accumulate it: ')
                             .append(
                                 renderMath(
                                     'result=(' +
-                                    rval +
-                                    '*' +
-                                    powerval +
-                                    ')\\mod{' +
-                                    mod +
-                                    '}=' +
-                                    mult +
-                                    '\\mod{' +
-                                    mod +
-                                    '}=' +
-                                    newrval
+                                        rval +
+                                        '*' +
+                                        powerval +
+                                        ')\\mod{' +
+                                        mod +
+                                        '}=' +
+                                        mult +
+                                        '\\mod{' +
+                                        mod +
+                                        '}=' +
+                                        newrval
                                 )
                             )
                     );
@@ -1986,10 +1763,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         result.append(
             $('<div/>', {
                 class: 'callout success',
-            }).text(
-                'Since we have computed all the powers, we see that the result is ' +
-                rval
-            )
+            }).text('Since we have computed all the powers, we see that the result is ' + rval)
         );
         return result;
     }
@@ -2000,8 +1774,8 @@ export class CipherRSAEncoder extends CipherEncoder {
         super.attachHandlers();
         $('#digitsprime')
             .off('input')
-            .on('input', e => {
-                let digits = Number($(e.target).val());
+            .on('input', (e) => {
+                const digits = Number($(e.target).val());
                 this.markUndo(null);
                 if (this.setDigitsPrime(digits)) {
                     this.recalcData();
@@ -2010,8 +1784,8 @@ export class CipherRSAEncoder extends CipherEncoder {
             });
         $('#digitscombo')
             .off('input')
-            .on('input', e => {
-                let digits = Number($(e.target).val());
+            .on('input', (e) => {
+                const digits = Number($(e.target).val());
                 this.markUndo(null);
                 if (this.setDigitsCombo(digits)) {
                     this.recalcData();
@@ -2020,8 +1794,8 @@ export class CipherRSAEncoder extends CipherEncoder {
             });
         $('#digitsData')
             .off('input')
-            .on('input', e => {
-                let digits = Number($(e.target).val());
+            .on('input', (e) => {
+                const digits = Number($(e.target).val());
                 this.markUndo(null);
                 if (this.setDigitsCombo(digits)) {
                     this.recalcData();

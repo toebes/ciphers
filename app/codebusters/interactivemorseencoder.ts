@@ -1,9 +1,8 @@
-import { ITestTimeInfo } from "../common/cipherhandler";
+import { ITestTimeInfo } from '../common/cipherhandler';
 import { RealTimeArray, RealTimeObject } from '@convergence/convergence';
-import { InteractiveEncoder } from "./interactiveencoder";
+import { InteractiveEncoder } from './interactiveencoder';
 
 export class InteractiveMorseEncoder extends InteractiveEncoder {
-
     /**
      * Handle a local user typing an replacement character for the cipher replacement table.
      * The character is uppercased and checked to be a valid character before
@@ -13,16 +12,18 @@ export class InteractiveMorseEncoder extends InteractiveEncoder {
      * @param newchar New character to set as the replacement
      * @param realtimeReplacement Interface to the realtime system
      */
-    public setReplacementSymbol(id: string,
-                   newchar: string,
-                   realtimeReplacement: RealTimeArray) {
+    public setReplacementSymbol(
+        id: string,
+        newchar: string,
+        realtimeReplacement: RealTimeArray
+    ): void {
         // Make sure we have a proper element that we can be updating
         // The format of the element id is R<qnum>_<index> but we only need the index portion
-        let parts = id.split("_");
+        const parts = id.split('_');
         if (parts.length > 1) {
-            let index = Number(parts[1]);
+            const index = Number(parts[1]);
             //let c = newchar.toUpperCase()
-            $("#" + id).val(String.fromCharCode(Number.parseInt(newchar)));
+            $('#' + id).val(String.fromCharCode(Number.parseInt(newchar)));
             realtimeReplacement.set(index, String.fromCharCode(Number.parseInt(newchar)));
         }
     }
@@ -36,8 +37,8 @@ export class InteractiveMorseEncoder extends InteractiveEncoder {
      * @param index Which character index to update
      * @param value New replacement character for that index
      */
-    public propagateRepl(qnumdisp: string, index: number, value: string) {
-        $("#R" + qnumdisp + "_" + String(index)).val(value);
+    public propagateRepl(qnumdisp: string, index: number, value: string): void {
+        $('#R' + qnumdisp + '_' + String(index)).val(value);
     }
 
     /**
@@ -46,14 +47,24 @@ export class InteractiveMorseEncoder extends InteractiveEncoder {
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
      * @param testTimeInfo Timing information for the current test.
-    */
-   public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo) {
-        let qnumdisp = String(qnum + 1);
-        let qdivid = "#Q" + qnumdisp + " ";
+     */
+    public attachInteractiveHandlers(
+        qnum: number,
+        realTimeElement: RealTimeObject,
+        testTimeInfo: ITestTimeInfo
+    ): void {
+        const qnumdisp = String(qnum + 1);
+        const qdivid = '#Q' + qnumdisp + ' ';
 
-        let realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
-        let realtimeReplacement = this.attachInteractiveReplacementsHandler(realTimeElement, qnumdisp);
-        let realtimeSeparators = this.attachInteractiveSeparatorsHandler(realTimeElement, qnumdisp);
+        const realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
+        const realtimeReplacement = this.attachInteractiveReplacementsHandler(
+            realTimeElement,
+            qnumdisp
+        );
+        const realtimeSeparators = this.attachInteractiveSeparatorsHandler(
+            realTimeElement,
+            qnumdisp
+        );
 
         this.attachInteractiveNotesHandler(qnumdisp, realTimeElement);
         this.bindSingleCharacterField(qdivid, realtimeAnswer, realtimeReplacement);

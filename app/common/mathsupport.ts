@@ -18,7 +18,7 @@ export function gcd(a: number, b: number): number {
     }
 
     if (b > a) {
-        let temp = a;
+        const temp = a;
         a = b;
         b = temp;
     }
@@ -40,7 +40,7 @@ export function gcd(a: number, b: number): number {
  */
 export function isCoPrime(a: number, r: number): boolean {
     // console.log("iscoprime a=" + a + " r=" + r);
-    let gcdval = gcd(a, r);
+    const gcdval = gcd(a, r);
     // console.log("gcd(" + a + "," + r + ")=" + gcdval);
     if (gcdval !== 1) {
         return false;
@@ -76,30 +76,27 @@ export const modInverse26 = {
 export function mod26InverseMatrix(matrix: number[][]): number[][] {
     if (matrix[0].length === 2) {
         return this.mod26Inverse2x2(matrix);
-    }
-    else if (matrix[0].length === 3) {
+    } else if (matrix[0].length === 3) {
         return this.mod26Inverse3x3(matrix);
-    }
-    else {
+    } else {
         return undefined;
     }
-
 }
 /**
  * Compute the modular 26 inverse of a matrix
  * @param matrix 2x2 matrix of numbers
  */
 export function mod26Inverse2x2(matrix: number[][]): number[][] {
-    let a = matrix[0][0];
-    let b = matrix[0][1];
-    let c = matrix[1][0];
-    let d = matrix[1][1];
+    const a = matrix[0][0];
+    const b = matrix[0][1];
+    const c = matrix[1][0];
+    const d = matrix[1][1];
 
-    let det = mod26(a * d - b * c);
+    const det = mod26(a * d - b * c);
     if (!modInverse26.hasOwnProperty(det)) {
         return [[]];
     }
-    let inv = modInverse26[det];
+    const inv = modInverse26[det];
     return [
         [mod26(d * inv), mod26(-b * inv)],
         [mod26(-c * inv), mod26(a * inv)],
@@ -113,15 +110,15 @@ export function mod26Inverse2x2(matrix: number[][]): number[][] {
  * @param matrix
  */
 export function determinant3x3(matrix: number[][]): number {
-    let a = matrix[0][0];
-    let b = matrix[0][1];
-    let c = matrix[0][2];
-    let d = matrix[1][0];
-    let e = matrix[1][1];
-    let f = matrix[1][2];
-    let g = matrix[2][0];
-    let h = matrix[2][1];
-    let i = matrix[2][2];
+    const a = matrix[0][0];
+    const b = matrix[0][1];
+    const c = matrix[0][2];
+    const d = matrix[1][0];
+    const e = matrix[1][1];
+    const f = matrix[1][2];
+    const g = matrix[2][0];
+    const h = matrix[2][1];
+    const i = matrix[2][2];
 
     return a * (e * i - h * f) - b * (d * i - g * f) + c * (d * h - g * e);
 }
@@ -130,38 +127,49 @@ export function determinant3x3(matrix: number[][]): number {
  * @param matrix 3x3 matrix of numbers
  */
 export function mod26Inverse3x3(matrix: number[][]): number[][] {
-    let a = matrix[0][0];
-    let b = matrix[0][1];
-    let c = matrix[0][2];
-    let d = matrix[1][0];
-    let e = matrix[1][1];
-    let f = matrix[1][2];
-    let g = matrix[2][0];
-    let h = matrix[2][1];
-    let i = matrix[2][2];
+    const a = matrix[0][0];
+    const b = matrix[0][1];
+    const c = matrix[0][2];
+    const d = matrix[1][0];
+    const e = matrix[1][1];
+    const f = matrix[1][2];
+    const g = matrix[2][0];
+    const h = matrix[2][1];
+    const i = matrix[2][2];
 
-    let A = e * i - f * h;
-    let B = -(d * i - f * g);
-    let C = d * h - e * g;
-    let D = -(b * i - c * h);
-    let E = a * i - c * g;
-    let F = -(a * h - b * g);
-    let G = b * f - c * e;
-    let H = -(a * f - c * d);
-    let I = a * e - b * d;
+    const A = e * i - f * h;
+    const B = -(d * i - f * g);
+    const C = d * h - e * g;
+    const D = -(b * i - c * h);
+    const E = a * i - c * g;
+    const F = -(a * h - b * g);
+    const G = b * f - c * e;
+    const H = -(a * f - c * d);
+    const I = a * e - b * d;
 
-    let determinant = mod26(determinant3x3(matrix));
+    const determinant = mod26(determinant3x3(matrix));
     if (!modInverse26.hasOwnProperty(determinant)) {
         return [[]];
     }
-    let inverseDeterminant = modInverse26[mod26(determinant)];
+    const inverseDeterminant = modInverse26[mod26(determinant)];
 
-    return (
-        [[mod26(inverseDeterminant * A), mod26(inverseDeterminant * D), mod26(inverseDeterminant * G)],
-         [mod26(inverseDeterminant * B), mod26(inverseDeterminant * E), mod26(inverseDeterminant * H)],
-         [mod26(inverseDeterminant * C), mod26(inverseDeterminant * F), mod26(inverseDeterminant * I)]]
-    );
-
+    return [
+        [
+            mod26(inverseDeterminant * A),
+            mod26(inverseDeterminant * D),
+            mod26(inverseDeterminant * G),
+        ],
+        [
+            mod26(inverseDeterminant * B),
+            mod26(inverseDeterminant * E),
+            mod26(inverseDeterminant * H),
+        ],
+        [
+            mod26(inverseDeterminant * C),
+            mod26(inverseDeterminant * F),
+            mod26(inverseDeterminant * I),
+        ],
+    ];
 }
 /**
  * I would really like to use: http://www.javascripter.net/faq/primefactors.txt
@@ -201,11 +209,11 @@ export function getOddRandomIntInclusive(min: number, max: number): number {
     // Compute a random number in the range and then multiply it by 2.
     // Add it back to the minimum and then if the minumum wasn't already odd, add 1 to
     // make sure the result is odd
-    let minhalf = Math.ceil(min / 2);
-    let residual = 1 - Math.floor(min - minhalf * 2);
-    let maxhalf = Math.floor(max / 2);
-    let range = maxhalf - minhalf + 1;
-    let result = (Math.floor(Math.random() * range) + minhalf) * 2 + residual;
+    const minhalf = Math.ceil(min / 2);
+    const residual = 1 - Math.floor(min - minhalf * 2);
+    const maxhalf = Math.floor(max / 2);
+    const range = maxhalf - minhalf + 1;
+    const result = (Math.floor(Math.random() * range) + minhalf) * 2 + residual;
     return result;
 }
 /**
@@ -217,10 +225,7 @@ export function getOddRandomIntInclusive(min: number, max: number): number {
  */
 export function getRandomPrime(numDigits: number): number {
     let candidate = 0;
-    candidate = getOddRandomIntInclusive(
-        Math.pow(10, numDigits - 1),
-        Math.pow(10, numDigits) - 1
-    );
+    candidate = getOddRandomIntInclusive(Math.pow(10, numDigits - 1), Math.pow(10, numDigits) - 1);
     let direction = 2;
     if (Math.random() > 0.5) {
         direction = -2;
@@ -280,15 +285,15 @@ export function modularInverse(a: number, m: number): number {
  * @param idx Index to slice
  */
 export function deleteRowAndColumn(a: number[][], idx: number): number[][] {
-    let temp = [];
+    const temp = [];
     // copy the array first
-    for (let row of a) {
+    for (const row of a) {
         temp.push(row.slice(0));
     }
     // delete the first row
     temp.splice(0, 1);
     // delete the column at the index specified
-    for (let row of temp) {
+    for (const row of temp) {
         row.splice(idx, 1);
     }
     return temp;
@@ -305,8 +310,7 @@ export function determinant(a: number[][]): number {
     }
     let answer = 0;
     for (let i = 0; i < a.length; i++) {
-        answer +=
-            Math.pow(-1, i) * a[0][i] * determinant(deleteRowAndColumn(a, i));
+        answer += Math.pow(-1, i) * a[0][i] * determinant(deleteRowAndColumn(a, i));
     }
     return answer;
 }
@@ -318,8 +322,8 @@ export function determinant(a: number[][]): number {
  * @param m Vector to multiply
  */
 export function multarray(a: number[][], m: number[]): number[] {
-    let result: number[] = [];
-    for (let row of a) {
+    const result: number[] = [];
+    for (const row of a) {
         let sum = 0;
         for (let i = 0; i < row.length; i++) {
             sum += row[i] * m[i];

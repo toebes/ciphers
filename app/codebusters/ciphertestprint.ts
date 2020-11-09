@@ -9,7 +9,7 @@ import { CipherTest, ITestState } from './ciphertest';
  * CipherTestPrint
  *  Displays a printable version of test <n> if it exists (default 0).
  *  Otherwise it provies a link back to TestManage.html
- * 
+ *
  */
 export class CipherTestPrint extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;
@@ -20,14 +20,14 @@ export class CipherTestPrint extends CipherTest {
     };
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
-    public pageNumber: number = 0;
+    public pageNumber = 0;
 
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: ITestState, suppressOutput: boolean = false): void {
-        let curlang = this.state.curlang;
+    public restore(data: ITestState, suppressOutput = false): void {
+        const curlang = this.state.curlang;
         this.state = cloneObject(this.defaultstate) as ITestState;
         this.state.curlang = curlang;
         this.copyState(this.state, data);
@@ -54,39 +54,32 @@ export class CipherTestPrint extends CipherTest {
     public genPreCommands(): JQuery<HTMLElement> {
         return this.genTestEditState('testprint');
     }
-    public ComputePageHeight(): Number {
-        let dpi = $('<div/>', {
+    public ComputePageHeight(): number {
+        const dpi = $('<div/>', {
             id: 'dpi',
-            style:
-                'height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;',
+            style: 'height: 1in; width: 1in; left: 100%; position: fixed; top: 100%;',
         });
         dpi.appendTo('body');
-        let dpi_x = dpi[0].offsetWidth;
-        let dpi_y = dpi[0].offsetHeight;
+        const dpi_x = dpi[0].offsetWidth;
+        const dpi_y = dpi[0].offsetHeight;
         dpi.remove();
         console.log('dpi_x=' + dpi_x + ' dpi_y=' + dpi_y);
         return dpi_y * 9.5;
     }
     public genPage(title: string): JQuery<HTMLElement> {
-        let page = $('<div/>', { class: 'page' });
+        const page = $('<div/>', { class: 'page' });
         page.append($('<div/>', { class: 'head' }).text(title));
         if (this.pageNumber % 2 === 1) {
-            page.append(
-                $('<div/>', { class: 'headright' }).text('School:__________')
-            );
+            page.append($('<div/>', { class: 'headright' }).text('School:__________'));
         }
-        page.append(
-            $('<div/>', { class: 'foot' }).text(
-                'Page ' + String(this.pageNumber)
-            )
-        );
+        page.append($('<div/>', { class: 'foot' }).text('Page ' + String(this.pageNumber)));
         this.pageNumber++;
         return page;
     }
 
     public genTestQuestions(elem: JQuery<HTMLElement>): void {
-        let testcount = this.getTestCount();
-        let errors: string[] = [];
+        const testcount = this.getTestCount();
+        const errors: string[] = [];
         let usesMorseTable = false;
         let SpanishCount = 0;
         elem.empty();
@@ -96,13 +89,13 @@ export class CipherTestPrint extends CipherTest {
         if (this.state.test > testcount) {
             elem.append($('<h3>').text('Test not found'));
         }
-        let test = this.getTestEntry(this.state.test);
-        let pagesize = this.ComputePageHeight();
-        let result = $('<div/>');
+        const test = this.getTestEntry(this.state.test);
+        const pagesize = this.ComputePageHeight();
+        const result = $('<div/>');
         elem.append(result);
         console.log('Page Height is ' + pagesize + ' pixels.');
         $('.testtitle').text(test.title);
-        let dt = new Date();
+        const dt = new Date();
         // If we are at the end of the year, display the following year for tests.
         dt.setDate(dt.getDate() + 6);
         $('.testyear').text(dt.getFullYear());
@@ -116,8 +109,7 @@ export class CipherTestPrint extends CipherTest {
             if ($('.custom-header').hasClass('noprint')) {
                 $('.custom-header').removeClass('noprint');
             }
-        }
-        else {
+        } else {
             if (!$('.custom-header').hasClass('noprint')) {
                 $('.custom-header').addClass('noprint');
             }
@@ -144,21 +136,19 @@ export class CipherTestPrint extends CipherTest {
                 );
             }
         } else {
-            let cipherhandler = this.GetPrintFactory(test.timed);
+            const cipherhandler = this.GetPrintFactory(test.timed);
             let qerror = '';
             try {
-                let timedquestion = this.printTestQuestion(
+                const timedquestion = this.printTestQuestion(
                     test.testtype,
                     -1,
                     cipherhandler,
                     'pagebreak'
                 );
                 page.append(timedquestion);
-            }
-            catch (e) {
-                let msg = "Something went wrong generating the Timed Question." +
-                    " Error =" + e;
-                page.append($("<h1>").text(msg));
+            } catch (e) {
+                const msg = 'Something went wrong generating the Timed Question.' + ' Error =' + e;
+                page.append($('<h1>').text(msg));
             }
             qcount = 99;
             // Division A doesn't have a timed question, but if one was
@@ -173,20 +163,17 @@ export class CipherTestPrint extends CipherTest {
             }
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
-            let cipherhandler = this.GetPrintFactory(test.questions[qnum]);
+            const cipherhandler = this.GetPrintFactory(test.questions[qnum]);
             let thisquestion: JQuery<HTMLElement> = null;
             try {
-                thisquestion = this.printTestQuestion(
-                    test.testtype,
-                    qnum + 1,
-                    cipherhandler,
-                    ''
-                );
-            }
-            catch (e) {
-                let msg = "Something went wrong generating Question #" +
-                    +String(qnum + 1) + ". Error =" + e;
-                thisquestion = $("<h1>").text(msg);
+                thisquestion = this.printTestQuestion(test.testtype, qnum + 1, cipherhandler, '');
+            } catch (e) {
+                const msg =
+                    'Something went wrong generating Question #' +
+                    +String(qnum + 1) +
+                    '. Error =' +
+                    e;
+                thisquestion = $('<h1>').text(msg);
             }
             /* Is this a xenocrypt?  if so we need the Spanish frequency */
             if (cipherhandler.state.curlang === 'es') {
@@ -197,7 +184,7 @@ export class CipherTestPrint extends CipherTest {
                 usesMorseTable = true;
             }
             page.append(thisquestion);
-            let thisheight = thisquestion.outerHeight();
+            const thisheight = thisquestion.outerHeight();
             if (thisheight + accumulated > pagesize || qcount > 1) {
                 page = this.genPage(test.title);
                 result.append(page);
@@ -209,12 +196,12 @@ export class CipherTestPrint extends CipherTest {
             accumulated += thisheight;
             console.log(
                 qnum +
-                ': height=' +
-                thisquestion.outerHeight() +
-                ' bodyheight=' +
-                document.body.clientHeight
+                    ': height=' +
+                    thisquestion.outerHeight() +
+                    ' bodyheight=' +
+                    document.body.clientHeight
             );
-            let qerror = cipherhandler.CheckAppropriate(test.testtype);
+            const qerror = cipherhandler.CheckAppropriate(test.testtype);
             if (qerror !== '') {
                 errors.push('Question ' + String(qnum + 1) + ': ' + qerror);
             }
@@ -227,7 +214,7 @@ export class CipherTestPrint extends CipherTest {
          */
         if (this.runningKeys !== undefined) {
             $('#runningkeys').append($('<h2/>').text('Famous Phrases'));
-            for (let ent of this.runningKeys) {
+            for (const ent of this.runningKeys) {
                 $('#runningkeys').append(
                     $('<div/>', {
                         class: 'runtitle',
@@ -244,35 +231,45 @@ export class CipherTestPrint extends CipherTest {
          * See if we need to show/hide the Spanish Hints
          */
         if (SpanishCount > 0) {
-            if (SpanishCount > 1 &&
+            if (
+                SpanishCount > 1 &&
                 test.testtype !== ITestType.bstate &&
-                test.testtype !== ITestType.cstate) {
-                errors.push('Only one Spanish Xenocrypt allowed for ' +
-                    this.getTestTypeName(test.testtype) + '.');
+                test.testtype !== ITestType.cstate
+            ) {
+                errors.push(
+                    'Only one Spanish Xenocrypt allowed for ' +
+                        this.getTestTypeName(test.testtype) +
+                        '.'
+                );
             }
             $('.xenocryptfreq').show();
         } else {
-            if (test.testtype === ITestType.bstate ||
-                test.testtype === ITestType.cstate) {
-                errors.push(this.getTestTypeName(test.testtype) +
-                    ' is supposed to have at least one Spanish Xenocrypt.');
+            if (test.testtype === ITestType.bstate || test.testtype === ITestType.cstate) {
+                errors.push(
+                    this.getTestTypeName(test.testtype) +
+                        ' is supposed to have at least one Spanish Xenocrypt.'
+                );
             }
             $('.xenocryptfreq').hide();
         }
         if (errors.length === 1) {
-            $(".testerrors").append($('<div/>', {
-                class: 'callout alert',
-            }).text(errors[0]));
+            $('.testerrors').append(
+                $('<div/>', {
+                    class: 'callout alert',
+                }).text(errors[0])
+            );
         } else if (errors.length > 1) {
-
-            let ul = $("<ul/>");
-            for (let msg of errors) {
-                ul.append($("<li/>").text(msg));
+            const ul = $('<ul/>');
+            for (const msg of errors) {
+                ul.append($('<li/>').text(msg));
             }
-            $(".testerrors").append($('<div/>', {
-                class: 'callout alert',
-            }).text("The following errors were found:")
-                .append(ul));
+            $('.testerrors').append(
+                $('<div/>', {
+                    class: 'callout alert',
+                })
+                    .text('The following errors were found:')
+                    .append(ul)
+            );
         }
         /**
          * See if we need to show/hide the Morse Code Table
@@ -285,7 +282,7 @@ export class CipherTestPrint extends CipherTest {
         /**
          * Lastly we need to print out the score table
          */
-        let table = new JTTable({
+        const table = new JTTable({
             class: 'cell shrink testscores',
         });
         let hastimed = false;
@@ -296,7 +293,7 @@ export class CipherTestPrint extends CipherTest {
             .add('Incorrect letters')
             .add('Deduction')
             .add('Score');
-        for (let qitem of this.qdata) {
+        for (const qitem of this.qdata) {
             let qtitle = '';
             if (qitem.qnum === -1) {
                 qtitle = 'Timed';
@@ -304,7 +301,7 @@ export class CipherTestPrint extends CipherTest {
             } else {
                 qtitle = String(qitem.qnum);
             }
-            let trow = table
+            const trow = table
                 .addBodyRow()
                 .add({
                     settings: { class: 't' },

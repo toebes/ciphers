@@ -20,69 +20,77 @@ interface IPolluxState extends IEncoderState {
  */
 export class CipherPolluxEncoder extends CipherMorseEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public cipherName: string = 'Pollux';
-    public guidanceURL: string = 'TestGuidance.html#Pollux';
-    public validTests: ITestType[] = [ITestType.None,
-    ITestType.cregional, ITestType.cstate,
-    ITestType.bregional, ITestType.bstate];
+    public cipherName = 'Pollux';
+    public guidanceURL = 'TestGuidance.html#Pollux';
+    public validTests: ITestType[] = [
+        ITestType.None,
+        ITestType.cregional,
+        ITestType.cstate,
+        ITestType.bregional,
+        ITestType.bstate,
+    ];
     public defaultstate: IPolluxState = {
         cipherString: '',
         cipherType: ICipherType.Pollux,
         replacement: {},
         operation: 'decode',
-        dotchars: "123",
-        dashchars: "456",
-        xchars: "7890",
-        encoded: "",
+        dotchars: '123',
+        dashchars: '456',
+        xchars: '7890',
+        encoded: '',
     };
-    public state: IPolluxState = cloneObject(
-        this.defaultstate
-    ) as IPolluxState;
-    public encodecharset = "0123456789";
+    public state: IPolluxState = cloneObject(this.defaultstate) as IPolluxState;
+    public encodecharset = '0123456789';
 
     public setUIDefaults(): void {
         super.setUIDefaults();
-        this.setCharset("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+        this.setCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
         this.setOperation(this.state.operation);
     }
     public genSampleHint(): string {
         let hint = '';
         if (this.state.operation === 'crypt') {
-            let crib = this.minimizeString(this.state.crib);
-            let plaintext = this.minimizeString(this.state.cipherString);
+            const crib = this.minimizeString(this.state.crib);
+            const plaintext = this.minimizeString(this.state.cipherString);
             if (crib !== '') {
-                let cribtext = this.genMonoText(this.state.crib.toUpperCase());
+                const cribtext = this.genMonoText(this.state.crib.toUpperCase());
 
                 if (plaintext.substr(0, crib.length) === crib) {
-                    hint = "the quote starts with " + cribtext + ".";
+                    hint = 'the quote starts with ' + cribtext + '.';
                 } else if (plaintext.substr(plaintext.length - crib.length) === crib) {
-                    hint = "the quote ends with " + cribtext + ".";
+                    hint = 'the quote ends with ' + cribtext + '.';
                 } else {
-                    let strings = this.makeReplacement(
+                    const strings = this.makeReplacement(
                         this.state.cipherString,
-                        this.maxEncodeWidth);
-                    let ciphercrib = this.findCrib(strings, crib);
+                        this.maxEncodeWidth
+                    );
+                    const ciphercrib = this.findCrib(strings, crib);
                     if (ciphercrib !== '') {
-                        hint = "the quote has " + cribtext +
-                            " in it corresponding to the encoded text " +
-                            this.genMonoText(ciphercrib) + ".";
+                        hint =
+                            'the quote has ' +
+                            cribtext +
+                            ' in it corresponding to the encoded text ' +
+                            this.genMonoText(ciphercrib) +
+                            '.';
                     } else {
-                        hint = "the quote has " + cribtext +
-                            " somewhere in it.";
+                        hint = 'the quote has ' + cribtext + ' somewhere in it.';
                     }
                 }
             }
         } else {
-            let hintchars = this.state.hint;
+            const hintchars = this.state.hint;
             if (hintchars === undefined || hintchars === '') {
-                hint = "hint characters need to be defined";
+                hint = 'hint characters need to be defined';
             } else {
-                let morseletmap = this.buildMorseletMap();
-                let extra = "";
-                for (let e of hintchars) {
-                    hint += extra + this.genMonoText(e) + "=" +
+                const morseletmap = this.buildMorseletMap();
+                let extra = '';
+                for (const e of hintchars) {
+                    hint +=
+                        extra +
+                        this.genMonoText(e) +
+                        '=' +
                         this.genMonoText(this.normalizeHTML(morseletmap[e]));
-                    extra = ", ";
+                    extra = ', ';
                 }
             }
         }
@@ -117,13 +125,13 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         return result;
     }
     public randomize(): void {
-        this.state.encoded = "";
+        this.state.encoded = '';
     }
     public updateOutput(): void {
         this.guidanceURL = 'TestGuidance.html#' + this.cipherName + this.state.operation;
-        $("#dotchar").val(this.state.dotchars);
-        $("#dashchar").val(this.state.dashchars);
-        $("#xchar").val(this.state.xchars);
+        $('#dotchar').val(this.state.dotchars);
+        $('#dashchar').val(this.state.dashchars);
+        $('#xchar').val(this.state.xchars);
         super.updateOutput();
     }
     /**
@@ -131,10 +139,10 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        let result = super.genPreCommands();
+        const result = super.genPreCommands();
 
-        let inputbox = $("<div/>", {
-            class: "grid-x grid-margin-x",
+        const inputbox = $('<div/>', {
+            class: 'grid-x grid-margin-x',
         });
         inputbox.append(
             JTFLabeledInput(
@@ -155,13 +163,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
             )
         );
         inputbox.append(
-            JTFLabeledInput(
-                'X',
-                'number',
-                'xchar',
-                this.state.xchars,
-                'small-12 medium-4 large-4'
-            )
+            JTFLabeledInput('X', 'number', 'xchar', this.state.xchars, 'small-12 medium-4 large-4')
         );
         result.append(inputbox);
         this.addHintCrib(result);
@@ -184,22 +186,22 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
      * @returns String array
      */
     public makeReplacement(str: string, maxEncodeWidth: number): string[][] {
-        let sourcecharset = this.getSourceCharset();
-        let langreplace = this.langreplace[this.state.curlang];
+        const sourcecharset = this.getSourceCharset();
+        const langreplace = this.langreplace[this.state.curlang];
         let encodeline = '';
         let decodeline = '';
         let morseline = '';
         let lastsplit = -1;
-        let result: string[][] = [];
+        const result: string[][] = [];
         let opos = 0;
-        let extra = "";
+        let extra = '';
         let encoded = '';
         let failed = false;
         let msg = '';
-        let spaceextra = "";
+        let spaceextra = '';
         // Build out a mapping of the replacement characters to their morselet
         // value so we can figure out if we can reuse it.
-        let morseletmap: StringMap = this.buildMorseletMap();
+        const morseletmap: StringMap = this.buildMorseletMap();
 
         if (this.state.dotchars.length === 0) {
             msg += 'No characters specified for O. ';
@@ -214,13 +216,13 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
             failed = true;
         }
         // Check to see if we have any duplicated characters
-        for (let c in morseletmap) {
+        for (const c in morseletmap) {
             if (c < '0' || c > '9') {
                 msg += c + ' is not a valid digit. ';
                 failed = true;
             }
             if (morseletmap[c].length > 1) {
-                msg += c + " used for more than one letter: " + morseletmap[c];
+                msg += c + ' used for more than one letter: ' + morseletmap[c];
                 failed = true;
             }
         }
@@ -229,11 +231,11 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
             return result;
         }
 
-        let mapstr: StringMap = {
-            'O': this.state.dotchars,
+        const mapstr: StringMap = {
+            O: this.state.dotchars,
             '-': this.state.dashchars,
-            'X': this.state.xchars
-        }
+            X: this.state.xchars,
+        };
 
         // Zero out the frequency table
         this.freq = {};
@@ -252,12 +254,14 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
             if (!this.isValidChar(t)) {
                 extra = spaceextra;
             } else if (typeof tomorse[t] !== 'undefined') {
-                let morselet = tomorse[t];
+                const morselet = tomorse[t];
                 // Spaces between letters use one separator character
-                decodeline += this.repeatStr(" ", extra.length) + t
-                    + this.repeatStr(" ", morselet.length - 1);
+                decodeline +=
+                    this.repeatStr(' ', extra.length) +
+                    t +
+                    this.repeatStr(' ', morselet.length - 1);
                 morseline += extra + morselet;
-                for (let m of extra + morselet) {
+                for (const m of extra + morselet) {
                     let c = this.state.encoded[opos++];
                     // Figure out what letter we want to map it to.
                     // If it already was mapped to a valid letter, we keep it.
@@ -267,7 +271,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                         if (mapset.length < 1) {
                             mapset = '?';
                         }
-                        let index = Math.floor(Math.random() * mapset.length);
+                        const index = Math.floor(Math.random() * mapset.length);
                         c = mapset[index];
                     }
                     encodeline += c;
@@ -275,8 +279,8 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                 }
                 // We have finished the letter, so next we will continue with
                 // an X
-                extra = "X";
-                spaceextra = "XX";
+                extra = 'X';
+                spaceextra = 'XX';
             }
             // See if we have to split the line now
             if (encodeline.length >= maxEncodeWidth) {
@@ -287,9 +291,9 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                     morseline = '';
                     lastsplit = -1;
                 } else {
-                    let encodepart = encodeline.substr(0, lastsplit);
-                    let decodepart = decodeline.substr(0, lastsplit);
-                    let morsepart = morseline.substr(0, lastsplit);
+                    const encodepart = encodeline.substr(0, lastsplit);
+                    const decodepart = decodeline.substr(0, lastsplit);
+                    const morsepart = morseline.substr(0, lastsplit);
                     encodeline = encodeline.substr(lastsplit);
                     decodeline = decodeline.substr(lastsplit);
                     morseline = morseline.substr(lastsplit);
@@ -310,20 +314,20 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
      * morse mapping characters.
      */
     private buildMorseletMap(): StringMap {
-        let morseletmap: StringMap = {};
-        for (let i of this.state.xchars) {
+        const morseletmap: StringMap = {};
+        for (const i of this.state.xchars) {
             if (morseletmap[i] === undefined) {
                 morseletmap[i] = '';
             }
             morseletmap[i] += 'X';
         }
-        for (let i of this.state.dotchars) {
+        for (const i of this.state.dotchars) {
             if (morseletmap[i] === undefined) {
                 morseletmap[i] = '';
             }
             morseletmap[i] += 'O';
         }
-        for (let i of this.state.dashchars) {
+        for (const i of this.state.dashchars) {
             if (morseletmap[i] === undefined) {
                 morseletmap[i] = '';
             }
@@ -332,16 +336,15 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         return morseletmap;
     }
 
-
     /**
      * Generates displayable table of mappings of cipher characters
      * @param knownmap Current mapping of cipher characters to morse
      */
     public genKnownTable(result: JQuery<HTMLElement>, knownmap: StringMap): void {
-        let table = new JTTable({ class: "known" });
-        let headrow = table.addHeaderRow();
-        let bodyrow = table.addBodyRow();
-        for (let c of this.encodecharset) {
+        const table = new JTTable({ class: 'known' });
+        const headrow = table.addHeaderRow();
+        const bodyrow = table.addBodyRow();
+        for (const c of this.encodecharset) {
             headrow.add(c);
             bodyrow.add({ content: this.normalizeHTML(knownmap[c]) });
         }
@@ -353,59 +356,59 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
      *   [ctindex=0] The cipher text
      *   [morseindex=1] The known morse mapping characters (? means it could be - or O)
      *   [ptindex=2] The decoded plain text characters
-     * 
+     *
      * Those characters that are known are shown
      * @param strings Current mapping strings
      * @param knownmap Known mapping of cipher text characters
      * @returns string[][] where each string set consists of 3 strings
      */
     public genKnownMapping(strings: string[][], knownmap: StringMap): string[][] {
-        let working: string[][] = [];
-        let current = "";
-        for (let ctset of strings) {
-            let morse = "";
-            let plaintext = "";
-            for (let c of ctset[ctindex]) {
+        const working: string[][] = [];
+        let current = '';
+        for (const ctset of strings) {
+            let morse = '';
+            let plaintext = '';
+            for (const c of ctset[ctindex]) {
                 // See if we know what this character maps to exactly
-                let possibilities = knownmap[c];
+                const possibilities = knownmap[c];
                 if (possibilities.length === 1) {
                     // Yes, we know that it defined so remember the morselet
                     morse += possibilities;
-                    // Is it a separator? 
-                    if (possibilities === "X") {
+                    // Is it a separator?
+                    if (possibilities === 'X') {
                         // Did we just follow a separator
-                        if (current === "X") {
+                        if (current === 'X') {
                             // Yes, so give them a word separator marker
-                            plaintext += "/ ";
-                            current = "";
+                            plaintext += '/ ';
+                            current = '';
                             // Is what we gathered a valid morse code sequence?
                         } else if (frommorse[current] !== undefined) {
-                            plaintext += frommorse[current] +
-                                this.repeatStr(" ", current.length - 1);
-                            current = "X";
+                            plaintext +=
+                                frommorse[current] + this.repeatStr(' ', current.length - 1);
+                            current = 'X';
                         } else {
                             // Not a valid morse code character so just give
                             // blank space
-                            plaintext += this.repeatStr(" ", current.length);
-                            current = "X";
+                            plaintext += this.repeatStr(' ', current.length);
+                            current = 'X';
                         }
                     } else {
                         // We know it is a dot or dash.
                         // if we previously had a separator, throw it away so
-                        // that we don't gather it as part of a morse code    
-                        if (current === "X") {
-                            current = "";
-                            plaintext += " "
+                        // that we don't gather it as part of a morse code
+                        if (current === 'X') {
+                            current = '';
+                            plaintext += ' ';
                         }
                         current += possibilities;
                     }
-                } else if (possibilities.indexOf("X") < 0) {
+                } else if (possibilities.indexOf('X') < 0) {
                     // Can't be a separator (X)
-                    morse += "?";
-                    current += "?";
+                    morse += '?';
+                    current += '?';
                 } else {
-                    morse += " ";
-                    current += " ";
+                    morse += ' ';
+                    current += ' ';
                 }
             }
             // Do we have anything left over at the end of the line?  If so
@@ -416,7 +419,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                 if (frommorse[current] !== undefined) {
                     plaintext += frommorse[current];
                 }
-                current = "";
+                current = '';
             }
             working.push([ctset[ctindex], morse, plaintext]);
         }
@@ -427,24 +430,31 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
      * @param knownmap Map of current cipher strings
      * @returns Boolean indicating that there are unknowns
      */
-    public hasUnknowns(result: JQuery<HTMLElement>, knownmap: StringMap, working: string[][]): boolean {
+    public hasUnknowns(
+        result: JQuery<HTMLElement>,
+        knownmap: StringMap,
+        working: string[][]
+    ): boolean {
         // Figure out what letters were actually used
-        let used: BoolMap = {};
+        const used: BoolMap = {};
         let unknowns = 0;
-        for (let strset of working) {
-            for (let c of strset[ctindex]) {
+        for (const strset of working) {
+            for (const c of strset[ctindex]) {
                 used[c] = true;
             }
         }
         // If one of the used letters doesn't have a mapping then we aren't done
-        for (let e in knownmap) {
+        for (const e in knownmap) {
             if (knownmap[e].length > 1 && used[e] === true) {
                 unknowns++;
             }
         }
         if (unknowns > 0) {
-            result.append("At this point in time, " + String(unknowns) +
-                " ciphertext characters still need to be mapped. ");
+            result.append(
+                'At this point in time, ' +
+                    String(unknowns) +
+                    ' ciphertext characters still need to be mapped. '
+            );
             return true;
         }
         return false;
@@ -456,18 +466,19 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
      * @param working Current mapping strings
      * @returns Boolean indicating that any were found
      */
-    public checkFirstCT(result: JQuery<HTMLElement>,
+    public checkFirstCT(
+        result: JQuery<HTMLElement>,
         knownmap: StringMap,
-        working: string[][]): boolean {
+        working: string[][]
+    ): boolean {
         if (working.length > 0) {
-            let strset = working[0];
-            if (strset[morseindex].length > 0 &&
-                strset[morseindex][0] === ' ') {
-                let c = strset[ctindex][0];
+            const strset = working[0];
+            if (strset[morseindex].length > 0 && strset[morseindex][0] === ' ') {
+                const c = strset[ctindex][0];
                 // The first character is definitely unknown, so mark it
-                knownmap[c] = knownmap[c].replace("X", "");
-                let msg = "The first morse code character can never be an X,"
-                " so we eliminate that possibility for " + c + ".";
+                knownmap[c] = knownmap[c].replace('X', '');
+                const msg = 'The first morse code character can never be an X,';
+                ' so we eliminate that possibility for ' + c + '.';
                 result.append(this.normalizeHTML(msg));
                 return true;
             }
@@ -475,7 +486,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         return false;
     }
     /**
-     * Determines if there are any triple letters which were identified as 
+     * Determines if there are any triple letters which were identified as
      * potential X characters.  This also includes any potential X characters
      * which are paired with symbols that are known to be an X.  If any are
      * found, the potential X is removed and a message is output so that the
@@ -485,17 +496,19 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
      * @param working Current mapping strings
      * @returns Boolean indicating that any were found
      */
-    public findTriples(result: JQuery<HTMLElement>,
+    public findTriples(
+        result: JQuery<HTMLElement>,
         knownmap: StringMap,
-        working: string[][]): boolean {
+        working: string[][]
+    ): boolean {
         let found = false;
         let lastc = '';
         let xcount = 0;
         let count = 0;
-        let sequence = "";
-        let prefix = "Looking at the ciphertext, ";
-        for (let strset of working) {
-            for (let c of strset[ctindex]) {
+        let sequence = '';
+        let prefix = 'Looking at the ciphertext, ';
+        for (const strset of working) {
+            for (const c of strset[ctindex]) {
                 let keepxcount = false;
                 sequence += c;
                 // CXXD  (C can't be X, D can't be X)
@@ -507,7 +520,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                     // If it was the same character repeated, we can lump it in
                     // with the group
                     count++;
-                } else if (knownmap[c] === "X") {
+                } else if (knownmap[c] === 'X') {
                     // If we had a known X then we add to the list
                     xcount++;
                     keepxcount = true;
@@ -518,23 +531,25 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                 }
                 // Did we exceed our three in a row?
                 if (count + xcount > 2) {
-                    if (knownmap[lastc].length > 1 &&
-                        knownmap[lastc].indexOf("X") >= 0) {
+                    if (knownmap[lastc].length > 1 && knownmap[lastc].indexOf('X') >= 0) {
                         // We had three of this in a row which means we know
                         // that this character can't be an X
                         found = true;
-                        let msg = "";
-                        let tseq = sequence.substr(sequence.length - 3, 3);
+                        let msg = '';
+                        const tseq = sequence.substr(sequence.length - 3, 3);
                         if (count === 3) {
-                            msg = "we find three " + lastc + "s in a row.";
+                            msg = 'we find three ' + lastc + 's in a row.';
                         } else {
-                            msg = "we see the sequence " + tseq +
-                                " which would result in three Xs in a row if " + lastc +
-                                " were an X."
+                            msg =
+                                'we see the sequence ' +
+                                tseq +
+                                ' which would result in three Xs in a row if ' +
+                                lastc +
+                                ' were an X.';
                         }
                         result.append(prefix + this.normalizeHTML(msg));
-                        prefix = " Also, ";
-                        knownmap[lastc] = knownmap[lastc].replace("X", "");
+                        prefix = ' Also, ';
+                        knownmap[lastc] = knownmap[lastc].replace('X', '');
                         count = 0;
                     }
                 }
@@ -546,7 +561,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         return found;
     }
     /**
-     * Determines if there are any cipher text which can't be an X 
+     * Determines if there are any cipher text which can't be an X
      * This works by looking for any span of 5 non-X characters followed by
      * an unknown or a cluster of 6 or more with a single unknown in the middle.
      * If any are found, the unknown is marked as an X and a message is output
@@ -556,17 +571,19 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
      * @param working Current mapping strings
      * @returns Boolean indicating that any were found
      */
-    public findSpacers(result: JQuery<HTMLElement>,
+    public findSpacers(
+        result: JQuery<HTMLElement>,
         knownmap: StringMap,
-        working: string[][]): boolean {
+        working: string[][]
+    ): boolean {
         let found = false;
         let lastc = '';
         let gathered = '';
-        let prefix = "Looking at the ciphertext, ";
-        for (let strset of working) {
+        let prefix = 'Looking at the ciphertext, ';
+        for (const strset of working) {
             for (let i = 0, len = strset[morseindex].length; i < len; i++) {
                 let m = strset[morseindex][i];
-                let c = strset[ctindex][i];
+                const c = strset[ctindex][i];
                 // Check to see if this is one that we had to replace because
                 // we figured it out in an earlier pass
                 if (m === ' ' && knownmap[c] === 'X') {
@@ -576,8 +593,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                     // We hit a hard break so we can start again
                     gathered = '';
                     lastc = '';
-                }
-                else {
+                } else {
                     if (m === ' ') {
                         // This is an unknown.  See if it is the same as any
                         // prevailing candidate (or the first candidate)
@@ -591,12 +607,15 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                     gathered += c;
                 }
                 if (gathered.length > 5 && lastc !== '' && knownmap[lastc] !== 'X') {
-                    let msg = "we see the sequence " + gathered +
-                        " which would result in six or more - and Os a row if " + lastc +
-                        " were not an X."
+                    const msg =
+                        'we see the sequence ' +
+                        gathered +
+                        ' which would result in six or more - and Os a row if ' +
+                        lastc +
+                        ' were not an X.';
                     result.append(prefix + this.normalizeHTML(msg));
-                    prefix = " Also, ";
-                    knownmap[lastc] = "X";
+                    prefix = ' Also, ';
+                    knownmap[lastc] = 'X';
                     gathered = '';
                     lastc = '';
                     found = true;
@@ -614,30 +633,31 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
      * @param working Current mapping strings
      * @returns Boolean indicating that any were found
      */
-    public findInvalidMorse(result: JQuery<HTMLElement>,
+    public findInvalidMorse(
+        result: JQuery<HTMLElement>,
         knownmap: StringMap,
-        working: string[][]): boolean {
-        let found = false;
+        working: string[][]
+    ): boolean {
+        const found = false;
         let gathered = '';
         let sequence = '';
         let unknownc = '';
         let tryit = false;
-        for (let strset of working) {
+        for (const strset of working) {
             for (let i = 0, len = strset[morseindex].length; i < len; i++) {
-                let m = strset[morseindex][i];
-                let c = strset[ctindex][i];
+                const m = strset[morseindex][i];
+                const c = strset[ctindex][i];
                 if (m === 'X') {
                     // Try what we have gathered
                     if (tryit) {
                         let legal = 0;
                         let replacem = '';
-                        for (let tc of knownmap[unknownc]) {
+                        for (const tc of knownmap[unknownc]) {
                             if (tc === 'X') {
-                                let morseset = gathered.split('#');
+                                const morseset = gathered.split('#');
                                 let allok = true;
-                                for (let morseitem of morseset) {
-                                    if (morseitem !== '' &&
-                                        frommorse[morseitem] === undefined) {
+                                for (const morseitem of morseset) {
+                                    if (morseitem !== '' && frommorse[morseitem] === undefined) {
                                         allok = false;
                                     }
                                 }
@@ -646,7 +666,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                                     replacem = tc;
                                 }
                             } else {
-                                let trymorse = gathered.replace(/#/g, tc);
+                                const trymorse = gathered.replace(/#/g, tc);
                                 if (frommorse[trymorse] !== undefined) {
                                     legal++;
                                     replacem = tc;
@@ -655,13 +675,21 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                         }
                         if (legal === 1) {
                             // We found exactly one legal morse code sequence
-                            let msg = "Based on the sequence " + sequence +
-                                " with " + unknownc +
-                                " possibly being one of '" + knownmap[unknownc] +
-                                ", only " + replacem +
-                                " results in a legal morse code character, " +
-                                "so we can mark " + unknownc +
-                                " as being " + replacem + ".";
+                            const msg =
+                                'Based on the sequence ' +
+                                sequence +
+                                ' with ' +
+                                unknownc +
+                                " possibly being one of '" +
+                                knownmap[unknownc] +
+                                ', only ' +
+                                replacem +
+                                ' results in a legal morse code character, ' +
+                                'so we can mark ' +
+                                unknownc +
+                                ' as being ' +
+                                replacem +
+                                '.';
                             result.append(this.normalizeHTML(msg));
                             knownmap[unknownc] = replacem;
                             return true;
@@ -684,7 +712,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                         // 139438
                         // O  - X
                         // where both 3 and 9 are unknowns.
-                        unknownc = "XX";
+                        unknownc = 'XX';
                     }
                     gathered += '#';
                     sequence += c;
@@ -706,9 +734,9 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         let morsestr = '';
         let sequence = '';
         let tryit = false;
-        for (let strset of working) {
-            for (let c of strset[ctindex]) {
-                let morsec = knownmap[c];
+        for (const strset of working) {
+            for (const c of strset[ctindex]) {
+                const morsec = knownmap[c];
                 if (morsec.length != 1) {
                     tryit = false;
                 } else if (morsec === 'X') {
@@ -726,7 +754,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                 }
             }
         }
-        return "";
+        return '';
     }
     /**
      * Look through all the unknowns to see if they would generate illegal
@@ -736,32 +764,39 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
      * @param working Current mapping strings
      * @returns Boolean indicating that any were found
      */
-    public findSingleMorse(result: JQuery<HTMLElement>,
+    public findSingleMorse(
+        result: JQuery<HTMLElement>,
         knownmap: StringMap,
-        working: string[][]): boolean {
-        let prefix = "Trying our remaining candidates on the ciphertext, ";
-        for (let c in knownmap) {
+        working: string[][]
+    ): boolean {
+        let prefix = 'Trying our remaining candidates on the ciphertext, ';
+        for (const c in knownmap) {
             // Is this a candiate to try replacement for?
             if (knownmap[c].length > 1) {
-                let savemap = knownmap[c];
+                const savemap = knownmap[c];
                 let legal = '';
-                for (let mc of savemap) {
+                for (const mc of savemap) {
                     knownmap[c] = mc;
-                    let invalid = this.findInvalidMorseChar(knownmap, working);
+                    const invalid = this.findInvalidMorseChar(knownmap, working);
                     if (invalid !== '') {
-                        let msg = "Attempting to substutite " + mc + " for " + c +
+                        const msg =
+                            'Attempting to substutite ' +
+                            mc +
+                            ' for ' +
+                            c +
                             " doesn't work because we end up with the sequence " +
-                            invalid + " which is not a legal morse code character, " +
-                            "so we can eliminate it as a possibility.";
+                            invalid +
+                            ' which is not a legal morse code character, ' +
+                            'so we can eliminate it as a possibility.';
                         result.append(prefix + this.normalizeHTML(msg));
-                        prefix = " Also, ";
+                        prefix = ' Also, ';
                     } else {
                         legal += mc;
                     }
                 }
                 knownmap[c] = legal;
                 if (legal.length === 1) {
-                    let msg = " Which means we know that " + c + " must map to " + legal;
+                    const msg = ' Which means we know that ' + c + ' must map to ' + legal;
                     result.append(this.normalizeHTML(msg));
                     return true;
                 }
@@ -780,14 +815,14 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         let morsestr = '';
         let xcount = 0;
         let tryit = true;
-        for (let strset of working) {
-            for (let c of strset[ctindex]) {
-                let morsec = knownmap[c];
+        for (const strset of working) {
+            for (const c of strset[ctindex]) {
+                const morsec = knownmap[c];
                 if (morsec.length != 1) {
                     tryit = false;
                     xcount = 0;
                 } else if (morsec === 'X') {
-                    let p = frommorse[morsestr];
+                    const p = frommorse[morsestr];
                     if (tryit && p !== undefined) {
                         plaintext += p;
                     } else if (xcount == 1) {
@@ -814,33 +849,44 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
      * @param working Current mapping strings
      * @returns Boolean indicating that any were found
      */
-    public testSingleMorse(result: JQuery<HTMLElement>,
+    public testSingleMorse(
+        result: JQuery<HTMLElement>,
         knownmap: StringMap,
-        working: string[][]): boolean {
-        let mincipher = this.minimizeString(this.state.cipherString);
-        for (let c in knownmap) {
+        working: string[][]
+    ): boolean {
+        const mincipher = this.minimizeString(this.state.cipherString);
+        for (const c in knownmap) {
             // Is this a candiate to try replacement for?
             if (knownmap[c].length > 1) {
-                let savemap = knownmap[c];
+                const savemap = knownmap[c];
                 let legal = '';
-                let msg = "Since " + c + " can still map to " +
+                let msg =
+                    'Since ' +
+                    c +
+                    ' can still map to ' +
                     this.normalizeHTML(savemap) +
-                    " we simply try them and look at the first word or two" +
-                    " to see if it makes sense."
-                for (let mc of savemap) {
+                    ' we simply try them and look at the first word or two' +
+                    ' to see if it makes sense.';
+                for (const mc of savemap) {
                     knownmap[c] = mc;
-                    let plaintext = this.applyKnownmap(knownmap, working);
-                    // Now split it on all the unknowns to find the longest 
+                    const plaintext = this.applyKnownmap(knownmap, working);
+                    // Now split it on all the unknowns to find the longest
                     // contiguous string
-                    let chunks = plaintext.split('?');
+                    const chunks = plaintext.split('?');
                     let longest = chunks[0];
-                    for (let chunk of chunks) {
+                    for (const chunk of chunks) {
                         if (chunk.length > longest.length) {
                             longest = chunk;
                         }
                     }
-                    msg += " Trying " + this.normalizeHTML(mc) + " for " + c +
-                        " gives us a chunk: " + longest + ".";
+                    msg +=
+                        ' Trying ' +
+                        this.normalizeHTML(mc) +
+                        ' for ' +
+                        c +
+                        ' gives us a chunk: ' +
+                        longest +
+                        '.';
                     longest = this.minimizeString(longest);
                     if (mincipher.indexOf(this.minimizeString(longest)) >= 0) {
                         legal += mc;
@@ -848,8 +894,11 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                 }
                 if (legal.length === 1) {
                     knownmap[c] = legal;
-                    msg += " Which means we know that " + c +
-                        " must map to " + this.normalizeHTML(legal);
+                    msg +=
+                        ' Which means we know that ' +
+                        c +
+                        ' must map to ' +
+                        this.normalizeHTML(legal);
                     result.append(msg);
                     return true;
                 }
@@ -862,39 +911,39 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
      * Display how to solve the cipher.
      */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
-        let result = $("<div/>");
+        const result = $('<div/>');
         let msg = '';
         if (this.state.cipherString === '') {
             this.setErrorMsg(msg, 'polgs');
             return result;
         }
-        let morseletmap = this.buildMorseletMap();
-        let strings = this.makeReplacement(
-            this.state.cipherString,
-            this.maxEncodeWidth);
-        let knownmap: StringMap = {};
+        const morseletmap = this.buildMorseletMap();
+        const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
+        const knownmap: StringMap = {};
 
-        let hint = this.checkHintCrib(result, strings);
+        const hint = this.checkHintCrib(result, strings);
         if (hint === undefined) {
             return result;
         }
 
         // Assume we don't know what anything is
-        for (let c of this.encodecharset) {
-            knownmap[c] = "O-X";
+        for (const c of this.encodecharset) {
+            knownmap[c] = 'O-X';
         }
         // And then fill it in with what we do know.
-        for (let c of hint) {
+        for (const c of hint) {
             knownmap[c] = morseletmap[c];
         }
 
         this.genKnownTable(result, knownmap);
-        result.append("Based on that information we can map the cipher text as:");
+        result.append('Based on that information we can map the cipher text as:');
         let working = this.genKnownMapping(strings, knownmap);
         this.genMapping(result, working);
         if (!this.hasUnknowns(result, knownmap, working)) {
-            result.append("Which means that the hint has provide all of the" +
-                " cipher digit mapping and there is no work to solve it");
+            result.append(
+                'Which means that the hint has provide all of the' +
+                    ' cipher digit mapping and there is no work to solve it'
+            );
         } else {
             let limit = 20;
             while (limit > 0) {
@@ -913,26 +962,32 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                     // We found at least one morse code that invalidated a choice
                 } else {
                     // Nothing more that we can do..
-                    result.append($("<h4.>").
-                        text("There are no more automated solving techniques, " +
-                            "so you need to do some trial and error with the remaining unknowns. " +
-                            "Please feel free to submit an issue with the example so we can improve this."));
-                    msg = "Automated solver is unable to find an automatic solution.";
+                    result.append(
+                        $('<h4.>').text(
+                            'There are no more automated solving techniques, ' +
+                                'so you need to do some trial and error with the remaining unknowns. ' +
+                                'Please feel free to submit an issue with the example so we can improve this.'
+                        )
+                    );
+                    msg = 'Automated solver is unable to find an automatic solution.';
                     break;
                 }
                 working = this.genKnownMapping(strings, knownmap);
                 this.genKnownTable(result, knownmap);
-                result.append("Based on that information we can map the cipher text as:");
+                result.append('Based on that information we can map the cipher text as:');
                 this.genMapping(result, working);
                 if (this.hasUnknowns(result, knownmap, working)) {
                     limit--;
                 } else {
                     let answer = '';
-                    for (let strset of working) {
+                    for (const strset of working) {
                         answer += strset[ptindex].replace(/ /g, '').replace(/\//g, ' ');
                     }
-                    result.append($("<h4/>")
-                        .text("Now that we have mapped all the ciphertext characters, the decoded morse code is the answer:"));
+                    result.append(
+                        $('<h4/>').text(
+                            'Now that we have mapped all the ciphertext characters, the decoded morse code is the answer:'
+                        )
+                    );
                     result.append(
                         $('<div/>', {
                             class: 'TOANSWER',
@@ -952,8 +1007,8 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         super.attachHandlers();
         $('#dotchar')
             .off('input')
-            .on('input', e => {
-                let chars = $(e.target).val() as string;
+            .on('input', (e) => {
+                const chars = $(e.target).val() as string;
                 this.markUndo('dotchar');
                 if (this.setDotChars(chars)) {
                     this.updateOutput();
@@ -961,8 +1016,8 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
             });
         $('#dashchar')
             .off('input')
-            .on('input', e => {
-                let chars = $(e.target).val() as string;
+            .on('input', (e) => {
+                const chars = $(e.target).val() as string;
                 this.markUndo('dashchar');
                 if (this.setDashChars(chars)) {
                     this.updateOutput();
@@ -970,8 +1025,8 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
             });
         $('#xchar')
             .off('input')
-            .on('input', e => {
-                let chars = $(e.target).val() as string;
+            .on('input', (e) => {
+                const chars = $(e.target).val() as string;
                 this.markUndo('xchar');
                 if (this.setXChars(chars)) {
                     this.updateOutput();

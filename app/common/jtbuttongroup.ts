@@ -2,7 +2,7 @@ export interface JTButtonItem {
     /** Text to appear for the menu item */
     title: string;
     /** Color type for button (primary, secondary, warning, etc) */
-    color?: "primary" | "secondary" | "success" | "warning" | "alert";
+    color?: 'primary' | 'secondary' | 'success' | 'warning' | 'alert';
     /** Optional id for the item */
     id?: string;
     /** Initial enable/disabled status for the button */
@@ -25,18 +25,18 @@ interface JQbtnOptions {
  * Creates a submenu from a menuitem array
  */
 export function JTButtonGroup(submenu: JTButtonItem[]): JQuery<HTMLElement> {
-    let buttons = $("<div/>", { class: "button-group round shrink cmds" });
-    for (let item of submenu) {
-        let options: JQbtnOptions = {
-            type: "button",
-            class: "button",
+    const buttons = $('<div/>', { class: 'button-group round shrink cmds' });
+    for (const item of submenu) {
+        const options: JQbtnOptions = {
+            type: 'button',
+            class: 'button',
             value: item.title,
         };
         if (item.color !== undefined) {
-            options.class += " " + item.color;
+            options.class += ' ' + item.color;
         }
         if (item.class !== undefined) {
-            options.class += " " + item.class;
+            options.class += ' ' + item.class;
         }
 
         if (item.id !== undefined) {
@@ -46,9 +46,9 @@ export function JTButtonGroup(submenu: JTButtonItem[]): JQuery<HTMLElement> {
             options.disabled = item.disabled;
         }
         if (item.download) {
-            options.download = "";
+            options.download = '';
         }
-        buttons.append($("<a/>", options).text(item.title));
+        buttons.append($('<a/>', options).text(item.title));
     }
-    return $("<div/>", { class: "grid-x" }).append(buttons);
+    return $('<div/>', { class: 'grid-x' }).append(buttons);
 }

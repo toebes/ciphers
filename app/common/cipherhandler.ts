@@ -1002,7 +1002,10 @@ export class CipherHandler {
         if (this.storage.isAvailable()) {
             const testCount = this.getTestCount();
             if (entry < testCount) {
-                result = this.storage.getJSON(this.getTestName(entry));
+                const testinfo = this.storage.getJSON(this.getTestName(entry));
+                if (testinfo !== undefined && testinfo !== null) {
+                    result = testinfo;
+                }
             }
         }
         if (result.timed === undefined) {

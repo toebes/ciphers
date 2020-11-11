@@ -1062,7 +1062,7 @@ export class CipherHandler {
         href: string = window.location.href
     ): void {
         location.assign(
-            'Login.html?returnUrl=' + href + '&shouldPerformSignout=' + shouldPerformSignout
+            'Login.html?returnUrl=' + encodeURIComponent(href) + '&shouldPerformSignout=' + shouldPerformSignout
         );
     }
 
@@ -1920,6 +1920,17 @@ export class CipherHandler {
             $('.login-button').hide();
             $('#logged-in-user').text('Welcome ' + this.getUsersFullName());
         }
+        $(document).on('show.zf.dropdownMenu', function(ev, $el) {
+            if (ev.ctrlKey) {
+                console.log("Control 2 key pressed on menu");
+            } else {
+                console.log('Normal 2 menu open - no key');
+            }
+            console.log(ev);
+            console.log($el)
+        });
+
+
     }
     /**
      * Restore the state from either a saved file or a previous undo record

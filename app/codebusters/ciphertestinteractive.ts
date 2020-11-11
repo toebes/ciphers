@@ -305,66 +305,70 @@ export class CipherTestInteractive extends CipherTest {
         answerdata: ITestQuestionFields[],
         testData: any
     ): void {
-        this.connectRealtime().then((domain: ConvergenceDomain) => {
-            // We successfully opened the connection to the server.
-            // First we will need to test to see if the model exists.  This will get us to one of several options.
-            // 1) The model already exists and we have permission to access it.
-            //     Give them a choice to overwrite the existing model, create a new model or go back to editing the test.
-            // 2) The model already exists and we don't have permission to access it.
-            //     Give them a choice to create a new model or go back to editing the test
-            // 3) The model doesn't exist.
-            //     Give them a choice to create a new model or go back to editing the test.
-            //
-            // If they choose to create a new model, blank out the model fields in the test template.
-            // If they choose to go back to editing the test, just jump to it.  Note that nothing is really lost
-            // since the test is saved locally, they just don't end up publishing it to the server.
-            //
-            // Note that we need to use the () => functions in order for the callbacks to get access to 'this'
-            // this.checkSourceTemplate(domain.models(), interactive, answerdata, testData, elem);
-            const modelService = domain.models();
-            this.checkModel(
-                'Source',
-                'sourcemodelid',
-                modelService,
-                interactive,
-                answerdata,
-                testData,
-                elem,
-                () => {
-                    this.checkModel(
-                        'Test',
-                        'testmodelid',
-                        modelService,
-                        interactive,
-                        answerdata,
-                        testData,
-                        elem,
-                        () => {
-                            this.checkModel(
-                                'Answer',
-                                'answermodelid',
-                                modelService,
-                                interactive,
-                                answerdata,
-                                testData,
-                                elem,
-                                () => {
-                                    this.askSaveDecision(
-                                        modelService,
-                                        'A previous version of this test has already been published to the server.',
-                                        true,
-                                        interactive,
-                                        answerdata,
-                                        testData,
-                                        elem
-                                    );
-                                }
-                            );
-                        }
-                    );
-                }
-            );
-        });
+        this.cacheConnectRealtime()
+            .then((domain: ConvergenceDomain) => {
+                // We successfully opened the connection to the server.
+                // First we will need to test to see if the model exists.  This will get us to one of several options.
+                // 1) The model already exists and we have permission to access it.
+                //     Give them a choice to overwrite the existing model, create a new model or go back to editing the test.
+                // 2) The model already exists and we don't have permission to access it.
+                //     Give them a choice to create a new model or go back to editing the test
+                // 3) The model doesn't exist.
+                //     Give them a choice to create a new model or go back to editing the test.
+                //
+                // If they choose to create a new model, blank out the model fields in the test template.
+                // If they choose to go back to editing the test, just jump to it.  Note that nothing is really lost
+                // since the test is saved locally, they just don't end up publishing it to the server.
+                //
+                // Note that we need to use the () => functions in order for the callbacks to get access to 'this'
+                // this.checkSourceTemplate(domain.models(), interactive, answerdata, testData, elem);
+                const modelService = domain.models();
+                this.checkModel(
+                    'Source',
+                    'sourcemodelid',
+                    modelService,
+                    interactive,
+                    answerdata,
+                    testData,
+                    elem,
+                    () => {
+                        this.checkModel(
+                            'Test',
+                            'testmodelid',
+                            modelService,
+                            interactive,
+                            answerdata,
+                            testData,
+                            elem,
+                            () => {
+                                this.checkModel(
+                                    'Answer',
+                                    'answermodelid',
+                                    modelService,
+                                    interactive,
+                                    answerdata,
+                                    testData,
+                                    elem,
+                                    () => {
+                                        this.askSaveDecision(
+                                            modelService,
+                                            'A previous version of this test has already been published to the server.',
+                                            true,
+                                            interactive,
+                                            answerdata,
+                                            testData,
+                                            elem
+                                        );
+                                    }
+                                );
+                            }
+                        );
+                    }
+                );
+            })
+            .catch((error) => {
+                console.log(error);
+            });
     }
     /**
      * Check to see if a model already exists on the server.  If it doesn't or there is some access problem

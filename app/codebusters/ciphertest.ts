@@ -306,16 +306,24 @@ export class CipherTest extends CipherHandler {
         );
 
         const convergenceToken = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
-        const result = Convergence.connectWithJwt(connectUrl, convergenceToken).catch((error) => {
-            if (convergenceToken.length === 0) {
-                this.reportFailure('Please sign in to see this page');
-            } else {
-                console.log('An error occurred while trying to connect to realtime: ' + error);
-                this.deleteConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN);
-                this.goToAuthenticationPage();
-            }
+        return new Promise((resolve, reject) => {
+            Convergence.connectWithJwt(connectUrl, convergenceToken)
+                .then((domain) => {
+                    resolve(domain);
+                })
+                .catch((error) => {
+                    if (convergenceToken.length == 0) {
+                        this.reportFailure('Please sign in to see this page');
+                    } else {
+                        console.log(
+                            'An error occurred while trying to connect to realtime: ' + error
+                        );
+                        this.deleteConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN);
+                        this.goToAuthenticationPage();
+                    }
+                    reject(error);
+                });
         });
-        return result;
     }
 
     /** Cached realtime domain */
@@ -344,11 +352,16 @@ export class CipherTest extends CipherHandler {
             this.disconnectRealtime();
         });
 
-        const result = this.connectRealtime();
-        result.then((domain: ConvergenceDomain) => {
-            this.cachedDomain = domain;
+        return new Promise((resolve, reject) => {
+            this.connectRealtime()
+                .then((domain: ConvergenceDomain) => {
+                    this.cachedDomain = domain;
+                    resolve(domain);
+                })
+                .catch((error) => {
+                    reject(error);
+                });
         });
-        return result;
     }
 
     public setTestEditState(testdisp: ITestDisp): void {

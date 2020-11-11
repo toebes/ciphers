@@ -73,7 +73,7 @@ export class CipherTakeTest extends CipherTest {
                 .add('Start Time');
             result.append(table.generate());
 
-            this.connectRealtime().then((domain: ConvergenceDomain) => {
+            this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                 this.findAllTests(domain);
             });
         }

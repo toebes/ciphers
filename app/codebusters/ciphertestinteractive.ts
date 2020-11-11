@@ -321,7 +321,6 @@ export class CipherTestInteractive extends CipherTest {
             //
             // Note that we need to use the () => functions in order for the callbacks to get access to 'this'
             // this.checkSourceTemplate(domain.models(), interactive, answerdata, testData, elem);
-            console.log(domain);
             const modelService = domain.models();
             this.checkModel(
                 'Source',

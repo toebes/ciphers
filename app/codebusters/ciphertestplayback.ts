@@ -422,49 +422,45 @@ export class CipherTestPlayback extends CipherTest {
      * @param answerModelID answer template id
      */
     public displayInteractiveTest(answerModelID: string): void {
-        this.connectRealtime()
-            .then((domain: ConvergenceDomain) => {
-                // 2. Initializes the application after connecting by opening a model.
-                const modelService = domain.models();
-                modelService.history(answerModelID).then((answermodel: HistoricalModel) => {
-                    const answertemplate = answermodel.root().value() as IAnswerTemplate;
-                    this.answermodel = answermodel;
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+            // 2. Initializes the application after connecting by opening a model.
+            const modelService = domain.models();
+            modelService.history(answerModelID).then((answermodel: HistoricalModel) => {
+                const answertemplate = answermodel.root().value() as IAnswerTemplate;
+                this.answermodel = answermodel;
 
-                    // Populate the time from the answer template
-                    this.testTimeInfo.startTime = answertemplate.starttime;
-                    this.testTimeInfo.endTimedQuestion = answertemplate.endtimed;
-                    this.testTimeInfo.endTime = answertemplate.endtime;
-                    const testModelID = answertemplate.testid;
+                // Populate the time from the answer template
+                this.testTimeInfo.startTime = answertemplate.starttime;
+                this.testTimeInfo.endTimedQuestion = answertemplate.endtimed;
+                this.testTimeInfo.endTime = answertemplate.endtime;
+                const testModelID = answertemplate.testid;
 
-                    // let startTime = this.answermodel.minTime().getTime();
-                    // let endTime = this.answermodel.maxTime().getTime();
-                    // if (startTime < this.testTimeInfo.startTime) {
-                    //     startTime = this.testTimeInfo.startTime;
-                    // }
-                    // if (endTime > this.testTimeInfo.endTime) {
-                    //     endTime = this.testTimeInfo.endTime;
-                    // }
+                // let startTime = this.answermodel.minTime().getTime();
+                // let endTime = this.answermodel.maxTime().getTime();
+                // if (startTime < this.testTimeInfo.startTime) {
+                //     startTime = this.testTimeInfo.startTime;
+                // }
+                // if (endTime > this.testTimeInfo.endTime) {
+                //     endTime = this.testTimeInfo.endTime;
+                // }
 
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    const elem = new Foundation.Slider($('#scrubslider'), {
-                        start: answertemplate.starttime,
-                        end: answertemplate.endtime,
-                        initialStart: answertemplate.endtime,
-                    });
-                    const target = $('.default-header');
-                    target.hide();
-                    $('#scrubslider').on('changed.zf.slider', () => {
-                        const newTime = parseInt($('#scrubslider input').val() as string);
-                        this.scrubTo(newTime);
-                    });
-                    // If they close the window or navigate away, we want to close all our connections
-                    $(window).on('beforeunload', () => this.shutdownTest());
-                    this.openTestModel(modelService, testModelID, answerModelID);
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const elem = new Foundation.Slider($('#scrubslider'), {
+                    start: answertemplate.starttime,
+                    end: answertemplate.endtime,
+                    initialStart: answertemplate.endtime,
                 });
-            })
-            .catch((error) => {
-                this.reportFailure('Convergence API could not open test model: ' + error);
+                const target = $('.default-header');
+                target.hide();
+                $('#scrubslider').on('changed.zf.slider', () => {
+                    const newTime = parseInt($('#scrubslider input').val() as string);
+                    this.scrubTo(newTime);
+                });
+                // If they close the window or navigate away, we want to close all our connections
+                $(window).on('beforeunload', () => this.shutdownTest());
+                this.openTestModel(modelService, testModelID, answerModelID);
             });
+        });
     }
     /**
      * Open the test model for the test template.

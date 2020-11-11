@@ -61,7 +61,7 @@ export class CipherTestPermissions extends CipherTestManage {
             .add('Permissions');
         result.append(table.generate());
 
-        this.connectRealtime().then((domain: ConvergenceDomain) => {
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
             this.findPermissions(domain, this.state.testID);
         });
         return result;

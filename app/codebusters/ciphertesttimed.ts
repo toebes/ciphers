@@ -390,7 +390,7 @@ export class CipherTestTimed extends CipherTest {
      * @param testUID answer template id
      */
     public displayInteractiveTest(testUID: string): void {
-        this.connectRealtime().then((domain: ConvergenceDomain) => {
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
             // 2. Initializes the application after connecting by opening a model.
             const modelService = domain.models();
             modelService

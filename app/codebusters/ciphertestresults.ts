@@ -47,7 +47,7 @@ export class CipherTestResults extends CipherTestManage {
 
         // First we need to get the test template from the testsource
         // Once we have the test template, then we will be able to find all the scheduled tests
-        this.connectRealtime().then((domain: ConvergenceDomain) => {
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
             this.openTestSource(domain, this.state.testID);
             $('.ans').remove();
         });

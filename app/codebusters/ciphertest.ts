@@ -226,7 +226,7 @@ export class CipherTest extends CipherHandler {
             errloc = $('.testerrors');
             if (errloc.length === 0) {
                 // Not even that class, so just create a new one
-                $("body").append($("<div/>", {class: "ans"}));
+                $('body').append($('<div/>', { class: 'ans' }));
                 errloc = $('.ans');
             }
         }
@@ -305,6 +305,7 @@ export class CipherTest extends CipherHandler {
     }
 
     /**
+     * Note: Do not use catch (Is never thrown)
      * @returns Promise ConvergenceDomain to interact with
      */
     public connectRealtime(): Promise<ConvergenceDomain> {
@@ -316,8 +317,7 @@ export class CipherTest extends CipherHandler {
         );
 
         const convergenceToken = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
-<<<<<<< HEAD
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             Convergence.connectWithJwt(connectUrl, convergenceToken)
                 .then((domain) => {
                     resolve(domain);
@@ -332,7 +332,6 @@ export class CipherTest extends CipherHandler {
                         this.deleteConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN);
                         this.goToAuthenticationPage();
                     }
-                    reject(error);
                 });
         });
     }

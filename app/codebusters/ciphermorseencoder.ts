@@ -35,7 +35,7 @@ export class CipherMorseEncoder extends CipherEncoder {
         );
         const encodedString = strings[ctindex];
         const anslen = encodedString[0].length;
-        console.log('The encoded string length is ' + anslen);
+        // console.log('The encoded string length is ' + anslen);
 
         // We need an answer, separators and replacement boxes for each morse character pair worth
         result.answer = makeFilledArray(anslen, ' ');

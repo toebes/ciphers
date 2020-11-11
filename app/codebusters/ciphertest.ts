@@ -220,7 +220,17 @@ export class CipherTest extends CipherHandler {
      */
     public reportFailure(msg: string): void {
         console.log(msg);
-        $('.ans').append(
+        let errloc = $('.ans');
+        if (errloc.length === 0) {
+            // If they don't have an ans class then look for the testerrors class
+            errloc = $('.testerrors');
+            if (errloc.length === 0) {
+                // Not even that class, so just create a new one
+                $("body").append($("<div/>", {class: "ans"}));
+                errloc = $('.ans');
+            }
+        }
+        errloc.append(
             $('<div/>', { class: 'callout warning', 'data-closable': '' })
                 .append($('<p/>').text(msg))
                 .append(
@@ -306,6 +316,7 @@ export class CipherTest extends CipherHandler {
         );
 
         const convergenceToken = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
+<<<<<<< HEAD
         return new Promise((resolve, reject) => {
             Convergence.connectWithJwt(connectUrl, convergenceToken)
                 .then((domain) => {

@@ -220,7 +220,17 @@ export class CipherTest extends CipherHandler {
      */
     public reportFailure(msg: string): void {
         console.log(msg);
-        $('.ans').append(
+        let errloc = $('.ans');
+        if (errloc.length === 0) {
+            // If they don't have an ans class then look for the testerrors class
+            errloc = $('.testerrors');
+            if (errloc.length === 0) {
+                // Not even that class, so just create a new one
+                $("body").append($("<div/>", {class: "ans"}));
+                errloc = $('.ans');
+            }
+        }
+        errloc.append(
             $('<div/>', { class: 'callout warning', 'data-closable': '' })
                 .append($('<p/>').text(msg))
                 .append(
@@ -308,7 +318,7 @@ export class CipherTest extends CipherHandler {
         const convergenceToken = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
         const result = Convergence.connectWithJwt(connectUrl, convergenceToken).catch((error) => {
             if (convergenceToken.length === 0) {
-                this.reportFailure('Please sign in to see this page');
+                this.reportFailure('Please Login to see this page');
             } else {
                 console.log('An error occurred while trying to connect to realtime: ' + error);
                 this.deleteConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN);

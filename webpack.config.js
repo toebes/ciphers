@@ -12,13 +12,13 @@ const toolsVersion = package.version;
 const argv = require('yargs').argv;
 const ZIP = argv.zip || false;
 const ANALYZE = argv.analyze || false;
+const PROD = argv.p || false;
 // process.traceDeprecation = true;
 
 module.exports = {
     stats: 'errors-warnings',
-    //    mode: "development", // "production" | "development" | "none"
+    mode: "production",
     context: __dirname,
-    // devtool: "inline-source-map",
     entry: {
         aca: path.join(__dirname, 'app', 'aca', 'ciphers.ts'),
         codebusters: path.join(__dirname, 'app', 'codebusters', 'ciphers.ts'),
@@ -839,10 +839,6 @@ module.exports = {
         new webpack.DefinePlugin({
             'require.specified': 'require.resolve',
         }),
-        // see https://intellij-support.jetbrains.com/hc/en-us/community/posts/206339799-Webstorm-Webpack-debugging
-        new webpack.SourceMapDevToolPlugin({
-            filename: '[file].map',
-        }),
     ],
 };
 
@@ -859,4 +855,13 @@ if (ZIP) {
 
 if (ANALYZE) {
     module.exports.plugins.push(new BundleAnalyzerPlugin());
+}
+
+if (!PROD) {
+    module.exports.mode = "development";
+    module.devtool = "inline-source-map";
+    // see https://intellij-support.jetbrains.com/hc/en-us/community/posts/206339799-Webstorm-Webpack-debugging
+    module.exports.plugins.push(new webpack.SourceMapDevToolPlugin({
+        filename: '[file].map',
+    }));
 }

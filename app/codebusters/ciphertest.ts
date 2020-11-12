@@ -249,9 +249,8 @@ export class CipherTest extends CipherHandler {
      * @returns string corresponding to the interactive API to call
      */
     public getInteractiveURI(): string {
-        // return this.getConfigString("domain", "https://codebusters.alyzee.org/") +
         return (
-            this.getConfigString('domain', 'http://toebeshome.myqnapcloud.com:7630/') +
+            this.getConfigString('domain', 'https://cosso.oit.ncsu.edu/') +
             'api/realtime/convergence/scienceolympiad'
         );
     }
@@ -274,10 +273,7 @@ export class CipherTest extends CipherHandler {
      * @returns ConvergenceSettings (Or null for failure)
      */
     public getConvergenceSettings(): ConvergenceSettings {
-        const baseUrl = this.getConfigString(
-            'domain',
-            'http://toebeshome.myqnapcloud.com:7630/api/'
-        );
+        const baseUrl = this.getConfigString('domain','https://cosso.oit.ncsu.edu/');
         const privateKey = ConvergenceAuthentication.getLocalPrivateKey();
         const convergenceNamespace = this.getConfigString('convergenceNamespace', 'convergence');
         const convergenceDomain = this.getConfigString('convergenceDomain', 'scienceolympiad');

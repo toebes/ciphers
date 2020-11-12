@@ -1920,17 +1920,14 @@ export class CipherHandler {
             $('.login-button').hide();
             $('#logged-in-user').text('Welcome ' + this.getUsersFullName());
         }
-        $(document).on('show.zf.dropdownMenu', function(ev, $el) {
-            if (ev.ctrlKey) {
-                console.log("Control 2 key pressed on menu");
+        // Hide the realtime config menu if they didn't hit the control key
+        $('.menuhelp').on('mouseover', (e) => {
+            if (e.ctrlKey) {
+                $(".realtimeconfig").show();
             } else {
-                console.log('Normal 2 menu open - no key');
+                $(".realtimeconfig").hide();
             }
-            console.log(ev);
-            console.log($el)
         });
-
-
     }
     /**
      * Restore the state from either a saved file or a previous undo record

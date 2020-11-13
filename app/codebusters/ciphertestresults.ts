@@ -2,7 +2,7 @@ import { CipherTestManage } from './ciphertestmanage';
 import { IState, toolMode } from '../common/cipherhandler';
 import { ITestState } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
-import { cloneObject, formatTime, timestampToFriendly } from '../common/ciphercommon';
+import { cloneObject, formatTime, timestampFromSeconds, timestampToFriendly } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { ConvergenceDomain, ModelService } from '@convergence/convergence';
@@ -403,7 +403,7 @@ export class CipherTestResults extends CipherTestManage {
                         );
                         let solvedTime = 'No Bonus';
                         if (itemTest.bonusTime !== 0) {
-                            solvedTime = formatTime(itemTest.bonusTime);
+                            solvedTime = formatTime(timestampFromSeconds(itemTest.bonusTime));
                         }
 
                         let tieBreakClass = '';

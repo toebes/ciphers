@@ -305,6 +305,9 @@ export class CipherTestResults extends CipherTestManage {
                     // Create the results table from the tests after breaking any ties
                     scoredTests.forEach((itemTest, indexTest) => {
                         const testQuestions = scoredTests[indexTest].questions;
+                        // these testQuestion must be sorted by question number before adding
+                        // to the detailed results table.
+                        testQuestions.sort(function(a, b){return a.questionNumber-b.questionNumber});
                         // Create the table containing the details for this test.
                         const viewTable = new JTTable({ class: 'cell shrink testscores' });
                         const viewTableHeader = viewTable.addHeaderRow();

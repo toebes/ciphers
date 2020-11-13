@@ -113,19 +113,30 @@ export class CipherPigPenEncoder extends CipherEncoder {
      * @param answer - the array of characters from the interactive test.
      */
     public genScore(answer: string[]): IScoreInformation {
-        this.genAlphabet();
-        const strings = this.makeReplacement(this.state.cipherString, 9999);
-        let toanswer = 1;
-        if (this.state.operation === 'encode') {
-            toanswer = 0;
+        // Determine the solution array of characters based on genAnswer()'
+        let cipherString = '';
+        for (const c of this.state.cipherString) {
+            if (this.isValidChar(c.toUpperCase())) {
+                cipherString += c;
+            }
+        }
+        let solution = cipherString.toUpperCase().split('');
+
+        const cleanAnswer: string[] = [];
+        // Remove spaces from the answer, because the solution has no spaces.
+        // We need to pull out what they actually answered.
+        for (const i in answer) {
+            if (answer[i] !== ' ' && answer[i] !== '') {
+                cleanAnswer.push(answer[i]);
+            }
         }
 
-        const solution: string[] = [];
-        for (const strset of strings) {
-            solution.concat(strset[toanswer].split(''));
+        // Pad the answer to match the solution length
+        while (cleanAnswer.length < solution.length) {
+            cleanAnswer.push(' ');
         }
 
-        return this.calculateScore(solution, answer, this.state.points);
+        return this.calculateScore(solution, cleanAnswer, this.state.points);
     }
     /**
      * Generate the HTML to display the interactive form of the cipher.

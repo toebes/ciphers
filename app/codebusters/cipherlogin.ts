@@ -1,6 +1,11 @@
 import { CipherHandler } from '../common/cipherhandler';
 import { parseQueryString } from '../common/parsequerystring';
-import { API, GenerateUserSpecificConvergenceToken } from './api';
+import { API, GenerateUserSpecificConvergenceToken, GetConvergenceTokenParameters } from './api';
+import {
+    AuthenticationResult,
+    PublicClientApplication,
+    RedirectRequest,
+} from '@azure/msal-browser';
 
 export class CipherLogin extends CipherHandler {
     /**
@@ -30,6 +35,17 @@ export class CipherLogin extends CipherHandler {
      */
     private static readonly GOOGLE_SCOPE = 'profile email';
 
+    private static readonly SCRIPT_URL_MICROSOFT =
+        'https://alcdn.msauth.net/browser/2.7.0/js/msal-browser.min.js';
+
+    private static readonly MSAL_CONFIG = {
+        auth: {
+            clientId: '6339d587-2583-4efc-817e-bf468a9db48a',
+        },
+    };
+
+    private readonly msalInstance: PublicClientApplication;
+
     /**
      * The url to navigate to after user successfully authenticates.
      */
@@ -47,6 +63,18 @@ export class CipherLogin extends CipherHandler {
 
     constructor() {
         super();
+
+        this.msalInstance = new PublicClientApplication(CipherLogin.MSAL_CONFIG);
+        this.msalInstance
+            .handleRedirectPromise()
+            .then((authenticationResult) => {
+                if (authenticationResult !== null) {
+                    this.onMicrosoftLogin(authenticationResult);
+                }
+            })
+            .catch((error) => {
+                this.onMicrosoftError(error);
+            });
 
         this.api = new API(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
 
@@ -81,21 +109,40 @@ export class CipherLogin extends CipherHandler {
         location.assign(this.returnUrl);
     }
 
-    /**
-     * Called when a google user is sucessfully signed in.
-     * @param googleUser Reference to the user who just signed in.
-     */
-    public onGoogleSuccess(googleUser: gapi.auth2.GoogleUser): void {
-        console.log('Google user has logged in.');
-        const profile = googleUser.getBasicProfile();
+    private onMicrosoftLogin(authenticationResult: AuthenticationResult): void {
+        console.log('Microsoft user has logged in.');
+        const account = authenticationResult.account;
+        const username = account.username;
+        this.setConfigString(CipherHandler.KEY_USER_ID, username);
 
-        this.setConfigString(CipherHandler.KEY_USER_ID, profile.getEmail());
-        this.setConfigString(CipherHandler.KEY_FIRST_NAME, profile.getGivenName());
-        this.setConfigString(CipherHandler.KEY_LAST_NAME, profile.getFamilyName());
+        const name = account.name;
+        if (name !== null && name.length > 0) {
+            const nameSplit = name.split(' ');
+            if (nameSplit.length == 2) {
+                const firstName = nameSplit[0];
+                const lastName = nameSplit[1];
+                this.setConfigString(CipherHandler.KEY_FIRST_NAME, firstName);
+                this.setConfigString(CipherHandler.KEY_LAST_NAME, lastName);
+            } else {
+                this.setConfigString(CipherHandler.KEY_FIRST_NAME, 'No');
+                this.setConfigString(CipherHandler.KEY_LAST_NAME, 'Name');
+            }
+        } else {
+            this.setConfigString(CipherHandler.KEY_FIRST_NAME, 'No');
+            this.setConfigString(CipherHandler.KEY_LAST_NAME, 'Name');
+        }
 
-        const googleIdToken = googleUser.getAuthResponse().id_token;
+        const idToken = authenticationResult.idToken;
+        this.handleGetConvergenceToken({ microsoftIdToken: idToken });
+    }
+
+    private onMicrosoftError(error: any): void {
+        console.log(error);
+    }
+
+    private handleGetConvergenceToken(tokenParameters: GetConvergenceTokenParameters): void {
         this.api
-            .getConvergenceToken({ googleIdToken: googleIdToken })
+            .getConvergenceToken(tokenParameters)
             .then((value) => {
                 if (!(value instanceof String) && value.convergenceToken) {
                     const convergenceToken = value.convergenceToken;
@@ -157,10 +204,31 @@ export class CipherLogin extends CipherHandler {
     }
 
     /**
+     * Called when a google user is sucessfully signed in.
+     * @param googleUser Reference to the user who just signed in.
+     */
+    public onGoogleSuccess(googleUser: gapi.auth2.GoogleUser): void {
+        console.log('Google user has logged in.');
+        const profile = googleUser.getBasicProfile();
+
+        this.setConfigString(CipherHandler.KEY_USER_ID, profile.getEmail());
+        this.setConfigString(CipherHandler.KEY_FIRST_NAME, profile.getGivenName());
+        this.setConfigString(CipherHandler.KEY_LAST_NAME, profile.getFamilyName());
+
+        const googleIdToken = googleUser.getAuthResponse().id_token;
+        this.handleGetConvergenceToken({ googleIdToken: googleIdToken });
+    }
+
+    /**
      * Perform any signout actions particular for Google
      */
     private performGoogleSignout(): void {
         gapi.auth2.getAuthInstance().disconnect();
+    }
+
+    private performMicrosoftSignout(): void {
+        // Need to see if this will always force user to be sent to Microsoft's account page
+        // this.msalInstance.logout();
     }
 
     /**
@@ -168,6 +236,7 @@ export class CipherLogin extends CipherHandler {
      */
     private performSignout(): void {
         this.performGoogleSignout();
+        this.performMicrosoftSignout();
 
         this.deleteConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN);
         this.deleteConfigString(CipherHandler.KEY_FIRST_NAME);
@@ -207,6 +276,18 @@ export class CipherLogin extends CipherHandler {
                         });
                     });
             });
+        });
+
+        $.getScript(CipherLogin.SCRIPT_URL_MICROSOFT, () => {
+            $('.button-microsoft-login')
+                .off('click')
+                .on('click', () => {
+                    const redirectRequest: RedirectRequest = {
+                        scopes: ['openid', 'profile'],
+                        prompt: 'select_account',
+                    };
+                    this.msalInstance.loginRedirect(redirectRequest);
+                });
         });
     }
 }

@@ -1,7 +1,6 @@
-import { param } from 'jquery';
-
 export interface GetConvergenceTokenParameters {
-    googleIdToken: string;
+    googleIdToken?: string;
+    microsoftIdToken?: string;
 }
 
 export interface EnsureUsersExistParameters {
@@ -25,6 +24,10 @@ export class API {
 
     private getGoogleSignInUrl(): string {
         return this.baseUrl + '/api/authentication/GoogleSignIn/';
+    }
+
+    private getMicrosoftSignInUrl(): string {
+        return this.baseUrl + '/api/authentication/MicrosoftSignIn/';
     }
 
     private getEnsureUsersExistUrl(): string {
@@ -130,14 +133,29 @@ export class API {
     }
 
     public getConvergenceToken(parameters: GetConvergenceTokenParameters): Promise<any> {
-        const googleSignInUrl = this.getGoogleSignInUrl();
+        if (parameters.googleIdToken === undefined && parameters.microsoftIdToken === undefined) {
+            return Promise.reject(
+                'No token was passed to parameters for GetConvergenceTokenParameters'
+            );
+        }
+
+        let signInUrl = this.getGoogleSignInUrl();
+        let idToken = parameters.googleIdToken;
+        if ((idToken === undefined || idToken === null) && parameters.microsoftIdToken !== null) {
+            idToken = parameters.microsoftIdToken;
+            signInUrl = this.getMicrosoftSignInUrl();
+        } else {
+            return Promise.reject(
+                'A parameter was passed to GetConvergenceTokenParameters but was null'
+            );
+        }
 
         const content = {
-            IDToken: parameters.googleIdToken,
+            IDToken: idToken,
         };
 
         return new Promise((resolve, reject) => {
-            fetch(googleSignInUrl, {
+            fetch(signInUrl, {
                 method: 'POST',
                 body: JSON.stringify(content),
                 headers: { 'Content-Type': 'application/json; charset=UTF-8' },

@@ -144,7 +144,9 @@ export class API {
         if ((idToken === undefined || idToken === null) && parameters.microsoftIdToken !== null) {
             idToken = parameters.microsoftIdToken;
             signInUrl = this.getMicrosoftSignInUrl();
-        } else {
+        }
+
+        if (idToken === undefined || idToken === null) {
             return Promise.reject(
                 'A parameter was passed to GetConvergenceTokenParameters but was null'
             );

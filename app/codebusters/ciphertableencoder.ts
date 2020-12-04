@@ -274,13 +274,6 @@ export class CipherTableEncoder extends CipherEncoder {
         for (const strset of strings) {
             solution = strset[toanswer].split('');
         }
-        for (let s = 0; s < solution.length; s++) {
-            // The answer comes from the interactive test and has empty strings between
-            // words (vs. spaces).
-            if (solution[s] === ' ') {
-                solution[s] = '';
-            }
-        }
 
         return this.calculateScore(solution, answer, this.state.points);
     }

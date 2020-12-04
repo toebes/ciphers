@@ -22,6 +22,12 @@ table.sticky thead tr th {
     float: right;
 }
 
+
+.loginbutton {
+    padding: 10px;
+    cursor: pointer;
+}
+
 .login-button {
     background-color: #1779ba;
     color: white;

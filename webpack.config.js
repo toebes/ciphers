@@ -266,6 +266,11 @@ module.exports = {
                     flatten: true,
                 },
                 {
+                    from: path.join(__dirname, 'app', 'images', 'ms-symbollockup_signin_dark.svg'),
+                    to: path.resolve(__dirname, 'dist', 'images'),
+                    flatten: true,
+                },
+                {
                     from: path.join(__dirname, 'app', 'images', 'BaconianA.png'),
                     to: path.resolve(__dirname, 'dist', 'images'),
                     flatten: true,

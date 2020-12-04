@@ -13,9 +13,10 @@
         <% } %> <%= require('html-loader!./analytics.html') %>
 
         <div data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-        <div id="google-sign-in-container"></div>
-        <div id="microsoft-sign-in-container">
-            <button class="button-microsoft-login" type="button">Microsoft Login</button>
+        <div id="google-sign-in-container" class="loginbutton"></div>
+        <div id="microsoft-sign-in-container" class="loginbutton">
+            <image src="images/ms-symbollockup_signin_dark.svg"
+                   class="button-microsoft-login" >
         </div>
     </body>
 </html>

@@ -452,6 +452,22 @@ export class CipherTestTimed extends CipherTest {
                         // Make sure that we are the only copy for this yser
                         this.confirmOnly(answermodel, loggedinuserid, realtimeSessionid);
                     }
+                    $("#school").text(answertemplate.teamname);
+
+                    let prefix = answertemplate.teamtype.substr(0,1).toUpperCase();
+                    if (prefix === 'J') {
+                        $("#cvarsity").html("&#9723;");
+                        let jvnum = answertemplate.teamtype.substr(2,1);
+                        let field = "#cjv1";
+                        if (jvnum === '2') {
+                            field = "#cjv2";
+                        } else if (jvnum === '3') {
+                            field = "#cjv3";
+                        }
+                        $(field).html("&#x2611;");
+                    }
+                    
+                    answertemplate.teamtype
                     const testid = answertemplate.testid;
                     // Figure out if it is time to run the test
                     const now = this.testTimeInfo.truetime.UTCNow();

@@ -224,8 +224,8 @@ export class CipherTestSchedule extends CipherTestManage {
             .add(this.dateTimeInput('S_' + rowID, answertemplate.starttime))
             .add(JTFIncButton('Test Duration', 'D_' + rowID, testlength, 'kval small-1'))
             .add(JTFIncButton('Timed Limit', 'T_' + rowID, timedlength, 'kval small-1'))
-            .add($('<input/>', { type: 'text', id: 'N_' + rowID, value: userids[0] }))
-            .add($('<input/>', { type: 'text', id: 'C_' + rowID, value: userids[0] }));
+            .add($('<input/>', { type: 'text', id: 'N_' + rowID, value: answertemplate.teamname }))
+            .add($('<input/>', { type: 'text', id: 'C_' + rowID, value: answertemplate.teamtype }));
     }
     /**
      * Find all the tests scheduled for a given test template

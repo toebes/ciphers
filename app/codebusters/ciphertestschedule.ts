@@ -598,7 +598,7 @@ export class CipherTestSchedule extends CipherTestManage {
                             }
                             const teamtype = record[teamtypefield] as string;
                             if (teamtype !== undefined) {
-                                newTest.teamtype = teamtypefield;
+                                newTest.teamtype = teamtype;
                             }
                             for (const userfield of userfields) {
                                 const username = record[userfield] as string;

@@ -8,6 +8,7 @@ import {
     toolMode,
     IQuestionData,
     ITestQuestionFields,
+    IInteractiveTest,
 } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -27,6 +28,31 @@ export interface buttonInfo {
     btnClass: string;
     disabled?: boolean;
 }
+/** The type of encoding for the alphabet */
+export type IRealtimeObject = 'sourcemodel' | 'testmodel' | 'answertemplate' | 'answermodel'
+/**
+ * Permissions for a single item
+ * Read - Access to view the model
+ * Write - Permission to change the model (or delete self permissions)
+ * Remove - Permission to delete the object
+ * Manage - Permission to set permission for other users on the model
+ */
+export interface RealtimeSinglePermission {
+    read: boolean;
+    write: boolean;
+    remove: boolean;
+    manage: boolean;
+}
+
+/**
+ * Permissions for an element.  The string GLOBAL is associated with
+ * overall permissions for everyone to use.
+ */
+export interface RealtimePermissionSet {
+    [index: string]: RealtimeSinglePermission;
+}
+
+export type modelID = string;
 
 export interface ITestState extends IState {
     /** Number of points a question is worth */
@@ -273,7 +299,7 @@ export class CipherTest extends CipherHandler {
      * @returns ConvergenceSettings (Or null for failure)
      */
     public getConvergenceSettings(): ConvergenceSettings {
-        const baseUrl = this.getConfigString('domain','https://cosso.oit.ncsu.edu/');
+        const baseUrl = this.getConfigString('domain', 'https://cosso.oit.ncsu.edu/');
         const privateKey = ConvergenceAuthentication.getLocalPrivateKey();
         const convergenceNamespace = this.getConfigString('convergenceNamespace', 'convergence');
         const convergenceDomain = this.getConfigString('convergenceDomain', 'scienceolympiad');
@@ -314,7 +340,9 @@ export class CipherTest extends CipherHandler {
 
         const convergenceToken = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
         return new Promise((resolve) => {
-            Convergence.connectWithJwt(connectUrl, convergenceToken)
+            let options: Convergence.IConvergenceOptions = { protocol: { defaultRequestTimeout: 30 }, connection: { timeout: 30 } };
+            options.connection.timeout = 30;
+            Convergence.connectWithJwt(connectUrl, convergenceToken, options)
                 .then((domain) => {
                     resolve(domain);
                 })
@@ -370,12 +398,246 @@ export class CipherTest extends CipherHandler {
         });
     }
 
+    /*-------------------------------------------------------------------------*/
+    /*                   Realtime Model Service Routines                       */
+    /*-------------------------------------------------------------------------*/
+    /**
+     * Get a list of all the answer models associated with a user.
+     * @returns Promise to Array of model ids
+     */
+    public getRealtimeIDs(modeltype: IRealtimeObject): Promise<modelID[]> {
+        return new Promise((resolve, reject) => {
+            // TODO: Implement this
+            resolve([])
+        });
+    }
+    /**
+     * Get all the permissions associated with a model
+     * @param ID ModelId to get permissions for
+     * @returns Promise to set of permissions
+     */
+    public getRealtimePermissions(id: modelID): Promise<RealtimePermissionSet> {
+        return new Promise((resolve, reject) => {
+            const result: RealtimePermissionSet = undefined;
+            // TODO: Implement this
+            resolve(result)
+        });
+    }
+    /**
+     * Set the permissions on a model for a given user.  You must have manage permissions for the id
+     * in order to be able to set permissions for another user.  If setting permissions for yourself,
+     * you must have write or manage permission (or be an admin).  To delete the permissions for a user
+     * it is called with all the permission fields set to false
+     * @param ID Answer ID from the realtime model to associated with the user
+     * @param user Email address of user to add permissions for
+     * @param permissions Permissions to set for user.
+     * @returns Promise to boolean indicating success/failure
+     */
+    public updateRealtimePermissions(id: modelID, user: string, permissions: RealtimeSinglePermission): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            // TODO: Implement this
+            resolve(false)
+        });
+    }
+    /**
+     * Determines if an element exists on the server
+     * @param id ID of element to look for
+     * @reurns Promise to boolean indicating existance
+     */
+    public existsRealtimeContent(modeltype: IRealtimeObject, id: modelID): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            // TODO: Implement this
+            resolve(false)
+        });
+    }
+    /**
+     * Get the JSON data associated with a model entry
+     * @param ID Model ID to get contents for
+     * @returns Promise to JSON structure containing contents of the model
+     */
+    public getRealtimeContents(id: modelID): Promise<JSON> {
+        return new Promise((resolve, reject) => {
+            // TODO: Implement this
+            $.getJSON('xxxx')
+                .done((data) => { resolve(data) })
+        });
+    }
+    /**
+     * Save the contents of a model and generate a new id
+     * @param contents Contents to save
+     * @returns Promise to ID of newly saved model
+     */
+    public saveRealtimeContents(modeltype: IRealtimeObject, contents: string): Promise<modelID> {
+        return new Promise((resolve, reject) => {
+            // TODO: Implement this
+            resolve("");
+        });
+    }
+    /**
+     * Update the contents of a model for a given id.  Note that if the object doesn't exist
+     * it should be created.  This is because we will use it for the answer models in order to
+     * store the permissions and find tests associated with them.
+     * @param contents Contents to save
+     * @param ID Model to be updated
+     * @returns Promise to ID of model updated
+     */
+    public updateRealtimeContents(modeltype: IRealtimeObject, contents: string, id: modelID): Promise<modelID> {
+        return new Promise((resolve, reject) => {
+            // TODO: Implement this
+            resolve("");
+        });
+    }
+    /**
+     * Look up a single value in a stored model.  If the model doesn't exist or the element
+     * doesn't exist, it should reject.
+     * @param id ID of model to query
+     * @param element top level element in model to retrieve value for
+     * @returns Promise to string containing value for element
+     */
+    public getRealtimeElementValue(id: modelID, element: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            // TODO: Implement this
+            resolve("");
+        });
+    }
+    public getAllMatchingElements(modeltype: IRealtimeObject, field: string, value: string): Promise<modelID[]> {
+        return new Promise((resolve, reject) => {
+            // TODO: Implement this
+            resolve([]);
+        });
+    }
+    /*-------------------------------------------------------------------------*/
+    /*                            Source Models                                */
+    /*-------------------------------------------------------------------------*/
+    /**
+     * Get a list of all source IDs that the user has permission to read (this includes global permissions)
+     * @returns Promise to array of strings for all elements that the user can read
+     */
+    public getRealtimeSourceIDs(): Promise<modelID[]> {
+        return this.getRealtimeIDs('sourcemodel');
+    }
+    /**
+     * Get the contents of a Source model
+     * @param sourceid ID of model to return
+     * @returns Promise to interactive test contents
+     */
+    public getRealtimeSource(sourceid: modelID): Promise<any> {
+        return this.getRealtimeContents(sourceid) as any;
+    }
+    /**
+     * Save the Source for a new test
+     * @param interactiveTest Test to be saved
+     * @returns Promise to ID of the newly created interactive test
+     */
+    public saveRealtimeSource(testsource: any): Promise<modelID> {
+        return this.saveRealtimeContents('sourcemodel', JSON.stringify(testsource));
+    }
+    /**
+     * Update the source for an existing test
+     * @param interactiveTest Test Sour
+     * @param ID Model to be updated
+     * @returns Promise to ID of model updated
+     */
+    public updateRealtimeSource(testsource: any, id: modelID): Promise<modelID> {
+        return this.updateRealtimeContents('sourcemodel', JSON.stringify(testsource), id);
+    }
+    /**
+     * Determines if a source test exists on the server
+     * @param sourceid ID of source test to look for
+     * @returns Promise to boolean status indicating existance
+     */
+    public existsRealtimeSource(sourceid: modelID): Promise<boolean> {
+        return this.existsRealtimeContent('sourcemodel', sourceid);
+    }
+    /*-------------------------------------------------------------------------*/
+    /*                            Answer Templates                             */
+    /*-------------------------------------------------------------------------*/
+    /**
+     * Saves a new realtime answer template
+     * @param answerTemplate Answer template contents to save
+     * @returns Promise to ID of newly created template
+     */
+    public saveRealtimeAnswerTemplate(answerTemplate: IAnswerTemplate): Promise<modelID> {
+        return this.saveRealtimeContents('answertemplate', JSON.stringify(answerTemplate));
+    }
+    /**
+     * 
+     * @param answerTemplate new Answer template contents to save
+     * @param answertemplateid Id of template to be updated
+     * @returns Promise to ID of updated template (should be the same as answertemplateid passed in)
+     */
+    public updateRealtimeAnswerTemplate(answerTemplate: IAnswerTemplate, answertemplateid: modelID): Promise<modelID> {
+        return this.updateRealtimeContents('answertemplate', JSON.stringify(answerTemplate), answertemplateid);
+    }
+    /**
+     * Get the contents of an answer template
+     * @param answertemplateid ID of answer template to retrieve
+     * @returns Promise to contents of answer template
+     */
+    public getRealtimeAnswerTemplate(answertemplateid: modelID): Promise<IAnswerTemplate> {
+        return this.getRealtimeContents(answertemplateid) as unknown as Promise<IAnswerTemplate>;
+    }
+    /*-------------------------------------------------------------------------*/
+    /*                            Test Models                                  */
+    /*-------------------------------------------------------------------------*/
+    /**
+     * Saves a new realtime answer template
+     * @param answerTemplate Answer template contents to save
+     * @returns Promise to ID of newly created template
+     */
+    public saveRealtimeTestModel(testmodel: IInteractiveTest): Promise<modelID> {
+        return this.saveRealtimeContents('testmodel', JSON.stringify(testmodel));
+    }
+    /**
+     * 
+     * @param answerTemplate new Answer template contents to save
+     * @param answertemplateid Id of template to be updated
+     * @returns Promise to ID of updated template (should be the same as answertemplateid passed in)
+     */
+    public updateRealtimeTestModel(testmodel: IInteractiveTest, answertemplateid: modelID): Promise<modelID> {
+        return this.updateRealtimeContents('testmodel', JSON.stringify(testmodel), answertemplateid);
+    }
+    /**
+     * Get the contents of an answer template
+     * @param answertemplateid ID of answer template to retrieve
+     * @returns Promise to contents of answer template
+     */
+    public getRealtimeTestModel(answertemplateid: modelID): Promise<IInteractiveTest> {
+        return this.getRealtimeContents(answertemplateid) as unknown as Promise<IInteractiveTest>;
+    }
+    /**
+     * Find the source ID for a given test template
+     * @param testmodelid ID of test model
+     * @returns Promise to ID of corresponding source model
+     */
+    public getRealtimeTestSourceID(testmodelid: modelID): Promise<modelID> {
+        return this.getRealtimeElementValue(testmodelid, 'testid');
+    }
+    /*-------------------------------------------------------------------------*/
+    /*                            Answer Models                                */
+    /*-------------------------------------------------------------------------*/
+    /**
+     * 
+     * @param testmodelid Test model to find answer models for
+     * @returns Promise of array of ids
+     */
+    public getRealtimeTestAnswerIDs(testmodelid: modelID): Promise<modelID[]> {
+        return this.getAllMatchingElements('answermodel', 'testid', testmodelid);
+    }
+    /**
+     * Get a list of all the answer models associated with a user.
+     * @returns Promise to Array of model ids
+     */
+    public getRealtimeAnswerIDs(): Promise<modelID[]> {
+        return this.getRealtimeIDs('answermodel');
+    }
+
     public setTestEditState(testdisp: ITestDisp): void {
         JTRadioButtonSet('testdisp', testdisp);
     }
     /**
      * Maps a string to the corresponding test type ID
-     * @param id string representation of the id
+     * @param ID string representation of the id
      */
     public mapTestTypeString(id: string): ITestType {
         let result = ITestType.None;
@@ -435,7 +697,7 @@ export class CipherTest extends CipherHandler {
         });
         location.reload();
     }
-    public exportTests(): void {}
+    public exportTests(): void { }
     public importTests(useLocalData: boolean): void {
         this.openXMLImport(useLocalData);
     }
@@ -666,7 +928,7 @@ export class CipherTest extends CipherHandler {
     }
     /**
      * Generate a dropdown for the type of test
-     * @param id HTML id of the generated dropdown
+     * @param ID HTML ID of the generated dropdown
      * @param title Title text for the generated dropdown
      */
     public genTestTypeDropdown(
@@ -708,7 +970,7 @@ export class CipherTest extends CipherHandler {
     }
     /**
      * Create a dropdown to allow inserting a new cipher type
-     * @param id HTML id of the generated dropdown
+     * @param ID HTML ID of the generated dropdown
      * @param title Title text for the generated dropdown
      */
     public genNewCipherDropdown(

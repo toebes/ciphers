@@ -94,9 +94,9 @@ export class CipherTestResults extends CipherTestManage {
     ): Promise<any> {
         console.log(
             'Finding source with: ' +
-                "SELECT * FROM codebusters_source where testid='" +
-                testModelId +
-                "'"
+            "SELECT * FROM codebusters_source where testid='" +
+            testModelId +
+            "'"
         );
         return modelService
             .query("SELECT * FROM codebusters_source where testid='" + testModelId + "'")
@@ -152,6 +152,8 @@ export class CipherTestResults extends CipherTestManage {
                             table = new JTTable({ class: 'cell shrink publist testresults' });
                             const row = table.addHeaderRow();
                             row.add('Action')
+                                .add('School')
+                                .add('Type')
                                 .add('Start Time')
                                 .add('End Time')
                                 .add('Timed Question')
@@ -169,6 +171,8 @@ export class CipherTestResults extends CipherTestManage {
                             testTakers: '',
                             score: 0,
                             questions: [],
+                            teamname: '',
+                            teamtype: ''
                         };
 
                         const startTime = result.data.starttime;
@@ -177,6 +181,8 @@ export class CipherTestResults extends CipherTestManage {
                         const testEnded = timestampToFriendly(endTime);
                         let bonusWindow = 0;
                         let bonusTime = 0;
+                        const teamname = result.data.teamname;
+                        const teamtype = result.data.teamtype;
                         const users = result.data.assigned;
 
                         let userList = '';
@@ -261,9 +267,9 @@ export class CipherTestResults extends CipherTestManage {
                                 scoreInformation.score = 1;
                                 console.log(
                                     'Unable to handle genScore() in cipher: ' +
-                                        state.cipherType +
-                                        ' on question: ' +
-                                        questions[i - 1].toString()
+                                    state.cipherType +
+                                    ' on question: ' +
+                                    questions[i - 1].toString()
                                 );
                                 e.stackTrace;
                             }
@@ -284,6 +290,9 @@ export class CipherTestResults extends CipherTestManage {
                         testResultsData.bonusTime = bonusTime;
                         testResultsData.testTakers = userList;
                         testResultsData.score = testScore;
+                        testResultsData.teamname = teamname;
+                        testResultsData.teamtype = teamtype;
+
                         scheduledTestScores.addTest(testResultsData);
 
                         total++;
@@ -307,7 +316,7 @@ export class CipherTestResults extends CipherTestManage {
                         const testQuestions = scoredTests[indexTest].questions;
                         // these testQuestion must be sorted by question number before adding
                         // to the detailed results table.
-                        testQuestions.sort(function(a, b){return a.questionNumber-b.questionNumber});
+                        testQuestions.sort(function (a, b) { return a.questionNumber - b.questionNumber });
                         // Create the table containing the details for this test.
                         const viewTable = new JTTable({ class: 'cell shrink testscores' });
                         const viewTableHeader = viewTable.addHeaderRow();
@@ -411,6 +420,8 @@ export class CipherTestResults extends CipherTestManage {
                             tieBreakClass = 'tiebreak';
                         }
                         row.add(buttons)
+                            .add(itemTest.teamname)
+                            .add(itemTest.teamtype)
                             .add(itemTest.startTime) // Start Time
                             .add(itemTest.endTime) // End Time
                             .add(solvedTime) // Timed question End

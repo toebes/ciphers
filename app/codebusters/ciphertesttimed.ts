@@ -285,9 +285,9 @@ export class CipherTestTimed extends CipherTest {
             class: 'callout alert',
         }).text(
             'Your userid is already being used to take this test currently.' +
-                '  This may be because a web page is already open to the test or ' +
-                'someone may have logged into your account without you knowing.  ' +
-                'You can take the test in this window or exit and let that session continue running.'
+            '  This may be because a web page is already open to the test or ' +
+            'someone may have logged into your account without you knowing.  ' +
+            'You can take the test in this window or exit and let that session continue running.'
         );
         const MultiLoginDlg = JTFDialog(
             'multilogindlg',
@@ -454,10 +454,10 @@ export class CipherTestTimed extends CipherTest {
                     }
                     $("#school").text(answertemplate.teamname);
 
-                    let prefix = answertemplate.teamtype.substr(0,1).toUpperCase();
+                    let prefix = answertemplate.teamtype.substr(0, 1).toUpperCase();
                     if (prefix === 'J') {
                         $("#cvarsity").html("&#9723;");
-                        let jvnum = answertemplate.teamtype.substr(2,1);
+                        let jvnum = answertemplate.teamtype.substr(2, 1);
                         let field = "#cjv1";
                         if (jvnum === '2') {
                             field = "#cjv2";
@@ -466,7 +466,7 @@ export class CipherTestTimed extends CipherTest {
                         }
                         $(field).html("&#x2611;");
                     }
-                    
+
                     answertemplate.teamtype
                     const testid = answertemplate.testid;
                     // Figure out if it is time to run the test

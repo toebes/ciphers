@@ -30,6 +30,7 @@ export interface buttonInfo {
 }
 /** The type of encoding for the alphabet */
 export type IRealtimeObject = 'sourcemodel' | 'testmodel' | 'answertemplate' | 'answermodel'
+export type IRealtimeFields = 'testid' | 'sourceid' | 'answerid'
 /**
  * Permissions for a single item
  * Read - Access to view the model
@@ -401,9 +402,84 @@ export class CipherTest extends CipherHandler {
     /*-------------------------------------------------------------------------*/
     /*                   Realtime Model Service Routines                       */
     /*-------------------------------------------------------------------------*/
+
+    /**
+     * 
+     * Four files which are used by the system:
+     *    sourcemodel  -  Edited by the offline ccodebusters site and has all the questions
+     *                    the type of test, name of test, and answers as well as other supporting
+     *                    information to run a test (running keys, morsecode)
+     *                    Only the person who cretes the test or schedules the test has access
+     *                    to the sourcemodel.
+     *    testmodel - The enciphered HTML for each of the questions and a refernece to the
+     *                answertemplate.  This is the visual representation of the sourcemodel
+     *                but the only answer it has in it is the encyphered timed question answer.
+     *                The person who schedules the test has full access to the test model,
+     *                students only have access to the test model until they have completed
+     *                taking the test.
+     *    answertemplate - The description of the fields that are used to track the answers.
+     *                     It is copied for each scheduled test.
+     *    answermodel - The realitme version of all the fields for taking the test.  This is the
+     *                  only model which is managed by convergence.
+     *                  It has the start time, end time, and list of students
+     *                  assigned to take the test along with their school information.  
+     *                  Once the students finish the test, they lose acccess to the answermodel.
+     * 
+     *   When Taking a test, the system loads the answermodel for the team and the testmodel.
+     *   The testmodel is deciphered to generate the HTML for the page and the answermodel is
+     *   connected through the convergence realtime system to allow communications between students
+     *   taking the test.
+     * 
+     *   When scoring a test, the system uses the answermodel and the sourcemodel to check the answers.
+     * 
+     *   When publishing a test, the sourcemodel is loaded and the testmodel and answertemplates are 
+     *   generated and stored
+     * 
+     *   When scheduling a test, the answertemplate is copied and the user information and time
+     *   is filled in and stored as an answermodel.
+     */
+
+    /** 
+     *   File contents
+     *    sourcemodel/
+     *        <guuid>.json    - { testid: "<guuid>", answertemplate: "<guuid>", rest of the source }
+     *    testmodel/            { sourcemodel: "<guuid>", rest of the test stuff }
+     *        <guuid>.json
+     *    answertemplate/
+     *        <guuid>.json     - { testid: "<guuid>", rest of the answer stuff}
+     *    answermodel/   (Not really stored) Only parsed to get the testid, all other contents are ignored.
+     *        <guuid>.json      - { testid: "<guuid>"}    -- the entire contents of the file
+     * 
+     *  Database contents
+     *    Models
+     *      id(key)     type             id         testid    sourceid   answertemplate  DateCreated  CreatedBy    
+     *      <guuid>     'sourcemodel'    <sguuid>   <tguuid>  --------   <wguuid>        <date>       john@toebes.com
+     *      <guuid>     'testmodel'      <tguuid>   -------   <sguuid>   <wguid>         <date>       john@toebes.com
+     *      <guuid>     'answertemplate' <wguuid>   <tguuid>             --------        <date>       john@toebes.com
+     *      <guuid>     'answermodel'    <aguuid>   <tguuid>             --------        <date>       john@toebes.com
+     * 
+     *   Permissions
+     *       key    id(fkey)  name                 read    write    manage   delete
+     *       <X>   <sguuid>   GLOBAL                 Y       Y         N        N
+     *       <X>   <sguuid>   john@toebes.com        Y       Y         Y        Y
+     *       <X>   <sguuid>   mrseanmcd@gmail.com    Y       Y         N        N
+     * 
+     */
+
+
     /**
      * Get a list of all the answer models associated with a user.
      * @returns Promise to Array of model ids
+     *    SELECT
+     *       id
+     *    FROM 
+     *       Models,
+     *       Permissions
+     *    WHERE
+     *       Moodels.id=Permissions.id AND
+     *       Models.type=::modeltype:: AND
+     *       ((Permissions.name == 'GLOBAL' AND Permissions.read) OR
+     *        (Permissions.name == ::userid:: AND Permissions.read))
      */
     public getRealtimeIDs(modeltype: IRealtimeObject): Promise<modelID[]> {
         return new Promise((resolve, reject) => {
@@ -411,10 +487,17 @@ export class CipherTest extends CipherHandler {
             resolve([])
         });
     }
+
     /**
      * Get all the permissions associated with a model
      * @param ID ModelId to get permissions for
      * @returns Promise to set of permissions
+     *   SELECT 
+     *       *
+     *   FROM
+     *       Permissions
+     *    WHERE
+     *       id = ::id::
      */
     public getRealtimePermissions(id: modelID): Promise<RealtimePermissionSet> {
         return new Promise((resolve, reject) => {
@@ -432,6 +515,14 @@ export class CipherTest extends CipherHandler {
      * @param user Email address of user to add permissions for
      * @param permissions Permissions to set for user.
      * @returns Promise to boolean indicating success/failure
+     * 
+     *   UPSERT
+     *      Permissions
+     *   WHERE
+     *      id = ::id:: AND
+     *      user = ::user::
+     *   SET
+     *     id=::id::,user=::user::,read=::read::....
      */
     public updateRealtimePermissions(id: modelID, user: string, permissions: RealtimeSinglePermission): Promise<boolean> {
         return new Promise((resolve, reject) => {
@@ -451,7 +542,8 @@ export class CipherTest extends CipherHandler {
         });
     }
     /**
-     * Get the JSON data associated with a model entry
+     * Get the JSON data associated with a model entry.  Note that if you ask for one that is
+     * an answermodel (which really is stored in convergence) then the promise will be rejected.
      * @param ID Model ID to get contents for
      * @returns Promise to JSON structure containing contents of the model
      */
@@ -463,7 +555,8 @@ export class CipherTest extends CipherHandler {
         });
     }
     /**
-     * Save the contents of a model and generate a new id
+     * Save the contents of a model and generate a new id.
+     * Permissions on the file are set to the current user with Read/Write/Manage/Delete
      * @param contents Contents to save
      * @returns Promise to ID of newly saved model
      */
@@ -477,6 +570,8 @@ export class CipherTest extends CipherHandler {
      * Update the contents of a model for a given id.  Note that if the object doesn't exist
      * it should be created.  This is because we will use it for the answer models in order to
      * store the permissions and find tests associated with them.
+     * Permissions on the file are set to the current user with Read/Write/Manage/Delete
+     * No other permissions are deleted.
      * @param contents Contents to save
      * @param ID Model to be updated
      * @returns Promise to ID of model updated
@@ -493,14 +588,43 @@ export class CipherTest extends CipherHandler {
      * @param id ID of model to query
      * @param element top level element in model to retrieve value for
      * @returns Promise to string containing value for element
-     */
-    public getRealtimeElementValue(id: modelID, element: string): Promise<string> {
+     * 
+     *    SELECT
+     *       ::element::
+     *    FROM 
+     *       Models,
+     *       Permissions
+     *    WHERE
+     *       Moodels.id=Permissions.id AND
+     *       Models.type=::modeltype:: AND
+     *       ((Permissions.name == 'GLOBAL' AND Permissions.read) OR
+     *        (Permissions.name == ::userid:: AND Permissions.read)) 
+    */
+    public getRealtimeElementValue(id: modelID, element: IRealtimeFields): Promise<string> {
         return new Promise((resolve, reject) => {
             // TODO: Implement this
             resolve("");
         });
     }
-    public getAllMatchingElements(modeltype: IRealtimeObject, field: string, value: string): Promise<modelID[]> {
+    /**
+     * 
+     * @param modeltype Type of element to search for
+     * @param field Field to match against (testmodelid, sourceid)
+     * @param value Value to match against
+     * 
+     *    SELECT
+     *      id
+     *    FROM 
+     *       Models,
+     *       Permissions
+     *    WHERE
+     *       Moodels.id=Permissions.id AND
+     *       Models.type=::modeltype:: AND
+     *       Modeld.::field::=::value:: AND
+     *       ((Permissions.name == 'GLOBAL' AND Permissions.read) OR
+     *        (Permissions.name == ::userid:: AND Permissions.read)) 
+     */
+    public getAllMatchingElements(modeltype: IRealtimeObject, field: IRealtimeFields, value: string): Promise<modelID[]> {
         return new Promise((resolve, reject) => {
             // TODO: Implement this
             resolve([]);

@@ -87,7 +87,7 @@ export class CipherTakeTest extends CipherTest {
         const modelService = domain.models();
         const userid = this.getConfigString('userid', 'NOBODY');
         modelService
-            .query('SELECT * FROM codebusters_answers')
+            .query('SELECT testid,starttime,endtime,assigned FROM codebusters_answers')
             .then((results) => {
                 let count = 0;
                 results.data.forEach((result) => {
@@ -212,7 +212,7 @@ export class CipherTakeTest extends CipherTest {
      * Print hints for a test
      * @param testid Id of test model
      */
-    public printHints(testid: string): void {}
+    public printHints(testid: string): void { }
     /**
      * Locate the model id for an element.  This looks for the data-source attribute of the containing TR
      * @param elem element to get information for

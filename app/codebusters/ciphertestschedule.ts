@@ -67,8 +67,10 @@ export class CipherTestSchedule extends CipherTestManage {
         { title: 'Reschedule All', color: 'primary', id: 'propsched' },
         { title: 'Save All', color: 'primary', id: 'savesched', disabled: true },
         { title: 'Delete All', color: 'alert', id: 'delallsched' },
+        { title: 'Fix Permissions', color: 'primary', id: 'fixpermissions' }
     ];
 
+    public testmodelid = undefined;
     /**
      * Provides communication to our REST server.
      */
@@ -127,6 +129,7 @@ export class CipherTestSchedule extends CipherTestManage {
                     .root()
                     .elementAt('testid')
                     .value();
+                this.testmodelid = testmodelid;
                 const answermodelid = realtimeModel
                     .root()
                     .elementAt('answerid')
@@ -300,7 +303,7 @@ export class CipherTestSchedule extends CipherTestManage {
      */
     public makeAnswerTemplate(modelService: ModelService, testinfo: testInfo): void {
         const answerTemplate: IAnswerTemplate = {
-            testid: this.answerTemplate.testid,
+            testid: this.testmodelid,
             starttime: testinfo.starttime,
             endtime: testinfo.starttime + timestampFromMinutes(testinfo.testlength),
             endtimed: testinfo.starttime + timestampFromMinutes(testinfo.timedlength),
@@ -392,6 +395,49 @@ export class CipherTestSchedule extends CipherTestManage {
         $('#delalldlg').foundation('open');
     }
     /**
+     * Fix the permissions for a single model
+     * @param modelService realtime model service for making request
+     * @param eid entry id to get data for
+     * @param modelid Model id to set permissions on
+     * @returns Array of strings corresponding to users added
+     */
+    public fixPermissions(modelService: ModelService, eid: string, modelid: string): string[] {
+        let name1 = $('#U0_' + eid).val() as string;
+        let name2 = $('#U1_' + eid).val() as string;
+        let name3 = $('#U2_' + eid).val() as string;
+        name1 = name1.trim();
+        name2 = name2.trim();
+        name3 = name3.trim();
+
+        const added: string[] = [];
+
+        if (name1 !== '') {
+            added.push(name1);
+        }
+        if (name2 !== '') {
+            added.push(name2);
+        }
+        if (name3 !== '') {
+            added.push(name3);
+        }
+        this.saveUserPermissions(modelService, modelid, [], added);
+        return added;
+    }
+    /**
+     * Fix the permissions for all scheduled tests.
+     */
+    public fixAllPermissions(): void {
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+            const modelService = domain.models();
+            let added: string[] = [];
+            $('.pubsave').each((i, elem) => {
+                let thisset = this.fixPermissions(modelService, this.getRowID($(elem)), this.getModelID($(elem)));
+                added = added.concat(thisset);
+            });
+            this.saveUserPermissions(modelService, this.testmodelid, [], added);
+        });
+    }
+    /**
      *
      * @param id Which button was clicked on
      */
@@ -406,9 +452,13 @@ export class CipherTestSchedule extends CipherTestManage {
      */
     public saveScheduled(eid: string, testid: string): void {
         const userlist: string[] = [];
-        const name1 = $('#U0_' + eid).val() as string;
-        const name2 = $('#U1_' + eid).val() as string;
-        const name3 = $('#U2_' + eid).val() as string;
+        let name1 = $('#U0_' + eid).val() as string;
+        let name2 = $('#U1_' + eid).val() as string;
+        let name3 = $('#U2_' + eid).val() as string;
+        name1 = name1.trim();
+        name2 = name2.trim();
+        name3 = name3.trim();
+
         if (name1 !== '') {
             userlist.push(name1);
         }
@@ -660,6 +710,7 @@ export class CipherTestSchedule extends CipherTestManage {
         toadd: string[]
     ): void {
         const permissionManager = modelService.permissions(modelid);
+        let changed = false;
         permissionManager
             .getAllUserPermissions()
             .then((allPermissions) => {
@@ -667,6 +718,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 // first go through the ones to remove
                 for (const userid of toremove) {
                     if (allPermissions.has(userid)) {
+                        changed = true;
                         const permit: ModelPermissions = allPermissions.get(userid);
                         // They must be able to read/write but not remove/manage if it is a user
                         if (permit.read && permit.write && !permit.remove && !permit.manage) {
@@ -676,6 +728,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 }
                 for (const userid of toadd) {
                     if (!allPermissions.has(userid)) {
+                        changed = true;
                         toCheck.push(userid);
                         allPermissions.set(
                             userid,
@@ -692,14 +745,18 @@ export class CipherTestSchedule extends CipherTestManage {
                 if (toadd.length > 0) {
                     this.ensureUsersExist(modelService, toadd).then(() => {
                         // We have updated the permissions, so save it back.
+                        if (changed) {
+                            permissionManager.setAllUserPermissions(allPermissions).catch((error) => {
+                                this.reportFailure('Unable to set model permissions: ' + error);
+                            });
+                        }
+                    });
+                } else {
+                    if (changed) {
                         permissionManager.setAllUserPermissions(allPermissions).catch((error) => {
                             this.reportFailure('Unable to set model permissions: ' + error);
                         });
-                    });
-                } else {
-                    permissionManager.setAllUserPermissions(allPermissions).catch((error) => {
-                        this.reportFailure('Unable to set model permissions: ' + error);
-                    });
+                    }
                 }
             })
             .catch((error) => {
@@ -777,7 +834,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 datamodel.close();
                 // Reset the permissions on the model.  Remove anyone who was taken off and add anyone
                 this.saveUserPermissions(modelService, modelid, removed, added);
-                this.saveUserPermissions(modelService, this.answerTemplate.testid, [], added);
+                this.saveUserPermissions(modelService, this.testmodelid, [], added);
             })
             .catch((error) => {
                 this.reportFailure('Could not open model to save: ' + error);
@@ -953,6 +1010,11 @@ export class CipherTestSchedule extends CipherTestManage {
             .off('click')
             .on('click', () => {
                 this.gotoDeleteAllScheduled();
+            });
+        $('#fixpermissions')
+            .off('click')
+            .on('click', () => {
+                this.fixAllPermissions();
             });
         $('#savesched')
             .off('click')

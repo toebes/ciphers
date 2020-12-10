@@ -99,7 +99,7 @@ export class CipherTestResults extends CipherTestManage {
             "'"
         );
         return modelService
-            .query("SELECT * FROM codebusters_source where testid='" + testModelId + "'")
+            .query("SELECT source FROM codebusters_source where testid='" + testModelId + "'")
             .then((results) => {
                 let count = 0;
                 let testSource = undefined;

@@ -71,7 +71,7 @@ export class CipherTestPublished extends CipherTestManage {
     private findAllTests(domain: ConvergenceDomain): void {
         const modelService = domain.models();
         modelService
-            .query('SELECT * FROM codebusters_source')
+            .query('SELECT source FROM codebusters_source')
             .then((results) => {
                 results.data.forEach((result) => {
                     let questions = result.data.source['TEST.0'].count;
@@ -190,7 +190,7 @@ export class CipherTestPublished extends CipherTestManage {
         answermodelid: string
     ): void {
         modelService
-            .query("SELECT * FROM codebusters_answers where testid='" + testmodelid + "'")
+            .query("SELECT testid FROM codebusters_answers where testid='" + testmodelid + "'")
             .then((results) => {
                 let total = 0;
                 let templatecount = 0;
@@ -259,9 +259,9 @@ export class CipherTestPublished extends CipherTestManage {
             class: 'callout alert',
         }).text(
             'This will delete the published test from the server! ' +
-                'This operation can not be undone. ' +
-                'Please make sure you have saved a copy in case you need it. ' +
-                '  Are you sure you want to do this?'
+            'This operation can not be undone. ' +
+            'Please make sure you have saved a copy in case you need it. ' +
+            '  Are you sure you want to do this?'
         );
         const DeletePublishedDlg = JTFDialog(
             'delpubdlg',
@@ -311,7 +311,7 @@ export class CipherTestPublished extends CipherTestManage {
         const modelService = domain.models();
         // Our query should get all of the answer templates which reference the test
         modelService
-            .query("SELECT * FROM codebusters_answers where testid='" + testmodelid + "'")
+            .query("SELECT testid FROM codebusters_answers where testid='" + testmodelid + "'")
             .then((results) => {
                 results.data.forEach((result) => {
                     modelService.remove(result.modelId).catch((error) => {

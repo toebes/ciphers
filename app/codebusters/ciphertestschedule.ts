@@ -238,7 +238,7 @@ export class CipherTestSchedule extends CipherTestManage {
         answermodelid: string
     ): void {
         modelService
-            .query("SELECT * FROM codebusters_answers where testid='" + testmodelid + "'")
+            .query("SELECT assigned,starttime,endtimed,endtime,teamname,teamtype FROM codebusters_answers where testid='" + testmodelid + "'")
             .then((results) => {
                 let total = 0;
                 let templatecount = 0;
@@ -852,8 +852,8 @@ export class CipherTestSchedule extends CipherTestManage {
             class: 'callout alert',
         }).text(
             'This will copy the times from the first test to all other tests. ' +
-                'You will need to save the changes after it propagates the times. ' +
-                'Are you sure you want to do this?'
+            'You will need to save the changes after it propagates the times. ' +
+            'Are you sure you want to do this?'
         );
         const PropagateScheduleDlg = JTFDialog(
             'propscheddlg',

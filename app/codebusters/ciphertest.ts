@@ -592,6 +592,7 @@ export class CipherTest extends CipherHandler {
      */
     public existsRealtimeContent(modeltype: IRealtimeObject, id: modelID): Promise<boolean> {
         return new Promise((resolve, reject) => {
+            // This doesn't appear to be used anywhere and might be something we can delete
             // TODO: Implement this
             resolve(false)
         });
@@ -687,6 +688,7 @@ export class CipherTest extends CipherHandler {
     public getMatchingElementMetadata(modeltype: IRealtimeObject, field: IRealtimeFields, value: string): Promise<IRealtimeMetaData[]> {
         return new Promise((resolve, reject) => {
             // TODO: Implement this
+            // Currently we are not using this routine anywhere... It could potentially be deleted.
             resolve([]);
         });
     }
@@ -726,6 +728,7 @@ export class CipherTest extends CipherHandler {
      * @returns Promise to boolean status indicating existance
      */
     public existsRealtimeSource(sourceid: modelID): Promise<boolean> {
+        // This wrapper doesn't appear to be used and might be deleted
         return this.existsRealtimeContent('sourcemodel', sourceid);
     }
     /*-------------------------------------------------------------------------*/
@@ -774,33 +777,10 @@ export class CipherTest extends CipherHandler {
     public getRealtimeTestModel(answertemplateid: modelID): Promise<IInteractiveTest> {
         return this.getRealtimeContents(answertemplateid) as unknown as Promise<IInteractiveTest>;
     }
-    // /**
-    //  * Find the source ID for a given test template
-    //  * @param testmodelid ID of test model
-    //  * @returns Promise to ID of corresponding source model
-    //  */
-    // public getRealtimeTestSourceID(testmodelid: modelID): Promise<modelID> {
-    //     return this.getRealtimeElementValue(testmodelid, 'testid');
-    // }
-    // /*-------------------------------------------------------------------------*/
-    // /*                            Answer Models                                */
-    // /*-------------------------------------------------------------------------*/
-    // /**
-    //  * 
-    //  * @param testmodelid Test model to find answer models for
-    //  * @returns Promise of array of ids
-    //  */
-    // public getRealtimeTestAnswerIDs(testmodelid: modelID): Promise<modelID[]> {
-    //     return this.getAllMatchingElements('answermodel', 'testid', testmodelid);
-    // }
-    // /**
-    //  * Get a list of all the answer models associated with a user.
-    //  * @returns Promise to Array of model ids
-    //  */
-    // public getRealtimeAnswerIDs(): Promise<modelID[]> {
-    //     return this.getRealtimeIDs('answermodel');
-    // }
-
+    /**
+     * 
+     * @param testdisp Test state
+     */
     public setTestEditState(testdisp: ITestDisp): void {
         JTRadioButtonSet('testdisp', testdisp);
     }

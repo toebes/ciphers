@@ -424,7 +424,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 let thisset = this.fixPermissions(modelService, this.getRowID($(elem)), this.getModelID($(elem)));
                 added = added.concat(thisset);
             });
-            this.saveUserPermissions(modelService, this.testmodelid, [], added);
+            this.saveTestModelPermissions(this.testmodelid, added);
         });
     }
     /**
@@ -444,7 +444,7 @@ export class CipherTestSchedule extends CipherTestManage {
         this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
             const modelService = domain.models();
             const userlist = this.saveAnswerSlot(modelService, eid, testid);
-            this.saveUserPermissions(modelService, this.testmodelid, [], userlist);
+            this.saveTestModelPermissions(this.testmodelid, userlist);
         });
     }
     /**
@@ -498,7 +498,7 @@ export class CipherTestSchedule extends CipherTestManage {
                     userlist = userlist.concat(this.saveAnswerSlot(modelService, this.getRowID($(elem)), this.getModelID($(elem))));
                 }
             });
-            this.saveUserPermissions(modelService, this.testmodelid, [], userlist);
+            this.saveTestModelPermissions(this.testmodelid, userlist);
         });
     }
     /**
@@ -701,7 +701,29 @@ export class CipherTestSchedule extends CipherTestManage {
 
         return this.api.ensureUsersExist(parameters);
     }
-
+    /**
+     * Add read permissions to the Test Model
+     * @param testmodelid ID of the test model
+     * @param users List of users to grant permission
+     */
+    public saveTestModelPermissions(testmodelid: string, users: string[]) {
+        // Start with what is currently on the model
+        this.getRealtimePermissions(testmodelid)
+            .then((permissionset) => {
+                // Then check each user to see if they already have access
+                users.forEach((user) => {
+                    let permissions = permissionset[user];
+                    // If they don't have any permissions or their read permissions are turned off, we want to give them just read access
+                    // this prevents us from removing the full access access for the main owner of the test model
+                    if (permissions === undefined || permissions.read === false) {
+                        this.updateRealtimePermissions(testmodelid, user, { read: true, write: false, remove: false, manage: false })
+                            .catch((error) => {
+                                this.reportFailure("Unable to set permissions for " + user + " on " + testmodelid + ":" + error);
+                            });
+                    }
+                });
+            });
+    }
     /**
      * Update the permissions on a model entry
      * @param modelService Domain Model service object for making requests
@@ -709,12 +731,7 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param toremove List of users to remove access for
      * @param toadd List of users to add access for
      */
-    public saveUserPermissions(
-        modelService: ModelService,
-        modelid: string,
-        toremove: string[],
-        toadd: string[]
-    ): void {
+    public saveUserPermissions(modelService: ModelService, modelid: string, toremove: string[], toadd: string[]): void {
         const permissionManager = modelService.permissions(modelid);
         let changed = false;
         permissionManager

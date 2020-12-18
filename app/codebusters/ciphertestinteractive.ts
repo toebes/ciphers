@@ -483,10 +483,12 @@ export class CipherTestInteractive extends CipherTest {
     ): void {
         // See if we are overwriting an existing model
         const testmodelid = this.getModelId(testData, 'testmodelid');
-        this.saveRealtimeSource(interactive, testmodelid)
+        this.saveRealtimeTestModel(interactive, testmodelid)
             .then((modelid) => {
                 // The test template has been created, so remember where it is
                 testData['TEST.0'].testmodelid = modelid;
+                // We shouldn't have to set permissions since by default the creator gets them all, but
+                // leave the code here just in case we need it
                 // this.updateRealtimePermissions(modelid, "", { read: true, write: true, remove: true, manage: true })
                 //     .catch((error) => this.reportFailure('Unable to set test model permissions: ' + error));
 
@@ -525,6 +527,8 @@ export class CipherTestInteractive extends CipherTest {
         this.saveRealtimeAnswerTemplate(data, answerModelID)
             .then((modelid) => {
                 testData['TEST.0'].answermodelid = modelid;
+                // We shouldn't have to set permissions since by default the creator gets them all, but
+                // leave the code here just in case we need it
                 // this.updateRealtimePermissions(modelid, "", { read: true, write: true, remove: true, manage: true })
                 //     .catch((error) => this.reportFailure('Unable to set answer template permissions: ' + error));
                 this.saveTestSource(testData, elem);
@@ -553,9 +557,10 @@ export class CipherTestInteractive extends CipherTest {
         this.saveRealtimeSource(data, sourcemodelid)
             .then((modelid) => {
                 testData['TEST.0'].sourcemodelid = modelid;
+                // We shouldn't have to set permissions since by default the creator gets them all, but
+                // leave the code here just in case we need it
                 // this.updateRealtimePermissions(modelid, "", { read: true, write: true, remove: true, manage: true })
                 //     .catch((error) => this.reportFailure('Unable to set source model permissions: ' + error));
-                // Now that we have the
                 this.finalizeSave(testData, elem);
             }).catch((error) => {
                 this.reportFailure('Unable to save test source: ' + error);

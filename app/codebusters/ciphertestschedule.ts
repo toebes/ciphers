@@ -9,6 +9,7 @@ import {
     timestampForever,
     makeFilledArray,
     timestampToFriendly,
+    makeCallout,
 } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRow, JTTable } from '../common/jttable';
@@ -108,13 +109,20 @@ export class CipherTestSchedule extends CipherTestManage {
     public genTestList(): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'testlist' });
 
-        // First we need to get the test template from the testsource
-        // Once we have the test template, then we will be able to find all the scheduled tests
-        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-            const modelService = domain.models();
-            this.openTestSource(modelService, this.state.testID);
-        });
-        return result;
+        if (this.state.testID === undefined) {
+            result.append(makeCallout($('<h3/>').text('No test id was provided to check schedule for.')));
+            return result;
+        }
+
+        if (this.confirmedLoggedIn(' in order to see tests assigned to you.', result)) {
+
+            // First we need to get the test template from the testsource
+            // Once we have the test template, then we will be able to find all the scheduled tests
+            this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+                const modelService = domain.models();
+                this.openTestSource(modelService, this.state.testID);
+            });
+        } return result;
     }
     /**
      *
@@ -122,20 +130,15 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param sourcemodelid Source test to open
      */
     private openTestSource(modelService: ModelService, sourcemodelid: string): void {
-        modelService
-            .open(sourcemodelid)
-            .then((realtimeModel) => {
-                const testmodelid = realtimeModel
-                    .root()
-                    .elementAt('testid')
-                    .value();
+        this.getRealtimeElementMetadata('sourcemodel', sourcemodelid)
+            .then((metadata) => {
+                const testmodelid = metadata.testid;
                 this.testmodelid = testmodelid;
-                const answermodelid = realtimeModel
-                    .root()
-                    .elementAt('answerid')
-                    .value();
-                realtimeModel.close();
-                this.findScheduledTests(modelService, testmodelid, answermodelid);
+                this.getRealtimeAnswerTemplate(this.testmodelid)
+                    .then((answertemplate) => {
+                        this.answerTemplate = answertemplate;
+                        this.findScheduledTests(modelService, testmodelid);
+                    })
             })
             .catch((error) => {
                 this.reportFailure('Could not open model for ' + sourcemodelid + ' Error:' + error);
@@ -181,12 +184,7 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param answerModelID ID for the stored answer model
      * @param answertemplate Contents for the answer
      */
-    private populateRow(
-        row: JTRow,
-        rownum: number,
-        answerModelID: string,
-        answertemplate: IAnswerTemplate
-    ): void {
+    private populateRow(row: JTRow, rownum: number, answerModelID: string, answertemplate: IAnswerTemplate): void {
         const rowID = String(rownum);
         row.attr({ id: 'R' + rowID, 'data-source': answerModelID });
         const buttons = $('<div/>', { class: 'button-group round shrink' });
@@ -235,31 +233,21 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param modelService Domain Model service object for making requests
      * @param sourcemodelid
      */
-    public findScheduledTests(
-        modelService: ModelService,
-        testmodelid: string,
-        answermodelid: string
-    ): void {
+    public findScheduledTests(modelService: ModelService, testmodelid: string): void {
         modelService
-            .query("SELECT assigned,starttime,endtimed,endtime,teamname,teamtype FROM codebusters_answers where testid='" + testmodelid + "'")
+            .query("SELECT assigned,starttime,endtimed,endtime,teamname,teamtype FROM codebusters_answers where testid='" + testmodelid + "'") // This stays using convergence
             .then((results) => {
                 let total = 0;
-                let templatecount = 0;
                 let table: JTTable = undefined;
                 results.data.forEach((result) => {
                     const answertemplate = result.data as IAnswerTemplate;
-                    if (result.modelId === answermodelid) {
-                        templatecount++;
-                        this.answerTemplate = answertemplate;
-                    } else {
-                        if (table === undefined) {
-                            table = this.createTestTable();
-                        }
-                        const row = table.addBodyRow();
-                        this.populateRow(row, total, result.modelId, answertemplate);
-                        // Keep track of how many entries we created so that they each have a unique id
-                        total++;
+                    if (table === undefined) {
+                        table = this.createTestTable();
                     }
+                    const row = table.addBodyRow();
+                    this.populateRow(row, total, result.modelId, answertemplate);
+                    // Keep track of how many entries we created so that they each have a unique id
+                    total++;
                 });
                 // If we don't generate a table, we need to put something there to tell the user
                 // that there are no tests scheduled.
@@ -267,9 +255,6 @@ export class CipherTestSchedule extends CipherTestManage {
                     $('.testlist').append(
                         $('<div/>', { class: 'callout warning' }).text('No tests scheduled')
                     );
-                    if (templatecount === 0) {
-                        this.reportFailure('Test Answer Template is missing');
-                    }
                 } else {
                     $('.testlist').append(table.generate());
                 }
@@ -282,7 +267,7 @@ export class CipherTestSchedule extends CipherTestManage {
     /**
      * Makes a copy of the answer template and schedules a new test.
      */
-    public copyAnswerTemplate(): void {
+    public addSingleScheduledTest(): void {
         this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
             const modelService = domain.models();
             const copyInfo: testInfo = {
@@ -293,15 +278,21 @@ export class CipherTestSchedule extends CipherTestManage {
                 teamname: '',
                 teamtype: 'Varsity',
             };
-            this.makeAnswerTemplate(modelService, copyInfo);
+            this.copyAnswerTemplate(modelService, copyInfo);
+            // We don't have to set permissions on the test model because there are
+            // no users scheduled on the new test.
         });
     }
     /**
      * Makes a copy of the answer template and schedules a new test.
+     * Note that if there are any users put on the test, it is the responsibility of the caller
+     * to set permissions on the test model.  We can't do it in this routine because it
+     * might be called in a loop and you run into synchronization issues with multiple threads
+     * trying to update the permissions.
      * @param modelService Domain Model service object for making requests
      * @param testinfo Description of the new test to add
      */
-    public makeAnswerTemplate(modelService: ModelService, testinfo: testInfo): void {
+    public copyAnswerTemplate(modelService: ModelService, testinfo: testInfo): void {
         const answerTemplate: IAnswerTemplate = {
             testid: this.testmodelid,
             starttime: testinfo.starttime,
@@ -324,7 +315,6 @@ export class CipherTestSchedule extends CipherTestManage {
             };
             answerTemplate.assigned.push(userinfo);
         }
-        console.log(answerTemplate);
         modelService
             .openAutoCreate({
                 collection: 'codebusters_answers',
@@ -396,7 +386,7 @@ export class CipherTestSchedule extends CipherTestManage {
     }
     /**
      * Fix the permissions for a single model
-     * @param modelService realtime model service for making request
+     * @param modelService Domain Model service object for making requests
      * @param eid entry id to get data for
      * @param modelid Model id to set permissions on
      * @returns Array of strings corresponding to users added
@@ -451,6 +441,19 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param testid Model to save it do
      */
     public saveScheduled(eid: string, testid: string): void {
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+            const modelService = domain.models();
+            const userlist = this.saveAnswerSlot(modelService, eid, testid);
+            this.saveUserPermissions(modelService, this.testmodelid, [], userlist);
+        });
+    }
+    /**
+     * Save a scheduled test
+     * @param eid Row ID to save
+     * @param testid Model to save it do
+     * @returns Array of users added to the answermodel
+     */
+    public saveAnswerSlot(modelService: ModelService, eid: string, testid: string): string[] {
         const userlist: string[] = [];
         let name1 = $('#U0_' + eid).val() as string;
         let name2 = $('#U1_' + eid).val() as string;
@@ -479,20 +482,23 @@ export class CipherTestSchedule extends CipherTestManage {
         const endtimed = starttime + timestampFromMinutes(timedDuration);
         $('#SV' + eid).attr('disabled', 'disabled');
 
-        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-            const modelService = domain.models();
-            this.saveAnswerTemplate(modelService, testid, userlist, starttime, endtime, endtimed);
-        });
+        this.saveAnswerTemplate(modelService, testid, userlist, starttime, endtime, endtimed);
+        return userlist;
     }
     /**
-     * Save all unsaved scheduled test
+     * Save all unsaved scheduled tests
      */
     public saveAllScheduled(): void {
+        let userlist: string[] = [];
         $('#savesched').attr('disabled', 'disabled');
-        $('.pubsave').each((i, elem) => {
-            if ($(elem).attr('disabled') != '') {
-                this.saveScheduled(this.getRowID($(elem)), this.getModelID($(elem)));
-            }
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+            const modelService = domain.models();
+            $('.pubsave').each((i, elem) => {
+                if ($(elem).attr('disabled') != '') {
+                    userlist = userlist.concat(this.saveAnswerSlot(modelService, this.getRowID($(elem)), this.getModelID($(elem))));
+                }
+            });
+            this.saveUserPermissions(modelService, this.testmodelid, [], userlist);
         });
     }
     /**
@@ -657,7 +663,7 @@ export class CipherTestSchedule extends CipherTestManage {
                                 }
                             }
                             // Save out the new record
-                            this.makeAnswerTemplate(modelService, newTest);
+                            this.copyAnswerTemplate(modelService, newTest);
                             // Save the defaults for the next round
                             defaultTest.starttime = newTest.starttime;
                             defaultTest.testlength = newTest.testlength;
@@ -683,7 +689,7 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param modelService Domain Model service object for making requests
      * @param usernames User to ensure exists
      */
-    public ensureUsersExist(modelService: ModelService, usernames: string[]): Promise<unknown> {
+    public ensureUsersExist(usernames: string[]): Promise<unknown> {
         const settings = this.getConvergenceSettings();
         const convergenceNamespace = settings.namespace;
         const convergenceDomainID = settings.domain;
@@ -743,7 +749,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 }
                 // For now we have to make sure we dont' call ensureUsersExist with zero entries
                 if (toadd.length > 0) {
-                    this.ensureUsersExist(modelService, toadd).then(() => {
+                    this.ensureUsersExist(toadd).then(() => {
                         // We have updated the permissions, so save it back.
                         if (changed) {
                             permissionManager.setAllUserPermissions(allPermissions).catch((error) => {
@@ -773,14 +779,7 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param endtime End time for the scheduled test
      * @param endtimed End of the timed question bonus
      */
-    public saveAnswerTemplate(
-        modelService: ModelService,
-        modelid: string,
-        userlist: string[],
-        starttime: number,
-        endtime: number,
-        endtimed: number
-    ): void {
+    public saveAnswerTemplate(modelService: ModelService, modelid: string, userlist: string[], starttime: number, endtime: number, endtimed: number): void {
         const usermap: BoolMap = {};
         for (const user of userlist) {
             usermap[user] = true;
@@ -834,7 +833,6 @@ export class CipherTestSchedule extends CipherTestManage {
                 datamodel.close();
                 // Reset the permissions on the model.  Remove anyone who was taken off and add anyone
                 this.saveUserPermissions(modelService, modelid, removed, added);
-                this.saveUserPermissions(modelService, this.testmodelid, [], added);
             })
             .catch((error) => {
                 this.reportFailure('Could not open model to save: ' + error);
@@ -1004,7 +1002,7 @@ export class CipherTestSchedule extends CipherTestManage {
         $('#addsched')
             .off('click')
             .on('click', () => {
-                this.copyAnswerTemplate();
+                this.addSingleScheduledTest();
             });
         $('#delallsched')
             .off('click')

@@ -1,5 +1,5 @@
 import { CipherTest, ITestState, IAnswerTemplate } from './ciphertest';
-import { toolMode, ITestTimeInfo, menuMode, IState } from '../common/cipherhandler';
+import { toolMode, ITestTimeInfo, menuMode, IState, IInteractiveTest } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import {
     cloneObject,
@@ -70,15 +70,17 @@ export class CipherTestTimed extends CipherTest {
     public updateOutput(): void {
         super.updateOutput();
         this.setMenuMode(menuMode.test);
-        // Do we have a test id to display an interactive test for?
-        if (this.getConfigString('userid', '') === '') {
-            this.setTestStatusMessage('You must be logged in to be able to take a test.');
-        } else if (this.state.testID != undefined) {
-            $('.testcontent').empty();
-            $('.timer').hide();
-            this.displayInteractiveTest(this.state.testID);
-        } else {
-            this.setTestStatusMessage('No test id was provided to run.');
+        // Make sure that they are logged in to be able to take a test
+        if (this.confirmedLoggedIn(' in order to take a test.', $('.testcontent'))) {
+
+            // Do we have a test id to display an interactive test for?
+            if (this.state.testID != undefined) {
+                $('.testcontent').empty();
+                $('.timer').hide();
+                this.displayInteractiveTest(this.state.testID);
+            } else {
+                this.setTestStatusMessage('No test id was provided to run.');
+            }
         }
     }
     /**
@@ -186,16 +188,13 @@ export class CipherTestTimed extends CipherTest {
     }
     /**
      * Confirm that we are the only copy for this user editing the test.
-     * Note that we want to disconnect the other model, but we aren't sure how to do that yet
+     * Note that we want to disconnect the other model, but we aren't sure how to do that yet.
+     * Fortunately the other session should be running this same code and will disconnect itself.
      * @param answermodel Interactive answer model
      * @param userid User taking the test
      * @param realtimeSessionid Realtime handler for shared session id
      */
-    private confirmOnly(
-        answermodel: RealTimeModel,
-        userid: string,
-        realtimeSessionid: RealTimeString
-    ): void {
+    private confirmOnly(answermodel: RealTimeModel, userid: string, realtimeSessionid: RealTimeString): void {
         // Figure out who is connected to the test
         const collaborators = answermodel.collaborators();
         let matches = 0;
@@ -256,7 +255,7 @@ export class CipherTestTimed extends CipherTest {
     /**
      * Ensure that the user is actually a coach.  To do this, we need to check the permissions
      * on the model and make sure that they have Modify permissions
-     * @param answermodel
+     * @param answermodel Model of the interactive test
      */
     private ensureCoach(answermodel: RealTimeModel): void {
         $('.timer').prepend($('<div/>', { class: 'coach' }).text('Coach'));
@@ -277,7 +276,7 @@ export class CipherTestTimed extends CipherTest {
             });
     }
     /**
-     * Create the hidden dialog for selecting a cipher to open
+     * Create the hidden dialog for prompting the user to disconnect if they are already in the test
      * @returns DOM element for the dialog
      */
     private createmultiLoginDlg(): JQuery<HTMLElement> {
@@ -316,12 +315,7 @@ export class CipherTestTimed extends CipherTest {
      * @param testtype The type of test that it is being generated for
      * @param realTimeObject Realtime object to establish collaboration for
      */
-    public makeInteractive(
-        elem: JQuery<HTMLElement>,
-        state: IState,
-        qnum: number,
-        realTimeObject: RealTimeObject
-    ): void {
+    public makeInteractive(elem: JQuery<HTMLElement>, state: IState, qnum: number, realTimeObject: RealTimeObject): void {
         // Sometimes the handlers die because of insufficient data passed to them (or because they are accessing something that they shouldn't)
         // We protect from this to also prevent it from popping back to the higher level try/catch which is dealing with any communication
         // errors to the server
@@ -348,7 +342,7 @@ export class CipherTestTimed extends CipherTest {
                     }).text('Timed Question')
                 );
                 extratext =
-                    '  When you have solved it, click the <b>Checked Timed Question</b> button so that the time can be recorded and the solution checked.';
+                    ' When you have solved it, click the <b>Checked Timed Question</b> button so that the time can be recorded and the solution checked.';
             } else {
                 // Normal question, just construct the question number (don't forget that we are zero based)
                 qtext.append(
@@ -395,10 +389,10 @@ export class CipherTestTimed extends CipherTest {
             const modelService = domain.models();
             modelService
                 .open(testUID)
-                .then((answermodel: RealTimeModel) => {
-                    const answertemplate = answermodel.root().value() as IAnswerTemplate;
+                .then((realtimeAnswermodel: RealTimeModel) => {
+                    const staticAnswerModel = realtimeAnswermodel.root().value() as IAnswerTemplate;
                     // Populate the time from the answer template
-                    this.getTestTimes(answermodel);
+                    this.getTestTimes(realtimeAnswermodel);
                     // We need to watch the answer template to see if it changes
                     // We need confirm that they are actually allowed to take this test.
                     // this.getConfigString("userid", "") must be non-blank and be present as one
@@ -407,7 +401,7 @@ export class CipherTestTimed extends CipherTest {
                     const loggedinuserid = this.getConfigString('userid', '');
                     if (loggedinuserid === '') {
                         this.shutdownTest(
-                            answermodel,
+                            realtimeAnswermodel,
                             'You must be logged in to be able to take a test.'
                         );
                     }
@@ -418,9 +412,9 @@ export class CipherTestTimed extends CipherTest {
                     for (let i = 0; i < 3; i++) {
                         let name = '';
                         let userid = '';
-                        if (i < answertemplate.assigned.length) {
-                            name = answertemplate.assigned[i].displayname;
-                            userid = answertemplate.assigned[i].userid;
+                        if (i < staticAnswerModel.assigned.length) {
+                            name = staticAnswerModel.assigned[i].displayname;
+                            userid = staticAnswerModel.assigned[i].userid;
                         }
                         if (userid === loggedinuserid) {
                             userfound = i;
@@ -442,22 +436,22 @@ export class CipherTestTimed extends CipherTest {
                         // Ok they aren't a user, but we can assume that they are a coach since we had permission to open the model.
                         // We will proceed as if they are a coach, but if the promise tells us otherwise, we can shut down the test
                         // to the test because it was successfully opened
-                        this.ensureCoach(answermodel);
+                        this.ensureCoach(realtimeAnswermodel);
                     } else {
-                        const realtimeSessionid = answermodel.elementAt(
+                        const realtimeSessionid = realtimeAnswermodel.elementAt(
                             'assigned',
                             userfound,
                             'sessionid'
                         ) as RealTimeString;
                         // Make sure that we are the only copy for this yser
-                        this.confirmOnly(answermodel, loggedinuserid, realtimeSessionid);
+                        this.confirmOnly(realtimeAnswermodel, loggedinuserid, realtimeSessionid);
                     }
-                    $("#school").text(answertemplate.teamname);
+                    $("#school").text(staticAnswerModel.teamname);
 
-                    let prefix = answertemplate.teamtype.substr(0, 1).toUpperCase();
+                    let prefix = staticAnswerModel.teamtype.substr(0, 1).toUpperCase();
                     if (prefix === 'J') {
                         $("#cvarsity").html("&#9723;");
-                        let jvnum = answertemplate.teamtype.substr(2, 1);
+                        let jvnum = staticAnswerModel.teamtype.substr(2, 1);
                         let field = "#cjv1";
                         if (jvnum === '2') {
                             field = "#cjv2";
@@ -467,8 +461,7 @@ export class CipherTestTimed extends CipherTest {
                         $(field).html("&#x2611;");
                     }
 
-                    answertemplate.teamtype
-                    const testid = answertemplate.testid;
+                    const testid = staticAnswerModel.testid;
                     // Figure out if it is time to run the test
                     const now = this.testTimeInfo.truetime.UTCNow();
                     // We have several situations
@@ -486,7 +479,7 @@ export class CipherTestTimed extends CipherTest {
                     target.hide();
 
                     if (now > this.testTimeInfo.endTime) {
-                        this.shutdownTest(answermodel);
+                        this.shutdownTest(realtimeAnswermodel);
                         return;
                     } else if (now + timestampFromMinutes(15) < this.testTimeInfo.startTime) {
                         // They are way too early.
@@ -494,12 +487,12 @@ export class CipherTestTimed extends CipherTest {
                             'The test is not ready to start.  It is scheduled ',
                             this.testTimeInfo.startTime
                         );
-                        answermodel.close();
+                        realtimeAnswermodel.close();
                     } else {
                         // If they close the window or navigate away, we want to close all our connections
-                        $(window).on('beforeunload', () => this.shutdownTest(answermodel));
+                        $(window).on('beforeunload', () => this.shutdownTest(realtimeAnswermodel));
                         // Put up a countdown timer..
-                        this.waitToLoadTestModel(modelService, testid, answermodel);
+                        this.waitToLoadTestModel(modelService, testid, realtimeAnswermodel);
                     }
                 })
                 .catch((error) => {
@@ -536,15 +529,11 @@ export class CipherTestTimed extends CipherTest {
      * Stage 2:  (Prior to 5 minutes before the test)
      * Launch but wait until time to prepare the test.  During this time, only a countdown timer is displayed and no data is pulled from
      * the model.  Even if they examine the web page, they won't see any content here.
-     * @param modelService
-     * @param testid
+     * @param modelService Domain Model service object for making requests
+     * @param testid ID of the test model
      * @param answermodel Interactive answer model
      */
-    private waitToLoadTestModel(
-        modelService: ModelService,
-        testid: string,
-        answermodel: RealTimeModel
-    ): void {
+    private waitToLoadTestModel(modelService: ModelService, testid: string, answermodel: RealTimeModel): void {
         if (
             this.testTimeInfo.truetime.UTCNow() <
             this.testTimeInfo.startTime - timestampFromMinutes(5)
@@ -555,60 +544,50 @@ export class CipherTestTimed extends CipherTest {
                 const remaining = this.testTimeInfo.startTime - now;
                 if (remaining < timestampFromMinutes(5)) {
                     clearInterval(intervaltimer);
-                    this.openTestModel(modelService, testid, answermodel);
+                    this.openTestModel(testid, answermodel);
                 } else {
                     this.updateTimer(remaining);
                 }
             }, 100);
         } else {
-            this.openTestModel(modelService, testid, answermodel);
+            this.openTestModel(testid, answermodel);
         }
     }
     /**
      * Stage 3: (5 minute mark)
      * Open the test model for the test template.
-     * @param modelService
-     * @param testid
+     * @param testid ID of the test model
      * @param answermodel Interactive answer model
-     * @param elem
      */
-    private openTestModel(
-        modelService: ModelService,
-        testid: string,
-        answermodel: RealTimeModel
-    ): void {
-        modelService
-            .open(testid)
-            .then((testmodel: RealTimeModel) => {
+    private openTestModel(testid: string, answermodel: RealTimeModel): void {
+        this.getRealtimeTestModel(testid)
+            .then((testmodel) => {
                 console.log('Fully opened: testmodel');
                 this.buildScoreTemplateAndHints(testmodel, answermodel);
             })
             .catch((error) => {
-                this.reportFailure('Convergence API could not open data model: ' + error);
+                this.reportFailure('Unable to open test model: ' + error);
             });
     }
     /**
      * Stage 4: (5 minute mark)
      * Construct the score template and populate the hints that they will need
-     * @param interactive Test template
+     * @param testmodel Test template
      * @param answermodel Interactive answer model
      */
-    public buildScoreTemplateAndHints(testmodel: RealTimeModel, answermodel: RealTimeModel): void {
+    public buildScoreTemplateAndHints(testmodel: IInteractiveTest, answermodel: RealTimeModel): void {
         this.setTimerMessage('Connecting to test server... ');
 
         const target = $('.testcontent');
         target.hide();
 
-        const interactive = testmodel.root().value();
-        testmodel.close();
-
         // Update the title for the test
-        $('.testtitle').text(interactive.title);
+        $('.testtitle').text(testmodel.title);
 
         // Show custom header or default header.
-        if (interactive.useCustomHeader) {
+        if (testmodel.useCustomHeader) {
             $('.custom-header')
-                .append(interactive.customHeader)
+                .append(testmodel.customHeader)
                 .show();
         } else {
             $('.default-header').show();
@@ -616,9 +595,9 @@ export class CipherTestTimed extends CipherTest {
         /**
          * Output any running keys used
          */
-        if (interactive.runningKeys !== undefined) {
+        if (testmodel.runningKeys !== undefined) {
             $('#runningkeys').append($('<h2/>').text('Famous Phrases'));
-            for (const ent of interactive.runningKeys) {
+            for (const ent of testmodel.runningKeys) {
                 $('#runningkeys').append(
                     $('<div/>', {
                         class: 'runtitle',
@@ -634,7 +613,7 @@ export class CipherTestTimed extends CipherTest {
         /**
          * See if we need to show/hide the Spanish Hints
          */
-        if (interactive.hasSpanish) {
+        if (testmodel.hasSpanish) {
             $('.xenocryptfreq').show();
         } else {
             $('.xenocryptfreq').hide();
@@ -642,7 +621,7 @@ export class CipherTestTimed extends CipherTest {
         /**
          * See if we need to show/hide the Morse Code Table
          */
-        if (interactive.hasMorse) {
+        if (testmodel.hasMorse) {
             $('.morsetable').show();
         } else {
             $('.morsetable').hide();
@@ -661,7 +640,7 @@ export class CipherTestTimed extends CipherTest {
             .add('Incorrect letters')
             .add('Deduction')
             .add('Score');
-        for (const qitem of interactive.qdata) {
+        for (const qitem of testmodel.qdata) {
             let qtitle = '';
             if (qitem.qnum === -1) {
                 qtitle = 'Timed';
@@ -701,20 +680,17 @@ export class CipherTestTimed extends CipherTest {
             .add({ settings: { colspan: 4 }, content: '' });
         $('#scoretable').append(table.generate());
 
-        this.waitToDisplayTest(interactive, answermodel);
+        this.waitToDisplayTest(testmodel, answermodel);
     }
     /**
      * Stage 5: (5 minutes before until 10 seconds before)
      * Final step before showing the test.
      * We have loaded the template but need to wait until closer to the actual start time
      * In this case we will go until there are 10 seconds left before processing the template
-     * @param interactive Test template
+     * @param testmodel Test template
      * @param answermodel Interactive answer model
      */
-    private waitToDisplayTest(
-        interactive: { [key: string]: any },
-        answermodel: RealTimeModel
-    ): void {
+    private waitToDisplayTest(testmodel: IInteractiveTest, answermodel: RealTimeModel): void {
         this.setTimerMessage('Please Standby, The test will start in ');
         this.trackUsers(answermodel);
         $('.timer').show();
@@ -731,22 +707,22 @@ export class CipherTestTimed extends CipherTest {
                 if (remaining < timestampFromSeconds(10)) {
                     // Is it that time already? Stop timing and go to the next step
                     clearInterval(intervaltimer);
-                    this.makeTestLive(interactive, answermodel);
+                    this.makeTestLive(testmodel, answermodel);
                 } else {
                     this.updateTimer(remaining);
                 }
             }, 100);
         } else {
-            this.makeTestLive(interactive, answermodel);
+            this.makeTestLive(testmodel, answermodel);
         }
     }
     /**
      * Stage 6: (10 seconds until test time)
      * Everything is loaded, we need to process the template, but don't display anything until the last second
-     * @param interactive Test template
+     * @param testmodel Test template
      * @param answermodel Interactive answer model
      */
-    private makeTestLive(interactive: { [key: string]: any }, answermodel: RealTimeModel): void {
+    private makeTestLive(testmodel: IInteractiveTest, answermodel: RealTimeModel): void {
         Split({
             minsize: 20,
             rowMinSize: 20,
@@ -763,18 +739,18 @@ export class CipherTestTimed extends CipherTest {
         const target = $('.testcontent');
         target.hide();
         // Generate the questions
-        if (interactive.timed !== undefined) {
+        if (testmodel.timed !== undefined) {
             this.makeInteractive(
                 target,
-                interactive.timed,
+                testmodel.timed,
                 -1,
                 answermodel.elementAt('answers', 0) as RealTimeObject
             );
         }
-        for (let qnum = 0; qnum < interactive.count; qnum++) {
+        for (let qnum = 0; qnum < testmodel.count; qnum++) {
             this.makeInteractive(
                 target,
-                interactive.questions[qnum],
+                testmodel.questions[qnum],
                 qnum,
                 answermodel.elementAt('answers', qnum + 1) as RealTimeObject
             );

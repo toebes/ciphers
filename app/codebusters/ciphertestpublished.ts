@@ -3,7 +3,7 @@ import { IState, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
-import { ITestState } from './ciphertest';
+import { IRealtimeMetaData, ITestState } from './ciphertest';
 import { CipherTestManage } from './ciphertestmanage';
 import { ConvergenceDomain, RealTimeModel } from '@convergence/convergence';
 import { JTFDialog } from '../common/jtfdialog';
@@ -51,17 +51,20 @@ export class CipherTestPublished extends CipherTestManage {
      */
     public genTestList(): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'testlist' });
-        const table = new JTTable({ class: 'cell shrink publist' });
-        const row = table.addHeaderRow();
-        row.add('Action')
-            .add('Title')
-            .add('Questions')
-            .add('Scheduled');
-        result.append(table.generate());
 
-        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-            this.findAllTests(domain);
-        });
+        if (this.confirmedLoggedIn(' in order to see tests assigned to you.', result)) {
+            const table = new JTTable({ class: 'cell shrink publist' });
+            const row = table.addHeaderRow();
+            row.add('Action')
+                .add('Title')
+                .add('Questions')
+                .add('Scheduled');
+            result.append(table.generate());
+
+            this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+                this.findAllTests(domain);
+            });
+        }
         return result;
     }
     /**
@@ -70,154 +73,118 @@ export class CipherTestPublished extends CipherTestManage {
      */
     private findAllTests(domain: ConvergenceDomain): void {
         const modelService = domain.models();
-        modelService
-            .query('SELECT source FROM codebusters_source')
-            .then((results) => {
-                results.data.forEach((result) => {
-                    let questions = result.data.source['TEST.0'].count;
-                    if (result.data.source['TEST.0'].timed !== -1) {
-                        questions++;
-                    }
-                    this.addPublishedEntry(
-                        modelService,
-                        result.modelId,
-                        result.data.source['TEST.0'].title,
-                        result.version,
-                        result.created,
-                        result.modified,
-                        result.data.source['TEST.0'].testmodelid,
-                        result.data.source['TEST.0'].answermodelid,
-                        questions
-                    );
-                });
+        this.getRealtimeSourceMetadata()
+            .then((metadataset) => {
+                metadataset.forEach((metadata) => {
+                    // For Debugging you can use just this metadata for a call to addPublishedEntry
+                    //
+                    // let metadata: IRealtimeMetaData = {
+                    //     testid: "bde4aafd-9138-4547-be36-0901bff65552",
+                    //     sourceid: "123456",
+                    //     answerid: "0",
+                    //     id: "12345",
+                    //     title: "Sample Title",
+                    //     type: 'sourcemodel',
+                    //     questions: 42,
+                    //     dateCreated: 0,
+                    //     createdBy: "john@toebes.com"
+                    // }
+
+                    this.addPublishedEntry(modelService, metadata);
+                })
                 this.attachHandlers();
             })
             .catch((error) => {
-                this.reportFailure('Convergence API could not query: ' + error);
+                this.reportFailure('Unable to query source test list: ' + error);
             });
     }
     /**
      * Add/replace a test entry to the table of all tests along with the buttons to interact with the test.
-     * @param sourcemodelid
-     * @param title
-     * @param version
-     * @param created
-     * @param modified
-     * @param testmodelid
-     * @param answermodelid
-     * @param questions
+     * @param modelService Domain Model service object for making requests
+     * @param metadata metadata for the source model entry
      */
-    public addPublishedEntry(
-        modelService: Convergence.ModelService,
-        sourcemodelid: string,
-        title: string,
-        version: number,
-        created: Date,
-        modified: Date,
-        testmodelid: string,
-        answermodelid: string,
-        questions: number
-    ): void {
+    public addPublishedEntry(modelService: Convergence.ModelService, metadata: IRealtimeMetaData): void {
         const tr = $('<tr/>', {
-            'data-source': sourcemodelid,
-            'data-test': testmodelid,
-            'data-answer': answermodelid,
+            'data-source': metadata.id,
+            'data-test': metadata.testid,
+            'data-answer': metadata.answerid,
         });
         const buttons = $('<div/>', { class: 'button-group round shrink' });
         buttons.append(
             $('<a/>', {
-                'data-source': sourcemodelid,
+                'data-source': metadata.id,
                 type: 'button',
                 class: 'pubedit button',
             }).text('Edit')
         );
         buttons.append(
             $('<a/>', {
-                'data-source': sourcemodelid,
+                'data-source': metadata.id,
                 type: 'button',
                 class: 'pubdel alert button',
             }).text('Delete')
         );
         buttons.append(
             $('<a/>', {
-                'data-source': sourcemodelid,
+                'data-source': metadata.id,
                 type: 'button',
                 class: 'pubpermit button',
             }).text('Permissions')
         );
         buttons.append(
             $('<a/>', {
-                'data-source': sourcemodelid,
+                'data-source': metadata.id,
                 type: 'button',
                 class: 'pubsched button',
             }).text('Schedule Test')
         );
         buttons.append(
             $('<a/>', {
-                'data-source': sourcemodelid,
+                'data-source': metadata.id,
                 type: 'button',
                 class: 'pubresults button',
             }).text('View Results')
         );
         tr.append($('<td/>').append($('<div/>', { class: 'grid-x' }).append(buttons)))
-            .append($('<td/>').text(title))
-            .append($('<td/>').text(String(questions)))
+            .append($('<td/>').text(metadata.title))
+            .append($('<td/>').text(String(metadata.questions)))
             .append(
                 $('<td/>').append(
-                    $('<div/>', { class: 'sched', 'data-source': testmodelid }).text(
+                    $('<div/>', { class: 'sched', 'data-source': metadata.testid }).text(
                         'Calculating...'
                     )
                 )
             );
 
-        const curtr = $('tr[data-source="' + sourcemodelid + '"]');
+        const curtr = $('tr[data-source="' + metadata.id + '"]');
         if (curtr.length > 0) {
             curtr.replaceWith(tr);
         } else {
             $('.publist').append(tr);
         }
         // Kick off a request to figure out
-        this.calculateScheduledTests(modelService, testmodelid, answermodelid);
+        this.calculateScheduledTests(modelService, metadata.testid);
     }
     /**
      * Determine how many tests are scheduled for a given test template and update the div holding that number.
-     * @param modelService
-     * @param sourcemodelid
+     * @param modelService Domain Model service object for making requests
+     * @param testmodelid ID of the test model to count scheduled tests for
      */
-    public calculateScheduledTests(
-        modelService: Convergence.ModelService,
-        testmodelid: string,
-        answermodelid: string
-    ): void {
+    public calculateScheduledTests(modelService: Convergence.ModelService, testmodelid: string): void {
         modelService
             .query("SELECT testid FROM codebusters_answers where testid='" + testmodelid + "'")
+            // .query("SELECT count(testid) as scheduled FROM codebusters_answers where testid='" + testmodelid + "'")
             .then((results) => {
-                let total = 0;
-                let templatecount = 0;
-                results.data.forEach((result) => {
-                    if (result.modelId === answermodelid) {
-                        templatecount++;
-                    } else {
-                        total++;
-                    }
-                });
-                let fieldtext = 'None Found';
+                let total = results.data.length;
+                let fieldtext = String(total);
                 if (total === 0) {
-                    if (templatecount === 1) {
-                        fieldtext = 'None Scheduled';
-                    }
-                } else {
-                    fieldtext = String(total);
-                    if (templatecount === 0) {
-                        fieldtext += ' [Missing Template]';
-                    }
+                    fieldtext = 'None Scheduled';
                 }
-                console.log('Result for ' + testmodelid + " is '" + fieldtext + "'");
                 // Now we just need to replace the value
                 $('div.sched[data-source="' + testmodelid + '"]').text(fieldtext);
             })
             .catch((error) => {
-                this.reportFailure('Convergence API could not connect: ' + error);
+                this.reportFailure('Convergence API query problem: ' + error);
             });
     }
     /**
@@ -284,9 +251,8 @@ export class CipherTestPublished extends CipherTestManage {
     }
     /**
      * Remove a test from the server along with all the scheduled tests that are associated with it
-     * @param sourcemodelid
-     * @param testmodelid
-     * @param answermodelid
+     * @param sourcemodelid ID of the source model
+     * @param testModelID ID of the test model
      */
     public deleteTestFromServer(sourcemodelid: string, testmodelid: string): void {
         // by calling modelService.remove()
@@ -300,18 +266,13 @@ export class CipherTestPublished extends CipherTestManage {
      *
      * @param domain
      * @param sourcemodelid
-     * @param testmodelid
-     * @param answermodelid
+     * @param testModelID ID of the test model
      */
-    public doDeleteTestFromServer(
-        domain: ConvergenceDomain,
-        sourcemodelid: string,
-        testmodelid: string
-    ): void {
+    public doDeleteTestFromServer(domain: ConvergenceDomain, sourcemodelid: string, testmodelid: string): void {
         const modelService = domain.models();
         // Our query should get all of the answer templates which reference the test
         modelService
-            .query("SELECT testid FROM codebusters_answers where testid='" + testmodelid + "'")
+            .query("SELECT testid FROM codebusters_answers where testid='" + testmodelid + "'")   // This can use new getAllMatchingElements API
             .then((results) => {
                 results.data.forEach((result) => {
                     modelService.remove(result.modelId).catch((error) => {

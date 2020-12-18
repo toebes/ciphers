@@ -15,7 +15,7 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
-import { ConvergenceDomain } from '@convergence/convergence';
+import { ConvergenceDomain, LogLevel } from '@convergence/convergence';
 import {
     ConvergenceAuthentication,
     ConvergenceSettings,
@@ -28,9 +28,26 @@ export interface buttonInfo {
     btnClass: string;
     disabled?: boolean;
 }
-/** The type of encoding for the alphabet */
-export type IRealtimeObject = 'sourcemodel' | 'testmodel' | 'answertemplate' | 'answermodel'
-export type IRealtimeFields = 'testid' | 'sourceid' | 'answerid'
+
+export type modelID = string;
+export type IRealtimeObject = 'sourcemodel' | 'testmodel' | 'answertemplate' //| 'answermodel'
+export type IRealtimeFields = 'testid' | 'sourceid' | 'answerid' | 'title' | 'questions'
+export interface IRealtimeMetaData {
+    id: modelID;
+    type: IRealtimeObject;
+    testid: modelID;
+    sourceid: modelID;
+    answerid: modelID;
+    title: string;
+    questions: number;
+    dateCreated: number;
+    createdBy: string;
+}
+export interface sourceModel {
+    [key: string]: any;
+}
+
+export const globalPermissionId = 'GLOBAL'
 /**
  * Permissions for a single item
  * Read - Access to view the model
@@ -53,7 +70,6 @@ export interface RealtimePermissionSet {
     [index: string]: RealtimeSinglePermission;
 }
 
-export type modelID = string;
 
 export interface ITestState extends IState {
     /** Number of points a question is worth */
@@ -341,8 +357,21 @@ export class CipherTest extends CipherHandler {
 
         const convergenceToken = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
         return new Promise((resolve) => {
-            let options: Convergence.IConvergenceOptions = { protocol: { defaultRequestTimeout: 30 }, connection: { timeout: 30 } };
+            let options: Convergence.IConvergenceOptions = {
+                protocol: { defaultRequestTimeout: 30 },
+                connection: { timeout: 30 },
+            };
             options.connection.timeout = 30;
+
+            if (loginSettings.debug) {
+                Convergence.configureLogging({
+                    root: LogLevel.DEBUG,
+                    loggers: {
+                        'protocol.ping': LogLevel.SILENT,
+                    },
+                });
+            }
+
             Convergence.connectWithJwt(connectUrl, convergenceToken, options)
                 .then((domain) => {
                     resolve(domain);
@@ -360,7 +389,30 @@ export class CipherTest extends CipherHandler {
                 });
         });
     }
-
+    /**
+     * Determine if a user is logged in and generate a message if not
+     * @param msg Message to append to please login message
+     * @param elem Element to append message to
+     * @returns Boolean indicating that a user is validly logged in
+     */
+    public confirmedLoggedIn(msg: string, elem: JQuery<HTMLElement>): boolean {
+        const userid = this.getConfigString('userid', '');
+        if (userid !== '') {
+            return true;
+        }
+        const callout = $('<div/>', {
+            class: 'callout alert',
+        })
+            .append('Please ')
+            .append(
+                $('<div/>', {
+                    class: 'login-button button',
+                }).text('Login')
+            )
+            .append(' in order to see tests assigned to you.');
+        elem.append(callout);
+        return false;
+    }
     /** Cached realtime domain */
     public cachedDomain: ConvergenceDomain = undefined;
     /**
@@ -452,11 +504,11 @@ export class CipherTest extends CipherHandler {
      * 
      *  Database contents
      *    Models
-     *      id(key)     type             id         testid    sourceid   answertemplate  DateCreated  CreatedBy    
-     *      <guuid>     'sourcemodel'    <sguuid>   <tguuid>  --------   <wguuid>        <date>       john@toebes.com
-     *      <guuid>     'testmodel'      <tguuid>   -------   <sguuid>   <wguid>         <date>       john@toebes.com
-     *      <guuid>     'answertemplate' <wguuid>   <tguuid>             --------        <date>       john@toebes.com
-     *      <guuid>     'answermodel'    <aguuid>   <tguuid>             --------        <date>       john@toebes.com
+     *      id(key)     type             id         testid    sourceid   answerid     DateCreated  Title    Questions   CreatedBy    
+     *      <guuid>     'sourcemodel'    <sguuid>   <tguuid>  --------   <wguuid>     <date>       'title'      <n>     john@toebes.com
+     *      <guuid>     'testmodel'      <tguuid>   -------   <sguuid>   <wguid>      <date>       'title'      <n>     john@toebes.com
+     *      <guuid>     'answertemplate' <wguuid>   <tguuid>             --------     <date>       ------               john@toebes.com
+     *      <guuid>     'answermodel'    <aguuid>   <tguuid>             --------     <date>                            john@toebes.com
      * 
      *   Permissions
      *       key    id(fkey)  name                 read    write    manage   delete
@@ -468,7 +520,7 @@ export class CipherTest extends CipherHandler {
 
 
     /**
-     * Get a list of all the answer models associated with a user.
+     * Get a list of all the models of a type associated with a user.
      * @returns Promise to Array of model ids
      *    SELECT
      *       id
@@ -481,7 +533,7 @@ export class CipherTest extends CipherHandler {
      *       ((Permissions.name == 'GLOBAL' AND Permissions.read) OR
      *        (Permissions.name == ::userid:: AND Permissions.read))
      */
-    public getRealtimeIDs(modeltype: IRealtimeObject): Promise<modelID[]> {
+    public getRealtimeMetadata(modeltype: IRealtimeObject): Promise<IRealtimeMetaData[]> {
         return new Promise((resolve, reject) => {
             // TODO: Implement this
             resolve([])
@@ -498,6 +550,9 @@ export class CipherTest extends CipherHandler {
      *       Permissions
      *    WHERE
      *       id = ::id::
+     * NOTE: the catch error for this needs to set e.code:
+     *     'unauthorized'    - Indicates that the model exists but the current user doesn't have permission to access it
+     *     'model_not_found' - Indicates that the model doesn't exist
      */
     public getRealtimePermissions(id: modelID): Promise<RealtimePermissionSet> {
         return new Promise((resolve, reject) => {
@@ -600,10 +655,15 @@ export class CipherTest extends CipherHandler {
      *       ((Permissions.name == 'GLOBAL' AND Permissions.read) OR
      *        (Permissions.name == ::userid:: AND Permissions.read)) 
     */
-    public getRealtimeElementValue(id: modelID, element: IRealtimeFields): Promise<string> {
+    public getRealtimeElementMetadata(modeltype: IRealtimeObject, id: modelID): Promise<IRealtimeMetaData> {
+        // modelService
+        // .open(id)
+        // .then((model: RealTimeModel) => {
+        //     const result = testmodel.elementAt(element).value();
+        // })
         return new Promise((resolve, reject) => {
             // TODO: Implement this
-            resolve("");
+            resolve(undefined);
         });
     }
     /**
@@ -624,7 +684,7 @@ export class CipherTest extends CipherHandler {
      *       ((Permissions.name == 'GLOBAL' AND Permissions.read) OR
      *        (Permissions.name == ::userid:: AND Permissions.read)) 
      */
-    public getAllMatchingElements(modeltype: IRealtimeObject, field: IRealtimeFields, value: string): Promise<modelID[]> {
+    public getMatchingElementMetadata(modeltype: IRealtimeObject, field: IRealtimeFields, value: string): Promise<IRealtimeMetaData[]> {
         return new Promise((resolve, reject) => {
             // TODO: Implement this
             resolve([]);
@@ -637,33 +697,28 @@ export class CipherTest extends CipherHandler {
      * Get a list of all source IDs that the user has permission to read (this includes global permissions)
      * @returns Promise to array of strings for all elements that the user can read
      */
-    public getRealtimeSourceIDs(): Promise<modelID[]> {
-        return this.getRealtimeIDs('sourcemodel');
+    public getRealtimeSourceMetadata(): Promise<IRealtimeMetaData[]> {
+        return this.getRealtimeMetadata('sourcemodel');
     }
     /**
      * Get the contents of a Source model
      * @param sourceid ID of model to return
      * @returns Promise to interactive test contents
      */
-    public getRealtimeSource(sourceid: modelID): Promise<any> {
-        return this.getRealtimeContents(sourceid) as any;
-    }
-    /**
-     * Save the Source for a new test
-     * @param interactiveTest Test to be saved
-     * @returns Promise to ID of the newly created interactive test
-     */
-    public saveRealtimeSource(testsource: any): Promise<modelID> {
-        return this.saveRealtimeContents('sourcemodel', JSON.stringify(testsource));
+    public getRealtimeSource(sourceid: modelID): Promise<sourceModel> {
+        return this.getRealtimeContents(sourceid) as Promise<sourceModel>;
     }
     /**
      * Update the source for an existing test
      * @param interactiveTest Test Sour
-     * @param ID Model to be updated
+     * @param ID Model to be updated (empty to create a new one)
      * @returns Promise to ID of model updated
      */
-    public updateRealtimeSource(testsource: any, id: modelID): Promise<modelID> {
-        return this.updateRealtimeContents('sourcemodel', JSON.stringify(testsource), id);
+    public saveRealtimeSource(testsource: any, id: modelID): Promise<modelID> {
+        if (id !== undefined && id !== "") {
+            return this.updateRealtimeContents('sourcemodel', JSON.stringify(testsource), id);
+        }
+        return this.saveRealtimeContents('sourcemodel', JSON.stringify(testsource));
     }
     /**
      * Determines if a source test exists on the server
@@ -679,19 +734,14 @@ export class CipherTest extends CipherHandler {
     /**
      * Saves a new realtime answer template
      * @param answerTemplate Answer template contents to save
+     * @param id Id of template to be updated (empty to create a new one)
      * @returns Promise to ID of newly created template
      */
-    public saveRealtimeAnswerTemplate(answerTemplate: IAnswerTemplate): Promise<modelID> {
+    public saveRealtimeAnswerTemplate(answerTemplate: IAnswerTemplate, id: modelID): Promise<modelID> {
+        if (id !== undefined && id !== "") {
+            return this.updateRealtimeContents('answertemplate', JSON.stringify(answerTemplate), id);
+        }
         return this.saveRealtimeContents('answertemplate', JSON.stringify(answerTemplate));
-    }
-    /**
-     * 
-     * @param answerTemplate new Answer template contents to save
-     * @param answertemplateid Id of template to be updated
-     * @returns Promise to ID of updated template (should be the same as answertemplateid passed in)
-     */
-    public updateRealtimeAnswerTemplate(answerTemplate: IAnswerTemplate, answertemplateid: modelID): Promise<modelID> {
-        return this.updateRealtimeContents('answertemplate', JSON.stringify(answerTemplate), answertemplateid);
     }
     /**
      * Get the contents of an answer template
@@ -707,19 +757,14 @@ export class CipherTest extends CipherHandler {
     /**
      * Saves a new realtime answer template
      * @param answerTemplate Answer template contents to save
+     * @param id Id of model to be updated (empty to create a new one)
      * @returns Promise to ID of newly created template
      */
-    public saveRealtimeTestModel(testmodel: IInteractiveTest): Promise<modelID> {
+    public saveRealtimeTestModel(testmodel: IInteractiveTest, id: modelID): Promise<modelID> {
+        if (id !== undefined && id !== "") {
+            return this.updateRealtimeContents('testmodel', JSON.stringify(testmodel), id);
+        }
         return this.saveRealtimeContents('testmodel', JSON.stringify(testmodel));
-    }
-    /**
-     * 
-     * @param answerTemplate new Answer template contents to save
-     * @param answertemplateid Id of template to be updated
-     * @returns Promise to ID of updated template (should be the same as answertemplateid passed in)
-     */
-    public updateRealtimeTestModel(testmodel: IInteractiveTest, answertemplateid: modelID): Promise<modelID> {
-        return this.updateRealtimeContents('testmodel', JSON.stringify(testmodel), answertemplateid);
     }
     /**
      * Get the contents of an answer template
@@ -729,32 +774,32 @@ export class CipherTest extends CipherHandler {
     public getRealtimeTestModel(answertemplateid: modelID): Promise<IInteractiveTest> {
         return this.getRealtimeContents(answertemplateid) as unknown as Promise<IInteractiveTest>;
     }
-    /**
-     * Find the source ID for a given test template
-     * @param testmodelid ID of test model
-     * @returns Promise to ID of corresponding source model
-     */
-    public getRealtimeTestSourceID(testmodelid: modelID): Promise<modelID> {
-        return this.getRealtimeElementValue(testmodelid, 'testid');
-    }
-    /*-------------------------------------------------------------------------*/
-    /*                            Answer Models                                */
-    /*-------------------------------------------------------------------------*/
-    /**
-     * 
-     * @param testmodelid Test model to find answer models for
-     * @returns Promise of array of ids
-     */
-    public getRealtimeTestAnswerIDs(testmodelid: modelID): Promise<modelID[]> {
-        return this.getAllMatchingElements('answermodel', 'testid', testmodelid);
-    }
-    /**
-     * Get a list of all the answer models associated with a user.
-     * @returns Promise to Array of model ids
-     */
-    public getRealtimeAnswerIDs(): Promise<modelID[]> {
-        return this.getRealtimeIDs('answermodel');
-    }
+    // /**
+    //  * Find the source ID for a given test template
+    //  * @param testmodelid ID of test model
+    //  * @returns Promise to ID of corresponding source model
+    //  */
+    // public getRealtimeTestSourceID(testmodelid: modelID): Promise<modelID> {
+    //     return this.getRealtimeElementValue(testmodelid, 'testid');
+    // }
+    // /*-------------------------------------------------------------------------*/
+    // /*                            Answer Models                                */
+    // /*-------------------------------------------------------------------------*/
+    // /**
+    //  * 
+    //  * @param testmodelid Test model to find answer models for
+    //  * @returns Promise of array of ids
+    //  */
+    // public getRealtimeTestAnswerIDs(testmodelid: modelID): Promise<modelID[]> {
+    //     return this.getAllMatchingElements('answermodel', 'testid', testmodelid);
+    // }
+    // /**
+    //  * Get a list of all the answer models associated with a user.
+    //  * @returns Promise to Array of model ids
+    //  */
+    // public getRealtimeAnswerIDs(): Promise<modelID[]> {
+    //     return this.getRealtimeIDs('answermodel');
+    // }
 
     public setTestEditState(testdisp: ITestDisp): void {
         JTRadioButtonSet('testdisp', testdisp);

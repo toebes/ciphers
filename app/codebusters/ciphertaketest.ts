@@ -4,7 +4,7 @@ import { ICipherType } from '../common/ciphertypes';
 import { cloneObject, timestampFromMinutes } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
-import { ConvergenceDomain, RealTimeModel } from '@convergence/convergence';
+import { ConvergenceDomain } from '@convergence/convergence';
 import { CipherTest } from './ciphertest';
 
 /**
@@ -38,8 +38,8 @@ export class CipherTakeTest extends CipherTest {
         }
     }
     /**
-     * Update the output based on current state settings.  This propagates
-     * All values to the UI
+     * Update the output based on current state settings.
+     * This propagates all values to the UI
      */
     public updateOutput(): void {
         super.updateOutput();
@@ -49,23 +49,11 @@ export class CipherTakeTest extends CipherTest {
     }
     /**
      * Generates a list of all the tests on the server in a table.
+     * @returns HTML content of list of tests
      */
     public genTestList(): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'testlist' });
-        const userid = this.getConfigString('userid', '');
-        if (userid === '') {
-            const callout = $('<div/>', {
-                class: 'callout alert',
-            })
-                .append('Please ')
-                .append(
-                    $('<div/>', {
-                        class: 'login-button button',
-                    }).text('Login')
-                )
-                .append(' in order to see tests assigned to you.');
-            result.append(callout);
-        } else {
+        if (this.confirmedLoggedIn(' in order to see tests assigned to you.', result)) {
             const table = new JTTable({ class: 'cell shrink publist' });
             const row = table.addHeaderRow();
             row.add('Action')
@@ -85,9 +73,11 @@ export class CipherTakeTest extends CipherTest {
      */
     private findAllTests(domain: ConvergenceDomain): void {
         const modelService = domain.models();
+        // We know that we are logged in because the toplevel routine confirms it, but
+        // just incase we still need a default for the userid
         const userid = this.getConfigString('userid', 'NOBODY');
         modelService
-            .query('SELECT testid,starttime,endtime,assigned FROM codebusters_answers')
+            .query('SELECT testid,starttime,endtime,assigned FROM codebusters_answers')  // This stays with Convergence for the answer models
             .then((results) => {
                 let count = 0;
                 results.data.forEach((result) => {
@@ -101,12 +91,7 @@ export class CipherTakeTest extends CipherTest {
                         }
                     }
                     count++;
-                    this.addPublishedEntry(
-                        modelService,
-                        result.modelId,
-                        answertemplate,
-                        isAssigned
-                    );
+                    this.addPublishedEntry(result.modelId, answertemplate, isAssigned);
                 });
                 if (count === 0) {
                     const callout = $('<div/>', {
@@ -122,17 +107,11 @@ export class CipherTakeTest extends CipherTest {
     }
     /**
      * Add/replace a test entry to the table of all tests along with the buttons to interact with the test.
-     * @param modelService Convergence model service for making calls
-     * @param answermodelid ID of
+     * @param answerModelID ID of the answer model
      * @param answertemplate Contents of answer
      */
-    public addPublishedEntry(
-        modelService: Convergence.ModelService,
-        answermodelid: string,
-        answertemplate: IAnswerTemplate,
-        isAssigned: boolean
-    ): void {
-        const tr = $('<tr/>', { 'data-answer': answermodelid });
+    public addPublishedEntry(answerModelID: string, answertemplate: IAnswerTemplate, isAssigned: boolean): void {
+        const tr = $('<tr/>', { 'data-answer': answerModelID });
         const buttons = $('<div/>', { class: 'button-group round shrink' });
         const now = Date.now();
         // const showCoachedTest = true;
@@ -172,8 +151,8 @@ export class CipherTakeTest extends CipherTest {
             .append($('<td/>').append(testtitle))
             .append($('<td/>').text(starttime));
 
-        this.fillTitle(modelService, testtitle, testmodelid);
-        const curtr = $('tr[data-answer="' + answermodelid + '"]');
+        this.fillTitle(testtitle, testmodelid);
+        const curtr = $('tr[data-answer="' + answerModelID + '"]');
         if (curtr.length > 0) {
             curtr.replaceWith(tr);
         } else {
@@ -181,24 +160,17 @@ export class CipherTakeTest extends CipherTest {
         }
     }
     /**
-     *
-     * @param modelService
-     * @param elem
-     * @param testmodelid
+     * Gets the title for a test from the testmodel
+     * @param elem Element to fill the title into
+     * @param testmodelid ID of model to get the title for
      */
-    public fillTitle(
-        modelService: Convergence.ModelService,
-        elem: JQuery<HTMLElement>,
-        testmodelid: string
-    ): void {
-        modelService
-            .open(testmodelid)
-            .then((testmodel: RealTimeModel) => {
-                const title = testmodel.elementAt('title').value();
-                elem.empty().append($('<span/>').text(title));
+    public fillTitle(elem: JQuery<HTMLElement>, testmodelid: string): void {
+        this.getRealtimeElementMetadata('testmodel', testmodelid)
+            .then((metadata) => {
+                elem.empty().append($('<span/>').text(metadata.title));
             })
             .catch((error) => {
-                this.reportFailure('Unable to get model title for ' + testmodelid + ': ' + error);
+                elem.empty().append('Unable to get title: ' + error);
             });
     }
     /**
@@ -212,7 +184,9 @@ export class CipherTakeTest extends CipherTest {
      * Print hints for a test
      * @param testid Id of test model
      */
-    public printHints(testid: string): void { }
+    public printHints(testid: string): void {
+        // TODO: Implement this!
+    }
     /**
      * Locate the model id for an element.  This looks for the data-source attribute of the containing TR
      * @param elem element to get information for
@@ -232,7 +206,6 @@ export class CipherTakeTest extends CipherTest {
             .off('click')
             .on('click', (e) => {
                 this.gotoTakeTest(this.getModelID($(e.target)));
-                //                this.downloadPublishedTest($(e.target).attr('data-source'));
             });
         $('.printhint')
             .off('click')

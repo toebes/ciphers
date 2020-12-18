@@ -1,8 +1,8 @@
 import { CipherTestManage } from './ciphertestmanage';
 import { IState, toolMode } from '../common/cipherhandler';
-import { ITestState } from './ciphertest';
+import { ITestState, sourceModel } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
-import { cloneObject, formatTime, timestampFromSeconds, timestampToFriendly } from '../common/ciphercommon';
+import { cloneObject, formatTime, makeCallout, timestampFromSeconds, timestampToFriendly } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { ConvergenceDomain, ModelService } from '@convergence/convergence';
@@ -45,12 +45,19 @@ export class CipherTestResults extends CipherTestManage {
     public genTestList(): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'testlist' });
 
-        // First we need to get the test template from the testsource
-        // Once we have the test template, then we will be able to find all the scheduled tests
-        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-            this.openTestSource(domain, this.state.testID);
-            $('.ans').remove();
-        });
+        if (this.state.testID === undefined) {
+            result.append(makeCallout($('<h3/>').text('No test id was provided to view results.')));
+            return result;
+        }
+
+        if (this.confirmedLoggedIn(' in order to see test results.', result)) {
+            // First we need to get the test template from the testsource
+            // Once we have the test template, then we will be able to find all the scheduled tests
+            this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+                $('.ans').remove();
+                this.openTestSource(domain, this.state.testID);
+            });
+        }
         return result;
     }
     /**
@@ -59,85 +66,22 @@ export class CipherTestResults extends CipherTestManage {
      * @param sourcemodelid Source test to open
      */
     private openTestSource(domain: ConvergenceDomain, sourcemodelid: string): void {
-        const modelService = domain.models();
-        modelService
-            .open(sourcemodelid)
-            .then((realtimeModel) => {
-                const testmodelid = realtimeModel
-                    .root()
-                    .elementAt('testid')
-                    .value();
-                const answermodelid = realtimeModel
-                    .root()
-                    .elementAt('answerid')
-                    .value();
-                realtimeModel.close();
-                const testSourcePromise = this.findTestSource(modelService, testmodelid);
-                this.findScheduledTests(
-                    modelService,
-                    testmodelid,
-                    answermodelid,
-                    testSourcePromise
-                );
-            })
-            .catch((error) => {
-                this.reportFailure('Could not open model for ' + sourcemodelid + ' Error:' + error);
-            });
-    }
-    /**
-     * Find test test source
-     *
-     */
-    private findTestSource(
-        modelService: Convergence.ModelService,
-        testModelId: string
-    ): Promise<any> {
-        console.log(
-            'Finding source with: ' +
-            "SELECT * FROM codebusters_source where testid='" +
-            testModelId +
-            "'"
-        );
-        return modelService
-            .query("SELECT source FROM codebusters_source where testid='" + testModelId + "'")
-            .then((results) => {
-                let count = 0;
-                let testSource = undefined;
-                results.data.forEach((result) => {
-                    count++;
-                    testSource = result.data.source;
-                    console.log('Found it: ' + testSource['TEST.0'].title);
-                });
-                if (count != 1) {
-                    console.log("Error calculating results... found '" + count + "' tests!");
-                }
-                return testSource;
-            })
-            .catch((error) => {
-                this.reportFailure('findTestSource: Convergence API could not connect: ' + error);
-            });
+        this.getRealtimeSource(sourcemodelid).then((sourcemodel: sourceModel) => {
+            const modelService = domain.models();
+            this.findScheduledTests(modelService, sourcemodel);
+        }).catch((error) => {
+            this.reportFailure('Could not open model for ' + sourcemodelid + ' Error:' + error);
+        });
     }
 
     /**
      * Find all the tests scheduled for a given test template
-     * @param modelService service object to access the model data
-     * @param testmodelid ID of the test model for these results
-     * @param answermodelid ID of the answer template models that we will skip
-     * @param testSourcePromise promise that will provide the actual test we will use to score answered tests
+     * @param modelService Domain Model service object for making requests
+     * @param sourceModel Contents of the actual test
      */
-    public findScheduledTests(
-        modelService: ModelService,
-        testmodelid: string,
-        answermodelid: string,
-        testSourcePromise: Promise<any>
-    ): void {
-        let theTest: { [key: string]: any };
-        testSourcePromise.then((testSource) => {
-            theTest = testSource;
-            console.log('Got the testSource for these results...');
-        });
+    public findScheduledTests(modelService: ModelService, sourcemodel: sourceModel): void {
         modelService
-            .query("SELECT * FROM codebusters_answers where testid='" + testmodelid + "'")
+            .query("SELECT * FROM codebusters_answers where testid='" + sourcemodel.testid + "'")  // This stays using convergence
             .then((results) => {
                 let total = 0;
                 let templatecount = 0;
@@ -145,7 +89,7 @@ export class CipherTestResults extends CipherTestManage {
                 const scheduledTestScores: CipherTestScorer = new CipherTestScorer();
 
                 results.data.forEach((result) => {
-                    if (result.modelId === answermodelid) {
+                    if (result.modelId === sourcemodel.answerid) {
                         templatecount++;
                     } else {
                         if (table === undefined) {
@@ -199,7 +143,7 @@ export class CipherTestResults extends CipherTestManage {
                         //console.log("The answer count is: " + answers.length.toString());
                         let testScore = 0;
                         let scoreInformation = undefined;
-                        const testInformation = theTest['TEST.0'];
+                        const testInformation = sourcemodel['TEST.0'];
                         const questionInformation: ITestQuestion = {
                             correctLetters: 0,
                             questionNumber: 0,
@@ -213,7 +157,7 @@ export class CipherTestResults extends CipherTestManage {
                         if (timeQuestion != -1) {
                             testResultsData.hasTimed = true;
                             const question = 'CIPHER.' + timeQuestion;
-                            const state = theTest[question];
+                            const state = sourcemodel[question];
                             const ihandler = CipherPrintFactory(state.cipherType, state.curlang);
                             ihandler.restore(state, true);
                             scoreInformation = ihandler.genScore(answers[0].answer);
@@ -251,7 +195,7 @@ export class CipherTestResults extends CipherTestManage {
                             // contain the timed question.
                             const question = 'CIPHER.' + questions[i - 1].toString();
 
-                            const state = theTest[question];
+                            const state = sourcemodel[question];
                             const ihandler = CipherPrintFactory(state.cipherType, state.curlang);
                             ihandler.restore(state, true);
 
@@ -301,7 +245,7 @@ export class CipherTestResults extends CipherTestManage {
                 if (total === 0) {
                     $('.testlist').append(
                         $('<div/>', { class: 'callout warning' }).text(
-                            'No tests results available for "' + theTest['TEST.0'].title + '"'
+                            'No tests results available for "' + sourcemodel['TEST.0'].title + '"'
                         )
                     );
                     if (templatecount === 0) {
@@ -434,7 +378,7 @@ export class CipherTestResults extends CipherTestManage {
 
                     $('.testlist')
                         .append(
-                            $('<h3/>').text('Results for test: "' + theTest['TEST.0'].title + '"')
+                            $('<h3/>').text('Results for test: "' + sourcemodel['TEST.0'].title + '"')
                         )
                         .append(table.generate());
                     const datatable = $('.publist').DataTable({ order: [[5, 'desc']] });

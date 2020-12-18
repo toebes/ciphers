@@ -1,14 +1,13 @@
 import { CipherTestManage } from './ciphertestmanage';
 import { toolMode, IState } from '../common/cipherhandler';
-import { ITestState } from './ciphertest';
+import { globalPermissionId, ITestState, RealtimePermissionSet, RealtimeSinglePermission } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
-import { cloneObject } from '../common/ciphercommon';
+import { cloneObject, makeCallout } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
-import { ConvergenceDomain, ModelPermissions } from '@convergence/convergence';
 
 /**
- * CipherTestPublished
+ * CipherTestPermissions
  *    This shows a list of permissions for a test
  *    Each line has a line with buttons at the start
  *       <DELETE> <userid>  <Permissions>
@@ -54,47 +53,43 @@ export class CipherTestPermissions extends CipherTestManage {
      */
     public genTestList(): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'testlist' });
-        const table = new JTTable({ class: 'cell shrink permlist' });
-        const row = table.addHeaderRow();
-        row.add('Action')
-            .add('Userid')
-            .add('Permissions');
-        result.append(table.generate());
-
-        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-            this.findPermissions(domain, this.state.testID);
-        });
+        if (this.state.testID === undefined) {
+            result.append(makeCallout($('<h3/>').text('No test id was provided to set permissions for.')));
+            return;
+        }
+        if (this.confirmedLoggedIn(' in order to see tests on the interactive server.', result)) {
+            const table = new JTTable({ class: 'cell shrink permlist' });
+            const row = table.addHeaderRow();
+            row.add('Action')
+                .add('Userid')
+                .add('Permissions');
+            result.append(table.generate());
+            this.findPermissions(this.state.testID);
+        }
         return result;
     }
     /**
      * Find all the test sources on the server
      * @param domain Convergence Domain to query against
      */
-    private findPermissions(domain: ConvergenceDomain, testid: string): void {
-        const modelService = domain.models();
-        const permissionManager = modelService.permissions(testid);
-        permissionManager
-            .getWorldPermissions()
-            .then((worldPermissions) => {
-                this.addPermissions(0, undefined, worldPermissions);
+    private findPermissions(testid: string): void {
+        this.getRealtimePermissions(testid)
+            .then((permissionset: RealtimePermissionSet) => {
+                const worldPermissions = permissionset[globalPermissionId];
+                if (worldPermissions !== undefined)
+                    this.addPermissions(0, undefined, worldPermissions);
+
+                let slot = 1;
+                for (let key in permissionset) {
+                    if (key !== globalPermissionId) {
+                        this.addPermissions(slot, key, permissionset[key]);
+                        slot++;
+                    }
+                }
             })
             .catch((error) => {
                 this.reportFailure(
-                    'getWorldPermissions for ' + testid + ' returned Error:' + error
-                );
-            });
-        let slot = 1;
-        permissionManager
-            .getAllUserPermissions()
-            .then((permissions) => {
-                permissions.forEach((permissionset, user) => {
-                    this.addPermissions(slot, user, permissionset);
-                    slot++;
-                });
-            })
-            .catch((error) => {
-                this.reportFailure(
-                    'getAllUserPermissions for ' + testid + ' returned Error:' + error
+                    'getRealtimePermissions for ' + testid + ' returned Error:' + error
                 );
             });
     }
@@ -121,7 +116,7 @@ export class CipherTestPermissions extends CipherTestManage {
      * @param user
      * @param permissionset
      */
-    public addPermissions(slot: number, user: string, permissionset: ModelPermissions): void {
+    public addPermissions(slot: number, user: string, permissionset: RealtimeSinglePermission): void {
         // let id = user;
         const idbase = String(slot);
         let userfield: JQuery<HTMLElement>;

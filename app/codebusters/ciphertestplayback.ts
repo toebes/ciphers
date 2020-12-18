@@ -1,5 +1,5 @@
 import { CipherTest, ITestState, IAnswerTemplate } from './ciphertest';
-import { toolMode, ITestTimeInfo, menuMode, IState } from '../common/cipherhandler';
+import { toolMode, ITestTimeInfo, menuMode, IState, IInteractiveTest } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import {
     cloneObject,
@@ -32,8 +32,8 @@ class TrueTimePlayback extends TrueTime {
     public setTime(now: number): void {
         this.now = now;
     }
-    public startTiming(): void {}
-    public syncTime(): void {}
+    public startTiming(): void { }
+    public syncTime(): void { }
 }
 /**
  * CipherTestPlayback
@@ -81,15 +81,18 @@ export class CipherTestPlayback extends CipherTest {
     public updateOutput(): void {
         super.updateOutput();
         this.setMenuMode(menuMode.test);
-        // Do we have a test id to display an interactive test for?
-        if (this.state.testID != undefined) {
-            $('.testcontent').empty();
-            $('.timer').hide();
-            this.displayInteractiveTest(this.state.testID);
-        } else {
-            $('.testcontent')
-                .empty()
-                .append(makeCallout($('<h3/>').text('No test id was provided to playback.')));
+        // Make sure that they are logged in to be able to playback a test
+        if (this.confirmedLoggedIn(' in order to replay a test.', $('.testcontent'))) {
+            // Do we have a test id to display an interactive test for?
+            if (this.state.testID != undefined) {
+                $('.testcontent').empty();
+                $('.timer').hide();
+                this.displayInteractiveTest(this.state.testID);
+            } else {
+                $('.testcontent')
+                    .empty()
+                    .append(makeCallout($('<h3/>').text('No test id was provided to playback.')));
+            }
         }
         this.attachHandlers();
     }
@@ -157,9 +160,9 @@ export class CipherTestPlayback extends CipherTest {
                     if (saveslot !== currentSlot) {
                         console.log(
                             'Starting off backwards bad: at ' +
-                                saveslot +
-                                ' but thought at ' +
-                                currentSlot
+                            saveslot +
+                            ' but thought at ' +
+                            currentSlot
                         );
                     }
                     // await this.shadowanswermodel.backward(currentSlot - targetslot);
@@ -173,11 +176,11 @@ export class CipherTestPlayback extends CipherTest {
                     if (currentSlot !== targetslot) {
                         console.log(
                             'Failed to move backwards to ' +
-                                targetslot +
-                                ' but ended at ' +
-                                currentSlot +
-                                ' we were at ' +
-                                saveslot
+                            targetslot +
+                            ' but ended at ' +
+                            currentSlot +
+                            ' we were at ' +
+                            saveslot
                         );
                     }
                 }
@@ -202,11 +205,11 @@ export class CipherTestPlayback extends CipherTest {
                     if (currentSlot !== targetslot) {
                         console.log(
                             'Failed to move forward to ' +
-                                targetslot +
-                                ' at ' +
-                                currentSlot +
-                                ' we were at ' +
-                                saveslot
+                            targetslot +
+                            ' at ' +
+                            currentSlot +
+                            ' we were at ' +
+                            saveslot
                         );
                     }
                 }
@@ -344,12 +347,7 @@ export class CipherTestPlayback extends CipherTest {
      * @param testtype The type of test that it is being generated for
      * @param observableObject Realtime object to establish collaboration for
      */
-    public makeInteractive(
-        elem: JQuery<HTMLElement>,
-        state: IState,
-        qnum: number,
-        observableObject: HistoricalObject
-    ): void {
+    public makeInteractive(elem: JQuery<HTMLElement>, state: IState, qnum: number, observableObject: HistoricalObject): void {
         // Sometimes the handlers die because of insufficient data passed to them (or because they are accessing something that they shouldn't)
         // We protect from this to also prevent it from popping back to the higher level try/catch which is dealing with any communication
         // errors to the server
@@ -419,7 +417,7 @@ export class CipherTestPlayback extends CipherTest {
     /**
      * Stage 1: Start the process for displaying an interactive test.
      * Check the time and user information to make sure that we are in the window to run the test
-     * @param answerModelID answer template id
+     * @param answerModelID ID of the answer model
      */
     public displayInteractiveTest(answerModelID: string): void {
         this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
@@ -458,65 +456,52 @@ export class CipherTestPlayback extends CipherTest {
                 });
                 // If they close the window or navigate away, we want to close all our connections
                 $(window).on('beforeunload', () => this.shutdownTest());
-                this.openTestModel(modelService, testModelID, answerModelID);
+                this.openShadowAnswerModel(modelService, answerModelID, testModelID);
             });
         });
     }
     /**
-     * Open the test model for the test template.
-     * @param modelService
-     * @param testModelID
-     * @param answermodelID Interactive answer model
+     * Open the shadow copy of the answermodel in order to optimize seeking
+     * @param modelService Domain Model service object for making requests
+     * @param answerModelID ID of the answer model
+     * @param testModelID ID of the test model
      */
-    private openTestModel(
-        modelService: ModelService,
-        testModelID: string,
-        answerModelID: string
-    ): void {
-        modelService
-            .open(testModelID)
-            .then((testmodel: RealTimeModel) => {
-                const interactive = testmodel.root().value();
-                testmodel.close();
-                this.openShadowAnswerModel(modelService, answerModelID, interactive);
-            })
-            .catch((error) => {
-                this.reportFailure('Convergence API could not open data model: ' + error);
-            });
-    }
-    /**
-     *
-     * @param modelService
-     * @param answerModelID
-     * @param interactive Test template
-     */
-    private openShadowAnswerModel(
-        modelService: ModelService,
-        answerModelID: string,
-        interactive: any
-    ): void {
+    private openShadowAnswerModel(modelService: ModelService, answerModelID: string, testModelID: string,): void {
         modelService
             .history(answerModelID)
             .then((shadowanswermodel: HistoricalModel) => {
                 this.shadowanswermodel = shadowanswermodel;
-                this.buildInteractiveTest(interactive);
+                this.openTestModel(testModelID);
             })
             .catch((error) => {
                 this.reportFailure('Convergence API could not open shadow history model: ' + error);
             });
     }
     /**
-     * Construct the score template and populate the hints that they will need
-     * @param interactive Test template
+     * Open the test model for the test template.
+     * @param testModelID ID of the test model
      */
-    public buildInteractiveTest(interactive: any): void {
+    private openTestModel(testModelID: string): void {
+        this.getRealtimeTestModel(testModelID)
+            .then((testmodel) => {
+                this.buildInteractiveTest(testmodel);
+            })
+            .catch((error) => {
+                this.reportFailure('Unable to open test model: ' + error);
+            });
+    }
+    /**
+     * Construct the score template and populate the hints that they will need
+     * @param testmodel Test template
+     */
+    public buildInteractiveTest(testmodel: IInteractiveTest): void {
         // Update the title for the test
-        $('.testtitle').text(interactive.title);
+        $('.testtitle').text(testmodel.title);
 
         // Show custom header or default header.
-        if (interactive.useCustomHeader) {
+        if (testmodel.useCustomHeader) {
             $('.custom-header')
-                .append(interactive.customHeader)
+                .append(testmodel.customHeader)
                 .show();
         } else {
             $('.default-header').show();
@@ -535,7 +520,7 @@ export class CipherTestPlayback extends CipherTest {
             .add('Incorrect letters')
             .add('Deduction')
             .add('Score');
-        for (const qitem of interactive.qdata) {
+        for (const qitem of testmodel.qdata) {
             let qtitle = '';
             if (qitem.qnum === -1) {
                 qtitle = 'Timed';
@@ -579,18 +564,18 @@ export class CipherTestPlayback extends CipherTest {
         // Make sure to hide the generated DOM elements while we get them ready
         const target = $('.testcontent');
         // Generate the questions
-        if (interactive.timed !== undefined) {
+        if (testmodel.timed !== undefined) {
             this.makeInteractive(
                 target,
-                interactive.timed,
+                testmodel.timed,
                 -1,
                 this.answermodel.elementAt('answers', 0) as HistoricalObject
             );
         }
-        for (let qnum = 0; qnum < interactive.count; qnum++) {
+        for (let qnum = 0; qnum < testmodel.count; qnum++) {
             this.makeInteractive(
                 target,
-                interactive.questions[qnum],
+                testmodel.questions[qnum],
                 qnum,
                 this.answermodel.elementAt('answers', qnum + 1) as HistoricalObject
             );

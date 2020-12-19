@@ -424,7 +424,8 @@ export class CipherTestSchedule extends CipherTestManage {
                 let thisset = this.fixPermissions(modelService, this.getRowID($(elem)), this.getModelID($(elem)));
                 added = added.concat(thisset);
             });
-            this.saveTestModelPermissions(this.testmodelid, added);
+            // this.saveTestModelPermissions(this.testmodelid, added);             //###Temporary until new API is in place
+            this.saveUserPermissions(modelService, this.testmodelid, [], added);   //###Temporary until new API is in place
         });
     }
     /**
@@ -444,7 +445,8 @@ export class CipherTestSchedule extends CipherTestManage {
         this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
             const modelService = domain.models();
             const userlist = this.saveAnswerSlot(modelService, eid, testid);
-            this.saveTestModelPermissions(this.testmodelid, userlist);
+            // this.saveTestModelPermissions(this.testmodelid, userlist);            //###Temporary until new API is in place
+            this.saveUserPermissions(modelService, this.testmodelid, [], userlist);  //###Temporary until new API is in place
         });
     }
     /**
@@ -498,7 +500,8 @@ export class CipherTestSchedule extends CipherTestManage {
                     userlist = userlist.concat(this.saveAnswerSlot(modelService, this.getRowID($(elem)), this.getModelID($(elem))));
                 }
             });
-            this.saveTestModelPermissions(this.testmodelid, userlist);
+            // this.saveTestModelPermissions(this.testmodelid, userlist);            //###Temporary until new API is in place
+            this.saveUserPermissions(modelService, this.testmodelid, [], userlist);  //###Temporary until new API is in place
         });
     }
     /**

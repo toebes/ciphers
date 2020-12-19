@@ -740,7 +740,38 @@ export class CipherTest extends CipherHandler {
         // })
         return new Promise((resolve, reject) => {
             // TODO: Implement this
-            resolve(undefined);
+            this.cacheConnectRealtime().then((domain) => {
+                const modelService = domain.models();
+                modelService.open(id)
+                    .then((datamodel: RealTimeModel) => {
+                        const data = datamodel.root().value();
+                        let questions = 0;
+                        let title = data.title;
+                        if (data.source !== undefined && data.source['TEST.0'] !== undefined) {
+                            questions = data.source['TEST.0'].count;
+                            title = data.source['TEST.0'].title;
+                            if (data.source['TEST.0'].timed !== -1) {
+                                questions++;
+                            }
+                        } else if (data.qdata !== undefined) {
+                            questions = data.qdata.length;
+                        }
+                        datamodel.close();
+                        let metadata: IRealtimeMetaData = {
+                            testid: data.testid,
+                            sourceid: data.sourceid,
+                            answerid: data.answerid,
+                            id: id,
+                            title: title,
+                            type: 'sourcemodel',
+                            questions: questions,
+                            dateCreated: Number(data.created),
+                            createdBy: "nobody@nowhere.com"
+                        }
+                        resolve(metadata);
+                    }).catch((error) => reject(error));
+            }).catch((error) => reject(error));
+
         });
     }
     /**

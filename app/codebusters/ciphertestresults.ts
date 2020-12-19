@@ -245,7 +245,7 @@ export class CipherTestResults extends CipherTestManage {
                 if (total === 0) {
                     $('.testlist').append(
                         $('<div/>', { class: 'callout warning' }).text(
-                            'No tests results available for "' + sourcemodel['TEST.0'].title + '"'
+                            'No tests results available for "' + sourcemodel.source['TEST.0'].title + '"'
                         )
                     );
                     if (templatecount === 0) {

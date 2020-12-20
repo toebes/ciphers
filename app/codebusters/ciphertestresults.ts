@@ -143,7 +143,7 @@ export class CipherTestResults extends CipherTestManage {
                         //console.log("The answer count is: " + answers.length.toString());
                         let testScore = 0;
                         let scoreInformation = undefined;
-                        const testInformation = sourcemodel['TEST.0'];
+                        const testInformation = sourcemodel.source['TEST.0'];
                         const questionInformation: ITestQuestion = {
                             correctLetters: 0,
                             questionNumber: 0,
@@ -157,7 +157,7 @@ export class CipherTestResults extends CipherTestManage {
                         if (timeQuestion != -1) {
                             testResultsData.hasTimed = true;
                             const question = 'CIPHER.' + timeQuestion;
-                            const state = sourcemodel[question];
+                            const state = sourcemodel.source[question];
                             const ihandler = CipherPrintFactory(state.cipherType, state.curlang);
                             ihandler.restore(state, true);
                             scoreInformation = ihandler.genScore(answers[0].answer);
@@ -195,7 +195,7 @@ export class CipherTestResults extends CipherTestManage {
                             // contain the timed question.
                             const question = 'CIPHER.' + questions[i - 1].toString();
 
-                            const state = sourcemodel[question];
+                            const state = sourcemodel.source[question];
                             const ihandler = CipherPrintFactory(state.cipherType, state.curlang);
                             ihandler.restore(state, true);
 
@@ -378,7 +378,7 @@ export class CipherTestResults extends CipherTestManage {
 
                     $('.testlist')
                         .append(
-                            $('<h3/>').text('Results for test: "' + sourcemodel['TEST.0'].title + '"')
+                            $('<h3/>').text('Results for test: "' + sourcemodel.source['TEST.0'].title + '"')
                         )
                         .append(table.generate());
                     const datatable = $('.publist').DataTable({ order: [[5, 'desc']] });

@@ -1,4 +1,4 @@
-import { cloneObject, NumberMap } from '../common/ciphercommon';
+import { cloneObject, cloneObjectClean, NumberMap } from '../common/ciphercommon';
 import {
     CipherHandler,
     IRunningKey,
@@ -678,7 +678,7 @@ export class CipherTest extends CipherHandler {
         return new Promise((resolve, reject) => {
             // TODO: Implement this
             this.cacheConnectRealtime().then((domain) => {
-                let newData = JSON.parse(contents);
+                let newData = cloneObjectClean(JSON.parse(contents));
                 const modelService = domain.models();
                 let isOldModel = true;
                 let testModelOptions: IAutoCreateModelOptions = {

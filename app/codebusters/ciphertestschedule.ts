@@ -134,10 +134,10 @@ export class CipherTestSchedule extends CipherTestManage {
             .then((metadata) => {
                 const testmodelid = metadata.testid;
                 this.testmodelid = testmodelid;
-                this.getRealtimeAnswerTemplate(this.testmodelid)
+                this.getRealtimeAnswerTemplate(metadata.answerid)
                     .then((answertemplate) => {
                         this.answerTemplate = answertemplate;
-                        this.findScheduledTests(modelService, testmodelid);
+                        this.findScheduledTests(modelService, testmodelid, metadata.answerid);
                     })
             })
             .catch((error) => {
@@ -233,7 +233,7 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param modelService Domain Model service object for making requests
      * @param sourcemodelid
      */
-    public findScheduledTests(modelService: ModelService, testmodelid: string): void {
+    public findScheduledTests(modelService: ModelService, testmodelid: string, answertempateid: string): void {
         modelService
             .query("SELECT assigned,starttime,endtimed,endtime,teamname,teamtype FROM codebusters_answers where testid='" + testmodelid + "'") // This stays using convergence
             .then((results) => {
@@ -241,13 +241,15 @@ export class CipherTestSchedule extends CipherTestManage {
                 let table: JTTable = undefined;
                 results.data.forEach((result) => {
                     const answertemplate = result.data as IAnswerTemplate;
-                    if (table === undefined) {
-                        table = this.createTestTable();
+                    if (result.modelId !== answertempateid) {
+                        if (table === undefined) {
+                            table = this.createTestTable();
+                        }
+                        const row = table.addBodyRow();
+                        this.populateRow(row, total, result.modelId, answertemplate);
+                        // Keep track of how many entries we created so that they each have a unique id
+                        total++;
                     }
-                    const row = table.addBodyRow();
-                    this.populateRow(row, total, result.modelId, answertemplate);
-                    // Keep track of how many entries we created so that they each have a unique id
-                    total++;
                 });
                 // If we don't generate a table, we need to put something there to tell the user
                 // that there are no tests scheduled.

@@ -36,7 +36,6 @@ export class CipherTestInteractive extends CipherTest {
         endTime: 0,
         endTimedQuestion: 0,
     };
-    private currentuser = "";
 
     /**
      * Restore the state from either a saved file or a previous undo record
@@ -58,10 +57,9 @@ export class CipherTestInteractive extends CipherTest {
     public updateOutput(): void {
         super.updateOutput();
         this.setMenuMode(menuMode.test);
-        // Do we have a test id to display an interactive test for?
-        // Not an interactive test, so we must be trying to create one from the current test
+        // Create an interactive test
         $('.testlist').each((i, elem) => {
-            this.generateInteractiveModel($(elem));
+            setTimeout(() => { this.generateInteractiveModel($(elem)); }, 10);
         });
         this.attachHandlers();
     }
@@ -105,11 +103,10 @@ export class CipherTestInteractive extends CipherTest {
             elem.append(makeCallout($('<h3>').text('No Tests Created Yet')));
             return;
         }
-        if (this.state.test > testcount) {
+        if (this.state.test > testcount || this.state.test === undefined) {
             elem.append(makeCallout($('<h3/>').text('No test id was provided to save to the server.')));
             return;
         }
-        this.currentuser = this.getConfigString('userid', undefined);
         if (!this.confirmedLoggedIn(' in order to save the test to the server.', elem)) {
             return;
         }
@@ -264,6 +261,9 @@ export class CipherTestInteractive extends CipherTest {
         if (testData.hasOwnProperty('TEST.0') && testData['TEST.0'].hasOwnProperty(field)) {
             result = testData['TEST.0'][field];
         }
+        if (result === "") {
+            result = undefined;
+        }
         return result;
     }
     /**
@@ -287,21 +287,15 @@ export class CipherTestInteractive extends CipherTest {
         // since the test is saved locally, they just don't end up publishing it to the server.
         //
         // Note that we need to use the () => functions in order for the callbacks to get access to 'this'
-        this.checkModel('Source', 'sourcemodelid', interactive, answerdata, testData, elem,
-            () => {
-                this.checkModel('Test', 'testmodelid', interactive, answerdata, testData, elem,
-                    () => {
-                        this.checkModel('Answer', 'answermodelid', interactive, answerdata, testData, elem,
-                            () => {
-                                this.askSaveDecision('A previous version of this test has already been published to the server.',
-                                    true, interactive, answerdata, testData, elem
-                                );
-                            }
-                        );
-                    }
-                );
-            }
-        );
+        this.checkModel('Source', 'sourcemodelid', interactive, answerdata, testData, elem, () => {
+            this.checkModel('Test', 'testmodelid', interactive, answerdata, testData, elem, () => {
+                this.checkModel('Answer', 'answermodelid', interactive, answerdata, testData, elem, () => {
+                    this.askSaveDecision('A previous version of this test has already been published to the server.',
+                        true, interactive, answerdata, testData, elem
+                    );
+                });
+            });
+        });
     }
     /**
      * Check to see if a model already exists on the server.  If it doesn't or there is some access problem

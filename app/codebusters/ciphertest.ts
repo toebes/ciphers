@@ -705,13 +705,11 @@ export class CipherTest extends CipherHandler {
                     if (isOldModel) {
                         testmodel.root().value(newData);
                     }
+                    id = testmodel.modelId();
                     testmodel.close();
-                }).catch((error) => {
-                    this.reportFailure("Convergence API could not write test model: " + error);
-                });
-            });
-
-            resolve("");
+                    resolve(id);
+                }).catch((error) => reject(error));
+            }).catch((error) => reject(error));
         });
     }
     /**

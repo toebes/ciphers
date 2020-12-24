@@ -682,7 +682,7 @@ export class CipherTest extends CipherHandler {
                 const modelService = domain.models();
                 let isOldModel = true;
                 let testModelOptions: IAutoCreateModelOptions = {
-                    collection: "codebusters_answers",
+                    collection: "codebusters_answer_templates",
                     overrideCollectionWorldPermissions: true,
                     worldPermissions: ModelPermissions.fromJSON({ read: false, write: false, remove: false, manage: false }),
                     userPermissions: {}
@@ -692,6 +692,8 @@ export class CipherTest extends CipherHandler {
                     testModelOptions.collection = "codebusters_source";
                 } else if (modeltype === 'testmodel') {
                     testModelOptions.collection = 'codebusters_tests';
+                } else if (modeltype === 'answertemplate') {
+                    testModelOptions.collection = 'codebusters_answer_templates';
                 }
                 if (id !== undefined) {
                     testModelOptions.id = id;

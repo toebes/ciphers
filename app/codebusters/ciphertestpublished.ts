@@ -254,10 +254,10 @@ export class CipherTestPublished extends CipherTestManage {
      * @param sourcemodelid ID of the source model
      * @param testModelID ID of the test model
      */
-    public deleteTestFromServer(sourcemodelid: string, testmodelid: string): void {
+    public deleteTestFromServer(sourcemodelid: string, testmodelid: string, answertemplateid: string): void {
         // by calling modelService.remove()
         this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-            this.doDeleteTestFromServer(domain, sourcemodelid, testmodelid);
+            this.doDeleteTestFromServer(domain, sourcemodelid, testmodelid, answertemplateid);
         });
     }
     /**
@@ -268,7 +268,7 @@ export class CipherTestPublished extends CipherTestManage {
      * @param sourcemodelid
      * @param testModelID ID of the test model
      */
-    public doDeleteTestFromServer(domain: ConvergenceDomain, sourcemodelid: string, testmodelid: string): void {
+    public doDeleteTestFromServer(domain: ConvergenceDomain, sourcemodelid: string, testmodelid: string, answertemplateid: string): void {
         const modelService = domain.models();
         // Our query should get all of the answer templates which reference the test
         modelService
@@ -280,6 +280,10 @@ export class CipherTestPublished extends CipherTestManage {
                             'Unable to remove ' + result.modelId + ' Error code:' + error
                         );
                     });
+                });
+                // Now that the answer templates are gone, remove the test template
+                modelService.remove(answertemplateid).catch((error) => {
+                    this.reportFailure('Unable to remove ' + answertemplateid + ' Error code:' + error);
                 });
                 // Now that the answer templates are gone, remove the test template
                 modelService.remove(testmodelid).catch((error) => {
@@ -306,13 +310,16 @@ export class CipherTestPublished extends CipherTestManage {
         // First we need to get the testmodel and the answer model because we want to delete them too
         const tr = $('tr[data-source="' + sourcemodelid + '"]');
         const testmodelid = tr.attr('data-test');
-        if (testmodelid == '') {
-            alert('Unable to identify the test templates');
+        const answertemplateid = tr.attr('data-answer');
+        if (testmodelid === '') {
+            alert('Unable to identify the test model');
+        } else if (answertemplateid === '') {
+            alert('Unable to identify the answer template');
         } else {
             $('#okdel')
                 .off('click')
                 .on('click', () => {
-                    this.deleteTestFromServer(sourcemodelid, testmodelid);
+                    this.deleteTestFromServer(sourcemodelid, testmodelid, answertemplateid);
                     $('#delpubdlg').foundation('close');
                     tr.remove();
                 });

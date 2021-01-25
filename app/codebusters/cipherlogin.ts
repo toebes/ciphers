@@ -1,6 +1,6 @@
 import { CipherHandler } from '../common/cipherhandler';
 import { parseQueryString } from '../common/parsequerystring';
-import { API, GenerateUserSpecificConvergenceToken, GetConvergenceTokenParameters } from './api';
+import { GenerateUserSpecificConvergenceToken, GetConvergenceTokenParameters } from './api';
 import {
     AuthenticationResult,
     PublicClientApplication,
@@ -56,11 +56,6 @@ export class CipherLogin extends CipherHandler {
      */
     private readonly shouldPerformSignout: boolean;
 
-    /**
-     * Provides communication to our REST server.
-     */
-    private readonly api: API;
-
     constructor() {
         super();
 
@@ -75,8 +70,6 @@ export class CipherLogin extends CipherHandler {
             .catch((error) => {
                 this.onMicrosoftError(error);
             });
-
-        this.api = new API(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
 
         const parms = parseQueryString(window.location.search.substring(1));
         const parmsReturnUrl = parms.returnUrl;

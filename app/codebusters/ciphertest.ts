@@ -1,4 +1,4 @@
-import { cloneObject, cloneObjectClean, NumberMap } from '../common/ciphercommon';
+import { cloneObject, NumberMap } from '../common/ciphercommon';
 import {
     CipherHandler,
     IRunningKey,
@@ -15,13 +15,14 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
-import { ConvergenceDomain, IAutoCreateModelOptions, LogLevel, ModelPermissions, RealTimeModel } from '@convergence/convergence';
+import { ConvergenceDomain, LogLevel, RealTimeModel } from '@convergence/convergence';
 import {
     ConvergenceAuthentication,
     ConvergenceSettings,
     ConvergenceLoginParameters,
 } from './authentication';
 import Convergence = require('@convergence/convergence');
+import { CBUpdateUserPermissions, StoreModelBody } from './api';
 
 export interface buttonInfo {
     title: string;
@@ -30,8 +31,8 @@ export interface buttonInfo {
 }
 
 export type modelID = string;
-export type IRealtimeObject = 'sourcemodel' | 'testmodel' | 'answertemplate' //| 'answermodel'
-export type IRealtimeFields = 'testid' | 'sourceid' | 'answerid' | 'title' | 'questions'
+export type IRealtimeObject = 'sourcemodel' | 'testmodel' | 'answertemplate'; //| 'answermodel'
+export type IRealtimeFields = 'testid' | 'sourceid' | 'answerid' | 'title' | 'questions';
 export interface IRealtimeMetaData {
     id: modelID;
     type: IRealtimeObject;
@@ -51,7 +52,7 @@ export interface anyMap {
     [key: string]: any;
 }
 
-export const globalPermissionId = 'GLOBAL'
+export const globalPermissionId = 'GLOBAL';
 /**
  * Permissions for a single item
  * Read - Access to view the model
@@ -73,7 +74,6 @@ export interface RealtimeSinglePermission {
 export interface RealtimePermissionSet {
     [index: string]: RealtimeSinglePermission;
 }
-
 
 export interface ITestState extends IState {
     /** Number of points a question is worth */
@@ -361,7 +361,7 @@ export class CipherTest extends CipherHandler {
 
         const convergenceToken = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
         return new Promise((resolve) => {
-            let options: Convergence.IConvergenceOptions = {
+            const options: Convergence.IConvergenceOptions = {
                 protocol: { defaultRequestTimeout: 30 },
                 connection: { timeout: 30 },
             };
@@ -460,7 +460,7 @@ export class CipherTest extends CipherHandler {
     /*-------------------------------------------------------------------------*/
 
     /**
-     * 
+     *
      * Four files which are used by the system:
      *    sourcemodel  -  Edited by the offline ccodebusters site and has all the questions
      *                    the type of test, name of test, and answers as well as other supporting
@@ -478,24 +478,24 @@ export class CipherTest extends CipherHandler {
      *    answermodel - The realitme version of all the fields for taking the test.  This is the
      *                  only model which is managed by convergence.
      *                  It has the start time, end time, and list of students
-     *                  assigned to take the test along with their school information.  
+     *                  assigned to take the test along with their school information.
      *                  Once the students finish the test, they lose acccess to the answermodel.
-     * 
+     *
      *   When Taking a test, the system loads the answermodel for the team and the testmodel.
      *   The testmodel is deciphered to generate the HTML for the page and the answermodel is
      *   connected through the convergence realtime system to allow communications between students
      *   taking the test.
-     * 
+     *
      *   When scoring a test, the system uses the answermodel and the sourcemodel to check the answers.
-     * 
-     *   When publishing a test, the sourcemodel is loaded and the testmodel and answertemplates are 
+     *
+     *   When publishing a test, the sourcemodel is loaded and the testmodel and answertemplates are
      *   generated and stored
-     * 
+     *
      *   When scheduling a test, the answertemplate is copied and the user information and time
      *   is filled in and stored as an answermodel.
      */
 
-    /** 
+    /**
      *   File contents
      *    sourcemodel/
      *        <guuid>.json    - { testid: "<guuid>", answertemplate: "<guuid>", rest of the source }
@@ -505,30 +505,29 @@ export class CipherTest extends CipherHandler {
      *        <guuid>.json     - { testid: "<guuid>", rest of the answer stuff}
      *    answermodel/   (Not really stored) Only parsed to get the testid, all other contents are ignored.
      *        <guuid>.json      - { testid: "<guuid>"}    -- the entire contents of the file
-     * 
+     *
      *  Database contents
      *    Models
-     *      id(key)     type             id         testid    sourceid   answerid     DateCreated  Title    Questions   CreatedBy    
+     *      id(key)     type             id         testid    sourceid   answerid     DateCreated  Title    Questions   CreatedBy
      *      <guuid>     'sourcemodel'    <sguuid>   <tguuid>  --------   <wguuid>     <date>       'title'      <n>     john@toebes.com
      *      <guuid>     'testmodel'      <tguuid>   -------   <sguuid>   <wguid>      <date>       'title'      <n>     john@toebes.com
      *      <guuid>     'answertemplate' <wguuid>   <tguuid>             --------     <date>       ------               john@toebes.com
      *      <guuid>     'answermodel'    <aguuid>   <tguuid>             --------     <date>                            john@toebes.com
-     * 
+     *
      *   Permissions
      *       key    id(fkey)  name                 read    write    manage   delete
      *       <X>   <sguuid>   GLOBAL                 Y       Y         N        N
      *       <X>   <sguuid>   john@toebes.com        Y       Y         Y        Y
      *       <X>   <sguuid>   mrseanmcd@gmail.com    Y       Y         N        N
-     * 
+     *
      */
-
 
     /**
      * Get a list of all the models of a type associated with a user.
      * @returns Promise to Array of model ids
      *    SELECT
      *       id
-     *    FROM 
+     *    FROM
      *       Models,
      *       Permissions
      *    WHERE
@@ -538,47 +537,38 @@ export class CipherTest extends CipherHandler {
      *        (Permissions.name == ::userid:: AND Permissions.read))
      */
     public getRealtimeMetadata(modeltype: IRealtimeObject): Promise<IRealtimeMetaData[]> {
-        // TODO: Implement this using the new API
         return new Promise((resolve, reject) => {
-            if (modeltype === 'sourcemodel') {
-                this.cacheConnectRealtime().then((domain) => {
-                    const modelService = domain.models();
-                    modelService
-                        .query('SELECT source FROM codebusters_source')
-                        .then((results) => {
-                            let result: IRealtimeMetaData[] = [];
-                            results.data.forEach((item) => {
-                                let questions = item.data.source['TEST.0'].count;
-                                if (item.data.source['TEST.0'].timed !== -1) {
-                                    questions++;
-                                }
-                                let metadata: IRealtimeMetaData = {
-                                    testid: item.data.source['TEST.0'].testmodelid,
-                                    sourceid: item.modelId,
-                                    answerid: item.data.source['TEST.0'].answermodelid,
-                                    id: item.modelId,
-                                    title: item.data.source['TEST.0'].title,
-                                    type: 'sourcemodel',
-                                    questions: questions,
-                                    dateCreated: Number(item.created),
-                                    createdBy: "nobody@nowhere.com"
-                                }
-                                result.push(metadata);
-                            });
-                            resolve(result)
-
-                        });
+            const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
+            this.api
+                .getModels(token, modeltype.toString())
+                .then((models) => {
+                    const result: IRealtimeMetaData[] = [];
+                    models.forEach((model) => {
+                        const metadata: IRealtimeMetaData = {
+                            testid: model.testId,
+                            sourceid: model.sourceId,
+                            answerid: model.answerTemplateId,
+                            id: model.id,
+                            title: model.title,
+                            type: model.type as IRealtimeObject,
+                            questions: model.totalQuestions,
+                            dateCreated: Number(0),
+                            createdBy: model.createdBy,
+                        };
+                        result.push(metadata);
+                    });
+                    resolve(result);
                 })
-            } else {
-                resolve([])
-            }
+                .catch((error) => {
+                    reject(error);
+                });
         });
     }
     /**
      * Get all the permissions associated with a model
      * @param ID ModelId to get permissions for
      * @returns Promise to set of permissions
-     *   SELECT 
+     *   SELECT
      *       *
      *   FROM
      *       Permissions
@@ -589,23 +579,28 @@ export class CipherTest extends CipherHandler {
      *     'model_not_found' - Indicates that the model doesn't exist
      */
     public getRealtimePermissions(id: modelID): Promise<RealtimePermissionSet> {
-        // TODO: Implement this
-        // resolve(undefined)
         return new Promise((resolve, reject) => {
-            this.cacheConnectRealtime().then((domain) => {
-                const modelService = domain.models();
-                const permissionManager = modelService.permissions(id);
-                permissionManager
-                    .getAllUserPermissions()
-                    .then((allPermissions) => {
-                        let result: RealtimePermissionSet = {};
-                        allPermissions.forEach((modelPermissions, user) => {
-                            result[user] = { read: modelPermissions.read, write: modelPermissions.write, manage: modelPermissions.manage, remove: modelPermissions.remove };
+            const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
+            this.api
+                .getPermissionsForModel(token, id)
+                .then((response) => {
+                    const result: RealtimePermissionSet = {};
+                    if (response.status == 'success') {
+                        response.permissions.forEach((permission) => {
+                            result[permission.username] = {
+                                read: permission.read,
+                                write: permission.write,
+                                remove: permission.delete,
+                                manage: permission.manage,
+                            };
                         });
                         resolve(result);
-                    })
-                    .catch((error) => reject(error));
-            });
+                    }
+                    reject(response.status);
+                })
+                .catch((error) => {
+                    reject(error);
+                });
         });
     }
     /**
@@ -617,7 +612,7 @@ export class CipherTest extends CipherHandler {
      * @param user Email address of user to add permissions for
      * @param permissions Permissions to set for user.
      * @returns Promise to boolean indicating success/failure
-     * 
+     *
      *   UPSERT
      *      Permissions
      *   WHERE
@@ -626,42 +621,51 @@ export class CipherTest extends CipherHandler {
      *   SET
      *     id=::id::,user=::user::,read=::read::....
      */
-    public updateRealtimePermissions(id: modelID, user: string, permissions: RealtimeSinglePermission): Promise<boolean> {
+    public updateRealtimePermissions(
+        id: modelID,
+        user: string,
+        permissions: RealtimeSinglePermission
+    ): Promise<boolean> {
+        const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
+
+        const updatePermissions: CBUpdateUserPermissions = {
+            modelId: id,
+            username: user,
+            read: permissions.read,
+            write: permissions.write,
+            manage: permissions.manage,
+            remove: permissions.remove,
+        };
+
         return new Promise((resolve, reject) => {
-            // TODO: Implement this - There is no real safe way to do this on the Convergence system
-            resolve(false)
+            this.api
+                .updateUserPermissions(token, updatePermissions)
+                .then((result) => {
+                    resolve(result);
+                })
+                .catch((error) => {
+                    reject(error);
+                });
         });
     }
-    /**
-     * Determines if an element exists on the server
-     * @param id ID of element to look for
-     * @reurns Promise to boolean indicating existance
-     */
-    public existsRealtimeContent(modeltype: IRealtimeObject, id: modelID): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            // This doesn't appear to be used anywhere and might be something we can delete
-            // TODO: Implement this
-            resolve(false)
-        });
-    }
+
     /**
      * Get the JSON data associated with a model entry.  Note that if you ask for one that is
      * an answermodel (which really is stored in convergence) then the promise will be rejected.
      * @param ID Model ID to get contents for
      * @returns Promise to JSON structure containing contents of the model
      */
-    public getRealtimeContents(id: modelID): Promise<anyMap> {
+    public getRealtimeContents(modelType: IRealtimeObject, id: modelID): Promise<anyMap> {
         return new Promise((resolve, reject) => {
-            // TODO: Implement this
-            this.cacheConnectRealtime().then((domain) => {
-                const modelService = domain.models();
-                modelService.open(id)
-                    .then((datamodel: RealTimeModel) => {
-                        const data = datamodel.root().value();
-                        datamodel.close();
-                        resolve(data);
-                    }).catch((error) => reject(error));
-            }).catch((error) => reject(error));
+            const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
+            this.api
+                .getModelContent(token, modelType, id)
+                .then((value) => {
+                    resolve(value);
+                })
+                .catch((error) => {
+                    reject(error);
+                });
         });
     }
     /**
@@ -674,44 +678,29 @@ export class CipherTest extends CipherHandler {
      * @param ID Model to be updated
      * @returns Promise to ID of model updated
      */
-    public updateRealtimeContents(modeltype: IRealtimeObject, contents: string, id: modelID): Promise<modelID> {
+    public updateRealtimeContents(
+        modeltype: IRealtimeObject,
+        contents: string,
+        id: modelID
+    ): Promise<modelID> {
         return new Promise((resolve, reject) => {
-            // TODO: Implement this
-            this.cacheConnectRealtime().then((domain) => {
-                let newData = cloneObjectClean(JSON.parse(contents));
-                const modelService = domain.models();
-                let isOldModel = true;
-                let testModelOptions: IAutoCreateModelOptions = {
-                    collection: "codebusters_answer_templates",
-                    overrideCollectionWorldPermissions: true,
-                    worldPermissions: ModelPermissions.fromJSON({ read: false, write: false, remove: false, manage: false }),
-                    userPermissions: {}
-                }
+            const storeModelBody: StoreModelBody = {
+                id: id,
+                content: contents,
+                type: modeltype,
+            };
 
-                if (modeltype === 'sourcemodel') {
-                    testModelOptions.collection = "codebusters_source";
-                } else if (modeltype === 'testmodel') {
-                    testModelOptions.collection = 'codebusters_tests';
-                } else if (modeltype === 'answertemplate') {
-                    testModelOptions.collection = 'codebusters_answer_templates';
-                }
-                if (id !== undefined) {
-                    testModelOptions.id = id;
-                }
-                testModelOptions.userPermissions[this.getConfigString('userid', 'NOBODY')] = ModelPermissions.fromJSON({ read: true, write: true, remove: true, manage: true });
-                testModelOptions.data = () => { isOldModel = false; return newData; }
-
-                modelService.openAutoCreate(testModelOptions).then((testmodel: RealTimeModel) => {
-                    // If we are replacing an existing model, we have to update the data since it doesn't
-                    // get pulled in from the autocreate
-                    if (isOldModel) {
-                        testmodel.root().value(newData);
-                    }
-                    id = testmodel.modelId();
-                    testmodel.close();
-                    resolve(id);
-                }).catch((error) => reject(error));
-            }).catch((error) => reject(error));
+            const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
+            this.api
+                .storeModel(token, storeModelBody)
+                .then((result) => {
+                    const model = result.model;
+                    const modelId = model.id;
+                    resolve(modelId);
+                })
+                .catch((error) => {
+                    reject(error);
+                });
         });
     }
     /**
@@ -720,85 +709,50 @@ export class CipherTest extends CipherHandler {
      * @param id ID of model to query
      * @param element top level element in model to retrieve value for
      * @returns Promise to string containing value for element
-     * 
+     *
      *    SELECT
      *       ::element::
-     *    FROM 
+     *    FROM
      *       Models,
      *       Permissions
      *    WHERE
      *       Moodels.id=Permissions.id AND
      *       Models.type=::modeltype:: AND
      *       ((Permissions.name == 'GLOBAL' AND Permissions.read) OR
-     *        (Permissions.name == ::userid:: AND Permissions.read)) 
-    */
-    public getRealtimeElementMetadata(modeltype: IRealtimeObject, id: modelID): Promise<IRealtimeMetaData> {
-        // modelService
-        // .open(id)
-        // .then((model: RealTimeModel) => {
-        //     const result = testmodel.elementAt(element).value();
-        // })
-        return new Promise((resolve, reject) => {
-            // TODO: Implement this
-            this.cacheConnectRealtime().then((domain) => {
-                const modelService = domain.models();
-                modelService.open(id)
-                    .then((datamodel: RealTimeModel) => {
-                        const data = datamodel.root().value();
-                        let questions = 0;
-                        let title = data.title;
-                        if (data.source !== undefined && data.source['TEST.0'] !== undefined) {
-                            questions = data.source['TEST.0'].count;
-                            title = data.source['TEST.0'].title;
-                            if (data.source['TEST.0'].timed !== -1) {
-                                questions++;
-                            }
-                        } else if (data.qdata !== undefined) {
-                            questions = data.qdata.length;
-                        }
-                        datamodel.close();
-                        let metadata: IRealtimeMetaData = {
-                            testid: data.testid,
-                            sourceid: data.sourceid,
-                            answerid: data.answerid,
-                            id: id,
-                            title: title,
-                            type: 'sourcemodel',
-                            questions: questions,
-                            dateCreated: Number(data.created),
-                            createdBy: "nobody@nowhere.com"
-                        }
-                        resolve(metadata);
-                    }).catch((error) => reject(error));
-            }).catch((error) => reject(error));
-
-        });
-    }
-    /**
-     * 
-     * @param modeltype Type of element to search for
-     * @param field Field to match against (testmodelid, sourceid)
-     * @param value Value to match against
-     * 
-     *    SELECT
-     *      id
-     *    FROM 
-     *       Models,
-     *       Permissions
-     *    WHERE
-     *       Moodels.id=Permissions.id AND
-     *       Models.type=::modeltype:: AND
-     *       Modeld.::field::=::value:: AND
-     *       ((Permissions.name == 'GLOBAL' AND Permissions.read) OR
-     *        (Permissions.name == ::userid:: AND Permissions.read)) 
+     *        (Permissions.name == ::userid:: AND Permissions.read))
      */
-    public getMatchingElementMetadata(modeltype: IRealtimeObject, field: IRealtimeFields, value: string): Promise<IRealtimeMetaData[]> {
+    public getRealtimeElementMetadata(
+        modeltype: IRealtimeObject,
+        id: modelID
+    ): Promise<IRealtimeMetaData> {
         return new Promise((resolve, reject) => {
-            // TODO: Implement this
-            // Currently we are not using this routine anywhere... It could potentially be deleted.
-            resolve([]);
+            const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
+            this.api
+                .getModel(token, id)
+                .then((value) => {
+                    if (value !== null) {
+                        const metadata: IRealtimeMetaData = {
+                            testid: value.testId,
+                            sourceid: value.sourceId,
+                            answerid: value.answerTemplateId,
+                            id: value.id,
+                            title: value.title,
+                            type: value.type as IRealtimeObject,
+                            questions: value.totalQuestions,
+                            dateCreated: Number(0),
+                            createdBy: value.createdBy,
+                        };
+                        resolve(metadata);
+                    } else {
+                        reject("Model's metadata did not exist.");
+                    }
+                })
+                .catch((error) => {
+                    reject(error);
+                });
         });
     }
+
     /*-------------------------------------------------------------------------*/
     /*                            Source Models                                */
     /*-------------------------------------------------------------------------*/
@@ -815,7 +769,7 @@ export class CipherTest extends CipherHandler {
      * @returns Promise to interactive test contents
      */
     public getRealtimeSource(sourceid: modelID): Promise<sourceModel> {
-        return this.getRealtimeContents(sourceid) as Promise<sourceModel>;
+        return this.getRealtimeContents('sourcemodel', sourceid) as Promise<sourceModel>;
     }
     /**
      * Update the source for an existing test
@@ -824,20 +778,12 @@ export class CipherTest extends CipherHandler {
      * @returns Promise to ID of model updated
      */
     public saveRealtimeSource(testsource: any, id: modelID): Promise<modelID> {
-        if (id === "") {
+        if (id === '') {
             id = undefined;
         }
         return this.updateRealtimeContents('sourcemodel', JSON.stringify(testsource), id);
     }
-    /**
-     * Determines if a source test exists on the server
-     * @param sourceid ID of source test to look for
-     * @returns Promise to boolean status indicating existance
-     */
-    public existsRealtimeSource(sourceid: modelID): Promise<boolean> {
-        // This wrapper doesn't appear to be used and might be deleted
-        return this.existsRealtimeContent('sourcemodel', sourceid);
-    }
+
     /*-------------------------------------------------------------------------*/
     /*                            Answer Templates                             */
     /*-------------------------------------------------------------------------*/
@@ -847,8 +793,11 @@ export class CipherTest extends CipherHandler {
      * @param id Id of template to be updated (empty to create a new one)
      * @returns Promise to ID of newly created template
      */
-    public saveRealtimeAnswerTemplate(answerTemplate: IAnswerTemplate, id: modelID): Promise<modelID> {
-        if (id === "") {
+    public saveRealtimeAnswerTemplate(
+        answerTemplate: IAnswerTemplate,
+        id: modelID
+    ): Promise<modelID> {
+        if (id === '') {
             id = undefined;
         }
         return this.updateRealtimeContents('answertemplate', JSON.stringify(answerTemplate), id);
@@ -859,7 +808,9 @@ export class CipherTest extends CipherHandler {
      * @returns Promise to contents of answer template
      */
     public getRealtimeAnswerTemplate(answertemplateid: modelID): Promise<IAnswerTemplate> {
-        return this.getRealtimeContents(answertemplateid) as unknown as Promise<IAnswerTemplate>;
+        return (this.getRealtimeContents('answertemplate', answertemplateid) as unknown) as Promise<
+            IAnswerTemplate
+        >;
     }
     /*-------------------------------------------------------------------------*/
     /*                            Test Models                                  */
@@ -871,7 +822,7 @@ export class CipherTest extends CipherHandler {
      * @returns Promise to ID of newly created template
      */
     public saveRealtimeTestModel(testmodel: IInteractiveTest, id: modelID): Promise<modelID> {
-        if (id === "") {
+        if (id === '') {
             id = undefined;
         }
         return this.updateRealtimeContents('testmodel', JSON.stringify(testmodel), id);
@@ -882,10 +833,12 @@ export class CipherTest extends CipherHandler {
      * @returns Promise to contents of answer template
      */
     public getRealtimeTestModel(answertemplateid: modelID): Promise<IInteractiveTest> {
-        return this.getRealtimeContents(answertemplateid) as unknown as Promise<IInteractiveTest>;
+        return (this.getRealtimeContents('testmodel', answertemplateid) as unknown) as Promise<
+            IInteractiveTest
+        >;
     }
     /**
-     * 
+     *
      * @param testdisp Test state
      */
     public setTestEditState(testdisp: ITestDisp): void {

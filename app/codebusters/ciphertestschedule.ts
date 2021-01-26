@@ -22,13 +22,9 @@ import {
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFDialog } from '../common/jtfdialog';
 
-import * as _flatpickr from 'flatpickr';
-import { FlatpickrFn } from 'flatpickr/dist/types/instance';
+import flatpickr from "flatpickr";
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import { API, EnsureUsersExistParameters } from './api';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const flatpickr: FlatpickrFn = _flatpickr as any;
+import { EnsureUsersExistParameters } from './api';
 
 import * as XLSX from 'xlsx';
 

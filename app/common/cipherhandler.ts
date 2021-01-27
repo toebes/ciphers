@@ -13,6 +13,7 @@ import { parseQueryString } from './parsequerystring';
 import { textStandard } from '../common/readability';
 import { RealTimeObject } from '@convergence/convergence';
 import { TrueTime } from './truetime';
+import { API } from '../codebusters/api';
 
 export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
@@ -324,46 +325,46 @@ export class CipherHandler {
     public readonly langreplace: {
         [key: string]: { [key1: string]: string };
     } = {
-        en: {},
-        nl: {},
-        de: {},
-        eo: {},
-        es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
-        fr: {
-            Ç: 'C',
-            Â: 'A',
-            À: 'A',
-            É: 'E',
-            Ê: 'E',
-            È: 'E',
-            Ë: 'E',
-            Î: 'I',
-            Ï: 'I',
-            Ô: 'O',
-            Û: 'U',
-            Ù: 'U',
-            Ü: 'U',
-        },
-        it: { À: 'A', É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
-        no: {},
-        pt: {
-            Á: 'A',
-            Â: 'A',
-            Ã: 'A',
-            À: 'A',
-            Ç: 'C',
-            È: 'E',
-            Ê: 'E',
-            Í: 'I',
-            Ó: 'O',
-            Ô: 'O',
-            Õ: 'O',
-            Ú: 'U',
-        },
-        sv: {},
-        ia: {},
-        la: {},
-    };
+            en: {},
+            nl: {},
+            de: {},
+            eo: {},
+            es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
+            fr: {
+                Ç: 'C',
+                Â: 'A',
+                À: 'A',
+                É: 'E',
+                Ê: 'E',
+                È: 'E',
+                Ë: 'E',
+                Î: 'I',
+                Ï: 'I',
+                Ô: 'O',
+                Û: 'U',
+                Ù: 'U',
+                Ü: 'U',
+            },
+            it: { À: 'A', É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
+            no: {},
+            pt: {
+                Á: 'A',
+                Â: 'A',
+                Ã: 'A',
+                À: 'A',
+                Ç: 'C',
+                È: 'E',
+                Ê: 'E',
+                Í: 'I',
+                Ó: 'O',
+                Ô: 'O',
+                Õ: 'O',
+                Ú: 'U',
+            },
+            sv: {},
+            ia: {},
+            la: {},
+        };
     /**
      * This maps which characters are to be used when encoding an ACA cipher
      */
@@ -402,46 +403,46 @@ export class CipherHandler {
     public readonly acalangreplace: {
         [key: string]: { [key1: string]: string };
     } = {
-        en: {},
-        nl: {},
-        de: { Ä: 'A', Ö: 'O', ß: 'SS', Ü: 'U' },
-        eo: { Ĉ: 'C', Ĝ: 'G', Ĥ: 'H', Ĵ: 'J', Ŝ: 'S', Ŭ: 'U' },
-        es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
-        fr: {
-            Ç: 'C',
-            Â: 'A',
-            À: 'A',
-            É: 'E',
-            Ê: 'E',
-            È: 'E',
-            Ë: 'E',
-            Î: 'I',
-            Ï: 'I',
-            Ô: 'O',
-            Û: 'U',
-            Ù: 'U',
-            Ü: 'U',
-        },
-        it: { É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
-        no: {},
-        pt: {
-            Á: 'A',
-            Â: 'A',
-            Ã: 'A',
-            À: 'A',
-            Ç: 'C',
-            È: 'E',
-            Ê: 'E',
-            Í: 'I',
-            Ó: 'O',
-            Ô: 'O',
-            Õ: 'O',
-            Ú: 'U',
-        },
-        sv: {},
-        ia: {},
-        la: {},
-    };
+            en: {},
+            nl: {},
+            de: { Ä: 'A', Ö: 'O', ß: 'SS', Ü: 'U' },
+            eo: { Ĉ: 'C', Ĝ: 'G', Ĥ: 'H', Ĵ: 'J', Ŝ: 'S', Ŭ: 'U' },
+            es: { Á: 'A', É: 'E', Í: 'I', Ó: 'O', Ú: 'U', Ü: 'U', Ý: 'Y' },
+            fr: {
+                Ç: 'C',
+                Â: 'A',
+                À: 'A',
+                É: 'E',
+                Ê: 'E',
+                È: 'E',
+                Ë: 'E',
+                Î: 'I',
+                Ï: 'I',
+                Ô: 'O',
+                Û: 'U',
+                Ù: 'U',
+                Ü: 'U',
+            },
+            it: { É: 'E', È: 'E', Ì: 'I', Ò: 'O', Ù: 'U' },
+            no: {},
+            pt: {
+                Á: 'A',
+                Â: 'A',
+                Ã: 'A',
+                À: 'A',
+                Ç: 'C',
+                È: 'E',
+                Ê: 'E',
+                Í: 'I',
+                Ó: 'O',
+                Ô: 'O',
+                Õ: 'O',
+                Ú: 'U',
+            },
+            sv: {},
+            ia: {},
+            la: {},
+        };
     /**
      * Language character frequency
      */
@@ -926,13 +927,22 @@ export class CipherHandler {
      * rebuild by the build() function based in this.state.cipherString
      */
     public encodedString = '';
+
+    /**
+     * Provides communication to our REST server.
+     */
+    protected readonly api: API;
+
     public Frequent: { [key: string]: { [key: string]: patelem[] } } = {};
     public freq: { [key: string]: number } = {};
     public savefileentry = -1;
     public storage: JTStorage;
+
     constructor() {
         this.storage = InitStorage();
+        this.api = new API(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
     }
+
     public initToolModeSettings(): void {
         if (this.activeToolMode === toolMode.aca) {
             this.storageTestCountName = 'ACA-Issue-Count';
@@ -1062,7 +1072,10 @@ export class CipherHandler {
         href: string = window.location.href
     ): void {
         location.assign(
-            'Login.html?returnUrl=' + encodeURIComponent(href) + '&shouldPerformSignout=' + shouldPerformSignout
+            'Login.html?returnUrl=' +
+            encodeURIComponent(href) +
+            '&shouldPerformSignout=' +
+            shouldPerformSignout
         );
     }
 
@@ -1402,7 +1415,7 @@ export class CipherHandler {
     /**
      * Process imported XML
      */
-    public importXML(data: any): void {}
+    public importXML(data: any): void { }
     /**
      * Put up a dialog to select an XML file to import
      */
@@ -1847,11 +1860,11 @@ export class CipherHandler {
     /**
      * Loads new data into a solver, preserving all solving matches made
      */
-    public load(): void {}
+    public load(): void { }
     /**
      * Loads new data into a solver, resetting any solving matches made
      */
-    public reset(): void {}
+    public reset(): void { }
 
     public genCmdButtons(): JQuery<HTMLElement> {
         return JTButtonGroup(this.cmdButtons);
@@ -1923,9 +1936,9 @@ export class CipherHandler {
         // Hide the realtime config menu if they didn't hit the control key
         $('.menuhelp').on('mouseover', (e) => {
             if (e.ctrlKey) {
-                $(".realtimeconfig").show();
+                $('.realtimeconfig').show();
             } else {
-                $(".realtimeconfig").hide();
+                $('.realtimeconfig').hide();
             }
         });
     }
@@ -1933,7 +1946,7 @@ export class CipherHandler {
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
      */
-    public restore(data: IState, suppressOutput = false): void {}
+    public restore(data: IState, suppressOutput = false): void { }
     public save(): IState {
         return { cipherType: ICipherType.None, cipherString: '' };
     }
@@ -2172,12 +2185,12 @@ export class CipherHandler {
      * values are legitimate for the cipher handler
      * Generally you will call updateOutput() after calling setUIDefaults()
      */
-    public setUIDefaults(): void {}
+    public setUIDefaults(): void { }
     /**
      * Update the output based on current state settings.  This propagates
      * All values to the UI
      */
-    public updateOutput(): void {}
+    public updateOutput(): void { }
     /**
      * Builds the output for the current state data.
      */
@@ -2195,7 +2208,7 @@ export class CipherHandler {
      * Process the change, but first we need to swap around any other character which
      * is using what we are changing to.
      */
-    public updateSel(item: string, val: string): void {}
+    public updateSel(item: string, val: string): void { }
     /**
      * Adds a set of answer rows to a table.
      * @param table Table to add the rows to
@@ -2386,15 +2399,15 @@ export class CipherHandler {
     /**
      * Change multiple characters at once.
      */
-    public setMultiChars(reqstr: string): void {}
+    public setMultiChars(reqstr: string): void { }
     /**
      * Update all of the match dropdowns in response to a change in the cipher mapping
      */
-    public updateMatchDropdowns(reqstr: string): void {}
+    public updateMatchDropdowns(reqstr: string): void { }
     /**
      * Locate a string and update the results
      */
-    public findPossible(str: string): void {}
+    public findPossible(str: string): void { }
     /**
      * Generate a solving aid for a cipher
      */
@@ -2942,65 +2955,65 @@ export class CipherHandler {
      * lang Language to load (2 character abbreviation)
      */
     public loadRawLanguage(lang: string): void {
-        /* const jqxhr = */ $.get('Languages/' + lang + '.txt', () => {}).done((data) => {
-            // empty out all the frequent words
-            this.showLangStatus('warning', 'Processing ' + this.langmap[lang] + '...');
-            this.Frequent[lang] = {};
-            this.state.curlang = lang;
-            let charset = this.langcharset[lang];
-            const langreplace = this.langreplace[lang];
-            this.setCharset(charset);
-            const lines = data.split('\n');
-            const len = lines.length;
-            charset = charset.toUpperCase();
-            for (let i = 0; i < len; i++) {
-                const pieces = lines[i]
-                    .replace(/\r/g, ' ')
-                    .toUpperCase()
-                    .split(/ /);
-                // make sure that all the characters in the pieces are valid
-                // for this character set.  Otherwise we can throw it away
-                let legal = true;
-                for (const c of pieces[0]) {
-                    if (charset.indexOf(c) < 0) {
-                        if (typeof langreplace[c] === 'undefined') {
-                            console.log(
-                                'skipping out on ' + pieces[0] + ' for ' + c + ' against ' + charset
-                            );
-                            legal = false;
-                            break;
-                        }
-                        pieces[0] = pieces[0].replace(c, langreplace[c]);
+        /* const jqxhr = */ $.get('Languages/' + lang + '.txt', () => { }).done((data) => {
+        // empty out all the frequent words
+        this.showLangStatus('warning', 'Processing ' + this.langmap[lang] + '...');
+        this.Frequent[lang] = {};
+        this.state.curlang = lang;
+        let charset = this.langcharset[lang];
+        const langreplace = this.langreplace[lang];
+        this.setCharset(charset);
+        const lines = data.split('\n');
+        const len = lines.length;
+        charset = charset.toUpperCase();
+        for (let i = 0; i < len; i++) {
+            const pieces = lines[i]
+                .replace(/\r/g, ' ')
+                .toUpperCase()
+                .split(/ /);
+            // make sure that all the characters in the pieces are valid
+            // for this character set.  Otherwise we can throw it away
+            let legal = true;
+            for (const c of pieces[0]) {
+                if (charset.indexOf(c) < 0) {
+                    if (typeof langreplace[c] === 'undefined') {
+                        console.log(
+                            'skipping out on ' + pieces[0] + ' for ' + c + ' against ' + charset
+                        );
+                        legal = false;
+                        break;
                     }
-                }
-                if (legal) {
-                    const pat = this.makeUniquePattern(pieces[0], 1);
-                    const elem: patelem = [pieces[0].toUpperCase(), i, pieces[1], 0];
-                    if (i < 500) {
-                        elem[3] = 0;
-                    } else if (i < 1000) {
-                        elem[3] = 1;
-                    } else if (i < 2000) {
-                        elem[3] = 3;
-                    } else if (i < 5000) {
-                        elem[3] = 4;
-                    } else {
-                        elem[3] = 5;
-                    }
-                    if (typeof this.Frequent[lang][pat] === 'undefined') {
-                        this.Frequent[lang][pat] = [];
-                    }
-                    this.Frequent[lang][pat].push(elem);
+                    pieces[0] = pieces[0].replace(c, langreplace[c]);
                 }
             }
-            // console.log(this.Frequent)
-            $('.langout').each((i: number, elem: HTMLElement) => {
-                this.showLangStatus('warning', 'Dumping ' + this.langmap[lang] + '...');
-                $(elem).text(this.dumpLang(lang));
-            });
-            this.showLangStatus('secondary', '');
-            this.updateMatchDropdowns('');
+            if (legal) {
+                const pat = this.makeUniquePattern(pieces[0], 1);
+                const elem: patelem = [pieces[0].toUpperCase(), i, pieces[1], 0];
+                if (i < 500) {
+                    elem[3] = 0;
+                } else if (i < 1000) {
+                    elem[3] = 1;
+                } else if (i < 2000) {
+                    elem[3] = 3;
+                } else if (i < 5000) {
+                    elem[3] = 4;
+                } else {
+                    elem[3] = 5;
+                }
+                if (typeof this.Frequent[lang][pat] === 'undefined') {
+                    this.Frequent[lang][pat] = [];
+                }
+                this.Frequent[lang][pat].push(elem);
+            }
+        }
+        // console.log(this.Frequent)
+        $('.langout').each((i: number, elem: HTMLElement) => {
+            this.showLangStatus('warning', 'Dumping ' + this.langmap[lang] + '...');
+            $(elem).text(this.dumpLang(lang));
         });
+        this.showLangStatus('secondary', '');
+        this.updateMatchDropdowns('');
+    });
         this.showLangStatus('warning', 'Loading ' + this.langmap[lang] + '...');
     }
     /**
@@ -3413,21 +3426,21 @@ export class CipherHandler {
             url: 'https://toebes.com/codebusters/siteVersion.txt',
             dataType: 'jsonp',
             jsonpCallback: 'getVersion',
-            success: function(a: any, b: string, c: JQueryXHR): void {
+            success: function (a: any, b: string, c: JQueryXHR): void {
                 console.log('A Success ' + JSON.stringify(a));
                 console.log('B Success ' + b);
                 console.log('C Success ' + c);
                 remote_version = a['version'];
                 console.log('Set remote version to: ' + remote_version);
             },
-            error: function(a: JQueryXHR, b: string, c: string): void {
+            error: function (a: JQueryXHR, b: string, c: string): void {
                 console.log('A Error ' + JSON.stringify(a));
                 console.log('B Error ' + b);
                 console.log('C Error ' + c);
                 console.log('Disable the download button...');
                 $('#okdownload').prop('disabled', true);
             },
-        }).done(function(a: any, b: string, c: JQueryXHR): void {
+        }).done(function (a: any, b: string, c: JQueryXHR): void {
             $('.remote-version').html(remote_version);
             // enable the down load buttin if appropriate
             console.log('Enable download button?');
@@ -3753,7 +3766,7 @@ export class CipherHandler {
         qnum: number,
         realTimeElement: RealTimeObject,
         testTimeInfo: ITestTimeInfo
-    ): void {}
+    ): void { }
 
     /**
      * Calculate the score for the answer from an interactive test.  We calculate the solution
@@ -3765,9 +3778,9 @@ export class CipherHandler {
     public calculateScore(solution: string[], answer: string[], points: number): IScoreInformation {
         console.log(
             'Length of solution: ' +
-                solution.length.toString() +
-                '\nLength of answer:  ' +
-                answer.length.toString()
+            solution.length.toString() +
+            '\nLength of answer:  ' +
+            answer.length.toString()
         );
 
         const scoreInformation: IScoreInformation = {

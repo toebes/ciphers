@@ -1,5 +1,5 @@
 import { CipherTestManage } from './ciphertestmanage';
-import { toolMode, IState } from '../common/cipherhandler';
+import { toolMode, IState, CipherHandler } from '../common/cipherhandler';
 import { ITestState, IAnswerTemplate, ITestUser } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
 import {
@@ -22,13 +22,9 @@ import {
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFDialog } from '../common/jtfdialog';
 
-import * as _flatpickr from 'flatpickr';
-import { FlatpickrFn } from 'flatpickr/dist/types/instance';
+import flatpickr from "flatpickr";
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import { API, EnsureUsersExistParameters } from './api';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const flatpickr: FlatpickrFn = _flatpickr as any;
+import { EnsureUsersExistParameters } from './api';
 
 import * as XLSX from 'xlsx';
 
@@ -68,20 +64,15 @@ export class CipherTestSchedule extends CipherTestManage {
         { title: 'Reschedule All', color: 'primary', id: 'propsched' },
         { title: 'Save All', color: 'primary', id: 'savesched', disabled: true },
         { title: 'Delete All', color: 'alert', id: 'delallsched' },
-        { title: 'Fix Permissions', color: 'primary', id: 'fixpermissions' }
+        { title: 'Fix Permissions', color: 'primary', id: 'fixpermissions' },
     ];
 
     public testmodelid = undefined;
-    /**
-     * Provides communication to our REST server.
-     */
-    private readonly api: API;
 
     constructor() {
         super();
-
-        this.api = new API(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
     }
+
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -110,19 +101,21 @@ export class CipherTestSchedule extends CipherTestManage {
         const result = $('<div/>', { class: 'testlist' });
 
         if (this.state.testID === undefined) {
-            result.append(makeCallout($('<h3/>').text('No test id was provided to check schedule for.')));
+            result.append(
+                makeCallout($('<h3/>').text('No test id was provided to check schedule for.'))
+            );
             return result;
         }
 
         if (this.confirmedLoggedIn(' in order to see tests assigned to you.', result)) {
-
             // First we need to get the test template from the testsource
             // Once we have the test template, then we will be able to find all the scheduled tests
             this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                 const modelService = domain.models();
                 this.openTestSource(modelService, this.state.testID);
             });
-        } return result;
+        }
+        return result;
     }
     /**
      *
@@ -134,11 +127,10 @@ export class CipherTestSchedule extends CipherTestManage {
             .then((metadata) => {
                 const testmodelid = metadata.testid;
                 this.testmodelid = testmodelid;
-                this.getRealtimeAnswerTemplate(metadata.answerid)
-                    .then((answertemplate) => {
-                        this.answerTemplate = answertemplate;
-                        this.findScheduledTests(modelService, testmodelid, metadata.answerid);
-                    })
+                this.getRealtimeAnswerTemplate(metadata.answerid).then((answertemplate) => {
+                    this.answerTemplate = answertemplate;
+                    this.findScheduledTests(modelService, testmodelid, metadata.answerid);
+                });
             })
             .catch((error) => {
                 this.reportFailure('Could not open model for ' + sourcemodelid + ' Error:' + error);
@@ -184,7 +176,12 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param answerModelID ID for the stored answer model
      * @param answertemplate Contents for the answer
      */
-    private populateRow(row: JTRow, rownum: number, answerModelID: string, answertemplate: IAnswerTemplate): void {
+    private populateRow(
+        row: JTRow,
+        rownum: number,
+        answerModelID: string,
+        answertemplate: IAnswerTemplate
+    ): void {
         const rowID = String(rownum);
         row.attr({ id: 'R' + rowID, 'data-source': answerModelID });
         const buttons = $('<div/>', { class: 'button-group round shrink' });
@@ -233,9 +230,17 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param modelService Domain Model service object for making requests
      * @param sourcemodelid
      */
-    public findScheduledTests(modelService: ModelService, testmodelid: string, answertempateid: string): void {
+    public findScheduledTests(
+        modelService: ModelService,
+        testmodelid: string,
+        answertempateid: string
+    ): void {
         modelService
-            .query("SELECT assigned,starttime,endtimed,endtime,teamname,teamtype FROM codebusters_answers where testid='" + testmodelid + "'") // This stays using convergence
+            .query(
+                "SELECT assigned,starttime,endtimed,endtime,teamname,teamtype FROM codebusters_answers where testid='" +
+                testmodelid +
+                "'"
+            ) // This stays using convergence
             .then((results) => {
                 let total = 0;
                 let table: JTTable = undefined;
@@ -270,20 +275,24 @@ export class CipherTestSchedule extends CipherTestManage {
      * Makes a copy of the answer template and schedules a new test.
      */
     public addSingleScheduledTest(): void {
-        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-            const modelService = domain.models();
-            const copyInfo: testInfo = {
-                starttime: Date.now(),
-                testlength: 50,
-                timedlength: 10,
-                assigned: [],
-                teamname: '',
-                teamtype: 'Varsity',
-            };
-            this.copyAnswerTemplate(modelService, copyInfo);
-            // We don't have to set permissions on the test model because there are
-            // no users scheduled on the new test.
-        });
+        this.cacheConnectRealtime()
+            .then((domain: ConvergenceDomain) => {
+                const modelService = domain.models();
+                const copyInfo: testInfo = {
+                    starttime: Date.now(),
+                    testlength: 50,
+                    timedlength: 10,
+                    assigned: [],
+                    teamname: '',
+                    teamtype: 'Varsity',
+                };
+                this.copyAnswerTemplate(modelService, copyInfo);
+                // We don't have to set permissions on the test model because there are
+                // no users scheduled on the new test.
+            })
+            .catch((error) => {
+                this.reportFailure('Could not add single schedule test: ' + error);
+            });
     }
     /**
      * Makes a copy of the answer template and schedules a new test.
@@ -423,11 +432,15 @@ export class CipherTestSchedule extends CipherTestManage {
             const modelService = domain.models();
             let added: string[] = [];
             $('.pubsave').each((i, elem) => {
-                let thisset = this.fixPermissions(modelService, this.getRowID($(elem)), this.getModelID($(elem)));
+                const thisset = this.fixPermissions(
+                    modelService,
+                    this.getRowID($(elem)),
+                    this.getModelID($(elem))
+                );
                 added = added.concat(thisset);
             });
-            // this.saveTestModelPermissions(this.testmodelid, added);             //###Temporary until new API is in place
-            this.saveUserPermissions(modelService, this.testmodelid, [], added);   //###Temporary until new API is in place
+            this.saveTestModelPermissions(this.testmodelid, added); //###Temporary until new API is in place
+            //this.saveUserPermissions(modelService, this.testmodelid, [], added); //###Temporary until new API is in place
         });
     }
     /**
@@ -447,8 +460,8 @@ export class CipherTestSchedule extends CipherTestManage {
         this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
             const modelService = domain.models();
             const userlist = this.saveAnswerSlot(modelService, eid, testid);
-            // this.saveTestModelPermissions(this.testmodelid, userlist);            //###Temporary until new API is in place
-            this.saveUserPermissions(modelService, this.testmodelid, [], userlist);  //###Temporary until new API is in place
+            this.saveTestModelPermissions(this.testmodelid, userlist); //###Temporary until new API is in place
+            // this.saveUserPermissions(modelService, this.testmodelid, [], userlist); //###Temporary until new API is in place
         });
     }
     /**
@@ -499,11 +512,17 @@ export class CipherTestSchedule extends CipherTestManage {
             const modelService = domain.models();
             $('.pubsave').each((i, elem) => {
                 if ($(elem).attr('disabled') != '') {
-                    userlist = userlist.concat(this.saveAnswerSlot(modelService, this.getRowID($(elem)), this.getModelID($(elem))));
+                    userlist = userlist.concat(
+                        this.saveAnswerSlot(
+                            modelService,
+                            this.getRowID($(elem)),
+                            this.getModelID($(elem))
+                        )
+                    );
                 }
             });
-            // this.saveTestModelPermissions(this.testmodelid, userlist);            //###Temporary until new API is in place
-            this.saveUserPermissions(modelService, this.testmodelid, [], userlist);  //###Temporary until new API is in place
+            this.saveTestModelPermissions(this.testmodelid, userlist); //###Temporary until new API is in place
+            //this.saveUserPermissions(modelService, this.testmodelid, [], userlist); //###Temporary until new API is in place
         });
     }
     /**
@@ -704,30 +723,41 @@ export class CipherTestSchedule extends CipherTestManage {
             usernames: usernames,
         };
 
-        return this.api.ensureUsersExist(parameters);
+        const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
+        return this.api.ensureUsersExist(token, parameters);
     }
     /**
      * Add read permissions to the Test Model
      * @param testmodelid ID of the test model
      * @param users List of users to grant permission
      */
-    public saveTestModelPermissions(testmodelid: string, users: string[]) {
+    public saveTestModelPermissions(testmodelid: string, users: string[]): void {
         // Start with what is currently on the model
-        this.getRealtimePermissions(testmodelid)
-            .then((permissionset) => {
-                // Then check each user to see if they already have access
-                users.forEach((user) => {
-                    let permissions = permissionset[user];
-                    // If they don't have any permissions or their read permissions are turned off, we want to give them just read access
-                    // this prevents us from removing the full access access for the main owner of the test model
-                    if (permissions === undefined || permissions.read === false) {
-                        this.updateRealtimePermissions(testmodelid, user, { read: true, write: false, remove: false, manage: false })
-                            .catch((error) => {
-                                this.reportFailure("Unable to set permissions for " + user + " on " + testmodelid + ":" + error);
-                            });
-                    }
-                });
+        this.getRealtimePermissions(testmodelid).then((permissionset) => {
+            // Then check each user to see if they already have access
+            users.forEach((user) => {
+                const permissions = permissionset[user];
+                // If they don't have any permissions or their read permissions are turned off, we want to give them just read access
+                // this prevents us from removing the full access access for the main owner of the test model
+                if (permissions === undefined || permissions.read === false) {
+                    this.updateRealtimePermissions(testmodelid, user, {
+                        read: true,
+                        write: false,
+                        remove: false,
+                        manage: false,
+                    }).catch((error) => {
+                        this.reportFailure(
+                            'Unable to set permissions for ' +
+                            user +
+                            ' on ' +
+                            testmodelid +
+                            ':' +
+                            error
+                        );
+                    });
+                }
             });
+        });
     }
     /**
      * Update the permissions on a model entry
@@ -736,7 +766,12 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param toremove List of users to remove access for
      * @param toadd List of users to add access for
      */
-    public saveUserPermissions(modelService: ModelService, modelid: string, toremove: string[], toadd: string[]): void {
+    public saveUserPermissions(
+        modelService: ModelService,
+        modelid: string,
+        toremove: string[],
+        toadd: string[]
+    ): void {
         const permissionManager = modelService.permissions(modelid);
         let changed = false;
         permissionManager
@@ -774,9 +809,11 @@ export class CipherTestSchedule extends CipherTestManage {
                     this.ensureUsersExist(toadd).then(() => {
                         // We have updated the permissions, so save it back.
                         if (changed) {
-                            permissionManager.setAllUserPermissions(allPermissions).catch((error) => {
-                                this.reportFailure('Unable to set model permissions: ' + error);
-                            });
+                            permissionManager
+                                .setAllUserPermissions(allPermissions)
+                                .catch((error) => {
+                                    this.reportFailure('Unable to set model permissions: ' + error);
+                                });
                         }
                     });
                 } else {
@@ -801,7 +838,14 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param endtime End time for the scheduled test
      * @param endtimed End of the timed question bonus
      */
-    public saveAnswerTemplate(modelService: ModelService, modelid: string, userlist: string[], starttime: number, endtime: number, endtimed: number): void {
+    public saveAnswerTemplate(
+        modelService: ModelService,
+        modelid: string,
+        userlist: string[],
+        starttime: number,
+        endtime: number,
+        endtimed: number
+    ): void {
         const usermap: BoolMap = {};
         for (const user of userlist) {
             usermap[user] = true;

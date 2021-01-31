@@ -3,7 +3,7 @@
  */
 export function JTFLabeledInput(
     title: string,
-    type: 'text' | 'number' | 'file' | 'textarea' | 'richtext' | 'checkbox',
+    type: 'text' | 'number' | 'file' | 'textarea' | 'richtext' | 'checkbox' | 'password',
     id: string,
     value: number | string | boolean,
     sizeClass: string

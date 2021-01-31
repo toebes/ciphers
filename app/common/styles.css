@@ -22,6 +22,9 @@ table.sticky thead tr th {
     float: right;
 }
 
+li.purge {
+    background-color: lightpink;
+}
 
 .loginbutton {
     padding: 10px;

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body class="txt">
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+        <% } %>
+            <%= require('html-loader!./analytics.html') %>
+
+                <!-- <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div> -->
+                <h3>
+                    <%= htmlWebpackPlugin.options.title %>
+                </h3>
+
+
+                <h4>Privacy</h4>
+                <p>
+                    This Privacy Policy discloses the privacy practices for <a
+                        href="https://toebes.com/codebusters">https://toebes.com/codebusters</a>.
+                    This Privacy Policy applies to the information collected by this website.
+                    We are the sole owners of the information collected on this site.
+                    We only have access to information that you voluntarily give us via email or other direct contact
+                    initiated by you or your coach.
+                    We do no sell or rent your personal information to anyone.
+                    We do not use the information for any purpose other than to provide access to the test or report
+                    results to the event supervisor.
+                    We will not share your information with third parties outside the organization, other than is
+                    necessary to fulfill your request.
+                    We take precautions to protect your information.
+                    When you submit sensitive information via this website, your information is protected both online
+                    and offline.
+                    While we work to protect sensitive information transmitted online,
+                    we also protect your information offline by sharing information only with employees or volunteers
+                    who need the information to perform a specific function.
+                    Our Privacy Policy may change from time to time and all updates will be posted here. If you feel we
+                    are not abiding by this Privacy Policy, please <a href="mailto:ncso_codebusters@toebes.com">contact
+                        us</a>.
+                </p>
+                <p>
+                    We recognize the sensitive nature of children accessing the website in order to take online tests.
+                    For this purpose we deliberately only utlize the email address assigned by the coach in order to
+                    control access the test and to display the student name on the test. This information is
+                </p>
+
+                <h4>Cookies</h4>
+                Depending on your browser and operating system, the website will use <a
+                    href="https://en.wikipedia.org/wiki/HTTP_cookie">http coookies</a> or <a
+                    href="https://en.wikipedia.org/wiki/Web_storage">Web Storage</a>
+                to store any locally generated tests and short term session access information when connecting to the
+                online test server.
+                This information is only used for the purpose of enabling access to the online tests.
+</body>
+
+</html>

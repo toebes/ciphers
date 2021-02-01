@@ -1,7 +1,7 @@
 import { toolMode, IState, menuMode } from '../common/cipherhandler';
 import { ITestState, IAnswerTemplate } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
-import { cloneObject, timestampFromMinutes } from '../common/ciphercommon';
+import { cloneObject, timestampFromMinutes, timestampFromWeeks } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { ConvergenceDomain } from '@convergence/convergence';
@@ -116,9 +116,34 @@ export class CipherTakeTest extends CipherTest {
         const now = Date.now();
         // const showCoachedTest = true;
 
-        if (answertemplate.endtime < now) {
+        //   1) Don't display any test that is more than 2 weeks old
+        //   2) For tests that are more than a week old, put in a note that the test will automatically delete on xxx date
+        //      i.e Test ended at xxxx, will auto-delete on <date>
+        if (answertemplate.endtime + timestampFromWeeks(2) < now) {
+            return;
+        }
+        else if (answertemplate.endtime < now) {
+            let deleteWarning = ' ';
+            if (answertemplate.endtime + timestampFromWeeks(1) < now) {
+                const deleteDate = new Date(answertemplate.endtime + timestampFromWeeks(2)).toLocaleString();
+                deleteWarning = ', will auto-delete on ' + deleteDate + '. ';
+            }
+            // Add results...not sure how exactly, need to refactor code
+
+            /*  TODO RTL: show results to test taker...
+            let testScore:CipherTestScorer = new CipherTestScorer();
+
+            this.getRealtimeSource(answerModelID).then((sourcemodel: sourceModel) =>
+            {
+                getTestScores(testScore, result, sourcemodel);
+            }).catch((error) => {
+                this.reportFailure('Could not open model for ' + answerModelID + ' Error:' + error);
+            });
+
+            */
+
             const endtime = new Date(answertemplate.endtime).toLocaleString();
-            buttons.append('Test ended at ' + endtime);
+            buttons.append($('<div/>').append('Test ended at ' + endtime + deleteWarning));
         } else if (answertemplate.starttime > now + timestampFromMinutes(30)) {
             const starttime = new Date(answertemplate.starttime).toLocaleString();
             buttons.append('Test starts at ' + starttime);

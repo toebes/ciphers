@@ -36,6 +36,7 @@ import { CipherTestTimed } from './ciphertesttimed';
 import { InteractiveMorseEncoder } from './interactivemorseencoder';
 import { CipherTestPlayback } from './ciphertestplayback';
 import { CipherLogin } from './cipherlogin';
+import { CipherMaintenance } from './ciphermaintenance'
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -94,6 +95,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Login: {
         cipherType: ICipherType.Test,
         cipherClass: CipherLogin,
+        interactiveClass: CipherHandler,
+        canPrint: false,
+    },
+    Maintenance: {
+        cipherType: ICipherType.None,
+        cipherClass: CipherMaintenance,
         interactiveClass: CipherHandler,
         canPrint: false,
     },

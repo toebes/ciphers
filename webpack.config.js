@@ -544,6 +544,22 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'Maintenance.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Maintenance.html'),
+            chunks: ['codebusters'],
+            cipher: 'Maintenance',
+            title: 'Maintenance',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'Policies.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Policies.html'),
+            chunks: ['codebusters'],
+            cipher: '',
+            title: 'Policies',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TestGuidance.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'TestGuidance.html'),
             chunks: ['codebusters'],

@@ -66,6 +66,13 @@ export class CipherMaintenance extends CipherTestManage {
         }
     }
     /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
+    public genPreCommands(): JQuery<HTMLElement> {
+        return null;
+    }
+    /**
      * Create the hidden dialog for entering the admin userid/password
      * @returns JQuery dialog to display
      */
@@ -157,14 +164,13 @@ export class CipherMaintenance extends CipherTestManage {
                                         .then(() => {
                                             // It worked, so process the next one
                                             entry.append(" [Processed]");
-                                            setTimeout(() => { this.processOne(modelService, realtimeType) }, 1);
                                         })
                                         .catch((error) => {
                                             // Failed, note the failure and go on to the next one
                                             entry.append(" [Unable to set permission:" + error + "]")
-                                            setTimeout(() => { this.processOne(modelService, realtimeType) }, 1);
                                         });
                                 })
+                                setTimeout(() => { this.processOne(modelService, realtimeType) }, 1);
                             })
                             .catch(error => {
                                 // Something went wrong getting the permissions, so tell them
@@ -351,6 +357,8 @@ export class CipherMaintenance extends CipherTestManage {
             },
             success: (response) => {
                 let cutoff = Date.now() - timestampFromMinutes(60 * 24 * 14)
+                let activeUsers = 0
+                let purgedUsers = 0
 
                 let ul = $("<ul/>");
                 $(".ans").append($("<h2/>").text("Active users"))
@@ -358,8 +366,10 @@ export class CipherMaintenance extends CipherTestManage {
                 response.body.forEach((element: { username: any; lastLogin: number; }) => {
                     let username = element.username
                     if (this.state.userid[username] === "Y") {
+                        activeUsers++
                         ul.append($("<li/>").text(username + " [Keep, still used]"))
                     } else if (element.lastLogin === undefined || element.lastLogin < cutoff) {
+                        purgedUsers++
                         ul.append($("<li/>", { class: "purge" }).text(username + " [PURGE]"))
                         // Delete the user: TODO Make sure we are happy first
                         // https://cosso.oit.ncsu.edu/rest/domains/convergence/scienceolympiad/users/ABCDEFG
@@ -378,9 +388,11 @@ export class CipherMaintenance extends CipherTestManage {
                         //     }
                         // })
                     } else {
+                        activeUsers++
                         ul.append($("<li/>").text(username + " -- " + timestampToFriendly(element.lastLogin)))
                     }
                 });
+                $(".ans").append($("<p/>").text((activeUsers + purgedUsers) + " Total users. " + activeUsers + " Kept " + purgedUsers + " Removed."))
             },
             error: (err) => { this.reportFailure('Unable to get users:' + err); },
         });
@@ -528,6 +540,8 @@ export class CipherMaintenance extends CipherTestManage {
                 } else {
                     this.state.activeUsers = new Map()
                 }
+                let totalAnswers = 0
+                let totalPurged = 0
                 // Make sure we never delete the admin accounts
                 this.state.activeUsers['admin'] = true
                 this.state.activeUsers['rlabaza'] = true
@@ -565,6 +579,7 @@ export class CipherMaintenance extends CipherTestManage {
                     // it will be processed to extract the permissions as part of the final steps
                     if (purge) {
                         ul.append($("<li/>", { class: "purge" }).text(result.modelId + " endtime:" + timestampToFriendly(result.data.endtime) + " -- " + thisusers));
+                        totalPurged++
                         // Remove the model (TODO: Enable this once we are happy with the code)
                         // modelService.remove(result.modelId).then(() => {
                         //     ul.append($("<b/>").text("[REMOVED]"))
@@ -572,9 +587,11 @@ export class CipherMaintenance extends CipherTestManage {
                         //     ul.append($("<b/>").text("[ERROR:" + error + "]"))
                         // })
                     } else {
+                        totalAnswers++
                         ul.append($("<li/>", { 'data-entry': result.modelId, 'data-testid': result.data.testid }).text(result.modelId + " Purge:" + purge + " endtime:" + timestampToFriendly(result.data.endtime) + " -- " + thisusers));
                     }
                 })
+                $(".ans").append($("<p/>").text((totalAnswers + totalPurged) + " Answer Models. " + totalAnswers + " Kept " + totalPurged + " Removed."))
                 // We have all the answer models, so next we go for the source models
                 this.findAllSourceModels(modelService);
             })

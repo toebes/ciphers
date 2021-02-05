@@ -260,7 +260,7 @@ export function getPolybiusKey(polybius: string[][]): string {
     return bestkey;
 }
 /**
- * Converts the number of seconds to the timestamp interval vale
+ * Converts the number of seconds to the timestamp interval value
  * @param seconds number of seconds to convert
  * @returns number of miliseconds in a timestamp
  */
@@ -290,12 +290,21 @@ export function formatTime(interval: number): string {
     return result;
 }
 /**
- * Converts the number of minutes to the timestamp interval vale
+ * Converts the number of minutes to the timestamp interval value
  * @param seconds number of minutes to convert
  * @returns number of miliseconds in a timestamp
  */
 export function timestampFromMinutes(minutes: number): number {
     return minutes * 60 * 1000;
+}
+/**
+ * Converts the number of weeks to the timestamp interval value
+ * @param weeks number of weeks to convert
+ * @returns number of milliseconds in a timestamp
+ */
+export function timestampFromWeeks(weeks: number): number {
+    // days in a week * hours in a day * minutes in an hour * seconds in a minute * milliseconds in a second.
+    return weeks * 7 * 24 * 60 * 60 * 1000;
 }
 /**
  * Converts a timestamp value into an ISO format string that can be passed as a value for

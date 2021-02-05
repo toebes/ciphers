@@ -2478,7 +2478,12 @@ export class CipherHandler {
      * Determines if a character is part of the valid character set for the cipher
      */
     public isValidChar(char: string): boolean {
-        return this.charset.indexOf(char) >= 0;
+        if (char === '') {
+            return false;
+        }
+        else {
+            return this.charset.indexOf(char) >= 0;
+        }
     }
     /**
      * Gets the current character set used for output of the cipher

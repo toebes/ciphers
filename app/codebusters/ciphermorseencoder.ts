@@ -212,26 +212,70 @@ export class CipherMorseEncoder extends CipherEncoder {
         const strings = this.makeReplacement(this.getEncodingString(), this.maxEncodeWidth);
 
         const solution: string[] = [];
+        const morse: string[] = [];
         const answer: string[] = [];
-        const stringindex = ptindex;
 
         // Figure out what the expected answer should be
         for (const splitLines of strings) {
-            for (const c of splitLines[stringindex]) {
+            for (const c of splitLines[ptindex]) {
                 if (this.isValidChar(c)) {
                     solution.push(c);
                 }
             }
+            for (const c of splitLines[morseindex]) {
+                morse.push(c);
+            }
         }
         // We need to pull out what they actually answered.  Essentially
         // If they answered anything, we will include it.  It basically lets
-        // them put in characters for answer together but also allows them to put the
-        // answer character anywhere under the cipher character
-        for (const i in answerlong) {
-            if (answerlong[i] !== ' ' && answerlong[i] !== '') {
-                answer.push(answerlong[i]);
+        // them put in characters for answer together but limits them to put just one
+        // answer character anywhere under the cipher character.
+
+        // Additional details.
+        // Only count characters that are within the morse code representation of the character
+        // (including the 'X' letter delimiter, but excluding a second 'X' word delimiter).
+        // If there is more than one character under a morse code representation, that is
+        // a decode error and will be marked incorrect.  If that character is the decode for the
+        // next morse letter, that one will likely be incorrect, too!
+        // So an 'E' must be in one of 2 locations (under the '.' or under the 'x') or it
+        // will be marked incorrect.  Longer morse representations have more room for an answer.
+        // E.g.  . = 1,2,3; - = 4,5,6; x = 7,8,9,0   Plain text: "I AM",
+        //     Cipher text:   127834956
+        //           Morse:  '..xx.-X--'
+        //         Correct:  'I___A__M_'
+        //    Also correct:  '_I____A_M'
+        //       Incorrect:  '_I_A___M_'   # 'A' is on word marker and incorrect.
+        //  Also incorrect:  '__I_A_M__'   # 'M' is on the letter marker for 'A', so incorrect.
+        //  Also incorrect:  '__I_AM___'   # '.-x' decodes to 'A', not 'AM'.  so incorrect.
+        //                                   '--' is not decoded under the corresponding morse
+        //                                   characters, so also incorrect.
+        let answerIndex = 0;
+        for (const solutionLetter of solution) {
+            const solutionPattern = new RegExp('( *' + solutionLetter + '.*)', 'g');
+            // +1 to include the 'X' position.
+            const endIndex = morse.indexOf('X', answerIndex) + 1;
+            let newWordIndex = 0;
+            if (morse[endIndex] === 'X') {
+                newWordIndex = 1;
             }
+
+            const answerSubstring = answerlong.slice(answerIndex, endIndex).join('');
+            let match = solutionPattern.exec(answerSubstring);
+            if (match != null && match[0] != null && match[0].trim() === solutionLetter) {
+                // console.log('### Solution: '+ solutionLetter + ' == answer: '+match[0]+' They match perfectly!');
+                // The morse was successfully decoded.
+                answer.push(match[0].trim());
+            }
+            else {
+                // const matchMsg = (match != null ? ((match[0] != null)? match[0]: answerSubstring + ' (match[0] is null)') : answerSubstring + ' (match is null)');
+                // console.log('$$$ No match: '+solutionLetter+' == answer: '+matchMsg);
+                // console.log('    beingIndex: '+ answerIndex+ ' endIndex+1: '+endIndex);
+                // The morse was not decoded correctly, or there is more than one character in the field.
+                answer.push(' ');
+            }
+            answerIndex = endIndex + newWordIndex;
         }
+
         // Pad the answer to match the solution length
         while (answer.length < solution.length) {
             answer.push(' ');

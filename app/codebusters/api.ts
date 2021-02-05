@@ -15,6 +15,7 @@ export interface GenerateUserSpecificConvergenceToken {
     convergenceUsername: string;
     convergencePassword: string;
     userid: string;
+    isAdmin: boolean;
 }
 
 export interface StoreModelBody {
@@ -98,6 +99,7 @@ export class API {
             ConvergencePassword: parameters.convergencePassword,
             UserID: parameters.userid,
             Email: parameters.userid,
+            IsAdmin: parameters.isAdmin,
         };
 
         return new Promise((resolve, reject) => {

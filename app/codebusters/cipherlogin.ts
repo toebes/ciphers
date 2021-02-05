@@ -164,6 +164,7 @@ export class CipherLogin extends CipherHandler {
                         convergencePassword: convergencePassword,
                         convergenceUsername: convergenceUsername,
                         userid: convergenceProxyUsername,
+                        isAdmin: true,
                     };
 
                     this.api

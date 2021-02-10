@@ -1,5 +1,6 @@
-import { anyMap } from './ciphertest';
-
+export interface anyMap {
+    [key: string]: any;
+}
 export interface GetConvergenceTokenParameters {
     googleIdToken?: string;
     microsoftIdToken?: string;
@@ -83,6 +84,10 @@ export class API {
 
     private getStoreModelUrl(): string {
         return this.baseUrl + '/api/convergence/StoreModel';
+    }
+
+    private getDeleteModelUrl(): string {
+        return this.baseUrl + '/api/convergence/DeleteModel';
     }
 
     private getUpdateUserPermissions(): string {
@@ -343,6 +348,11 @@ export class API {
         });
     }
 
+    /**
+     * 
+     * @param token Authorization token for interface
+     * @param modelId 
+     */
     public getPermissionsForModel(
         token: string,
         modelId: string
@@ -479,6 +489,53 @@ export class API {
             fetch(urlStoreModel, {
                 method: 'POST',
                 body: JSON.stringify(content),
+                headers: {
+                    'Content-Type': 'application/json; charset=UTF-8',
+                    Authorization: 'Bearer ' + token,
+                },
+            })
+                .then((response) => {
+                    if (response.ok && response.body !== null) {
+                        response
+                            .json()
+                            .then((value) => {
+                                resolve(value.result);
+                            })
+                            .catch((reason) => {
+                                reject(reason);
+                            });
+                    } else if (!response.ok && response.body !== null) {
+                        response
+                            .text()
+                            .then((value) => {
+                                resolve(
+                                    'Response was not okay; Body contents of response: ' + value
+                                );
+                            })
+                            .catch((reason) => {
+                                reject(reason);
+                            });
+                    } else {
+                        resolve('Response was not okay and no body was found for response');
+                    }
+                })
+                .catch((reason) => {
+                    reject(reason);
+                });
+        });
+    }
+    /**
+     * deleteModel removes a model from the database
+     * @param token API Authentication token
+     * @param modelid Model ID to delete
+     */
+    // TODO: Implement this function
+    public deleteModel(token: string, modelid: string): Promise<any> {
+        const urlDeleteModel = this.getDeleteModelUrl();
+        return new Promise((resolve, reject) => {
+            fetch(urlDeleteModel, {
+                method: 'POST',
+                // body: JSON.stringify(content),
                 headers: {
                     'Content-Type': 'application/json; charset=UTF-8',
                     Authorization: 'Bearer ' + token,

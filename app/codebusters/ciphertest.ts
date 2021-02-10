@@ -22,7 +22,7 @@ import {
     ConvergenceLoginParameters,
 } from './authentication';
 import Convergence = require('@convergence/convergence');
-import { CBUpdateUserPermissions, StoreModelBody } from './api';
+import { anyMap, CBUpdateUserPermissions, StoreModelBody } from './api';
 
 export interface buttonInfo {
     title: string;
@@ -45,10 +45,6 @@ export interface IRealtimeMetaData {
     createdBy: string;
 }
 export interface sourceModel {
-    [key: string]: any;
-}
-
-export interface anyMap {
     [key: string]: any;
 }
 
@@ -458,7 +454,14 @@ export class CipherTest extends CipherHandler {
     /*-------------------------------------------------------------------------*/
     /*                   Realtime Model Service Routines                       */
     /*-------------------------------------------------------------------------*/
-
+    /**
+     * getAPIToken gets the authentication token needed for calling the API methonds
+     * @returns Token to used for authenticating the API
+     */
+    public getAPIToken(): string {
+        const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
+        return token
+    }
     /**
      *
      * Four files which are used by the system:
@@ -538,9 +541,8 @@ export class CipherTest extends CipherHandler {
      */
     public getRealtimeMetadata(modeltype: IRealtimeObject): Promise<IRealtimeMetaData[]> {
         return new Promise((resolve, reject) => {
-            const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
             this.api
-                .getModels(token, modeltype.toString())
+                .getModels(this.getAPIToken(), modeltype.toString())
                 .then((models) => {
                     const result: IRealtimeMetaData[] = [];
                     models.forEach((model) => {
@@ -580,9 +582,8 @@ export class CipherTest extends CipherHandler {
      */
     public getRealtimePermissions(id: modelID): Promise<RealtimePermissionSet> {
         return new Promise((resolve, reject) => {
-            const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
             this.api
-                .getPermissionsForModel(token, id)
+                .getPermissionsForModel(this.getAPIToken(), id)
                 .then((response) => {
                     const result: RealtimePermissionSet = {};
                     if (response.status == 'success') {
@@ -626,8 +627,6 @@ export class CipherTest extends CipherHandler {
         user: string,
         permissions: RealtimeSinglePermission
     ): Promise<boolean> {
-        const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
-
         const updatePermissions: CBUpdateUserPermissions = {
             modelId: id,
             username: user,
@@ -639,7 +638,7 @@ export class CipherTest extends CipherHandler {
 
         return new Promise((resolve, reject) => {
             this.api
-                .updateUserPermissions(token, updatePermissions)
+                .updateUserPermissions(this.getAPIToken(), updatePermissions)
                 .then((result) => {
                     resolve(result);
                 })
@@ -657,9 +656,8 @@ export class CipherTest extends CipherHandler {
      */
     public getRealtimeContents(modelType: IRealtimeObject, id: modelID): Promise<anyMap> {
         return new Promise((resolve, reject) => {
-            const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
             this.api
-                .getModelContent(token, modelType, id)
+                .getModelContent(this.getAPIToken(), modelType, id)
                 .then((value) => {
                     resolve(value);
                 })
@@ -674,6 +672,7 @@ export class CipherTest extends CipherHandler {
      * store the permissions and find tests associated with them.
      * Permissions on the file are set to the current user with Read/Write/Manage/Delete
      * No other permissions are deleted.
+     * @param modeltype Category of model
      * @param contents Contents to save
      * @param ID Model to be updated
      * @returns Promise to ID of model updated
@@ -690,9 +689,8 @@ export class CipherTest extends CipherHandler {
                 type: modeltype,
             };
 
-            const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
             this.api
-                .storeModel(token, storeModelBody)
+                .storeModel(this.getAPIToken(), storeModelBody)
                 .then((result) => {
                     const model = result.model;
                     const modelId = model.id;
@@ -726,9 +724,8 @@ export class CipherTest extends CipherHandler {
         id: modelID
     ): Promise<IRealtimeMetaData> {
         return new Promise((resolve, reject) => {
-            const token = this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '');
             this.api
-                .getModel(token, id)
+                .getModel(this.getAPIToken(), id)
                 .then((value) => {
                     if (value !== null) {
                         const metadata: IRealtimeMetaData = {
@@ -753,6 +750,14 @@ export class CipherTest extends CipherHandler {
         });
     }
 
+    /**
+     * deleteRealtimeElement removes a model from the system
+     * @param modeltype Category of model
+     * @param id ID of model to delete
+     */
+    public deleteRealitimeElement(modeltype: IRealtimeObject, id: modelID): Promise<void> {
+        return this.api.deleteModel(this.getAPIToken(), id)
+    }
     /*-------------------------------------------------------------------------*/
     /*                            Source Models                                */
     /*-------------------------------------------------------------------------*/

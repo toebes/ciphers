@@ -274,6 +274,7 @@ export class CipherTestPublished extends CipherTestManage {
         modelService
             .query("SELECT testid FROM codebusters_answers where testid='" + testmodelid + "'")   // This can use new getAllMatchingElements API
             .then((results) => {
+                // TODO: This should remove them one at a time.
                 results.data.forEach((result) => {
                     modelService.remove(result.modelId).catch((error) => {
                         this.reportFailure(
@@ -282,14 +283,17 @@ export class CipherTestPublished extends CipherTestManage {
                     });
                 });
                 // Now that the answer templates are gone, remove the test template
+                // TODO: This should use the new API
                 modelService.remove(answertemplateid).catch((error) => {
                     this.reportFailure('Unable to remove ' + answertemplateid + ' Error code:' + error);
                 });
                 // Now that the answer templates are gone, remove the test template
+                // TODO: This should use the new API
                 modelService.remove(testmodelid).catch((error) => {
                     this.reportFailure('Unable to remove ' + testmodelid + ' Error code:' + error);
                 });
                 //  and the test source
+                // TODO: This should use the new API
                 modelService.remove(sourcemodelid).catch((error) => {
                     this.reportFailure(
                         'Unable to remove ' + sourcemodelid + ' Error code:' + error

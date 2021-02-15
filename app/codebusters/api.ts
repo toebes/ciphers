@@ -349,9 +349,9 @@ export class API {
     }
 
     /**
-     * 
+     *
      * @param token Authorization token for interface
-     * @param modelId 
+     * @param modelId
      */
     public getPermissionsForModel(
         token: string,
@@ -529,13 +529,17 @@ export class API {
      * @param token API Authentication token
      * @param modelid Model ID to delete
      */
-    // TODO: Implement this function
     public deleteModel(token: string, modelid: string): Promise<any> {
         const urlDeleteModel = this.getDeleteModelUrl();
+
+        const content = {
+            ID: modelid,
+        };
+
         return new Promise((resolve, reject) => {
             fetch(urlDeleteModel, {
                 method: 'POST',
-                // body: JSON.stringify(content),
+                body: JSON.stringify(content),
                 headers: {
                     'Content-Type': 'application/json; charset=UTF-8',
                     Authorization: 'Bearer ' + token,

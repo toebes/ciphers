@@ -5,7 +5,7 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { IRealtimeMetaData, ITestState } from './ciphertest';
 import { CipherTestManage } from './ciphertestmanage';
-import { ConvergenceDomain, RealTimeModel } from '@convergence/convergence';
+import { ConvergenceDomain, ModelService, RealTimeModel } from '@convergence/convergence';
 import { JTFDialog } from '../common/jtfdialog';
 
 /**
@@ -163,6 +163,7 @@ export class CipherTestPublished extends CipherTestManage {
             $('.publist').append(tr);
         }
         // Kick off a request to figure out
+        // TODO: This should be a dynamic task with a timer
         this.calculateScheduledTests(modelService, metadata.testid);
     }
     /**
@@ -261,6 +262,63 @@ export class CipherTestPublished extends CipherTestManage {
         });
     }
     /**
+     * deleteTestModels deletes the answertemplate, testmodel and source model associated with a test
+     * @param sourcemodelid 
+     * @param testmodelid 
+     * @param answertemplateid 
+     */
+    public deleteTestModels(sourcemodelid: string, testmodelid: string, answertemplateid: string): void {
+        if (answertemplateid !== undefined) {
+            this.deleteRealitimeElement('answertemplate', answertemplateid)
+                .then(() => {
+                    setTimeout(() => { this.deleteTestModels(sourcemodelid, testmodelid, undefined) }, 1);
+                }).catch((error) => {
+                    this.reportFailure('Unable to remove ' + answertemplateid + ' Error code:' + error)
+                    setTimeout(() => { this.deleteTestModels(sourcemodelid, testmodelid, undefined) }, 1);
+                })
+        } else if (testmodelid !== undefined) {
+            this.deleteRealitimeElement('testmodel', testmodelid)
+                .then(() => {
+                    setTimeout(() => { this.deleteTestModels(sourcemodelid, undefined, undefined) }, 1);
+                }).catch((error) => {
+                    this.reportFailure('Unable to remove ' + testmodelid + ' Error code:' + error)
+                    setTimeout(() => { this.deleteTestModels(sourcemodelid, undefined, undefined) }, 1);
+                })
+        } else if (sourcemodelid !== undefined) {
+            this.deleteRealitimeElement('testmodel', sourcemodelid)
+                .then(() => {
+                    // And update the table to remove the entry
+                    $('tr[data-source="' + sourcemodelid + '"]').remove();
+                }).catch((error) => {
+                    this.reportFailure('Unable to remove ' + sourcemodelid + ' Error code:' + error)
+                })
+        }
+    }
+    /**
+     * deleteAnswerModels removes all answer models associated with a test and then invokes the process to delete the main test models
+     * @param modelService 
+     * @param answerModels 
+     * @param sourcemodelid 
+     * @param testmodelid 
+     * @param answertemplateid 
+     */
+    public deleteAnswerModels(modelService: ModelService, answerModels: string[], sourcemodelid: string, testmodelid: string, answertemplateid: string): void {
+        // one at a time we delete the answer models
+        let toremove = answerModels.pop()
+        if (toremove !== undefined) {
+            modelService.remove(toremove)
+                .then(() => {
+                    setTimeout(() => { this.deleteAnswerModels(modelService, answerModels, sourcemodelid, testmodelid, answertemplateid) }, 1);
+                }).catch((error) => {
+                    this.reportFailure('Unable to remove ' + toremove + ' Error code:' + error)
+                    setTimeout(() => { this.deleteAnswerModels(modelService, answerModels, sourcemodelid, testmodelid, answertemplateid) }, 1);
+                })
+            // No more answer models, so see if we still have a test model
+        } else {
+            this.deleteTestModels(sourcemodelid, testmodelid, answertemplateid)
+        }
+    }
+    /**
      * Perform the real work of deleting the models from the server.
      * Search for all answer templates which refer to the test template and then delete the source and test templates
      *
@@ -272,35 +330,13 @@ export class CipherTestPublished extends CipherTestManage {
         const modelService = domain.models();
         // Our query should get all of the answer templates which reference the test
         modelService
-            .query("SELECT testid FROM codebusters_answers where testid='" + testmodelid + "'")   // This can use new getAllMatchingElements API
+            .query("SELECT testid FROM codebusters_answers where testid='" + testmodelid + "'")
             .then((results) => {
-                // TODO: This should remove them one at a time.
+                let answerModels: string[] = []
                 results.data.forEach((result) => {
-                    modelService.remove(result.modelId).catch((error) => {
-                        this.reportFailure(
-                            'Unable to remove ' + result.modelId + ' Error code:' + error
-                        );
-                    });
+                    answerModels.push(result.modelId)
                 });
-                // Now that the answer templates are gone, remove the test template
-                // TODO: This should use the new API
-                modelService.remove(answertemplateid).catch((error) => {
-                    this.reportFailure('Unable to remove ' + answertemplateid + ' Error code:' + error);
-                });
-                // Now that the answer templates are gone, remove the test template
-                // TODO: This should use the new API
-                modelService.remove(testmodelid).catch((error) => {
-                    this.reportFailure('Unable to remove ' + testmodelid + ' Error code:' + error);
-                });
-                //  and the test source
-                // TODO: This should use the new API
-                modelService.remove(sourcemodelid).catch((error) => {
-                    this.reportFailure(
-                        'Unable to remove ' + sourcemodelid + ' Error code:' + error
-                    );
-                });
-                // And update the table to remove the entry
-                $('tr[data-source="' + sourcemodelid + '"]').remove();
+                this.deleteAnswerModels(modelService, answerModels, sourcemodelid, testmodelid, answertemplateid);
             })
             .catch((error) => {
                 this.reportFailure('Convergence API could not connect: ' + error);

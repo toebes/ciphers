@@ -102,12 +102,12 @@ interface ITestTypeInfo {
 
 export interface ITestUser {
     userid: string;
-    displayname: string;
-    starttime: number;
-    idletime: number;
-    confidence: number[];
-    notes: string;
-    sessionid: string;
+    displayname?: string;
+    starttime?: number;
+    idletime?: number;
+    confidence?: number[];
+    notes?: string;
+    sessionid?: string;
 }
 export interface IAnswerTemplate {
     testid: string;

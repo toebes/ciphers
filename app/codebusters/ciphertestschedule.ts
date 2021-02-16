@@ -1,6 +1,6 @@
 import { CipherTestManage } from './ciphertestmanage';
 import { toolMode, IState, CipherHandler } from '../common/cipherhandler';
-import { ITestState, IAnswerTemplate, ITestUser } from './ciphertest';
+import { ITestState, IAnswerTemplate, ITestUser, RealtimeSinglePermission } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
 import {
     cloneObject,
@@ -10,15 +10,11 @@ import {
     makeFilledArray,
     timestampToFriendly,
     makeCallout,
+    StringMap,
 } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRow, JTTable } from '../common/jttable';
-import {
-    ConvergenceDomain,
-    RealTimeModel,
-    ModelService,
-    ModelPermissions,
-} from '@convergence/convergence';
+import { ConvergenceDomain, RealTimeModel, ModelService, ModelPermissions } from '@convergence/convergence';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFDialog } from '../common/jtfdialog';
 
@@ -28,26 +24,11 @@ import { EnsureUsersExistParameters } from './api';
 
 import * as XLSX from 'xlsx';
 
-interface testInfo {
-    /** Time that the test is scheduled to start */
-    starttime: number;
-    /** length of the test in minutes */
-    testlength: number;
-    /** Time allocated for the timed question bonus */
-    timedlength: number;
-    /** Users who are assigned to take the test */
-    assigned: string[];
-    /** Name of the team taking the test */
-    teamname: string;
-    /** Type of team (Varsity, JV, JV2, etc) taking the test */
-    teamtype: string;
-}
-
 /**
  * CipherTestScheduled
  *    This shows a list of all Scheduled tests.
  *    Each line has a line with buttons at the start
- *       <DELETE> <SAVE> Users assigned test, Start Time, Test Duration, Timed Duration
+ *       <DELETE> <SAVE> Users assigned test, Start Time, Test Duration, Timed Duration, team name, team type
  */
 export class CipherTestSchedule extends CipherTestManage {
     public activeToolMode: toolMode = toolMode.codebusters;
@@ -118,7 +99,7 @@ export class CipherTestSchedule extends CipherTestManage {
         return result;
     }
     /**
-     *
+     * openTestSource gets the test information and queues finding the scheduled tests
      * @param domain Convergence Domain to query against
      * @param sourcemodelid Source test to open
      */
@@ -137,9 +118,10 @@ export class CipherTestSchedule extends CipherTestManage {
             });
     }
     /**
-     * Create an input field that allows the user to enter a date/time value
+     * dateTimeInput creates an input field that allows the user to enter a date/time value
      * @param id ID for the input field to create
      * @param datetime Date/time value to initialize the field with
+     * @returns HTML Element for the created field
      */
     public dateTimeInput(id: string, datetime: number): JQuery<HTMLElement> {
         const dateval = new Date(datetime).toISOString();
@@ -155,7 +137,7 @@ export class CipherTestSchedule extends CipherTestManage {
         return result;
     }
     /**
-     * Creates the test table for displaying all active tests
+     * createTestTable creates the test table for displaying all active tests
      */
     private createTestTable(): JTTable {
         const table = new JTTable({ class: 'cell shrink publist' });
@@ -170,18 +152,13 @@ export class CipherTestSchedule extends CipherTestManage {
         return table;
     }
     /**
-     * Populate a JTRow object to insert into the table
+     * populateRow populates a JTRow object to insert into the table
      * @param row Row item to populate
-     * @param rowID ID for the row
+     * @param rowID ID for the row (may be blank)
      * @param answerModelID ID for the stored answer model
      * @param answertemplate Contents for the answer
      */
-    private populateRow(
-        row: JTRow,
-        rownum: number,
-        answerModelID: string,
-        answertemplate: IAnswerTemplate
-    ): void {
+    private populateRow(row: JTRow, rownum: number, answerModelID: string, answertemplate: IAnswerTemplate): void {
         const rowID = String(rownum);
         row.attr({ id: 'R' + rowID, 'data-source': answerModelID });
         const buttons = $('<div/>', { class: 'button-group round shrink' });
@@ -226,15 +203,12 @@ export class CipherTestSchedule extends CipherTestManage {
             .add($('<input/>', { type: 'text', id: 'C_' + rowID, value: answertemplate.teamtype }));
     }
     /**
-     * Find all the tests scheduled for a given test template
+     * findScheduledTests finds all the tests scheduled for a given test template and populates the UI with them
      * @param modelService Domain Model service object for making requests
-     * @param sourcemodelid
+     * @param testmodelid Test model to find tests for
+     * @param answertempateid Answer template to ignore (shouldn't be found)
      */
-    public findScheduledTests(
-        modelService: ModelService,
-        testmodelid: string,
-        answertempateid: string
-    ): void {
+    public findScheduledTests(modelService: ModelService, testmodelid: string, answertempateid: string): void {
         modelService
             .query(
                 "SELECT assigned,starttime,endtimed,endtime,teamname,teamtype FROM codebusters_answers where testid='" +
@@ -243,16 +217,11 @@ export class CipherTestSchedule extends CipherTestManage {
             ) // This stays using convergence
             .then((results) => {
                 let total = 0;
-                let table: JTTable = undefined;
                 results.data.forEach((result) => {
                     const answertemplate = result.data as IAnswerTemplate;
                     if (result.modelId !== answertempateid) {
-                        if (table === undefined) {
-                            table = this.createTestTable();
-                        }
-                        const row = table.addBodyRow();
-                        this.populateRow(row, total, result.modelId, answertemplate);
-                        // Keep track of how many entries we created so that they each have a unique id
+                        this.addUITestEntry(result.modelId, answertemplate);
+                        // Keep track of how many entries we created
                         total++;
                     }
                 });
@@ -262,8 +231,6 @@ export class CipherTestSchedule extends CipherTestManage {
                     $('.testlist').append(
                         $('<div/>', { class: 'callout warning' }).text('No tests scheduled')
                     );
-                } else {
-                    $('.testlist').append(table.generate());
                 }
                 this.attachHandlers();
             })
@@ -272,27 +239,27 @@ export class CipherTestSchedule extends CipherTestManage {
             });
     }
     /**
-     * Makes a copy of the answer template and schedules a new test.
+     * addSingleScheduledTest adds an entry to schedule a new blank test with no assigned to it.
      */
     public addSingleScheduledTest(): void {
-        this.cacheConnectRealtime()
-            .then((domain: ConvergenceDomain) => {
-                const modelService = domain.models();
-                const copyInfo: testInfo = {
-                    starttime: Date.now(),
-                    testlength: 50,
-                    timedlength: 10,
-                    assigned: [],
-                    teamname: '',
-                    teamtype: 'Varsity',
-                };
-                this.copyAnswerTemplate(modelService, copyInfo);
-                // We don't have to set permissions on the test model because there are
-                // no users scheduled on the new test.
-            })
-            .catch((error) => {
-                this.reportFailure('Could not add single schedule test: ' + error);
-            });
+        const now = Date.now()
+        const answertemplate: IAnswerTemplate = {
+            testid: "",
+            starttime: now,
+            endtime: now + timestampFromMinutes(50),
+            endtimed: now + timestampFromMinutes(10),
+            answers: [],
+            assigned: [],
+            teamname: "",
+            teamtype: ""
+        }
+        // Create an entry, mark it as changed and dirty
+        const newRowID = this.addUITestEntry("", answertemplate)
+        this.setChanged(newRowID);
+        this.setDirty(newRowID);
+        this.attachHandlers();
+        // Now that it is added, queue the process to save everything marked dirty
+        this.saveAllDirty();
     }
     /**
      * Makes a copy of the answer template and schedules a new test.
@@ -301,20 +268,33 @@ export class CipherTestSchedule extends CipherTestManage {
      * might be called in a loop and you run into synchronization issues with multiple threads
      * trying to update the permissions.
      * @param modelService Domain Model service object for making requests
-     * @param testinfo Description of the new test to add
+     * @param userlist List of users to assign to the test
+     * @param starttime timestamp Start time for the test
+     * @param endtime timestamp End time for the test
+     * @param endtimed timestamp End of the timed interval for the test
+     * @param teamname Name of the team/school
+     * @param teamtype Type of team (Varsity, JV, etc)
+     * @returns Promise of new modelid on completion
      */
-    public copyAnswerTemplate(modelService: ModelService, testinfo: testInfo): void {
+    public copyAnswerTemplate(modelService: ModelService,
+        userlist: string[],
+        starttime: number,
+        endtime: number,
+        endtimed: number,
+        teamname: string,
+        teamtype: string): Promise<string> {
+        // Build an answer template to store in the model
         const answerTemplate: IAnswerTemplate = {
             testid: this.testmodelid,
-            starttime: testinfo.starttime,
-            endtime: testinfo.starttime + timestampFromMinutes(testinfo.testlength),
-            endtimed: testinfo.starttime + timestampFromMinutes(testinfo.timedlength),
+            starttime: starttime,
+            endtime: endtime,
+            endtimed: endtimed,
             assigned: [],
-            teamname: testinfo.teamname,
-            teamtype: testinfo.teamtype,
+            teamname: teamname,
+            teamtype: teamtype,
             answers: this.answerTemplate.answers,
         };
-        for (const userid of testinfo.assigned) {
+        for (const userid of userlist) {
             const userinfo: ITestUser = {
                 userid: userid,
                 displayname: '',
@@ -326,56 +306,47 @@ export class CipherTestSchedule extends CipherTestManage {
             };
             answerTemplate.assigned.push(userinfo);
         }
-        modelService
-            .openAutoCreate({
-                collection: 'codebusters_answers',
-                overrideCollectionWorldPermissions: false,
-                data: answerTemplate,
-            })
-            .then((datamodel: RealTimeModel) => {
-                const modelid = datamodel.modelId();
-                const rowID = 0;
-                datamodel.close();
-                //
-                // Now we need to get the new entry on the screen.
-                // If we don't have a table already we will need to create one
-                //
-                if ($('.publist').length === 0) {
-                    // No table at all so just create one with our row put in it
-                    const table = this.createTestTable();
-                    const row = table.addBodyRow();
-                    this.populateRow(row, rowID, modelid, answerTemplate);
-                    $('.testlist')
-                        .empty()
-                        .append(table.generate());
-                } else {
-                    // Find the id of the last row
-                    const lastid = $('.publist tr:last').attr('id');
-                    const rowID = Number(lastid.substr(1)) + 1;
-                    // And create a row with the next ID
-                    const row = new JTRow();
-                    this.populateRow(row, rowID, modelid, answerTemplate);
-                    // And put it into the table
-                    $('.publist tbody').append(row.generate());
-                }
-                this.attachHandlers();
-            })
-            .catch((error) => {
-                this.reportFailure('Could not autocreate: ' + error);
-            });
+        return new Promise((resolve, reject) => {
+            // Let the system create the model and assign an id for us
+            modelService
+                .openAutoCreate({
+                    collection: 'codebusters_answers',
+                    overrideCollectionWorldPermissions: false,
+                    data: answerTemplate,
+                })
+                .then((datamodel: RealTimeModel) => {
+                    // Success, so get the id, close the model and return it
+                    const modelid = datamodel.modelId();
+                    datamodel.close();
+                    resolve(modelid);
+                })
+                .catch((error) => { reject(error); });
+        })
     }
     /**
-     * Delete a model from the server
+     * deleteFirstEntry finds the first entry and deletes the corresponding model from the server.
+     * Once the delete is complete, it processes the next entry.
      * @param modelService Domain Model service object for making requests
-     * @param modelid Model to delete
      */
-    private doDeletePublished(modelService: ModelService, modelid: string): void {
-        modelService.remove(modelid).catch((error) => {
-            this.reportFailure('Could not remove ' + modelid + ' ' + error);
-        });
+    public deleteFirstEntry(modelService: ModelService): void {
+        const rows = $('tr[id^="R"]')
+        if (rows.length > 0) {
+            const tr = $(rows[0])
+            const modelid = tr.attr('data-source') as string;
+            const rowid = (tr.attr('id') as string).substr(1);
+
+            this.showDelete(modelService, modelid, rowid).then(() => {
+                tr.remove();
+                setTimeout(() => { this.deleteFirstEntry(modelService) }, 100);
+            }).catch((error) => {
+                this.reportFailure('Could not remove ' + modelid + ' ' + error);
+            });
+        } else {
+            this.updateOutput();
+        }
     }
     /**
-     * This prompts a user and then deletes all ciphers
+     * gotoDeleteAllScheduled prompts a user and then deletes all scheduled tests
      */
     public gotoDeleteAllScheduled(): void {
         $('#okdelall')
@@ -383,12 +354,7 @@ export class CipherTestSchedule extends CipherTestManage {
             .on('click', () => {
                 this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                     const modelService = domain.models();
-                    $('tr[id^="R"]').each((i, elem) => {
-                        const modelid = $(elem).attr('data-source');
-                        this.doDeletePublished(modelService, modelid);
-                        $(elem).remove();
-                    });
-                    this.updateOutput();
+                    this.deleteFirstEntry(modelService);
                 });
                 $('#delalldlg').foundation('close');
             });
@@ -396,13 +362,13 @@ export class CipherTestSchedule extends CipherTestManage {
         $('#delalldlg').foundation('open');
     }
     /**
-     * Fix the permissions for a single model
+     * fixPermissions fixes the permissions for a single model
      * @param modelService Domain Model service object for making requests
      * @param eid entry id to get data for
      * @param modelid Model id to set permissions on
      * @returns Array of strings corresponding to users added
      */
-    public fixPermissions(modelService: ModelService, eid: string, modelid: string): string[] {
+    public fixPermissions(modelService: ModelService, eid: string, modelid: string): Promise<void> {
         let name1 = $('#U0_' + eid).val() as string;
         let name2 = $('#U1_' + eid).val() as string;
         let name3 = $('#U2_' + eid).val() as string;
@@ -421,30 +387,42 @@ export class CipherTestSchedule extends CipherTestManage {
         if (name3 !== '') {
             added.push(name3);
         }
-        this.saveUserPermissions(modelService, modelid, [], added);
-        return added;
+        return this.saveUserPermissions(modelService, modelid, [], added);
     }
     /**
      * Fix the permissions for all scheduled tests.
      */
     public fixAllPermissions(): void {
-        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-            const modelService = domain.models();
-            let added: string[] = [];
-            $('.pubsave').each((i, elem) => {
-                const thisset = this.fixPermissions(
-                    modelService,
-                    this.getRowID($(elem)),
-                    this.getModelID($(elem))
-                );
-                added = added.concat(thisset);
-            });
-            this.saveTestModelPermissions(this.testmodelid, added); //###Temporary until new API is in place
-            //this.saveUserPermissions(modelService, this.testmodelid, [], added); //###Temporary until new API is in place
-        });
+        $('.pubsave').attr('data-permissions', '1');
+        this.fixDirtyPermissions();
     }
     /**
-     *
+     * fixDirtyPermissions saves the permissions for all models which have been marked to save
+     */
+    public fixDirtyPermissions() {
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+            const modelService = domain.models();
+            this.fixFirstDirtyPermissions(modelService);
+        });
+    }
+
+    public fixFirstDirtyPermissions(modelService: ModelService): void {
+        let tosave = $('.pubsave[data-permissions]');
+        if (tosave.length > 0) {
+            const elem = $(tosave[0]);
+            const rowid = this.getRowID(elem);
+            const modelid = this.getModelID(elem)
+            this.fixPermissions(modelService, rowid, modelid).then(() => {
+                setTimeout(() => { this.fixFirstDirtyPermissions(modelService) }, 100);
+            }).catch((error) => {
+                this.reportFailure("Error saving permissions for " + modelid + " :" + error)
+            })
+        } else {
+            this.saveTestModelPermissions();
+        }
+    }
+    /**
+     * setChanged marks a row as changed so that the save button can be clicked by the user
      * @param id Which button was clicked on
      */
     public setChanged(id: string): void {
@@ -452,32 +430,41 @@ export class CipherTestSchedule extends CipherTestManage {
         $('#savesched').removeAttr('disabled');
     }
     /**
-     * Save a scheduled test
-     * @param eid Row ID to save
-     * @param testid Model to save it do
+     * setDirty marks a row as dirty so that it will be processed to save
+     * @param id Which row to mark
      */
-    public saveScheduled(eid: string, testid: string): void {
-        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-            const modelService = domain.models();
-            const userlist = this.saveAnswerSlot(modelService, eid, testid);
-            this.saveTestModelPermissions(this.testmodelid, userlist); //###Temporary until new API is in place
-            // this.saveUserPermissions(modelService, this.testmodelid, [], userlist); //###Temporary until new API is in place
-        });
+    public setDirtyPermission(id: string): void {
+        $('#SV' + id).attr('data-permissions', '1');
+    }
+    /**
+     * setDirty marks a row as dirty so that it will be processed to save
+     * @param id Which row to mark
+     */
+    public setDirty(id: string): void {
+        $('#SV' + id).attr('data-dirty', '1');
     }
     /**
      * Save a scheduled test
      * @param eid Row ID to save
-     * @param testid Model to save it do
-     * @returns Array of users added to the answermodel
      */
-    public saveAnswerSlot(modelService: ModelService, eid: string, testid: string): string[] {
+    public saveScheduled(eid: string): void {
+        this.setDirty(eid);
+        this.saveAllDirty();
+    }
+    /**
+     * saveAnswerSlot saves a scheduled test from the UI.  If the model doesn't already exist, a new one will be created
+     *  and the UI will be updated to reflect the new model id
+     * @param modelService model service to use for operations
+     * @param eid Row ID to save
+     * @param testid Model to save it do
+     * @returns Promise on success/failure
+     */
+    public saveAnswerSlot(modelService: ModelService, eid: string, testid: string): Promise<void> {
+        // Grab all the information from the UI for this row
         const userlist: string[] = [];
-        let name1 = $('#U0_' + eid).val() as string;
-        let name2 = $('#U1_' + eid).val() as string;
-        let name3 = $('#U2_' + eid).val() as string;
-        name1 = name1.trim();
-        name2 = name2.trim();
-        name3 = name3.trim();
+        const name1 = ($('#U0_' + eid).val() as string).trim();
+        const name2 = ($('#U1_' + eid).val() as string).trim();
+        const name3 = ($('#U2_' + eid).val() as string).trim();
 
         if (name1 !== '') {
             userlist.push(name1);
@@ -488,6 +475,8 @@ export class CipherTestSchedule extends CipherTestManage {
         if (name3 !== '') {
             userlist.push(name3);
         }
+        const teamname = $('#N_' + eid).val() as string;
+        const teamtype = $('#C_' + eid).val() as string;
         const testStart = $('#S_' + eid).val() as string;
         const testDuration = $('#D_' + eid).val() as number;
         const timedDuration = $('#T_' + eid).val() as number;
@@ -497,34 +486,80 @@ export class CipherTestSchedule extends CipherTestManage {
             endtime = timestampForever;
         }
         const endtimed = starttime + timestampFromMinutes(timedDuration);
-        $('#SV' + eid).attr('disabled', 'disabled');
 
-        this.saveAnswerTemplate(modelService, testid, userlist, starttime, endtime, endtimed);
-        return userlist;
+        if (testid === "") {
+            return new Promise((resolve, reject) => {
+                // We need to create a new one and get a new model id
+                this.copyAnswerTemplate(modelService, userlist, starttime, endtime, endtimed, teamname, teamtype)
+                    .then((modelid) => {
+                        // Successful, so we need to remember the modelid in the UI
+                        const tr = $('#SV' + eid).closest('tr');
+                        tr.attr('data-source', modelid);
+                        resolve();
+                    }).catch((error) => { reject(error); });
+            })
+        } else {
+            // Updating an existing one, so just let the save process run on it
+            return this.saveAnswerTemplate(modelService, testid, userlist, starttime, endtime, endtimed, teamname, teamtype);
+        }
     }
     /**
-     * Save all unsaved scheduled tests
+     * saveOneScheduled finds the first unsaved entry and saves it.  When it is complete saving that
+     * one model it sets a timeout to run the next one.
+     * @param modelService model service to use for operations
      */
-    public saveAllScheduled(): void {
-        let userlist: string[] = [];
-        $('#savesched').attr('disabled', 'disabled');
+    public saveDirty(modelService: ModelService): void {
+        let tosave = $('.pubsave[data-dirty]');
+        console.log('saveOneScheduled count=' + tosave.length)
+        if (tosave.length > 0) {
+            let elem = tosave[0]
+            // Temporarily change the save button to indicate that we are saving and
+            // disable it so it can't be clicked again
+            $(elem).removeClass("primary")
+                .removeAttr("data-dirty")
+                .addClass("warning")
+                .text("Saving...")
+                .attr('disabled', 'disabled')
+            this.saveAnswerSlot(modelService, this.getRowID($(elem)), this.getModelID($(elem)))
+                .then(() => {
+                    // Clean up the UI 
+                    $(elem).removeClass("warning")
+                        .addClass("primary")
+                        .text("Save");
+                    setTimeout(() => { this.saveDirty(modelService) }, 100);
+                })
+                .catch((error) => {
+                    $(elem).removeClass("warning")
+                        .addClass("primary")
+                        .text("Save")
+                    this.reportFailure("Error saving :" + error);
+                    setTimeout(() => { this.saveDirty(modelService) }, 100);
+                });
+        } else {
+            this.saveTestModelPermissions();
+        }
+    }
+    /**
+     * SaveAllDirty saves all entries which have been marked as dirty
+     */
+    public saveAllDirty() {
         this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
             const modelService = domain.models();
-            $('.pubsave').each((i, elem) => {
-                if ($(elem).attr('disabled') != '') {
-                    userlist = userlist.concat(
-                        this.saveAnswerSlot(
-                            modelService,
-                            this.getRowID($(elem)),
-                            this.getModelID($(elem))
-                        )
-                    );
-                }
-            });
-            this.saveTestModelPermissions(this.testmodelid, userlist); //###Temporary until new API is in place
-            //this.saveUserPermissions(modelService, this.testmodelid, [], userlist); //###Temporary until new API is in place
+            this.saveDirty(modelService);
         });
     }
+    /**
+     * saveAllScheduled saves all unsaved scheduled tests.  This is done
+     * by triggering a timed process that saves eacn unsaved entry one at a time and then
+     * updates the permissions when it is all complete
+     */
+    public saveAllScheduled(): void {
+        // Mark everything unsaved as dirty
+        $('.pubsave:not([disabled])').attr('data-dirty', '1');
+        $('#savesched').attr('disabled', 'disabled');
+        this.saveAllDirty();
+    }
+
     /**
      * Propagate the time from the first test to all the other tests
      */
@@ -541,7 +576,7 @@ export class CipherTestSchedule extends CipherTestManage {
                     const duration = $('#D_0').val() as number;
                     const timed = $('#T_0').val() as number;
                     // Find all of the time fields on the page
-                    $('input[id^="T_"]').each((i, elem) => {
+                    $('input[id^="T_"]').each((_i, elem) => {
                         // parse out what row it is
                         const rowid = this.getRowID($(elem));
                         // Technically we don't have to check for the first row, but we know
@@ -579,129 +614,156 @@ export class CipherTestSchedule extends CipherTestManage {
         const reader = new FileReader();
         reader.onload = (): void => {
             try {
-                this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-                    const modelService = domain.models();
-
-                    const data = new Uint8Array(reader.result as ArrayBuffer);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]]; // get the first worksheet
-                    const epoch1904 = workbook.Workbook.WBProps.date1904;
-                    const json = XLSX.utils.sheet_to_json(sheet) as { [index: string]: unknown }[];
-                    let timefield = 'Time';
-                    let userfields: string[] = [];
-                    let schoolnamefield = 'School';
-                    let teamtypefield = 'Type';
-                    let lengthfield = 'Length';
-                    let timedfield = 'Timed';
-                    if (json.length > 0) {
-                        // Figure out what columns are to be used
-                        const firstelem = json[0];
-                        for (const fieldname in firstelem) {
-                            const fieldupper = fieldname.toUpperCase().replace(/[^A-Z]/gi, '');
-                            switch (fieldupper) {
-                                case 'TIME':
-                                    timefield = fieldname;
-                                    break;
-                                case 'LENGTH':
-                                    lengthfield = fieldname;
-                                    break;
-                                case 'SCHOOL':
-                                case 'TEAM':
-                                    schoolnamefield = fieldname;
-                                    break;
-                                case 'TYPE':
-                                    teamtypefield = fieldname;
-                                    break;
-                                case 'USER':
-                                case 'STUDENT':
-                                    userfields.push(fieldname);
-                                    break;
-                                case 'TIMED':
-                                    timedfield = fieldname;
-                                    break;
-                                default:
-                                    console.log(
-                                        'Ignoring: ' + fieldname + ' mapped as ' + fieldupper
-                                    );
-                            }
+                const data = new Uint8Array(reader.result as ArrayBuffer);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]]; // get the first worksheet
+                const epoch1904 = workbook.Workbook.WBProps.date1904;
+                const json = XLSX.utils.sheet_to_json(sheet) as { [index: string]: unknown }[];
+                let timefield = 'Time';
+                let userfields: string[] = [];
+                let schoolnamefield = 'School';
+                let teamtypefield = 'Type';
+                let lengthfield = 'Length';
+                let timedfield = 'Timed';
+                if (json.length > 0) {
+                    // Figure out what columns are to be used
+                    const firstelem = json[0];
+                    for (const fieldname in firstelem) {
+                        const fieldupper = fieldname.toUpperCase().replace(/[^A-Z]/gi, '');
+                        switch (fieldupper) {
+                            case 'TIME':
+                                timefield = fieldname;
+                                break;
+                            case 'LENGTH':
+                                lengthfield = fieldname;
+                                break;
+                            case 'SCHOOL':
+                            case 'TEAM':
+                                schoolnamefield = fieldname;
+                                break;
+                            case 'TYPE':
+                                teamtypefield = fieldname;
+                                break;
+                            case 'USER':
+                            case 'STUDENT':
+                                userfields.push(fieldname);
+                                break;
+                            case 'TIMED':
+                                timedfield = fieldname;
+                                break;
+                            default:
+                                console.log(
+                                    'Ignoring: ' + fieldname + ' mapped as ' + fieldupper
+                                );
                         }
-                        // Take up to three user fields
-                        userfields = userfields.sort().slice(0, 3);
-                        // If we have more than three userfields
-                        const defaultTest: testInfo = {
-                            starttime: Date.now(),
-                            testlength: 50,
-                            timedlength: 10,
-                            assigned: [],
-                            teamname: '',
-                            teamtype: '',
-                        };
-                        // Now we go through the records and process them
-                        for (const record of json) {
-                            console.log(record);
-                            const newTest = cloneObject(defaultTest) as testInfo;
-                            let starttime = record[timefield] as number;
-                            if (starttime !== undefined) {
-                                console.log('Start time =' + starttime);
-                                // If the time is less than one day then they didn't give us a date, only a time
-                                // so we are going to assume that it is starting today at the time they gave us
-                                if (starttime < 1) {
-                                    const d = new Date();
-                                    d.setHours(0, 0, 0, 0); // last midnight
-                                    starttime =
-                                        Number(d) + starttime * timestampFromMinutes(60 * 24);
-                                } else {
-                                    // We have to adjust the date based on the epoch in the file.
-                                    // By default an excel file will have an epoch either January 1, 1900 or January 1, 1904
-                                    // depending on whether the file was done on a mac or a PC originally.
-                                    if (epoch1904) {
-                                        starttime -= 25569 - 1461;
-                                    } else {
-                                        starttime -= 25569;
-                                    }
-                                    starttime *= timestampFromMinutes(60 * 24);
-                                }
-                                console.log('Mapped to ' + timestampToFriendly(starttime));
-                                newTest.starttime = starttime;
-                            }
-                            const testlength = record[lengthfield] as number;
-                            if (testlength !== undefined) {
-                                newTest.testlength = testlength;
-                            }
-                            const timedlength = record[timedfield] as number;
-                            if (timedlength !== undefined) {
-                                newTest.timedlength = timedlength;
-                            }
-                            const teamname = record[schoolnamefield] as string;
-                            if (teamname !== undefined) {
-                                newTest.teamname = teamname;
-                            }
-                            const teamtype = record[teamtypefield] as string;
-                            if (teamtype !== undefined) {
-                                newTest.teamtype = teamtype;
-                            }
-                            for (const userfield of userfields) {
-                                const username = record[userfield] as string;
-                                if (username !== undefined) {
-                                    newTest.assigned.push(username);
-                                }
-                            }
-                            // Save out the new record
-                            this.copyAnswerTemplate(modelService, newTest);
-                            // Save the defaults for the next round
-                            defaultTest.starttime = newTest.starttime;
-                            defaultTest.testlength = newTest.testlength;
-                            defaultTest.timedlength = newTest.timedlength;
-                        }
-                        $('#ImportFile').foundation('close');
                     }
-                });
+                    // Take up to three user fields
+                    userfields = userfields.sort().slice(0, 3);
+                    // If we have more than three userfields
+                    let defaultStartTime = Date.now()
+                    let defaultTestLength = 50
+                    let defaultTimedLength = 10
+                    // Now we go through the records and process them
+                    for (const record of json) {
+                        console.log(record);
+                        const answertemplate: IAnswerTemplate = {
+                            testid: "",
+                            starttime: defaultStartTime,
+                            endtime: defaultStartTime + timestampFromMinutes(defaultTestLength),
+                            endtimed: defaultStartTime + timestampFromMinutes(defaultTimedLength),
+                            answers: [],
+                            assigned: [],
+                            teamname: "",
+                            teamtype: ""
+                        }
+                        let starttime = record[timefield] as number;
+                        if (starttime !== undefined) {
+                            console.log('Start time =' + starttime);
+                            // If the time is less than one day then they didn't give us a date, only a time
+                            // so we are going to assume that it is starting today at the time they gave us
+                            if (starttime < 1) {
+                                const d = new Date();
+                                d.setHours(0, 0, 0, 0); // last midnight
+                                starttime =
+                                    Number(d) + starttime * timestampFromMinutes(60 * 24);
+                            } else {
+                                // We have to adjust the date based on the epoch in the file.
+                                // By default an excel file will have an epoch either January 1, 1900 or January 1, 1904
+                                // depending on whether the file was done on a mac or a PC originally.
+                                if (epoch1904) {
+                                    starttime -= 25569 - 1461;
+                                } else {
+                                    starttime -= 25569;
+                                }
+                                starttime *= timestampFromMinutes(60 * 24);
+                            }
+                            console.log('Mapped to ' + timestampToFriendly(starttime));
+                            answertemplate.starttime = starttime;
+                            defaultStartTime = starttime;
+                        }
+                        const testlength = record[lengthfield] as number;
+                        if (testlength !== undefined) {
+                            answertemplate.endtime = answertemplate.starttime + timestampFromMinutes(testlength)
+                            defaultTestLength = testlength
+                        }
+                        const timedlength = record[timedfield] as number;
+                        if (timedlength !== undefined) {
+                            answertemplate.endtimed = answertemplate.starttime + timestampFromMinutes(timedlength)
+                            defaultTimedLength = timedlength
+                        }
+                        const teamname = record[schoolnamefield] as string;
+                        if (teamname !== undefined) {
+                            answertemplate.teamname = teamname;
+                        }
+                        const teamtype = record[teamtypefield] as string;
+                        if (teamtype !== undefined) {
+                            answertemplate.teamtype = teamtype;
+                        }
+                        for (const userfield of userfields) {
+                            const username = record[userfield] as string;
+                            if (username !== undefined) {
+                                const testuser: ITestUser = { userid: username }
+                                answertemplate.assigned.push(testuser);
+                            }
+                        }
+                        const newRowID = this.addUITestEntry("", answertemplate);
+                        this.setChanged(newRowID);
+                        this.setDirty(newRowID);
+                    }
+                    $('#ImportFile').foundation('close');
+                    this.attachHandlers();
+                    this.saveAllDirty();
+                }
             } catch (e) {
                 $('#xmlerr').text('Not a valid import file');
             }
         };
         reader.readAsArrayBuffer(file);
     }
+    public addUITestEntry(answermodelid: string, answertemplate: IAnswerTemplate): string {
+        let newRowID = 0;
+        if ($('.publist').length === 0) {
+            // No table at all so just create one with our row put in it
+            const table = this.createTestTable();
+            const row = table.addBodyRow();
+            this.populateRow(row, newRowID, answermodelid, answertemplate);
+            $('.testlist')
+                .empty()
+                .append(table.generate());
+        } else {
+            // Find the id of the last row
+            const lastid = $('.publist tr:last').attr('id');
+            const rowID = Number(lastid.substr(1)) + 1;
+            // And create a row with the next ID
+            const row = new JTRow();
+            this.populateRow(row, rowID, answermodelid, answertemplate);
+            newRowID = rowID;
+            // And put it into the table
+            $('.publist tbody').append(row.generate());
+        }
+        return String(newRowID)
+    }
+
     /**
      * Import a schedule
      */
@@ -727,36 +789,44 @@ export class CipherTestSchedule extends CipherTestManage {
         return this.api.ensureUsersExist(token, parameters);
     }
     /**
-     * Add read permissions to the Test Model
+     * saveTestModelPermissions Adds all permissions to the Test Model
      * @param testmodelid ID of the test model
-     * @param users List of users to grant permission
      */
-    public saveTestModelPermissions(testmodelid: string, users: string[]): void {
+    public saveTestModelPermissions(): void {
+        const testmodelid = this.testmodelid;
+        // Go through all of the UI Elements and gather the email addresses
+        const usermap: BoolMap = { globalPermissionId: true }
+        $('input[id^="U"]').each((_i, elem) => {
+            const userid = $(elem).val() as string
+            if (userid !== '') {
+                usermap[userid] = true;
+            }
+        });
+        const readOnlyPermission: RealtimeSinglePermission = { read: true, write: false, remove: false, manage: false };
+        const removePermission: RealtimeSinglePermission = { read: false, write: false, remove: false, manage: false };
         // Start with what is currently on the model
         this.getRealtimePermissions(testmodelid).then((permissionset) => {
             // Then check each user to see if they already have access
-            users.forEach((user) => {
+            for (const user in usermap) {
                 const permissions = permissionset[user];
                 // If they don't have any permissions or their read permissions are turned off, we want to give them just read access
                 // this prevents us from removing the full access access for the main owner of the test model
                 if (permissions === undefined || permissions.read === false) {
-                    this.updateRealtimePermissions(testmodelid, user, {
-                        read: true,
-                        write: false,
-                        remove: false,
-                        manage: false,
-                    }).catch((error) => {
-                        this.reportFailure(
-                            'Unable to set permissions for ' +
-                            user +
-                            ' on ' +
-                            testmodelid +
-                            ':' +
-                            error
-                        );
+                    this.updateRealtimePermissions(testmodelid, user, readOnlyPermission).catch((error) => {
+                        this.reportFailure('Unable to set permissions for ' + user + ' on ' + testmodelid + ':' + error);
                     });
                 }
-            });
+                // Now we need to delete any read access permissions who no longer are referencing the model
+                for (let user in permissionset) {
+                    const permissions = permissionset[user];
+                    if (permissions.write === false && permissions.remove == false && permissions.manage === false && !usermap[user]) {
+                        // they no longer are referencing the model, so we can delete them
+                        this.updateRealtimePermissions(testmodelid, user, removePermission).catch((error) => {
+                            this.reportFailure('Unable to set permissions for ' + user + ' on ' + testmodelid + ':' + error);
+                        });
+                    }
+                }
+            }
         });
     }
     /**
@@ -765,68 +835,62 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param modelid ID of model
      * @param toremove List of users to remove access for
      * @param toadd List of users to add access for
+     * @returns Promise for success/failure
      */
-    public saveUserPermissions(
-        modelService: ModelService,
-        modelid: string,
-        toremove: string[],
-        toadd: string[]
-    ): void {
+    public saveUserPermissions(modelService: ModelService, modelid: string, toremove: string[], toadd: string[]): Promise<void> {
         const permissionManager = modelService.permissions(modelid);
         let changed = false;
-        permissionManager
-            .getAllUserPermissions()
-            .then((allPermissions) => {
-                const toCheck: string[] = [];
-                // first go through the ones to remove
-                for (const userid of toremove) {
-                    if (allPermissions.has(userid)) {
-                        changed = true;
-                        const permit: ModelPermissions = allPermissions.get(userid);
-                        // They must be able to read/write but not remove/manage if it is a user
-                        if (permit.read && permit.write && !permit.remove && !permit.manage) {
-                            allPermissions.delete(userid);
+        return new Promise((resolve, reject) => {
+            permissionManager
+                .getAllUserPermissions()
+                .then((allPermissions) => {
+                    // first go through the ones to remove
+                    for (const userid of toremove) {
+                        if (allPermissions.has(userid)) {
+                            changed = true;
+                            const permit: ModelPermissions = allPermissions.get(userid);
+                            // They must be able to read/write but not remove/manage if it is a user
+                            if (permit.read && permit.write && !permit.remove && !permit.manage) {
+                                allPermissions.delete(userid);
+                            }
                         }
                     }
-                }
-                for (const userid of toadd) {
-                    if (!allPermissions.has(userid)) {
-                        changed = true;
-                        toCheck.push(userid);
-                        allPermissions.set(
-                            userid,
-                            ModelPermissions.fromJSON({
-                                read: true,
-                                write: true,
-                                remove: false,
-                                manage: false,
-                            })
-                        );
-                    }
-                }
-                // For now we have to make sure we dont' call ensureUsersExist with zero entries
-                if (toadd.length > 0) {
-                    this.ensureUsersExist(toadd).then(() => {
-                        // We have updated the permissions, so save it back.
-                        if (changed) {
-                            permissionManager
-                                .setAllUserPermissions(allPermissions)
-                                .catch((error) => {
-                                    this.reportFailure('Unable to set model permissions: ' + error);
-                                });
+                    for (const userid of toadd) {
+                        if (!allPermissions.has(userid)) {
+                            changed = true;
+                            allPermissions.set(
+                                userid,
+                                ModelPermissions.fromJSON({
+                                    read: true,
+                                    write: true,
+                                    remove: false,
+                                    manage: false,
+                                })
+                            );
                         }
-                    });
-                } else {
-                    if (changed) {
-                        permissionManager.setAllUserPermissions(allPermissions).catch((error) => {
-                            this.reportFailure('Unable to set model permissions: ' + error);
+                    }
+                    // For now we have to make sure we dont' call ensureUsersExist with zero entries
+                    if (toadd.length > 0) {
+                        this.ensureUsersExist(toadd).then(() => {
+                            // We have updated the permissions, so save it back.
+                            if (changed) {
+                                permissionManager
+                                    .setAllUserPermissions(allPermissions)
+                                    .then(() => { resolve(); })
+                                    .catch((error) => { reject(error); });
+                            }
                         });
+                    } else if (changed) {
+                        permissionManager.setAllUserPermissions(allPermissions)
+                            .then(() => { resolve(); })
+                            .catch((error) => { reject(error); });
+                    } else {
+                        resolve();
                     }
-                }
-            })
-            .catch((error) => {
-                this.reportFailure('Could not get model permissions: ' + error);
-            });
+
+                })
+                .catch((error) => { reject(error); });
+        })
     }
     /**
      * Update an existing test to set the list of users, and the test times.  We need to remember who was
@@ -844,66 +908,100 @@ export class CipherTestSchedule extends CipherTestManage {
         userlist: string[],
         starttime: number,
         endtime: number,
-        endtimed: number
-    ): void {
+        endtimed: number,
+        teamname: string,
+        teamtype: string
+    ): Promise<void> {
         const usermap: BoolMap = {};
         for (const user of userlist) {
             usermap[user] = true;
         }
-        modelService
-            .open(modelid)
-            .then((datamodel: RealTimeModel) => {
-                datamodel.elementAt('starttime').value(starttime);
-                datamodel.elementAt('endtime').value(endtime);
-                datamodel.elementAt('endtimed').value(endtimed);
-                const answers = datamodel.elementAt('answers').value();
-                const questions = answers.length + 1;
-                const removed: string[] = [];
-                const added: string[] = [];
-                const assigned: ITestUser[] = datamodel.elementAt('assigned').value();
+        return new Promise((resolve, reject) => {
+            modelService
+                .open(modelid)
+                .then((datamodel: RealTimeModel) => {
+                    datamodel.elementAt('starttime').value(starttime);
+                    datamodel.elementAt('endtime').value(endtime);
+                    datamodel.elementAt('endtimed').value(endtimed);
+                    datamodel.elementAt('teamname').value(teamname);
+                    datamodel.elementAt('teamtype').value(teamtype);
+                    const answers = datamodel.elementAt('answers').value();
+                    const questions = answers.length + 1;
+                    const removed: string[] = [];
+                    const added: string[] = [];
+                    const assigned: ITestUser[] = datamodel.elementAt('assigned').value();
 
-                for (const i in assigned) {
-                    const assignee = assigned[i];
-                    let userid = '';
-                    if (Number(i) < userlist.length) {
-                        userid = userlist[i];
-                    }
-                    if (assignee.userid !== userid) {
-                        // We have a change...Make sure we aren't just changing users around
-                        if (!usermap[assignee.userid]) {
-                            removed.push(assignee.userid);
+                    for (const i in assigned) {
+                        const assignee = assigned[i];
+                        let userid = '';
+                        if (Number(i) < userlist.length) {
+                            userid = userlist[i];
                         }
-                        assignee.userid = userid;
+                        if (assignee.userid !== userid) {
+                            // We have a change...Make sure we aren't just changing users around
+                            if (!usermap[assignee.userid]) {
+                                removed.push(assignee.userid);
+                            }
+                            assignee.userid = userid;
+                        }
+                        if (userid !== '') {
+                            added.push(userid);
+                        }
                     }
-                    if (userid !== '') {
-                        added.push(userid);
+                    // Add any users not already on the list
+                    for (let i = assigned.length; i < userlist.length; i++) {
+                        assigned.push({
+                            userid: userlist[i],
+                            displayname: userlist[i],
+                            starttime: 0,
+                            idletime: 0,
+                            confidence: makeFilledArray(questions, 0) as number[],
+                            notes: '',
+                            sessionid: '',
+                        });
+                        if (userlist[i] !== '') {
+                            added.push(userlist[i]);
+                        }
                     }
-                }
-                // Add any users not already on the list
-                for (let i = assigned.length; i < userlist.length; i++) {
-                    assigned.push({
-                        userid: userlist[i],
-                        displayname: userlist[i],
-                        starttime: 0,
-                        idletime: 0,
-                        confidence: makeFilledArray(questions, 0) as number[],
-                        notes: '',
-                        sessionid: '',
-                    });
-                    if (userlist[i] !== '') {
-                        added.push(userlist[i]);
-                    }
-                }
-                // And save out the data model
-                datamodel.elementAt('assigned').value(assigned);
-                datamodel.close();
-                // Reset the permissions on the model.  Remove anyone who was taken off and add anyone
-                this.saveUserPermissions(modelService, modelid, removed, added);
-            })
-            .catch((error) => {
-                this.reportFailure('Could not open model to save: ' + error);
-            });
+                    // And save out the data model
+                    datamodel.elementAt('assigned').value(assigned);
+                    datamodel.close();
+                    // Reset the permissions on the model.  Remove anyone who was taken off and add anyone
+                    this.saveUserPermissions(modelService, modelid, removed, added);
+                    resolve();
+                })
+                .catch((error) => { reject(error) });
+        })
     }
+    /**
+     * showDelete updates the UI while deleting a mode.
+     * @param modelService model service to use for operations
+     * @param modelid Model to be deleted
+     * @param id Id of row for the model
+     * @returns Promise of completed operation
+     */
+    public showDelete(modelService: ModelService, modelid: string, id: string): Promise<void> {
+        const tr = $('tr#R' + id)
+        const elem = $('tr#R' + id + " .pubdel")
+        console.log('showDelete id=' + id + ' tr len=' + tr.length + ' pubdel len=' + elem.length)
+        console.log(tr)
+        console.log(elem)
+        elem.removeClass("alert")
+            .addClass("warning")
+            .text("Deleting...")
+        return new Promise((resolve, reject) => {
+            modelService.remove(modelid).then(() => {
+                tr.remove();
+                resolve();
+            }).catch((error) => {
+                elem.removeClass("warning")
+                    .addClass("alert")
+                    .text("Delete")
+                reject(error);
+            });
+        })
+    }
+
     /**
      * Request to delete a single scheduled test after confirming from the user that they really want to do it.
      * @param id Which row to delete from
@@ -915,17 +1013,23 @@ export class CipherTestSchedule extends CipherTestManage {
             .on('click', () => {
                 this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                     const modelService = domain.models();
-                    this.doDeletePublished(modelService, modelid);
-                    $('tr#R' + id).remove();
-                    if ($('tr[id^="R"]').length === 0) {
-                        this.updateOutput();
-                    }
+                    // Change the button to show that it is being deleted 
+                    this.showDelete(modelService, modelid, id)
+                        .then(() => {
+                            if ($('tr[id^="R"]').length === 0) {
+                                this.updateOutput();
+                            }
+                        })
+                        .catch((error) => {
+                            this.reportFailure('Could not remove ' + modelid + ' ' + error);
+                        });
                 });
                 $('#delscheddlg').foundation('close');
             });
         $('#okdelsched').removeAttr('disabled');
         $('#delscheddlg').foundation('open');
     }
+
     /**
      * Create the hidden dialog for confirming deletion of all scheduled tests
      * @returns HTML DOM element for dialog
@@ -1095,6 +1199,16 @@ export class CipherTestSchedule extends CipherTestManage {
             .on('click', () => {
                 this.importSchedule();
             });
+        $('input[id^="N_"]')
+            .off('change')
+            .on('change', (e) => {
+                this.setChanged(this.getRowID($(e.target)));
+            });
+        $('input[id^="C_"]')
+            .off('change')
+            .on('change', (e) => {
+                this.setChanged(this.getRowID($(e.target)));
+            });
         $('input[id^="D_"]')
             .off('input')
             .on('input', (e) => {
@@ -1121,7 +1235,7 @@ export class CipherTestSchedule extends CipherTestManage {
         $('.pubsave')
             .off('click')
             .on('click', (e) => {
-                this.saveScheduled(this.getRowID($(e.target)), this.getModelID($(e.target)));
+                this.saveScheduled(this.getRowID($(e.target)));
             });
         $('.pubdel')
             .off('click')

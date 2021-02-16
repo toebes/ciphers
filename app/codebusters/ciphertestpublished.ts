@@ -92,6 +92,9 @@ export class CipherTestPublished extends CipherTestManage {
 
                     this.addPublishedEntry(modelService, metadata);
                 })
+                // Kick off a request to figure out how many tests are scheduled
+                this.calculateScheduledTests(modelService);
+
                 this.attachHandlers();
             })
             .catch((error) => {
@@ -150,7 +153,7 @@ export class CipherTestPublished extends CipherTestManage {
             .append($('<td/>').text(String(metadata.questions)))
             .append(
                 $('<td/>').append(
-                    $('<div/>', { class: 'sched', 'data-source': metadata.testid }).text(
+                    $('<div/>', { class: 'sched', 'data-sched': 1, 'data-source': metadata.testid }).text(
                         'Calculating...'
                     )
                 )
@@ -162,31 +165,35 @@ export class CipherTestPublished extends CipherTestManage {
         } else {
             $('.publist').append(tr);
         }
-        // Kick off a request to figure out
-        // TODO: This should be a dynamic task with a timer
-        this.calculateScheduledTests(modelService, metadata.testid);
     }
     /**
      * Determine how many tests are scheduled for a given test template and update the div holding that number.
      * @param modelService Domain Model service object for making requests
      * @param testmodelid ID of the test model to count scheduled tests for
      */
-    public calculateScheduledTests(modelService: Convergence.ModelService, testmodelid: string): void {
-        modelService
-            .query("SELECT testid FROM codebusters_answers where testid='" + testmodelid + "'")
-            // .query("SELECT count(testid) as scheduled FROM codebusters_answers where testid='" + testmodelid + "'")
-            .then((results) => {
-                let total = results.data.length;
-                let fieldtext = String(total);
-                if (total === 0) {
-                    fieldtext = 'None Scheduled';
-                }
-                // Now we just need to replace the value
-                $('div.sched[data-source="' + testmodelid + '"]').text(fieldtext);
-            })
-            .catch((error) => {
-                this.reportFailure('Convergence API query problem: ' + error);
-            });
+    public calculateScheduledTests(modelService: Convergence.ModelService): void {
+        let scheduled = $('div[data-sched]')
+        if (scheduled.length > 0) {
+            let entry = scheduled[0]
+            let modelId = entry.getAttribute('data-source')
+            entry.removeAttribute('data-sched')
+            modelService
+                .query("SELECT testid FROM codebusters_answers where testid='" + modelId + "'")
+                .then((results) => {
+                    let total = results.data.length;
+                    let fieldtext = String(total);
+                    if (total === 0) {
+                        fieldtext = 'None Scheduled';
+                    }
+                    // Now we just need to replace the value
+                    $(entry).text(fieldtext);
+                    setTimeout(() => { this.calculateScheduledTests(modelService) }, 1);
+                })
+                .catch((error) => {
+                    this.reportFailure('Convergence API query problem: ' + error);
+                    setTimeout(() => { this.calculateScheduledTests(modelService) }, 1);
+                });
+        }
     }
     /**
      * Download the source from a published test and edit it locally.

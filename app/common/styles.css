@@ -37,6 +37,11 @@ li.purge {
     border-radius: 0.625rem;
 }
 
+.bademail {
+    background-color: pink !important;
+    border:2px dashed red !important;
+}
+
 .hidden,
 .qplain {
     display: none;

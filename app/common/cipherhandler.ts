@@ -3164,7 +3164,8 @@ export class CipherHandler {
             .append(JTFLabeledInput('Realtime Name Space:', 'text', 'convergenceNamespace', '', ''))
             .append(JTFLabeledInput('Realtime Domain:', 'text', 'convergenceDomain', '', ''))
             .append(JTFLabeledInput('Realtime KeyID:', 'text', 'convergenceKeyId', '', ''))
-            .append(JTFLabeledInput('Debug:', 'text', 'convergenceDebug', '', ''));
+            .append(JTFLabeledInput('Debug:', 'text', 'convergenceDebug', '', ''))
+            .append(JTFLabeledInput('Admin:', 'text', 'convergenceIsAdmin', '', ''));
 
         const realtimeConfigDlg = JTFDialog(
             'Realtimedlg',
@@ -3353,6 +3354,7 @@ export class CipherHandler {
         $('#convergenceDomain').val(this.getConfigString('convergenceDomain', 'scienceolympiad'));
         $('#convergenceKeyId').val(this.getConfigString('convergenceKeyId', 'TestingKeyId'));
         $('#convergenceDebug').val(this.getConfigString('convergenceDebug', ''));
+        $('#convergenceIsAdmin').val(this.getConfigString('convergenceIsAdmin', ''));
 
         $('#okrealtime')
             .removeAttr('disabled')
@@ -3383,6 +3385,7 @@ export class CipherHandler {
                 this.setConfigString('convergenceDomain', $('#convergenceDomain').val() as string);
                 this.setConfigString('convergenceKeyId', $('#convergenceKeyId').val() as string);
                 this.setConfigString('convergenceDebug', $('#convergenceDebug').val() as string);
+                this.setConfigString('convergenceIsAdmin', $('#convergenceIsAdmin').val() as string);
                 $('#Realtimedlg').foundation('close');
             });
         $('#Realtimedlg').foundation('open');

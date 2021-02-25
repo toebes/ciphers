@@ -150,10 +150,8 @@ export class CipherLogin extends CipherHandler {
                 console.log('getConvergenceToken error: ' + reason);
                 const convergenceUsername = this.getConfigString('convergenceAdminUsername', '');
                 const convergencePassword = this.getConfigString('convergenceAdminPassword', '');
-                const convergenceProxyUsername = this.getConfigString(
-                    'convergenceProxyUsername',
-                    ''
-                );
+                const convergenceProxyUsername = this.getConfigString('convergenceProxyUsername', '');
+                const convergenceProxyIsAdmin = this.getConfigString('convergenceisAdmin', '')
 
                 if (
                     convergenceProxyUsername.length > 0 &&
@@ -164,7 +162,7 @@ export class CipherLogin extends CipherHandler {
                         convergencePassword: convergencePassword,
                         convergenceUsername: convergenceUsername,
                         userid: convergenceProxyUsername,
-                        isAdmin: true,
+                        isAdmin: convergenceProxyIsAdmin === "Y",
                     };
 
                     this.api

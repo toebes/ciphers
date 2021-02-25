@@ -10,7 +10,7 @@ import {
     makeFilledArray,
     timestampToFriendly,
     makeCallout,
-    StringMap,
+    timestampFromWeeks,
 } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRow, JTTable } from '../common/jttable';
@@ -426,8 +426,11 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param id Which button was clicked on
      */
     public setChanged(id: string): void {
-        $('#SV' + id).removeAttr('disabled');
-        $('#savesched').removeAttr('disabled');
+        const siblings = $('#SV' + id).closest("tr").find(".bademail")
+        if (siblings.length === 0) {
+            $('#SV' + id).removeAttr('disabled');
+            $('#savesched').removeAttr('disabled');
+        }
     }
     /**
      * setDirty marks a row as dirty so that it will be processed to save
@@ -475,15 +478,29 @@ export class CipherTestSchedule extends CipherTestManage {
         if (name3 !== '') {
             userlist.push(name3);
         }
+        const now = Date.now();
         const teamname = $('#N_' + eid).val() as string;
         const teamtype = $('#C_' + eid).val() as string;
         const testStart = $('#S_' + eid).val() as string;
-        const testDuration = $('#D_' + eid).val() as number;
-        const timedDuration = $('#T_' + eid).val() as number;
-        const starttime = Date.parse(testStart);
+        let testDuration = $('#D_' + eid).val() as number;
+        let timedDuration = $('#T_' + eid).val() as number;
+        let starttime = Date.parse(testStart);
+        // If they try to schedule it more than three weeks in the figure, just back it up to half an hour from now
+        if (starttime > (now + timestampFromWeeks(3))) {
+            starttime = now + timestampFromMinutes(30)
+        }
+        // If they give us a test duration that is too big or small, limit them to
+        // four days.
+        if (testDuration < 0 || testDuration > 60 * 24 * 4) {
+            testDuration = 60 * 24 * 4;
+        }
         let endtime = starttime + timestampFromMinutes(testDuration);
         if (testDuration === 0) {
             endtime = timestampForever;
+        }
+        // Likewise make sure that the timed interval is no more than a couple of hours.
+        if (timedDuration > 60 * 2 || timedDuration < 0) {
+            timedDuration = 10;
         }
         const endtimed = starttime + timestampFromMinutes(timedDuration);
 
@@ -1164,6 +1181,10 @@ export class CipherTestSchedule extends CipherTestManage {
         const id = tr.attr('data-source') as string;
         return id;
     }
+    public isValidEmailAddress(emailAddress: string): boolean {
+        var pattern = /^([a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+(\.[a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+)*|"((([ \t]*\r\n)?[ \t]+)?([\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*(([ \t]*\r\n)?[ \t]+)?")@(([a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.)+([a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.?$/i;
+        return pattern.test(emailAddress);
+    }
     /**
      * Attach all the UI handlers for created DOM elements
      */
@@ -1230,7 +1251,18 @@ export class CipherTestSchedule extends CipherTestManage {
         $('input[id^="U"]')
             .off('input')
             .on('input', (e) => {
-                this.setChanged(this.getRowID($(e.target)));
+                // Check to see if the email address is valid
+                const elem = $(e.target);
+                const email = elem.val() as string;
+                const id = this.getRowID(elem)
+
+                if (email === "" || this.isValidEmailAddress(email)) {
+                    elem.removeClass("bademail").removeAttr('title')
+                    this.setChanged(this.getRowID(elem));
+                } else {
+                    elem.addClass("bademail")
+                    $('#SV' + id).attr('disabled', 'disabled').attr('title', 'Invalid email address')
+                }
             });
         $('.pubsave')
             .off('click')

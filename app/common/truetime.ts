@@ -158,6 +158,7 @@ export class TrueTime {
      * syncTime checks to see how far off we are from the server time
      */
     public syncTime(): void {
+        $.ajaxSetup({cache:false});
         $.getJSON('https://toebes.com/codebusters/time.php')
             .done((data) => {
                 // We received a response with the current time.  Note that it may have taken
@@ -167,6 +168,7 @@ export class TrueTime {
                 const curtime = Date.now();
                 // Figure out how far off the time the server tolds us it is from the current time (all is in UTC)
                 const delta = data.microtime - curtime;
+                console.log('curtime = ' + curtime + ' data.microtime = ' + data.microtime+ ' delta = ' +delta);
                 if (!this.validOffset) {
                     // We've never set the offset, so update it now
                     this.updateOffset(delta);

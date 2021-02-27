@@ -3776,12 +3776,8 @@ export class CipherHandler {
      * @param points - number of points assigned to this question.
      */
     public calculateScore(solution: string[], answer: string[], points: number): IScoreInformation {
-        console.log(
-            'Length of solution: ' +
-            solution.length.toString() +
-            '\nLength of answer:  ' +
-            answer.length.toString()
-        );
+        //console.log('Length of solution: ' + solution.length.toString() +
+        //    '\nLength of answer:  ' + answer.length.toString());
 
         const scoreInformation: IScoreInformation = {
             correctLetters: 0,

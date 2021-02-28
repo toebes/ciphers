@@ -1549,6 +1549,9 @@ table.tiebreak {
     text-align: center;
     margin: 1rem auto;
 }
+tr.scoring {
+    background-color: yellow;
+}
 table.instlfreq td.l {
     text-align: right;
     width: 5rem;

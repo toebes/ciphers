@@ -3,7 +3,7 @@ import { IState, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
-import { IRealtimeMetaData, ITestState } from './ciphertest';
+import { IRealtimeMetaData, ITestState, SourceModel } from './ciphertest';
 import { CipherTestManage } from './ciphertestmanage';
 import { ConvergenceDomain, ModelService, RealTimeModel } from '@convergence/convergence';
 import { JTFDialog } from '../common/jtfdialog';
@@ -200,25 +200,9 @@ export class CipherTestPublished extends CipherTestManage {
      * @param sourcemodelid published ID of test
      */
     public downloadPublishedTest(sourcemodelid: string): void {
-        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-            this.doDownloadPublishedTest(domain.models(), sourcemodelid);
-        });
-    }
-    /**
-     *
-     * @param domain Convergence domain to load file from
-     * @param sourcemodelid File to be opened
-     */
-    private doDownloadPublishedTest(
-        modelService: Convergence.ModelService,
-        sourcemodelid: string
-    ): void {
-        modelService
-            .open(sourcemodelid)
-            .then((datamodel: RealTimeModel) => {
-                const data = datamodel.root().value();
-                datamodel.close();
-                this.processTestXML(data.source);
+        this.getRealtimeSource(sourcemodelid)
+            .then((sourceModel: SourceModel) => {
+                this.processTestXML(sourceModel.source);
             })
             .catch((error) => {
                 this.reportFailure(

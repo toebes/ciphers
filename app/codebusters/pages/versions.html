@@ -28,9 +28,33 @@
                                 Test Generation Tools Version History</span>
                         </h2>
                     </div>
+                    <div class="cell callout warning small">
+                        <h4>Important!</h4>
+                        <p>When solving a Morbit, Pollux or Baconian cipher, you must put the answer under the
+                            corresponding solution character. This means that on a Baconian answer, four out of five
+                            answer boxes in a row should be blank and Morbit/Pollux answers should only have one letter
+                            under the characters that make up the morse code. For example with the letter
+
+                            ●–×–●●●×–●–●×–●●×●
+                            A B C D E</p>
+                    </div>
                     <div class="cell">
                         <h4>Summary of what's new:</h4>
                         <ul>
+                            <li>Version 4.0.4</li>
+                            <ul>
+                                <li>
+                                    Catch expired tokens which were generating odd error messages about missing id.
+                                </li>
+                            </ul>
+                            <li>Version 4.0.3</li>
+                            <ul>
+                                <li>
+                                    Eliminated caching the time calls so that local browsers on Linux wouldn't end up
+                                    with an incorrect time.
+                                    Major rewrite of the scoring software to be more efficient with the server.
+                                </li>
+                            </ul>
                             <li>Version 4.0.2</li>
                             <ul>
                                 <li>

@@ -133,7 +133,7 @@ export class CipherTakeTest extends CipherTest {
             /*  TODO RTL: show results to test taker...
             let testScore:CipherTestScorer = new CipherTestScorer();
 
-            this.getRealtimeSource(answerModelID).then((sourcemodel: sourceModel) =>
+            this.getRealtimeSource(answerModelID).then((sourcemodel: SourceModel) =>
             {
                 getTestScores(testScore, result, sourcemodel);
             }).catch((error) => {

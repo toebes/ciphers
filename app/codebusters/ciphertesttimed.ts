@@ -1,4 +1,4 @@
-import { CipherTest, ITestState, IAnswerTemplate } from './ciphertest';
+import { CipherTest, ITestState, IAnswerTemplate, IAnswerAudit } from './ciphertest';
 import { toolMode, ITestTimeInfo, menuMode, IState, IInteractiveTest } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import {
@@ -9,6 +9,8 @@ import {
     formatTime,
     timestampFromSeconds,
     StringMap,
+    repeatStr,
+    setCharAt,
 } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { TrueTime } from '../common/truetime';
@@ -40,6 +42,7 @@ export class CipherTestTimed extends CipherTest {
         cipherType: ICipherType.Test,
         test: 0,
     };
+    public save_testid: string = "not-set"
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
     public pageNumber = 0;
@@ -462,6 +465,7 @@ export class CipherTestTimed extends CipherTest {
                     }
 
                     const testid = staticAnswerModel.testid;
+                    this.save_testid = testid
                     // Figure out if it is time to run the test
                     const now = this.testTimeInfo.truetime.UTCNow();
                     // We have several situations
@@ -809,6 +813,54 @@ export class CipherTestTimed extends CipherTest {
         }, 100);
     }
     /**
+     * saveBackupCopy makes a copy of all the data in the web browser and stores it on the server
+     */
+    private saveBackupCopy(): void {
+        // Build the list of all the answers we will fill in
+        let finalanswers: StringMap = {}
+        // Find all of the input fields
+        $(".awc").each((_i, elem) => {
+            // Get the input field
+            let inputField = $(elem)
+            // Get the id (which tells us the question and the position of the answer)
+            // and the value stored in the field
+            const id = inputField.attr('id') as string
+            let val = inputField.val() as string
+            // If the field is blank, then we want to at least have a space character
+            if (val === undefined || val === '') {
+                val = ' '
+            }
+            // Parse out the input id (which is in the form Iq_n where q is the question number and n is the index of the answer)
+            const parts = id.split('_')
+            const index = Number(parts[1])
+            const question = Number(parts[0].substring(1))
+            // We know the question, if it is the first time we see it, then blank it out
+            let answer_str = finalanswers[question]
+            if (answer_str === undefined) {
+                answer_str = ''
+            }
+            // Put the character at the right offset.
+            if (index >= answer_str.length) {
+                // This character is further than anything we saw, so padd out the string and put the character
+                finalanswers[question] = answer_str + repeatStr(' ', index - answer_str.length) + val;
+            } else {
+                // It is in the middle of the string so replace it
+                finalanswers[question] = setCharAt(answer_str, index, val)
+            }
+        });
+        // We have gathered all the answers, so construct the save model
+        const userid = this.getConfigString('userid', '')
+        const result: IAnswerAudit = {
+            user: userid,
+            time: Date.now(),
+            testid: this.save_testid,
+            answermodelid: this.state.testID,
+            answers: finalanswers
+        }
+        console.log(JSON.stringify(result));
+        this.saveRealtimeAnswerAudit(result, "").then().catch();
+    }
+    /**
      * Stage 8: Cleanup.
      * @param answermodel Interactive answer model
      */
@@ -822,6 +874,8 @@ export class CipherTestTimed extends CipherTest {
         const session = answermodel.session().domain();
         this.testTimeInfo.truetime.stopTiming();
         answermodel.close().then(() => session.dispose());
+        // Make a temporary copy of all the 
+        this.saveBackupCopy();
         this.setTestStatusMessage(message, this.testTimeInfo.endTime);
         $('#topsplit').hide();
         $('.gutter-row-1').hide();

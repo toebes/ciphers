@@ -92,9 +92,14 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @returns Template of question fields to be filled in at runtime.
      */
     public getInteractiveTemplate(): ITestQuestionFields {
+        let encoded = this.state.cipherString
+        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
+            encoded = this.chunk(encoded, this.state.blocksize);
+        }
+
         const result: ITestQuestionFields = {
-            answer: makeFilledArray(this.state.cipherString.length, ''),
-            replacements: makeFilledArray(this.state.cipherString.length, ''),
+            answer: makeFilledArray(encoded.length, ''),
+            replacements: makeFilledArray(encoded.length, ''),
             notes: '',
         };
         return result;

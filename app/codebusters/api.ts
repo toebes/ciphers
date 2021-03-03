@@ -123,6 +123,8 @@ export class API {
                             .catch((reason) => {
                                 reject(reason);
                             });
+                    } else if (response.status === 401) {
+                        reject('Login token has expired or is invalid.  Please signout and log in again');
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -172,6 +174,8 @@ export class API {
                             .catch((reason) => {
                                 reject(reason);
                             });
+                    } else if (response.status === 401) {
+                        reject('Login token has expired or is invalid.  Please signout and log in again');
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -226,6 +230,8 @@ export class API {
                             .catch((reason) => {
                                 reject(reason);
                             });
+                    } else if (response.status === 401) {
+                        reject('Login token has expired or is invalid.  Please signout and log in again');
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -287,6 +293,8 @@ export class API {
                             .catch((reason) => {
                                 reject(reason);
                             });
+                    } else if (response.status === 401) {
+                        reject('Login token has expired or is invalid.  Please signout and log in again');
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -329,6 +337,8 @@ export class API {
                             .catch((reason) => {
                                 reject(reason);
                             });
+                    } else if (response.status === 401) {
+                        reject('Login token has expired or is invalid.  Please signout and log in again');
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -376,6 +386,8 @@ export class API {
                             .catch((reason) => {
                                 reject(reason);
                             });
+                    } else if (response.status === 401) {
+                        reject('Login token has expired or is invalid.  Please signout and log in again');
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -415,6 +427,8 @@ export class API {
                             .catch((reason) => {
                                 reject(reason);
                             });
+                    } else if (response.status === 401) {
+                        reject('Login token has expired or is invalid.  Please signout and log in again');
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -458,6 +472,8 @@ export class API {
                             .catch((reason) => {
                                 reject(reason);
                             });
+                    } else if (response.status === 401) {
+                        reject('Login token has expired or is invalid.  Please signout and log in again');
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -495,6 +511,7 @@ export class API {
                 },
             })
                 .then((response) => {
+                    console.log(response.headers.get('WWW-Authenticate'));
                     if (response.ok && response.body !== null) {
                         response
                             .json()
@@ -504,6 +521,8 @@ export class API {
                             .catch((reason) => {
                                 reject(reason);
                             });
+                    } else if (response.status === 401) {
+                        reject('Login token has expired or is invalid.  Please signout and log in again');
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -516,6 +535,7 @@ export class API {
                                 reject(reason);
                             });
                     } else {
+                        console.log(response.headers);
                         resolve('Response was not okay and no body was found for response');
                     }
                 })
@@ -555,6 +575,8 @@ export class API {
                             .catch((reason) => {
                                 reject(reason);
                             });
+                    } else if (response.status === 401) {
+                        reject('Login token has expired or is invalid.  Please signout and log in again');
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()

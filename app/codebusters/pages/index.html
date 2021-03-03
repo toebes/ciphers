@@ -37,9 +37,326 @@
                             - Manage/Delete unused questions
                         </div>
                     </div>
+                    <div class="cell callout alert" data-closable="">
+                        <h2>Notice</h2>
+                        <p><em>In preparation for the NC Regional on Saturday March 6th, ALL tests except the official
+                                tests will be hidden in the system Friday March 5th and restored after the event.</em>
+                        </p>
+                    </div>
+                    <div class="cell callout warning small">
+                        <h4>Important!</h4>
+                        <p>When solving a Morbit, Pollux or Baconian cipher, you must put the answer under the
+                            corresponding solution character. This means that on a Baconian answer, four out of five
+                            answer boxes in a row should be blank and Morbit/Pollux answers should only have one letter
+                            under the characters that make up the morse code. For example if the morse code text was
+                            ●–×–●●●×–●–●×–●●×● (which corresponds to ABCDE) you should write the answer as below:</p>
+                        <table class="ansblock cipherint baconian SOLVER">
+                            <tbody>
+                                <tr>
+                                    <td class="q v S0">2 </td>
+                                    <td class="q v S1"> </td>
+                                    <td class="q v S2">8 </td>
+                                    <td class="q v S3"> </td>
+                                    <td class="q v S4">1 </td>
+                                    <td class="q v S5"> </td>
+                                    <td class="q v S6">3 </td>
+                                    <td class="q v S7"> </td>
+                                    <td class="q v S8">4 </td>
+                                    <td class="q v S9"> </td>
+                                    <td class="q v S10">4 </td>
+                                    <td class="q v S11"> </td>
+                                    <td class="q v S12">8 </td>
+                                    <td class="q v S13"> </td>
+                                    <td class="q v S14">1 </td>
+                                    <td class="q v S15"> </td>
+                                    <td class="q v S16">7 </td>
+                                    <td class="q v S17"> </td>
+                                </tr>
+                                <tr>
+                                    <td class="S0"><input id="R0_0" class="awr" type="text" ismorse="1" value="●"
+                                            disabled="disabled"></td>
+                                    <td class="S1"><input id="R0_1" class="awr" type="text" ismorse="1" value="–"
+                                            disabled="disabled"></td>
+                                    <td class="S2"><input id="R0_2" class="awr" type="text" ismorse="1" value="×"
+                                            disabled="disabled"></td>
+                                    <td class="S3"><input id="R0_3" class="awr" type="text" ismorse="1" value="–"
+                                            disabled="disabled"></td>
+                                    <td class="S4"><input id="R0_4" class="awr" type="text" ismorse="1" value="●"
+                                            disabled="disabled"></td>
+                                    <td class="S5"><input id="R0_5" class="awr" type="text" ismorse="1" value="●"
+                                            disabled="disabled"></td>
+                                    <td class="S6"><input id="R0_6" class="awr" type="text" ismorse="1" value="●"
+                                            disabled="disabled"></td>
+                                    <td class="S7"><input id="R0_7" class="awr" type="text" ismorse="1" value="×"
+                                            disabled="disabled"></td>
+                                    <td class="S8"><input id="R0_8" class="awr" type="text" ismorse="1" value="–"
+                                            disabled="disabled"></td>
+                                    <td class="S9"><input id="R0_9" class="awr" type="text" ismorse="1" value="●"
+                                            disabled="disabled"></td>
+                                    <td class="S10"><input id="R0_10" class="awr" type="text" ismorse="1" value="–"
+                                            disabled="disabled"></td>
+                                    <td class="S11"><input id="R0_11" class="awr" type="text" ismorse="1" value="●"
+                                            disabled="disabled"></td>
+                                    <td class="S12"><input id="R0_12" class="awr" type="text" ismorse="1" value="×"
+                                            disabled="disabled"></td>
+                                    <td class="S13"><input id="R0_13" class="awr" type="text" ismorse="1" value="–"
+                                            disabled="disabled"></td>
+                                    <td class="S14"><input id="R0_14" class="awr" type="text" ismorse="1" value="●"
+                                            disabled="disabled"></td>
+                                    <td class="S15"><input id="R0_15" class="awr" type="text" ismorse="1" value="●"
+                                            disabled="disabled"></td>
+                                    <td class="S16"><input id="R0_16" class="awr" type="text" ismorse="1" value="×"
+                                            disabled="disabled"></td>
+                                    <td class="S17"><input id="R0_17" class="awr" type="text" ismorse="1" value="●"
+                                            disabled="disabled"></td>
+                                </tr>
+                                <tr>
+                                    <td class="e v S0"><input id="I0_0" class="awc" type="text" value="A"
+                                            disabled="disabled"></td>
+                                    <td class="e v S1"><input id="I0_1" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S2"><input id="I0_2" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S3"><input id="I0_3" class="awc" type="text" value="B"
+                                            disabled="disabled"></td>
+                                    <td class="e v S4"><input id="I0_4" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S5"><input id="I0_5" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S6"><input id="I0_6" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S7"><input id="I0_7" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S8"><input id="I0_8" class="awc" type="text" value="C"
+                                            disabled="disabled"></td>
+                                    <td class="e v S9"><input id="I0_9" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S10"><input id="I0_10" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S11"><input id="I0_11" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S12"><input id="I0_12" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S13"><input id="I0_13" class="awc" type="text" value="D"
+                                            disabled="disabled"></td>
+                                    <td class="e v S14"><input id="I0_14" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S15"><input id="I0_15" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S16"><input id="I0_16" class="awc" type="text" value=""
+                                            disabled="disabled"></td>
+                                    <td class="e v S17"><input id="I0_17" class="awc" type="text" value="E"
+                                            disabled="disabled"></td>
+                                </tr>
+                                <tr>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                    <td class="s"> </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p>
+                            Likewise for a Baconian you can only fill in one of the five positions for the Baconian
+                            letter.
+                            It can be in any of the positions, but you should only fill in a single one of them.</p>
+                        <div style="display:inline">
+                            <table class="ansblock cipherint baconian SOLVER">
+                                <tbody>
+                                    <tr>
+                                        <td class="q v S0">- </td>
+                                        <td class="q v S1"> + </td>
+                                        <td class="q v S2">+ </td>
+                                        <td class="q v S3">+ </td>
+                                        <td class="q v S4 es">- </td>
+                                        <td class="q v S5">+ </td>
+                                        <td class="q v S6">- </td>
+                                        <td class="q v S7">- </td>
+                                        <td class="q v S8">+ </td>
+                                        <td class="q v S9 es">- </td>
+                                        <td class="q v S10">+ </td>
+                                        <td class="q v S11">- </td>
+                                        <td class="q v S12">+ </td>
+                                        <td class="q v S13">- </td>
+                                        <td class="q v S14 es">+ </td>
+                                        <td class="q v S15">- </td>
+                                        <td class="q v S16">+ </td>
+                                        <td class="q v S17">+ </td>
+                                        <td class="q v S18">- </td>
+                                        <td class="q v S19 es">- </td>
+                                        <td class="q v S20">+ </td>
+                                        <td class="q v S21">+ </td>
+                                        <td class="q v S22">- </td>
+                                        <td class="q v S23">+ </td>
+                                        <td class="q v S24">+ </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="S0"><input id="R0_0" class="awr" type="text" value="B"
+                                                disabled="disabled"></td>
+                                        <td class="S1"><input id="R0_1" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S2"><input id="R0_2" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S3"><input id="R0_3" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S4 es"><input id="R0_4" class="awr" type="text" value="B"
+                                                disabled="disabled"></td>
+                                        <td class="S5"><input id="R0_5" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S6"><input id="R0_6" class="awr" type="text" value="B"
+                                                disabled="disabled"></td>
+                                        <td class="S7"><input id="R0_7" class="awr" type="text" value="B"
+                                                disabled="disabled"></td>
+                                        <td class="S8"><input id="R0_8" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S9 es"><input id="R0_9" class="awr" type="text" value="B"
+                                                disabled="disabled"></td>
+                                        <td class="S10"><input id="R0_10" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S11"><input id="R0_11" class="awr" type="text" value="B"
+                                                disabled="disabled"></td>
+                                        <td class="S12"><input id="R0_12" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S13"><input id="R0_13" class="awr" type="text" value="B"
+                                                disabled="disabled"></td>
+                                        <td class="S14 es"><input id="R0_14" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S15"><input id="R0_15" class="awr" type="text" value="B"
+                                                disabled="disabled"></td>
+                                        <td class="S16"><input id="R0_16" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S17"><input id="R0_17" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S18"><input id="R0_18" class="awr" type="text" value="B"
+                                                disabled="disabled"></td>
+                                        <td class="S19 es"><input id="R0_19" class="awr" type="text" value="B"
+                                                disabled="disabled"></td>
+                                        <td class="S20"><input id="R0_20" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S21"><input id="R0_21" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S22"><input id="R0_22" class="awr" type="text" value="B"
+                                                disabled="disabled"></td>
+                                        <td class="S23"><input id="R0_23" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                        <td class="S24"><input id="R0_24" class="awr" type="text" value="A"
+                                                disabled="disabled"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="e v S0"><input id="I0_0" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S1"><input id="I0_1" class="awc" type="text" value="S"
+                                                disabled="disabled"></td>
+                                        <td class="e v S2"><input id="I0_2" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S3"><input id="I0_3" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S4 es"><input id="I0_4" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S5"><input id="I0_5" class="awc" type="text" value="O"
+                                                disabled="disabled"></td>
+                                        <td class="e v S6"><input id="I0_6" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S7"><input id="I0_7" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S8"><input id="I0_8" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S9 es"><input id="I0_9" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S10"><input id="I0_10" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S11"><input id="I0_11" class="awc" type="text" value="L"
+                                                disabled="disabled"></td>
+                                        <td class="e v S12"><input id="I0_12" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S13"><input id="I0_13" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S14 es"><input id="I0_14" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S15"><input id="I0_15" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S16"><input id="I0_16" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S17"><input id="I0_17" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S18"><input id="I0_18" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S19 es"><input id="I0_19" class="awc" type="text" value="V"
+                                                disabled="disabled"></td>
+                                        <td class="e v S20"><input id="I0_20" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S21"><input id="I0_21" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S22"><input id="I0_22" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                        <td class="e v S23"><input id="I0_23" class="awc" type="text" value="E"
+                                                disabled="disabled"></td>
+                                        <td class="e v S24"><input id="I0_24" class="awc" type="text" value=""
+                                                disabled="disabled"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                        <td class="s"> </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
                     <div class="cell">
                         <h4>Summary of what's new:</h4>
                         <ul>
+                            <li>Version 4.0.4</li>
+                            <ul>
+                                <li>
+                                    Catch expired tokens which were generating odd error messages about missing id.
+                                </li>
+                            </ul>
+                            <li>Version 4.0.3</li>
+                            <ul>
+                                <li>
+                                    Eliminated caching the time calls so that local browsers on Linux wouldn't end up
+                                    with an incorrect time.
+                                    Major rewrite of the scoring software to be more efficient with the server.
+                                </li>
+                            </ul>
                             <li>Version 4.0.2</li>
                             <ul>
                                 <li>

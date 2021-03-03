@@ -1,6 +1,6 @@
 import { CipherTestManage } from './ciphertestmanage';
 import { IState, toolMode } from '../common/cipherhandler';
-import { IAnswerTemplate, ITestState, sourceModel } from './ciphertest';
+import { IAnswerTemplate, ITestState, SourceModel } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
 import {
     cloneObject,
@@ -213,7 +213,7 @@ export class CipherTestResults extends CipherTestManage {
         }
 
         row.add(buttons)
-            .add($( '<div/>', {
+            .add($('<div/>', {
                 id: 'teamname',
             }).text(answertemplate.teamname))
             .add($('<div/>', {
@@ -314,7 +314,7 @@ export class CipherTestResults extends CipherTestManage {
         return viewTable.generate();
     }
 
-    public scoreOne(modelService: ModelService, sourceModel: sourceModel, scheduledTestScores: CipherTestScorer): void {
+    public scoreOne(modelService: ModelService, sourceModel: SourceModel, scheduledTestScores: CipherTestScorer): void {
         let tosave = $('[data-unscored]');
 
         if (tosave.length > 0) {
@@ -350,7 +350,7 @@ export class CipherTestResults extends CipherTestManage {
                     solvedTime = formatTime(timestampFromSeconds(itemTest.bonusTime));
                 }
                 // Find the row for this test id
-                const selectedTestRow = $('tr[data-source="'+itemTest.testId+'"]')
+                const selectedTestRow = $('tr[data-source="' + itemTest.testId + '"]')
                 selectedTestRow.find('#sovledTime').text(solvedTime);
                 // Update the score in case ties were broken and color it
                 if (itemTest.isTieBroke) {
@@ -360,10 +360,10 @@ export class CipherTestResults extends CipherTestManage {
                 // Generate details and enable details button
                 const details: JQuery<HTMLElement> = this.genTestDetailsTable(itemTest, scoredTests[indexTest].questions);
 
-                const selectedTestRowButton = $('a[data-source="'+itemTest.testId+'"]');
+                const selectedTestRowButton = $('a[data-source="' + itemTest.testId + '"]');
                 // To get the full html, we need to wrap it and get the innerhtml
                 // see https://stackoverflow.com/questions/5744207/jquery-outer-html
-                selectedTestRowButton.attr('data-child',$('<div/>').append(details).html());
+                selectedTestRowButton.attr('data-child', $('<div/>').append(details).html());
                 // Enable button to display detailed results.
                 selectedTestRowButton.removeAttr('disabled');
             });
@@ -492,7 +492,7 @@ export class CipherTestResults extends CipherTestManage {
 
                         try {
                             scoreInformation = ihandler.genScore(answer);
-                            console.log('Answer ' + i + ' (' + answer + '),\n\tscored at: '+
+                            console.log('Answer ' + i + ' (' + answer + '),\n\tscored at: ' +
                                 scoreInformation.score.toString() + ' out of ' + state.points);
                         } catch (e) {
                             scoreInformation.correctLetters = 0;
@@ -527,7 +527,7 @@ export class CipherTestResults extends CipherTestManage {
                     testResultsData.teamname = teamname;
                     testResultsData.teamtype = teamtype;
                     scheduledTestScores.addTest(testResultsData);
-                    $('tr[data-source="'+testResultsData.testId+'"]').find('#score').text(testResultsData.score);
+                    $('tr[data-source="' + testResultsData.testId + '"]').find('#score').text(testResultsData.score);
                     resolve();
                 })
                 .catch((error) => { reject(error) });

@@ -1,4 +1,4 @@
-import { cloneObject, NumberMap } from '../common/ciphercommon';
+import { cloneObject, NumberMap, StringMap } from '../common/ciphercommon';
 import {
     CipherHandler,
     IRunningKey,
@@ -31,7 +31,7 @@ export interface buttonInfo {
 }
 
 export type modelID = string;
-export type IRealtimeObject = 'sourcemodel' | 'testmodel' | 'answertemplate'; //| 'answermodel'
+export type IRealtimeObject = 'sourcemodel' | 'testmodel' | 'answertemplate' | 'answeraudit'; //| 'answermodel'
 export type IRealtimeFields = 'testid' | 'sourceid' | 'answerid' | 'title' | 'questions';
 export interface IRealtimeMetaData {
     id: modelID;
@@ -44,7 +44,7 @@ export interface IRealtimeMetaData {
     dateCreated: number;
     createdBy: string;
 }
-export interface sourceModel {
+export interface SourceModel {
     [key: string]: any;
 }
 
@@ -118,6 +118,14 @@ export interface IAnswerTemplate {
     assigned: ITestUser[];
     teamname: string;
     teamtype: string;
+}
+
+export interface IAnswerAudit {
+    testid: string;
+    user: string;
+    time: number;
+    answers: StringMap;
+    answermodelid: string;
 }
 
 export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols' | 'testint';
@@ -773,8 +781,8 @@ export class CipherTest extends CipherHandler {
      * @param sourceid ID of model to return
      * @returns Promise to interactive test contents
      */
-    public getRealtimeSource(sourceid: modelID): Promise<sourceModel> {
-        return this.getRealtimeContents('sourcemodel', sourceid) as Promise<sourceModel>;
+    public getRealtimeSource(sourceid: modelID): Promise<SourceModel> {
+        return this.getRealtimeContents('sourcemodel', sourceid) as Promise<SourceModel>;
     }
     /**
      * Update the source for an existing test
@@ -814,6 +822,32 @@ export class CipherTest extends CipherHandler {
      */
     public getRealtimeAnswerTemplate(answertemplateid: modelID): Promise<IAnswerTemplate> {
         return (this.getRealtimeContents('answertemplate', answertemplateid) as unknown) as Promise<
+            IAnswerTemplate
+        >;
+    }
+
+    /*-------------------------------------------------------------------------*/
+    /*                            Answer Templates                             */
+    /*-------------------------------------------------------------------------*/
+    /**
+     * Saves a new realtime answer template
+     * @param answerAudit Answer Audit contents to save
+     * @param id Id of template to be updated (empty to create a new one)
+     * @returns Promise to ID of newly created template
+     */
+    public saveRealtimeAnswerAudit(answerAudit: IAnswerAudit, id: modelID): Promise<modelID> {
+        if (id === '') {
+            id = undefined;
+        }
+        return this.updateRealtimeContents('answeraudit', JSON.stringify(answerAudit), id);
+    }
+    /**
+     * Get the contents of an answer template
+     * @param answertemplateid ID of answer template to retrieve
+     * @returns Promise to contents of answer template
+     */
+    public getRealtimeAnswerAudit(answertemplateid: modelID): Promise<IAnswerTemplate> {
+        return (this.getRealtimeContents('answeraudit', answertemplateid) as unknown) as Promise<
             IAnswerTemplate
         >;
     }

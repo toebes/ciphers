@@ -3336,6 +3336,27 @@ export class CipherHandler {
             });
         $('#Registerdlg').foundation('open');
     }
+    /**
+     * getConvergenceDomain determines which database to connect to on the server based
+     * on the subdomain of the reference.
+     * Basically it prefixes the subdomain of the URI to the database.
+     * @returns String of the convergence domain to connect to
+     */
+    public getConvergenceDomain(): string {
+        const host = window.location.hostname
+        const parts = host.split('.')
+        let domain = this.getConfigString('convergenceDomain', 'scienceolympiad')
+        // See if we have a subdomain
+        if (parts.length > 2) {
+            let extra = parts[0].toLowerCase();
+            if (extra !== 'www') {
+                domain = extra + domain
+            }
+        }
+
+        return domain
+    }
+
     public realtimeconfig(): void {
         $('#baseUrl').val(this.getConfigString('domain', 'https://cosso.oit.ncsu.edu'));
         $('#authUrl').val(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
@@ -3351,7 +3372,7 @@ export class CipherHandler {
         );
 
         $('#convergenceNamespace').val(this.getConfigString('convergenceNamespace', 'convergence'));
-        $('#convergenceDomain').val(this.getConfigString('convergenceDomain', 'scienceolympiad'));
+        $('#convergenceDomain').val(this.getConvergenceDomain());
         $('#convergenceKeyId').val(this.getConfigString('convergenceKeyId', 'TestingKeyId'));
         $('#convergenceDebug').val(this.getConfigString('convergenceDebug', ''));
         $('#convergenceIsAdmin').val(this.getConfigString('convergenceIsAdmin', ''));

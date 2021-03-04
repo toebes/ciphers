@@ -327,7 +327,7 @@ export class CipherTest extends CipherHandler {
         const baseUrl = this.getConfigString('domain', 'https://cosso.oit.ncsu.edu/');
         const privateKey = ConvergenceAuthentication.getLocalPrivateKey();
         const convergenceNamespace = this.getConfigString('convergenceNamespace', 'convergence');
-        const convergenceDomain = this.getConfigString('convergenceDomain', 'scienceolympiad');
+        const convergenceDomain = this.getConvergenceDomain();
         const convergenceKeyId = this.getConfigString('convergenceKeyId', 'TestingKeyId');
         const convergenceDebug = this.getConfigString('convergenceDebug', '');
 

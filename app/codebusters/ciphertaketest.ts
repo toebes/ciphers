@@ -60,7 +60,33 @@ export class CipherTakeTest extends CipherTest {
                 .add('Title')
                 .add('Start Time');
             result.append(table.generate());
+            const domain = this.getConvergenceDomain();
+            if (domain === 'scienceolympiad') {
+                const callout = $('<div/>', {
+                    class: 'divtest callout primary',
+                }).append($("<p/>").text("If you are taking a regional test, please click the link below to be taken to your test. ")
+                    .append($("<em/>").text("Please note, you may have to log in again to access the test domain.")))
+                    .append($("<ul/>")
+                        .append($("<li/>", { class: "h3" }).append(
+                            $("<a/>", { href: "https://ncb.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division B Regional"))
+                        )
+                        .append($("<li/>", { class: "h3" }).append(
+                            $("<a/>", { href: "https://ncc.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division C Regional"))
+                        )
+                    )
+                result.append(callout)
+            } else if (domain === 'ncbscienceolympiad') {
+                $("h2").text("North Carolina Division B Codebusters Tests")
+                result
+                    .append($("<p/>"))
+                    .append($("<a/>", { href: "https://toebes.com/codebusters/TakeTest.html" }).text("Go back to main Codebusters Site"))
 
+            } else if (domain === 'nccscienceolympiad') {
+                $("h2").text("North Carolina Division C Codebusters Tests")
+                result
+                    .append($("<p/>"))
+                    .append($("<a/>", { href: "https://toebes.com/codebusters/TakeTest.html" }).text("Go back to main Codebusters Site"))
+            }
             this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                 this.findAllTests(domain);
             });

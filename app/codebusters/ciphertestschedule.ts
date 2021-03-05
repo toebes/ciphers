@@ -631,6 +631,7 @@ export class CipherTestSchedule extends CipherTestManage {
         const reader = new FileReader();
         reader.onload = (): void => {
             try {
+                const tzOffset = timestampFromMinutes(new Date().getTimezoneOffset());
                 const data = new Uint8Array(reader.result as ArrayBuffer);
                 const workbook = XLSX.read(data, { type: 'array' });
                 const sheet = workbook.Sheets[workbook.SheetNames[0]]; // get the first worksheet
@@ -713,6 +714,7 @@ export class CipherTestSchedule extends CipherTestManage {
                                     starttime -= 25569;
                                 }
                                 starttime *= timestampFromMinutes(60 * 24);
+                                starttime += tzOffset;
                             }
                             console.log('Mapped to ' + timestampToFriendly(starttime));
                             answertemplate.starttime = starttime;

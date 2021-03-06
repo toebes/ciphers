@@ -117,8 +117,9 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
 
                     if (this.isValidChar(newchar) || newchar === ' ') {
                         this.markUndo(null);
-
-                        const index = Number(id.split('_'));
+                        // Parse out the input id (which is in the form Iq_n where q is the question number and n is the index of the answer)
+                        const parts = id.split('_')
+                        const index = Number(parts[1]);
                         const ans = target
                             .val()
                             .toString()

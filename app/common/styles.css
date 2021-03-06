@@ -1550,7 +1550,7 @@ table.tiebreak {
     margin: 1rem auto;
 }
 tr.scoring {
-    background-color: yellow;
+    background-color: yellow !important;
 }
 table.instlfreq td.l {
     text-align: right;

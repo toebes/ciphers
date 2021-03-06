@@ -3372,7 +3372,7 @@ export class CipherHandler {
         );
 
         $('#convergenceNamespace').val(this.getConfigString('convergenceNamespace', 'convergence'));
-        $('#convergenceDomain').val(this.getConvergenceDomain());
+        $('#convergenceDomain').val(this.getConfigString('convergenceDomain', 'scienceolympiad'));
         $('#convergenceKeyId').val(this.getConfigString('convergenceKeyId', 'TestingKeyId'));
         $('#convergenceDebug').val(this.getConfigString('convergenceDebug', ''));
         $('#convergenceIsAdmin').val(this.getConfigString('convergenceIsAdmin', ''));

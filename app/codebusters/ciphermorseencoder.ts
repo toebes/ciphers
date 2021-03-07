@@ -227,10 +227,10 @@ export class CipherMorseEncoder extends CipherEncoder {
                 morse.push(c);
                 lastc = c
             }
-            // Make sure that we end with an X
-            if (lastc !== 'X') {
-                morse.push('X')
-            }
+        }
+        // Make sure that we end with an X
+        if (lastc !== 'X') {
+            morse.push('X')
         }
         // We need to pull out what they actually answered.  Essentially
         // If they answered anything, we will include it.  It basically lets
@@ -260,6 +260,7 @@ export class CipherMorseEncoder extends CipherEncoder {
             const solutionPattern = new RegExp('( *' + solutionLetter + '.*)', 'g');
             // +1 to include the 'X' position.
             const endIndex = morse.indexOf('X', answerIndex) + 1;
+            // If you have two Xs in a row, we need to skip the second one when we work on the new word.
             let newWordIndex = 0;
             if (morse[endIndex] === 'X') {
                 newWordIndex = 1;
@@ -275,7 +276,7 @@ export class CipherMorseEncoder extends CipherEncoder {
             else {
                 // const matchMsg = (match != null ? ((match[0] != null)? match[0]: answerSubstring + ' (match[0] is null)') : answerSubstring + ' (match is null)');
                 // console.log('$$$ No match: '+solutionLetter+' == answer: '+matchMsg);
-                // console.log('    beingIndex: '+ answerIndex+ ' endIndex+1: '+endIndex);
+                // console.log('    beginIndex: '+ answerIndex+ ' endIndex+1: '+endIndex);
                 // The morse was not decoded correctly, or there is more than one character in the field.
                 answer.push(' ');
             }

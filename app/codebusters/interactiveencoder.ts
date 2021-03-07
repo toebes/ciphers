@@ -61,7 +61,7 @@ export class InteractiveEncoder extends InteractiveHandler {
             clearInterval(this.IntervalTimer);
         } else {
             const now = this.testTimeInfo.truetime.UTCNow();
-            if (now <= this.testTimeInfo.startTime || now >= this.testTimeInfo.endTimedQuestion) {
+            if (now >= this.testTimeInfo.endTimedQuestion) {
                 $('#checktimed')
                     .prop('disabled', true)
                     .text('No bonus available');

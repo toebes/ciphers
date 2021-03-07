@@ -45,7 +45,7 @@ export class CipherMorseEncoder extends CipherEncoder {
     }
 
     /** Save and Restore are done on the CipherEncoder Class */
-    public randomize(): void {}
+    public randomize(): void { }
     public setQuestionText(question: string): void {
         super.setQuestionText(question);
         this.validateQuestion();
@@ -168,8 +168,8 @@ export class CipherMorseEncoder extends CipherEncoder {
      * Fills in the frequency portion of the frequency table.  For the morse ones
      * we don't have the frequency table, so this doesn't need to do anything
      */
-    public displayFreq(): void {}
-    public genAlphabet(): void {}
+    public displayFreq(): void { }
+    public genAlphabet(): void { }
     /**
      * Generates an HTML representation of a string for display.  Replaces the X, O and -
      * with more visible HTML equivalents
@@ -214,6 +214,7 @@ export class CipherMorseEncoder extends CipherEncoder {
         const solution: string[] = [];
         const morse: string[] = [];
         const answer: string[] = [];
+        let lastc = ''
 
         // Figure out what the expected answer should be
         for (const splitLines of strings) {
@@ -224,6 +225,11 @@ export class CipherMorseEncoder extends CipherEncoder {
             }
             for (const c of splitLines[morseindex]) {
                 morse.push(c);
+                lastc = c
+            }
+            // Make sure that we end with an X
+            if (lastc !== 'X') {
+                morse.push('X')
             }
         }
         // We need to pull out what they actually answered.  Essentially
@@ -488,12 +494,12 @@ export class CipherMorseEncoder extends CipherEncoder {
                 }
                 result.append(
                     'With the crib of ' +
-                        this.state.crib +
-                        ' mapped to the ciphertext ' +
-                        bighint +
-                        ' we now know the mapping of ' +
-                        String(hint.length) +
-                        ' characters. '
+                    this.state.crib +
+                    ' mapped to the ciphertext ' +
+                    bighint +
+                    ' we now know the mapping of ' +
+                    String(hint.length) +
+                    ' characters. '
                 );
             }
         } else if (hint.length < 4) {
@@ -501,8 +507,8 @@ export class CipherMorseEncoder extends CipherEncoder {
         }
         result.append(
             'Since we are told the mapping of ' +
-                hint +
-                ' ciphertext, we can build the following table:'
+            hint +
+            ' ciphertext, we can build the following table:'
         );
 
         this.setErrorMsg(msg, 'mchc');

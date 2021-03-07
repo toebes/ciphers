@@ -994,7 +994,7 @@ export class CipherHillEncoder extends CipherEncoder {
     public genScore(answer: string[]): IScoreInformation {
         let scoreInformation: IScoreInformation = {
             correctLetters: 0,
-            incorrectLetters: '0',
+            incorrectLetters: 0,
             deduction: '0',
             score: 0,
         };
@@ -1012,7 +1012,7 @@ export class CipherHillEncoder extends CipherEncoder {
                 }
             }
             // Scoring for compute matix problems is all or nothing...
-            scoreInformation.incorrectLetters = errorCount.toString();
+            scoreInformation.incorrectLetters = errorCount;
             scoreInformation.correctLetters = count - errorCount;
             if (errorCount === 0) {
                 // all points

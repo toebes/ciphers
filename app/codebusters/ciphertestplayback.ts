@@ -61,6 +61,7 @@ export class CipherTestPlayback extends CipherTest {
     private playbackTimer: number = undefined;
     private playbackInterval = 0;
     private inScrubTo = false;
+    private teamName = '';
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -432,6 +433,7 @@ export class CipherTestPlayback extends CipherTest {
                 this.testTimeInfo.endTimedQuestion = answertemplate.endtimed;
                 this.testTimeInfo.endTime = answertemplate.endtime;
                 const testModelID = answertemplate.testid;
+                this.teamName = answertemplate.teamname;
 
                 // let startTime = this.answermodel.minTime().getTime();
                 // let endTime = this.answermodel.maxTime().getTime();
@@ -497,6 +499,7 @@ export class CipherTestPlayback extends CipherTest {
     public buildInteractiveTest(testmodel: IInteractiveTest): void {
         // Update the title for the test
         $('.testtitle').text(testmodel.title);
+        $("#school").text(this.teamName);
 
         // Show custom header or default header.
         if (testmodel.useCustomHeader) {

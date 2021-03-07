@@ -209,7 +209,7 @@ export class CipherTestResults extends CipherTestManage {
             if (i > 0) {
                 userList += '\n';
             }
-            userList += answertemplate.assigned[i].displayname;
+            userList += (answertemplate.assigned[i].displayname === '' ? answertemplate.assigned[i].userid: answertemplate.assigned[i].displayname);
         }
 
         row.add(buttons)
@@ -262,7 +262,8 @@ export class CipherTestResults extends CipherTestManage {
                     .add('Timed')
                     .add(itemQuestion.points.toString())
                     .add(itemQuestion.cipherType)
-                    .add(itemQuestion.incorrectLetters.toString())
+                    .add(itemQuestion.incorrectLetters.toString() + ' out of ' +
+                        (itemQuestion.correctLetters + itemQuestion.incorrectLetters).toString())
                     .add(itemQuestion.deduction.toString())
                     .add(itemQuestion.score.toString());
             }
@@ -274,7 +275,8 @@ export class CipherTestResults extends CipherTestManage {
                     .add(indexQuestion.toString())
                     .add(itemQuestion.points.toString())
                     .add(itemQuestion.cipherType)
-                    .add(itemQuestion.incorrectLetters.toString())
+                    .add(itemQuestion.incorrectLetters.toString() + ' out of ' +
+                        (itemQuestion.correctLetters + itemQuestion.incorrectLetters).toString())
                     .add(itemQuestion.deduction.toString())
                     .add(itemQuestion.score.toString());
             }
@@ -367,7 +369,10 @@ export class CipherTestResults extends CipherTestManage {
                 // Enable button to display detailed results.
                 selectedTestRowButton.removeAttr('disabled');
             });
-            const datatable = $('.publist').DataTable({ order: [[5, 'desc']] });
+            const datatable = $('.publist').DataTable({
+                'lengthMenu': [[50, 100, -1], [50, 100, 'All']],
+                'order': [[5, 'desc']],
+            });
             // We need to attach the handler here because we need access to the datatable object
             // in order to get the row() function
             $('.pubview')
@@ -463,8 +468,7 @@ export class CipherTestResults extends CipherTestManage {
                         questionInformation.correctLetters = scoreInformation.correctLetters;
                         questionInformation.points = state.points;
                         questionInformation.cipherType = state.cipherType;
-                        questionInformation.incorrectLetters =
-                            scoreInformation.incorrectLetters;
+                        questionInformation.incorrectLetters = scoreInformation.incorrectLetters;
                         questionInformation.deduction = scoreInformation.deduction;
                         questionInformation.score = scoreInformation.score;
                     }

@@ -271,8 +271,8 @@ export interface IInteractiveTest {
 export interface IScoreInformation {
     /** Total count of correct letters */
     correctLetters: number;
-    /** Total count of incorrect letters -- goes right in the result table */
-    incorrectLetters: string;
+    /** Total count of incorrect letters */
+    incorrectLetters: number;
     /** Deduction, max is number of points -- goes right in the result table*/
     deduction: string;
     /** Score for this question -- added to running total score */
@@ -2342,7 +2342,7 @@ export class CipherHandler {
     public genScore(answer: string[]): IScoreInformation {
         const scoreInformation: IScoreInformation = {
             correctLetters: 0,
-            incorrectLetters: 'all',
+            incorrectLetters: 999,
             deduction: 'max',
             score: 1000000,
         };
@@ -3805,7 +3805,7 @@ export class CipherHandler {
 
         const scoreInformation: IScoreInformation = {
             correctLetters: 0,
-            incorrectLetters: '-',
+            incorrectLetters: 0,
             deduction: '-',
             score: 0,
         };
@@ -3837,7 +3837,7 @@ export class CipherHandler {
             }
         }
         scoreInformation.correctLetters = correctCount;
-        scoreInformation.incorrectLetters = wrongCount.toString();
+        scoreInformation.incorrectLetters = wrongCount;
         scoreInformation.deduction = (points - score).toString();
         scoreInformation.score = score;
         return scoreInformation;

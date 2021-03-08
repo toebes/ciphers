@@ -11,6 +11,11 @@
     background-color: #ffffcc !important;
 }
 
+.input-group-field.readonly {
+    padding: 5px;
+    border: 1px solid #cacaca;
+    height: 2.4375rem;
+}
 table.sticky thead tr th {
     position: sticky;
     z-index: 100;

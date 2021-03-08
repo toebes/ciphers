@@ -23,7 +23,6 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { EnsureUsersExistParameters } from './api';
 
 import * as XLSX from 'xlsx';
-import { mode } from 'mathjs';
 
 /**
  * CipherTestScheduled

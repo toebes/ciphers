@@ -247,12 +247,14 @@ export class CipherTest extends CipherHandler {
      */
     public genPublishedEditState(testdisp: IPublishDisp): JQuery<HTMLElement> {
         const radiobuttons = [
-            { title: 'Published', value: 'published' },
             { title: 'Permissions', value: 'permissions' },
             { title: 'Schedule Test', value: 'schedule' },
             { title: 'Test Results', value: 'results' },
         ];
-        return JTRadioButton(8, 'pubdisp', radiobuttons, testdisp);
+        let result = $("<div/>")
+        result.append(this.genTestManageState('published'));
+        result.append(JTRadioButton(8, 'pubdisp', radiobuttons, testdisp));
+        return result;
     }
     /**
      * Put up the test management radio button for selecting which tests to view.

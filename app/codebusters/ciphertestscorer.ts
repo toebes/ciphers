@@ -44,7 +44,7 @@ export class CipherTestScorer {
     testCounter = 0;
     testResults: ITestResultsData[] = [];
 
-    constructor() {}
+    constructor() { }
 
     /**
      * Adds a test to the list.  The added test will be complete with all the questions
@@ -57,7 +57,9 @@ export class CipherTestScorer {
 
     scoreTests(): ITestResultsData[] {
         // this is where the tie breaking and ranking is done.
-
+        if (this.testResults.length === 0) {
+            return this.testResults;
+        }
         // Master list of scores and ties.
         const scoreMap = {};
         // Build a map with score as the key and an array of testIds as the value.  If an array has more than
@@ -81,10 +83,10 @@ export class CipherTestScorer {
                 let tiedCount = scoreMap[m].length - 1;
                 console.log(
                     'Need to break tie (stage 1) for score: ' +
-                        m +
-                        '. There are ' +
-                        (tiedCount + 1).toString() +
-                        ' teams tied.'
+                    m +
+                    '. There are ' +
+                    (tiedCount + 1).toString() +
+                    ' teams tied.'
                 );
 
                 // loop through tie-breaker questions
@@ -129,10 +131,10 @@ export class CipherTestScorer {
                 let tiedCount = scoreMap[m].length - 1;
                 console.log(
                     'Need to break tie (stage 2) for score: ' +
-                        m +
-                        '. There are ' +
-                        (tiedCount + 1).toString() +
-                        ' teams tied.'
+                    m +
+                    '. There are ' +
+                    (tiedCount + 1).toString() +
+                    ' teams tied.'
                 );
 
                 const tiedTests = [];
@@ -167,15 +169,15 @@ export class CipherTestScorer {
                     }
                     console.log(
                         'Test ' +
-                            test.testId +
-                            ' with takers ' +
-                            test.testTakers +
-                            ' has a correct count score of: ' +
-                            weightedScore
+                        test.testId +
+                        ' with takers ' +
+                        test.testTakers +
+                        ' has a correct count score of: ' +
+                        weightedScore
                     );
                     test.weightedScore = weightedScore;
                 }
-                tiedTests.sort(function(a, b) {
+                tiedTests.sort(function (a, b) {
                     return b.weightedScore - a.weightedScore;
                 });
 
@@ -183,11 +185,11 @@ export class CipherTestScorer {
                     if (t.weightedScore > 0) {
                         console.log(
                             'Top score: ' +
-                                t.weightedScore +
-                                ' for test ' +
-                                t.testId +
-                                ' with takers: ' +
-                                t.testTakers
+                            t.weightedScore +
+                            ' for test ' +
+                            t.testId +
+                            ' with takers: ' +
+                            t.testTakers
                         );
                         t.isTieBroke = true;
                         t.score += Math.trunc(tiedCount * 0.1 * 10) / 10;
@@ -225,7 +227,7 @@ export class CipherTestScorer {
                     }
                 }
                 // 'flip a coin' on this set of tied scores using a substring of the unique testId
-                scores.sort(function(a, b) {
+                scores.sort(function (a, b) {
                     let aScore = parseInt(a.testId.substr(3, 5), 16);
                     const bScore = parseInt(b.testId.substr(3, 5), 16);
                     if (aScore === bScore) {
@@ -238,11 +240,11 @@ export class CipherTestScorer {
                 for (let i = 0; i < scores.length; i++) {
                     console.log(
                         'Test ' +
-                            scores[i].testId +
-                            ' with takers ' +
-                            scores[i].testTakers +
-                            ' gets score: ' +
-                            (scores[i].score + i * 0.1).toString()
+                        scores[i].testId +
+                        ' with takers ' +
+                        scores[i].testTakers +
+                        ' gets score: ' +
+                        (scores[i].score + i * 0.1).toString()
                     );
                     scores[i].isTieBroke = true;
                     scores[i].score += Math.trunc(i * 0.1 * 10) / 10;
@@ -290,16 +292,16 @@ export class CipherTestScorer {
                         }
                         console.log(
                             'Checking for ' +
-                                incorrectLettersCheck.toString() +
-                                ' incorrect letters against results containing incorrect: ' +
-                                testQuestion.incorrectLetters.toString()
+                            incorrectLettersCheck.toString() +
+                            ' incorrect letters against results containing incorrect: ' +
+                            testQuestion.incorrectLetters.toString()
                         );
                         if (parseInt(testQuestion.incorrectLetters) === incorrectLettersCheck) {
                             console.log(
                                 'Found a test (' +
-                                    t +
-                                    ') that scored correctly...the takers are: ' +
-                                    test.testTakers
+                                t +
+                                ') that scored correctly...the takers are: ' +
+                                test.testTakers
                             );
                             testIdsWithFewestMistakes.push(t);
                         }

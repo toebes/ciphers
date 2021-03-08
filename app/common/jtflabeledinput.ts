@@ -3,7 +3,7 @@
  */
 export function JTFLabeledInput(
     title: string,
-    type: 'text' | 'number' | 'file' | 'textarea' | 'richtext' | 'checkbox' | 'password',
+    type: 'text' | 'number' | 'file' | 'textarea' | 'richtext' | 'checkbox' | 'password' | 'readonly',
     id: string,
     value: number | string | boolean,
     sizeClass: string
@@ -33,6 +33,12 @@ export function JTFLabeledInput(
             type: type,
             value: value,
         }).appendTo(inputgroup);
+    } else if (type === 'readonly') {
+        $('<p/>', {
+            id: id,
+            class: 'input-group-field readonly',
+        }).text(value)
+            .appendTo(inputgroup);
     } else {
         $('<input/>', {
             id: id,

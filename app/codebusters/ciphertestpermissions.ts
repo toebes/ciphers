@@ -5,6 +5,7 @@ import { ICipherType } from '../common/ciphertypes';
 import { cloneObject, makeCallout } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
 
 /**
  * CipherTestPermissions
@@ -46,7 +47,10 @@ export class CipherTestPermissions extends CipherTestManage {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        return this.genPublishedEditState('permissions');
+        let result = $("<div/>");
+        result.append(this.genPublishedEditState('permissions'));
+        result.append(JTFLabeledInput("Title", "readonly", "title", "", "small-12 medium-12 large-12"))
+        return result;
     }
     /**
      * Generates a list of all the tests on the server in a table.
@@ -64,6 +68,10 @@ export class CipherTestPermissions extends CipherTestManage {
                 .add('Userid')
                 .add('Permissions');
             result.append(table.generate());
+            this.getRealtimeElementMetadata('sourcemodel', this.state.testID)
+                .then((metadata) => {
+                    $("#title").text(metadata.title);
+                })
             this.findPermissions(this.state.testID);
         }
         return result;

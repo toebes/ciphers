@@ -15,6 +15,7 @@ import { JTRow, JTTable } from '../common/jttable';
 import { ConvergenceDomain, HistoricalModel, ModelService, RealTimeModel } from '@convergence/convergence';
 import { CipherPrintFactory } from './cipherfactory';
 import { CipherTestScorer, ITestQuestion, ITestResultsData } from './ciphertestscorer';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
 
 /**
  * CipherTestResults
@@ -42,7 +43,10 @@ export class CipherTestResults extends CipherTestManage {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        return this.genPublishedEditState('results');
+        let result = $("<div/>");
+        result.append(this.genPublishedEditState('results'));
+        result.append(JTFLabeledInput("Title", "readonly", "title", "", "small-12 medium-12 large-12"))
+        return result;
     }
     /**
      * Generates a list of all the tests on the server in a table.
@@ -76,6 +80,10 @@ export class CipherTestResults extends CipherTestManage {
         this.getRealtimeElementMetadata('sourcemodel', sourcemodelid)
             .then((metadata) => {
                 const testmodelid = metadata.testid;
+                // Set the test title
+                const testTitle = metadata.title;
+                $('#title').text(testTitle);
+
                 this.getRealtimeAnswerTemplate(metadata.answerid).then((answertemplate) => {
                     this.answerTemplate = answertemplate;
                     this.findScheduledTests(modelService, testmodelid, metadata.answerid);
@@ -119,9 +127,6 @@ export class CipherTestResults extends CipherTestManage {
                 console.log("OK now score...");
                 const scheduledTestScores: CipherTestScorer = new CipherTestScorer();
                 this.getRealtimeSource(this.state.testID).then((sourceModel) => {
-                    // Set the test title
-                    const testTitle = sourceModel.source['TEST.0'].title;
-                    $('h3:first').text('Results for test: "' + testTitle + '"');
                     this.scoreOne(modelService, sourceModel, scheduledTestScores);
                 });
             })
@@ -144,9 +149,6 @@ export class CipherTestResults extends CipherTestManage {
             CipherTestResults.populateRow(row, newRowID, answermodelid, answertemplate);
             $('.testlist')
                 .empty()
-                .append(
-                    $('<h3/>').text('Results for test: "..."')
-                )
                 .append(table.generate());
         } else {
             // Find the id of the last row
@@ -380,7 +382,7 @@ export class CipherTestResults extends CipherTestManage {
             });
             const datatable = $('.publist').DataTable({
                 'lengthMenu': [[50, 100, -1], [50, 100, 'All']],
-                'order': [[5, 'desc']],
+                'order': [[7, 'desc']],
             });
             // We need to attach the handler here because we need access to the datatable object
             // in order to get the row() function

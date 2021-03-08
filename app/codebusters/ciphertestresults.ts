@@ -1,17 +1,18 @@
 import { CipherTestManage } from './ciphertestmanage';
-import { IState, toolMode } from '../common/cipherhandler';
-import { IAnswerTemplate, ITestState, SourceModel } from './ciphertest';
+import { IState, ITestQuestionFields, toolMode } from '../common/cipherhandler';
+import { IAnswerTemplate, ITestState, ITestUser, SourceModel } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
 import {
     cloneObject,
     formatTime,
     makeCallout,
+    timestampFromMinutes,
     timestampFromSeconds,
     timestampToFriendly
 } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRow, JTTable } from '../common/jttable';
-import { ConvergenceDomain, ModelService, RealTimeModel } from '@convergence/convergence';
+import { ConvergenceDomain, HistoricalModel, ModelService, RealTimeModel } from '@convergence/convergence';
 import { CipherPrintFactory } from './cipherfactory';
 import { CipherTestScorer, ITestQuestion, ITestResultsData } from './ciphertestscorer';
 
@@ -209,7 +210,7 @@ export class CipherTestResults extends CipherTestManage {
             if (i > 0) {
                 userList += '\n';
             }
-            userList += (answertemplate.assigned[i].displayname === '' ? answertemplate.assigned[i].userid: answertemplate.assigned[i].displayname);
+            userList += (answertemplate.assigned[i].displayname === '' ? answertemplate.assigned[i].userid : answertemplate.assigned[i].displayname);
         }
 
         row.add(buttons)
@@ -316,6 +317,14 @@ export class CipherTestResults extends CipherTestManage {
         return viewTable.generate();
     }
 
+    /**
+     * scoreOne Looks for any unscored tests and scores a single one.  When that single one is
+     * scored, it schedules a timer to do the next one.  When there are no more to score
+     * it continues the work by breaking all the ties
+     * @param modelService Domain Model service object for making requests
+     * @param sourceModel Data model for the source of the test containing all the answers
+     * @param scheduledTestScores Test scorer to capture scores for all tests in the event
+     */
     public scoreOne(modelService: ModelService, sourceModel: SourceModel, scheduledTestScores: CipherTestScorer): void {
         let tosave = $('[data-unscored]');
 
@@ -327,16 +336,16 @@ export class CipherTestResults extends CipherTestManage {
             // disable it so it can't be clicked again
             elem.removeAttr("data-unscored")
                 .addClass("scoring")
-            this.scoreTheTest(modelService, sourceModel, elem, modelId, scheduledTestScores) // returns Promise
+            this.scoreTheTest(modelService, sourceModel, modelId, scheduledTestScores) // returns Promise
                 .then(() => {
                     // Clean up the UI
                     elem.removeClass("scoring");
-                    setTimeout(() => { this.scoreOne(modelService, sourceModel, scheduledTestScores) }, 100);
+                    setTimeout(() => { this.scoreOne(modelService, sourceModel, scheduledTestScores) }, 1);
                 })
                 .catch((error) => {
                     elem.removeClass("scoring")
                     this.reportFailure("Error scoring :" + error);
-                    setTimeout(() => { this.scoreOne(modelService, sourceModel, scheduledTestScores) }, 100);
+                    setTimeout(() => { this.scoreOne(modelService, sourceModel, scheduledTestScores) }, 1);
                 });
         } else {
             // Set the test title
@@ -393,151 +402,191 @@ export class CipherTestResults extends CipherTestManage {
                 });
         }
     }
-
-    public scoreTheTest(modelService, sourcemodel, elem, modelId, scheduledTestScores: CipherTestScorer): Promise<void> {
+    /**
+     * rewindModel rewinds the model until gets to the appropriate time
+     * @param datamodel Model to move through
+     * @param scrubTime Time to navigate to
+     */
+    public async rewindModel(datamodel: HistoricalModel, scrubTime: number): Promise<void> {
+        const startversion = datamodel.version();
+        const starttime = timestampToFriendly(datamodel.time().valueOf())
+        while (datamodel.time().valueOf() >= scrubTime + timestampFromSeconds(5) && datamodel.version() > 1) {
+            await datamodel.backward(1)
+        }
+        // this.reportFailure("Scrubbed from " + startversion + " at " + starttime + " to " + datamodel.version() + " at " + timestampToFriendly(datamodel.time().valueOf()))
+    }
+    /**
+     * scoreTheTest computes the score for a single test
+     * @param modelService Domain Model service object for making requests
+     * @param sourcemodel Data model for the source of the test containing all the answers
+     * @param modelId ID of answer model to score
+     * @param scheduledTestScores Test scorer to capture scores for all tests in the event
+     */
+    public scoreTheTest(modelService: ModelService, sourcemodel: SourceModel, modelId: string, scheduledTestScores: CipherTestScorer): Promise<void> {
 
         return new Promise((resolve, reject) => {
-            modelService
-                .open(modelId)
-                .then((datamodel: RealTimeModel) => {
-                    const startTime = datamodel.elementAt('starttime').value();
-                    const testStarted = timestampToFriendly(startTime);
-                    const endTime = datamodel.elementAt('endtime').value();
-                    const testEnded = timestampToFriendly(endTime);
-                    const bonusEnded = datamodel.elementAt('endtimed').value();
-                    const teamname = datamodel.elementAt('teamname').value();
-                    const teamtype = datamodel.elementAt('teamtype').value();
-                    const answers = datamodel.elementAt('answers').value();
-                    const users = datamodel.elementAt('assigned').value();
-                    let bonusWindow = 0;
-                    let bonusTime = 0;
+            // Open up the model for the history
+            modelService.history(modelId).then((datamodel: HistoricalModel) => {
+                const elem = $('tr[data-source="' + modelId + '"]').find('#score');
 
-                    const testResultsData: ITestResultsData = {
-                        bonusBasis: 0,
-                        hasTimed: false,
-                        testId: modelId,
-                        isTieBroke: false,
-                        startTime: '',
-                        endTime: '',
-                        bonusTime: 0,
-                        testTakers: '',
-                        score: 0,
-                        questions: [],
-                        teamname: '',
-                        teamtype: ''
-                    };
+                let model = datamodel.root().value() as IAnswerTemplate;
+                // We need to get the solve time from the latest version of the model as it may be something
+                // that was edited after the fact to clean things up
+                const solvetime = model.answers[0].solvetime;
+                let userList = '';
 
-                    let userList = '';
-                    for (let i = 0; i < users.length; i++) {
-                        if (i > 0) {
-                            userList += '\n';
-                        }
-                        userList += users[i].displayname;
+                for (let i = 0; i < model.assigned.length; i++) {
+                    if (i > 0) {
+                        userList += '\n';
                     }
+                    userList += model.assigned[i].displayname;
+                }
 
-                    // Create a table with this test's detailed results
-                    // Loop thru questions to tabulate the score.
-                    //console.log("The answer count is: " + answers.length.toString());
-                    let testScore = 0;
-                    let scoreInformation = undefined;
-                    const testInformation = sourcemodel.source['TEST.0'];
-                    const questionInformation: ITestQuestion = {
-                        correctLetters: 0,
-                        questionNumber: 0,
-                        points: 0,
-                        cipherType: '',
-                        incorrectLetters: 0,
-                        deduction: 0,
-                        score: 0,
-                    };
-                    const timeQuestion = testInformation['timed'];
-                    if (timeQuestion != -1) {
-                        testResultsData.hasTimed = true;
-                        const question = 'CIPHER.' + timeQuestion;
-                        const state = sourcemodel.source[question];
-                        const ihandler = CipherPrintFactory(state.cipherType, state.curlang);
-                        ihandler.restore(state, true);
-                        scoreInformation = ihandler.genScore(answers[0].answer);
-                        testScore += scoreInformation.score;
-                        // solvetime is in milliseconds, so needs to be rounded...
-                        bonusTime = Math.round(answers[0].solvetime / 1000);
-                        bonusWindow = (bonusEnded - startTime) / 1000; // remove milliseconds
-                        testResultsData.bonusBasis = bonusWindow;
-                        // add any bonus points to final score.
-                        testScore += this.calculateTimingBonus(bonusTime, bonusWindow);
-                        questionInformation.correctLetters = scoreInformation.correctLetters;
-                        questionInformation.points = state.points;
-                        questionInformation.cipherType = state.cipherType;
-                        questionInformation.incorrectLetters = scoreInformation.incorrectLetters;
-                        questionInformation.deduction = scoreInformation.deduction;
-                        questionInformation.score = scoreInformation.score;
-                    }
-                    testResultsData.questions[0] = questionInformation;
+                // Create a table with this test's detailed results
+                const testResultsData: ITestResultsData = {
+                    bonusBasis: 0,
+                    hasTimed: false,
+                    testId: modelId,
+                    isTieBroke: false,
+                    startTime: timestampToFriendly(model.starttime),
+                    endTime: timestampToFriendly(model.endtime),
+                    bonusTime: 0,
+                    testTakers: userList,
+                    score: 0,
+                    questions: [],
+                    teamname: model.teamname,
+                    teamtype: model.teamtype
+                };
 
-                    const questions = testInformation['questions'];
-                    for (let i = 1; i < answers.length; i++) {
-                        const questionInformation: ITestQuestion = {
-                            correctLetters: 0,
-                            questionNumber: 0,
-                            points: 0,
-                            cipherType: '',
-                            incorrectLetters: 0,
-                            deduction: 0,
-                            score: 0,
-                        };
-                        const answer = answers[i].answer;
-                        // Find the right class to render the cipher but questions array does not
-                        // contain the timed question.
-                        const question = 'CIPHER.' + questions[i - 1].toString();
+                let modelTime = datamodel.time().valueOf();
+                // See if we have to backup the model to be at the time the test actually ended.
+                // We give them 5 seconds of grace just to be nice.
+                if (modelTime > (model.endtime + timestampFromSeconds(5))) {
+                    elem.text("Scrubbing...");
+                    this.rewindModel(datamodel, model.endtime).then(() => {
+                        model = datamodel.root().value() as IAnswerTemplate;
+                        elem.text("Computing...");
+                        this.calculateOneScore(sourcemodel, testResultsData, model.answers, solvetime, model.endtimed, model.starttime);
 
-                        const state = sourcemodel.source[question];
-                        const ihandler = CipherPrintFactory(state.cipherType, state.curlang);
-                        ihandler.restore(state, true);
-
-                        try {
-                            scoreInformation = ihandler.genScore(answer);
-                            console.log('Answer ' + i + ' (' + answer + '),\n\tscored at: ' +
-                                scoreInformation.score.toString() + ' out of ' + state.points);
-                        } catch (e) {
-                            scoreInformation.correctLetters = 0;
-                            scoreInformation.incorrectLetters = '?';
-                            scoreInformation.deduction = '?';
-                            scoreInformation.score = 1;
-                            console.log(
-                                'Unable to handle genScore() in cipher: ' +
-                                state.cipherType +
-                                ' on question: ' +
-                                questions[i - 1].toString()
-                            );
-                            e.stackTrace;
-                        }
-                        testScore += scoreInformation.score;
-                        questionInformation.correctLetters = scoreInformation.correctLetters;
-                        questionInformation.questionNumber = i;
-                        questionInformation.points = state.points;
-                        questionInformation.cipherType = state.cipherType;
-                        questionInformation.incorrectLetters =
-                            scoreInformation.incorrectLetters;
-                        questionInformation.deduction = scoreInformation.deduction;
-                        questionInformation.score = scoreInformation.score;
-                        testResultsData.questions[i] = questionInformation;
-                    }
-
-                    testResultsData.startTime = testStarted;
-                    testResultsData.endTime = testEnded;
-                    testResultsData.bonusTime = bonusTime;
-                    testResultsData.testTakers = userList;
-                    testResultsData.score = testScore;
-                    testResultsData.teamname = teamname;
-                    testResultsData.teamtype = teamtype;
+                        scheduledTestScores.addTest(testResultsData);
+                        elem.text(testResultsData.score);
+                        resolve();
+                    });
+                } else {
+                    elem.text("Computing...");
+                    this.calculateOneScore(sourcemodel, testResultsData, model.answers, solvetime, model.endtimed, model.starttime);
                     scheduledTestScores.addTest(testResultsData);
-                    $('tr[data-source="' + testResultsData.testId + '"]').find('#score').text(testResultsData.score);
+                    elem.text(testResultsData.score);
                     resolve();
-                })
+                }
+            })
                 .catch((error) => { reject(error) });
         })
 
     }
+    /**
+     * calculateOneScore calculates the score for a single test
+     * @param sourcemodel Data model for the source of the test containing all the answers
+     * @param testResultsData 
+     * @param answers Array of answers from the taken test
+     * @param bonusTime 
+     * @param bonusWindow 
+     * @param bonusEnded 
+     * @param startTime 
+     */
+    private calculateOneScore(sourcemodel: SourceModel, testResultsData: ITestResultsData, answers: ITestQuestionFields[], solvetime: number, bonusEnded: number, startTime: number) {
+        let bonusWindow = 0;
+        let bonusTime = 0;
+        let testScore = 0;
+        let scoreInformation = undefined;
+        const testInformation = sourcemodel.source['TEST.0'];
+        const questionInformation: ITestQuestion = {
+            correctLetters: 0,
+            questionNumber: 0,
+            points: 0,
+            cipherType: '',
+            incorrectLetters: 0,
+            deduction: 0,
+            score: 0,
+        };
+        const timeQuestion = testInformation['timed'];
+        if (timeQuestion != -1) {
+            testResultsData.hasTimed = true;
+            const question = 'CIPHER.' + timeQuestion;
+            const state = sourcemodel.source[question];
+            const ihandler = CipherPrintFactory(state.cipherType, state.curlang);
+            ihandler.restore(state, true);
+            scoreInformation = ihandler.genScore(answers[0].answer);
+            testScore += scoreInformation.score;
+            // solvetime is in milliseconds, so needs to be rounded...
+            bonusTime = Math.round(solvetime / 1000);
+            bonusWindow = (bonusEnded - startTime) / 1000; // remove milliseconds
+            testResultsData.bonusBasis = bonusWindow;
+            // add any bonus points to final score.
+            testScore += this.calculateTimingBonus(bonusTime, bonusWindow);
+            questionInformation.correctLetters = scoreInformation.correctLetters;
+            questionInformation.points = state.points;
+            questionInformation.cipherType = state.cipherType;
+            questionInformation.incorrectLetters = scoreInformation.incorrectLetters;
+            questionInformation.deduction = scoreInformation.deduction;
+            questionInformation.score = scoreInformation.score;
+        }
+        testResultsData.questions[0] = questionInformation;
+
+        const questions = testInformation['questions'];
+        for (let i = 1; i < answers.length; i++) {
+            const questionInformation: ITestQuestion = {
+                correctLetters: 0,
+                questionNumber: 0,
+                points: 0,
+                cipherType: '',
+                incorrectLetters: 0,
+                deduction: 0,
+                score: 0,
+            };
+            const answer = answers[i].answer;
+            // Find the right class to render the cipher but questions array does not
+            // contain the timed question.
+            const question = 'CIPHER.' + questions[i - 1].toString();
+
+            const state = sourcemodel.source[question];
+            const ihandler = CipherPrintFactory(state.cipherType, state.curlang);
+            ihandler.restore(state, true);
+
+            try {
+                scoreInformation = ihandler.genScore(answer);
+                console.log('Answer ' + i + ' (' + answer + '),\n\tscored at: ' +
+                    scoreInformation.score.toString() + ' out of ' + state.points);
+            } catch (e) {
+                scoreInformation.correctLetters = 0;
+                scoreInformation.incorrectLetters = '?';
+                scoreInformation.deduction = '?';
+                scoreInformation.score = 1;
+                console.log(
+                    'Unable to handle genScore() in cipher: ' +
+                    state.cipherType +
+                    ' on question: ' +
+                    questions[i - 1].toString()
+                );
+                e.stackTrace;
+            }
+            testScore += scoreInformation.score;
+            questionInformation.correctLetters = scoreInformation.correctLetters;
+            questionInformation.questionNumber = i;
+            questionInformation.points = state.points;
+            questionInformation.cipherType = state.cipherType;
+            questionInformation.incorrectLetters =
+                scoreInformation.incorrectLetters;
+            questionInformation.deduction = scoreInformation.deduction;
+            questionInformation.score = scoreInformation.score;
+            testResultsData.questions[i] = questionInformation;
+        }
+
+        testResultsData.score = testScore;
+        testResultsData.bonusTime = bonusTime;
+        return { bonusTime, bonusWindow };
+    }
+
     public gotoTestPlayback(testID: string): void {
         location.assign('TestPlayback.html?testID=' + String(testID));
     }

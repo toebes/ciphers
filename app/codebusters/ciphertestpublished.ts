@@ -287,7 +287,7 @@ export class CipherTestPublished extends CipherTestManage {
     }
     /**
      * deleteAnswerModels removes all answer models associated with a test and then invokes the process to delete the main test models
-     * @param modelService 
+     * @param modelService Domain Model service object for making requests
      * @param answerModels 
      * @param sourcemodelid 
      * @param testmodelid 

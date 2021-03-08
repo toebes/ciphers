@@ -1,6 +1,6 @@
 import { CipherTestManage } from './ciphertestmanage';
 import { toolMode, IState, CipherHandler } from '../common/cipherhandler';
-import { ITestState, IAnswerTemplate, ITestUser, RealtimeSinglePermission } from './ciphertest';
+import { ITestState, IAnswerTemplate, ITestUser, RealtimeSinglePermission, SourceModel } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
 import {
     cloneObject,
@@ -73,7 +73,9 @@ export class CipherTestSchedule extends CipherTestManage {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        return this.genPublishedEditState('schedule');
+        let result = this.genPublishedEditState('schedule');
+        result.append(JTFLabeledInput("Title", "text", "title", "", "small-12 medium-12 large-12"))
+        return result;
     }
     /**
      * Generates a list of all the tests on the server in a table.
@@ -108,6 +110,7 @@ export class CipherTestSchedule extends CipherTestManage {
             .then((metadata) => {
                 const testmodelid = metadata.testid;
                 this.testmodelid = testmodelid;
+                $("#title").val(metadata.title);
                 this.getRealtimeAnswerTemplate(metadata.answerid).then((answertemplate) => {
                     this.answerTemplate = answertemplate;
                     this.findScheduledTests(modelService, testmodelid, metadata.answerid);
@@ -117,6 +120,32 @@ export class CipherTestSchedule extends CipherTestManage {
                 this.reportFailure('Could not open model for ' + sourcemodelid + ' Error:' + error);
             });
     }
+    /**
+     * setTitle updates the title on a source model associated with the current test
+     * @param title New title to apply to the model
+     */
+    public setTitle(title: string) {
+        // Make sure we actually have a model we can work with
+        if (this.state.testID !== undefined && this.state.testID !== "") {
+            // Get the model
+            this.getRealtimeSource(this.state.testID).then((model: SourceModel) => {
+                // Update the title with what we have it changed to
+                model.source.title = title;
+                // And then save it
+                this.saveRealtimeSource(model, this.state.testID).then(() => {
+                    // For good measure, just check to see that the metadata also got updated
+                    this.getRealtimeElementMetadata('sourcemodel', this.state.testID)
+                        .then((metadata) => {
+                            // Hmm something went wrong, report it so we can fix it
+                            if (metadata.title !== title) {
+                                console.log("***Title metadata did not update.  Expected '" + title + "' but got '" + metadata.title + '"')
+                            }
+                        })
+                }).catch((error) => { this.reportFailure("Error setting title:" + error) })
+            }).catch((error) => { this.reportFailure("Error reading model:" + error) })
+        }
+    }
+
     /**
      * dateTimeInput creates an input field that allows the user to enter a date/time value
      * @param id ID for the input field to create
@@ -1280,6 +1309,12 @@ export class CipherTestSchedule extends CipherTestManage {
             .off('change')
             .on('change', (e) => {
                 this.setChanged(this.getRowID($(e.target)));
+            });
+        $('#title')
+            .off('input')
+            .on('input', (e) => {
+                const title = $(e.target).val() as string;
+                this.setTitle(title);
             });
         $('.datetimepick').each((i, elem) => {
             flatpickr(elem, {

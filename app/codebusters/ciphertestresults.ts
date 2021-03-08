@@ -119,6 +119,9 @@ export class CipherTestResults extends CipherTestManage {
                 console.log("OK now score...");
                 const scheduledTestScores: CipherTestScorer = new CipherTestScorer();
                 this.getRealtimeSource(this.state.testID).then((sourceModel) => {
+                    // Set the test title
+                    const testTitle = sourceModel.source['TEST.0'].title;
+                    $('h3:first').text('Results for test: "' + testTitle + '"');
                     this.scoreOne(modelService, sourceModel, scheduledTestScores);
                 });
             })
@@ -348,9 +351,6 @@ export class CipherTestResults extends CipherTestManage {
                     setTimeout(() => { this.scoreOne(modelService, sourceModel, scheduledTestScores) }, 1);
                 });
         } else {
-            // Set the test title
-            const testTitle = sourceModel.source['TEST.0'].title;
-            $('h3:first').text('Results for test: "' + testTitle + '"');
             // fill in table with questions...
             const scoredTests = scheduledTestScores.scoreTests();
             // Create the detailed results table from the tests after breaking any ties
@@ -408,12 +408,9 @@ export class CipherTestResults extends CipherTestManage {
      * @param scrubTime Time to navigate to
      */
     public async rewindModel(datamodel: HistoricalModel, scrubTime: number): Promise<void> {
-        const startversion = datamodel.version();
-        const starttime = timestampToFriendly(datamodel.time().valueOf())
         while (datamodel.time().valueOf() >= scrubTime + timestampFromSeconds(5) && datamodel.version() > 1) {
             await datamodel.backward(1)
         }
-        // this.reportFailure("Scrubbed from " + startversion + " at " + starttime + " to " + datamodel.version() + " at " + timestampToFriendly(datamodel.time().valueOf()))
     }
     /**
      * scoreTheTest computes the score for a single test

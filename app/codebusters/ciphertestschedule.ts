@@ -23,6 +23,7 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { EnsureUsersExistParameters } from './api';
 
 import * as XLSX from 'xlsx';
+import { mode } from 'mathjs';
 
 /**
  * CipherTestScheduled
@@ -130,18 +131,9 @@ export class CipherTestSchedule extends CipherTestManage {
             // Get the model
             this.getRealtimeSource(this.state.testID).then((model: SourceModel) => {
                 // Update the title with what we have it changed to
-                model.source.title = title;
+                model.source['TEST.0'].title = title;
                 // And then save it
-                this.saveRealtimeSource(model, this.state.testID).then(() => {
-                    // For good measure, just check to see that the metadata also got updated
-                    this.getRealtimeElementMetadata('sourcemodel', this.state.testID)
-                        .then((metadata) => {
-                            // Hmm something went wrong, report it so we can fix it
-                            if (metadata.title !== title) {
-                                console.log("***Title metadata did not update.  Expected '" + title + "' but got '" + metadata.title + '"')
-                            }
-                        })
-                }).catch((error) => { this.reportFailure("Error setting title:" + error) })
+                this.saveRealtimeSource(model, this.state.testID).catch((error) => { this.reportFailure("Error setting title:" + error) })
             }).catch((error) => { this.reportFailure("Error reading model:" + error) })
         }
     }

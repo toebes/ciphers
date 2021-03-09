@@ -11,6 +11,7 @@ import {
     StringMap,
     repeatStr,
     setCharAt,
+    NumberMap,
 } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { TrueTime } from '../common/truetime';
@@ -155,11 +156,11 @@ export class CipherTestTimed extends CipherTest {
             $('#part' + String(i)).removeClass('connected');
         }
         // First find all the users that are taking the test
-        const useridid: StringMap = {};
+        const useridslot: NumberMap = {};
         for (const i in answertemplate.assigned) {
             const userid = answertemplate.assigned[i].userid;
             if (userid !== '') {
-                useridid[userid] = String(Number(i) + 1);
+                useridslot[userid] = Number(i);
             }
         }
         collaborators.forEach((collaborator: ModelCollaborator) => {
@@ -167,16 +168,20 @@ export class CipherTestTimed extends CipherTest {
             if (email === '') {
                 email = collaborator.user.username;
             }
-            if (useridid.hasOwnProperty(email)) {
-                const idslot = useridid[email];
-                let displayname = collaborator.user.displayName;
+            if (useridslot.hasOwnProperty(email)) {
+                const idslot = useridslot[email];
+                const uislot = String(idslot + 1);
+                let displayname = collaborator.user.displayName.trim();
                 if (displayname === undefined || displayname === '') {
-                    displayname = email;
+                    displayname = answertemplate.assigned[idslot].displayname;
+                    if (displayname === undefined || displayname === '') {
+                        displayname = email;
+                    }
                 }
                 const initials = this.computeInitials(displayname);
-                $('#user' + idslot).text(displayname);
-                $('#init' + idslot).text(initials);
-                $('#part' + idslot).addClass('connected');
+                $('#user' + uislot).text(displayname);
+                $('#init' + uislot).text(initials);
+                $('#part' + uislot).addClass('connected');
             }
         });
     }
@@ -421,6 +426,8 @@ export class CipherTestTimed extends CipherTest {
                         }
                         if (userid === loggedinuserid) {
                             userfound = i;
+                            name = this.getUsersFullName();
+                            realtimeAnswermodel.elementAt('assigned', userfound, 'displayname').value(name);
                         }
                         const idslot = String(Number(i) + 1);
                         if (name === '' && userid !== '') {

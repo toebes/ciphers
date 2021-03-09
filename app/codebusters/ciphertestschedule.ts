@@ -442,6 +442,17 @@ export class CipherTestSchedule extends CipherTestManage {
         }
     }
     /**
+     * markSaveAll sets the save all button based on the state of anything else needed to be saved.
+     */
+    public markSaveAll(): void {
+        const unsaved = $('.pubsave:not([disabled])')
+        if (unsaved.length > 0) {
+            $('#savesched').removeAttr('disabled');
+        } else {
+            $('#savesched').attr('disabled', 'disabled')
+        }
+    }
+    /**
      * setChanged marks a row as changed so that the save button can be clicked by the user
      * @param id Which button was clicked on
      */
@@ -449,7 +460,7 @@ export class CipherTestSchedule extends CipherTestManage {
         const siblings = $('#SV' + id).closest("tr").find(".bademail")
         if (siblings.length === 0) {
             $('#SV' + id).removeAttr('disabled');
-            $('#savesched').removeAttr('disabled');
+            this.markSaveAll();
         }
     }
     /**
@@ -833,6 +844,7 @@ export class CipherTestSchedule extends CipherTestManage {
      */
     public saveTestModelPermissions(): void {
         const testmodelid = this.testmodelid;
+        this.markSaveAll();
         // Go through all of the UI Elements and gather the email addresses
         const usermap: BoolMap = { globalPermissionId: true }
         $('input[id^="U"]').each((_i, elem) => {

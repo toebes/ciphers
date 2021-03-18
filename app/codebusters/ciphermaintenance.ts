@@ -330,10 +330,10 @@ export class CipherMaintenance extends CipherTestManage {
             // Remove the model (TODO: Enable this once we are happy with the code)
             modelService.remove(modelId).then(() => {
                 $(entry).append($("<b/>").text("[REMOVED]"))
-                setTimeout(() => { this.processActiveTests(modelService) }, 4000);
+                setTimeout(() => { this.processActiveTests(modelService) }, 500);
             }).catch(error => {
                 $(entry).append($("<b/>").text("[ERROR:" + error + "]"))
-                setTimeout(() => { this.processActiveTests(modelService) }, 4000);
+                setTimeout(() => { this.processActiveTests(modelService) }, 500);
             })
         } else {
 

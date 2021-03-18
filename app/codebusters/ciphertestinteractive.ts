@@ -29,14 +29,6 @@ export class CipherTestInteractive extends CipherTest {
     };
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
-    public pageNumber = 0;
-    public testTimeInfo: ITestTimeInfo = {
-        truetime: new TrueTime(this.timeAnomaly),
-        startTime: 0,
-        endTime: 0,
-        endTimedQuestion: 0,
-    };
-
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -62,13 +54,6 @@ export class CipherTestInteractive extends CipherTest {
             setTimeout(() => { this.generateInteractiveModel($(elem)); }, 10);
         });
         this.attachHandlers();
-    }
-    /**
-     * Report that time has changed.
-     * @param msg Msg about time adjustment event
-     */
-    public timeAnomaly(msg: string): void {
-        console.log('**Time anomaly reported:' + msg);
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar

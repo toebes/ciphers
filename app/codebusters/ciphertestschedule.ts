@@ -338,7 +338,11 @@ export class CipherTestSchedule extends CipherTestManage {
                     // Success, so get the id, close the model and return it
                     const modelid = datamodel.modelId();
                     datamodel.close();
-                    resolve(modelid);
+                    // Add the new users with permissions
+                    this.saveUserPermissions(modelService, modelid, [], userlist)
+                        .then(() => { resolve(modelid); })
+                        .catch((error) => { reject(error); });
+
                 })
                 .catch((error) => { reject(error); });
         })
@@ -500,14 +504,14 @@ export class CipherTestSchedule extends CipherTestManage {
         const name2 = ($('#U1_' + eid).val() as string).trim();
         const name3 = ($('#U2_' + eid).val() as string).trim();
 
-        if (name1 !== '') {
-            userlist.push(name1);
+        if (name1 !== '' && this.isValidEmailAddress(name1)) {
+            userlist.push(name1.toLowerCase());
         }
-        if (name2 !== '') {
-            userlist.push(name2);
+        if (name2 !== '' && this.isValidEmailAddress(name2)) {
+            userlist.push(name2.toLowerCase());
         }
-        if (name3 !== '') {
-            userlist.push(name3);
+        if (name3 !== '' && this.isValidEmailAddress(name3)) {
+            userlist.push(name3.toLowerCase());
         }
         const now = Date.now();
         const teamname = $('#N_' + eid).val() as string;
@@ -516,8 +520,8 @@ export class CipherTestSchedule extends CipherTestManage {
         let testDuration = $('#D_' + eid).val() as number;
         let timedDuration = $('#T_' + eid).val() as number;
         let starttime = Date.parse(testStart);
-        // If they try to schedule it more than three weeks in the figure, just back it up to half an hour from now
-        if (starttime > (now + timestampFromWeeks(3))) {
+        // If they try to schedule it more than four weeks in the figure, just back it up to half an hour from now
+        if (starttime > (now + timestampFromWeeks(4))) {
             starttime = now + timestampFromMinutes(30)
         }
         // If they give us a test duration that is too big or small, limit them to
@@ -1018,7 +1022,9 @@ export class CipherTestSchedule extends CipherTestManage {
                     datamodel.elementAt('assigned').value(assigned);
                     datamodel.close();
                     // Reset the permissions on the model.  Remove anyone who was taken off and add anyone
-                    this.saveUserPermissions(modelService, modelid, removed, added);
+                    this.saveUserPermissions(modelService, modelid, removed, added)
+                        .then(() => { resolve(); })
+                        .catch((error) => { reject(error) });
                     resolve();
                 })
                 .catch((error) => { reject(error) });

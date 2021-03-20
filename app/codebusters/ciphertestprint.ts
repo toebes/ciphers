@@ -118,6 +118,25 @@ export class CipherTestPrint extends CipherTest {
             }
         }
 
+        $(".tsta,.tstb,.tstc").hide();
+        if (test.timed === -1) {
+            $(".timed").hide();
+        }
+        switch (test.testtype) {
+            case ITestType.aregional:
+                $(".tsta").show();
+                break;
+            case ITestType.bregional:
+            case ITestType.bstate:
+                $(".tstb").show();
+                break;
+            case ITestType.cregional:
+            case ITestType.cstate:
+            default:
+                $(".tstc").show();
+                break
+        }
+
         this.runningKeys = undefined;
         this.qdata = [];
         let accumulated = 0;
@@ -196,10 +215,10 @@ export class CipherTestPrint extends CipherTest {
             accumulated += thisheight;
             console.log(
                 qnum +
-                    ': height=' +
-                    thisquestion.outerHeight() +
-                    ' bodyheight=' +
-                    document.body.clientHeight
+                ': height=' +
+                thisquestion.outerHeight() +
+                ' bodyheight=' +
+                document.body.clientHeight
             );
             const qerror = cipherhandler.CheckAppropriate(test.testtype);
             if (qerror !== '') {
@@ -238,8 +257,8 @@ export class CipherTestPrint extends CipherTest {
             ) {
                 errors.push(
                     'Only one Spanish Xenocrypt allowed for ' +
-                        this.getTestTypeName(test.testtype) +
-                        '.'
+                    this.getTestTypeName(test.testtype) +
+                    '.'
                 );
             }
             $('.xenocryptfreq').show();
@@ -247,7 +266,7 @@ export class CipherTestPrint extends CipherTest {
             if (test.testtype === ITestType.bstate || test.testtype === ITestType.cstate) {
                 errors.push(
                     this.getTestTypeName(test.testtype) +
-                        ' is supposed to have at least one Spanish Xenocrypt.'
+                    ' is supposed to have at least one Spanish Xenocrypt.'
                 );
             }
             $('.xenocryptfreq').hide();

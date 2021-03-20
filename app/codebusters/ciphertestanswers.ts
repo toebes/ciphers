@@ -116,6 +116,25 @@ export class CipherTestAnswers extends CipherTest {
         $('.testtitle').text(test.title);
         const dt = new Date();
         $('.testyear').text(dt.getFullYear());
+        $(".tsta,.tstb,.tstc").hide();
+        if (test.timed === -1) {
+            $(".timed").hide();
+        }
+        switch (test.testtype) {
+            case ITestType.aregional:
+                $(".tsta").show();
+                break;
+            case ITestType.bregional:
+            case ITestType.bstate:
+                $(".tstb").show();
+                break;
+            case ITestType.cregional:
+            case ITestType.cstate:
+            default:
+                $(".tstc").show();
+                break
+        }
+
         if (test.timed === -1) {
             // Division A doesn't have a timed quesiton, so don't print out
             // a message if it isn't there.

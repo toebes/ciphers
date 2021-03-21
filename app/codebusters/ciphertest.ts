@@ -15,14 +15,23 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
-import { ConvergenceDomain, LogLevel, RealTimeModel } from '@convergence/convergence';
-import {
-    ConvergenceAuthentication,
-    ConvergenceSettings,
-    ConvergenceLoginParameters,
-} from './authentication';
+import { ConvergenceDomain, LogLevel } from '@convergence/convergence';
 import Convergence = require('@convergence/convergence');
 import { anyMap, CBUpdateUserPermissions, StoreModelBody } from './api';
+
+export interface ConvergenceLoginParameters {
+    username: string;
+    firstName: string;
+    lastName: string;
+    displayName?: string;
+    emailAddress?: string;
+}
+export interface ConvergenceSettings {
+    baseUrl: string;
+    namespace: string;
+    domain: string;
+    debug: boolean;
+}
 
 export interface buttonInfo {
     title: string;
@@ -327,27 +336,21 @@ export class CipherTest extends CipherHandler {
      */
     public getConvergenceSettings(): ConvergenceSettings {
         const baseUrl = this.getConfigString('domain', 'https://cosso.oit.ncsu.edu/');
-        const privateKey = ConvergenceAuthentication.getLocalPrivateKey();
         const convergenceNamespace = this.getConfigString('convergenceNamespace', 'convergence');
         const convergenceDomain = this.getConvergenceDomain();
-        const convergenceKeyId = this.getConfigString('convergenceKeyId', 'TestingKeyId');
         const convergenceDebug = this.getConfigString('convergenceDebug', '');
 
         if (
             baseUrl === null ||
-            privateKey === null ||
             convergenceNamespace == null ||
-            convergenceDomain === null ||
-            convergenceKeyId === null
+            convergenceDomain === null
         ) {
             return null;
         } else {
             return {
                 baseUrl: baseUrl,
                 namespace: convergenceNamespace,
-                privateKey: privateKey,
                 domain: convergenceDomain,
-                keyId: convergenceKeyId,
                 debug: convergenceDebug !== '',
             };
         }
@@ -359,7 +362,7 @@ export class CipherTest extends CipherHandler {
      */
     public connectRealtime(): Promise<ConvergenceDomain> {
         const loginSettings = this.getConvergenceSettings();
-        const connectUrl = ConvergenceAuthentication.formatConnectUrl(
+        const connectUrl = this.formatConnectUrl(
             loginSettings.baseUrl,
             loginSettings.namespace,
             loginSettings.domain

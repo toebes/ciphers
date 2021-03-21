@@ -1,15 +1,13 @@
 import { CipherTestManage } from './ciphertestmanage';
-import { toolMode, IState, CipherHandler } from '../common/cipherhandler';
+import { toolMode, IState } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
-import { BoolMap, cloneObject, StringMap, timestampFromMinutes, timestampToFriendly } from '../common/ciphercommon';
+import { BoolMap, cloneObject, timestampFromMinutes, timestampToFriendly } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTFDialog } from '../common/jtfdialog';
-import { ConvergenceAuthentication } from './authentication';
 import Convergence = require('@convergence/convergence');
-import { LogLevel, ModelService, RealTimeModel } from '@convergence/convergence';
-import { globalPermissionId, IAnswerTemplate, IRealtimeObject, RealtimeSinglePermission } from './ciphertest';
-import { EnsureUsersExistParameters } from './api';
+import { LogLevel, ModelService } from '@convergence/convergence';
+import { IRealtimeObject } from './ciphertest';
 
 
 export interface MaintenanceState extends IState {
@@ -181,7 +179,7 @@ export class CipherMaintenance extends CipherTestManage {
      */
     public loginAdminJWT(jwt: string, nextStep: (modelService: ModelService) => void): void {
         const loginSettings = this.getConvergenceSettings();
-        const connectUrl = ConvergenceAuthentication.formatConnectUrl(
+        const connectUrl = this.formatConnectUrl(
             loginSettings.baseUrl,
             loginSettings.namespace,
             loginSettings.domain

@@ -235,7 +235,7 @@ export const CipherMenu: menuItem[] = [
             { title: 'Signout', classname: 'menucb', action: 'signout' },
             /*{ title: '[TESTING] Register', action: 'register', classname: 'register menucb' },*/
             {
-                title: '[TESTING] Realtime Configuration',
+                title: '[ADMIN] Configuration',
                 action: 'realtimeconfig',
                 classname: 'realtimeconfig menucb',
             },

@@ -1061,7 +1061,9 @@ export class CipherHandler {
             this.getConfigString(CipherHandler.KEY_LAST_NAME, 'King')
         );
     }
-
+    public formatConnectUrl(baseUrl: string, namespace: string, domain: string): string {
+        return baseUrl + '/realtime/' + namespace + '/' + domain;
+    }
     /**
      * Sends the user to the authentication page. Upon success sends user back to href.
      * @param href Location to go to upon successful authentication. If undefined/null uses current window location's href.
@@ -3160,16 +3162,19 @@ export class CipherHandler {
             .append(JTFLabeledInput('Authentication Base URL:', 'text', 'authUrl', '', ''))
             .append(JTFLabeledInput('Admin Username:', 'text', 'convergenceAdminUsername', '', ''))
             .append(JTFLabeledInput('Admin Password:', 'text', 'convergenceAdminPassword', '', ''))
-            .append(JTFLabeledInput('Proxy Username:', 'text', 'convergenceProxyUsername', '', ''))
             .append(JTFLabeledInput('Realtime Name Space:', 'text', 'convergenceNamespace', '', ''))
             .append(JTFLabeledInput('Realtime Domain:', 'text', 'convergenceDomain', '', ''))
-            .append(JTFLabeledInput('Realtime KeyID:', 'text', 'convergenceKeyId', '', ''))
-            .append(JTFLabeledInput('Debug:', 'text', 'convergenceDebug', '', ''))
-            .append(JTFLabeledInput('Admin:', 'text', 'convergenceIsAdmin', '', ''));
+            .append(JTFLabeledInput('Proxy Username:', 'text', 'convergenceProxyUsername', '', ''))
+            .append(JTFLabeledInput('Proxy Testid:', 'text', 'convergenceProxyTestid', '', ''))
+            .append(JTFLabeledInput('Proxy Team:', 'number', 'convergenceProxyTeam', '', ''))
+            .append(JTFLabeledInput('Proxy Student:', 'number', 'convergenceProxyStudent', '', ''))
+            .append($("<div/>", { class: "grid-x" })
+                .append(JTFLabeledInput('Debug:', 'checkbox', 'convergenceDebug', '', 'large-6'))
+                .append(JTFLabeledInput('Admin:', 'checkbox', 'convergenceIsAdmin', '', 'large-6')))
 
         const realtimeConfigDlg = JTFDialog(
             'Realtimedlg',
-            '[Testing] Realtime Configuration',
+            '[ADMIN] Configuration',
             dlgContents,
             'okrealtime',
             'RealtimeConfig'
@@ -3361,21 +3366,20 @@ export class CipherHandler {
         $('#baseUrl').val(this.getConfigString('domain', 'https://cosso.oit.ncsu.edu'));
         $('#authUrl').val(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
 
-        $('#convergenceAdminUsername').val(
-            this.getConfigString('convergenceAdminUsername', 'admin')
-        );
-        $('#convergenceAdminPassword').val(
-            this.getConfigString('convergenceAdminPassword', 'password')
-        );
-        $('#convergenceProxyUsername').val(
-            this.getConfigString('convergenceProxyUsername', 'user@example.com')
-        );
+        $('#convergenceAdminUsername').val(this.getConfigString('convergenceAdminUsername', 'admin'));
+        $('#convergenceAdminPassword').val(this.getConfigString('convergenceAdminPassword', 'password'));
+        $('#convergenceProxyUsername').val(this.getConfigString('convergenceProxyUsername', ''));
 
         $('#convergenceNamespace').val(this.getConfigString('convergenceNamespace', 'convergence'));
         $('#convergenceDomain').val(this.getConfigString('convergenceDomain', 'scienceolympiad'));
-        $('#convergenceKeyId').val(this.getConfigString('convergenceKeyId', 'TestingKeyId'));
-        $('#convergenceDebug').val(this.getConfigString('convergenceDebug', ''));
-        $('#convergenceIsAdmin').val(this.getConfigString('convergenceIsAdmin', ''));
+        $('#convergenceDebug').prop('checked', this.getConfigString('convergenceDebug', '') !== '');
+        $('#convergenceIsAdmin').prop('checked', this.getConfigString('convergenceIsAdmin', '') !== '');
+
+        console.log("Starting: debug=" + this.getConfigString('convergenceDebug', '') + " admin=" + this.getConfigString('convergenceIsAdmin', ''))
+
+        $('#convergenceProxyTestid').val(this.getConfigString('convergenceProxyTestid', ''));
+        $('#convergenceProxyTeam').val(Number(this.getConfigString('convergenceProxyTeam', '')));
+        $('#convergenceProxyStudent').val(Number(this.getConfigString('convergenceProxyStudent', '')));
 
         $('#okrealtime')
             .removeAttr('disabled')
@@ -3395,8 +3399,20 @@ export class CipherHandler {
                 );
 
                 this.setConfigString(
+                    'convergenceProxyTestid',
+                    $('#convergenceProxyTestid').val() as string
+                );
+                this.setConfigString(
                     'convergenceProxyUsername',
                     $('#convergenceProxyUsername').val() as string
+                );
+                this.setConfigString(
+                    'convergenceProxyTeam',
+                    $('#convergenceProxyTeam').val() as string
+                );
+                this.setConfigString(
+                    'convergenceProxyStudent',
+                    $('#convergenceProxyStudent').val() as string
                 );
 
                 this.setConfigString(
@@ -3404,9 +3420,18 @@ export class CipherHandler {
                     $('#convergenceNamespace').val() as string
                 );
                 this.setConfigString('convergenceDomain', $('#convergenceDomain').val() as string);
-                this.setConfigString('convergenceKeyId', $('#convergenceKeyId').val() as string);
-                this.setConfigString('convergenceDebug', $('#convergenceDebug').val() as string);
-                this.setConfigString('convergenceIsAdmin', $('#convergenceIsAdmin').val() as string);
+
+                let convergenceDebug = ''
+                let convergenceISAdmin = ''
+                if ($('#convergenceDebug').prop("checked") == true) {
+                    convergenceDebug = "Y"
+                }
+                if ($('#convergenceIsAdmin').prop("checked") == true) {
+                    convergenceISAdmin = "Y"
+                }
+                console.log("Setting: debug=" + convergenceDebug + " admin=" + convergenceISAdmin)
+                this.setConfigString('convergenceDebug', convergenceDebug);
+                this.setConfigString('convergenceIsAdmin', convergenceISAdmin);
                 $('#Realtimedlg').foundation('close');
             });
         $('#Realtimedlg').foundation('open');

@@ -3376,8 +3376,6 @@ export class CipherHandler {
         $('#convergenceDebug').prop('checked', this.getConfigString('convergenceDebug', '') !== '');
         $('#convergenceIsAdmin').prop('checked', this.getConfigString('convergenceIsAdmin', '') !== '');
 
-        console.log("Starting: debug=" + this.getConfigString('convergenceDebug', '') + " admin=" + this.getConfigString('convergenceIsAdmin', ''))
-
         $('#convergenceProxyTestid').val(this.getConfigString('convergenceProxyTestid', ''));
         $('#convergenceProxyTeam').val(Number(this.getConfigString('convergenceProxyTeam', '')));
         $('#convergenceProxyStudent').val(Number(this.getConfigString('convergenceProxyStudent', '')));
@@ -3430,7 +3428,6 @@ export class CipherHandler {
                 if ($('#convergenceIsAdmin').prop("checked") == true) {
                     convergenceISAdmin = "Y"
                 }
-                console.log("Setting: debug=" + convergenceDebug + " admin=" + convergenceISAdmin)
                 this.setConfigString('convergenceDebug', convergenceDebug);
                 this.setConfigString('convergenceIsAdmin', convergenceISAdmin);
                 $('#Realtimedlg').foundation('close');

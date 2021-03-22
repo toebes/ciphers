@@ -153,6 +153,11 @@ export class CipherLogin extends CipherHandler {
                 const convergenceProxyUsername = this.getConfigString('convergenceProxyUsername', '');
                 const convergenceProxyIsAdmin = this.getConfigString('convergenceIsAdmin', '')
 
+                const convergenceProxyTestid = this.getConfigString('convergenceProxyTestid', '')
+                const convergenceProxyTeam = this.getConfigString('convergenceProxyTeam', '')
+                const convergenceProxyStudent = this.getConfigString('convergenceProxyStudent', '')
+                const convergenceProxyIsScilympiad = convergenceProxyTestid !== '' && convergenceProxyTeam !== '' && convergenceProxyStudent !== ''
+
                 if (
                     convergenceProxyUsername.length > 0 &&
                     convergenceUsername.length > 0 &&
@@ -163,10 +168,10 @@ export class CipherLogin extends CipherHandler {
                         convergenceUsername: convergenceUsername,
                         userid: convergenceProxyUsername,
                         isAdmin: convergenceProxyIsAdmin === "Y",
-                        sciUserId: "",
-                        sciEventId: "",
-                        sciTeamId: "",
-                        isSci: false
+                        sciEventId: convergenceProxyTestid,
+                        sciTeamId: convergenceProxyTeam,
+                        sciUserId: convergenceProxyStudent,
+                        isSci: convergenceProxyIsScilympiad
                     };
                     this.api
                         .generateSpecificUserConvergenceToken(parameters)

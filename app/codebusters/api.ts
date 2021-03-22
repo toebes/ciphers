@@ -12,11 +12,17 @@ export interface EnsureUsersExistParameters {
     usernames: string[];
 }
 
+// userId is the username field.
 export interface GenerateUserSpecificConvergenceToken {
     convergenceUsername: string;
     convergencePassword: string;
     userid: string;
     isAdmin: boolean;
+
+    sciUserId: string;
+    sciTeamId: string;
+    sciEventId: string;
+    isSci: boolean;
 }
 
 export interface StoreModelBody {
@@ -105,6 +111,10 @@ export class API {
             UserID: parameters.userid,
             Email: parameters.userid,
             IsAdmin: parameters.isAdmin,
+            SciEventId: parameters.sciEventId,
+            SciTeamId: parameters.sciTeamId,
+            SciUserId: parameters.sciUserId,
+            IsSci: parameters.isSci,
         };
 
         return new Promise((resolve, reject) => {
@@ -124,7 +134,9 @@ export class API {
                                 reject(reason);
                             });
                     } else if (response.status === 401) {
-                        reject('Login token has expired or is invalid.  Please signout and log in again');
+                        reject(
+                            'Login token has expired or is invalid.  Please signout and log in again'
+                        );
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -175,7 +187,9 @@ export class API {
                                 reject(reason);
                             });
                     } else if (response.status === 401) {
-                        reject('Login token has expired or is invalid.  Please signout and log in again');
+                        reject(
+                            'Login token has expired or is invalid.  Please signout and log in again'
+                        );
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -231,7 +245,9 @@ export class API {
                                 reject(reason);
                             });
                     } else if (response.status === 401) {
-                        reject('Login token has expired or is invalid.  Please signout and log in again');
+                        reject(
+                            'Login token has expired or is invalid.  Please signout and log in again'
+                        );
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -294,7 +310,9 @@ export class API {
                                 reject(reason);
                             });
                     } else if (response.status === 401) {
-                        reject('Login token has expired or is invalid.  Please signout and log in again');
+                        reject(
+                            'Login token has expired or is invalid.  Please signout and log in again'
+                        );
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -338,7 +356,9 @@ export class API {
                                 reject(reason);
                             });
                     } else if (response.status === 401) {
-                        reject('Login token has expired or is invalid.  Please signout and log in again');
+                        reject(
+                            'Login token has expired or is invalid.  Please signout and log in again'
+                        );
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -387,7 +407,9 @@ export class API {
                                 reject(reason);
                             });
                     } else if (response.status === 401) {
-                        reject('Login token has expired or is invalid.  Please signout and log in again');
+                        reject(
+                            'Login token has expired or is invalid.  Please signout and log in again'
+                        );
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -428,7 +450,9 @@ export class API {
                                 reject(reason);
                             });
                     } else if (response.status === 401) {
-                        reject('Login token has expired or is invalid.  Please signout and log in again');
+                        reject(
+                            'Login token has expired or is invalid.  Please signout and log in again'
+                        );
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -473,7 +497,9 @@ export class API {
                                 reject(reason);
                             });
                     } else if (response.status === 401) {
-                        reject('Login token has expired or is invalid.  Please signout and log in again');
+                        reject(
+                            'Login token has expired or is invalid.  Please signout and log in again'
+                        );
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -522,7 +548,9 @@ export class API {
                                 reject(reason);
                             });
                     } else if (response.status === 401) {
-                        reject('Login token has expired or is invalid.  Please signout and log in again');
+                        reject(
+                            'Login token has expired or is invalid.  Please signout and log in again'
+                        );
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()
@@ -576,7 +604,9 @@ export class API {
                                 reject(reason);
                             });
                     } else if (response.status === 401) {
-                        reject('Login token has expired or is invalid.  Please signout and log in again');
+                        reject(
+                            'Login token has expired or is invalid.  Please signout and log in again'
+                        );
                     } else if (!response.ok && response.body !== null) {
                         response
                             .text()

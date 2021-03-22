@@ -163,6 +163,10 @@ export class CipherLogin extends CipherHandler {
                         convergenceUsername: convergenceUsername,
                         userid: convergenceProxyUsername,
                         isAdmin: convergenceProxyIsAdmin === "Y",
+                        sciUserId: "",
+                        sciEventId: "",
+                        sciTeamId: "",
+                        isSci: false
                     };
                     this.api
                         .generateSpecificUserConvergenceToken(parameters)

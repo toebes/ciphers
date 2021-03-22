@@ -1,5 +1,5 @@
 import { CipherTestManage } from './ciphertestmanage';
-import { toolMode, IState, CipherHandler } from '../common/cipherhandler';
+import { toolMode, IState, CipherHandler, ITest } from '../common/cipherhandler';
 import { ITestState, IAnswerTemplate, ITestUser, RealtimeSinglePermission, SourceModel } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
 import {
@@ -11,10 +11,12 @@ import {
     timestampToFriendly,
     makeCallout,
     timestampFromWeeks,
+    timestampToISOLocalString,
+    StringMap,
 } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRow, JTTable } from '../common/jttable';
-import { ConvergenceDomain, RealTimeModel, ModelService, ModelPermissions } from '@convergence/convergence';
+import { ConvergenceDomain, RealTimeModel, ModelService, ModelPermissions, PagedData } from '@convergence/convergence';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFDialog } from '../common/jtfdialog';
 
@@ -33,6 +35,7 @@ import * as XLSX from 'xlsx';
 export class CipherTestSchedule extends CipherTestManage {
     public activeToolMode: toolMode = toolMode.codebusters;
     public answerTemplate: IAnswerTemplate = undefined;
+    private sourceModel: SourceModel = undefined;
 
     public defaultstate: ITestState = {
         cipherString: '',
@@ -42,13 +45,14 @@ export class CipherTestSchedule extends CipherTestManage {
     public cmdButtons: JTButtonItem[] = [
         { title: 'Add One', color: 'primary', id: 'addsched' },
         { title: 'Import Schedule', color: 'primary', id: 'importsched' },
+        { title: 'Schedule for Scilympiad', color: 'primary', id: 'schedsci' },
         { title: 'Reschedule All', color: 'primary', id: 'propsched' },
         { title: 'Save All', color: 'primary', id: 'savesched', disabled: true },
         { title: 'Delete All', color: 'alert', id: 'delallsched' },
         { title: 'Fix Permissions', color: 'primary', id: 'fixpermissions' },
     ];
 
-    public testmodelid = undefined;
+    public testmodelid: string = undefined;
 
     constructor() {
         super();
@@ -106,14 +110,18 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param sourcemodelid Source test to open
      */
     private openTestSource(modelService: ModelService, sourcemodelid: string): void {
-        this.getRealtimeElementMetadata('sourcemodel', sourcemodelid)
-            .then((metadata) => {
-                const testmodelid = metadata.testid;
-                this.testmodelid = testmodelid;
-                $("#title").val(metadata.title);
-                this.getRealtimeAnswerTemplate(metadata.answerid).then((answertemplate) => {
+        this.getRealtimeSource(sourcemodelid)
+            .then((sourceModel) => {
+                this.sourceModel = sourceModel
+                if (this.sourceModel.sciTestCount <= 0) {
+                    this.sourceModel.sciTestCount = undefined;
+                }
+                this.testmodelid = sourceModel.testid;
+                const testInfo = sourceModel.source['TEST.0'] as ITest
+                $("#title").val(testInfo.title);
+                this.getRealtimeAnswerTemplate(sourceModel.answerid).then((answertemplate) => {
                     this.answerTemplate = answertemplate;
-                    this.findScheduledTests(modelService, testmodelid, metadata.answerid);
+                    this.findScheduledTests(modelService, this.testmodelid, sourceModel.answerid);
                 });
             })
             .catch((error) => {
@@ -130,7 +138,7 @@ export class CipherTestSchedule extends CipherTestManage {
             // Get the model
             this.getRealtimeSource(this.state.testID).then((model: SourceModel) => {
                 // Update the title with what we have it changed to
-                model.source['TEST.0'].title = title;
+                (model.source['TEST.0'] as ITest).title = title;
                 // And then save it
                 this.saveRealtimeSource(model, this.state.testID).catch((error) => { this.reportFailure("Error setting title:" + error) })
             }).catch((error) => { this.reportFailure("Error reading model:" + error) })
@@ -143,32 +151,45 @@ export class CipherTestSchedule extends CipherTestManage {
      * @param datetime Date/time value to initialize the field with
      * @returns HTML Element for the created field
      */
-    public dateTimeInput(id: string, datetime: number): JQuery<HTMLElement> {
+    public dateTimeInput(id: string, datetime: number, extraclass: string): JQuery<HTMLElement> {
         const dateval = new Date(datetime).toISOString();
         const result = $('<span/>').append(
             $('<input/>', {
                 type: 'datetime-local',
                 id: id,
                 step: 0,
-                class: 'datetimepick',
+                class: 'datetimepick' + extraclass,
                 value: dateval,
             })
         );
         return result;
     }
+
+    //
+    // Scilympiad -- disable delete/save buttons  
+    //               Hide takers column
+    //               Start time is output field
+    //               Test duration is output field
+    //               Timed quesiton is output field
+    //               Team name is output field
+    //               Hide team type
     /**
      * createTestTable creates the test table for displaying all active tests
      */
     private createTestTable(): JTTable {
         const table = new JTTable({ class: 'cell shrink publist' });
         const row = table.addHeaderRow();
+        let hideClass = ""
+        if (this.sourceModel.sciTestCount != undefined) {
+            hideClass = "hidden"
+        }
         row.add('Action')
-            .add('Takers')
+            .add({ settings: { class: hideClass }, content: 'Takers' })
             .add('Start Time')
             .add('Test Duration')
             .add('Timed Question')
             .add('Team Name')
-            .add('Team Type');
+            .add({ settings: { class: hideClass }, content: 'Team Type' });
         return table;
     }
     /**
@@ -180,22 +201,30 @@ export class CipherTestSchedule extends CipherTestManage {
      */
     private populateRow(row: JTRow, rownum: number, answerModelID: string, answertemplate: IAnswerTemplate): void {
         const rowID = String(rownum);
-        row.attr({ id: 'R' + rowID, 'data-source': answerModelID });
+        let rowclass = ""
+        if (this.sourceModel.sciTestCount !== undefined) {
+            rowclass = "sci"
+        }
+        const deleteButton = $('<a/>', {
+            type: 'button',
+            class: 'pubdel alert button',
+        }).text('Delete')
+        if (this.sourceModel.sciTestCount > 0) {
+            deleteButton.attr('disabled', 'disabled')
+        }
+
+        row.attr({ id: 'R' + rowID, 'data-source': answerModelID, class: rowclass });
+
         const buttons = $('<div/>', { class: 'button-group round shrink' });
-        buttons.append(
-            $('<a/>', {
-                type: 'button',
-                class: 'pubdel alert button',
-            }).text('Delete')
-        );
-        buttons.append(
-            $('<a/>', {
-                type: 'button',
-                class: 'pubsave primary button',
-                id: 'SV' + rowID,
-                disabled: 'disabled',
-            }).text('Save')
-        );
+        buttons.append(deleteButton)
+            .append(
+                $('<a/>', {
+                    type: 'button',
+                    class: 'pubsave primary button',
+                    id: 'SV' + rowID,
+                    disabled: 'disabled',
+                }).text('Save')
+            );
         const userids = ['', '', ''];
         for (const i in answertemplate.assigned) {
             userids[i] = answertemplate.assigned[i].userid;
@@ -210,17 +239,35 @@ export class CipherTestSchedule extends CipherTestManage {
             (answertemplate.endtimed - answertemplate.starttime) / timestampFromMinutes(1)
         );
         row.add(buttons)
-            .add(
-                $('<div>')
-                    .append($('<input/>', { type: 'text', id: 'U0_' + rowID, value: userids[0] }))
-                    .append($('<input/>', { type: 'text', id: 'U1_' + rowID, value: userids[1] }))
-                    .append($('<input/>', { type: 'text', id: 'U2_' + rowID, value: userids[2] }))
+        if (this.sourceModel.sciTestCount > 0) {
+            row.add({
+                settings: { class: "hidden" }, content:
+                    $('<div>')
+                        .append($('<input/>', { type: 'hidden', id: 'U0_' + rowID, value: userids[0] }))
+                        .append($('<input/>', { type: 'hidden', id: 'U1_' + rowID, value: userids[1] }))
+                        .append($('<input/>', { type: 'hidden', id: 'U2_' + rowID, value: userids[2] }))
+                        .append($('<input/>', { type: 'hidden', id: 'S_' + rowID, value: timestampToFriendly(answertemplate.starttime) }))
+                        .append($('<input/>', { type: 'hidden', id: 'C_' + rowID, value: answertemplate.teamtype }))
+                        .append($('<input/>', { type: 'hidden', id: 'N_' + rowID, value: answertemplate.teamname }))
+                        .append($('<input/>', { type: 'hidden', id: 'D_' + rowID, value: testlength }))
+                        .append($('<input/>', { type: 'hidden', id: 'T_' + rowID, value: timedlength }))
+            })
+                .add($('<input/>', { type: 'text', readonly: true, value: timestampToFriendly(answertemplate.starttime) }))
+                .add(JTFLabeledInput('Test Duration', 'readonly', '', testlength, 'kval small-1'))
+                .add(JTFLabeledInput('Timed Limit', 'readonly', '', timedlength, 'kval small-1'))
+                .add($('<input/>', { type: 'text', readonly: true, value: answertemplate.teamname }))
+        } else {
+            row.add($('<div>')
+                .append($('<input/>', { type: 'text', id: 'U0_' + rowID, value: userids[0] }))
+                .append($('<input/>', { type: 'text', id: 'U1_' + rowID, value: userids[1] }))
+                .append($('<input/>', { type: 'text', id: 'U2_' + rowID, value: userids[2] }))
             )
-            .add(this.dateTimeInput('S_' + rowID, answertemplate.starttime))
-            .add(JTFIncButton('Test Duration', 'D_' + rowID, testlength, 'kval small-1'))
-            .add(JTFIncButton('Timed Limit', 'T_' + rowID, timedlength, 'kval small-1'))
-            .add($('<input/>', { type: 'text', id: 'N_' + rowID, value: answertemplate.teamname }))
-            .add($('<input/>', { type: 'text', id: 'C_' + rowID, value: answertemplate.teamtype }));
+                .add(this.dateTimeInput('S_' + rowID, answertemplate.starttime, ''))
+                .add(JTFIncButton('Test Duration', 'D_' + rowID, testlength, 'kval small-1'))
+                .add(JTFIncButton('Timed Limit', 'T_' + rowID, timedlength, 'kval small-1'))
+                .add($('<input/>', { type: 'text', id: 'N_' + rowID, value: answertemplate.teamname }))
+                .add($('<input/>', { type: 'text', id: 'C_' + rowID, value: answertemplate.teamtype }));
+        }
     }
     /**
      * findScheduledTests finds all the tests scheduled for a given test template and populates the UI with them
@@ -237,14 +284,31 @@ export class CipherTestSchedule extends CipherTestManage {
             ) // This stays using convergence
             .then((results) => {
                 let total = 0;
-                results.data.forEach((result) => {
-                    const answertemplate = result.data as IAnswerTemplate;
-                    if (result.modelId !== answertempateid) {
-                        this.addUITestEntry(result.modelId, answertemplate);
-                        // Keep track of how many entries we created
+                if (this.sourceModel.sciTestCount !== undefined) {
+                    // If we are using Scilympiad then we have to sort the results.
+                    let orderedMap: { [index: string]: IAnswerTemplate } = {}
+                    let modelMap: StringMap = {}
+                    results.data.forEach((result) => {
+                        const answertemplate = result.data as IAnswerTemplate;
+                        orderedMap[answertemplate.teamname] = answertemplate
+                        modelMap[answertemplate.teamname] = result.modelId;
                         total++;
+                    });
+                    for (let team = 1; team <= total; team++) {
+                        let teamname = 'Team ' + String(team)
+                        this.addUITestEntry(modelMap[teamname], orderedMap[teamname]);
                     }
-                });
+                }
+                else {
+                    results.data.forEach((result) => {
+                        const answertemplate = result.data as IAnswerTemplate;
+                        if (result.modelId !== answertempateid) {
+                            this.addUITestEntry(result.modelId, answertemplate);
+                            // Keep track of how many entries we created
+                            total++;
+                        }
+                    });
+                }
                 // If we don't generate a table, we need to put something there to tell the user
                 // that there are no tests scheduled.
                 if (total === 0) {
@@ -252,6 +316,7 @@ export class CipherTestSchedule extends CipherTestManage {
                         $('<div/>', { class: 'callout warning' }).text('No tests scheduled')
                     );
                 }
+                this.updateCommandButtons();
                 this.attachHandlers();
             })
             .catch((error) => {
@@ -352,8 +417,8 @@ export class CipherTestSchedule extends CipherTestManage {
      * Once the delete is complete, it processes the next entry.
      * @param modelService Domain Model service object for making requests
      */
-    public deleteFirstEntry(modelService: ModelService): void {
-        const rows = $('tr[id^="R"]')
+    public deleteFirstRequested(modelService: ModelService): void {
+        const rows = $('tr[id^="R"].dodel')
         if (rows.length > 0) {
             const tr = $(rows[0])
             const modelid = tr.attr('data-source') as string;
@@ -361,7 +426,7 @@ export class CipherTestSchedule extends CipherTestManage {
 
             this.showDelete(modelService, modelid, rowid).then(() => {
                 tr.remove();
-                setTimeout(() => { this.deleteFirstEntry(modelService) }, 100);
+                setTimeout(() => { this.deleteFirstRequested(modelService) }, 100);
             }).catch((error) => {
                 this.reportFailure('Could not remove ' + modelid + ' ' + error);
             });
@@ -378,7 +443,8 @@ export class CipherTestSchedule extends CipherTestManage {
             .on('click', () => {
                 this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                     const modelService = domain.models();
-                    this.deleteFirstEntry(modelService);
+                    $('tr[id^="R"]').addClass("dodel");
+                    this.deleteFirstRequested(modelService);
                 });
                 $('#delalldlg').foundation('close');
             });
@@ -448,12 +514,34 @@ export class CipherTestSchedule extends CipherTestManage {
     /**
      * markSaveAll sets the save all button based on the state of anything else needed to be saved.
      */
-    public markSaveAll(): void {
-        const unsaved = $('.pubsave:not([disabled])')
-        if (unsaved.length > 0) {
-            $('#savesched').removeAttr('disabled');
+    public updateCommandButtons(): void {
+        if (this.sourceModel.sciTestCount === undefined) {
+            const unsaved = $('.pubsave:not([disabled])')
+            if (unsaved.length > 0) {
+                $('#savesched').removeAttr('disabled');
+            } else {
+                $('#savesched').attr('disabled', 'disabled')
+            }
+
+            $('#addsched').removeAttr('disabled')// Add One
+            $('#importsched').removeAttr('disabled')      // Import Schedule
+            // We can only schedule for Scilympiad if there are no tests scheduled
+            // Likewise you can't only delete tests if we have some
+            if ($('.publist').length === 0) {
+                $('#schedsci').removeAttr('disabled')               // Schedule for Scilympiad
+                $('#delallsched').attr('disabled', 'disabled') // Delete All
+                $('#propsched').attr('disabled', 'disabled')// Reschedule All
+            } else {
+                $('#schedsci').attr('disabled', 'disabled') // Schedule for Scilympiad
+                $('#delallsched').removeAttr('disabled') // Delete All
+                $('#propsched').removeAttr('disabled')// Reschedule All
+            }
         } else {
-            $('#savesched').attr('disabled', 'disabled')
+            $('#addsched').attr('disabled', 'disabled')          // Add One
+            $('#importsched').attr('disabled', 'disabled')       // Import Schedule
+            $('#propsched').attr('disabled', 'disabled')// Reschedule All
+            $('#savesched').attr('disabled', 'disabled')// Save All
+            $('#delallsched').attr('disabled', 'disabled') // Delete All
         }
     }
     /**
@@ -464,7 +552,7 @@ export class CipherTestSchedule extends CipherTestManage {
         const siblings = $('#SV' + id).closest("tr").find(".bademail")
         if (siblings.length === 0) {
             $('#SV' + id).removeAttr('disabled');
-            this.markSaveAll();
+            this.updateCommandButtons();
         }
     }
     /**
@@ -817,12 +905,97 @@ export class CipherTestSchedule extends CipherTestManage {
         }
         return String(newRowID)
     }
+    /**
+     * 
+     */
+    public setScilympiadSchedule(): void {
+        // See if the number is different 
+        const currentTestCount = $('.publist tr.sci').length
+        let newTestCount = 0;
+        if (this.sourceModel !== undefined && this.sourceModel.sciTestCount !== undefined) {
+            newTestCount = this.sourceModel.sciTestCount
+        }
 
+        if (newTestCount < currentTestCount) {
+            // Go through and mark the records for deletion and then process it
+            for (let i = newTestCount; i < currentTestCount; i++) {
+                $("tr#R" + String(i)).addClass('dodel')
+            }
+            // Ok we have everything we want to go away set, so let the delete process run
+            this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+                const modelService = domain.models();
+                this.deleteFirstRequested(modelService)
+            });
+        } else if (newTestCount > currentTestCount) {
+            for (let teamNumber = currentTestCount; teamNumber < newTestCount; teamNumber++) {
+                let teamStr = String(teamNumber + 1);
+                let userBase = this.state.testID + "-" + teamStr + "-"
+                const answertemplate: IAnswerTemplate = {
+                    testid: "",
+                    starttime: this.sourceModel.sciTestTime,
+                    endtime: this.sourceModel.sciTestTime + timestampFromMinutes(this.sourceModel.sciTestLength),
+                    endtimed: this.sourceModel.sciTestTime + timestampFromMinutes(this.sourceModel.sciTestTimed),
+                    answers: [],
+                    assigned: [{ userid: userBase + "1" }, { userid: userBase + "2" }, { userid: userBase + "3" }],
+                    teamname: "Team " + teamStr,
+                    teamtype: ""
+                }
+                const newRowID = this.addUITestEntry("", answertemplate);
+                this.setDirty(newRowID);
+            }
+            this.attachHandlers();
+            // Now that it is added, queue the process to save everything marked dirty
+            this.saveAllDirty();
+        }
+
+    }
     /**
      * Import a schedule
      */
     public importSchedule(): void {
         this.openXMLImport(true);
+    }
+    /**
+     * Schedules a test for Scilympiad
+     */
+    public ScheduleScilympiad(): void {
+        $('#oksci')
+            .removeAttr('disabled')
+            .off('click')
+            .on('click', () => {
+                let teams = Number($("#sciteams").val());
+                if (teams <= 0) {
+                    this.sourceModel.sciTestCount = undefined;
+                } else {
+                    this.sourceModel.sciTestCount = teams;
+                }
+                this.sourceModel.sciTestLength = Number($("#sciduration").val());
+                this.sourceModel.sciTestTimed = Number($("#scitimed").val());
+                this.sourceModel.sciTestTime = Number($("#scistart").val());
+                // Save the source Model
+                this.saveRealtimeSource(this.sourceModel, this.state.testID)
+                this.setScilympiadSchedule();
+
+                $('#schedscidlg').foundation('close');
+            })
+        // We need to populate the dialog with the right information
+        // we pick some reasonable defaults if nothing is already specified
+        let startTime = Date.now() + timestampFromMinutes(30)
+        let testLength = 50
+        let timedLength = 10
+        let testCount = 24
+        if (this.sourceModel !== undefined && this.sourceModel.sciTestCount !== undefined) {
+            startTime = this.sourceModel.sciTestTime
+            testCount = this.sourceModel.sciTestCount
+            testLength = this.sourceModel.sciTestLength
+            timedLength = this.sourceModel.sciTestTimed
+        }
+        $("#scistart").val(startTime);
+        $("#sciduration").val(testLength);
+        $("#scitimed").val(timedLength);
+        $("#sciteams").val(testCount);
+        // Put up the dialog to ask them.
+        $('#schedscidlg').foundation('open');
     }
     /**
      * Creates convergence domain users if they do not exist already.
@@ -848,7 +1021,7 @@ export class CipherTestSchedule extends CipherTestManage {
      */
     public saveTestModelPermissions(): void {
         const testmodelid = this.testmodelid;
-        this.markSaveAll();
+        this.updateCommandButtons();
         // Go through all of the UI Elements and gather the email addresses
         const usermap: BoolMap = { globalPermissionId: true }
         $('input[id^="U"]').each((_i, elem) => {
@@ -1070,16 +1243,8 @@ export class CipherTestSchedule extends CipherTestManage {
             .on('click', () => {
                 this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                     const modelService = domain.models();
-                    // Change the button to show that it is being deleted 
-                    this.showDelete(modelService, modelid, id)
-                        .then(() => {
-                            if ($('tr[id^="R"]').length === 0) {
-                                this.updateOutput();
-                            }
-                        })
-                        .catch((error) => {
-                            this.reportFailure('Could not remove ' + modelid + ' ' + error);
-                        });
+                    $('tr#R' + String(id)).addClass('dodel');
+                    this.deleteFirstRequested(modelService);
                 });
                 $('#delscheddlg').foundation('close');
             });
@@ -1147,6 +1312,35 @@ export class CipherTestSchedule extends CipherTestManage {
         return PropagateScheduleDlg;
     }
     /**
+     * Creates the dialog for scheduling a scilympiad test
+     * @returns HTML DOM element for dialog
+     */
+    private createScheduleScilympiadDlg(): JQuery<HTMLElement> {
+
+        const dlgContents = $("<div/>")
+            .append($('<div/>', {
+                class: 'callout alert',
+            }).text(
+                'This manages the tests on the Codebusters platform.  Once all the tests have been created, you need to copy the testid to the Scilympiad platform.'
+            ))
+            .append($("<div/>"))
+            .append($("<div/>", { class: 'cell' })
+                .append($('<div/>', { class: 'input-group' })
+                    .append($('<span/>', { class: 'input-group-label' }).text('Start Time'))
+                    .append(this.dateTimeInput('scistart', Date.now(), ' input-group-field'))))
+            .append(JTFIncButton('Test Duration', 'sciduration', 0, ''))
+            .append(JTFIncButton('Timed Limit', 'scitimed', 0, ''))
+            .append(JTFIncButton('Number of Teams', 'sciteams', 0, ''))
+        const ScheduleScilympiadDlg = JTFDialog(
+            'schedscidlg',
+            'Schedule for Scilympiad',
+            dlgContents,
+            'oksci',
+            'Schedule'
+        );
+        return ScheduleScilympiadDlg;
+    }
+    /**
      * Create the main menu at the top of the page.
      * This also creates the hidden dialog used for deleting ciphers
      * @returns DOM element to put at the top
@@ -1157,7 +1351,8 @@ export class CipherTestSchedule extends CipherTestManage {
         result
             .append(this.createDeleteAllDlg())
             .append(this.createDeleteScheduledDlg())
-            .append(this.createPropagateScheduledDlg());
+            .append(this.createPropagateScheduledDlg())
+            .append(this.createScheduleScilympiadDlg())
         return result;
     }
     /**
@@ -1208,8 +1403,12 @@ export class CipherTestSchedule extends CipherTestManage {
      */
     public getRowID(elem: JQuery<HTMLElement>): string {
         const tr = elem.closest('tr');
-        const id = tr.attr('id') as string;
-        return id.substr(1);
+        let rowid = "";
+        if (tr.length > 0) {
+            const id = tr.attr('id') as string;
+            rowid = id.substr(1);
+        }
+        return rowid;
     }
     /**
      * Locate the model id for an element.  This looks for the data-source attribute of the containing TR
@@ -1222,6 +1421,9 @@ export class CipherTestSchedule extends CipherTestManage {
         return id;
     }
     public isValidEmailAddress(emailAddress: string): boolean {
+        if (this.sourceModel.sciTestCount != undefined) {
+            return true;
+        }
         var pattern = /^([a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+(\.[a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+)*|"((([ \t]*\r\n)?[ \t]+)?([\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*(([ \t]*\r\n)?[ \t]+)?")@(([a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.)+([a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.?$/i;
         return pattern.test(emailAddress);
     }
@@ -1259,6 +1461,11 @@ export class CipherTestSchedule extends CipherTestManage {
             .off('click')
             .on('click', () => {
                 this.importSchedule();
+            });
+        $('#schedsci')
+            .off('click')
+            .on('click', () => {
+                this.ScheduleScilympiad();
             });
         $('input[id^="N_"]')
             .off('change')

@@ -8,10 +8,11 @@ import {
     IInteractiveTest,
     ITestQuestionFields,
     ITestTimeInfo,
+    ITest,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
-import { CipherTest, ITestState, IAnswerTemplate } from './ciphertest';
+import { CipherTest, ITestState, IAnswerTemplate, sourceTestData } from './ciphertest';
 import { CipherPrintFactory } from './cipherfactory';
 import { TrueTime } from '../common/truetime';
 import { JTFDialog } from '../common/jtfdialog';
@@ -241,7 +242,7 @@ export class CipherTestInteractive extends CipherTest {
      * @param testData Test Data source
      * @param field Model field to look for
      */
-    private getModelId(testData: any, field: string): string {
+    private getModelId(testData: sourceTestData, field: string): string {
         let result: string = undefined;
         if (testData.hasOwnProperty('TEST.0') && testData['TEST.0'].hasOwnProperty(field)) {
             result = testData['TEST.0'][field];
@@ -258,7 +259,7 @@ export class CipherTestInteractive extends CipherTest {
      * @param answerdata Interactive test answer data
      * @param testData Test data source
      */
-    public saveModels(elem: JQuery<HTMLElement>, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any): void {
+    public saveModels(elem: JQuery<HTMLElement>, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: sourceTestData): void {
         // First we will need to test to see if the model exists.  This will get us to one of several options.
         // 1) The model already exists and we have permission to access it.
         //     Give them a choice to overwrite the existing model, create a new model or go back to editing the test.
@@ -294,8 +295,8 @@ export class CipherTestInteractive extends CipherTest {
      * @param testData Test data source
      * @param elem DOM location to put any output
      */
-    private checkModel(modelType: string, modelRef: string, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>,
-        nextStep: (interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: any, elem: JQuery<HTMLElement>) => void
+    private checkModel(modelType: string, modelRef: string, interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: sourceTestData, elem: JQuery<HTMLElement>,
+        nextStep: (interactive: IInteractiveTest, answerdata: ITestQuestionFields[], testData: sourceTestData, elem: JQuery<HTMLElement>) => void
     ): void {
         // Figure out the ID for the type of model that we want to check
         const modelid = this.getModelId(testData, modelRef);
@@ -357,7 +358,7 @@ export class CipherTestInteractive extends CipherTest {
         canoverwrite: boolean,
         interactive: IInteractiveTest,
         answerdata: ITestQuestionFields[],
-        testData: any,
+        testData: sourceTestData,
         elem: JQuery<HTMLElement>
     ): void {
         // We have to track whether they clicked on one of the buttons so that when the dialog comes down
@@ -369,9 +370,9 @@ export class CipherTestInteractive extends CipherTest {
                 actiontaken = true;
                 $('#savechoicedlg').foundation('close');
                 // Wipe out existence of any previous test model so that we generate a new one.
-                delete testData['TEST.0'].answermodelid;
-                delete testData['TEST.0'].testmodelid;
-                delete testData['TEST.0'].sourcemodelid;
+                delete (testData['TEST.0'] as ITest).answermodelid;
+                delete (testData['TEST.0'] as ITest).testmodelid;
+                delete (testData['TEST.0'] as ITest).sourcemodelid;
                 this.SaveTestTemplate(interactive, answerdata, testData, elem);
             });
         $('#okover')
@@ -457,7 +458,7 @@ export class CipherTestInteractive extends CipherTest {
     private SaveTestTemplate(
         interactive: IInteractiveTest,
         answerdata: ITestQuestionFields[],
-        testData: any,
+        testData: sourceTestData,
         elem: JQuery<HTMLElement>
     ): void {
         // See if we are overwriting an existing model
@@ -465,7 +466,7 @@ export class CipherTestInteractive extends CipherTest {
         this.saveRealtimeTestModel(interactive, testmodelid)
             .then((modelid) => {
                 // The test template has been created, so remember where it is
-                testData['TEST.0'].testmodelid = modelid;
+                (testData['TEST.0'] as ITest).testmodelid = modelid;
                 // We shouldn't have to set permissions since by default the creator gets them all, but
                 // leave the code here just in case we need it
                 // this.updateRealtimePermissions(modelid, "", { read: true, write: true, remove: true, manage: true })
@@ -485,7 +486,7 @@ export class CipherTestInteractive extends CipherTest {
      */
     private saveAnswerTemplate(
         answerdata: ITestQuestionFields[],
-        testData: any,
+        testData: sourceTestData,
         elem: JQuery<HTMLElement>
     ): void {
         // Assume that the test can start never as this is only the answer template
@@ -505,7 +506,7 @@ export class CipherTestInteractive extends CipherTest {
         const answerModelID = this.getModelId(testData, 'answermodelid');
         this.saveRealtimeAnswerTemplate(data, answerModelID)
             .then((modelid) => {
-                testData['TEST.0'].answermodelid = modelid;
+                (testData['TEST.0'] as ITest).answermodelid = modelid;
                 // We shouldn't have to set permissions since by default the creator gets them all, but
                 // leave the code here just in case we need it
                 // this.updateRealtimePermissions(modelid, "", { read: true, write: true, remove: true, manage: true })
@@ -521,7 +522,7 @@ export class CipherTestInteractive extends CipherTest {
      * @param elem DOM location to put any output
      */
     private saveTestSource(
-        testData: any,
+        testData: sourceTestData,
         elem: JQuery<HTMLElement>
     ): void {
         const data = {
@@ -535,7 +536,7 @@ export class CipherTestInteractive extends CipherTest {
         const sourcemodelid = this.getModelId(testData, 'sourcemodelid');
         this.saveRealtimeSource(data, sourcemodelid)
             .then((modelid) => {
-                testData['TEST.0'].sourcemodelid = modelid;
+                (testData['TEST.0'] as ITest).sourcemodelid = modelid;
                 // We shouldn't have to set permissions since by default the creator gets them all, but
                 // leave the code here just in case we need it
                 // this.updateRealtimePermissions(modelid, "", { read: true, write: true, remove: true, manage: true })
@@ -550,7 +551,7 @@ export class CipherTestInteractive extends CipherTest {
      * @param testData Test data source
      * @param elem DOM location to put any output
      */
-    private finalizeSave(testData: any, elem: JQuery<HTMLElement>): void {
+    private finalizeSave(testData: sourceTestData, elem: JQuery<HTMLElement>): void {
         // Now that we have all the information about where it is stored on the server,
         // write it back to the local test entry
         const testentry = this.getTestEntry(this.state.test);

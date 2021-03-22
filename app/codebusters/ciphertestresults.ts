@@ -512,7 +512,7 @@ export class CipherTestResults extends CipherTestManage {
         if (timeQuestion != -1) {
             testResultsData.hasTimed = true;
             const question = 'CIPHER.' + timeQuestion;
-            const state = sourcemodel.source[question];
+            const state = sourcemodel.source[question] as IState;
             const ihandler = CipherPrintFactory(state.cipherType, state.curlang);
             ihandler.restore(state, true);
             scoreInformation = ihandler.genScore(answers[0].answer);
@@ -548,7 +548,7 @@ export class CipherTestResults extends CipherTestManage {
             // contain the timed question.
             const question = 'CIPHER.' + questions[i - 1].toString();
 
-            const state = sourcemodel.source[question];
+            const state = sourcemodel.source[question] as IState;
             const ihandler = CipherPrintFactory(state.cipherType, state.curlang);
             ihandler.restore(state, true);
 

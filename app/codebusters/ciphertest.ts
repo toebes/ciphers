@@ -53,8 +53,27 @@ export interface IRealtimeMetaData {
     dateCreated: number;
     createdBy: string;
 }
+export type sourceTestData = { [key: string]: IState | ITest };
 export interface SourceModel {
-    [key: string]: any;
+    // Model id of the test model
+    testid?: modelID;
+    // Model id of the answer template
+    answerid?: modelID;
+    // User id of the person creating the test
+    creator?: string;
+    // Number of teams taking this test on Scilympiad - 0 or undefined means it is not
+    // using that platform
+    sciTestCount?: number;
+    // Time test is scheduled to start on Scilympiad
+    sciTestTime?: number;
+    // Length of the test on Scilympiad
+    sciTestLength?: number;
+    // Amount of time for the timed question on Scilympiad
+    sciTestTimed?: number;
+    // The source for the test.  This is a set of mapped elements where 
+    //  .source['TEST.0']  is the test information
+    //  .source['CIPHER.x'] is the individual cipher questions.
+    source?: sourceTestData;
 }
 
 export const globalPermissionId = 'GLOBAL';
@@ -795,7 +814,7 @@ export class CipherTest extends CipherHandler {
      * @param ID Model to be updated (empty to create a new one)
      * @returns Promise to ID of model updated
      */
-    public saveRealtimeSource(testsource: any, id: modelID): Promise<modelID> {
+    public saveRealtimeSource(testsource: SourceModel, id: modelID): Promise<modelID> {
         if (id === '') {
             id = undefined;
         }
@@ -962,7 +981,7 @@ export class CipherTest extends CipherHandler {
      * @param test Test to generate data for
      * @returns string form of the JSON for the test
      */
-    public generateTestData(test: ITest): any {
+    public generateTestData(test: ITest): sourceTestData {
         const result = {};
         result['TEST.0'] = test;
 

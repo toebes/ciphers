@@ -14,6 +14,7 @@ import { textStandard } from '../common/readability';
 import { RealTimeObject } from '@convergence/convergence';
 import { TrueTime } from './truetime';
 import { API } from '../codebusters/api';
+import { JTFIncButton } from './jtfIncButton';
 
 export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
@@ -3166,8 +3167,8 @@ export class CipherHandler {
             .append(JTFLabeledInput('Realtime Domain:', 'text', 'convergenceDomain', '', ''))
             .append(JTFLabeledInput('Proxy Username:', 'text', 'convergenceProxyUsername', '', ''))
             .append(JTFLabeledInput('Proxy Testid:', 'text', 'convergenceProxyTestid', '', ''))
-            .append(JTFLabeledInput('Proxy Team:', 'number', 'convergenceProxyTeam', '', ''))
-            .append(JTFLabeledInput('Proxy Student:', 'number', 'convergenceProxyStudent', '', ''))
+            .append(JTFIncButton('Proxy Team:', 'convergenceProxyTeam', 0, ''))
+            .append(JTFIncButton('Proxy Student:', 'convergenceProxyStudent', 0, ''))
             .append($("<div/>", { class: "grid-x" })
                 .append(JTFLabeledInput('Debug:', 'checkbox', 'convergenceDebug', '', 'large-6'))
                 .append(JTFLabeledInput('Admin:', 'checkbox', 'convergenceIsAdmin', '', 'large-6')))

@@ -240,13 +240,14 @@ export class CipherTestSchedule extends CipherTestManage {
         );
         row.add(buttons)
         if (this.sourceModel.sciTestCount > 0) {
+            const dateval = new Date(answertemplate.starttime).toISOString();
             row.add({
                 settings: { class: "hidden" }, content:
                     $('<div>')
                         .append($('<input/>', { type: 'hidden', id: 'U0_' + rowID, value: userids[0] }))
                         .append($('<input/>', { type: 'hidden', id: 'U1_' + rowID, value: userids[1] }))
                         .append($('<input/>', { type: 'hidden', id: 'U2_' + rowID, value: userids[2] }))
-                        .append($('<input/>', { type: 'hidden', id: 'S_' + rowID, value: timestampToFriendly(answertemplate.starttime) }))
+                        .append($('<input/>', { type: 'hidden', id: 'S_' + rowID, value: dateval }))
                         .append($('<input/>', { type: 'hidden', id: 'C_' + rowID, value: answertemplate.teamtype }))
                         .append($('<input/>', { type: 'hidden', id: 'N_' + rowID, value: answertemplate.teamname }))
                         .append($('<input/>', { type: 'hidden', id: 'D_' + rowID, value: testlength }))
@@ -971,7 +972,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 }
                 this.sourceModel.sciTestLength = Number($("#sciduration").val());
                 this.sourceModel.sciTestTimed = Number($("#scitimed").val());
-                this.sourceModel.sciTestTime = Number($("#scistart").val());
+                this.sourceModel.sciTestTime = Date.parse($("#scistart").val() as string);
                 // Save the source Model
                 this.saveRealtimeSource(this.sourceModel, this.state.testID)
                 this.setScilympiadSchedule();

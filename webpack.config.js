@@ -782,6 +782,14 @@ module.exports = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'Scilympiad.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'TestManage.html'),
+            chunks: ['codebusters'],
+            cipher: 'Scilympiad',
+            title: 'Take a Scilympiad Test',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'Login.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Login.html'),
             chunks: ['codebusters'],

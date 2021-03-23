@@ -112,6 +112,8 @@ export interface ITestState extends IState {
     testtype?: ITestType;
     /** UID of the interactive test to run  */
     testID?: string;
+    /** JWT for authenticating a user */
+    jwt?: string;
 }
 
 interface INewCipherEntry {

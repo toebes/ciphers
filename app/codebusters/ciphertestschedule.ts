@@ -11,7 +11,6 @@ import {
     timestampToFriendly,
     makeCallout,
     timestampFromWeeks,
-    timestampToISOLocalString,
     StringMap,
 } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -25,6 +24,7 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { EnsureUsersExistParameters } from './api';
 
 import * as XLSX from 'xlsx';
+import { Instance } from 'flatpickr/dist/types/instance';
 
 /**
  * CipherTestScheduled
@@ -129,6 +129,13 @@ export class CipherTestSchedule extends CipherTestManage {
             });
     }
     /**
+     * 
+     * @returns Boolean indicating that this is an active Scilympiad test
+     */
+    public isScilympiad(): boolean {
+        return (this.sourceModel !== undefined && this.sourceModel.sciTestCount !== undefined);
+    }
+    /**
      * setTitle updates the title on a source model associated with the current test
      * @param title New title to apply to the model
      */
@@ -180,7 +187,7 @@ export class CipherTestSchedule extends CipherTestManage {
         const table = new JTTable({ class: 'cell shrink publist' });
         const row = table.addHeaderRow();
         let hideClass = ""
-        if (this.sourceModel.sciTestCount != undefined) {
+        if (this.isScilympiad()) {
             hideClass = "hidden"
         }
         row.add('Action')
@@ -202,14 +209,14 @@ export class CipherTestSchedule extends CipherTestManage {
     private populateRow(row: JTRow, rownum: number, answerModelID: string, answertemplate: IAnswerTemplate): void {
         const rowID = String(rownum);
         let rowclass = ""
-        if (this.sourceModel.sciTestCount !== undefined) {
+        if (this.isScilympiad()) {
             rowclass = "sci"
         }
         const deleteButton = $('<a/>', {
             type: 'button',
             class: 'pubdel alert button',
         }).text('Delete')
-        if (this.sourceModel.sciTestCount > 0) {
+        if (this.isScilympiad()) {
             deleteButton.attr('disabled', 'disabled')
         }
 
@@ -239,7 +246,7 @@ export class CipherTestSchedule extends CipherTestManage {
             (answertemplate.endtimed - answertemplate.starttime) / timestampFromMinutes(1)
         );
         row.add(buttons)
-        if (this.sourceModel.sciTestCount > 0) {
+        if (this.isScilympiad()) {
             const dateval = new Date(answertemplate.starttime).toISOString();
             row.add({
                 settings: { class: "hidden" }, content:
@@ -285,18 +292,33 @@ export class CipherTestSchedule extends CipherTestManage {
             ) // This stays using convergence
             .then((results) => {
                 let total = 0;
-                if (this.sourceModel.sciTestCount !== undefined) {
+                if (this.isScilympiad()) {
                     // If we are using Scilympiad then we have to sort the results.
                     let orderedMap: { [index: string]: IAnswerTemplate } = {}
                     let modelMap: StringMap = {}
+                    let maxTeam = 0;
                     results.data.forEach((result) => {
                         const answertemplate = result.data as IAnswerTemplate;
                         orderedMap[answertemplate.teamname] = answertemplate
                         modelMap[answertemplate.teamname] = result.modelId;
+                        let thisTeam = Number(answertemplate.teamname.substr(5))
+                        if (thisTeam > maxTeam) {
+                            maxTeam = thisTeam;
+                        }
                         total++;
                     });
                     for (let team = 1; team <= total; team++) {
-                        let teamname = 'Team ' + String(team)
+                        let slot = team;
+                        let teamname = 'Team ' + String(slot)
+                        if (modelMap[teamname] === undefined) {
+                            // Hmm something is out of order, so we need to find a team that can fit in this slot starting at the total slot and going down until we do get one
+                            teamname = 'Team ' + String(maxTeam);
+                            // We used that one, so find the next potential one
+                            maxTeam--;
+                            while (maxTeam > total && modelMap['Team ' + String(maxTeam)] == undefined) {
+                                maxTeam--;
+                            }
+                        }
                         this.addUITestEntry(modelMap[teamname], orderedMap[teamname]);
                     }
                 }
@@ -516,7 +538,7 @@ export class CipherTestSchedule extends CipherTestManage {
      * markSaveAll sets the save all button based on the state of anything else needed to be saved.
      */
     public updateCommandButtons(): void {
-        if (this.sourceModel.sciTestCount === undefined) {
+        if (!this.isScilympiad()) {
             const unsaved = $('.pubsave:not([disabled])')
             if (unsaved.length > 0) {
                 $('#savesched').removeAttr('disabled');
@@ -890,9 +912,12 @@ export class CipherTestSchedule extends CipherTestManage {
             const table = this.createTestTable();
             const row = table.addBodyRow();
             this.populateRow(row, newRowID, answermodelid, answertemplate);
-            $('.testlist')
-                .empty()
-                .append(table.generate());
+            $('.testlist').empty()
+            if (this.isScilympiad()) {
+                let scilympiadContent = $("<div/>").text("This test available for Scilympiad with " + this.sourceModel.sciTestCount + " teams using id:").append($("<h3>").text(this.state.testID))
+                $('.testlist').append(makeCallout(scilympiadContent, 'primary'))
+            }
+            $('.testlist').append(table.generate());
         } else {
             // Find the id of the last row
             const lastid = $('.publist tr:last').attr('id');
@@ -913,7 +938,7 @@ export class CipherTestSchedule extends CipherTestManage {
         // See if the number is different 
         const currentTestCount = $('.publist tr.sci').length
         let newTestCount = 0;
-        if (this.sourceModel !== undefined && this.sourceModel.sciTestCount !== undefined) {
+        if (this.isScilympiad()) {
             newTestCount = this.sourceModel.sciTestCount
         }
 
@@ -972,7 +997,8 @@ export class CipherTestSchedule extends CipherTestManage {
                 }
                 this.sourceModel.sciTestLength = Number($("#sciduration").val());
                 this.sourceModel.sciTestTimed = Number($("#scitimed").val());
-                this.sourceModel.sciTestTime = Date.parse($("#scistart").val() as string);
+                const starttime = $("#scistart").val() as string
+                this.sourceModel.sciTestTime = Date.parse(starttime);
                 // Save the source Model
                 this.saveRealtimeSource(this.sourceModel, this.state.testID)
                 this.setScilympiadSchedule();
@@ -985,13 +1011,21 @@ export class CipherTestSchedule extends CipherTestManage {
         let testLength = 50
         let timedLength = 10
         let testCount = 24
-        if (this.sourceModel !== undefined && this.sourceModel.sciTestCount !== undefined) {
+        if (this.isScilympiad()) {
             startTime = this.sourceModel.sciTestTime
             testCount = this.sourceModel.sciTestCount
             testLength = this.sourceModel.sciTestLength
             timedLength = this.sourceModel.sciTestTimed
         }
-        $("#scistart").val(startTime);
+        let startInput = flatpickr("#scistart", {
+            altInput: true,
+            enableTime: true,
+            dateFormat: 'M j, Y H:i',
+            allowInput: true,
+        }) as Instance;
+
+        const formattedDate = new Date(startTime).toISOString();
+        startInput.setDate(formattedDate);
         $("#sciduration").val(testLength);
         $("#scitimed").val(timedLength);
         $("#sciteams").val(testCount);
@@ -1422,7 +1456,7 @@ export class CipherTestSchedule extends CipherTestManage {
         return id;
     }
     public isValidEmailAddress(emailAddress: string): boolean {
-        if (this.sourceModel.sciTestCount != undefined) {
+        if (this.isScilympiad()) {
             return true;
         }
         var pattern = /^([a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+(\.[a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+)*|"((([ \t]*\r\n)?[ \t]+)?([\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*(([ \t]*\r\n)?[ \t]+)?")@(([a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.)+([a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.?$/i;

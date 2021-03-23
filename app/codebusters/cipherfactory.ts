@@ -37,6 +37,7 @@ import { InteractiveMorseEncoder } from './interactivemorseencoder';
 import { CipherTestPlayback } from './ciphertestplayback';
 import { CipherLogin } from './cipherlogin';
 import { CipherMaintenance } from './ciphermaintenance'
+import { CipherScilympiad } from './cipherscilympiad';
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -157,6 +158,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherClass: CipherRSAEncoder,
         interactiveClass: CipherHandler,
         canPrint: true,
+    },
+    Scilympiad: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherScilympiad,
+        interactiveClass: CipherHandler,
+        canPrint: false,
     },
     TakeTest: {
         cipherType: ICipherType.Test,

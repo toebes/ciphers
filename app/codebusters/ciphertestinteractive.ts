@@ -329,7 +329,7 @@ export class CipherTestInteractive extends CipherTest {
                         msg = 'A ' + modelType + " model already exists for this test but you don't have permission to access it.";
                     }
                     // Of course if it is anything but "not found" we want to report the error.
-                    else if (e.code !== 'model_not_found') {
+                    else if (e.code !== 'model_not_found' && e !== 'no_model_exists_with_id') {
                         msg = 'An error accessing the ' + modelType + ' model occurred: ' + e;
                     }
                     // Either way, we are done testing, so prompt to user to figure out what we want to do.

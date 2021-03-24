@@ -5,6 +5,16 @@ import { InteractiveEncoder } from './interactiveencoder';
 
 export class InteractiveAffineEncoder extends InteractiveEncoder {
     /**
+     * Propagate an answer from the realtime system to the local interface
+     * @param qnumdisp Question number formated for using in an ID ("0" is the timed question)
+     * @param index Which character index to update
+     * @param value New replacement character for that index
+     */
+    public propagateAns(qnumdisp: string, index: number, value: string): void {
+        let c = value.toUpperCase();
+        $('#I' + qnumdisp + '_' + String(index)).val(c);
+    }
+    /**
      * attachInteractiveHandlers attaches the realtime updates to all of the fields
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
@@ -18,27 +28,9 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
         const answers = realtimeAnswer.value();
         for (const i in answers) {
             const answerfield = $('#I' + qnumdisp + '_' + String(i));
-            // Propagate the initial values into the fields
-            answerfield.val(answers[i]);
-            // Bind the field for any updates
-            if (answerfield.length > 0) {
-                bindTextInput(answerfield[0], realtimeAnswer.elementAt(i));
-            }
+            answerfield.addClass('uppercase')
         }
-        // The "replacements" portion is for the typed answer to the cipher
-        if (realTimeElement.hasKey('replacements')) {
-            const realtimeReplacement = realTimeElement.elementAt('replacements') as RealTimeArray;
-            const replacements = realtimeReplacement.value();
-            for (const i in answers) {
-                const replfield = $('#R' + qnumdisp + '_' + String(i));
-                // Propagate the initial values into the fields
-                replfield.val(replacements[i]);
-                // Bind the field for any updates
-                if (replfield.length > 0) {
-                    bindTextInput(replfield[0], realtimeReplacement.elementAt(i));
-                }
-            }
-        }
+        this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp)
 
         this.attachInteractiveNotesHandler(qnumdisp, realTimeElement);
 
@@ -68,15 +60,44 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                 .off('keyup')
                 .on('keyup', (event) => {
                     const target = $(event.target);
-                    // const id = target.attr('id');
-                    // The ID should be of the form Dx_y where x is the question number and y is the offset of the string
+                    const id = target.attr('id');
+                    this.markUndo(null);
+                    // Parse out the input id (which is in the form Iq_n where q is the question number and n is the index of the answer)
+                    const parts = id.split('_')
+                    const index = Number(parts[1]);
+                    const ans = target
+                        .val()
+                        .toString()
+                        .toUpperCase();
+                    const cursorPos = target.prop('selectionStart');
+
+                    target.val(ans)
+                        .prop('selectionStart', cursorPos)
+                        .prop('selectionEnd', cursorPos)
+                    realtimeAnswer.set(index, ans);
+                })
+                .off('change')
+                .on('change', (event) => {
+                    // Catching the change event is overkill, but we don't seem to have any
+                    // trigger that gives us notice after a delete key has been pressed
+                    const target = $(event.target);
+                    const id = target.attr('id');
+                    const parts = id.split('_')
+                    const index = Number(parts[1]);
+                    const ans = target
+                        .val()
+                        .toString()
+                        .toUpperCase();
+                    realtimeAnswer.set(index, ans);
+                })
+                .off('keydown')
+                .on('keydown', (event) => {
+                    const target = $(event.target);
                     let current;
                     let next;
                     const focusables = target.closest('.question').find('.awc');
                     const length = String(target.val()).length;
                     const cursorPos = target.prop('selectionStart');
-                    // console.log("cursorPos:" + cursorPos);
-                    // console.log("length: " + length);
                     // Current caret position
                     if (event.which === 37) {
                         // left
@@ -87,10 +108,15 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                             } else {
                                 next = focusables.eq(current - 1);
                             }
-                            next.focus();
+                            // Move the cursor to the end of the field
+                            const length = String(next.val()).length;
+                            next.focus()
+                                .prop('selectionStart', length)
+                                .prop('selectionEnd', length)
+                            event.preventDefault();
                         }
                     }
-                    if (event.which === 39) {
+                    else if (event.which === 39) {
                         // right
                         current = focusables.index(event.target);
                         // Move to the next text field
@@ -98,41 +124,31 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                             next = focusables.eq(current + 1).length
                                 ? focusables.eq(current + 1)
                                 : focusables.eq(0);
-                            next.focus();
+                            next.focus()
+                                .prop('selectionStart', 0)
+                                .prop('selectionEnd', 0)
+
+                            event.preventDefault();
+                        }
+                    } else if (event.which === 8) {
+                        // Delete key
+                        current = focusables.index(event.target);
+                        if (cursorPos === 0) {
+                            // If the delete key is pressed at the start of the field we just want to
+                            // back up to the previous field and let the delete key get processed there
+                            if (current === 0) {
+                                next = focusables.last();
+                            } else {
+                                next = focusables.eq(current - 1);
+                            }
+                            // Move the cursor to the end of the field
+                            const length = String(next.val()).length;
+                            next.focus()
+                                .prop('selectionStart', length)
+                                .prop('selectionEnd', length)
                         }
                     }
-                    event.preventDefault();
                 })
-                .off('keypress')
-                .on('keypress', (event) => {
-                    let newchar;
-                    const target = $(event.target);
-                    const id = target.attr('id');
-                    // const focusables = target.closest('.question').find('.awc');
-                    if (typeof event.key === 'undefined') {
-                        newchar = String.fromCharCode(event.keyCode).toUpperCase();
-                    } else {
-                        newchar = event.key.toUpperCase();
-                    }
-
-                    if (this.isValidChar(newchar) || newchar === ' ') {
-                        this.markUndo(null);
-                        // Parse out the input id (which is in the form Iq_n where q is the question number and n is the index of the answer)
-                        const parts = id.split('_')
-                        const index = Number(parts[1]);
-                        const ans = target
-                            .val()
-                            .toString()
-                            .toUpperCase();
-                        const c = newchar.toUpperCase();
-                        $('#' + id).val(ans + c);
-                        realtimeAnswer.set(index, ans + c);
-                        $('#' + id).addClass('uppercase');
-                    } else {
-                        // console.log('Not valid:' + newchar);
-                    }
-                    event.preventDefault();
-                });
         }
         if (realtimeReplacement != null) {
             $(qdivid + '.awr')

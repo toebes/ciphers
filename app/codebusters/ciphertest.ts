@@ -70,6 +70,8 @@ export interface SourceModel {
     sciTestLength?: number;
     // Amount of time for the timed question on Scilympiad
     sciTestTimed?: number;
+    // The Scilympiad ID associated with the test
+    sciTestId?: string;
     // The source for the test.  This is a set of mapped elements where 
     //  .source['TEST.0']  is the test information
     //  .source['CIPHER.x'] is the individual cipher questions.

@@ -783,7 +783,7 @@ export class CipherTestSchedule extends CipherTestManage {
             const data = new Uint8Array(reader.result as ArrayBuffer);
             try {
                 // Load excel file...
-                const workbook = XLSX.read(data, {type: 'array'});
+                const workbook = XLSX.read(data, { type: 'array' });
                 const sheet = workbook.Sheets[workbook.SheetNames[0]]; // get the first worksheet
                 const epoch1904 = workbook.Workbook.WBProps.date1904;
                 // We have to adjust the date based on the epoch in the file.
@@ -955,7 +955,8 @@ export class CipherTestSchedule extends CipherTestManage {
                             if (username !== undefined) {
                                 const testuser: ITestUser = {
                                     displayname: username.toLowerCase(),
-                                    userid: username }
+                                    userid: username
+                                }
                                 answertemplate.assigned.push(testuser);
                             }
                         }
@@ -986,7 +987,7 @@ export class CipherTestSchedule extends CipherTestManage {
             this.populateRow(row, newRowID, answermodelid, answertemplate);
             $('.testlist').empty()
             if (this.isScilympiad()) {
-                let scilympiadContent = $("<div/>").text("This test available for Scilympiad with " + this.sourceModel.sciTestCount + " teams using id:").append($("<h3>").text(this.state.testID))
+                let scilympiadContent = $("<div/>").text("This test available for Scilympiad with " + this.sourceModel.sciTestCount + " teams using id:").append($("<h3>").text(this.sourceModel.sciTestId))
                 $('.testlist').append(makeCallout(scilympiadContent, 'primary'))
             }
             $('.testlist').append(table.generate());
@@ -1027,7 +1028,7 @@ export class CipherTestSchedule extends CipherTestManage {
         } else if (newTestCount > currentTestCount) {
             for (let teamNumber = currentTestCount; teamNumber < newTestCount; teamNumber++) {
                 let teamStr = String(teamNumber + 1);
-                let userBase = this.state.testID + "-" + teamStr + "-"
+                let userBase = this.sourceModel.sciTestId + "-" + teamStr + "-"
                 const answertemplate: IAnswerTemplate = {
                     testid: "",
                     starttime: this.sourceModel.sciTestTime,
@@ -1067,6 +1068,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 } else {
                     this.sourceModel.sciTestCount = teams;
                 }
+                this.sourceModel.sciTestId = ($("#scitestid").val() as string).toLowerCase();
                 this.sourceModel.sciTestLength = Number($("#sciduration").val());
                 this.sourceModel.sciTestTimed = Number($("#scitimed").val());
                 const starttime = $("#scistart").val() as string
@@ -1083,11 +1085,13 @@ export class CipherTestSchedule extends CipherTestManage {
         let testLength = 50
         let timedLength = 10
         let testCount = 24
+        let testId = "Enter TEST Id from Scilympiad";
         if (this.isScilympiad()) {
             startTime = this.sourceModel.sciTestTime
             testCount = this.sourceModel.sciTestCount
             testLength = this.sourceModel.sciTestLength
             timedLength = this.sourceModel.sciTestTimed
+            testId = this.sourceModel.sciTestId
         }
         let startInput = flatpickr("#scistart", {
             altInput: true,
@@ -1101,6 +1105,7 @@ export class CipherTestSchedule extends CipherTestManage {
         $("#sciduration").val(testLength);
         $("#scitimed").val(timedLength);
         $("#sciteams").val(testCount);
+        $("#scitestid").val(testId);
         // Put up the dialog to ask them.
         $('#schedscidlg').foundation('open');
     }
@@ -1431,6 +1436,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 'This manages the tests on the Codebusters platform.  Once all the tests have been created, you need to copy the testid to the Scilympiad platform.'
             ))
             .append($("<div/>"))
+            .append(JTFLabeledInput('Scilympiad Test Id', 'text', 'scitestid', "", ''))
             .append($("<div/>", { class: 'cell' })
                 .append($('<div/>', { class: 'input-group' })
                     .append($('<span/>', { class: 'input-group-label' }).text('Start Time'))

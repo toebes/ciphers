@@ -1431,6 +1431,7 @@ export class CipherHandler {
         $('#xmlFile')
             .off('change')
             .on('change', (e) => {
+                $('#xmlerr').text('').hide();
                 $('#okimport').removeAttr('disabled');
                 $('#importstatus')
                     .removeClass('secondary')
@@ -3137,7 +3138,12 @@ export class CipherHandler {
             )
             .append(
                 JTFLabeledInput('URL', 'text', 'xmlurl', '', 'impurl small-12 medium-6 large-6')
-            );
+            )
+            .append(
+                $('<div/>', {
+                    id: 'xmlerr',
+                    class: 'callout alert',
+                }).hide());
         const importDlg = JTFDialog(
             'ImportFile',
             'Import Test Data',

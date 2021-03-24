@@ -953,7 +953,9 @@ export class CipherTestSchedule extends CipherTestManage {
                         for (const userfield of userfields) {
                             const username = record[userfield] as string;
                             if (username !== undefined) {
-                                const testuser: ITestUser = { userid: username }
+                                const testuser: ITestUser = {
+                                    displayname: username.toLowerCase(),
+                                    userid: username }
                                 answertemplate.assigned.push(testuser);
                             }
                         }

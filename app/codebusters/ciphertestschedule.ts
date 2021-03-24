@@ -665,13 +665,82 @@ export class CipherTestSchedule extends CipherTestManage {
     public processImport(file: File): void {
         const reader = new FileReader();
         reader.onload = (): void => {
+            // Set time adjustment to most common use case of PC/excel.
+            let starttimeFudgeFactor = 25569;
+            const tzOffset = timestampFromMinutes(new Date().getTimezoneOffset());
+            let json = undefined;
+            const data = new Uint8Array(reader.result as ArrayBuffer);
             try {
-                const tzOffset = timestampFromMinutes(new Date().getTimezoneOffset());
-                const data = new Uint8Array(reader.result as ArrayBuffer);
-                const workbook = XLSX.read(data, { type: 'array' });
+                // Load excel file...
+                const workbook = XLSX.read(data, {type: 'array'});
                 const sheet = workbook.Sheets[workbook.SheetNames[0]]; // get the first worksheet
                 const epoch1904 = workbook.Workbook.WBProps.date1904;
-                const json = XLSX.utils.sheet_to_json(sheet) as { [index: string]: unknown }[];
+                // We have to adjust the date based on the epoch in the file.
+                // By default an excel file will have an epoch either January 1, 1900 or January 1, 1904
+                // depending on whether the file was done on a mac or a PC originally.
+                //    see https://excel.tips.net/T002051_Converting_UNIX_Date_Time_Stamps.html and
+                //        https://docs.microsoft.com/en-us/office/troubleshoot/excel/1900-and-1904-date-system
+                if (epoch1904) {
+                    starttimeFudgeFactor -= 1461;
+                }
+                json = XLSX.utils.sheet_to_json(sheet) as { [index: string]: unknown }[];
+            } catch (e) {
+                console.log('Error loading excel file, try loading as a CSV');
+                try {
+                    // Make a big buffer
+                    const dataLength = data.byteLength;
+                    let csvData = '';
+                    for (let i = 0; i < dataLength; i++) {
+                        const char = String.fromCharCode(data[i]);
+                        // New line check, sanitize to always be '\n'
+                        if (char.match(/[^\r\n]+/g) !== null) {
+                            csvData += char;
+                        } else {
+                            csvData += '\n';
+                        }
+                    }
+                    const lines = csvData.split('\n');
+                    const result = [];
+
+                    // https://stackoverflow.com/questions/12052825/regular-expression-for-all-printable-characters-in-javascript
+                    // see answer from HoldOffHunger
+                    // match returns true if anything is non printable.
+                    if (lines[0].match(/[\p{Cc}\p{Cn}\p{Cs}]+/gu)) {
+                        throw 'Header line contains invalid characters.'
+                    }
+
+                    const header = lines[0].split(',');
+
+                    // Start with first data record.
+                    for (let i = 1; i < lines.length; i++) {
+                        // Skip bland lines and comments and lines with unprintable characters
+                        if (lines[i].trim().length === 0 || lines[i].startsWith('#') || lines[i].match(/[\p{Cc}\p{Cn}\p{Cs}]+/gu)) {
+                            continue;
+                        }
+                        let jsonRecord = {};
+                        const currentLine = lines[i].split(',');
+                        for (let j = 0; j < header.length; j++) {
+                            if (currentLine[j] === undefined || currentLine[j].trim() === '') {
+                                continue;
+                            }
+                            jsonRecord[header[j].trim()] = currentLine[j].trim();
+                        }
+                        result.push(jsonRecord)
+                    }
+                    // Time does not need adjustment, can be used as it.
+                    starttimeFudgeFactor = 0;
+                    json = result;
+                } catch (e) {
+                    const errorMessage = 'Invalid CSV file: "' + file.name + '". ' + e.toString();
+                    console.log(errorMessage);
+                    $('#xmlerr').text(errorMessage).show();
+                    return;
+                }
+            }
+            try {
+                if (json === undefined) {
+                    throw 'No import records found.';
+                }
                 let timefield = 'Time';
                 let userfields: string[] = [];
                 let schoolnamefield = 'School';
@@ -679,46 +748,44 @@ export class CipherTestSchedule extends CipherTestManage {
                 let lengthfield = 'Length';
                 let timedfield = 'Timed';
                 if (json.length > 0) {
-                    // Figure out what columns are to be used
-                    const firstelem = json[0];
-                    for (const fieldname in firstelem) {
-                        const fieldupper = fieldname.toUpperCase().replace(/[^A-Z]/gi, '');
-                        switch (fieldupper) {
-                            case 'TIME':
-                                timefield = fieldname;
-                                break;
-                            case 'LENGTH':
-                                lengthfield = fieldname;
-                                break;
-                            case 'SCHOOL':
-                            case 'TEAM':
-                                schoolnamefield = fieldname;
-                                break;
-                            case 'TYPE':
-                                teamtypefield = fieldname;
-                                break;
-                            case 'USER':
-                            case 'STUDENT':
-                                userfields.push(fieldname);
-                                break;
-                            case 'TIMED':
-                                timedfield = fieldname;
-                                break;
-                            default:
-                                console.log(
-                                    'Ignoring: ' + fieldname + ' mapped as ' + fieldupper
-                                );
-                        }
-                    }
-                    // Take up to three user fields
-                    userfields = userfields.sort().slice(0, 3);
-                    // If we have more than three userfields
                     let defaultStartTime = Date.now()
                     let defaultTestLength = 50
                     let defaultTimedLength = 10
                     // Now we go through the records and process them
                     for (const record of json) {
                         console.log(record);
+                        // Figure out what columns are to be used
+                        for (const fieldname in record) {
+                            const fieldupper = fieldname.toUpperCase().replace(/[^A-Z]/gi, '');
+                            switch (fieldupper) {
+                                case 'TIME':
+                                    timefield = fieldname;
+                                    break;
+                                case 'LENGTH':
+                                    lengthfield = fieldname;
+                                    break;
+                                case 'SCHOOL':
+                                case 'TEAM':
+                                    schoolnamefield = fieldname;
+                                    break;
+                                case 'TYPE':
+                                    teamtypefield = fieldname;
+                                    break;
+                                case 'USER':
+                                case 'STUDENT':
+                                    userfields.push(fieldname);
+                                    break;
+                                case 'TIMED':
+                                    timedfield = fieldname;
+                                    break;
+                                default:
+                                    console.log(
+                                        'Ignoring: ' + fieldname + ' mapped as ' + fieldupper
+                                    );
+                            }
+                        }
+                        // Take up to three user fields
+                        userfields = userfields.sort().slice(0, 3);
                         const answertemplate: IAnswerTemplate = {
                             testid: "",
                             starttime: defaultStartTime,
@@ -731,25 +798,24 @@ export class CipherTestSchedule extends CipherTestManage {
                         }
                         let starttime = record[timefield] as number;
                         if (starttime !== undefined) {
-                            console.log('Start time =' + starttime);
-                            // If the time is less than one day then they didn't give us a date, only a time
-                            // so we are going to assume that it is starting today at the time they gave us
-                            if (starttime < 1) {
-                                const d = new Date();
-                                d.setHours(0, 0, 0, 0); // last midnight
-                                starttime =
-                                    Number(d) + starttime * timestampFromMinutes(60 * 24);
-                            } else {
-                                // We have to adjust the date based on the epoch in the file.
-                                // By default an excel file will have an epoch either January 1, 1900 or January 1, 1904
-                                // depending on whether the file was done on a mac or a PC originally.
-                                if (epoch1904) {
-                                    starttime -= 25569 - 1461;
+                            if (starttimeFudgeFactor > 0) {
+                                console.log('Start time = ' + starttime);
+                                // If the time is less than one day then they didn't give us a date, only a time
+                                // so we are going to assume that it is starting today at the time they gave us
+                                if (starttime < 1) {
+                                    const d = new Date();
+                                    d.setHours(0, 0, 0, 0); // last midnight
+                                    starttime =
+                                        Number(d) + starttime * timestampFromMinutes(60 * 24);
                                 } else {
-                                    starttime -= 25569;
+                                    // Now that we have the time, make the adjustment for Excel if needed, otherwise, NO-OP.
+                                    starttime -= starttimeFudgeFactor;
+                                    starttime *= timestampFromMinutes(60 * 24);
+                                    starttime += tzOffset;
                                 }
-                                starttime *= timestampFromMinutes(60 * 24);
-                                starttime += tzOffset;
+                            } else {
+                                // CVS file will provide a human readable string that can be parsed and needs no conversion
+                                starttime = Date.parse(record[timefield]);
                             }
                             console.log('Mapped to ' + timestampToFriendly(starttime));
                             answertemplate.starttime = starttime;
@@ -780,6 +846,8 @@ export class CipherTestSchedule extends CipherTestManage {
                                 answertemplate.assigned.push(testuser);
                             }
                         }
+                        // Clear out userfields for next record.
+                        userfields = [];
                         const newRowID = this.addUITestEntry("", answertemplate);
                         this.setChanged(newRowID);
                         this.setDirty(newRowID);
@@ -789,7 +857,9 @@ export class CipherTestSchedule extends CipherTestManage {
                     this.saveAllDirty();
                 }
             } catch (e) {
-                $('#xmlerr').text('Not a valid import file');
+                const errorMessage = 'Error in file: "' + file.name + '". ' + e.toString();
+                console.log(errorMessage);
+                $('#xmlerr').text(errorMessage).show();
             }
         };
         reader.readAsArrayBuffer(file);
@@ -1190,7 +1260,12 @@ export class CipherTestSchedule extends CipherTestManage {
             )
             .append(
                 JTFLabeledInput('URL', 'text', 'xmlurl', '', 'impurl small-12 medium-6 large-6')
-            );
+            )
+            .append(
+                $('<div/>', {
+                    id: 'xmlerr',
+                    class: 'callout alert',
+                }).hide());
         const importDlg = JTFDialog(
             'ImportFile',
             'Import Test Data',

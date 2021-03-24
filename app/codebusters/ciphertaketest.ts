@@ -222,7 +222,8 @@ export class CipherTakeTest extends CipherTest {
                 elem.empty().append($('<span/>').text(metadata.title));
             })
             .catch((error) => {
-                elem.empty().append('Unable to get title: ' + error);
+                // If we can't get to the metadata for the source then they can't take the test, so just delete it from the UI
+                elem.closest("tr").remove();
             });
     }
     /**

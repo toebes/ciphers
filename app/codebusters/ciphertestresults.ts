@@ -46,12 +46,12 @@ export class CipherTestResults extends CipherTestManage {
         let result = $('<div/>');
         result.append(this.genPublishedEditState('results'));
         result.append($('<div/>', { class: 'grid-x' })
-        .append(JTFLabeledInput("Title", "readonly", "title", "", 'auto'))
-        .append($('<div/>', {class: 'cell shrink'})
-        .append($('<a/>', {
-            'showing': 'off',
-            class: 'takerview button',
-        }).text('Reveal Takers'))));
+            .append(JTFLabeledInput("Title", "readonly", "title", "", 'auto'))
+            .append($('<div/>', { class: 'cell shrink' })
+                .append($('<a/>', {
+                    'showing': 'off',
+                    class: 'takerview button',
+                }).text('Reveal Takers'))));
         return result;
     }
     /**
@@ -181,11 +181,13 @@ export class CipherTestResults extends CipherTestManage {
             .add('Start Time')
             .add('End Time')
             .add('Timed Question')
-            .add({settings: {
+            .add({
+                settings: {
                     id: 'testTakers',
                     class: 'hidden',
-                    },
-                content: 'Takers'})
+                },
+                content: 'Takers'
+            })
             .add('Score');
         return table;
     }
@@ -244,11 +246,13 @@ export class CipherTestResults extends CipherTestManage {
             .add($('<div/>', {
                 id: 'sovledTime',
             }).text('...')) // Timed question will be filled in after scoring
-            .add({settings: {
+            .add({
+                settings: {
                     id: 'testTakers',
                     class: 'hidden',
                 },
-                content: userList})
+                content: userList
+            })
             .add($('<div/>', {
                 id: 'score',
             }).text('Calculating...')); // Overall score will be filled in after scoring
@@ -393,7 +397,7 @@ export class CipherTestResults extends CipherTestManage {
                 selectedTestRowButton.removeAttr('disabled');
             });
             const datatable = $('.publist').DataTable({
-                'lengthMenu': [[75, 100, -1], [75, 100, 'All']],
+                "paging": false,
                 'order': [[7, 'desc']],
             });
             // We need to attach the handler here because we need access to the datatable object
@@ -613,7 +617,7 @@ export class CipherTestResults extends CipherTestManage {
             });
         $('.takerview')
             .off('click')
-            .on('click',(e) => {
+            .on('click', (e) => {
                 const target = $(e.target);
                 if (target.attr('showing') === 'on') {
                     $('[id="testTakers"]').addClass('hidden');

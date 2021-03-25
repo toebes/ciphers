@@ -48,6 +48,13 @@ module.exports = {
                 'css',
                 'jquery.dataTables.min.css'
             ),
+            'datatables.foundation.css': path.join(
+                __dirname,
+                'node_modules',
+                'datatables.net-zf',
+                'css',
+                'dataTables.foundation.min.css'
+            ),
             'styles-css': path.join(__dirname, 'styles.css'),
             'flatpickr.css': path.join(
                 __dirname,

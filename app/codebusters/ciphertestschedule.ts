@@ -186,9 +186,9 @@ export class CipherTestSchedule extends CipherTestManage {
     private createTestTable(): JTTable {
         const table = new JTTable({ class: 'cell shrink publist' });
         const row = table.addHeaderRow();
-        let hideClass = ""
+        let hideClass = '';
         if (this.isScilympiad()) {
-            hideClass = "hidden"
+            hideClass = 'hidden';
         }
         row.add('Action')
             .add({ settings: { class: hideClass }, content: 'Takers' })

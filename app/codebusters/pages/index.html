@@ -339,50 +339,11 @@
                     <div class="cell">
                         <h4>Summary of what's new:</h4>
                         <ul>
-                            <li>Version 4.0.5</li>
+                            <li>Version 4.1.0</li>
                             <ul>
                                 <li>
-                                    Fix elusive bug which caused the system to sometimes lose Affine answers.
-                                </li>
-                            </ul>
-                            <li>Version 4.0.4</li>
-                            <ul>
-                                <li>
-                                    Catch expired tokens which were generating odd error messages about missing id.
-                                </li>
-                            </ul>
-                            <li>Version 4.0.3</li>
-                            <ul>
-                                <li>
-                                    Eliminated caching the time calls so that local browsers on Linux wouldn't end up
-                                    with an incorrect time.
-                                    Major rewrite of the scoring software to be more efficient with the server.
-                                </li>
-                            </ul>
-                            <li>Version 4.0.2</li>
-                            <ul>
-                                <li>
-                                    We have cleaned up the code for settings dates for scheduled tests to prevent
-                                    invalid ranges and email addressed from being entered and removed
-                                    any tests which had dates which were out of range and invalid email addresses which
-                                    could cause problems on the system.
-                                </li>
-                            </ul>
-                            <li>Version 4.0.0</li>
-                            <ul>
-                                <li>
-                                    This is a Major rewrite of the backend server to increase performance and number of
-                                    users for
-                                    the system. Please feel free to report any bugs at <a
-                                        href="https://github.com/toebes/ciphers/issues">github.com/toebes/ciphers/issues</a>
-                                    This also includes an update to automatically delete any test taken after two weeks.
-                                    As part of keeping data safe for all users, any personally identifiable information
-                                    is automatically
-                                    deleted when the corresponding tests are deleted.
-                                    This includes any names or email addresses which are associated with a test.<p>The
-                                        mobit and pollux scoring algorithm has been updated. The answer letter needs to
-                                        be under at least one of the morse digits and that ONLY one answer letter can
-                                        be under the digits for a morse character</p>
+                                    Many bug fixes for importing schedules for tests. Clean up error messages when
+                                    publishing a test.
                                 </li>
                             </ul>
                             <a href="versions.html">Previous Versions...</a>
@@ -552,6 +513,11 @@
                     <ul>
                         <li>
                             <a
+                                href="TestManage.html?importURL=https://toebes.com/codebusters/NC_B_Regional_1_2020.json">2020
+                                NC B Regional Test 1</a>
+                        </li>
+                        <li>
+                            <a
                                 href="TestManage.html?importURL=https://toebes.com/codebusters/NC_Invitational_C_2020.json">North
                                 Carolina 2020
                                 Invitational - Division C</a>
@@ -562,10 +528,6 @@
                                 Carolina 2020
                                 Invitational - Division B</a>
                         </li>
-                        <!-- <li>
-                <a href="TestManage.html?importURL=https://toebes.com/codebusters/Coaches_Institute_2019.json">Coaches
-                    Institute 2019</a>
-            </li> -->
                         <li>
                             <a href="TestManage.html?importURL=https://toebes.com/codebusters/Sample_01_2020.json">2020
                                 Sample 1</a>

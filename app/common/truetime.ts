@@ -133,6 +133,7 @@ export class TrueTime {
     public startTiming(): void {
         // We don't want to start the timer if it is already running.
         this.stopTiming();
+        this.syncTime();
         // Since the timer is just getting started, we haven't gotten the time previously
         this.previousTime = undefined;
         this.IntervalTimer = window.setInterval(() => {

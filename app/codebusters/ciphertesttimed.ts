@@ -859,7 +859,7 @@ export class CipherTestTimed extends CipherTest {
         const userid = this.getConfigString('userid', '')
         const result: IAnswerAudit = {
             user: userid,
-            time: Date.now(),
+            time: this.testTimeInfo.truetime.UTCNow(),
             testid: this.save_testid,
             answermodelid: this.state.testID,
             answers: finalanswers

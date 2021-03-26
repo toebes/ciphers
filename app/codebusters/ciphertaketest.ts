@@ -28,6 +28,7 @@ export class CipherTakeTest extends CipherTest {
 
     /** Handler for our interval time which keeps checking that time is right */
     private IntervalTimer: number = undefined;
+    private lastDelta: number = 0;
 
     /**
      * Restore the state from either a saved file or a previous undo record
@@ -51,6 +52,7 @@ export class CipherTakeTest extends CipherTest {
     public checkTime(): void {
         const target = $("#timeinfo");
         const delta = this.truetime.getDelta();
+        const change = Math.abs(delta - this.lastDelta)
         target.empty();
         if (delta > timestampFromSeconds(10)) {
             const computerNow = timestampToFriendly(Date.now());
@@ -63,6 +65,10 @@ export class CipherTakeTest extends CipherTest {
                     .append($("<span/>", { class: "badtime" }).text(computerNow))
                 )
             target.append(makeCallout(msg, 'alert'));
+        }
+        this.lastDelta = delta;
+        if (change > timestampFromSeconds(10)) {
+            $('.testlist').replaceWith(this.genTestList());
         }
     }
     /**
@@ -81,13 +87,21 @@ export class CipherTakeTest extends CipherTest {
         this.attachHandlers();
     }
     /**
+     * genPreCommands() Generates HTML for any UI elements that go above the command bar
+     * @returns HTML DOM elements to display in the section
+     */
+    public genPreCommands(): JQuery<HTMLElement> {
+        const result = $('<div/>', { id: "timeinfo" })
+        return result;
+    }
+
+    /**
      * Generates a list of all the tests on the server in a table.
      * @returns HTML content of list of tests
      */
     public genTestList(): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'testlist' });
         if (this.confirmedLoggedIn(' in order to see tests assigned to you.', result)) {
-            result.append($("<div/>", { id: "timeinfo" }))
             const table = new JTTable({ class: 'cell shrink publist' });
             const row = table.addHeaderRow();
             row.add('Action')

@@ -1067,7 +1067,7 @@ export class CipherEncoder extends CipherHandler {
                 'textarea',
                 'toencode',
                 this.state.cipherString,
-                'small-12 medium-12 large-12'
+                'small-12 medium-12 large-12 encbox'
             )
         );
         result.append($('<div/>', { class: 'difficulty' }));

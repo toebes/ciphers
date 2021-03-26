@@ -54,7 +54,7 @@ export class CipherTakeTest extends CipherTest {
         const delta = this.truetime.getDelta();
         const change = Math.abs(delta - this.lastDelta)
         target.empty();
-        if (delta > timestampFromSeconds(10)) {
+        if (Math.abs(delta) > timestampFromSeconds(10)) {
             const computerNow = timestampToFriendly(Date.now());
             const actualNow = timestampToFriendly(this.truetime.UTCNow());
             const msg = $("<div/>")

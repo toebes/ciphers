@@ -260,10 +260,10 @@ export class CipherTestSchedule extends CipherTestManage {
                         .append($('<input/>', { type: 'hidden', id: 'D_' + rowID, value: testlength }))
                         .append($('<input/>', { type: 'hidden', id: 'T_' + rowID, value: timedlength }))
             })
-                .add($('<input/>', { type: 'text', readonly: true, value: timestampToFriendly(answertemplate.starttime) }))
-                .add(JTFLabeledInput('Test Duration', 'readonly', '', testlength, 'kval small-1'))
-                .add(JTFLabeledInput('Timed Limit', 'readonly', '', timedlength, 'kval small-1'))
-                .add($('<input/>', { type: 'text', readonly: true, value: answertemplate.teamname }))
+                .add($('<input/>', { type: 'text', id: "SX_" + rowID, readonly: true, value: timestampToFriendly(answertemplate.starttime) }))
+                .add(JTFLabeledInput('Test Duration', 'readonly', 'DX_' + rowID, testlength, 'kval small-1'))
+                .add(JTFLabeledInput('Timed Limit', 'readonly', 'TX_' + rowID, timedlength, 'kval small-1'))
+                .add($('<input/>', { type: 'text', id: 'NX_' + rowID, readonly: true, value: answertemplate.teamname }))
         } else {
             row.add($('<div>')
                 .append($('<input/>', { type: 'text', id: 'U0_' + rowID, value: userids[0] }))
@@ -454,7 +454,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 this.reportFailure('Could not remove ' + modelid + ' ' + error);
             });
         } else {
-            this.updateOutput();
+            this.saveAllDirty();
         }
     }
     /**
@@ -1011,10 +1011,77 @@ export class CipherTestSchedule extends CipherTestManage {
         // See if the number is different 
         const currentTestCount = $('.publist tr.sci').length
         let newTestCount = 0;
+        let startTime = Date.now();
+        let testDuration = 50;
+        let timedDuration = 10;
+        let saveDirty = false;
         if (this.isScilympiad()) {
             newTestCount = this.sourceModel.sciTestCount
+            startTime = this.sourceModel.sciTestTime;
+            testDuration = this.sourceModel.sciTestLength
+            timedDuration = this.sourceModel.sciTestTimed
         }
+        // Figure out how many of the tests are going to stay and need to be checked for any differences
+        let toUpdate = newTestCount;
+        if (toUpdate > currentTestCount) {
+            toUpdate = currentTestCount;
+        }
+        // Go through all the tests that are staying
+        for (let teamNumber = 0; teamNumber < toUpdate; teamNumber++) {
+            let teamStr = String(teamNumber + 1);
+            let eid = String(teamNumber);
+            let userBase = this.sourceModel.sciTestId + "-" + teamStr + "-";
+            let changed = false;
 
+            // Figure out who is scheduled for the test and the times for it
+            const uiUser1 = ($('#U0_' + eid).val() as string).trim();
+            const uiUser2 = ($('#U1_' + eid).val() as string).trim();
+            const uiUser3 = ($('#U2_' + eid).val() as string).trim();
+            const uiStartTime = $('#S_' + eid).val() as string;
+            let uiTestDuration = $('#D_' + eid).val() as number;
+            let uiTimedDuration = $('#T_' + eid).val() as number;
+
+            // If any users are different, update them.
+            // This can only really occur if they change the Scilympiad id
+            if (uiUser1 !== userBase + "1") {
+                $('#U0_' + eid).val(userBase + "1");
+                changed = true;
+            }
+            if (uiUser2 !== userBase + "2") {
+                $('#U1_' + eid).val(userBase + "2");
+                changed = true;
+            }
+            if (uiUser3 !== userBase + "3") {
+                $('#U2_' + eid).val(userBase + "3");
+                changed = true;
+            }
+
+            // See if the test time changed
+            const startTimeStr = new Date(startTime).toISOString();
+            if (startTimeStr !== uiStartTime) {
+                $('#S_' + eid).val(startTimeStr);
+                $("#SX_" + eid).val(timestampToFriendly(startTime));
+                changed = true;
+            }
+            // Duration for the test
+            if (testDuration !== uiTestDuration) {
+                $('#D_' + eid).val(testDuration)
+                $("#DX_" + eid).text(String(testDuration))
+                changed = true;
+            }
+            // And the timed question
+            if (timedDuration !== uiTimedDuration) {
+                $('#T_' + eid).val(timedDuration)
+                $("#TX_" + eid).text(String(timedDuration))
+                changed = true;
+            }
+            // If we did actally change anything, we need to make it as dirty
+            if (changed) {
+                saveDirty = true;
+                $("#NX_" + eid).val("Team " + teamStr);
+                this.setDirty(eid);
+            }
+        }
         if (newTestCount < currentTestCount) {
             // Go through and mark the records for deletion and then process it
             for (let i = newTestCount; i < currentTestCount; i++) {
@@ -1023,6 +1090,7 @@ export class CipherTestSchedule extends CipherTestManage {
             // Ok we have everything we want to go away set, so let the delete process run
             this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                 const modelService = domain.models();
+                // Note that when the delete process finishes, it will also save any dirty entries
                 this.deleteFirstRequested(modelService)
             });
         } else if (newTestCount > currentTestCount) {
@@ -1031,9 +1099,9 @@ export class CipherTestSchedule extends CipherTestManage {
                 let userBase = this.sourceModel.sciTestId + "-" + teamStr + "-"
                 const answertemplate: IAnswerTemplate = {
                     testid: "",
-                    starttime: this.sourceModel.sciTestTime,
-                    endtime: this.sourceModel.sciTestTime + timestampFromMinutes(this.sourceModel.sciTestLength),
-                    endtimed: this.sourceModel.sciTestTime + timestampFromMinutes(this.sourceModel.sciTestTimed),
+                    starttime: startTime,
+                    endtime: startTime + timestampFromMinutes(testDuration),
+                    endtimed: startTime + timestampFromMinutes(timedDuration),
                     answers: [],
                     assigned: [{ userid: userBase + "1" }, { userid: userBase + "2" }, { userid: userBase + "3" }],
                     teamname: "Team " + teamStr,
@@ -1044,6 +1112,9 @@ export class CipherTestSchedule extends CipherTestManage {
             }
             this.attachHandlers();
             // Now that it is added, queue the process to save everything marked dirty
+            this.saveAllDirty();
+        } else if (saveDirty) {
+            // Nothing added or removed, but we do need to save anything that changed
             this.saveAllDirty();
         }
 

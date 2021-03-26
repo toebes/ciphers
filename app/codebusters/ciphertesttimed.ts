@@ -48,7 +48,7 @@ export class CipherTestTimed extends CipherTest {
     public cmdButtons: JTButtonItem[] = [];
     public pageNumber = 0;
     public testTimeInfo: ITestTimeInfo = {
-        truetime: new TrueTime(() => { this.timeAnomaly }),
+        truetime: new TrueTime((msg) => { this.timeAnomaly(msg); }),
         startTime: 0,
         endTime: 0,
         endTimedQuestion: 0,

@@ -1,11 +1,12 @@
 import { toolMode, IState, menuMode } from '../common/cipherhandler';
 import { ITestState, IAnswerTemplate } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
-import { cloneObject, timestampFromMinutes, timestampFromWeeks } from '../common/ciphercommon';
+import { cloneObject, makeCallout, timestampFromMinutes, timestampFromSeconds, timestampFromWeeks, timestampToFriendly } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { ConvergenceDomain } from '@convergence/convergence';
 import { CipherTest } from './ciphertest';
+import { TrueTime } from '../common/truetime';
 
 /**
  * CipherTakeTest
@@ -21,8 +22,13 @@ export class CipherTakeTest extends CipherTest {
         cipherString: '',
         cipherType: ICipherType.Test,
     };
+    public truetime = new TrueTime((msg) => { this.checkTime() });
     public state: ITestState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [];
+
+    /** Handler for our interval time which keeps checking that time is right */
+    private IntervalTimer: number = undefined;
+
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -38,6 +44,28 @@ export class CipherTakeTest extends CipherTest {
         }
     }
     /**
+     * checkTime is called on a regular interval to confirm that the clock on the computer is set correctly
+     * it uses the truetime class to figure out the actual time from the server.  if the time is
+     * off by more than 10 seconds, we let them know that they can fix their clock
+     */
+    public checkTime(): void {
+        const target = $("#timeinfo");
+        const delta = this.truetime.getDelta();
+        target.empty();
+        if (delta > timestampFromSeconds(10)) {
+            const computerNow = timestampToFriendly(Date.now());
+            const actualNow = timestampToFriendly(this.truetime.UTCNow());
+            const msg = $("<div/>")
+            msg.append($("<h2/>").text("The clock on your computer is not set correctly."))
+                .append($("<p>").text("The correct time is:")
+                    .append($("<span/>", { class: "goodtime" }).text(actualNow))
+                    .append(" your computer is set to:")
+                    .append($("<span/>", { class: "badtime" }).text(computerNow))
+                )
+            target.append(makeCallout(msg, 'alert'));
+        }
+    }
+    /**
      * Update the output based on current state settings.
      * This propagates all values to the UI
      */
@@ -45,7 +73,11 @@ export class CipherTakeTest extends CipherTest {
         super.updateOutput();
         this.setMenuMode(menuMode.test);
         $('.testlist').replaceWith(this.genTestList());
-        // const now = this.testTimeInfo.truetime.UTCNow();
+        // Start a process to check the time and update the display at least once a second
+        this.IntervalTimer = window.setInterval(() => {
+            this.checkTime();
+        }, timestampFromSeconds(1));
+
         this.attachHandlers();
     }
     /**
@@ -55,6 +87,7 @@ export class CipherTakeTest extends CipherTest {
     public genTestList(): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'testlist' });
         if (this.confirmedLoggedIn(' in order to see tests assigned to you.', result)) {
+            result.append($("<div/>", { id: "timeinfo" }))
             const table = new JTTable({ class: 'cell shrink publist' });
             const row = table.addHeaderRow();
             row.add('Action')
@@ -140,7 +173,8 @@ export class CipherTakeTest extends CipherTest {
     public addPublishedEntry(answerModelID: string, answertemplate: IAnswerTemplate, isAssigned: boolean): void {
         const tr = $('<tr/>', { 'data-answer': answerModelID });
         const buttons = $('<div/>', { class: 'button-group round shrink' });
-        const now = Date.now();
+        const now = this.truetime.UTCNow();
+
         // const showCoachedTest = true;
 
         //   1) Don't display any test that is more than 2 weeks old

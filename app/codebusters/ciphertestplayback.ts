@@ -12,7 +12,6 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { TrueTime } from '../common/truetime';
 import {
     ConvergenceDomain,
-    RealTimeModel,
     HistoricalModel,
     HistoricalObject,
     RealTimeObject,

@@ -172,6 +172,21 @@ body.txt {
     display: inline;
     color: red;
 }
+span.goodtime,span.badtime {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 32px;
+    padding: 0 10px;
+}
+
+span.goodtime {
+    color: darkgreen;
+}
+
+span.badtime {
+    color: darkred;
+}
+
 .fq {
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;

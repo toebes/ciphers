@@ -1,4 +1,4 @@
-import { timestampFromSeconds } from './ciphercommon';
+import { formatTime, timestampFromSeconds } from './ciphercommon';
 
 /**
  * ChangeNotifyCallback is the callback function that gets invoked when the TrueTime object discovers that time has somehow
@@ -75,6 +75,9 @@ export class TrueTime {
             this.notifyFunc(msg);
         }
         console.log('**TrueTime Event: ' + msg);
+    }
+    public getDelta(): number {
+        return this.timeOffset;
     }
     /**
      * Get an adjusted UTC time.
@@ -158,7 +161,7 @@ export class TrueTime {
      * syncTime checks to see how far off we are from the server time
      */
     public syncTime(): void {
-        $.ajaxSetup({cache:false});
+        $.ajaxSetup({ cache: false });
         $.getJSON('https://toebes.com/codebusters/time.php')
             .done((data) => {
                 // We received a response with the current time.  Note that it may have taken
@@ -171,6 +174,15 @@ export class TrueTime {
                 if (!this.validOffset) {
                     // We've never set the offset, so update it now
                     this.updateOffset(delta);
+                    if (delta > timestampFromSeconds(this.maxDrift)) {
+                        // We are out of sync initially, so let them know
+                        const msg =
+                            'Time was off by more than ' +
+                            String(this.maxDrift) +
+                            ' seconds.  Adjusting to ' +
+                            String(timestampFromSeconds(delta));
+                        this.notifyFunc(msg);
+                    }
                 } else {
                     // We previously had an offset, see how far off we are now relative to previously
                     const change = Math.abs(delta - this.timeOffset);

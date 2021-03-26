@@ -7,14 +7,12 @@ import {
     IState,
     IInteractiveTest,
     ITestQuestionFields,
-    ITestTimeInfo,
     ITest,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { CipherTest, ITestState, IAnswerTemplate, sourceTestData } from './ciphertest';
 import { CipherPrintFactory } from './cipherfactory';
-import { TrueTime } from '../common/truetime';
 import { JTFDialog } from '../common/jtfdialog';
 
 /**

@@ -25,7 +25,7 @@ import {
     RealTimeNumber,
     NumberSetValueEvent,
     ModelService,
-    ModelPermissions,
+    ModelPermissions, RealTimeElement,
 } from '@convergence/convergence';
 import { CipherInteractiveFactory } from './cipherfactory';
 import { JTTable } from '../common/jttable';
@@ -53,7 +53,8 @@ export class CipherTestTimed extends CipherTest {
         endTime: 0,
         endTimedQuestion: 0,
     };
-
+    public realtimeSessionNotes: RealTimeElement;
+    public preInitializationTimeAnomaly: string = '';
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -128,6 +129,15 @@ export class CipherTestTimed extends CipherTest {
      */
     public timeAnomaly(msg: string): void {
         console.log('**Time anomaly reported:' + msg);
+        try {
+            this.realtimeSessionNotes.value(this.preInitializationTimeAnomaly + this.realtimeSessionNotes.value() + msg + '|');
+            this.preInitializationTimeAnomaly = '';
+        } catch (e) {
+            // Initially, realtime might not be ready.
+            this.preInitializationTimeAnomaly += ('Realtime not ready? ' +
+                e.toString() + ' **MSG: ' + msg + '** |');
+            // no fail.
+        }
     }
     /**
      * Generates a 2 letter initials for a name
@@ -455,6 +465,12 @@ export class CipherTestTimed extends CipherTest {
                         ) as RealTimeString;
                         // Make sure that we are the only copy for this yser
                         this.confirmOnly(realtimeAnswermodel, loggedinuserid, realtimeSessionid);
+
+                        this.realtimeSessionNotes = realtimeAnswermodel.elementAt(
+                            'assigned',
+                            userfound,
+                            'notes'
+                        );
                     }
                     $("#school").text(staticAnswerModel.teamname);
 
@@ -811,6 +827,7 @@ export class CipherTestTimed extends CipherTest {
         // Start a timer and run until we are out of time
         const intervaltimer = window.setInterval(() => {
             const now = this.testTimeInfo.truetime.UTCNow();
+            this.testTimeInfo.endTime = answermodel.elementAt('endtime').value();
             if (now >= this.testTimeInfo.endTime) {
                 clearInterval(intervaltimer);
                 // Time to kill the test

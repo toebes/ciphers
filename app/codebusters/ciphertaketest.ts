@@ -106,7 +106,9 @@ export class CipherTakeTest extends CipherTest {
             const row = table.addHeaderRow();
             row.add('Action')
                 .add('Title')
-                .add('Start Time');
+                .add('Start Time')
+                .add('Team')
+                .add('Type');
             result.append(table.generate());
             const domain = this.getConvergenceDomain();
             if (domain === 'scienceolympiad') {
@@ -151,7 +153,7 @@ export class CipherTakeTest extends CipherTest {
         // just incase we still need a default for the userid
         const userid = this.getConfigString('userid', 'NOBODY');
         modelService
-            .query('SELECT testid,starttime,endtime,assigned FROM codebusters_answers')  // This stays with Convergence for the answer models
+            .query('SELECT testid,starttime,endtime,assigned, teamname,teamtype FROM codebusters_answers')  // This stays with Convergence for the answer models
             .then((results) => {
                 let count = 0;
                 results.data.forEach((result) => {
@@ -247,9 +249,13 @@ export class CipherTakeTest extends CipherTest {
         const testmodelid = answertemplate.testid;
         const starttime = new Date(answertemplate.starttime).toLocaleString();
         const testtitle = $('<span/>').text('..Loading...');
+        const teamname = answertemplate.teamname;
+        const teamType = answertemplate.teamtype;
         tr.append($('<td/>').append($('<div/>', { class: 'grid-x' }).append(buttons)))
             .append($('<td/>').append(testtitle))
-            .append($('<td/>').text(starttime));
+            .append($('<td/>').text(starttime))
+            .append($('<td/>').text(teamname))
+            .append($('<td/>').text(teamType));
 
         this.fillTitle(testtitle, testmodelid);
         const curtr = $('tr[data-answer="' + answerModelID + '"]');

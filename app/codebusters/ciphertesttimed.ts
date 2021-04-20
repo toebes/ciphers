@@ -430,14 +430,17 @@ export class CipherTestTimed extends CipherTest {
                     for (let i = 0; i < 3; i++) {
                         let name = '';
                         let userid = '';
+                        let notes = '';
                         if (i < staticAnswerModel.assigned.length) {
                             name = staticAnswerModel.assigned[i].displayname;
                             userid = staticAnswerModel.assigned[i].userid;
+                            notes = staticAnswerModel.assigned[i].notes;
                         }
                         if (userid === loggedinuserid) {
                             userfound = i;
                             name = this.getUsersFullName();
                             realtimeAnswermodel.elementAt('assigned', userfound, 'displayname').value(name);
+                            realtimeAnswermodel.elementAt('assigned', userfound, 'notes').value(notes);
                         }
                         const idslot = String(Number(i) + 1);
                         if (name === '' && userid !== '') {

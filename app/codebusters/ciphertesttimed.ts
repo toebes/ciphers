@@ -754,7 +754,7 @@ export class CipherTestTimed extends CipherTest {
      */
     private makeTestLive(testmodel: IInteractiveTest, answermodel: RealTimeModel): void {
         Split({
-            minsize: 20,
+            minSize: 20,
             rowMinSize: 20,
             rowMinSizes: { 1: 20 },
             rowGutters: [

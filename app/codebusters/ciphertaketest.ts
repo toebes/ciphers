@@ -114,14 +114,14 @@ export class CipherTakeTest extends CipherTest {
             if (domain === 'scienceolympiad') {
                 const callout = $('<div/>', {
                     class: 'divtest callout primary',
-                }).append($("<p/>", { class: "h4" }).text("If you don't see your test and are taking a regional test, please click the link below to be taken to your test. ")
+                }).append($("<p/>", { class: "h4" }).text("If you don't see your test and are taking a state test, please click the link below to be taken to your test. ")
                     .append($("<em/>").text("Please note, you may have to log in again to access the test domain.")))
                     .append($("<ul/>")
                         .append($("<li/>", { class: "h3" }).append(
-                            $("<a/>", { href: "https://ncb.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division A and Division B Regional"))
+                            $("<a/>", { href: "https://ncb.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division B State Test"))
                         )
                         .append($("<li/>", { class: "h3" }).append(
-                            $("<a/>", { href: "https://ncc.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division C Regional"))
+                            $("<a/>", { href: "https://ncc.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division C State Test"))
                         )
                     )
                 result.append(callout)

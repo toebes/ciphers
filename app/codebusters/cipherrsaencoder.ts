@@ -1,5 +1,5 @@
-import { cloneObject } from '../common/ciphercommon';
-import { IOperationType, ITestType, toolMode } from '../common/cipherhandler';
+import { cloneObject, makeFilledArray } from '../common/ciphercommon';
+import { IOperationType, IScoreInformation, ITestQuestionFields, ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
@@ -368,6 +368,52 @@ export class CipherRSAEncoder extends CipherEncoder {
         return $('<h3/>').text('Not yet implemented');
     }
     /**
+     * getInteractiveTemplate creates the answer template for synchronization of
+     * the realtime answers when the test is being given.
+     * @returns Template of question fields to be filled in at runtime.
+     */
+    public getInteractiveTemplate(): ITestQuestionFields {
+        // Useful when other RSA elements are supported...
+        // if (this.state.operation === 'rsa4') {
+        const result: ITestQuestionFields = {
+            answer: makeFilledArray(1, ' '),
+            notes: '',
+        };
+        // }
+        return result;
+    }
+    /**
+     * Generate the score of an answered cipher
+     * @param answer - the array of characters from the interactive test.
+     */
+    public genScore(answer: string[]): IScoreInformation {
+        let scoreInformation: IScoreInformation = {
+            correctLetters: 0,
+            incorrectLetters: 1,
+            deduction: this.state.points.toString(),
+            score: 0,
+        };
+
+        if (this.state.operation === 'rsa4') {
+            let enteredAnswer = 0;
+            try {
+                enteredAnswer = parseInt(answer[0].trim());
+            } catch (e) {
+                // console.log("Invalid or no answer entered.");
+            }
+
+            if (this.state.year === enteredAnswer) {
+                scoreInformation.correctLetters = 1;
+                scoreInformation.incorrectLetters = 0;
+                scoreInformation.deduction = '0';
+                scoreInformation.score = this.state.points;
+            }
+        } else {
+            console.log("Score is 0.  RSA scoring not supported for " + this.state.operation);
+        }
+        return scoreInformation;
+    }
+    /**
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
@@ -379,7 +425,40 @@ export class CipherRSAEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        const result = this.genQuestion(testType);
+        //const result = this.genQuestion(testType);
+
+        const qnumdisp = String(qnum + 1);
+        const result = $('<div/>', { id: 'Q' + qnumdisp });
+
+        const idclass = 'I' + qnumdisp + '_';
+
+        if (this.state.operation === 'rsa4') {
+
+            result.append($('<div/>').text('Enter the answer:'));
+
+            const table = new JTTable({
+                class: 'ansblock shrink cell unstriped interactive',
+            });
+            let pos = 0;
+
+            const row = table.addBodyRow();
+
+            row.add({
+                settings: {
+                    class: 'q v rsawide ',
+                },
+                content: $('<input/>', {
+                    id: idclass + String(pos),
+                    class: 'awc',
+                    type: 'text',
+                }),
+            });
+
+            result.append(table.generate());
+        } else {
+            result.append($('<div/>').text('RSA question type is not supported in interactive mode.'));
+        }
+
         result.append($('<textarea/>', { id: 'in' + String(qnum + 1), class: 'intnote' }));
         return result;
     }

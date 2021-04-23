@@ -25,6 +25,7 @@ import { InteractiveAffineEncoder } from './interactiveaffineencoder';
 import { InteractiveEncoder } from './interactiveencoder';
 import { InteractiveHillEncoder } from './interactivehillencoder';
 import { InteractiveRailFenceEncoder } from './interactiverailfenceencoder';
+import { InteractiveRSAEncoder } from "./interactiversaencoder";
 import { InteractiveTableEncoder } from './interactivetableencoder';
 import { CipherVigenereEncoder } from './ciphervigenereencoder';
 import { CipherTestPublished } from './ciphertestpublished';
@@ -156,7 +157,7 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     RSA: {
         cipherType: ICipherType.RSA,
         cipherClass: CipherRSAEncoder,
-        interactiveClass: CipherHandler,
+        interactiveClass: InteractiveRSAEncoder,
         canPrint: true,
     },
     Scilympiad: {

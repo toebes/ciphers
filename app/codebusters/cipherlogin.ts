@@ -150,13 +150,19 @@ export class CipherLogin extends CipherHandler {
                 console.log('getConvergenceToken error: ' + reason);
                 const convergenceUsername = this.getConfigString('convergenceAdminUsername', '');
                 const convergencePassword = this.getConfigString('convergenceAdminPassword', '');
-                const convergenceProxyUsername = this.getConfigString('convergenceProxyUsername', '');
-                const convergenceProxyIsAdmin = this.getConfigString('convergenceIsAdmin', '')
+                const convergenceProxyUsername = this.getConfigString(
+                    'convergenceProxyUsername',
+                    ''
+                );
+                const convergenceProxyIsAdmin = this.getConfigString('convergenceIsAdmin', '');
 
-                const convergenceProxyTestid = this.getConfigString('convergenceProxyTestid', '')
-                const convergenceProxyTeam = this.getConfigString('convergenceProxyTeam', '')
-                const convergenceProxyStudent = this.getConfigString('convergenceProxyStudent', '')
-                const convergenceProxyIsScilympiad = convergenceProxyTestid !== '' && convergenceProxyTeam !== '' && convergenceProxyStudent !== ''
+                const convergenceProxyTestid = this.getConfigString('convergenceProxyTestid', '');
+                const convergenceProxyTeam = this.getConfigString('convergenceProxyTeam', '');
+                const convergenceProxyStudent = this.getConfigString('convergenceProxyStudent', '');
+                const convergenceProxyIsScilympiad =
+                    convergenceProxyTestid !== '' &&
+                    convergenceProxyTeam !== '' &&
+                    convergenceProxyStudent !== '';
 
                 if (
                     convergenceProxyUsername.length > 0 &&
@@ -167,11 +173,12 @@ export class CipherLogin extends CipherHandler {
                         convergencePassword: convergencePassword,
                         convergenceUsername: convergenceUsername,
                         userid: convergenceProxyUsername,
-                        isAdmin: convergenceProxyIsAdmin === "Y",
+                        isAdmin: convergenceProxyIsAdmin === 'Y',
                         sciEventId: convergenceProxyTestid,
                         sciTeamId: convergenceProxyTeam,
                         sciUserId: convergenceProxyStudent,
-                        isSci: convergenceProxyIsScilympiad
+                        isSci: convergenceProxyIsScilympiad,
+                        millisecondsFromNowTillExpire: -1,
                     };
                     this.api
                         .generateSpecificUserConvergenceToken(parameters)

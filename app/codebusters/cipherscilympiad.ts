@@ -1,7 +1,12 @@
 import { toolMode, IState, menuMode, CipherHandler } from '../common/cipherhandler';
 import { ITestState, IAnswerTemplate } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
-import { cloneObject, makeCallout, timestampFromMinutes, timestampFromWeeks } from '../common/ciphercommon';
+import {
+    cloneObject,
+    makeCallout,
+    timestampFromMinutes,
+    timestampFromWeeks,
+} from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { ConvergenceDomain, LogLevel } from '@convergence/convergence';
 import { CipherTest } from './ciphertest';
@@ -29,7 +34,7 @@ export class CipherScilympiad extends CipherTest {
     public state: ITestState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [];
 
-    public scitestid = "Enter a testid here";
+    public scitestid = 'Enter a testid here';
     public sciteam = 1;
     public scistudent = 1;
 
@@ -68,7 +73,9 @@ export class CipherScilympiad extends CipherTest {
         if (this.state.jwt === undefined || this.state.jwt.length < 20) {
             // Put up the dialog
             result.append(makeCallout($('<h3/>').text('No JWT provided.')));
-            setTimeout(() => { this.promptForCredentials(); }, 10);
+            setTimeout(() => {
+                this.promptForCredentials();
+            }, 10);
             return result;
         }
 
@@ -92,7 +99,7 @@ export class CipherScilympiad extends CipherTest {
 
         return new Promise((resolve, reject) => {
             if (this.state.jwt === undefined || this.state.jwt === '') {
-                reject("No JWT provided")
+                reject('No JWT provided');
             }
 
             const options: Convergence.IConvergenceOptions = {
@@ -115,11 +122,9 @@ export class CipherScilympiad extends CipherTest {
                     resolve(domain);
                 })
                 .catch((error) => {
-                    console.log(
-                        'An error occurred while trying to connect to realtime: ' + error
-                    );
+                    console.log('An error occurred while trying to connect to realtime: ' + error);
                     this.deleteConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN);
-                    reject(error)
+                    reject(error);
                 });
         });
     }
@@ -133,10 +138,10 @@ export class CipherScilympiad extends CipherTest {
         // just incase we still need a default for the userid
         const userid = this.getConfigString('userid', 'NOBODY');
         modelService
-            .query('SELECT testid,starttime,endtime,assigned FROM codebusters_answers')  // This stays with Convergence for the answer models
+            .query('SELECT testid,starttime,endtime,assigned FROM codebusters_answers') // This stays with Convergence for the answer models
             .then((results) => {
                 let count = 0;
-                let testid = ""
+                let testid = '';
                 results.data.forEach((result) => {
                     const answertemplate = result.data as IAnswerTemplate;
                     // Check to see if they are permitted
@@ -149,13 +154,23 @@ export class CipherScilympiad extends CipherTest {
                     }
                     if (isAssigned) {
                         count++;
-                        testid = result.modelId
+                        testid = result.modelId;
                     }
                 });
                 if (count === 0) {
-                    $('.testlist').append(makeCallout('There are currently no tests assigned for you to take.', 'alert'))
+                    $('.testlist').append(
+                        makeCallout(
+                            'There are currently no tests assigned for you to take.',
+                            'alert'
+                        )
+                    );
                 } else if (count > 1) {
-                    $('.testlist').append(makeCallout('There is more than one test assigned for you to take.', 'alert'))
+                    $('.testlist').append(
+                        makeCallout(
+                            'There is more than one test assigned for you to take.',
+                            'alert'
+                        )
+                    );
                 } else {
                     this.gotoTakeTest(testid);
                 }
@@ -173,23 +188,22 @@ export class CipherScilympiad extends CipherTest {
     public createMainMenu(): JQuery<HTMLElement> {
         // const result = super.createMainMenu();
         // Create the dialog for selecting which cipher to load
-        const result = $("<div/>");
-        result
-            .append(this.createSelectScilympiadDlg())
+        const result = $('<div/>');
+        result.append(this.createSelectScilympiadDlg());
         return result;
     }
 
     /**
-* Prompts for the user credentials to log in for the test
-*/
+     * Prompts for the user credentials to log in for the test
+     */
     public promptForCredentials(): void {
         $('#oksci')
             .removeAttr('disabled')
             .off('click')
             .on('click', () => {
-                this.scitestid = $("#scitestid").val() as string;
-                this.sciteam = Number($("#sciteam").val());
-                this.scistudent = Number($("#scistudent").val());
+                this.scitestid = $('#scitestid').val() as string;
+                this.sciteam = Number($('#sciteam').val());
+                this.scistudent = Number($('#scistudent').val());
                 this.setConfigString(
                     'convergenceAdminUsername',
                     $('#convergenceAdminUsername').val() as string
@@ -200,11 +214,15 @@ export class CipherScilympiad extends CipherTest {
                     $('#convergenceAdminPassword').val() as string
                 );
                 // We have the information so attempt to get a JWT token with it
-                this.getConvergenceToken(this.scitestid, this.sciteam, this.scistudent)
+                this.getConvergenceToken(this.scitestid, this.sciteam, this.scistudent);
                 $('#selectsci').foundation('close');
-            })
-        $('#convergenceAdminUsername').val(this.getConfigString('convergenceAdminUsername', 'admin'));
-        $('#convergenceAdminPassword').val(this.getConfigString('convergenceAdminPassword', 'password'));
+            });
+        $('#convergenceAdminUsername').val(
+            this.getConfigString('convergenceAdminUsername', 'admin')
+        );
+        $('#convergenceAdminPassword').val(
+            this.getConfigString('convergenceAdminPassword', 'password')
+        );
         // Put up the dialog to ask them.
         $('#selectsci').foundation('open');
     }
@@ -213,19 +231,22 @@ export class CipherScilympiad extends CipherTest {
      * @returns HTML DOM element for dialog
      */
     private createSelectScilympiadDlg(): JQuery<HTMLElement> {
-
-        const dlgContents = $("<div/>")
-            .append($('<div/>', {
-                class: 'callout alert',
-            }).text(
-                'No JWT was provided for access to the test.  If you are an admin, you can proxy to verify access.'
-            ))
+        const dlgContents = $('<div/>')
+            .append(
+                $('<div/>', {
+                    class: 'callout alert',
+                }).text(
+                    'No JWT was provided for access to the test.  If you are an admin, you can proxy to verify access.'
+                )
+            )
 
             .append(JTFLabeledInput('Test Id', 'text', 'scitestid', this.scitestid, ''))
             .append(JTFIncButton('Team Number', 'sciteam', this.sciteam, ''))
             .append(JTFIncButton('Student Number (1-3)', 'scistudent', this.scistudent, ''))
             .append(JTFLabeledInput('Admin Userid', 'text', 'convergenceAdminUsername', 0, ''))
-            .append(JTFLabeledInput('Admin Password', 'password', 'convergenceAdminPassword', 0, ''))
+            .append(
+                JTFLabeledInput('Admin Password', 'password', 'convergenceAdminPassword', 0, '')
+            );
 
         const ScheduleScilympiadDlg = JTFDialog(
             'selectsci',
@@ -237,26 +258,28 @@ export class CipherScilympiad extends CipherTest {
         return ScheduleScilympiadDlg;
     }
     /**
-     * 
-     * @param sciEventId 
-     * @param sciTeamId 
-     * @param sciUserId 
+     *
+     * @param sciEventId
+     * @param sciTeamId
+     * @param sciUserId
      */
     private getConvergenceToken(sciEventId: string, sciTeamId: number, sciUserId: number): void {
-        const strSciTeamId = String(sciTeamId)
-        const strSciUserId = String(sciUserId)
+        const strSciTeamId = String(sciTeamId);
+        const strSciUserId = String(sciUserId);
         const convergenceUsername = this.getConfigString('convergenceAdminUsername', '');
         const convergencePassword = this.getConfigString('convergenceAdminPassword', '');
-        const sciUser = sciEventId + "-" + strSciTeamId + "-" + strSciUserId
+        const sciUser = sciEventId + '-' + strSciTeamId + '-' + strSciUserId;
         const parameters: GenerateUserSpecificConvergenceToken = {
             convergencePassword: convergencePassword,
             convergenceUsername: convergenceUsername,
             userid: sciUser,
+            // -1 defaults to regular expiration window.
+            millisecondsFromNowTillExpire: -1,
             isAdmin: false,
             sciEventId: sciEventId,
             sciTeamId: strSciTeamId,
             sciUserId: strSciUserId,
-            isSci: false // For now...
+            isSci: false, // For now...
         };
         this.api
             .generateSpecificUserConvergenceToken(parameters)
@@ -268,14 +291,14 @@ export class CipherScilympiad extends CipherTest {
                     this.setConfigString(CipherHandler.KEY_FIRST_NAME, 'Team ' + strSciTeamId);
                     this.setConfigString(CipherHandler.KEY_LAST_NAME, 'User ' + strSciUserId);
                     // We have what we wanted, so reload the page passing the JWT
-                    location.assign('Scilympiad.html?jwt=' + encodeURIComponent(convergenceToken))
+                    location.assign('Scilympiad.html?jwt=' + encodeURIComponent(convergenceToken));
                 } else {
                     this.reportFailure('Unable to Authenticate: ' + value);
                 }
             })
             .catch((error) => {
                 this.reportFailure('Unable to Authenticate: ' + error);
-            })
+            });
     }
     /**
      * Run a test

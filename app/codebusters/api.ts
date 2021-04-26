@@ -13,6 +13,7 @@ export interface EnsureUsersExistParameters {
 }
 
 // userId is the username field.
+// millisecondsFromNowTillExpire if set to 300000 will create a token that expires in 5 minutes from creation
 export interface GenerateUserSpecificConvergenceToken {
     convergenceUsername: string;
     convergencePassword: string;

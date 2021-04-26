@@ -17,6 +17,7 @@ export interface GenerateUserSpecificConvergenceToken {
     convergenceUsername: string;
     convergencePassword: string;
     userid: string;
+    millisecondsFromNowTillExpire: Long;
     isAdmin: boolean;
 
     sciUserId: string;
@@ -111,6 +112,7 @@ export class API {
             UserID: parameters.userid,
             Email: parameters.userid,
             IsAdmin: parameters.isAdmin,
+            MillisecondsFromNowTillExpire: parameters.millisecondsFromNowTillExpire,
             SciEventId: parameters.sciEventId,
             SciTeamId: parameters.sciTeamId,
             SciUserId: parameters.sciUserId,
@@ -141,7 +143,7 @@ export class API {
                         response
                             .text()
                             .then((value) => {
-                                resolve(
+                                reject(
                                     'Response was not okay; Body contents of response: ' + value
                                 );
                             })
@@ -149,7 +151,7 @@ export class API {
                                 reject(reason);
                             });
                     } else {
-                        resolve('Response was not okay and no body was found for response');
+                        reject('Response was not okay and no body was found for response');
                     }
                 })
                 .catch((reason) => {
@@ -194,7 +196,7 @@ export class API {
                         response
                             .text()
                             .then((value) => {
-                                resolve(
+                                reject(
                                     'Response was not okay; Body contents of response: ' + value
                                 );
                             })
@@ -202,7 +204,7 @@ export class API {
                                 reject(reason);
                             });
                     } else {
-                        resolve('Response was not okay and no body was found for response');
+                        reject('Response was not okay and no body was found for response');
                     }
                 })
                 .catch((reason) => {
@@ -317,7 +319,7 @@ export class API {
                         response
                             .text()
                             .then((value) => {
-                                resolve(
+                                reject(
                                     'Response was not okay; Body contents of response: ' + value
                                 );
                             })
@@ -325,7 +327,7 @@ export class API {
                                 reject(reason);
                             });
                     } else {
-                        resolve('Response was not okay and no body was found for response');
+                        reject('Response was not okay and no body was found for response');
                     }
                 })
                 .catch((reason) => {
@@ -369,7 +371,7 @@ export class API {
                                 reject(reason);
                             });
                     } else {
-                        resolve(null);
+                        reject('Unknown error for getModelContent');
                     }
                 })
                 .catch((reason) => {
@@ -420,7 +422,7 @@ export class API {
                                 reject(reason);
                             });
                     } else {
-                        resolve(null);
+                        reject('Unknown state error for getPermissionsForModel');
                     }
                 })
                 .catch((reason) => {
@@ -463,7 +465,7 @@ export class API {
                                 reject(reason);
                             });
                     } else {
-                        resolve(null);
+                        reject('Unknown state error occurred for getModel');
                     }
                 })
                 .catch((reason) => {
@@ -510,7 +512,7 @@ export class API {
                                 reject(reason);
                             });
                     } else {
-                        resolve([]);
+                        reject('Unknown state error occurred for getModels');
                     }
                 })
                 .catch((reason) => {
@@ -555,7 +557,7 @@ export class API {
                         response
                             .text()
                             .then((value) => {
-                                resolve(
+                                reject(
                                     'Response was not okay; Body contents of response: ' + value
                                 );
                             })
@@ -563,8 +565,7 @@ export class API {
                                 reject(reason);
                             });
                     } else {
-                        console.log(response.headers);
-                        resolve('Response was not okay and no body was found for response');
+                        reject('Response was not okay and no body was found for response');
                     }
                 })
                 .catch((reason) => {
@@ -611,7 +612,7 @@ export class API {
                         response
                             .text()
                             .then((value) => {
-                                resolve(
+                                reject(
                                     'Response was not okay; Body contents of response: ' + value
                                 );
                             })
@@ -619,7 +620,7 @@ export class API {
                                 reject(reason);
                             });
                     } else {
-                        resolve('Response was not okay and no body was found for response');
+                        reject('Response was not okay and no body was found for response');
                     }
                 })
                 .catch((reason) => {

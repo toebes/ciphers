@@ -384,7 +384,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         if (key === '') {
             key = 'A';
         }
-        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
+        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth && maxEncodeWidth !== 9999) {
             encoded = this.chunk(encoded, this.state.blocksize);
         }
         const result: string[][] = [];

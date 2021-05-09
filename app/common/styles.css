@@ -1278,7 +1278,14 @@ button.rounded {
     padding: 0px;
     margin: 0px;
 }
+
+.participant .idle {
+    display:inline;
+    background: red;
+    font-size: 10px;
+}
 .participant .uid {
+    display: inline;
     margin-left: 2px;
     font-size: 10px;
     height: 14px;
@@ -1420,6 +1427,9 @@ table.SOLVER.ansblock.tapcode td {
 .rsawide {
     height: 3rem;
     width: 12rem;
+}
+.rsawide input.awc {
+    width: 11rem;
 }
 table.times {
     width: auto;

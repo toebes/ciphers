@@ -43,6 +43,8 @@ export class CipherTestTimed extends CipherTest {
         cipherType: ICipherType.Test,
         test: 0,
     };
+    public lastActiveTime = 0;
+    public totalIdleTime = 0;
     public save_testid: string = "not-set"
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
@@ -828,8 +830,26 @@ export class CipherTestTimed extends CipherTest {
             .removeClass('instructions')
             .addClass('iinstructions');
         // Start a timer and run until we are out of time
+        this.lastActiveTime = this.testTimeInfo.truetime.UTCNow();
         const intervaltimer = window.setInterval(() => {
             const now = this.testTimeInfo.truetime.UTCNow();
+            // See if they are the active window
+            if (!document.hasFocus()) {
+                this.totalIdleTime += now - this.lastActiveTime;
+                if (this.totalIdleTime > timestampFromSeconds(10)) {
+                    let seconds = Math.round(this.totalIdleTime / timestampFromSeconds(1));
+                    let msg = ""
+                    if (seconds > 60) {
+                        let minutes = Math.trunc(seconds / 60);
+                        let sec = seconds - (minutes * 60);
+                        msg = minutes + ":" + String(sec).padStart(2, '0');
+                    } else {
+                        msg = seconds + " sec"
+                    }
+                    $("#idle1").text("OBT:" + msg);
+                }
+            }
+            this.lastActiveTime = now;
             this.testTimeInfo.endTime = answermodel.elementAt('endtime').value();
             if (now >= this.testTimeInfo.endTime) {
                 clearInterval(intervaltimer);

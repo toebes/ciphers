@@ -36,7 +36,6 @@
         "eslint-plugin-standard": "^4.1.0",
         "expose-loader": "^0.7.5",
         "file-loader": "^1.1.11",
-        "hard-source-webpack-plugin": "^0.12.0",
         "html-loader": "^0.5.5",
         "html-webpack-plugin": "^3.2.0",
         "marked": "^0.7.0",
@@ -84,6 +83,7 @@
         "split.js": "^1.6.2",
         "text-readability": "^1.0.5",
         "tslint-config-prettier": "^1.18.0",
+        "underscore": "^1.13.1",
         "what-input": "^5.2.10",
         "xlsx": "^0.16.9"
     }

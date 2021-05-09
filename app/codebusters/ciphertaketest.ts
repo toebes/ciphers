@@ -112,19 +112,20 @@ export class CipherTakeTest extends CipherTest {
             result.append(table.generate());
             const domain = this.getConvergenceDomain();
             if (domain === 'scienceolympiad') {
-                const callout = $('<div/>', {
-                    class: 'divtest callout primary',
-                }).append($("<p/>", { class: "h4" }).text("If you don't see your test and are taking a state test, please click the link below to be taken to your test. ")
-                    .append($("<em/>").text("Please note, you may have to log in again to access the test domain.")))
-                    .append($("<ul/>")
-                        .append($("<li/>", { class: "h3" }).append(
-                            $("<a/>", { href: "https://ncb.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division B State Test"))
-                        )
-                        .append($("<li/>", { class: "h3" }).append(
-                            $("<a/>", { href: "https://ncc.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division C State Test"))
-                        )
-                    )
-                result.append(callout)
+                // const callout = $('<div/>', {
+                //     class: 'divtest callout primary',
+                // }).append($("<p/>", { class: "h2" }).append($("<b/>").text("You are almost there!")))
+                //     .append($("<p/>", { class: "h4" }).text("For the state test, you must click the appropriate link below. ")
+                //         .append($("<em/>").text("Please note, you may have to log in again to access the test domain.")))
+                //     .append($("<ul/>")
+                //         .append($("<li/>", { class: "h3" }).append(
+                //             $("<a/>", { href: "https://ncb.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division B State Test"))
+                //         )
+                //         .append($("<li/>", { class: "h3" }).append(
+                //             $("<a/>", { href: "https://ncc.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division C State Test"))
+                //         )
+                //     )
+                // result.append(callout)
             } else if (domain === 'ncbscienceolympiad') {
                 $("h2").text("North Carolina Division A and B Codebusters Tests")
                 result

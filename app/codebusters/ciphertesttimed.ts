@@ -11,7 +11,7 @@ import {
     StringMap,
     repeatStr,
     setCharAt,
-    NumberMap,
+    NumberMap, timestampToISOLocalString,
 } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { TrueTime } from '../common/truetime';
@@ -131,13 +131,14 @@ export class CipherTestTimed extends CipherTest {
      */
     public timeAnomaly(msg: string): void {
         console.log('**Time anomaly reported:' + msg);
+        let localTime = timestampToISOLocalString(Date.now(), true);
         try {
-            this.realtimeSessionNotes.value(this.preInitializationTimeAnomaly + this.realtimeSessionNotes.value() + msg + '|');
+            this.realtimeSessionNotes.value(this.preInitializationTimeAnomaly + this.realtimeSessionNotes.value() + localTime + ' : ' + msg + '|');
             this.preInitializationTimeAnomaly = '';
         } catch (e) {
             // Initially, realtime might not be ready.
             this.preInitializationTimeAnomaly += ('Realtime not ready? ' +
-                e.toString() + ' **MSG: ' + msg + '** |');
+                e.toString() + localTime + ' : **MSG: ' + msg + '** |');
             // no fail.
         }
     }

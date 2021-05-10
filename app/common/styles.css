@@ -1277,17 +1277,16 @@ button.rounded {
     height: 16px;
     padding: 0px;
     margin: 0px;
+    font-size: 10px;
 }
 
 .participant .idle {
     display:inline;
     background: red;
-    font-size: 10px;
 }
 .participant .uid {
     display: inline;
     margin-left: 2px;
-    font-size: 10px;
     height: 14px;
     width: 20px;
     border-radius: 6px;

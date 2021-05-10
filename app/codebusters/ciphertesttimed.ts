@@ -45,6 +45,8 @@ export class CipherTestTimed extends CipherTest {
     };
     public lastActiveTime = 0;
     public totalIdleTime = 0;
+    public realtimeIdleTracker: RealTimeNumber;
+    public obtID: string = "#idle999";
     public save_testid: string = "not-set"
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
@@ -455,6 +457,21 @@ export class CipherTestTimed extends CipherTest {
                             const initials = this.computeInitials(name);
                             $('#user' + idslot).text(name);
                             $('#init' + idslot).text(initials);
+                            // We have an active user so we also want to watch the values on it
+                            const idleTracker = realtimeAnswermodel.elementAt('assigned', i, 'idletime') as RealTimeNumber
+                            // If the tracker time changes then we want to update the out of browser time on the screen
+                            idleTracker.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => {
+                                $("#idle" + idslot).text(this.computeOBT(event.element.value()));
+                            });
+                            // Pre-populate the OBT slot for this user (which might be empty)
+                            $("#idle" + idslot).text(this.computeOBT(idleTracker.value()));
+                            // Of course if we know who the active user is (i.e. not a coach) remember the
+                            // id so that we can update it as well as how much idle time they had previously
+                            if (userfound === i) {
+                                this.obtID = "#idle" + idslot
+                                this.realtimeIdleTracker = idleTracker
+                                this.totalIdleTime = idleTracker.value();
+                            }
                         }
                     }
                     // Make sure that they were found in the list of active users for this test
@@ -834,20 +851,22 @@ export class CipherTestTimed extends CipherTest {
         this.lastActiveTime = this.testTimeInfo.truetime.UTCNow();
         const intervaltimer = window.setInterval(() => {
             const now = this.testTimeInfo.truetime.UTCNow();
+
+            // We want to track their total idle time.  Initially we pull it from the realtime data and set it as the total 
+            // as well as remember the last value it was set as
+            // then as they are idle, we add to our total.
+            // Once the total exceeds the cached value by 10 seconds, we update the realtime data and save the new value as the total
+            // We also watch the values for all three of them.  If any of them change, we update the corresponding field in the UI
             // See if they are the active window
             if (!document.hasFocus()) {
                 this.totalIdleTime += now - this.lastActiveTime;
                 if (this.totalIdleTime > timestampFromSeconds(10)) {
-                    let seconds = Math.round(this.totalIdleTime / timestampFromSeconds(1));
-                    let msg = ""
-                    if (seconds > 60) {
-                        let minutes = Math.trunc(seconds / 60);
-                        let sec = seconds - (minutes * 60);
-                        msg = minutes + ":" + String(sec).padStart(2, '0');
-                    } else {
-                        msg = seconds + " sec"
+                    const msg = this.computeOBT(this.totalIdleTime);
+                    $(this.obtID).text(msg);
+                    // See if it is time for us to update it
+                    if (this.totalIdleTime > (this.realtimeIdleTracker.value() + timestampFromSeconds(10))) {
+                        this.realtimeIdleTracker.value(this.totalIdleTime);
                     }
-                    $("#idle1").text("OBT:" + msg);
                 }
             }
             this.lastActiveTime = now;
@@ -859,6 +878,24 @@ export class CipherTestTimed extends CipherTest {
             }
             $('#tremain').text(formatTime(this.testTimeInfo.endTime - now));
         }, 100);
+    }
+    /**
+     * Compute the display string for tracking out of browser time
+     * @param interval Total amount of idle time
+     * @returns String representing display of the idle time
+     */
+    public computeOBT(interval: number): string {
+        let seconds = Math.round(interval / timestampFromSeconds(1));
+        let msg = ""
+
+        if (seconds > 60) {
+            let minutes = Math.trunc(seconds / 60);
+            let sec = seconds - (minutes * 60);
+            msg = "OBT:" + minutes + ":" + String(sec).padStart(2, '0');
+        } else if (seconds >= 10) {
+            msg = "OBT:" + seconds + " sec"
+        }
+        return msg
     }
     /**
      * saveBackupCopy makes a copy of all the data in the web browser and stores it on the server
@@ -919,6 +956,8 @@ export class CipherTestTimed extends CipherTest {
         }
         $('.testcontent').hide();
         $('.iinstructions').hide();
+        // Save any idle time we had.
+        this.realtimeIdleTracker.value(this.totalIdleTime);
         const session = answermodel.session().domain();
         this.testTimeInfo.truetime.stopTiming();
         answermodel.close().then(() => session.dispose());

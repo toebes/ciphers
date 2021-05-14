@@ -1,12 +1,7 @@
 import { toolMode, IState, menuMode, CipherHandler } from '../common/cipherhandler';
 import { ITestState, IAnswerTemplate } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
-import {
-    cloneObject,
-    makeCallout,
-    timestampFromMinutes,
-    timestampFromWeeks,
-} from '../common/ciphercommon';
+import { cloneObject, makeCallout } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { ConvergenceDomain, LogLevel } from '@convergence/convergence';
 import { CipherTest } from './ciphertest';
@@ -14,7 +9,6 @@ import Convergence = require('@convergence/convergence');
 import { JTFDialog } from '../common/jtfdialog';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import { string } from 'mathjs';
 import { GenerateUserSpecificConvergenceToken } from './api';
 
 /**
@@ -120,10 +114,22 @@ export class CipherScilympiad extends CipherTest {
             Convergence.connectWithJwt(connectUrl, this.state.jwt, options)
                 .then((domain) => {
                     resolve(domain);
+                    this.setConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, this.state.jwt);
+                    // We need to figure out the user and 
+                    const user = domain.session().user().email
+                    this.setConfigString(CipherHandler.KEY_USER_ID, user);
+                    // Now we need to split off the team number and which student they are
+                    const pieces = user.split('-');
+                    this.setConfigString(CipherHandler.KEY_FIRST_NAME, 'Scilympiad_User');
+                    this.setConfigString(CipherHandler.KEY_LAST_NAME, pieces[2]);
                 })
                 .catch((error) => {
                     console.log('An error occurred while trying to connect to realtime: ' + error);
                     this.deleteConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN);
+                    this.deleteConfigString(CipherHandler.KEY_USER_ID);
+                    this.deleteConfigString(CipherHandler.KEY_FIRST_NAME);
+                    this.deleteConfigString(CipherHandler.KEY_LAST_NAME);
+
                     reject(error);
                 });
         });

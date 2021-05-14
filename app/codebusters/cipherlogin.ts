@@ -178,7 +178,7 @@ export class CipherLogin extends CipherHandler {
                         sciTeamId: convergenceProxyTeam,
                         sciUserId: convergenceProxyStudent,
                         isSci: convergenceProxyIsScilympiad,
-                        millisecondsFromNowTillExpire: -1,
+                        millisecondsFromNowTillExpire: -1, // 300000 / 5,
                     };
                     this.api
                         .generateSpecificUserConvergenceToken(parameters)

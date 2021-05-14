@@ -186,12 +186,13 @@ export class CipherTestTimed extends CipherTest {
             if (useridslot.hasOwnProperty(email)) {
                 const idslot = useridslot[email];
                 const uislot = String(idslot + 1);
-                let displayname = collaborator.user.displayName.trim();
-                if (displayname === undefined || displayname === '') {
+                let displayname = collaborator.user.displayName;
+                if (displayname === undefined || displayname === null || displayname === '') {
                     displayname = answertemplate.assigned[idslot].displayname;
-                    if (displayname === undefined || displayname === '') {
+                    if (displayname === undefined || displayname === null || displayname === '') {
                         displayname = email;
                     }
+                    displayname = displayname.trim();
                 }
                 const initials = this.computeInitials(displayname);
                 $('#user' + uislot).text(displayname);

@@ -38,6 +38,8 @@ export class CipherTestResults extends CipherTestManage {
         // No additional command buttons needed...
     ];
 
+    static isScilympiad: boolean = false;
+
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
      * @returns HTML DOM elements to display in the section
@@ -114,6 +116,9 @@ export class CipherTestResults extends CipherTestManage {
             ) // This stays using convergence
             .then((results) => {
                 let total = 0;
+                this.getRealtimeSource(this.state.testID).then((sourceModel) => {
+                    CipherTestResults.isScilympiad = (sourceModel !== undefined && sourceModel.sciTestCount > 0);
+                });
                 results.data.forEach((result) => {
                     const answertemplate = result.data as IAnswerTemplate;
                     if (result.modelId !== answertempateid) {
@@ -222,12 +227,47 @@ export class CipherTestResults extends CipherTestManage {
             }).text('Analyze')
         );
 
-        let userList = '';
+        let userList = '---';
+
+        //isScilympiad()
+        let displayIdleTime = false;
+        let totalIdleTime = 0;
+        let idleTimes = " [";
+
         for (let i = 0; i < answertemplate.assigned.length; i++) {
-            if (i > 0) {
-                userList += '\n';
+            if (CipherTestResults.isScilympiad) {
+                let idleTime = Math.round(answertemplate.assigned[i].idletime / timestampFromSeconds(1));
+                if (idleTime >= 10) {
+                    displayIdleTime = true;
+                }
+                totalIdleTime += idleTime;
+                let minutes = Math.trunc(idleTime / 60);
+                let seconds = idleTime - (minutes * 60);
+                if (i > 0) {
+                    idleTimes += ' ';
+                }
+                idleTimes += (minutes + ':' + String(seconds).padStart(2, '0'));
             }
-            userList += (answertemplate.assigned[i].displayname === '' ? answertemplate.assigned[i].userid : answertemplate.assigned[i].displayname);
+            else {
+
+                if (i > 0) {
+                    userList += '\n';
+                }
+                let user = (answertemplate.assigned[i].displayname === '' ? answertemplate.assigned[i].userid : answertemplate.assigned[i].displayname);
+                userList += user
+            }
+        }
+        if (displayIdleTime) {
+            idleTimes += ']';
+            if (totalIdleTime > 60) {
+                let minutes = Math.trunc(totalIdleTime / 60);
+                let seconds = totalIdleTime - (minutes * 60);
+                userList = minutes + ":" + String(seconds).padStart(2, '0');
+            }
+            else {
+                userList = totalIdleTime + " sec"
+            }
+            userList += idleTimes;
         }
 
         row.add(buttons)

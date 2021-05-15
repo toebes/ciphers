@@ -94,11 +94,19 @@ export class CipherTestResults extends CipherTestManage {
 
                 this.getRealtimeAnswerTemplate(metadata.answerid).then((answertemplate) => {
                     this.answerTemplate = answertemplate;
-                    this.findScheduledTests(modelService, testmodelid, metadata.answerid);
-                });
+                    this.getRealtimeSource(this.state.testID).then((sourceModel) => {
+                        CipherTestResults.isScilympiad = (sourceModel !== undefined && sourceModel.sciTestCount > 0);
+                        this.findScheduledTests(modelService, testmodelid, sourceModel, metadata.answerid);
+                    }).catch((error) => {
+                        this.reportFailure('Could not open Source model for ' + sourcemodelid + ' Error:' + error);
+                    });
+                })
+                    .catch((error) => {
+                        this.reportFailure('Could not open Answer Template for ' + sourcemodelid + ' Error:' + error);
+                    });
             })
             .catch((error) => {
-                this.reportFailure('Could not open model for ' + sourcemodelid + ' Error:' + error);
+                this.reportFailure('Could not get metadata for ' + sourcemodelid + ' Error:' + error);
             });
     }
     /**
@@ -107,7 +115,7 @@ export class CipherTestResults extends CipherTestManage {
      * @param testmodelid Test model to find tests for
      * @param answertempateid Answer template to ignore (shouldn't be found)
      */
-    public findScheduledTests(modelService: ModelService, testmodelid: string, answertempateid: string): void {
+    public findScheduledTests(modelService: ModelService, testmodelid: string, sourceModel: SourceModel, answertempateid: string): void {
         modelService
             .query(
                 "SELECT assigned,starttime,endtimed,endtime,teamname,teamtype FROM codebusters_answers where testid='" +
@@ -116,9 +124,6 @@ export class CipherTestResults extends CipherTestManage {
             ) // This stays using convergence
             .then((results) => {
                 let total = 0;
-                this.getRealtimeSource(this.state.testID).then((sourceModel) => {
-                    CipherTestResults.isScilympiad = (sourceModel !== undefined && sourceModel.sciTestCount > 0);
-                });
                 results.data.forEach((result) => {
                     const answertemplate = result.data as IAnswerTemplate;
                     if (result.modelId !== answertempateid) {
@@ -137,9 +142,7 @@ export class CipherTestResults extends CipherTestManage {
                 this.attachHandlers();
                 console.log("OK now score...");
                 const scheduledTestScores: CipherTestScorer = new CipherTestScorer();
-                this.getRealtimeSource(this.state.testID).then((sourceModel) => {
-                    this.scoreOne(modelService, sourceModel, scheduledTestScores);
-                });
+                this.scoreOne(modelService, sourceModel, scheduledTestScores);
             })
             .catch((error) => {
                 this.reportFailure('Convergence API could not query: ' + error);

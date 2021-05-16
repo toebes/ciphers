@@ -40,6 +40,10 @@ export class CipherTestResults extends CipherTestManage {
 
     static isScilympiad: boolean = false;
 
+    resultCSV = 'Team, Timed question, OBT total, OBT 1, OBT 2, OBT 3, Total score, Question, Value, Cipher type, Incorrect letters, Total letters, Deduction, Score';
+    dataCSV = new Array();
+    filenameCSV = undefined;
+
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
      * @returns HTML DOM elements to display in the section
@@ -164,6 +168,9 @@ export class CipherTestResults extends CipherTestManage {
             $('.testlist')
                 .empty()
                 .append(table.generate());
+            if (CipherTestResults.isScilympiad) {
+                $('.takerview').hide();
+            }
         } else {
             // Find the id of the last row
             const lastid = $('.publist tr:last').attr('id');
@@ -182,21 +189,31 @@ export class CipherTestResults extends CipherTestManage {
      */
     private static createTestTable(): JTTable {
         const table = new JTTable({ class: 'cell shrink publist testresults' });
-        const row = table.addHeaderRow();
-        row.add('Action')
-            .add('School')
-            .add('Type')
-            .add('Start Time')
+        let row = table.addHeaderRow();
+        row = row.add('Action');
+        if (this.isScilympiad) {
+            row = row.add('Team');
+        }
+        else {
+            row = row.add('School')
+                .add('Type');
+        }
+            row = row.add('Start Time')
             .add('End Time')
-            .add('Timed Question')
-            .add({
+            .add('Timed Question');
+        if (this.isScilympiad) {
+            row = row.add('O.B.T.');
+        }
+        else {
+            row  =row.add({
                 settings: {
                     id: 'testTakers',
                     class: 'hidden',
                 },
                 content: 'Takers'
-            })
-            .add('Score');
+            });
+        }
+            row.add('Score');
         return table;
     }
     /**
@@ -232,7 +249,6 @@ export class CipherTestResults extends CipherTestManage {
 
         let userList = '---';
 
-        //isScilympiad()
         let displayIdleTime = false;
         let totalIdleTime = 0;
         let idleTimes = " [";
@@ -273,14 +289,21 @@ export class CipherTestResults extends CipherTestManage {
             userList += idleTimes;
         }
 
+        let teamName = answertemplate.teamname;
+        if (this.isScilympiad) {
+            teamName = teamName.replace('Team ', 'C');
+        }
+
         row.add(buttons)
             .add($('<div/>', {
                 id: 'teamname',
-            }).text(answertemplate.teamname))
-            .add($('<div/>', {
+            }).text(teamName));
+        if (!CipherTestResults.isScilympiad) {
+            row.add($('<div/>', {
                 id: 'teamtype',
-            }).text(answertemplate.teamtype))
-            .add($('<div/>', {
+            }).text(answertemplate.teamtype));
+        }
+            row.add($('<div/>', {
                 id: 'starttime',
             }).text(timestampToFriendly(answertemplate.starttime))) // Start Time
             .add($('<div/>', {
@@ -288,11 +311,16 @@ export class CipherTestResults extends CipherTestManage {
             }).text(timestampToFriendly(answertemplate.endtime))) // End Time
             .add($('<div/>', {
                 id: 'sovledTime',
-            }).text('...')) // Timed question will be filled in after scoring
-            .add({
+            }).text('...')); // Timed question will be filled in after scoring
+
+        let testTakersClass = 'hidden';
+        if (CipherTestResults.isScilympiad) {
+            testTakersClass = '';
+        }
+            row.add({
                 settings: {
                     id: 'testTakers',
-                    class: 'hidden',
+                    class: testTakersClass,
                 },
                 content: userList
             })
@@ -441,7 +469,7 @@ export class CipherTestResults extends CipherTestManage {
             });
             const datatable = $('.publist').DataTable({
                 "paging": false,
-                'order': [[7, 'desc']],
+                'order': [[(CipherTestResults.isScilympiad ? 6: 7), 'desc']],
             });
             // We need to attach the handler here because we need access to the datatable object
             // in order to get the row() function
@@ -537,10 +565,24 @@ export class CipherTestResults extends CipherTestManage {
                     elem.text(testResultsData.score);
                     resolve();
                 }
+                let testCSV = this.getCSVData(testResultsData);
+                this.dataCSV.push(testCSV);
             })
                 .catch((error) => { reject(error) });
         })
 
+    }
+    private getCSVData(testResultsData: ITestResultsData) : Array<string> {
+        let returnValue = new Array(testResultsData.questions.length + 1);
+        returnValue[0] = testResultsData.teamname;
+        returnValue[1] = testResultsData.bonusTime;
+        returnValue[2] = testResultsData.testTakers;
+        returnValue[3] = testResultsData.testTakers;
+        returnValue[4] = testResultsData.testTakers;
+        returnValue[5] = testResultsData.testTakers;
+        returnValue[6] = testResultsData.score;
+        returnValue[7] = testResultsData.questions[0];
+        return returnValue;
     }
     /**
      * calculateOneScore calculates the score for a single test
@@ -646,7 +688,8 @@ export class CipherTestResults extends CipherTestManage {
     }
 
     public gotoTestPlayback(testID: string): void {
-        location.assign('TestPlayback.html?testID=' + String(testID));
+        //location.assign('TestPlayback.html?testID=' + String(testID));
+        window.open('TestPlayback.html?testID=' + String(testID));
     }
     /**
      * Attach all the UI handlers for created DOM elements

@@ -41,7 +41,14 @@ export class CipherTestResults extends CipherTestManage {
     static isScilympiad: boolean = false;
 
     // Used for exporting results to CSV.
-    dataCSV = 'Team, Start time, End time, Timed question, OBT total, OBT 1, OBT 2, OBT 3, Total score, Question, Value, Cipher type, Incorrect letters, Total letters, Deduction, Score\n';
+    /*
+    *** Use this header *** 1 row per team...
+Team, Total Score, OBT total, OBT 1, OBT 2, OBT 3, Start time, End time, Timed Solve, Bonus Score, Q 0-n Score, Q 0-n Incorrect letters
+0pad format yy/mm/etc ---------> m:ss,   0:40                          x  xxx  xxxxxxxxxx     xx  x
+C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, aristocrat, 0, 75, 0, 200
+
+     */
+    dataCSV = '##TEAM@INFO##, Total score, OBT total, OBT 1, OBT 2, OBT 3, Start time, End time, Timed solved, Bonus Score, ##QUESTIONS@SCORES##, ##QUESTIONS@INCORRECTLETTERS##\n';
     static teamData = new Map();
 
     /**
@@ -104,6 +111,8 @@ export class CipherTestResults extends CipherTestManage {
                     this.answerTemplate = answertemplate;
                     this.getRealtimeSource(this.state.testID).then((sourceModel) => {
                         CipherTestResults.isScilympiad = (sourceModel !== undefined && sourceModel.sciTestCount > 0);
+                        this.dataCSV = this.dataCSV.replace('##TEAM@INFO##',
+                            CipherTestResults.isScilympiad ? 'Team' : 'School, Type');
                         this.findScheduledTests(modelService, testmodelid, sourceModel, metadata.answerid);
                     }).catch((error) => {
                         this.reportFailure('Could not open Source model for ' + sourcemodelid + ' Error:' + error);
@@ -346,10 +355,10 @@ export class CipherTestResults extends CipherTestManage {
             answertemplate.starttime + ', ' +
             answertemplate.endtime + ', ' +
             '##BONUS@TIME##, ' +
-            (this.isScilympiad ? obt + ', ' : '') +
-            (this.isScilympiad ? obt1 : (answertemplate.assigned != null ? answertemplate.assigned[0].displayname : '')) + ', ' +
-            (this.isScilympiad ? obt2 : (answertemplate.assigned != null ? answertemplate.assigned[1].displayname : '')) + ', ' +
-            (this.isScilympiad ? obt3 : (answertemplate.assigned != null ? answertemplate.assigned[2].displayname : '')) + ', ';
+            obt + ', ' +
+            obt1 + ', ' +
+            obt2 + ', ' +
+            obt3 + ', ';
 
     }
 

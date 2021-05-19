@@ -40,9 +40,9 @@ export class CipherTestResults extends CipherTestManage {
 
     static isScilympiad: boolean = false;
 
-    resultCSV = 'Team, Timed question, OBT total, OBT 1, OBT 2, OBT 3, Total score, Question, Value, Cipher type, Incorrect letters, Total letters, Deduction, Score';
-    dataCSV = new Array();
-    filenameCSV = undefined;
+    // Used for exporting results to CSV.
+    dataCSV = 'Team, Start time, End time, Timed question, OBT total, OBT 1, OBT 2, OBT 3, Total score, Question, Value, Cipher type, Incorrect letters, Total letters, Deduction, Score\n';
+    static teamData = new Map();
 
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
@@ -57,7 +57,10 @@ export class CipherTestResults extends CipherTestManage {
                 .append($('<a/>', {
                     'showing': 'off',
                     class: 'takerview button',
-                }).text('Reveal Takers'))));
+                }).text('Reveal Takers')))
+            .append($('<div/>', { class: 'cell shrink'})
+                .append($('<a/>', { class: 'exportcsv button',
+                }).text('Export CSV'))));
         return result;
     }
     /**
@@ -89,6 +92,7 @@ export class CipherTestResults extends CipherTestManage {
      * @param sourcemodelid Source test to open
      */
     private openTestSource(modelService: ModelService, sourcemodelid: string): void {
+        CipherTestResults.teamData.clear();
         this.getRealtimeElementMetadata('sourcemodel', sourcemodelid)
             .then((metadata) => {
                 const testmodelid = metadata.testid;
@@ -252,6 +256,8 @@ export class CipherTestResults extends CipherTestManage {
         let displayIdleTime = false;
         let totalIdleTime = 0;
         let idleTimes = " [";
+        let scoreValue = 'Calculating...';
+        let scoreId = 'score';
 
         for (let i = 0; i < answertemplate.assigned.length; i++) {
             if (CipherTestResults.isScilympiad) {
@@ -292,6 +298,10 @@ export class CipherTestResults extends CipherTestManage {
         let teamName = answertemplate.teamname;
         if (this.isScilympiad) {
             teamName = teamName.replace('Team ', 'C');
+            if (this.isNoShowTest(answertemplate.assigned)) {
+                scoreValue = 'NS';
+                scoreId = 'scoreNS';
+            }
         }
 
         row.add(buttons)
@@ -317,16 +327,30 @@ export class CipherTestResults extends CipherTestManage {
         if (CipherTestResults.isScilympiad) {
             testTakersClass = '';
         }
-            row.add({
-                settings: {
-                    id: 'testTakers',
-                    class: testTakersClass,
-                },
-                content: userList
-            })
+            row.add($('<div/>', {
+                id: 'testTakers',
+                class: testTakersClass,
+            }).text(userList))
             .add($('<div/>', {
-                id: 'score',
-            }).text('Calculating...')); // Overall score will be filled in after scoring
+                id: scoreId,
+            }).text(scoreValue)); // Overall score will be filled in after scoring
+
+        // Store data for CSV export...
+        let obt = this.isScilympiad ? userList.substring(0, userList.indexOf('[')).trim() : '';
+        let obtx = userList.match(/.*\[(\d+:\d+).*(\d+:\d+).*(\d+:\d+)\]/);
+        let obt1 = this.isScilympiad ? (obtx != null ? obtx[1] : '') : '';
+        let obt2 = this.isScilympiad ? (obtx != null ? obtx[2] : '') : '';
+        let obt3 = this.isScilympiad ? (obtx != null ? obtx[3] : '') : '';
+        this.teamData[answertemplate.teamname] = (this.isScilympiad ? teamName : answertemplate.teamname ) + ', ' +
+            (this.isScilympiad ? '' : answertemplate.teamtype + ', ') +
+            answertemplate.starttime + ', ' +
+            answertemplate.endtime + ', ' +
+            '##BONUS@TIME##, ' +
+            (this.isScilympiad ? obt + ', ' : '') +
+            (this.isScilympiad ? obt1 : (answertemplate.assigned != null ? answertemplate.assigned[0].displayname : '')) + ', ' +
+            (this.isScilympiad ? obt2 : (answertemplate.assigned != null ? answertemplate.assigned[1].displayname : '')) + ', ' +
+            (this.isScilympiad ? obt3 : (answertemplate.assigned != null ? answertemplate.assigned[2].displayname : '')) + ', ';
+
     }
 
     public genTestDetailsTable(itemTest: ITestResultsData, testQuestions: ITestQuestion[]): JQuery<HTMLElement> {
@@ -460,6 +484,17 @@ export class CipherTestResults extends CipherTestManage {
                 // Generate details and enable details button
                 const details: JQuery<HTMLElement> = this.genTestDetailsTable(itemTest, scoredTests[indexTest].questions);
 
+                // Build a 'row' of CSV data.
+                let teamInfo = CipherTestResults.teamData[itemTest.teamname] + itemTest.score + ', ';
+                teamInfo = teamInfo.replace('##BONUS@TIME##', String(itemTest.bonusTime));
+                CipherTestResults.teamData.delete(itemTest.teamname);
+
+                for (const question of itemTest.questions) {
+                    this.dataCSV += teamInfo + question.questionNumber + ', ' + question.points + ', ' + question.cipherType + ', ' +
+                        question.incorrectLetters + ', ' + (question.incorrectLetters + question.correctLetters) + ', ' +
+                        question.deduction + ', ' + question.score + '\n';
+                }
+
                 const selectedTestRowButton = $('a[data-source="' + itemTest.testId + '"]');
                 // To get the full html, we need to wrap it and get the innerhtml
                 // see https://stackoverflow.com/questions/5744207/jquery-outer-html
@@ -468,9 +503,17 @@ export class CipherTestResults extends CipherTestManage {
                 selectedTestRowButton.removeAttr('disabled');
             });
             const datatable = $('.publist').DataTable({
+                // Default DataTable sorting does not handle number + alphas too well...
+                // "columnDefs": [
+                //     {
+                //         "type": "score",
+                //         "targets": -1,
+                //     }
+                // ],
                 "paging": false,
                 'order': [[(CipherTestResults.isScilympiad ? 6: 7), 'desc']],
             });
+//            $.fn.dataTableExt.oSort['score-desc'] = function(x, y)
             // We need to attach the handler here because we need access to the datatable object
             // in order to get the row() function
             $('.pubview')
@@ -554,19 +597,23 @@ export class CipherTestResults extends CipherTestManage {
                         elem.text("Computing...");
                         this.calculateOneScore(sourcemodel, testResultsData, model.answers, solvetime, model.endtimed, model.starttime);
 
+                        if (CipherTestResults.isNoShowTest(model.assigned)) {
+                            testResultsData.score = -2;
+                        }
                         scheduledTestScores.addTest(testResultsData);
-                        elem.text(testResultsData.score);
+                        elem.text(testResultsData.score != -2 ? testResultsData.score : 'NS');
                         resolve();
                     });
                 } else {
                     elem.text("Computing...");
                     this.calculateOneScore(sourcemodel, testResultsData, model.answers, solvetime, model.endtimed, model.starttime);
+                    if (CipherTestResults.isNoShowTest(model.assigned)) {
+                        testResultsData.score = -2;
+                    }
                     scheduledTestScores.addTest(testResultsData);
-                    elem.text(testResultsData.score);
+                    elem.text(testResultsData.score != -2 ? testResultsData.score : 'NS');
                     resolve();
                 }
-                let testCSV = this.getCSVData(testResultsData);
-                this.dataCSV.push(testCSV);
             })
                 .catch((error) => { reject(error) });
         })
@@ -691,6 +738,29 @@ export class CipherTestResults extends CipherTestManage {
         //location.assign('TestPlayback.html?testID=' + String(testID));
         window.open('TestPlayback.html?testID=' + String(testID));
     }
+
+    exportCSVData(): void {
+        let resultsCount = $('.testresults tbody').children().length;
+        console.log('Exporting CSV data for team count of: ' + resultsCount);
+        //  JQuery attempt that did not work out because details are not shown unless the 'Details' button is clicked,
+        //  so we can not harvest the question data.
+        // let teamRow = new Array<string>();
+        // let teamRows : JQuery<HTMLElement> = $('.testresults tbody').children()
+        //     .each(function() {
+        //         console.log("Team: " + $(this).find('#teamname').text());
+        //         $(this).find('.testscores tbody tr').children().each(function() {
+        //             // this should be <td>s (children of <tr>)
+        //             console.log("TEST: " + $(this).text());
+        //         });
+        //     });
+        //
+        const csvFilename = $('#title').text() + '.csv';
+        var hiddenElement = document.createElement('a');
+        hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(this.dataCSV);
+        hiddenElement.target = '_blank';
+        hiddenElement.download = csvFilename;
+        hiddenElement.click();
+    }
     /**
      * Attach all the UI handlers for created DOM elements
      */
@@ -715,6 +785,11 @@ export class CipherTestResults extends CipherTestManage {
                     target.text('Hide Takers');
                 }
             });
+        $('.exportcsv')
+            .off('click')
+            .on('click', (e) => {
+                this.exportCSVData();
+            });
     }
 
     /**
@@ -729,6 +804,24 @@ export class CipherTestResults extends CipherTestManage {
             returnValue = 4 * (bonusWindow - solvedTime);
             if (returnValue < 0) {
                 returnValue = 0;
+            }
+        }
+        return returnValue;
+    }
+
+    /**
+     * Determine if the test is a 'no show'...i.e. none of the assigned users logged in to take the test.
+     * This is done by checking the display name of all assigned users.  If all assigned users do not
+     * have a displayname, then none showed up...therefore 'no show'.
+     *
+     *  @param assigned : user array for a test
+     */
+    static isNoShowTest(assigned: ITestUser[]) : boolean {
+        let returnValue = true;
+        for (let user of assigned) {
+            if (user.displayname !== '') {
+                returnValue = false;
+                break;
             }
         }
         return returnValue;

@@ -37,6 +37,7 @@ import 'datatables.net-dt';
 import 'datatables.css';
 import 'datatables.net-zf';
 import 'datatables.foundation.css';
+import 'datatables.net-plugins';
 
 import { CipherHandler } from '../common/cipherhandler';
 import { CipherFactory } from './cipherfactory';

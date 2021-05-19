@@ -38,7 +38,7 @@ export class CipherTestResults extends CipherTestManage {
         // No additional command buttons needed...
     ];
 
-    static isScilympiad: boolean = false;
+    public isScilympiad: boolean = false;
 
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
@@ -95,19 +95,11 @@ export class CipherTestResults extends CipherTestManage {
                 this.getRealtimeAnswerTemplate(metadata.answerid).then((answertemplate) => {
                     this.answerTemplate = answertemplate;
                     this.getRealtimeSource(this.state.testID).then((sourceModel) => {
-                        CipherTestResults.isScilympiad = (sourceModel !== undefined && sourceModel.sciTestCount > 0);
+                        this.isScilympiad = (sourceModel !== undefined && sourceModel.sciTestCount > 0);
                         this.findScheduledTests(modelService, testmodelid, sourceModel, metadata.answerid);
-                    }).catch((error) => {
-                        this.reportFailure('Could not open Source model for ' + sourcemodelid + ' Error:' + error);
-                    });
-                })
-                    .catch((error) => {
-                        this.reportFailure('Could not open Answer Template for ' + sourcemodelid + ' Error:' + error);
-                    });
-            })
-            .catch((error) => {
-                this.reportFailure('Could not get metadata for ' + sourcemodelid + ' Error:' + error);
-            });
+                    }).catch((error) => { this.reportFailure('Could not open Source model for ' + sourcemodelid + ' Error:' + error); });
+                }).catch((error) => { this.reportFailure('Could not open Answer Template for ' + sourcemodelid + ' Error:' + error); });
+            }).catch((error) => { this.reportFailure('Could not get metadata for ' + sourcemodelid + ' Error:' + error); });
     }
     /**
      * findScheduledTests finds all the tests scheduled for a given test template and populates the UI with them
@@ -158,9 +150,9 @@ export class CipherTestResults extends CipherTestManage {
         let newRowID = 0;
         if ($('.publist').length === 0) {
             // No table at all so just create one with our row put in it
-            const table = CipherTestResults.createTestTable();
+            const table = this.createTestTable();
             const row = table.addBodyRow();
-            CipherTestResults.populateRow(row, newRowID, answermodelid, answertemplate);
+            this.populateRow(row, newRowID, answermodelid, answertemplate);
             $('.testlist')
                 .empty()
                 .append(table.generate());
@@ -170,7 +162,7 @@ export class CipherTestResults extends CipherTestManage {
             const rowID = Number(lastid.substr(1)) + 1;
             // And create a row with the next ID
             const row = new JTRow();
-            CipherTestResults.populateRow(row, rowID, answermodelid, answertemplate);
+            this.populateRow(row, rowID, answermodelid, answertemplate);
             newRowID = rowID;
             // And put it into the table
             $('.publist tbody').append(row.generate());
@@ -180,7 +172,7 @@ export class CipherTestResults extends CipherTestManage {
     /**
      * createTestTable creates the test table for displaying all active tests
      */
-    private static createTestTable(): JTTable {
+    private createTestTable(): JTTable {
         const table = new JTTable({ class: 'cell shrink publist testresults' });
         const row = table.addHeaderRow();
         row.add('Action')
@@ -206,7 +198,7 @@ export class CipherTestResults extends CipherTestManage {
      * @param answerModelID ID for the stored answer model
      * @param answertemplate Contents for the answer
      */
-    private static populateRow(row: JTRow, rownum: number, answerModelID: string, answertemplate: IAnswerTemplate): void {
+    private populateRow(row: JTRow, rownum: number, answerModelID: string, answertemplate: IAnswerTemplate): void {
         // Fill in the results summary
         const rowID = String(rownum);
         // console.log("Populating row..." + rowID)
@@ -238,7 +230,7 @@ export class CipherTestResults extends CipherTestManage {
         let idleTimes = " [";
 
         for (let i = 0; i < answertemplate.assigned.length; i++) {
-            if (CipherTestResults.isScilympiad) {
+            if (this.isScilympiad) {
                 let idleTime = Math.round(answertemplate.assigned[i].idletime / timestampFromSeconds(1));
                 if (idleTime >= 10) {
                     displayIdleTime = true;

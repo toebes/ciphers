@@ -38,18 +38,11 @@ export class CipherTestResults extends CipherTestManage {
         // No additional command buttons needed...
     ];
 
-    static isScilympiad: boolean = false;
+    public isScilympiad: boolean = false;
 
     // Used for exporting results to CSV.
-    /*
-    *** Use this header *** 1 row per team...
-Team, Total Score, OBT total, OBT 1, OBT 2, OBT 3, Start time, End time, Timed Solve, Bonus Score, Q 0-n Score, Q 0-n Incorrect letters
-0pad format yy/mm/etc ---------> m:ss,   0:40                          x  xxx  xxxxxxxxxx     xx  x
-C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, aristocrat, 0, 75, 0, 200
-
-     */
-    dataCSV = '##TEAM@INFO##, Total score, OBT total, OBT 1, OBT 2, OBT 3, Start time, End time, Timed solved, Bonus Score, ##QUESTIONS@SCORES##, ##QUESTIONS@INCORRECTLETTERS##\n';
-    static teamData = new Map();
+    dataCSV = '##TEAM@INFO##, Total score, OBT total, OBT 1, OBT 2, OBT 3, Start time, End time, Timed solved, Bonus Score';
+    private teamData = new Map();
 
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
@@ -66,7 +59,7 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
                     class: 'takerview button',
                 }).text('Reveal Takers')))
             .append($('<div/>', { class: 'cell shrink'})
-                .append($('<a/>', { class: 'exportcsv button',
+                .append($('<a/>', { class: 'exportcsv button', disabled: 'disabled',
                 }).text('Export CSV'))));
         return result;
     }
@@ -99,7 +92,7 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
      * @param sourcemodelid Source test to open
      */
     private openTestSource(modelService: ModelService, sourcemodelid: string): void {
-        CipherTestResults.teamData.clear();
+        this.teamData.clear();
         this.getRealtimeElementMetadata('sourcemodel', sourcemodelid)
             .then((metadata) => {
                 const testmodelid = metadata.testid;
@@ -110,21 +103,22 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
                 this.getRealtimeAnswerTemplate(metadata.answerid).then((answertemplate) => {
                     this.answerTemplate = answertemplate;
                     this.getRealtimeSource(this.state.testID).then((sourceModel) => {
-                        CipherTestResults.isScilympiad = (sourceModel !== undefined && sourceModel.sciTestCount > 0);
+                        this.isScilympiad = (sourceModel !== undefined && sourceModel.sciTestCount > 0);
                         this.dataCSV = this.dataCSV.replace('##TEAM@INFO##',
-                            CipherTestResults.isScilympiad ? 'Team' : 'School, Type');
+                            this.isScilympiad ? 'Team' : 'School, Type');
+
+                        let questionsScores = '';
+                        let questionsIncorrectLetters = '';
+                        for (let i = 0; i < answertemplate.answers.length; i++) {
+                            questionsScores += (', Question ' + String(i) + ' score');
+                            questionsIncorrectLetters += (', Question ' + String(i) + ' incorrect letters');
+                        }
+                        this.dataCSV += questionsScores + questionsIncorrectLetters + '\n';
+
                         this.findScheduledTests(modelService, testmodelid, sourceModel, metadata.answerid);
-                    }).catch((error) => {
-                        this.reportFailure('Could not open Source model for ' + sourcemodelid + ' Error:' + error);
-                    });
-                })
-                    .catch((error) => {
-                        this.reportFailure('Could not open Answer Template for ' + sourcemodelid + ' Error:' + error);
-                    });
-            })
-            .catch((error) => {
-                this.reportFailure('Could not get metadata for ' + sourcemodelid + ' Error:' + error);
-            });
+                    }).catch((error) => { this.reportFailure('Could not open Source model for ' + sourcemodelid + ' Error:' + error); });
+                }).catch((error) => { this.reportFailure('Could not open Answer Template for ' + sourcemodelid + ' Error:' + error); });
+            }).catch((error) => { this.reportFailure('Could not get metadata for ' + sourcemodelid + ' Error:' + error); });
     }
     /**
      * findScheduledTests finds all the tests scheduled for a given test template and populates the UI with them
@@ -175,13 +169,13 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
         let newRowID = 0;
         if ($('.publist').length === 0) {
             // No table at all so just create one with our row put in it
-            const table = CipherTestResults.createTestTable();
+            const table = this.createTestTable();
             const row = table.addBodyRow();
-            CipherTestResults.populateRow(row, newRowID, answermodelid, answertemplate);
+            this.populateRow(row, newRowID, answermodelid, answertemplate);
             $('.testlist')
                 .empty()
                 .append(table.generate());
-            if (CipherTestResults.isScilympiad) {
+            if (this.isScilympiad) {
                 $('.takerview').hide();
             }
         } else {
@@ -190,7 +184,7 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
             const rowID = Number(lastid.substr(1)) + 1;
             // And create a row with the next ID
             const row = new JTRow();
-            CipherTestResults.populateRow(row, rowID, answermodelid, answertemplate);
+            this.populateRow(row, rowID, answermodelid, answertemplate);
             newRowID = rowID;
             // And put it into the table
             $('.publist tbody').append(row.generate());
@@ -200,7 +194,7 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
     /**
      * createTestTable creates the test table for displaying all active tests
      */
-    private static createTestTable(): JTTable {
+    private createTestTable(): JTTable {
         const table = new JTTable({ class: 'cell shrink publist testresults' });
         let row = table.addHeaderRow();
         row = row.add('Action');
@@ -236,7 +230,7 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
      * @param answerModelID ID for the stored answer model
      * @param answertemplate Contents for the answer
      */
-    private static populateRow(row: JTRow, rownum: number, answerModelID: string, answertemplate: IAnswerTemplate): void {
+    private populateRow(row: JTRow, rownum: number, answerModelID: string, answertemplate: IAnswerTemplate): void {
         // Fill in the results summary
         const rowID = String(rownum);
         // console.log("Populating row..." + rowID)
@@ -269,7 +263,7 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
         let scoreId = 'score';
 
         for (let i = 0; i < answertemplate.assigned.length; i++) {
-            if (CipherTestResults.isScilympiad) {
+            if (this.isScilympiad) {
                 let idleTime = Math.round(answertemplate.assigned[i].idletime / timestampFromSeconds(1));
                 if (idleTime >= 10) {
                     displayIdleTime = true;
@@ -284,6 +278,9 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
             }
             else {
 
+                if (i === 0) {
+                    userList = '';
+                }
                 if (i > 0) {
                     userList += '\n';
                 }
@@ -291,12 +288,14 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
                 userList += user
             }
         }
+        let csvTotalIdleTime = '';
         if (displayIdleTime) {
             idleTimes += ']';
+            let minutes = Math.trunc(totalIdleTime / 60);
+            let seconds = totalIdleTime - (minutes * 60);
+            csvTotalIdleTime = minutes + ':' + String(seconds).padStart(2, '0');
             if (totalIdleTime > 60) {
-                let minutes = Math.trunc(totalIdleTime / 60);
-                let seconds = totalIdleTime - (minutes * 60);
-                userList = minutes + ":" + String(seconds).padStart(2, '0');
+                userList = minutes + ':' + String(seconds).padStart(2, '0');
             }
             else {
                 userList = totalIdleTime + " sec"
@@ -306,7 +305,8 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
 
         let teamName = answertemplate.teamname;
         if (this.isScilympiad) {
-            teamName = teamName.replace('Team ', 'C');
+            teamName = teamName.replace('Team ', '').trim();
+            teamName = 'C' + teamName.padStart(2, '0');
             if (this.isNoShowTest(answertemplate.assigned)) {
                 scoreValue = 'NS';
                 scoreId = 'scoreNS';
@@ -317,7 +317,7 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
             .add($('<div/>', {
                 id: 'teamname',
             }).text(teamName));
-        if (!CipherTestResults.isScilympiad) {
+        if (!this.isScilympiad) {
             row.add($('<div/>', {
                 id: 'teamtype',
             }).text(answertemplate.teamtype));
@@ -333,7 +333,7 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
             }).text('...')); // Timed question will be filled in after scoring
 
         let testTakersClass = 'hidden';
-        if (CipherTestResults.isScilympiad) {
+        if (this.isScilympiad) {
             testTakersClass = '';
         }
             row.add($('<div/>', {
@@ -352,13 +352,15 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
         let obt3 = this.isScilympiad ? (obtx != null ? obtx[3] : '') : '';
         this.teamData[answertemplate.teamname] = (this.isScilympiad ? teamName : answertemplate.teamname ) + ', ' +
             (this.isScilympiad ? '' : answertemplate.teamtype + ', ') +
-            answertemplate.starttime + ', ' +
-            answertemplate.endtime + ', ' +
-            '##BONUS@TIME##, ' +
-            obt + ', ' +
+            '##TOTAL@SCORE##, ' +
+            csvTotalIdleTime + ', ' +
             obt1 + ', ' +
             obt2 + ', ' +
-            obt3 + ', ';
+            obt3 + ', ' +
+            timestampToFriendly(answertemplate.starttime) + ', ' +
+            timestampToFriendly(answertemplate.endtime) + ', ' +
+            '##BONUS@TIME##';
+
 
     }
 
@@ -494,15 +496,19 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
                 const details: JQuery<HTMLElement> = this.genTestDetailsTable(itemTest, scoredTests[indexTest].questions);
 
                 // Build a 'row' of CSV data.
-                let teamInfo = CipherTestResults.teamData[itemTest.teamname] + itemTest.score + ', ';
-                teamInfo = teamInfo.replace('##BONUS@TIME##', String(itemTest.bonusTime));
-                CipherTestResults.teamData.delete(itemTest.teamname);
+                let teamInfo = this.teamData[itemTest.teamname].replace('##TOTAL@SCORE##', (itemTest.score === -2 ? 'NS' : itemTest.score)) + ', ';
+                this.teamData.delete(itemTest.teamname);
+                let solved = itemTest.bonusTime;
+                teamInfo = teamInfo.replace('##BONUS@TIME##', formatTime(timestampFromSeconds(itemTest.bonusTime)));
+                teamInfo += this.calculateTimingBonus(itemTest.bonusTime);
 
+                let questionsScores = '';
+                let questionsIncorrectLetters = '';
                 for (const question of itemTest.questions) {
-                    this.dataCSV += teamInfo + question.questionNumber + ', ' + question.points + ', ' + question.cipherType + ', ' +
-                        question.incorrectLetters + ', ' + (question.incorrectLetters + question.correctLetters) + ', ' +
-                        question.deduction + ', ' + question.score + '\n';
+                     questionsScores += ', ' + String(question.score);
+                     questionsIncorrectLetters += ', ' + String(question.incorrectLetters);
                 }
+                this.dataCSV += teamInfo + questionsScores + questionsIncorrectLetters + '\n';
 
                 const selectedTestRowButton = $('a[data-source="' + itemTest.testId + '"]');
                 // To get the full html, we need to wrap it and get the innerhtml
@@ -511,18 +517,17 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
                 // Enable button to display detailed results.
                 selectedTestRowButton.removeAttr('disabled');
             });
+            $('.exportcsv').removeAttr('disabled');
             const datatable = $('.publist').DataTable({
-                // Default DataTable sorting does not handle number + alphas too well...
-                // "columnDefs": [
-                //     {
-                //         "type": "score",
-                //         "targets": -1,
-                //     }
-                // ],
+                // Default DataTable sorting does not handle number + alphas too well, use natural sort plugin.
+                //    https://datatables.net/plug-ins/sorting/natural
+                // Unfortunately, when sorting ascending, it puts 0.1, 0, 23 (i.e. does not handle decimals) :(
+                "columnDefs": [
+                    { type: 'natural', targets: (this.isScilympiad ? 6 : 7) }
+                ],
                 "paging": false,
-                'order': [[(CipherTestResults.isScilympiad ? 6: 7), 'desc']],
+                'order': [[(this.isScilympiad ? 6 : 7), 'desc']],
             });
-//            $.fn.dataTableExt.oSort['score-desc'] = function(x, y)
             // We need to attach the handler here because we need access to the datatable object
             // in order to get the row() function
             $('.pubview')
@@ -606,7 +611,7 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
                         elem.text("Computing...");
                         this.calculateOneScore(sourcemodel, testResultsData, model.answers, solvetime, model.endtimed, model.starttime);
 
-                        if (CipherTestResults.isNoShowTest(model.assigned)) {
+                        if (this.isNoShowTest(model.assigned)) {
                             testResultsData.score = -2;
                         }
                         scheduledTestScores.addTest(testResultsData);
@@ -616,7 +621,7 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
                 } else {
                     elem.text("Computing...");
                     this.calculateOneScore(sourcemodel, testResultsData, model.answers, solvetime, model.endtimed, model.starttime);
-                    if (CipherTestResults.isNoShowTest(model.assigned)) {
+                    if (this.isNoShowTest(model.assigned)) {
                         testResultsData.score = -2;
                     }
                     scheduledTestScores.addTest(testResultsData);
@@ -628,18 +633,7 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
         })
 
     }
-    private getCSVData(testResultsData: ITestResultsData) : Array<string> {
-        let returnValue = new Array(testResultsData.questions.length + 1);
-        returnValue[0] = testResultsData.teamname;
-        returnValue[1] = testResultsData.bonusTime;
-        returnValue[2] = testResultsData.testTakers;
-        returnValue[3] = testResultsData.testTakers;
-        returnValue[4] = testResultsData.testTakers;
-        returnValue[5] = testResultsData.testTakers;
-        returnValue[6] = testResultsData.score;
-        returnValue[7] = testResultsData.questions[0];
-        return returnValue;
-    }
+
     /**
      * calculateOneScore calculates the score for a single test
      * @param sourcemodel Data model for the source of the test containing all the answers
@@ -744,7 +738,6 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
     }
 
     public gotoTestPlayback(testID: string): void {
-        //location.assign('TestPlayback.html?testID=' + String(testID));
         window.open('TestPlayback.html?testID=' + String(testID));
     }
 
@@ -825,7 +818,7 @@ C8, 1621101600000, 1621102500000, 319, 40 sec, 0:00, 0:20, 0:20, 1324, 0, 200, a
      *
      *  @param assigned : user array for a test
      */
-    static isNoShowTest(assigned: ITestUser[]) : boolean {
+    private isNoShowTest(assigned: ITestUser[]) : boolean {
         let returnValue = true;
         for (let user of assigned) {
             if (user.displayname !== '') {

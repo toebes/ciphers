@@ -32,11 +32,11 @@ import 'foundation-sites';
 import 'katex.css';
 import '../common/styles.css';
 import 'flatpickr.css';
-// import "datatables.net";
 import 'datatables.net-dt';
 import 'datatables.css';
 import 'datatables.net-zf';
 import 'datatables.foundation.css';
+import 'datatables.net-plugins/sorting/natural.js';
 
 import { CipherHandler } from '../common/cipherhandler';
 import { CipherFactory } from './cipherfactory';

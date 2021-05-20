@@ -1,4 +1,4 @@
-import * as syllable from 'syllable';
+import { syllable } from 'syllable';
 const punctuationRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-./:;<=>?@[\]^_`{|}~]/g;
 import { easyWordSet } from './easywords';
 

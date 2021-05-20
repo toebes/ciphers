@@ -68,7 +68,10 @@ export class CipherTestScorer {
             if (scoreMap[value.score] == undefined) {
                 scoreMap[value.score] = [];
             }
-            scoreMap[value.score].push(value.testId);
+            // -2 indicates a NoShow, so skip any tie breaking
+            if (value.score !== -2) {
+                scoreMap[value.score].push(value.testId);
+            }
         });
 
         // sort the questions into tie-breaker order @see ciphertestanswers.ts tiebreakersort().

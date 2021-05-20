@@ -359,9 +359,11 @@ export function timestampToFriendly(datetime: number, includeTime = true): strin
         minutes = '0' + minutes;
     }
     let ampm = ' AM';
-    if (hours > 12) {
+    if (hours >= 12) {
         ampm = ' PM';
-        hours %= 12;
+        if (hours > 12) {
+            hours %= 12;
+        }
     }
     if (hours === 0) {
         hours = 12;

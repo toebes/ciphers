@@ -386,7 +386,11 @@ export class CipherTestPublished extends CipherTestManage {
         $('.pubresults')
             .off('click')
             .on('click', (e) => {
-                this.gotoPublishedResults($(e.target).attr('data-source'));
+                let preResults = true;
+                if (e.shiftKey) {
+                    preResults = false;
+                }
+                this.gotoPublishedResults($(e.target).attr('data-source'), preResults);
             });
     }
 }

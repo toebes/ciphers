@@ -145,22 +145,6 @@ export class CipherTestTimed extends CipherTest {
         }
     }
     /**
-     * Generates a 2 letter initials for a name
-     * @param name Name to compute initials for
-     */
-    public computeInitials(name: string): string {
-        let result = '';
-        if (name !== '' && name !== undefined) {
-            // Figure out the initials
-            const parts = name.split(' ');
-            result = parts[0].substr(0, 1).toUpperCase();
-            if (parts.length > 1) {
-                result += parts[parts.length - 1].substr(0, 1).toUpperCase();
-            }
-        }
-        return result;
-    }
-    /**
      * Update the test display of who is connected to the current test
      * @param answermodel Interactive answer model
      * @param collaborators Array of collaborators currently on the test
@@ -879,24 +863,6 @@ export class CipherTestTimed extends CipherTest {
             }
             $('#tremain').text(formatTime(this.testTimeInfo.endTime - now));
         }, 100);
-    }
-    /**
-     * Compute the display string for tracking out of browser time
-     * @param interval Total amount of idle time
-     * @returns String representing display of the idle time
-     */
-    public computeOBT(interval: number): string {
-        let seconds = Math.round(interval / timestampFromSeconds(1));
-        let msg = ""
-
-        if (seconds > 60) {
-            let minutes = Math.trunc(seconds / 60);
-            let sec = seconds - (minutes * 60);
-            msg = "OBT:" + minutes + ":" + String(sec).padStart(2, '0');
-        } else if (seconds >= 10) {
-            msg = "OBT:" + seconds + " sec"
-        }
-        return msg
     }
     /**
      * saveBackupCopy makes a copy of all the data in the web browser and stores it on the server

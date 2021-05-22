@@ -1241,6 +1241,25 @@ button.rounded {
     display: inline;
 }
 
+.disconnected {
+    position: fixed;
+    left: 10px;
+    top:10px;
+    width: 100%;
+    z-index: 3;
+}
+
+.playback {
+    position: fixed;
+    left: 10px;
+    top: 55px;
+    width: 95%;
+    border: 1px solid green;
+    background: transparent;
+    padding-top:1px;
+    z-index: 3;
+}
+
 .timer {
     position: fixed;
     right: 20px;

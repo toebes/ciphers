@@ -16,6 +16,8 @@ import {
     HistoricalObject,
     RealTimeObject,
     ModelService,
+    HistoricalNumber,
+    NumberSetValueEvent,
 } from '@convergence/convergence';
 import { CipherInteractiveFactory } from './cipherfactory';
 import { JTTable } from '../common/jttable';
@@ -166,7 +168,11 @@ export class CipherTestPlayback extends CipherTest {
                         );
                     }
                     // await this.shadowanswermodel.backward(currentSlot - targetslot);
-                    await this.shadowanswermodel.playTo(targetslot);
+                    try {
+                        await this.shadowanswermodel.playTo(targetslot);
+                    } catch (e) {
+                        console.log("Shadow Answer problem:" + e);
+                    }
                     // Figure out where we ended up at and save it in the cache
                     currentSlot = this.shadowanswermodel.version();
                     currentTime = this.shadowanswermodel.time().valueOf();
@@ -434,15 +440,33 @@ export class CipherTestPlayback extends CipherTest {
                 const testModelID = answertemplate.testid;
                 this.teamName = answertemplate.teamname;
 
-                // let startTime = this.answermodel.minTime().getTime();
-                // let endTime = this.answermodel.maxTime().getTime();
-                // if (startTime < this.testTimeInfo.startTime) {
-                //     startTime = this.testTimeInfo.startTime;
-                // }
-                // if (endTime > this.testTimeInfo.endTime) {
-                //     endTime = this.testTimeInfo.endTime;
-                // }
-
+                for (let i = 0; i < 3; i++) {
+                    let name = '';
+                    let userid = '';
+                    if (i < answertemplate.assigned.length) {
+                        name = answertemplate.assigned[i].displayname;
+                        userid = answertemplate.assigned[i].userid;
+                    }
+                    const idslot = String(Number(i) + 1);
+                    if (name === '' && userid !== '') {
+                        name = userid;
+                    }
+                    if (name === '' || name === undefined) {
+                        $('#part' + idslot).hide();
+                    } else {
+                        const initials = this.computeInitials(name);
+                        $('#user' + idslot).text(name);
+                        $('#init' + idslot).text(initials);
+                        // We have an active user so we also want to watch the values on it
+                        const idleTracker = answermodel.elementAt('assigned', i, 'idletime') as HistoricalNumber
+                        // If the tracker time changes then we want to update the out of browser time on the screen
+                        idleTracker.on(HistoricalNumber.Events.VALUE, (event: NumberSetValueEvent) => {
+                            $("#idle" + idslot).text(this.computeOBT(event.element.value()));
+                        });
+                        // Pre-populate the OBT slot for this user (which might be empty)
+                        $("#idle" + idslot).text(this.computeOBT(idleTracker.value()));
+                    }
+                }
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const elem = new Foundation.Slider($('#scrubslider'), {
                     start: answertemplate.starttime,

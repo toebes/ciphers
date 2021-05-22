@@ -1,4 +1,4 @@
-import { cloneObject, NumberMap, StringMap } from '../common/ciphercommon';
+import { cloneObject, makeCallout, NumberMap, StringMap, timestampFromSeconds } from '../common/ciphercommon';
 import {
     CipherHandler,
     IRunningKey,
@@ -15,7 +15,7 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
-import { ConvergenceDomain, LogLevel } from '@convergence/convergence';
+import { AuthenticatedEvent, AuthenticatingEvent, AuthenticationFailedEvent, ConnectedEvent, ConnectingEvent, ConnectionFailedEvent, ConnectionScheduledEvent, ConvergenceDomain, DisconnectedEvent, IFallbackAuthChallenge, InterruptedEvent, LogLevel } from '@convergence/convergence';
 import Convergence = require('@convergence/convergence');
 import { anyMap, CBUpdateUserPermissions, StoreModelBody } from './api';
 
@@ -185,6 +185,11 @@ export class CipherTest extends CipherHandler {
         { title: 'Import Tests from File', color: 'primary', id: 'import' },
         { title: 'Import Tests from URL', color: 'primary', id: 'importurl' },
     ];
+    /** Track the last time the domain was actually connected.  undefined means that
+     * the model was not connected.  Once we are live, the value will be set and it is used
+     * for reporing to the user how long the model has been disconnected from the server.
+     */
+    public lastActivity = undefined;
 
     public testTypeMap: ITestTypeInfo[] = [
         {
@@ -378,7 +383,71 @@ export class CipherTest extends CipherHandler {
             };
         }
     }
-
+    /**
+     * Timer to run when the server is disconnected to look for it reconnecting
+     * undefined means that no timer is running
+     */
+    public connectionTimer: number = undefined;
+    /**
+     * Report to the user that we are fully disconnected from the server
+     */
+    public lostConnection() {
+        $(".disconnected").empty()
+            .append(
+                $('<div/>', { class: 'callout h3 alert' }).text(
+                    "ERROR: Lost connection to realtime server.  You must refresh the page to reconnect.")
+            ).show();
+        if (this.connectionTimer !== undefined) {
+            clearInterval(this.connectionTimer);
+        }
+        this.connectionTimer = undefined;
+    }
+    /**
+     * Report status of connection to the server to the user.  If we are connected
+     * then we remove any status messages.  However when we become disconnected, we
+     * put up a Callout at the top of the screen indicating that they are disconnected
+     * and for how long.  We run a timer during this time to check to see if we get connected
+     * and once we do it removes the status message
+     */
+    public TrackDomainConnection(isConnected: Boolean, domain: ConvergenceDomain) {
+        if (isConnected) {
+            // We are connected, so hide any alerts
+            this.lastActivity = undefined;
+            $(".disconnected").empty().hide();
+            // If we had the timer running checking for reconnect, kill it
+            if (this.connectionTimer !== undefined) {
+                clearInterval(this.connectionTimer);
+                this.connectionTimer = undefined;
+            }
+        } else {
+            // We aren't connected, so let's figure out how long
+            const now = Date.now();
+            if (this.lastActivity === undefined) {
+                // If this is the first time in here, say we haven't been connected for at least 1 second
+                this.lastActivity = now - timestampFromSeconds(1);
+            }
+            // Figure out how long we have been disconnected
+            const disconnectedSeconds = Math.round((now - this.lastActivity) / timestampFromSeconds(1));
+            if (disconnectedSeconds > 1) {
+                // Once we hit the 2 second mark, start telling them about it
+                $(".disconnected").empty()
+                    .append(
+                        $('<div/>', { class: 'callout h3 alert' }).text(
+                            "WARNING: Unable to connect to realtime server for " + disconnectedSeconds + " seconds, attempting to reconnect." +
+                            " If this persists, you should refresh the page to reconnect.")
+                    ).show();
+            } else {
+                $(".disconnected").empty().hide();
+            }
+            // Since we don't get notified when the connection reestablishes, start a timer
+            // checking the domain once a second to see when we do get reconnected
+            if (this.connectionTimer === undefined) {
+                this.connectionTimer = window.setInterval(() => {
+                    this.TrackDomainConnection(domain.isConnected(), domain);
+                }, 1000);
+            }
+        }
+    }
     /**
      * Note: Do not use catch (Is never thrown)
      * @returns Promise ConvergenceDomain to interact with
@@ -396,6 +465,14 @@ export class CipherTest extends CipherHandler {
             const options: Convergence.IConvergenceOptions = {
                 protocol: { defaultRequestTimeout: 30 },
                 connection: { timeout: 30 },
+                reconnect: {
+                    autoReconnect: true,
+                    // Check once every 5 seconds when we are down
+                    reconnectIntervals: [5],
+                    fallbackAuth: (authChallenge: IFallbackAuthChallenge) => {
+                        this.lostConnection();
+                    }
+                }
             };
             options.connection.timeout = 30;
 
@@ -410,6 +487,42 @@ export class CipherTest extends CipherHandler {
 
             Convergence.connectWithJwt(connectUrl, convergenceToken, options)
                 .then((domain) => {
+                    // Track all of the events that might go wrong.  
+                    domain.on(InterruptedEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
+                        console.log("***Connection interrupted");
+                        this.TrackDomainConnection(false, domain);
+                    });
+                    domain.on(ConnectingEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
+                        console.log("***Connecting...");
+                        this.TrackDomainConnection(false, domain);
+                    });
+                    domain.on(ConnectedEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
+                        console.log("***Connection Reconnected");
+                        this.TrackDomainConnection(true, domain);
+                    });
+                    domain.on(AuthenticatedEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
+                        console.log("***Authenticated Event");
+                    });
+                    domain.on(AuthenticatingEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
+                        console.log("***Authenticating Event");
+                    });
+                    domain.on(AuthenticationFailedEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
+                        console.log("***Authenticated Failed Event");
+                        this.lostConnection();
+                    });
+                    domain.on(ConnectionFailedEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
+                        console.log("***Connection Failed Event");
+                    });
+                    domain.on(ConnectionScheduledEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
+                        console.log("***Connection Scheduled Event");
+                    });
+                    domain.on(DisconnectedEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
+                        console.log("***Disconnected Event");
+                        this.lostConnection();
+                    });
+                    domain.on(/*ErrorEvent.NAME*/"error", (eventinfo: Convergence.IConvergenceDomainEvent) => {
+                        console.log("***Error Event");
+                    });
                     resolve(domain);
                 })
                 .catch((error) => {
@@ -456,6 +569,16 @@ export class CipherTest extends CipherHandler {
      */
     public disconnectRealtime(): void {
         if (this.cachedDomain !== undefined) {
+            this.cachedDomain.removeListeners(InterruptedEvent.NAME);
+            this.cachedDomain.removeListeners(ConnectingEvent.NAME);
+            this.cachedDomain.removeListeners(ConnectedEvent.NAME);
+            this.cachedDomain.removeListeners(AuthenticatedEvent.NAME);
+            this.cachedDomain.removeListeners(AuthenticatingEvent.NAME);
+            this.cachedDomain.removeListeners(AuthenticationFailedEvent.NAME);
+            this.cachedDomain.removeListeners(ConnectionFailedEvent.NAME);
+            this.cachedDomain.removeListeners(ConnectionScheduledEvent.NAME);
+            this.cachedDomain.removeListeners(DisconnectedEvent.NAME);
+            this.cachedDomain.removeListeners(/*ErrorEvent.NAME*/"error");
             this.cachedDomain.disconnect();
             this.cachedDomain = undefined;
         }
@@ -910,6 +1033,40 @@ export class CipherTest extends CipherHandler {
      */
     public setTestEditState(testdisp: ITestDisp): void {
         JTRadioButtonSet('testdisp', testdisp);
+    }
+    /**
+     * Compute the display string for tracking out of browser time
+     * @param interval Total amount of idle time
+     * @returns String representing display of the idle time
+     */
+    public computeOBT(interval: number): string {
+        let seconds = Math.round(interval / timestampFromSeconds(1));
+        let msg = ""
+
+        if (seconds > 60) {
+            let minutes = Math.trunc(seconds / 60);
+            let sec = seconds - (minutes * 60);
+            msg = "OBT:" + minutes + ":" + String(sec).padStart(2, '0');
+        } else if (seconds >= 10) {
+            msg = "OBT:" + seconds + " sec"
+        }
+        return msg
+    }
+    /**
+     * Generates a 2 letter initials for a name
+     * @param name Name to compute initials for
+     */
+    public computeInitials(name: string): string {
+        let result = '';
+        if (name !== '' && name !== undefined) {
+            // Figure out the initials
+            const parts = name.split(' ');
+            result = parts[0].substr(0, 1).toUpperCase();
+            if (parts.length > 1) {
+                result += parts[parts.length - 1].substr(0, 1).toUpperCase();
+            }
+        }
+        return result;
     }
     /**
      * Maps a string to the corresponding test type ID

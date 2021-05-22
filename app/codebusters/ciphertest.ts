@@ -571,16 +571,7 @@ export class CipherTest extends CipherHandler {
      */
     public disconnectRealtime(): void {
         if (this.cachedDomain !== undefined) {
-            this.cachedDomain.removeListeners(InterruptedEvent.NAME);
-            this.cachedDomain.removeListeners(ConnectingEvent.NAME);
-            this.cachedDomain.removeListeners(ConnectedEvent.NAME);
-            this.cachedDomain.removeListeners(AuthenticatedEvent.NAME);
-            this.cachedDomain.removeListeners(AuthenticatingEvent.NAME);
-            this.cachedDomain.removeListeners(AuthenticationFailedEvent.NAME);
-            this.cachedDomain.removeListeners(ConnectionFailedEvent.NAME);
-            this.cachedDomain.removeListeners(ConnectionScheduledEvent.NAME);
-            this.cachedDomain.removeListeners(DisconnectedEvent.NAME);
-            this.cachedDomain.removeListeners(/*ErrorEvent.NAME*/"error");
+            this.cachedDomain.removeAllListeners();
             this.cachedDomain.disconnect();
             this.cachedDomain = undefined;
         }

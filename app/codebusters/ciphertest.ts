@@ -116,6 +116,8 @@ export interface ITestState extends IState {
     testID?: string;
     /** JWT for authenticating a user */
     jwt?: string;
+    /** Flag to not score results for use during national test to track OBT */
+    noResults?: string;
 }
 
 interface INewCipherEntry {

@@ -117,7 +117,7 @@ export interface ITestState extends IState {
     /** JWT for authenticating a user */
     jwt?: string;
     /** Flag to not score results for use during national test to track OBT */
-    noResults?: string;
+    preResults?: string;
 }
 
 interface INewCipherEntry {
@@ -1224,8 +1224,9 @@ export class CipherTest extends CipherHandler {
      * Jump to the page to show the results of taking the test
      * @param sourcemodelid published ID of test
      */
-    public gotoPublishedResults(sourcemodelid: string): void {
-        location.assign('TestResults.html?testID=' + sourcemodelid);
+    public gotoPublishedResults(sourcemodelid: string, showResults: boolean): void {
+        location.assign('TestResults.html?testID=' + sourcemodelid +
+            (showResults ? '': '&preResults=foo'));
     }
 
     public gotoTestDisplay(testdisp: ITestDisp): void {
@@ -1259,7 +1260,7 @@ export class CipherTest extends CipherHandler {
                 break;
         }
     }
-    public gotoPublishDisplay(testdisp: IPublishDisp): void {
+    public gotoPublishDisplay(testdisp: IPublishDisp, shiftKey: boolean): void {
         switch (testdisp) {
             case 'published':
                 this.gotoTestPublished();
@@ -1268,7 +1269,7 @@ export class CipherTest extends CipherHandler {
                 this.gotoPublishedTestPermissions(this.state.testID);
                 break;
             case 'results':
-                this.gotoPublishedResults(this.state.testID);
+                this.gotoPublishedResults(this.state.testID, (shiftKey === false ? true : false));
                 break;
             default:
             case 'schedule':
@@ -1913,7 +1914,7 @@ export class CipherTest extends CipherHandler {
                     .siblings()
                     .removeClass('is-active');
                 $(e.target).addClass('is-active');
-                this.gotoPublishDisplay($(e.target).val() as IPublishDisp);
+                this.gotoPublishDisplay($(e.target).val() as IPublishDisp, e.shiftKey);
                 this.updateOutput();
             });
     }

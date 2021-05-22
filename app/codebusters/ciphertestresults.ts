@@ -138,7 +138,7 @@ export class CipherTestResults extends CipherTestManage {
                 results.data.forEach((result) => {
                     const answertemplate = result.data as IAnswerTemplate;
                     if (result.modelId !== answertempateid) {
-                        this.addUITestEntry(result.modelId, answertemplate);
+                        this.addUITestEntry(result.modelId, answertemplate, (this.state.preResults !== undefined ? result.version.toString() : ''));
                         // Keep track of how many entries we created
                         total++;
                     }
@@ -151,7 +151,7 @@ export class CipherTestResults extends CipherTestManage {
                     );
                 }
 
-                if (this.state.noResults !== undefined) {
+                if (this.state.preResults !== undefined) {
                     return;
                 }
                 this.attachHandlers();
@@ -169,13 +169,13 @@ export class CipherTestResults extends CipherTestManage {
      * @param answermodelid contains the model id of an answered test.
      * @param answertemplate contains the details from the query
      */
-    public addUITestEntry(answermodelid: string, answertemplate: IAnswerTemplate): string {
+    public addUITestEntry(answermodelid: string, answertemplate: IAnswerTemplate, modelVersion: string): string {
         let newRowID = 0;
         if ($('.publist').length === 0) {
             // No table at all so just create one with our row put in it
             const table = this.createTestTable();
             const row = table.addBodyRow();
-            this.populateRow(row, newRowID, answermodelid, answertemplate);
+            this.populateRow(row, newRowID, answermodelid, answertemplate, modelVersion);
             $('.testlist')
                 .empty()
                 .append(table.generate());
@@ -188,7 +188,7 @@ export class CipherTestResults extends CipherTestManage {
             const rowID = Number(lastid.substr(1)) + 1;
             // And create a row with the next ID
             const row = new JTRow();
-            this.populateRow(row, rowID, answermodelid, answertemplate);
+            this.populateRow(row, rowID, answermodelid, answertemplate, modelVersion);
             newRowID = rowID;
             // And put it into the table
             $('.publist tbody').append(row.generate());
@@ -224,7 +224,7 @@ export class CipherTestResults extends CipherTestManage {
                 content: 'Takers'
             });
         }
-            row.add('Score');
+            row.add(this.state.preResults !== undefined ? 'Model version' : 'Score');
         return table;
     }
     /**
@@ -234,7 +234,7 @@ export class CipherTestResults extends CipherTestManage {
      * @param answerModelID ID for the stored answer model
      * @param answertemplate Contents for the answer
      */
-    private populateRow(row: JTRow, rownum: number, answerModelID: string, answertemplate: IAnswerTemplate): void {
+    private populateRow(row: JTRow, rownum: number, answerModelID: string, answertemplate: IAnswerTemplate, modelVersion: string): void {
         // Fill in the results summary
         const rowID = String(rownum);
         // console.log("Populating row..." + rowID)
@@ -263,7 +263,7 @@ export class CipherTestResults extends CipherTestManage {
         let displayIdleTime = false;
         let totalIdleTime = 0;
         let idleTimes = " [";
-        let scoreValue = 'Calculating...';
+        let scoreValue = (modelVersion !== '' ? modelVersion : 'Calculating...');
         let scoreId = 'score';
 
         for (let i = 0; i < answertemplate.assigned.length; i++) {

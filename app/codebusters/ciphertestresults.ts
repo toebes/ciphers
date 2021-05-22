@@ -150,6 +150,10 @@ export class CipherTestResults extends CipherTestManage {
                         $('<div/>', { class: 'callout warning' }).text('No tests scheduled')
                     );
                 }
+
+                if (this.state.noResults !== undefined) {
+                    return;
+                }
                 this.attachHandlers();
                 console.log("OK now score...");
                 const scheduledTestScores: CipherTestScorer = new CipherTestScorer();

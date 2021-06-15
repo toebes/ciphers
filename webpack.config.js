@@ -3,17 +3,18 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const WebpackAutoInject = require('webpack-auto-inject-version');
 const WebpackShellPlugin = require('webpack-shell-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const package = require('./package.json');
 const toolsVersion = package.version;
+const datebuilt = new Date().toLocaleString();
 const argv = require('yargs').argv;
 const ZIP = argv.zip || false;
 const ANALYZE = argv.analyze || false;
 const PROD = argv.p || false;
-// process.traceDeprecation = true;
+
+process.traceDeprecation = true;
 
 module.exports = {
     stats: 'errors-warnings',
@@ -26,7 +27,7 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, 'dist'),
         publicPath: '',
-        filename: '[name]-[hash].js',
+        filename: '[name]-[fullhash].js',
         libraryTarget: 'umd',
         library: 'MyLib',
         umdNamedDefine: true,
@@ -34,53 +35,17 @@ module.exports = {
     },
     resolve: {
         alias: {
-            html5sortable: path.join(
-                __dirname,
-                'node_modules',
-                'html5sortable',
-                'dist',
-                'html5sortable.cjs.js'
-            ),
-            'datatables.css': path.join(
-                __dirname,
-                'node_modules',
-                'datatables.net-dt',
-                'css',
-                'jquery.dataTables.min.css'
-            ),
-            'datatables.foundation.css': path.join(
-                __dirname,
-                'node_modules',
-                'datatables.net-zf',
-                'css',
-                'dataTables.foundation.min.css'
-            ),
+            html5sortable: path.join(__dirname, 'node_modules', 'html5sortable', 'dist', 'html5sortable.cjs.js'),
+            'datatables.css': path.join(__dirname, 'node_modules', 'datatables.net-dt', 'css', 'jquery.dataTables.min.css'),
+            'datatables.foundation.css': path.join(__dirname, 'node_modules', 'datatables.net-zf', 'css', 'dataTables.foundation.min.css'),
             'styles-css': path.join(__dirname, 'styles.css'),
-            'flatpickr.css': path.join(
-                __dirname,
-                'node_modules',
-                'flatpickr',
-                'dist',
-                'flatpickr.css'
-            ),
-            'foundation.css': path.join(
-                __dirname,
-                'node_modules',
-                'foundation-sites',
-                'dist',
-                'css',
-                'foundation.css'
-            ),
+            'flatpickr.css': path.join(__dirname, 'node_modules', 'flatpickr', 'dist', 'flatpickr.css'),
+            'foundation.css': path.join(__dirname, 'node_modules', 'foundation-sites', 'dist', 'css', 'foundation.css'),
             'katex.js': path.join(__dirname, 'node_modules', 'katex', 'dist', 'katex.js'),
             'katex.css': path.join(__dirname, 'node_modules', 'katex', 'dist', 'katex.css'),
             'syllable.js': path.join(__dirname, 'node_modules', 'syllable', 'index.js'),
             'charmap.js': path.join(__dirname, 'node_modules', 'charmap', 'src', 'index.js'),
-            'charmap.json': path.join(
-                __dirname,
-                'node_modules',
-                'normalize-strings',
-                'charmap.json'
-            ),
+            'charmap.json': path.join(__dirname, 'node_modules', 'normalize-strings', 'charmap.json'),
         },
         modules: [__dirname, path.join(__dirname, 'node_modules')],
         extensions: [
@@ -159,16 +124,13 @@ module.exports = {
             {
                 // Exposes jQuery for use outside Webpack build
                 test: require.resolve('jquery'),
-                use: [
-                    {
-                        loader: 'expose-loader',
-                        options: 'jQuery',
+                use:
+                {
+                    loader: 'expose-loader',
+                    options: {
+                        exposes: ["$", "jQuery"],
                     },
-                    {
-                        loader: 'expose-loader',
-                        options: '$',
-                    },
-                ],
+                },
             },
         ],
     },
@@ -270,82 +232,53 @@ module.exports = {
                 {
                     from: path.join(__dirname, 'app', 'images', 'ncso-main-fullcolor-rgb.jpg'),
                     to: path.resolve(__dirname, 'dist', 'images'),
-                    flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'ms-symbollockup_signin_dark.svg'),
                     to: path.resolve(__dirname, 'dist', 'images'),
-                    flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'BaconianA.png'),
                     to: path.resolve(__dirname, 'dist', 'images'),
-                    flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'BaconianB.png'),
                     to: path.resolve(__dirname, 'dist', 'images'),
-                    flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'pigpen1.png'),
                     to: path.resolve(__dirname, 'dist', 'images'),
-                    flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'pigpen2.png'),
                     to: path.resolve(__dirname, 'dist', 'images'),
-                    flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'tapcode.png'),
                     to: path.resolve(__dirname, 'dist', 'images'),
-                    flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'images', 'Twitter_Logo.png'),
                     to: path.resolve(__dirname, 'dist', 'images'),
-                    flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'common', 'fonts', 'OFL.txt'),
                     to: path.resolve(__dirname, 'dist', 'font'),
-                    flatten: true,
                 },
                 {
                     from: path.join(__dirname, 'app', 'siteVersion.txt'),
                     to: path.resolve(__dirname, 'dist', 'siteVersion.txt'),
-                    flatten: true,
+                    transform(content) {
+                        return content
+                            .toString()
+                            .replace('__VERSION__', JSON.stringify(toolsVersion));
+                    },
                 },
             ],
         }),
-        new WebpackAutoInject({
-            // specify the name of the tag in the outputed files eg
-            // bundle.js: [SHORT]  Version: 0.13.36 ...
-            SHORT: 'CUSTOM',
-            SILENT: true,
-            PACKAGE_JSON_PATH: './package.json',
-            components: {
-                AutoIncreaseVersion: true,
-                InjectAsComment: false,
-                InjectByTag: true,
-            },
-            componentsOptions: {
-                AutoIncreaseVersion: {
-                    runInWatchMode: false, // it will increase version with every single build!
-                },
-                InjectAsComment: {
-                    tag: 'Version: {version} - {date}',
-                    dateFormat: 'h:MM:ss TT',
-                },
-                InjectByTag: {
-                    fileRegex: /\.+/,
-                    // regexp to find [AIV] tag inside html, if you tag contains unallowed characters you can adjust the regex
-                    // but also you can change [AIV] tag to anything you want
-                    AIVTagRegexp: /(\[AIV])(([a-zA-Z{} ,:;!()_@\-"'\\\/])+)(\[\/AIV])/g,
-                    dateFormat: 'mmm d, yyyy @ HH:MM:ss o',
-                },
-            },
+        new webpack.DefinePlugin({
+            __VERSION__: JSON.stringify(toolsVersion),
+            __DATE_BUILT__: JSON.stringify(datebuilt)
         }),
         //=====================================================================
         //

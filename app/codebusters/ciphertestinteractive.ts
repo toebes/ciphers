@@ -74,7 +74,7 @@ export class CipherTestInteractive extends CipherTest {
     }
     /**
      * generateInteractiveModel takes the current test and constructs the interactive model
-     * to be stored on the server
+     *  to be stored on the server
      * @param elem Element to place any output/errors/HTML
      */
     public generateInteractiveModel(elem: JQuery<HTMLElement>): void {

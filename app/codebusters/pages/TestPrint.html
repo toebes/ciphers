@@ -9,11 +9,9 @@
 </head>
 
 <body>
-    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% for (var index in htmlWebpackPlugin.files.js) { %>
+        <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
         <% } %>
-            <%= require('html-loader!./analytics.html') %>
-
                 <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
                 <h2 class="center">Science Olympiad — <span class="testtitle"></span></h2>
                 <h2 class="subheader center"><span class="testyear"></span></h2>

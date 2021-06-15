@@ -31,10 +31,9 @@
     </head>
 
     <body>
-        <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
-        <% } %> <%= require('html-loader!./analytics.html') %>
-
+        <% for (var index in htmlWebpackPlugin.files.js) { %>
+            <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
+            <% } %>
         <h2>
             <a href="http://www.cryptogram.org/">ACA</a> Cipher Solving
             Assistants

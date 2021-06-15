@@ -15,6 +15,7 @@ import { RealTimeObject } from '@convergence/convergence';
 import { TrueTime } from './truetime';
 import { API } from '../codebusters/api';
 import { JTFIncButton } from './jtfIncButton';
+declare var __DATE_BUILT__: string;
 
 export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
@@ -3248,7 +3249,7 @@ export class CipherHandler {
         dlgContents.append(
             '<tr class="latest-version"><td>Latest version:</td><td><span class="remote-version">Unknown</span></td></tr>'
         );
-        dlgContents.append('<tr><td>Built  :</td><td>[AIV]{date}[/AIV]</td></tr>');
+        dlgContents.append('<tr><td>Built  :</td><td>' + __DATE_BUILT__ + '</td></tr>');
 
         const aboutDlg = JTFDialog(
             'About',

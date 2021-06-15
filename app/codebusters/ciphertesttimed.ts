@@ -25,7 +25,7 @@ import {
     RealTimeNumber,
     NumberSetValueEvent,
     ModelService,
-    ModelPermissions, RealTimeElement,
+    ModelPermissions, RealTimeElement, DomainUserIdMap,
 } from '@convergence/convergence';
 import { CipherInteractiveFactory } from './cipherfactory';
 import { JTTable } from '../common/jttable';
@@ -270,7 +270,7 @@ export class CipherTestTimed extends CipherTest {
         const permissionsManager = answermodel.permissionsManager();
         permissionsManager
             .getAllUserPermissions()
-            .then((modelPermissionsSet: Map<string, ModelPermissions>) => {
+            .then((modelPermissionsSet: DomainUserIdMap<ModelPermissions>) => {
                 const modelPermissions = modelPermissionsSet.get(
                     answermodel.session().user().username
                 );

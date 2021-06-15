@@ -365,10 +365,10 @@ export class CipherMaintenance extends CipherTestManage {
                                 if (testId !== undefined) {
                                     // If this is a source or answermodel, then we have to remember that this
                                     // user is associated with the test model
-                                    this.RememberUser(testId, userid)
+                                    this.RememberUser(testId, userid.username)
                                 } else if (permission.remove) {
                                     // If the user has remove permissions, we always keep them on this model
-                                    this.RememberUser(modelId, userid)
+                                    this.RememberUser(modelId, userid.username)
                                 } else if (this.state.activeTestUsers[modelId][userid] !== true) {
                                     // The user is not active any more, so just remove them from this model
                                     allPermissions.delete(userid);

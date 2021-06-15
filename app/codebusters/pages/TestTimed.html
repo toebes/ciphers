@@ -9,11 +9,9 @@
 </head>
 
 <body class="fs">
-    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% for (var index in htmlWebpackPlugin.files.js) { %>
+        <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
         <% } %>
-            <%= require('html-loader!./analytics.html') %>
-
                 <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
 
                 <div class="timer">

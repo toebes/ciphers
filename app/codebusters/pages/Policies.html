@@ -9,11 +9,9 @@
 </head>
 
 <body class="txt">
-    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-        <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% for (var index in htmlWebpackPlugin.files.js) { %>
+        <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
         <% } %>
-            <%= require('html-loader!./analytics.html') %>
-
                 <h3>
                     <%= htmlWebpackPlugin.options.title %>
                 </h3>

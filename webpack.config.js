@@ -3,20 +3,16 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const WebpackShellPlugin = require('webpack-shell-plugin');
+const WebpackShellPlugin = require('webpack-shell-plugin-next');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const package = require('./package.json');
 const toolsVersion = package.version;
 const datebuilt = new Date().toLocaleString();
-const argv = require('yargs').argv;
-const ZIP = argv.zip || false;
-const ANALYZE = argv.analyze || false;
-const PROD = argv.p || false;
 
 process.traceDeprecation = true;
 
-module.exports = {
+config = {
     stats: 'errors-warnings',
     mode: "production",
     context: __dirname,
@@ -811,26 +807,31 @@ module.exports = {
     ],
 };
 
-// The concept for this was taken from https://stackoverflow.com/questions/28572380/conditional-build-based-on-environment-using-webpack
-// 'offhouse' answer.
-if (ZIP) {
-    module.exports.plugins.push(
-        // The webpack-shell-plugin is installed with "npm install --save-dev webpack-shell-plugin"
-        new WebpackShellPlugin({
-            onBuildExit: ['python zip-ct.py ' + toolsVersion],
-        })
-    );
-}
 
-if (ANALYZE) {
-    module.exports.plugins.push(new BundleAnalyzerPlugin());
-}
+module.exports = (env, argv) => {
+    if (argv.mode === 'development') {
+        config.mode = "development";
+        config.devtool = "inline-source-map";
+        // see https://intellij-support.jetbrains.com/hc/en-us/community/posts/206339799-Webstorm-Webpack-debugging
+        config.plugins.push(new webpack.SourceMapDevToolPlugin({
+            filename: '[file].map',
+        }));
+        console.log("Building Development");
+    }
 
-if (!PROD) {
-    module.exports.mode = "development";
-    module.devtool = "inline-source-map";
-    // see https://intellij-support.jetbrains.com/hc/en-us/community/posts/206339799-Webstorm-Webpack-debugging
-    module.exports.plugins.push(new webpack.SourceMapDevToolPlugin({
-        filename: '[file].map',
-    }));
+    if (env.zip) {
+        // The concept for this was taken from https://stackoverflow.com/questions/28572380/conditional-build-based-on-environment-using-webpack
+        // 'offhouse' answer.
+        config.plugins.push(
+            // The webpack-shell-plugin is installed with "npm install --save-dev webpack-shell-plugin"
+            new WebpackShellPlugin({
+                onBuildExit: ['python zip-ct.py ' + toolsVersion],
+            })
+        );
+    }
+
+    if (env.analyze) {
+        config.plugins.push(new BundleAnalyzerPlugin());
+    }
+    return config
 }

@@ -6,14 +6,12 @@
     "echoCommand": true,
     "tasks": [
         {
-            "label": "webpack dev",
+            "label": "Development Server",
             "type": "shell",
-            "command": "${workspaceRoot}/node_modules/.bin/webpack",
-            "windows": {
-                "command": "${workspaceRoot}/node_modules/.bin/webpack"
-            },
+            "command": "npm",
             "args": [
-                "-d"
+                "run",
+                "serve",
             ],
             "group": {
                 "kind": "build",
@@ -25,47 +23,55 @@
             ]
         },
         {
-            "label": "webpack dist",
+            "label": "Production Build",
             "type": "shell",
-            "command": "${workspaceRoot}/node_modules/.bin/webpack",
-            "windows": {
-                "command": "${workspaceRoot}/node_modules/.bin/webpack"
-            },
+            "command": "npm",
             "args": [
-                "-p",
-                "--zip"
+                "run",
+                "build",
             ],
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": [
                 "$tsc",
                 "$jshint"
             ]
         },
         {
-            "label": "webpack dist analyze",
+            "label": "Development Build",
             "type": "shell",
-            "command": "${workspaceRoot}/node_modules/.bin/webpack",
-            "windows": {
-                "command": "${workspaceRoot}/node_modules/.bin/webpack"
-            },
+            "command": "npm",
             "args": [
-                "-p",
-                "--analyze",
-                "--zip"
+                "run",
+                "dev",
             ],
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "problemMatcher": [
                 "$tsc",
                 "$jshint"
             ]
         },
         {
-            "type": "typescript",
-            "tsconfig": "tsconfig.json",
-            "problemMatcher": [
-                "$tsc"
+            "label": "Production Analysis",
+            "type": "shell",
+            "command": "npm",
+            "args": [
+                "run",
+                "analyze",
             ],
-            "group": "build"
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$tsc",
+                "$jshint"
+            ]
         }
     ]
 }

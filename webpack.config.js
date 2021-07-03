@@ -786,7 +786,7 @@ config = {
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
             chunks: ['codebusters'],
             cipher: 'Vigenere',
-            title: 'Vigen&egrave;re Encoder',
+            title: 'Vigen&egrave;re/Porta Encoder',
         }),
         new HtmlWebpackPlugin({
             inject: false,

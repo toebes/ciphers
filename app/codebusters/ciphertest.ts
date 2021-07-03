@@ -15,7 +15,7 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
-import { AuthenticatedEvent, AuthenticatingEvent, AuthenticationFailedEvent, ConnectedEvent, ConnectingEvent, ConnectionFailedEvent, ConnectionScheduledEvent, ConvergenceDomain, DisconnectedEvent, IFallbackAuthChallenge, InterruptedEvent, LogLevel } from '@convergence/convergence';
+import { AuthenticatingEvent, ConnectedEvent, ConnectingEvent, ConnectionFailedEvent, ConnectionScheduledEvent, ConvergenceDomain, DisconnectedEvent, IFallbackAuthChallenge, InterruptedEvent, LogLevel } from '@convergence/convergence';
 import Convergence = require('@convergence/convergence');
 import { anyMap, CBUpdateUserPermissions, StoreModelBody } from './api';
 
@@ -502,16 +502,16 @@ export class CipherTest extends CipherHandler {
                         console.log("***Connection Reconnected");
                         this.TrackDomainConnection(true, domain);
                     });
-                    domain.on(AuthenticatedEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
-                        console.log("***Authenticated Event");
-                    });
+                    // domain.on(AuthenticatedEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
+                    //     console.log("***Authenticated Event");
+                    // });
                     domain.on(AuthenticatingEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
                         console.log("***Authenticating Event");
                     });
-                    domain.on(AuthenticationFailedEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
-                        console.log("***Authenticated Failed Event");
-                        this.lostConnection();
-                    });
+                    // domain.on(AuthenticationFailedEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
+                    //     console.log("***Authenticated Failed Event");
+                    //     this.lostConnection();
+                    // });
                     domain.on(ConnectionFailedEvent.NAME, (eventinfo: Convergence.IConvergenceDomainEvent) => {
                         console.log("***Connection Failed Event");
                     });
@@ -1217,7 +1217,7 @@ export class CipherTest extends CipherHandler {
      */
     public gotoPublishedResults(sourcemodelid: string, showResults: boolean): void {
         location.assign('TestResults.html?testID=' + sourcemodelid +
-            (showResults ? '': '&preResults=foo'));
+            (showResults ? '' : '&preResults=foo'));
     }
 
     public gotoTestDisplay(testdisp: ITestDisp): void {

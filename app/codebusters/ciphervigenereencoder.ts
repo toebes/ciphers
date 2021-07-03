@@ -7,12 +7,14 @@ import {
     ITestQuestionFields,
     IScoreInformation,
 } from '../common/cipherhandler';
-import { ICipherType } from '../common/ciphertypes';
+import { CipherTypeButtonItem, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
+import { Mapper } from '../common/mapper';
+import { mapperFactory } from '../common/mapperfactory';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 
 interface IVigenereState extends IEncoderState {
@@ -37,7 +39,7 @@ interface ICribInfo {
 export class CipherVigenereEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Vigenere';
-
+    public ciphermap: Mapper;
     public validTests: ITestType[] = [
         ITestType.None,
         ITestType.cregional,
@@ -46,6 +48,27 @@ export class CipherVigenereEncoder extends CipherEncoder {
         ITestType.bstate,
         ITestType.aregional,
     ];
+
+    public validVigenereTests: ITestType[] = [
+        ITestType.None,
+        ITestType.cregional,
+        ITestType.cstate,
+        ITestType.bregional,
+        ITestType.bstate,
+        ITestType.aregional,
+    ];
+    /**
+     * Special case: for A Regional tests:
+     *   The Caesar Cipher, also called a shift cipher, with a shift of
+     *   no more than 3 characters in either direction.
+     *    E.g. a can map to x,y,z,b,c,d,
+     */
+    public validPortaTests: ITestType[] = [
+        ITestType.None,
+        ITestType.cregional,
+        ITestType.cstate,
+    ];
+
     public defaultstate: IVigenereState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.Vigenere,
@@ -85,6 +108,16 @@ export class CipherVigenereEncoder extends CipherEncoder {
         // We need a deep copy of the save state
         const savestate = cloneObject(this.state) as IState;
         return savestate;
+    }
+    public setCipherType(cipherType: ICipherType): boolean {
+        const changed = super.setCipherType(cipherType);
+        this.ciphermap = mapperFactory(cipherType);
+        if (cipherType === ICipherType.Porta) {
+            this.validTests = this.validPortaTests;
+        } else {
+            this.validTests = this.validVigenereTests;
+        }
+        return changed;
     }
     /**
      * getInteractiveTemplate creates the answer template for synchronization of
@@ -251,10 +284,14 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public genSampleQuestionText(): string {
         let msg = '';
+        let ciphertypetext = 'Vigen&egrave;re';
+        if (this.state.cipherType === ICipherType.Porta) {
+            ciphertypetext = 'Porta';
+        }
         if (this.state.operation === 'crypt') {
             msg =
-                '<p>The following quote has been encoded with the ' +
-                'Vigen&egrave;re Cipher using a very common word for the key. ';
+                '<p>The following quote has been encoded with the ' + ciphertypetext +
+                ' Cipher using a very common word for the key. ';
 
             const cribpos = this.placeCrib();
             if (cribpos === undefined) {
@@ -283,12 +320,12 @@ export class CipherVigenereEncoder extends CipherEncoder {
             if (this.state.operation === 'encode') {
                 msg =
                     '<p>The following quote needs to be encoded ' +
-                    ' with the Vigen&egrave;re Cipher with a keyword of ' +
+                    ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
                     keyword;
             } else {
                 msg =
                     '<p>The following quote needs to be decoded ' +
-                    ' with the Vigen&egrave;re Cipher with a keyword of ' +
+                    ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
                     keyword;
             }
         }
@@ -304,6 +341,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      */
     public setUIDefaults(): void {
         this.setOperation(this.state.operation);
+        this.setCipherType(this.state.cipherType);
         this.setBlocksize(this.state.blocksize);
     }
     /**
@@ -311,13 +349,24 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
-        if (this.state.operation !== 'crypt') {
-            this.guidanceURL = 'TestGuidance.html#Vigenere';
-            $('.crib').hide();
+        if (this.state.cipherType === ICipherType.Porta) {
+            if (this.state.operation !== 'crypt') {
+                this.guidanceURL = 'TestGuidance.html#Porta';
+                $('.crib').hide();
+            } else {
+                this.guidanceURL = 'TestGuidance.html#Porta_Decrypt';
+                $('.crib').show();
+            }
         } else {
-            this.guidanceURL = 'TestGuidance.html#Vigenere_Decrypt';
-            $('.crib').show();
+            if (this.state.operation !== 'crypt') {
+                this.guidanceURL = 'TestGuidance.html#Vigenere';
+                $('.crib').hide();
+            } else {
+                this.guidanceURL = 'TestGuidance.html#Vigenere_Decrypt';
+                $('.crib').show();
+            }
         }
+        JTRadioButtonSet('ciphertype', this.state.cipherType);
         JTRadioButtonSet('operation', this.state.operation);
         $('#blocksize').val(this.state.blocksize);
         $('#crib').val(this.state.crib);
@@ -330,7 +379,14 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public genPreCommands(): JQuery<HTMLElement> {
         const result = $('<div/>');
         this.genTestUsage(result);
-        const radiobuttons = [
+
+        let radiobuttons = [
+            CipherTypeButtonItem(ICipherType.Vigenere),
+            CipherTypeButtonItem(ICipherType.Porta),
+        ];
+        result.append(JTRadioButton(8, 'ciphertype', radiobuttons, this.state.cipherType));
+
+        radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
             { id: 'mrow', value: 'decode', title: 'Decode' },
             { id: 'crow', value: 'crypt', title: 'Cryptanalysis' },
@@ -415,7 +471,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 const c = (m + k) % 26;
                 // The substr() basically does modulus with the negative offset
                 // in the decode case.  Thanks JavaScript!
-                cipher += charset.substr(c, 1);
+                cipher += this.ciphermap.encode(messageChar, keyChar);
                 keyIndex++;
             } else {
                 message += messageChar;

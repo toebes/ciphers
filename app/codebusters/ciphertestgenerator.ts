@@ -62,6 +62,8 @@ export class CipherTestGenerator extends CipherTest {
     public genTestQuestions(test: ITest): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'testdata' });
         const testcount = this.getTestCount();
+        let SpanishCount = 0;
+        let SpecialBonusCount = 0;
         if (testcount === 0) {
             result.append($('<h3>').text('No Tests Created Yet'));
             return result;
@@ -115,7 +117,7 @@ export class CipherTestGenerator extends CipherTest {
         // The Division A doesn't have a timed question, but if someone
         // snuck one in, we have to show it.
         if (test.timed !== -1 || test.testtype !== ITestType.aregional) {
-            this.addQuestionRow(
+            let qstate = this.addQuestionRow(
                 table,
                 -1,
                 test.timed,
@@ -124,6 +126,10 @@ export class CipherTestGenerator extends CipherTest {
                 test.testtype,
                 undefined
             );
+            if (qstate !== undefined) {
+                if (qstate.curlang === 'es') { SpanishCount++; }
+                if (qstate.specialbonus) { SpecialBonusCount++; }
+            }
         }
         for (let entry = 0; entry < test.count; entry++) {
             const buttons2: buttonInfo[] = [
@@ -136,7 +142,7 @@ export class CipherTestGenerator extends CipherTest {
                 { title: 'Edit', btnClass: 'quesedit' },
                 { title: 'Remove', btnClass: 'quesremove alert' },
             ];
-            this.addQuestionRow(
+            let qstate = this.addQuestionRow(
                 table,
                 entry + 1,
                 test.questions[entry],
@@ -145,6 +151,10 @@ export class CipherTestGenerator extends CipherTest {
                 test.testtype,
                 undefined
             );
+            if (qstate !== undefined) {
+                if (qstate.curlang === 'es') { SpanishCount++; }
+                if (qstate.specialbonus) { SpecialBonusCount++; }
+            }
         }
         if (test.count === 0) {
             const callout = $('<div/>', {
@@ -162,6 +172,59 @@ export class CipherTestGenerator extends CipherTest {
             settings: { colspan: 6 },
             content: dropdown,
         });
+        const errors: string[] = [];
+
+
+        /**
+ * See if we need to show/hide the Spanish Hints
+ */
+        if (SpanishCount > 0) {
+            if (SpanishCount > 1) {
+                if (test.testtype !== ITestType.bstate && test.testtype !== ITestType.cstate) {
+                    errors.push(
+                        'Only one Spanish Xenocrypt allowed for ' +
+                        this.getTestTypeName(test.testtype) +
+                        '.'
+                    );
+                }
+            } else if (test.testtype === ITestType.cstate) {
+                errors.push(
+                    this.getTestTypeName(test.testtype) +
+                    ' is supposed to have at least two Spanish Xenocrypts.'
+                );
+            }
+            $('.xenocryptfreq').show();
+        } else {
+            if (test.testtype === ITestType.bstate || test.testtype === ITestType.cstate) {
+                errors.push(
+                    this.getTestTypeName(test.testtype) +
+                    ' is supposed to have at least one Spanish Xenocrypt.'
+                );
+            }
+            $('.xenocryptfreq').hide();
+        }
+        if (SpecialBonusCount > 3) {
+            errors.push('No more than three special bonus questions allowed on ' + this.getTestTypeName(test.testtype))
+        }
+        if (errors.length === 1) {
+            $('.testerrors').empty().append(
+                $('<div/>', {
+                    class: 'callout alert',
+                }).text(errors[0])
+            );
+        } else if (errors.length > 1) {
+            const ul = $('<ul/>');
+            for (const msg of errors) {
+                ul.append($('<li/>').text(msg));
+            }
+            $('.testerrors').empty().append(
+                $('<div/>', {
+                    class: 'callout alert',
+                })
+                    .text('The following errors were found:')
+                    .append(ul)
+            );
+        }
 
         testdiv.append(table.generate());
         // Put in buttons for adding blank tests of various types..

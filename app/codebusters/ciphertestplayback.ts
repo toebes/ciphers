@@ -389,6 +389,11 @@ export class CipherTestPlayback extends CipherTest {
                     }).text(String(qnum + 1) + ')')
                 );
             }
+            if (state.specialbonus) {
+                qtext.append(
+                    $('<span/>', { class: 'spbonus' }).append("&#9733;(Special Bonus Question)")
+                )
+            }
             // Add the number of points
             qtext.append(
                 $('<span/>', {

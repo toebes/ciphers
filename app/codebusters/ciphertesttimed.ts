@@ -341,6 +341,11 @@ export class CipherTestTimed extends CipherTest {
                 class: 'question ',
             });
             const qtext = $('<div/>', { class: 'qtext' });
+            if (state.specialbonus) {
+                qtext.append(
+                    $('<span/>', { class: 'spbonus' }).append("&#9733;(Special Bonus Question)")
+                )
+            }
             // Is this the timed question?
             if (qnum === -1) {
                 // Yes, the question number displays as Timed Question

@@ -204,6 +204,9 @@ export class CipherEncoder extends CipherHandler {
     public setQuestionText(question: string): void {
         this.state.question = question;
     }
+    public setSpecialBonus(specialbonus: boolean): void {
+        this.state.specialbonus = specialbonus;
+    }
 
     /**
      * Set the value of a rich text element.  Note that some editors may not
@@ -229,6 +232,7 @@ export class CipherEncoder extends CipherHandler {
             this.state.question = '';
         }
         this.setRichText('qtext', this.state.question);
+        $('#spbonus').prop('checked', this.state.specialbonus);
     }
     /**
      * Enable / Disable the HTML elements based on the alphabet selection
@@ -648,6 +652,16 @@ export class CipherEncoder extends CipherHandler {
                 return 'Xenocrypts not appropriate for Division A tests';
             }
         }
+        if (testType !== ITestType.cregional && testType !== ITestType.cstate && this.state.specialbonus) {
+            return 'Special Bonus only allowed on Division C tests';
+        }
+        if (this.state.specialbonus && (
+            this.state.cipherType === ICipherType.Aristocrat ||
+            this.state.cipherType === ICipherType.Patristocrat ||
+            this.state.cipherType === ICipherType.Xenocrypt
+        )) {
+            return 'Special Bonus not allowed for Aristocrats/Patristocrats/Xenocrypts';
+        }
         if (testType === undefined || this.validTests.indexOf(testType) >= 0) {
             return '';
         }
@@ -1041,15 +1055,28 @@ export class CipherEncoder extends CipherHandler {
     }
     public genQuestionFields(result: JQuery<HTMLElement>): void {
         result.append(this.createIsModifiedDlg());
-        result.append(
+
+        const inputbox = $('<div/>', { class: 'grid-x grid-margin-x' });
+        inputbox.append(
             JTFLabeledInput(
                 'Points',
                 'number',
                 'points',
                 this.state.points,
-                'small-12 medium-12 large-12'
+                'small-12 medium-3 large-3'
             )
         );
+
+        inputbox.append(
+            JTFLabeledInput(
+                'Special Bonus',
+                'checkbox',
+                'spbonus',
+                /*this.state.points*/false,
+                'small-12 medium-9 large-9'
+            )
+        );
+        result.append(inputbox);
         result.append(
             JTFLabeledInput(
                 'Question Text',
@@ -1289,6 +1316,13 @@ export class CipherEncoder extends CipherHandler {
                     this.markUndo('points');
                     this.state.points = points;
                 }
+            });
+        $('#spbonus')
+            .off('change')
+            .on('change', (e) => {
+                const checked = $(e.target).prop("checked");
+                this.markUndo('spbonus');
+                this.setSpecialBonus(checked);
             });
         $('.richtext').each((i: number, elem: HTMLElement) => {
             const id = $(elem).prop('id') as string;

@@ -68,6 +68,8 @@ export interface IState {
     operation?: IOperationType;
     /** Number of points a question is worth */
     points?: number;
+    /** This question is one of the special bonus questions */
+    specialbonus?: boolean;
     /** Any quotation text to associate with the cipher */
     question?: string;
     /** Current language */

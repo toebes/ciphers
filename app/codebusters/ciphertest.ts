@@ -1455,6 +1455,17 @@ export class CipherTest extends CipherHandler {
         inputgroup.append(select);
         return inputgroup;
     }
+    /**
+     * Adds a row to the table of questions with action buttons
+     * @param table Table to append to
+     * @param order Order of the entry
+     * @param qnum Which question number (on the test or globally)
+     * @param buttons Command buttons to associate with the entry
+     * @param showPlain Boolean to show the plain text
+     * @param testtype Type of test the question is being used for
+     * @param prevuse Any previous use of the question on another test
+     * @returns State representing the test question data
+     */
     public addQuestionRow(
         table: JTTable,
         order: number,
@@ -1463,7 +1474,7 @@ export class CipherTest extends CipherHandler {
         showPlain: boolean,
         testtype: ITestType,
         prevuse: any
-    ): void {
+    ): IState {
         let ordertext = 'Timed';
         let plainclass = '';
         if (!showPlain) {
@@ -1476,6 +1487,7 @@ export class CipherTest extends CipherHandler {
         } else {
             ordertext = String(order);
         }
+        let state: IState = undefined;
         let row = table.addBodyRow();
         // We have a timed question on everything except the Division A
         if (order === -1 && qnum === -1 && testtype !== ITestType.aregional) {
@@ -1493,7 +1505,7 @@ export class CipherTest extends CipherHandler {
         } else {
             let qerror = '';
             row.add(ordertext);
-            let state = this.getFileEntry(qnum);
+            state = this.getFileEntry(qnum);
             if (state === null) {
                 state = {
                     cipherType: ICipherType.None,
@@ -1534,7 +1546,12 @@ export class CipherTest extends CipherHandler {
             if (prevuse !== undefined) {
                 row.add(prevuse);
             }
-            row.add(String(state.points))
+            let pointsstr = String(state.points);
+            if (state.specialbonus) {
+                pointsstr = "&#9733;" + pointsstr;
+            }
+
+            row.add($('<span/>').html(pointsstr))
                 .add(
                     $('<span/>', {
                         class: 'qtextentry',
@@ -1557,7 +1574,7 @@ export class CipherTest extends CipherHandler {
                 });
             }
         }
-        return;
+        return state;
     }
     public AddTestError(qnum: number, message: string): void {
         if (message !== '') {
@@ -1594,6 +1611,11 @@ export class CipherTest extends CipherHandler {
             class: 'question ' + extraclass,
         });
         const qtext = $('<div/>', { class: 'qtext' });
+        if (state.specialbonus) {
+            qtext.append(
+                $('<span/>', { class: 'spbonus' }).append("&#9733;(Special Bonus Question)")
+            )
+        }
         if (qnum === -1) {
             qtext.append(
                 $('<span/>', {
@@ -1647,6 +1669,11 @@ export class CipherTest extends CipherHandler {
             class: 'question ' + extraclass,
         });
         const qtext = $('<div/>', { class: 'qtext' });
+        if (state.specialbonus) {
+            qtext.append(
+                $('<span/>', { class: 'spbonus' }).append("&#9733;(Special Bonus Question)")
+            )
+        }
         if (qnum === -1) {
             qtext.append(
                 $('<span/>', {

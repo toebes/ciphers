@@ -82,7 +82,9 @@ export class CipherTestPrint extends CipherTest {
         const errors: string[] = [];
         let usesMorseTable = false;
         let SpanishCount = 0;
+        let SpecialBonusCount = 0;
         elem.empty();
+        $('.testerrors').empty();
         if (testcount === 0) {
             elem.append($('<h3>').text('No Tests Created Yet'));
         }
@@ -170,6 +172,9 @@ export class CipherTestPrint extends CipherTest {
                 page.append($('<h1>').text(msg));
             }
             qcount = 99;
+            if (cipherhandler.state.specialbonus) {
+                SpecialBonusCount++;
+            }
             // Division A doesn't have a timed question, but if one was
             // there, print it out, but generate an error message
             if (test.testtype === ITestType.aregional) {
@@ -197,6 +202,9 @@ export class CipherTestPrint extends CipherTest {
             /* Is this a xenocrypt?  if so we need the Spanish frequency */
             if (cipherhandler.state.curlang === 'es') {
                 SpanishCount++;
+            }
+            if (cipherhandler.state.specialbonus) {
+                SpecialBonusCount++;
             }
             /* Does this cipher involve morse code? */
             if (cipherhandler.usesMorseTable) {
@@ -250,15 +258,18 @@ export class CipherTestPrint extends CipherTest {
          * See if we need to show/hide the Spanish Hints
          */
         if (SpanishCount > 0) {
-            if (
-                SpanishCount > 1 &&
-                test.testtype !== ITestType.bstate &&
-                test.testtype !== ITestType.cstate
-            ) {
+            if (SpanishCount > 1) {
+                if (test.testtype !== ITestType.bstate && test.testtype !== ITestType.cstate) {
+                    errors.push(
+                        'Only one Spanish Xenocrypt allowed for ' +
+                        this.getTestTypeName(test.testtype) +
+                        '.'
+                    );
+                }
+            } else if (test.testtype === ITestType.cstate) {
                 errors.push(
-                    'Only one Spanish Xenocrypt allowed for ' +
                     this.getTestTypeName(test.testtype) +
-                    '.'
+                    ' is supposed to have at least two Spanish Xenocrypts.'
                 );
             }
             $('.xenocryptfreq').show();
@@ -270,6 +281,9 @@ export class CipherTestPrint extends CipherTest {
                 );
             }
             $('.xenocryptfreq').hide();
+        }
+        if (SpecialBonusCount > 3) {
+            errors.push('No more than three special bonus questions allowed on ' + this.getTestTypeName(test.testtype))
         }
         if (errors.length === 1) {
             $('.testerrors').append(

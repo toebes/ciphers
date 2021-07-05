@@ -9,6 +9,7 @@ import {
     toolMode,
     ITestQuestionFields,
     IScoreInformation,
+    IOperationType,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -23,8 +24,6 @@ export interface IEncoderState extends IState {
     keyword2?: string;
     /** K1/K2/K3/K4 Offset */
     offset?: number;
-    /** K3 Shift amount */
-    shift?: number;
     /** K4 Offset */
     offset2?: number;
     /** The source character map */
@@ -52,7 +51,6 @@ export class CipherEncoder extends CipherHandler {
         cipherType: ICipherType.Aristocrat,
         encodeType: 'random',
         offset: 1,
-        shift: 1,
         offset2: 1,
         keyword: '',
         keyword2: '',
@@ -60,6 +58,7 @@ export class CipherEncoder extends CipherHandler {
         alphabetDest: '',
         curlang: 'en',
         replacement: {},
+        operation: 'decode'
     };
 
     public validTests: ITestType[] = [
@@ -169,8 +168,8 @@ export class CipherEncoder extends CipherHandler {
         this.setCipherString(this.state.cipherString);
         this.setEncType(this.state.encodeType);
         this.setOffset(this.state.offset);
-        this.setShift(this.state.shift);
         this.setOffset2(this.state.offset2);
+        this.setOperation(this.state.operation);
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -180,13 +179,18 @@ export class CipherEncoder extends CipherHandler {
         this.setMenuMode(menuMode.question);
         this.updateQuestionsOutput();
         this.updateTestUsage();
+        JTRadioButtonSet('operation', this.state.operation);
         $('#toencode').val(this.state.cipherString);
         $('#keyword').val(this.state.keyword);
         $('#offset').val(this.state.offset);
-        $('#shift').val(this.state.shift);
         $('#keyword2').val(this.state.keyword2);
         $('#offset2').val(this.state.offset2);
         $('#translated').val(this.state.translation);
+        if (this.state.operation === 'keyword') {
+            $('#encrand').prop('disabled', true);
+        } else {
+            $('#encrand').removeAttr('disabled');
+        }
         if (this.state.curlang === 'en') {
             $('#translated')
                 .parent()
@@ -207,7 +211,18 @@ export class CipherEncoder extends CipherHandler {
     public setSpecialBonus(specialbonus: boolean): void {
         this.state.specialbonus = specialbonus;
     }
-
+    /**
+     * Set the operation for the encoder type
+     * @param operation New operation type
+     */
+    public setOperation(operation: IOperationType): boolean {
+        let changed = super.setOperation(operation);
+        if (this.state.operation === 'keyword' && this.state.encodeType === 'random') {
+            this.setEncType('k1');
+            changed = true;
+        }
+        return changed;
+    }
     /**
      * Set the value of a rich text element.  Note that some editors may not
      * be fully initialized, so we may have to stash it for when it does get
@@ -245,11 +260,6 @@ export class CipherEncoder extends CipherHandler {
         } else {
             $('#randomize').prop('disabled', true);
             $('.kval').show();
-        }
-        if (val === 'k3') {
-            $('.k3val').show();
-        } else {
-            $('.k3val').hide();
         }
         if (val === 'k4') {
             $('.k4val').show();
@@ -343,22 +353,6 @@ export class CipherEncoder extends CipherHandler {
         return changed;
     }
     /**
-     * Sets the shift value (state.shift)
-     * @param shift new shift value
-     * @returns Boolean indicating if the value actually changed
-     */
-    public setShift(shift: number): boolean {
-        let changed = false;
-        const charset = this.getCharset();
-        shift = (shift + charset.length) % charset.length;
-        if (this.state.shift !== shift) {
-            this.state.shift = shift;
-            this.resetAlphabet();
-            changed = true;
-        }
-        return changed;
-    }
-    /**
      * Sets the hint value (state.hint)
      * @param hint new hint string
      * @returns Boolean indicating if the value actually changed
@@ -433,7 +427,7 @@ export class CipherEncoder extends CipherHandler {
         } else if (this.state.encodeType === 'k2') {
             this.genAlphabetK2(this.state.keyword, this.state.offset);
         } else if (this.state.encodeType === 'k3') {
-            this.genAlphabetK3(this.state.keyword, this.state.offset, this.state.shift);
+            this.genAlphabetK3(this.state.keyword, this.state.offset);
         } else if (this.state.encodeType === 'k4') {
             this.genAlphabetK4(
                 this.state.keyword,
@@ -477,8 +471,8 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      * Generate a K1 alphabet where the keyword is in the source alphabet
-     * keyword Keyword/keyphrase to map
-     * offset Offset from the start of the alphabet to place the keyword
+     * @param keyword Keyword/keyphrase to map
+     * @param offset Offset from the start of the alphabet to place the keyword
      */
     public genAlphabetK1(keyword: string, offset: number): void {
         const repl = this.genKstring(keyword, offset, this.getCharset());
@@ -486,8 +480,8 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      * Generate a K2 alphabet where the keyword is in the destination alphabet
-     * keyword Keyword/Keyphrase to map
-     * offset Offset from the start of the alphabet to place the keyword
+     * @param keyword Keyword/Keyphrase to map
+     * @param offset Offset from the start of the alphabet to place the keyword
      */
     public genAlphabetK2(keyword: string, offset: number): void {
         const repl = this.genKstring(keyword, offset, this.getSourceCharset());
@@ -499,27 +493,26 @@ export class CipherEncoder extends CipherHandler {
      * It is important to note that for a K3 alphabet you must have the same
      * alphabet for source and destination.  This means languages like Swedish
      * and Norwegian can not use a K3
-     * keyword Keyword/Keyphrase to map
-     * offset Offset from the start of the alphabet to place the keyword
-     * shift Shift of the destination alphabet from the source alphabet
+     * @param keyword Keyword/Keyphrase to map
+     * @param offset Shift of the destination alphabet from the source alphabet
      */
-    public genAlphabetK3(keyword: string, offset: number, shift: number): void {
+    public genAlphabetK3(keyword: string, offset: number): void {
         if (this.getCharset() !== this.getSourceCharset()) {
             const error = 'Source and encoding character sets must be the same';
             this.setErrorMsg(error, 'genk3');
             return;
         }
         this.setErrorMsg('', 'genk3');
-        const repl = this.genKstring(keyword, offset, this.getCharset());
-        const cset = repl.substr(shift) + repl.substr(0, shift);
+        const repl = this.genKstring(keyword, 0, this.getCharset());
+        const cset = repl.substr(offset) + repl.substr(0, offset);
         this.setReplacement(cset, repl);
     }
     /**
      * Generate a K4 alphabet where the keywords are different in each alphabet
-     * keyword Keyword for the source alphabet
-     * offset Offset for keyword in the source alphabet
-     * keyword2 Keyword for the destination alphabet
-     * offset2 Offset for the keyword in the destination alphabet
+     * @param keyword Keyword for the source alphabet
+     * @param offset Offset for keyword in the source alphabet
+     * @param keyword2 Keyword for the destination alphabet
+     * @param offset2 Offset for the keyword in the destination alphabet
      */
     public genAlphabetK4(keyword: string, offset: number, keyword2: string, offset2: number): void {
         if (this.getCharset().length !== this.getSourceCharset().length) {
@@ -661,6 +654,20 @@ export class CipherEncoder extends CipherHandler {
             this.state.cipherType === ICipherType.Xenocrypt
         )) {
             return 'Special Bonus not allowed for Aristocrats/Patristocrats/Xenocrypts';
+        }
+        // Make sure the operation type is legal.
+        if (this.state.operation === 'keyword') {
+            if (testType !== ITestType.cregional && testType !== ITestType.cstate) {
+                return 'Keyword/Key Phrase decoding not allowed for ' + this.getTestTypeName(testType);
+            }
+            if (this.state.encodeType !== 'k1' && this.state.encodeType !== 'k2' && this.state.encodeType !== 'k3') {
+                return 'Keyword/Key Phrase decoding not allowed with ' + this.state.encodeType.toUpperCase() + ' Alphabet for ' + this.getTestTypeName(testType);
+            }
+        } else {
+            if (this.state.encodeType === 'k4') {
+                return this.state.encodeType.toUpperCase() + ' Alphabet not allowed for ' + this.getTestTypeName(testType);
+            }
+
         }
         if (testType === undefined || this.validTests.indexOf(testType) >= 0) {
             return '';
@@ -922,9 +929,6 @@ export class CipherEncoder extends CipherHandler {
             JTFIncButton('Offset', 'offset', this.state.offset, 'kval small-12 medium-6 large-6')
         );
         result.append(
-            JTFIncButton('Shift', 'shift', this.state.shift, 'k3val small-12 medium-6 large-6')
-        );
-        result.append(
             JTFLabeledInput('Keyword 2', 'text', 'keyword2', this.state.keyword2, 'k4val')
         );
         result.append(
@@ -1106,6 +1110,12 @@ export class CipherEncoder extends CipherHandler {
     public genPreCommands(): JQuery<HTMLElement> {
         const result = $('<div/>');
         this.genTestUsage(result);
+        const radiobuttons = [
+            { id: 'mrow', value: 'decode', title: 'Decode' },
+            { id: 'crow', value: 'keyword', title: 'Keyword/Key Phrase' },
+        ];
+        result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
+
         this.genQuestionFields(result);
         this.genLangDropdown(result);
         this.genEncodeField(result);
@@ -1249,17 +1259,6 @@ export class CipherEncoder extends CipherHandler {
                 if (offset !== this.state.offset) {
                     this.markUndo(null);
                     if (this.setOffset(offset)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-        $('#shift')
-            .off('input')
-            .on('input', (e) => {
-                const shift = Number($(e.target).val());
-                if (shift !== this.state.shift) {
-                    this.markUndo(null);
-                    if (this.setShift(shift)) {
                         this.updateOutput();
                     }
                 }

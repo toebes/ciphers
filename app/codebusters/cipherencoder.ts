@@ -205,9 +205,52 @@ export class CipherEncoder extends CipherHandler {
         this.setkvalinputs();
         this.load();
     }
+    /**
+     * Update the question string (and validate if necessary)
+     * @param question New question text string
+     */
     public setQuestionText(question: string): void {
         this.state.question = question;
+        if (this.state.cipherType === ICipherType.Aristocrat ||
+            this.state.cipherType === ICipherType.Patristocrat ||
+            this.state.cipherType === ICipherType.Xenocrypt) {
+            this.validateQuestion();
+            this.attachHandlers();
+        }
     }
+    /**
+     * Make sure that they are asking them to solve the cipher or fill in the keyword.
+     * If they are using a K1/K2/K3/K4 alphabet, they should also mention it
+     */
+    public validateQuestion(): void {
+        let msg = '';
+        const sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
+        const questionText = this.state.question.toUpperCase();
+
+        if (this.state.operation === 'keyword') {
+            if (
+                questionText.indexOf('KEYWORD') < 0 &&
+                questionText.indexOf('KEYPHRA') < 0 &&
+                questionText.indexOf('KEY PHRA') < 0
+            ) {
+                msg +=
+                    "The Question Text doesn't appear to mention that " +
+                    'the key phrase needs to be decoded. ';
+            }
+        }
+        if (this.state.encodeType !== 'random') {
+            const enctype = this.state.encodeType.toUpperCase();
+            if (questionText.indexOf(enctype) < 0) {
+                msg += "The Question Text doesn't mention that the cipher uses a " + enctype + " alphabet encoding. ";
+            }
+        }
+
+        this.setErrorMsg(msg, 'vq', sampleLink);
+    }
+    /**
+     * 
+     * @param specialbonus 
+     */
     public setSpecialBonus(specialbonus: boolean): void {
         this.state.specialbonus = specialbonus;
     }
@@ -1043,6 +1086,7 @@ export class CipherEncoder extends CipherHandler {
         }
 
         $('#chi').text(chitext);
+        this.validateQuestion();
         // Show the update frequency values
         this.displayFreq();
         // We need to attach handlers for any newly created input fields
@@ -1128,6 +1172,7 @@ export class CipherEncoder extends CipherHandler {
                 'small-12 medium-12 large-12'
             )
         );
+        result.append(this.createQuestionTextDlg());
         result.append(this.createAlphabetType());
         return result;
     }
@@ -1169,7 +1214,7 @@ export class CipherEncoder extends CipherHandler {
                 name: 'targeturl',
             })
         );
-        dlgContents.append($('<div/>', { id: 'sqtext', class: '' }));
+        // dlgContents.append($('<div/>', { id: 'sqtext', class: '' }));
         dlgContents.append(
             $('<div/>', { class: 'expanded button-group' })
                 .append($('<a/>', { class: 'msave button' }).text('Save and Continue'))

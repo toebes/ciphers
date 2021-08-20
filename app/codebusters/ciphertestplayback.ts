@@ -7,6 +7,7 @@ import {
     formatTime,
     NumberMap,
     timestampFromSeconds,
+    timestampToFriendly,
 } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { TrueTime } from '../common/truetime';
@@ -47,7 +48,6 @@ export class CipherTestPlayback extends CipherTest {
         cipherType: ICipherType.Test,
         test: 0,
     };
-    public shadowanswermodel: HistoricalModel = undefined;
     public answermodel: HistoricalModel = undefined;
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
@@ -58,6 +58,7 @@ export class CipherTestPlayback extends CipherTest {
         endTime: 0,
         endTimedQuestion: 0,
     };
+    public lastScrubTime: number = -1;
     public shadowOffsets: NumberMap = {};
     private playbackTimer: number = undefined;
     private playbackInterval = 0;
@@ -126,138 +127,31 @@ export class CipherTestPlayback extends CipherTest {
      */
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     public async scrubTo(scrubTime: number) {
-        // this.shadowanswermodel.minTime();
-        // this.shadowanswermodel.maxTime();
         // Make sure that we could be successful.  Note that if we are already in the process
         // of doing a scrubTo, we will just have to ignore any additional requests because
         // the shadowmodel is already in use.
-        if (this.shadowanswermodel === undefined || this.inScrubTo) {
+        if (this.inScrubTo || scrubTime == this.lastScrubTime) {
             return;
         }
         this.inScrubTo = true;
+        this.lastScrubTime = scrubTime;
+        this.answermodel.playToTime(new Date(scrubTime))
+            .then(() => {
+                this.updatePlaybackClock(scrubTime);
+                this.inScrubTo = false;
+            })
+            .catch((error) => {
+                const lastVersion = this.answermodel.maxVersion();
+                const lastTime = this.answermodel.maxTime().getTime();
+                const firstTime = this.answermodel.minTime().getTime();
+                const firstVersion = this.answermodel.minVersion();
 
-        const lastSlot = this.shadowanswermodel.maxVersion();
-        let currentSlot = this.shadowanswermodel.version();
-        let currentTime = this.shadowanswermodel.time().valueOf();
-        // Just in case we haven't cached the current slot (like the first time we are called)
-        this.shadowOffsets[currentSlot] = currentTime;
-        let targetslot = currentSlot;
-        // See if we are going forward or backwards
-        if (scrubTime < currentTime) {
-            // Going backwards.  We want to keep checking the time until
-            // we get to a slot which is less than the target time (or we hit the first one)
-            // That will be the one which would be live at the time requested
-            while (targetslot > 0 && scrubTime < currentTime) {
-                // Back up one
-                targetslot--;
-                // And look to see if we have the time for it cached
-                currentTime = this.shadowOffsets[targetslot];
-                if (currentTime === undefined) {
-                    // Not cached, so we need to ask the system to back up to it.
-                    // console.log("Before backwards: " + this.shadowanswermodel.version() + " at " + this.shadowanswermodel.time().valueOf())
-                    // Remember that we are unlikely to be sitting on the exact one we want, but we can step back to get to it by the
-                    // current distance.  Note that we don't have to ask about the time of the other ones along the way because
-                    // we should already have them cached
-                    const saveslot = this.shadowanswermodel.version();
-                    if (saveslot !== currentSlot) {
-                        console.log(
-                            'Starting off backwards bad: at ' +
-                            saveslot +
-                            ' but thought at ' +
-                            currentSlot
-                        );
-                    }
-                    // await this.shadowanswermodel.backward(currentSlot - targetslot);
-                    try {
-                        await this.shadowanswermodel.playTo(targetslot);
-                    } catch (e) {
-                        console.log("Shadow Answer problem:" + e);
-                    }
-                    // Figure out where we ended up at and save it in the cache
-                    currentSlot = this.shadowanswermodel.version();
-                    currentTime = this.shadowanswermodel.time().valueOf();
-                    // console.log("After Backward: " + currentSlot + " at " + currentTime + " going to " + scrubTime);
-                    this.shadowOffsets[currentSlot] = currentTime;
-                    // Just to be certain, let's make sure that we actually ended up where we expected.
-                    if (currentSlot !== targetslot) {
-                        console.log(
-                            'Failed to move backwards to ' +
-                            targetslot +
-                            ' but ended at ' +
-                            currentSlot +
-                            ' we were at ' +
-                            saveslot
-                        );
-                    }
-                }
-                // All is good just report where we ended up at
-                // console.log("-- new time:" + currentTime + " Going to " + scrubTime);
-            }
-        } else if (scrubTime > currentTime) {
-            // Going forwards.  We will check the time until we go past it
-            // and then know that we may back up one if we didn't hit the end.
-            while (targetslot < lastSlot && scrubTime > currentTime) {
-                targetslot++;
-                currentTime = this.shadowOffsets[targetslot];
-                if (currentTime === undefined) {
-                    // console.log("Before forwards: " + this.shadowanswermodel.version() + " at " + this.shadowanswermodel.time().valueOf())
-                    const saveslot = this.shadowanswermodel.version();
-                    // await this.shadowanswermodel.forward(targetslot-currentSlot);
-                    await this.shadowanswermodel.playTo(targetslot);
-                    currentSlot = this.shadowanswermodel.version();
-                    const newTime = this.shadowanswermodel.time().valueOf();
-                    // console.log("After Forward: " + currentSlot + " at " + newTime + " going to " + scrubTime);
-                    this.shadowOffsets[currentSlot] = newTime;
-                    if (currentSlot !== targetslot) {
-                        console.log(
-                            'Failed to move forward to ' +
-                            targetslot +
-                            ' at ' +
-                            currentSlot +
-                            ' we were at ' +
-                            saveslot
-                        );
-                    }
-                }
-                currentTime = this.shadowOffsets[targetslot];
-                // console.log("++ new time:" + currentTime + " Going to " + scrubTime);
-            }
-            // See if we need to back up.
-            if (scrubTime < currentTime && targetslot > 0) {
-                targetslot--;
-            }
-        }
-        // Now that we know the target slot (which we got using the shadow model)
-        // See if we need to move to the slot on the real model
-        const actualslot = this.answermodel.version();
-        if (actualslot < targetslot) {
-            this.answermodel
-                .forward(targetslot - actualslot)
-                .then(() => {
-                    this.updatePlaybackClock(scrubTime);
-                    this.inScrubTo = false;
-                })
-                .catch((error) => {
-                    this.reportFailure('Convergence API problem moving forward: ' + error);
-                    this.inScrubTo = false;
-                });
-        } else if (actualslot > targetslot) {
-            this.answermodel
-                .backward(actualslot - targetslot)
-                .then(() => {
-                    this.updatePlaybackClock(scrubTime);
-                    this.inScrubTo = false;
-                })
-                .catch((error) => {
-                    this.reportFailure('Convergence API problem moving backward: ' + error);
-                    this.inScrubTo = false;
-                });
-        } else {
-            // The new time is on the same slot, so just update the timer
-            this.updatePlaybackClock(scrubTime);
-            this.inScrubTo = false;
-        }
-        // console.log("Scrub position: " + targetslot + " for " + scrubTime + " Under " + currentTime);
+                const fullmmsg = " Model starts at Version " + firstVersion + " Time=" + timestampToFriendly(firstTime) + " [" + firstTime + "] " +
+                    " and ends at Version " + lastVersion + " Time=" + timestampToFriendly(lastTime) + " [" + lastTime + "] " +
+                    " expected to go to " + timestampToFriendly(scrubTime) + " [" + scrubTime + "]";
+                this.reportFailure('Convergence API problem moving forward: ' + error + " --- " + fullmmsg);
+                this.inScrubTo = false;
+            });
     }
     /**
      * Stop any active playback and update the UI controls
@@ -486,26 +380,9 @@ export class CipherTestPlayback extends CipherTest {
                 });
                 // If they close the window or navigate away, we want to close all our connections
                 $(window).on('beforeunload', () => this.shutdownTest());
-                this.openShadowAnswerModel(modelService, answerModelID, testModelID);
+                this.openTestModel(testModelID);
             });
         });
-    }
-    /**
-     * Open the shadow copy of the answermodel in order to optimize seeking
-     * @param modelService Domain Model service object for making requests
-     * @param answerModelID ID of the answer model
-     * @param testModelID ID of the test model
-     */
-    private openShadowAnswerModel(modelService: ModelService, answerModelID: string, testModelID: string,): void {
-        modelService
-            .history(answerModelID)
-            .then((shadowanswermodel: HistoricalModel) => {
-                this.shadowanswermodel = shadowanswermodel;
-                this.openTestModel(testModelID);
-            })
-            .catch((error) => {
-                this.reportFailure('Convergence API could not open shadow history model: ' + error);
-            });
     }
     /**
      * Open the test model for the test template.

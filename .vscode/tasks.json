@@ -11,7 +11,7 @@
             "command": "npm",
             "args": [
                 "run",
-                "serve",
+                "serve"
             ],
             "group": {
                 "kind": "build",
@@ -28,7 +28,7 @@
             "command": "npm",
             "args": [
                 "run",
-                "build",
+                "build"
             ],
             "group": {
                 "kind": "build",
@@ -45,7 +45,7 @@
             "command": "npm",
             "args": [
                 "run",
-                "dev",
+                "dev"
             ],
             "group": {
                 "kind": "build",
@@ -62,7 +62,7 @@
             "command": "npm",
             "args": [
                 "run",
-                "analyze",
+                "analyze"
             ],
             "group": {
                 "kind": "build",
@@ -72,6 +72,14 @@
                 "$tsc",
                 "$jshint"
             ]
+        },
+        {
+            "type": "npm",
+            "script": "build",
+            "group": "build",
+            "problemMatcher": [],
+            "label": "npm: build",
+            "detail": "webpack --mode=production --env=zip=y"
         }
     ]
 }

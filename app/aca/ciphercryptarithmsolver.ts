@@ -20,6 +20,7 @@ interface ICryptarithmState extends IState {
     /** The state of all the boxes */
     /** A negative value indicates that it is temporarily locked due to another row/col */
     boxState: NumberMap;
+    base?: number;
 }
 export class CryptarithmSolver extends CipherSolver {
     public activeToolMode: toolMode = toolMode.aca;
@@ -47,7 +48,7 @@ export class CryptarithmSolver extends CipherSolver {
      * Add any solution text to the problem
      */
     public saveSolution(): void {
-        if (this.state.question === undefined || this.state.question === "") {
+        if (this.state.question === undefined || this.state.question === "" || this.base === 0) {
             return;
         }
         // The code that updates the page marks the SOLVED flag, but
@@ -288,7 +289,7 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * We don't have to do anything for reverse replacements
      */
-    public UpdateReverseReplacements(): void {}
+    public UpdateReverseReplacements(): void { }
     /**
      * Update the match dropdowns in response to a change in the cipher mapping
      */
@@ -308,7 +309,7 @@ export class CryptarithmSolver extends CipherSolver {
     /**
      * Fills in the frequency portion of the frequency table
      */
-    public displayFreq(): void {}
+    public displayFreq(): void { }
     /**
      * Change the encrypted character.  Note that when we change one, we have
      * to swap it with the one which we are replacing
@@ -384,6 +385,9 @@ export class CryptarithmSolver extends CipherSolver {
         this.cryptarithmType = CryptarithmType.Automatic;
         this.usedletters = {};
         this.base = 0;
+        if (this.state.base !== undefined && this.state.base > 0) {
+            this.base = this.state.base;
+        }
         let lineitems: Array<lineitem> = [];
         str = str.replace(new RegExp("gives root", "g"), "^");
         // Sometimes they use a different division sign
@@ -425,9 +429,9 @@ export class CryptarithmSolver extends CipherSolver {
                     if (state !== buildState.Idle) {
                         console.log(
                             "Found token:" +
-                                token +
-                                " when already processing " +
-                                prefix
+                            token +
+                            " when already processing " +
+                            prefix
                         );
                     }
                     if (this.cryptarithmType === CryptarithmType.Automatic) {
@@ -442,9 +446,9 @@ export class CryptarithmSolver extends CipherSolver {
                     if (state !== buildState.Idle) {
                         console.log(
                             "Found token:" +
-                                token +
-                                " when already processing " +
-                                prefix
+                            token +
+                            " when already processing " +
+                            prefix
                         );
                     }
                     // Put in a blank line
@@ -465,9 +469,9 @@ export class CryptarithmSolver extends CipherSolver {
                     if (state !== buildState.Idle) {
                         console.log(
                             "Found token:" +
-                                token +
-                                " when already processing " +
-                                prefix
+                            token +
+                            " when already processing " +
+                            prefix
                         );
                     }
                     prefix = "";
@@ -478,9 +482,9 @@ export class CryptarithmSolver extends CipherSolver {
                     if (state !== buildState.Idle) {
                         console.log(
                             "Found token:" +
-                                token +
-                                " when already processing " +
-                                prefix
+                            token +
+                            " when already processing " +
+                            prefix
                         );
                     }
                     switch (this.cryptarithmType) {
@@ -570,9 +574,9 @@ export class CryptarithmSolver extends CipherSolver {
                     if (state !== buildState.Idle) {
                         console.log(
                             "Found token:" +
-                                token +
-                                " when already processing " +
-                                prefix
+                            token +
+                            " when already processing " +
+                            prefix
                         );
                     }
                     prefix = token;
@@ -587,9 +591,9 @@ export class CryptarithmSolver extends CipherSolver {
                     if (state !== buildState.Idle) {
                         console.log(
                             "Found token:" +
-                                token +
-                                " when already processing " +
-                                prefix
+                            token +
+                            " when already processing " +
+                            prefix
                         );
                     }
                     prefix = token;
@@ -628,9 +632,9 @@ export class CryptarithmSolver extends CipherSolver {
                     if (state !== buildState.Idle) {
                         console.log(
                             "Found token:" +
-                                token +
-                                " when already processing " +
-                                prefix
+                            token +
+                            " when already processing " +
+                            prefix
                         );
                     }
                     this.cryptarithmType = CryptarithmType.Division;
@@ -646,9 +650,9 @@ export class CryptarithmSolver extends CipherSolver {
                     ) {
                         console.log(
                             "Found token:" +
-                                token +
-                                " when already processing " +
-                                prefix
+                            token +
+                            " when already processing " +
+                            prefix
                         );
                     }
                     prefix = token;
@@ -1012,7 +1016,10 @@ export class CryptarithmSolver extends CipherSolver {
                     break;
             }
         }
-        this.base = Object.keys(this.usedletters).length;
+        const base = Object.keys(this.usedletters).length;
+        if (this.base === 0 || base > this.base) {
+            this.base = base;
+        }
         let charset = "";
         for (let index = 0; index < this.base; index++) {
             let c = this.basedStr(index);
@@ -1117,7 +1124,7 @@ export class CryptarithmSolver extends CipherSolver {
     public genLetterDiv(start: string, end: string): JQuery<HTMLElement> {
         let prefix = start + "-" + end;
         let calloutclass = "secondary";
-        if (this.state.question.includes(prefix)) {
+        if (this.state.question !== undefined && this.state.question.includes(prefix)) {
             calloutclass = "success";
         }
         let result = $("<div/>", {

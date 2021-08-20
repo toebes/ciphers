@@ -133,7 +133,11 @@ export class CipherEncoder extends CipherHandler {
      */
     public getInteractiveTemplate(): ITestQuestionFields {
         const result = super.getInteractiveTemplate();
-        const replen = this.getSourceCharset().length;
+        let replen = this.getSourceCharset().length;
+        let anslen = this.state.cipherString.length;
+
+
+
         result.answer = makeFilledArray(this.state.cipherString.length, ' ');
         // For a patristocrat we need to have a place to store the separators
         if (this.state.cipherType == ICipherType.Patristocrat) {
@@ -509,6 +513,9 @@ export class CipherEncoder extends CipherHandler {
         }
         if (errors !== '') {
             msg = 'Bad keyword/offset combo for letters: ' + errors;
+            if (errors === 'Ñ' && this.state.keyword.indexOf('Ñ') >= 0) {
+                msg = '';
+            }
         }
         this.setErrorMsg(msg, 'setrepl');
     }
@@ -803,6 +810,34 @@ export class CipherEncoder extends CipherHandler {
             extraclass = ' atest';
         }
 
+        // When doing a keyword, they need to put the answer in the boxes
+        if (this.state.operation === 'keyword') {
+            const keyanswer = this.state.keyword.toUpperCase();
+            let keytype = "Keyword";
+            if (this.minimizeString(keyanswer).length !== keyanswer.length) {
+                keytype = "Key Phrase"
+            }
+            result.append(
+                $('<p/>').append($("<b/>").text("Enter the " + keytype + " here"))
+
+            )
+            const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
+            const rowanswer = table.addBodyRow();
+
+            for (let i = 0; i < keyanswer.length; i++) {
+                const c = keyanswer.substr(i, 1);
+                if (this.isValidChar(c)) {
+                    rowanswer.add({
+                        settings: { class: 'e v' },
+                        content: '&nbsp;',
+                    });
+                } else {
+                    rowanswer.add(c);
+                }
+            }
+            result.append(table.generate());
+            result.append($('<p/>').append($("<b/>").text("Cipher:")))
+        }
         for (const strset of strings) {
             result.append(
                 $('<div/>', {
@@ -815,6 +850,16 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      * Generate the HTML to display the interactive form of the cipher.
+     * For the interactive cipher, there are three types of fields
+     *   Answer Fields - indicated by ID Iq_n where q is the question number and n is the field number
+     *   Replacement Fields - Indicated by ID Rq_n where q is the question number and n is the field number
+     *           Replacement fields are typically use for the replacement table or the over field for vigenere/baconian ciphers
+     *   Separator Fields - Indicated by ID Sq_n where q is the question number and n is the field number
+     *   General cells - indated by a class of Sn where n is the field number
+     *  Some notes about how they work
+     *   When the separator is clicked (Sq_n) then all of the fields with the Sn class are toggled
+     *   When the answer is the Keyword/Key Phrase, then the replacement fields for the frequency table are offset by the number of fields in the cipher
+     *   
      * @param qnum Question number.  -1 indicates a timed question
      * @param testType Type of test
      */
@@ -824,10 +869,55 @@ export class CipherEncoder extends CipherHandler {
         if (testType === ITestType.aregional) {
             extraclass = ' atest';
         }
+
         const qnumdisp = String(qnum + 1);
-        const idclass = 'I' + qnumdisp + '_';
+        let idclass = 'I' + qnumdisp + '_';
         const spcclass = 'S' + qnumdisp + '_';
         const result = $('<div/>', { id: 'Q' + qnumdisp });
+        let inputoffset = 0;
+        let cipherinputclass = 'awc';
+        let freqoffset = 0;
+        // If we are doing a keyword, then we have to have a separate answer set of fields
+        if (this.state.operation === 'keyword') {
+            const keyanswer = this.state.keyword.toUpperCase();
+            let keytype = "Keyword";
+            if (this.minimizeString(keyanswer).length !== keyanswer.length) {
+                keytype = "Key Phrase"
+            }
+            result.append(
+                $('<p/>').append($("<b/>").text("Enter the " + keytype + " here"))
+
+            )
+            const table = new JTTable({ class: 'SOLVER' + extraclass });
+            const rowanswer = table.addBodyRow();
+
+            for (let i = 0; i < keyanswer.length; i++) {
+                const c = keyanswer.substr(i, 1);
+                const spos = String(i);
+                if (this.isValidChar(c)) {
+                    rowanswer.add({
+                        settings: { class: 'S' + spos },
+                        content: $('<input/>', {
+                            id: idclass + spos,
+                            class: cipherinputclass,
+                            type: 'text',
+                        }),
+                    });
+                } else {
+                    rowanswer.add({
+                        settings: { class: 'TOSOLVEC' },
+                        content: c,
+                    });
+                }
+            }
+            result.append(table.generate());
+            cipherinputclass = 'awr'
+            idclass = 'R' + qnumdisp + '_';
+            inputoffset = this.getCharset().length;
+            freqoffset = keyanswer.length;
+            result.append($('<p/>').append($("<b/>").text("Cipher:")));
+        }
+
         let pos = 0;
         // Since we already have the lines spit exactly as they would be on the printed test,
         // go through and generate a table with one cell per character.
@@ -837,7 +927,8 @@ export class CipherEncoder extends CipherHandler {
             const arow = table.addBodyRow();
             for (const c of strset[0]) {
                 let extraclass = '';
-                const spos = String(pos);
+                const spos = String(pos + inputoffset);
+
                 // For a Patristocrat, we need to give them the ability to insert/remove word space indicators
                 // We do this by putting a class on the cell which we will add/remove a spacing class at runtime
                 // in response to them clicking on a separator indicator (a downward V)
@@ -856,7 +947,7 @@ export class CipherEncoder extends CipherHandler {
                         settings: { class: extraclass },
                         content: $('<input/>', {
                             id: idclass + spos,
-                            class: 'awc',
+                            class: cipherinputclass,
                             type: 'text',
                         }),
                     });
@@ -878,7 +969,7 @@ export class CipherEncoder extends CipherHandler {
             );
         }
 
-        result.append(this.genInteractiveFreqTable(qnum, this.state.encodeType, extraclass));
+        result.append(this.genInteractiveFreqTable(qnum, this.state.encodeType, extraclass, freqoffset));
         result.append($('<textarea/>', { id: 'in' + qnumdisp, class: 'intnote' }));
         return result;
     }

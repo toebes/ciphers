@@ -1654,7 +1654,8 @@ export class CipherHandler {
     public genInteractiveFreqTable(
         qnum: number,
         encodeType: string,
-        extraclass: string
+        extraclass: string,
+        offset: number = 0
     ): JQuery<HTMLElement> {
         const table = new JTTable({
             class: 'shrink unstriped intfreq' + extraclass,
@@ -1693,7 +1694,7 @@ export class CipherHandler {
             replrow.add({
                 celltype: 'td',
                 content: $('<input/>', {
-                    id: 'R' + String(qnum + 1) + '_' + pos,
+                    id: 'R' + String(qnum + 1 + offset) + '_' + pos,
                     class: 'awr',
                     type: 'text',
                 }),

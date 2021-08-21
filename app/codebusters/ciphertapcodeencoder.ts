@@ -121,7 +121,7 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      * Fills in the frequency portion of the frequency table.  For the Ragbaby
      * we don't have the frequency table, so this doesn't need to do anything
      */
-    public displayFreq(): void {}
+    public displayFreq(): void { }
     /**
      * Generate the HTML to display the question for a cipher
      */
@@ -284,25 +284,25 @@ export class CipherTapCodeEncoder extends CipherEncoder {
         result.append(
             $('<p/>').text(
                 'First you want to create the lookup table ' +
-                    'by drawing a grid with 5 horizontal and 5 vertical lines. ' +
-                    'Then fill in the top with the numbers 1 through 5 and the same on the ' +
-                    'left side of the grid.  Finally fill in the letters from left to right ' +
-                    'and then down, remembering to skip the letter K. ' +
-                    'Once you have filled in all 25 cells, go back and add K to the cell ' +
-                    'with C in it giving you a table like:'
+                'by drawing a grid with 5 horizontal and 5 vertical lines. ' +
+                'Then fill in the top with the numbers 1 through 5 and the same on the ' +
+                'left side of the grid.  Finally fill in the letters from left to right ' +
+                'and then down, remembering to skip the letter K. ' +
+                'Once you have filled in all 25 cells, go back and add K to the cell ' +
+                'with C in it giving you a table like:'
             )
         );
-        result.append($('<img/>', { src: tapcode }));
+        result.append($('<img/>', { src: tapcode.default }));
         result.append(
             $('<p/>').text(
                 'Then go through the cipher text and put ' +
-                    'a mark between each two groups of dots. ' +
-                    'To decode, count the number of dots in the first group to pick the ' +
-                    'row in the table and the number of dots in the second group to pick ' +
-                    'the column and read the letter. ' +
-                    'Only when you have a single dot followed by three dots ' +
-                    '(which corresponds to the letter C) do you have to decide whether the ' +
-                    'letter should be a C or K'
+                'a mark between each two groups of dots. ' +
+                'To decode, count the number of dots in the first group to pick the ' +
+                'row in the table and the number of dots in the second group to pick ' +
+                'the column and read the letter. ' +
+                'Only when you have a single dot followed by three dots ' +
+                '(which corresponds to the letter C) do you have to decide whether the ' +
+                'letter should be a C or K'
             )
         );
         return result;

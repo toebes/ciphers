@@ -221,30 +221,30 @@ export class CipherPigPenEncoder extends CipherEncoder {
         result.append(
             $('<p/>').text(
                 'First you want to create the lookup table ' +
-                    'by drawing two tic-tac-toe boards followed by two big Xs. '
+                'by drawing two tic-tac-toe boards followed by two big Xs. '
             )
         );
-        result.append($('<img/>', { src: pigpen1 }));
+        result.append($('<img/>', { src: pigpen1.default }));
         result.append(
             $('<p/>').text(
                 'Then write the alphabet in the tic-tac-toe ' +
-                    'boards across and then down ' +
-                    'putting dots on the letters in the second board.'
+                'boards across and then down ' +
+                'putting dots on the letters in the second board.'
             )
         );
         result.append(
             $('<p/>').text(
                 'Then fill up the two big Xs starting ' +
-                    'at the top then left, right and finally bottom, putting dots on the letters in the ' +
-                    'second X. like:'
+                'at the top then left, right and finally bottom, putting dots on the letters in the ' +
+                'second X. like:'
             )
         );
-        result.append($('<img/>', { src: pigpen2 }));
+        result.append($('<img/>', { src: pigpen2.default }));
         result.append(
             $('<p/>').text(
                 'With that decode table, it should be quick ' +
-                    'decode the characters by looking at the shapes and whether ' +
-                    'the shape has a dot in it or not.'
+                'decode the characters by looking at the shapes and whether ' +
+                'the shape has a dot in it or not.'
             )
         );
         return result;

@@ -80,6 +80,7 @@ config = {
                     loader: 'url-loader',
                     options: {
                         limit: 8192,
+                        esModule: false
                     },
                 },
             },
@@ -91,6 +92,7 @@ config = {
                     loader: 'url-loader',
                     options: {
                         limit: 20000,
+                        esModule: false
                     },
                 },
             },

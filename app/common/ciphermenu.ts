@@ -100,12 +100,12 @@ export const CipherMenu: menuItem[] = [
                 cipherType: ICipherType.Railfence,
                 classname: 'chkmod menub',
             },
-            {
-                title: 'RSA',
-                href: 'RSAEncrypt.html',
-                cipherType: ICipherType.RSA,
-                classname: 'chkmod menuc',
-            },
+            // {
+            //     title: 'RSA',
+            //     href: 'RSAEncrypt.html',
+            //     cipherType: ICipherType.RSA,
+            //     classname: 'chkmod menuc',
+            // },
             // {
             //     title: "Running Key",
             //     href: "RunningKeyEncoder.html",
@@ -117,6 +117,12 @@ export const CipherMenu: menuItem[] = [
                 href: 'TapCodeEncrypt.html',
                 cipherType: ICipherType.TapCode,
                 classname: 'chkmod menua',
+            },
+            {
+                title: 'Porta',
+                href: 'VigenereEncrypt.html',
+                cipherType: ICipherType.Porta,
+                classname: 'chkmod menub menuc',
             },
             {
                 title: 'Vigen&egrave;re',

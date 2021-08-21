@@ -91,19 +91,18 @@ export const CipherMenu: menuItem[] = [
                 cipherType: ICipherType.RunningKey,
                 classname: 'chkmod',
             },
-            {
-                title: 'RSA',
-                href: 'RSAEncrypt.html',
-                cipherType: ICipherType.RSA,
-                classname: 'chkmod menuc',
-            },
             // {
-            //     title: "Spanish Aristocrat",
-            //     href: "AristocratSpanishEncrypt.html",
-            //     cipherType: ICipherType.Aristocrat,
-            //     lang: "es",
-            //     classname: 'chkmod menuc'
+            //     title: 'RSA',
+            //     href: 'RSAEncrypt.html',
+            //     cipherType: ICipherType.RSA,
+            //     classname: 'chkmod menuc',
             // },
+            {
+                title: 'Porta',
+                href: 'VigenereEncrypt.html',
+                cipherType: ICipherType.Porta,
+                classname: 'chkmod menub menuc',
+            },
             {
                 title: 'Vigen&egrave;re',
                 href: 'VigenereEncrypt.html',

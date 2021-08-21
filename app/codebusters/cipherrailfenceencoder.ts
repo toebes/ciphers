@@ -409,7 +409,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
     public guidanceURL = 'TestGuidance.html#RailFence';
 
-    public validTests: ITestType[] = [ITestType.None, ITestType.bregional, ITestType.bstate];
+    public validTests: ITestType[] = [ITestType.None, ITestType.bregional, ITestType.bstate, ITestType.cregional, ITestType.cstate];
 
     public defaultstate: IRailFenceState = {
         cipherString: '',
@@ -659,7 +659,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * Fills in the frequency portion of the frequency table.  For the Rail Fence
      * we don't have the frequency table, so this doesn't need to do anything
      */
-    public displayFreq(): void {}
+    public displayFreq(): void { }
 
     public makeReplacement(text: string, maxEncodeWidth: number): string[][] {
         let encodeline = '';
@@ -922,8 +922,8 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             $('<code/>').append('(2 * #rails) - 2 = (2 * ' + rails.toString() + ') - 2 = '),
             $('<code/>').append(rfs.getCharsPerZigzag().toString()),
             ' characters (A single zig-zag starts with the character from the top row, goes ' +
-                'down each row and back up ending one character before the top row.).  ' +
-                'The encrypted text is ',
+            'down each row and back up ending one character before the top row.).  ' +
+            'The encrypted text is ',
             $('<code/>').append(rfs.getTextLength().toString()),
             'characters long, so there are ',
             $('<code/>').append(rfs.getCountZigzag().toString()),
@@ -934,7 +934,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         solutionIntro.append(
             $('<p/>').append(
                 'All spaces and punctuation have been removed from the message.  To decode it, fill ' +
-                    'in each rail as described below.  The message can be read along the zig-zags.  Spaces between words can be added based on context.'
+                'in each rail as described below.  The message can be read along the zig-zags.  Spaces between words can be added based on context.'
             )
         );
 

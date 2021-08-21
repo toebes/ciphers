@@ -232,6 +232,7 @@ export class CipherTest extends CipherHandler {
         },
         { cipherType: ICipherType.Patristocrat },
         { cipherType: ICipherType.Hill },
+        { cipherType: ICipherType.Porta },
         { cipherType: ICipherType.Vigenere },
         { cipherType: ICipherType.RunningKey },
         { cipherType: ICipherType.Baconian },

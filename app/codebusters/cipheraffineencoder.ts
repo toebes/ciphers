@@ -122,6 +122,8 @@ export class CipherAffineEncoder extends CipherEncoder {
                 testType !== '' &&
                 testType !== ITestType.cregional &&
                 testType !== ITestType.cstate &&
+                testType !== ITestType.bregional &&
+                testType !== ITestType.bstate &&
                 this.state.operation === 'encode'
             ) {
                 result = 'Encode problems are not allowed on ' + this.getTestTypeName(testType);
@@ -1014,16 +1016,16 @@ export class CipherAffineEncoder extends CipherEncoder {
                 p1.append(
                     renderMath(
                         cValOriginal +
-                            ' + (26 * ' +
-                            count +
-                            ') = ' +
-                            cVal +
-                            '.\\space\\space' +
-                            cVal +
-                            ' \\div ' +
-                            mVal +
-                            ' = ' +
-                            a
+                        ' + (26 * ' +
+                        count +
+                        ') = ' +
+                        cVal +
+                        '.\\space\\space' +
+                        cVal +
+                        ' \\div ' +
+                        mVal +
+                        ' = ' +
+                        a
                     )
                 );
                 result.append(p1);

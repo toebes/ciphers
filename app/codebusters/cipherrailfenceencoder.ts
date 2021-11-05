@@ -17,6 +17,7 @@ interface IRailFenceState extends IState {
     /** Railfence railss value */
     rails: number;
     isRailRange: boolean;
+    offset: number;     // Offset for the zigzag
 }
 /**
  * This class creates a Rail Fence solver.
@@ -409,12 +410,13 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
     public guidanceURL = 'TestGuidance.html#RailFence';
 
-    public validTests: ITestType[] = [ITestType.None, ITestType.bregional, ITestType.bstate, ITestType.cregional, ITestType.cstate];
+    public validTests: ITestType[] = [ITestType.None, ITestType.bstate, ITestType.cregional, ITestType.cstate];
 
     public defaultstate: IRailFenceState = {
         cipherString: '',
         cipherType: ICipherType.Railfence,
         rails: 2,
+        offset: 0,
         isRailRange: false,
         replacement: {},
     };
@@ -456,9 +458,23 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * @returns String indicating error or blank for success
      */
     public CheckAppropriate(testType: ITestType): string {
-        const result = super.CheckAppropriate(testType);
+        let result = super.CheckAppropriate(testType);
         if (result === '' && testType !== undefined) {
-            // Additional checks are TBD
+            // Due to a fluke in rule writing for 2022, the railfence only allows for cryptanalysis 
+            // at the division B state level
+            // Basically what is allowed is:
+            //  Division B Regional:  nothing
+            //  Division B State: Cryptanalysis with zero offset
+            //  Division C Regional: Decode with any offset
+            //  Division C State: Decode+Cryptanalysis with any offset
+
+            if (testType === ITestType.bstate && this.state.operation !== 'crypt') {
+                result = 'Only Cryptanalysis problems are allowed on ' + this.getTestTypeName(testType);
+            } else if (testType === ITestType.bstate && this.state.offset !== 0) {
+                result = 'Only a zero offset is allowed on ' + this.getTestTypeName(testType);
+            } else if (testType === ITestType.cregional && this.state.operation !== 'decode') {
+                result = 'Only Decode problems are allowed on ' + this.getTestTypeName(testType);
+            }
         }
         return result;
     }

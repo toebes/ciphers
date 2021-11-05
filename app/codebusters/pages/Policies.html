@@ -1,21 +1,24 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>
         <%= htmlWebpackPlugin.options.title %>
     </title>
+    <style>
+        div.margins {
+            margin: 20px;
+        }
+    </style>
 </head>
 
-<body class="txt">
+<body>
     <% for (var index in htmlWebpackPlugin.files.js) { %>
         <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
         <% } %>
-                <h3>
-                    <%= htmlWebpackPlugin.options.title %>
-                </h3>
-
+            <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+            <div class="margins">
                 <h4>Privacy</h4>
                 <p>This Privacy Policy discloses the privacy practices for <a
                         href="https://toebes.com/codebusters">https://toebes.com/codebusters</a>.
@@ -148,6 +151,7 @@
                 Campus Box 8211<br />
                 Raleigh, NC 27695-8211<br />
                 <a href="mailto:codebusters@toebes.com">codebusters@toebes.com</a>
+            </div>
 </body>
 
 </html>

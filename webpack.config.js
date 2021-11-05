@@ -493,7 +493,7 @@ config = {
             filename: 'Policies.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Policies.html'),
             chunks: ['codebusters'],
-            cipher: '',
+            cipher: 'TestManage',
             title: 'Policies',
         }),
         new HtmlWebpackPlugin({
@@ -501,7 +501,7 @@ config = {
             filename: 'Rule-Summary-2022.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Rule-Summary-2022.html'),
             chunks: ['codebusters'],
-            cipher: '',
+            cipher: 'TestManage',
             title: '2021-2020 Season Science Olympiad Rules Summary',
         }),
         new HtmlWebpackPlugin({

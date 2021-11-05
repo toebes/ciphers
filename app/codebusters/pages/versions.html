@@ -12,306 +12,314 @@
     <% for (var index in htmlWebpackPlugin.files.js) { %>
         <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
         <% } %>
-                <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-                <div class="callout primary">
-                    <div class="cell clearfix">
-                        <a class="float-right" href="https://www.sciencenc.com/resources/high-school/codebusters/"><img
-                                src="https://www.sciencenc.com/wp-content/uploads/logo-short.png" width="180"
-                                height="120" /></a>
-                        <a class="float-right" href="https://www.soinc.org/codebusters-c"><img
-                                src="https://www.soinc.org/sites/default/files/SCI_OLY_LOGO.jpeg" width="180"
-                                height="120" /></a>
-                        <h2>
-                            <span class="scioly">S<span class="t">cience</span> O<span class="t">lympiad</span> C<span
-                                    class="t">ode</span>B<span class="t">usters</span><br />
-                                Test Generation Tools Version History</span>
-                        </h2>
-                    </div>
-                    <div class="cell callout warning small">
-                        <h4>Important!</h4>
-                        <p>When solving a Morbit, Pollux or Baconian cipher, you must put the answer under the
-                            corresponding solution character. This means that on a Baconian answer, four out of five
-                            answer boxes in a row should be blank and Morbit/Pollux answers should only have one letter
-                            under the characters that make up the morse code. For example with the letter
-
-                            ●–×–●●●×–●–●×–●●×●
-                            A B C D E</p>
-                    </div>
-                    <div class="cell">
-                        <h4>Summary of what's new:</h4>
-                        <ul>
-                            <li>Version 4.1.2</li>
-                            <ul>
-                                <li>
-                                    Implement tracking of out of browser time for when the main window is not active.
-                                    It now shows a "OBT" message in the timer window tracking the total time that the
-                                    window
-                                    was not active.
-                                    Track time changes more accurately.
-                                </li>
-                                <li>Version 4.1.1</li>
-                                <ul>
-                                    <li>
-                                        Minor fix to track attempts to change the local time on the client. Updated
-                                        privacy
-                                        policy.
-                                    </li>
-                                </ul>
-                                <li>Version 4.1.0</li>
-                                <ul>
-                                    <li>
-                                        Many bug fixes for importing schedules for tests. Clean up error messages when
-                                        publishing a test.
-                                    </li>
-                                </ul>
-                                <li>Version 4.0.5</li>
-                                <ul>
-                                    <li>
-                                        Fix elusive bug which caused the system to sometimes lose Affine answers.
-                                    </li>
-                                </ul>
-                                <li>Version 4.0.4</li>
-                                <ul>
-                                    <li>
-                                        Catch expired tokens which were generating odd error messages about missing id.
-                                    </li>
-                                </ul>
-                                <li>Version 4.0.3</li>
-                                <ul>
-                                    <li>
-                                        Eliminated caching the time calls so that local browsers on Linux wouldn't end
-                                        up
-                                        with an incorrect time.
-                                        Major rewrite of the scoring software to be more efficient with the server.
-                                    </li>
-                                </ul>
-                                <li>Version 4.0.2</li>
-                                <ul>
-                                    <li>
-                                        We have cleaned up the code for settings dates for scheduled tests to prevent
-                                        invalid ranges and email addressed from being entered and removed
-                                        any tests which had dates which were out of range and invalid email addresses
-                                        which
-                                        could cause problems on the system.
-                                    </li>
-                                </ul>
-                                <li>Version 4.0.1</li>
-                                <ul>
-                                    <li>
-                                        Minor update to allow for UI feedback when creating/deleting tests as well as
-                                        setting permissions on the tests.
-                                    </li>
-                                </ul>
-                                <li>Version 4.0.0</li>
-                                <ul>
-                                    <li>
-                                        This is a Major rewrite of the backend server to increase performance and number
-                                        of
-                                        users for
-                                        the system. Please feel free to report any bugs at <a
-                                            href="https://github.com/toebes/ciphers/issues">github.com/toebes/ciphers/issues</a>
-                                        This also includes an update to automatically delete any test taken after two
-                                        weeks.
-                                        As part of keeping data safe for all users, any personally identifiable
-                                        information
-                                        is automatically
-                                        deleted when the corresponding tests are deleted.
-                                        This includes any names or email addresses which are associated with a test.<p>
-                                            The
-                                            mobit and pollux scoring algorithm has been updated. The answer letter needs
-                                            to
-                                            be under at least one of the morse digits and that ONLY one answer letter
-                                            can
-                                            be under the digits for a morse character</p>
-                                    </li>
-                                </ul>
-                                <li>Version 3.0.1</li>
-                                <ul>
-                                    <li>
-                                        Support for Microsoft Azure Authentication.
-                                    </li>
-                                </ul>
-                                <li>Version 3.0.0</li>
-                                <ul>
-                                    <li>
-                                        Support for interactive online testing!
-                                    </li>
-                                </ul>
-                                <li>Version 2.3.4</li>
-                                <ul>
-                                    <li>
-                                        Fix the menu so that it show properly on wide screens
-                                    </li>
-                                </ul>
-                                <li>Version 2.3.3</li>
-                                <ul>
-                                    <li>
-                                        Cleanups on pigpen, vigenere and generic aristocrat pages.
-                                    </li>
-                                    <li>
-                                        Fixed issues
-                                        <a href="https://github.com/toebes/ciphers/issues/144">#144</a> and
-                                        <a href="https://github.com/toebes/ciphers/issues/145">#145</a>.
-                                    </li>
-                                </ul>
-                                <li>Version 2.3.2</li>
-                                <ul>
-                                    <li>
-                                        Fix
-                                        <a href="https://github.com/toebes/ciphers/issues/136">Issue #136</a>
-                                        Provide decryption matrix for Hill 3x3 decode questions.
-                                    </li>
-                                </ul>
-                                <li>Version 2.3.1</li>
-                                <ul>
-                                    <li>
-                                        Fix
-                                        <a href="https://github.com/toebes/ciphers/issues/134">Issue #134</a>
-                                        Trim leading X characters from Morse Code.
-                                    </li>
-                                </ul>
-                                <li>Version 2.3.0</li>
-                                <ul>
-                                    <li>
-                                        Add space for the Morbit cipher answers. Improve Morbit auto-solver to
-                                        handle four morse characters next to an unknown.
-                                    </li>
-                                </ul>
-                                <li>Version 2.2.2</li>
-                                <ul>
-                                    <li>
-                                        Add support to decode 3x3 matrices for the Hill Cipher.
-                                    </li>
-                                </ul>
-                                <li>Version 2.1.1</li>
-                                <ul>
-                                    <li>
-                                        Add support for custom header page. Add tracking of editing and
-                                        prompting when leaving page so that changes aren't lost.
-                                    </li>
-                                </ul>
-                                <li>Version 2.0.0</li>
-                                <ul>
-                                    <li>
-                                        New Cipher types: Morbit/Pollux/RailFence
-                                        <div class="divb">Division B</div>
-                                        <div class="divc">Division C</div>
-                                        and Tap Code
-                                        <div class="diva">Division A</div>
-                                        . Add support for type of event to the test type for validating Cipher
-                                        usage.
-                                    </li>
-                                </ul>
-                                <li>Version 1.4.5</li>
-                                <ul>
-                                    <li>
-                                        Stabilize the code combo for RSA question so that it doesn't change when
-                                        editing. Updated Vigenere so that it proprerly displays lower case key
-                                        strings.
-                                    </li>
-                                </ul>
-                                <li>Version 1.4.4</li>
-                                <ul>
-                                    <li>
-                                        Fixed formatting of Hill Cipher encodes (<a
-                                            href="https://github.com/toebes/ciphers/issues/122">Issue #112</a>).
-                                    </li>
-                                </ul>
-                                <li>Version 1.4.3</li>
-                                <ul>
-                                    <li>
-                                        Fixed "No Editor" error when saving and restoring a Xenocrypt.
-                                    </li>
-                                </ul>
-                                <li>Version 1.4.2</li>
-                                <ul>
-                                    <li>
-                                        Added the Modular Multiplicative inverse of 25 to the tables on the
-                                        printed test.
-                                    </li>
-                                </ul>
-                                <li>Version 1.4.1</li>
-                                <ul>
-                                    <li>
-                                        Added ability to duplicate tests from an existing test.
-                                    </li>
-                                </ul>
-                                <li>Version 1.4.0</li>
-                                <ul>
-                                    <li>
-                                        Top margins on printed pages have been increased.
-                                    </li>
-                                    <li>
-                                        Navigation for previous and next questions have been added to the top of
-                                        question pages.
-                                    </li>
-                                    <li>
-                                        The PigPen cipher has been added for B events.
-                                    </li>
-                                    <li>
-                                        Hill Ciphers now correctly generate the answers for any 2x2 matrix which
-                                        has a determinant of 25.
-                                    </li>
-                                    <li>
-                                        The year now displays as 2019 for printed tests.
-                                    </li>
-                                </ul>
-                                <li>Version 1.3.7</li>
-                                <ul>
-                                    <li>
-                                        Updated the solution text for the
-                                        <a href="https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm">extended
-                                            Euclidean Algorithm</a>
-                                        for some fo the RSA problems at
-                                        <a href="RSAEncrypt.html">RSAEncrypt.html</a>.
-                                    </li>
-                                </ul>
-                                <li>Version 1.3.2</li>
-                                <ul>
-                                    <li>
-                                        The offset for Caesar ciphers has been fixed (for an offset of 1, A
-                                        should map to B)
-                                    </li>
-                                    <li>
-                                        A new page has been added for bulk analyzing quotes at
-                                        <a href="QuoteAnalyze.html">QuoteAnalyze.html</a>.
-                                    </li>
-                                </ul>
-                                <li>Version 1.3.1</li>
-                                <ul>
-                                    <li>
-                                        Download a zip file of the site for offline use. Check out the "Help";
-                                        "About" dialog on the
-                                        <a href="TestManage.html">Test Manager</a> or
-                                        <a href="TestQuestions.html">Question Manager</a>
-                                        pages.
-                                    </li>
-                                </ul>
-                                <li>Version 1.3.0</li>
-                                <ul>
-                                    <li>
-                                        Event leaders can find guidance about how to write test questions at:
-                                        <a href="TestGuidance.html">Test Guidance</a>. The page is also
-                                        accessible under the "Help" menu on the
-                                        <a href="TestManage.html">Test Manager</a> or
-                                        <a href="TestQuestions.html">Question Manager</a>
-                                        pages.
-                                    </li>
-                                </ul>
-                            </ul>
-                    </div>
-                    <div class="cell">
-                        <p>
-                            An quick tutorial of using the tool can be seen at
-                            <a
-                                href="https://www.youtube.com/watch?v=pcz_3ql8ebM">https://www.youtube.com/watch?v=pcz_3ql8ebM</a>
-                        </p>
-                    </div>
-                    <div class="cell">
-                        <em>Please report any problems at </em><a
-                            href="https://github.com/toebes/ciphers/issues">github.com/toebes/ciphers/issues</a>
-                    </div>
+            <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+            <div class="callout primary">
+                <div class="cell clearfix">
+                    <a class="float-right"
+                        href="https://ncscienceolympiad.ncsu.edu/resources/high-school/codebusters/"><img
+                            src="images/ncso-main-fullcolor-rgb.jpg" width="180" /></a>
+                    <a class="float-right" href="https://www.soinc.org/codebusters-c"><img
+                            src="https://www.soinc.org/sites/default/files/SCI_OLY_LOGO.jpeg" width="180"
+                            height="120" /></a>
+                    <h2>
+                        <span class="scioly">S<span class="t">cience</span> O<span class="t">lympiad</span> C<span
+                                class="t">ode</span>B<span class="t">usters</span><br />
+                            Test Generation Tools Version History</span>
+                    </h2>
                 </div>
+                <div class="cell callout warning small">
+                    <h4>Important!</h4>
+                    <p>When solving a Morbit, Pollux or Baconian cipher, you must put the answer under the
+                        corresponding solution character. This means that on a Baconian answer, four out of five
+                        answer boxes in a row should be blank and Morbit/Pollux answers should only have one letter
+                        under the characters that make up the morse code. For example with the letter
+
+                        ●–×–●●●×–●–●×–●●×●
+                        A B C D E</p>
+                </div>
+                <div class="cell">
+                    <h4>Summary of what's new:</h4>
+                    <ul>
+                        <li>Version 4.2.0</li>
+                        <ul>
+                            <li>
+                                Implemented many of the new features for the season including the Porta Cipher, Special
+                                Bonus Questions and keyword solutions.
+                            </li>
+                        </ul>
+                        <li>Version 4.1.2</li>
+                        <ul>
+                            <li>
+                                Implement tracking of out of browser time for when the main window is not active.
+                                It now shows a "OBT" message in the timer window tracking the total time that the
+                                window
+                                was not active.
+                                Track time changes more accurately.
+                            </li>
+                        </ul>
+                        <li>Version 4.1.1</li>
+                        <ul>
+                            <li>
+                                Minor fix to track attempts to change the local time on the client. Updated
+                                privacy
+                                policy.
+                            </li>
+                        </ul>
+                        <li>Version 4.1.0</li>
+                        <ul>
+                            <li>
+                                Many bug fixes for importing schedules for tests. Clean up error messages when
+                                publishing a test.
+                            </li>
+                        </ul>
+                        <li>Version 4.0.5</li>
+                        <ul>
+                            <li>
+                                Fix elusive bug which caused the system to sometimes lose Affine answers.
+                            </li>
+                        </ul>
+                        <li>Version 4.0.4</li>
+                        <ul>
+                            <li>
+                                Catch expired tokens which were generating odd error messages about missing id.
+                            </li>
+                        </ul>
+                        <li>Version 4.0.3</li>
+                        <ul>
+                            <li>
+                                Eliminated caching the time calls so that local browsers on Linux wouldn't end
+                                up
+                                with an incorrect time.
+                                Major rewrite of the scoring software to be more efficient with the server.
+                            </li>
+                        </ul>
+                        <li>Version 4.0.2</li>
+                        <ul>
+                            <li>
+                                We have cleaned up the code for settings dates for scheduled tests to prevent
+                                invalid ranges and email addressed from being entered and removed
+                                any tests which had dates which were out of range and invalid email addresses
+                                which
+                                could cause problems on the system.
+                            </li>
+                        </ul>
+                        <li>Version 4.0.1</li>
+                        <ul>
+                            <li>
+                                Minor update to allow for UI feedback when creating/deleting tests as well as
+                                setting permissions on the tests.
+                            </li>
+                        </ul>
+                        <li>Version 4.0.0</li>
+                        <ul>
+                            <li>
+                                This is a Major rewrite of the backend server to increase performance and number
+                                of
+                                users for
+                                the system. Please feel free to report any bugs at <a
+                                    href="https://github.com/toebes/ciphers/issues">github.com/toebes/ciphers/issues</a>
+                                This also includes an update to automatically delete any test taken after two
+                                weeks.
+                                As part of keeping data safe for all users, any personally identifiable
+                                information
+                                is automatically
+                                deleted when the corresponding tests are deleted.
+                                This includes any names or email addresses which are associated with a test.<p>
+                                    The
+                                    mobit and pollux scoring algorithm has been updated. The answer letter needs
+                                    to
+                                    be under at least one of the morse digits and that ONLY one answer letter
+                                    can
+                                    be under the digits for a morse character</p>
+                            </li>
+                        </ul>
+                        <li>Version 3.0.1</li>
+                        <ul>
+                            <li>
+                                Support for Microsoft Azure Authentication.
+                            </li>
+                        </ul>
+                        <li>Version 3.0.0</li>
+                        <ul>
+                            <li>
+                                Support for interactive online testing!
+                            </li>
+                        </ul>
+                        <li>Version 2.3.4</li>
+                        <ul>
+                            <li>
+                                Fix the menu so that it show properly on wide screens
+                            </li>
+                        </ul>
+                        <li>Version 2.3.3</li>
+                        <ul>
+                            <li>
+                                Cleanups on pigpen, vigenere and generic aristocrat pages.
+                            </li>
+                            <li>
+                                Fixed issues
+                                <a href="https://github.com/toebes/ciphers/issues/144">#144</a> and
+                                <a href="https://github.com/toebes/ciphers/issues/145">#145</a>.
+                            </li>
+                        </ul>
+                        <li>Version 2.3.2</li>
+                        <ul>
+                            <li>
+                                Fix
+                                <a href="https://github.com/toebes/ciphers/issues/136">Issue #136</a>
+                                Provide decryption matrix for Hill 3x3 decode questions.
+                            </li>
+                        </ul>
+                        <li>Version 2.3.1</li>
+                        <ul>
+                            <li>
+                                Fix
+                                <a href="https://github.com/toebes/ciphers/issues/134">Issue #134</a>
+                                Trim leading X characters from Morse Code.
+                            </li>
+                        </ul>
+                        <li>Version 2.3.0</li>
+                        <ul>
+                            <li>
+                                Add space for the Morbit cipher answers. Improve Morbit auto-solver to
+                                handle four morse characters next to an unknown.
+                            </li>
+                        </ul>
+                        <li>Version 2.2.2</li>
+                        <ul>
+                            <li>
+                                Add support to decode 3x3 matrices for the Hill Cipher.
+                            </li>
+                        </ul>
+                        <li>Version 2.1.1</li>
+                        <ul>
+                            <li>
+                                Add support for custom header page. Add tracking of editing and
+                                prompting when leaving page so that changes aren't lost.
+                            </li>
+                        </ul>
+                        <li>Version 2.0.0</li>
+                        <ul>
+                            <li>
+                                New Cipher types: Morbit/Pollux/RailFence
+                                <div class="divb">Division B</div>
+                                <div class="divc">Division C</div>
+                                and Tap Code
+                                <div class="diva">Division A</div>
+                                . Add support for type of event to the test type for validating Cipher
+                                usage.
+                            </li>
+                        </ul>
+                        <li>Version 1.4.5</li>
+                        <ul>
+                            <li>
+                                Stabilize the code combo for RSA question so that it doesn't change when
+                                editing. Updated Vigenere so that it proprerly displays lower case key
+                                strings.
+                            </li>
+                        </ul>
+                        <li>Version 1.4.4</li>
+                        <ul>
+                            <li>
+                                Fixed formatting of Hill Cipher encodes (<a
+                                    href="https://github.com/toebes/ciphers/issues/122">Issue #112</a>).
+                            </li>
+                        </ul>
+                        <li>Version 1.4.3</li>
+                        <ul>
+                            <li>
+                                Fixed "No Editor" error when saving and restoring a Xenocrypt.
+                            </li>
+                        </ul>
+                        <li>Version 1.4.2</li>
+                        <ul>
+                            <li>
+                                Added the Modular Multiplicative inverse of 25 to the tables on the
+                                printed test.
+                            </li>
+                        </ul>
+                        <li>Version 1.4.1</li>
+                        <ul>
+                            <li>
+                                Added ability to duplicate tests from an existing test.
+                            </li>
+                        </ul>
+                        <li>Version 1.4.0</li>
+                        <ul>
+                            <li>
+                                Top margins on printed pages have been increased.
+                            </li>
+                            <li>
+                                Navigation for previous and next questions have been added to the top of
+                                question pages.
+                            </li>
+                            <li>
+                                The PigPen cipher has been added for B events.
+                            </li>
+                            <li>
+                                Hill Ciphers now correctly generate the answers for any 2x2 matrix which
+                                has a determinant of 25.
+                            </li>
+                            <li>
+                                The year now displays as 2019 for printed tests.
+                            </li>
+                        </ul>
+                        <li>Version 1.3.7</li>
+                        <ul>
+                            <li>
+                                Updated the solution text for the
+                                <a href="https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm">extended
+                                    Euclidean Algorithm</a>
+                                for some fo the RSA problems at
+                                <a href="RSAEncrypt.html">RSAEncrypt.html</a>.
+                            </li>
+                        </ul>
+                        <li>Version 1.3.2</li>
+                        <ul>
+                            <li>
+                                The offset for Caesar ciphers has been fixed (for an offset of 1, A
+                                should map to B)
+                            </li>
+                            <li>
+                                A new page has been added for bulk analyzing quotes at
+                                <a href="QuoteAnalyze.html">QuoteAnalyze.html</a>.
+                            </li>
+                        </ul>
+                        <li>Version 1.3.1</li>
+                        <ul>
+                            <li>
+                                Download a zip file of the site for offline use. Check out the "Help";
+                                "About" dialog on the
+                                <a href="TestManage.html">Test Manager</a> or
+                                <a href="TestQuestions.html">Question Manager</a>
+                                pages.
+                            </li>
+                        </ul>
+                        <li>Version 1.3.0</li>
+                        <ul>
+                            <li>
+                                Event leaders can find guidance about how to write test questions at:
+                                <a href="TestGuidance.html">Test Guidance</a>. The page is also
+                                accessible under the "Help" menu on the
+                                <a href="TestManage.html">Test Manager</a> or
+                                <a href="TestQuestions.html">Question Manager</a>
+                                pages.
+                            </li>
+                        </ul>
+                    </ul>
+                </div>
+                <div class="cell">
+                    <p>
+                        An quick tutorial of using the tool can be seen at
+                        <a
+                            href="https://www.youtube.com/watch?v=pcz_3ql8ebM">https://www.youtube.com/watch?v=pcz_3ql8ebM</a>
+                    </p>
+                </div>
+                <div class="cell">
+                    <em>Please report any problems at </em><a
+                        href="https://github.com/toebes/ciphers/issues">github.com/toebes/ciphers/issues</a>
+                </div>
+            </div>
 </body>
 
 </html>

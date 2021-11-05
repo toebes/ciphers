@@ -1,13 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-	<meta charset="utf-8">
+	<meta charset="utf-8" />
 	<title>
 		<%= htmlWebpackPlugin.options.title %>
 	</title>
 	<style>
-		<!--table
 		th div.subtype {
 			font-weight: normal;
 			font-size: 11pt;
@@ -155,7 +154,6 @@
 			text-decoration: none;
 			font-family: Calibri, sans-serif;
 		}
-		-->
 	</style>
 </head>
 
@@ -163,11 +161,12 @@
 	<% for (var index in htmlWebpackPlugin.files.js) { %>
 		<script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
 		<% } %>
-			<div class="callout primary">
-				<h3>
-					<%= htmlWebpackPlugin.options.title %>
-				</h3>
+			<div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
 
+			<h3>
+				<%= htmlWebpackPlugin.options.title %>
+			</h3>
+			<div class="callout primary">
 				<p>This table summarizes which types of ciphers are used for which division and events. It also
 					indicates which official rule corresponds to this usage. Blank boxes indicate that the cipher is not
 					used for that division/category of event.</p>

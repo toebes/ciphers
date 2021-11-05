@@ -1832,6 +1832,9 @@ export class CipherTest extends CipherHandler {
                 }
                 // If we hadn't found it, let's go ahead and add it
                 if (needNew) {
+                    // Fix any browser injection issues
+                    toAdd.question = toAdd.question.replace(/<script/i, "&lt;script");
+
                     const newval = this.setFileEntry(-1, toAdd);
                     cipherCache[newval] = toAdd;
                     inputMap[String(oldPos)] = newval;

@@ -667,6 +667,14 @@ export class CipherTestTimed extends CipherTest {
             $('.morsetable').hide();
         }
         /**
+         * See if we need to show/hide the Porta Table
+         */
+        if (testmodel.hasPorta) {
+            $('.portatable').show();
+        } else {
+            $('.portatable').hide();
+        }
+        /**
          * Lastly we need to print out the score table
          */
         const table = new JTTable({

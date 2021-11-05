@@ -81,6 +81,7 @@ export class CipherTestPrint extends CipherTest {
         const testcount = this.getTestCount();
         const errors: string[] = [];
         let usesMorseTable = false;
+        let usesPortaTable = false;
         let SpanishCount = 0;
         let SpecialBonusCount = 0;
         elem.empty();
@@ -210,6 +211,9 @@ export class CipherTestPrint extends CipherTest {
             if (cipherhandler.usesMorseTable) {
                 usesMorseTable = true;
             }
+            if (cipherhandler.usesPortaTable) {
+                usesPortaTable = true;
+            }
             page.append(thisquestion);
             const thisheight = thisquestion.outerHeight();
             if (thisheight + accumulated > pagesize || qcount > 1) {
@@ -311,6 +315,14 @@ export class CipherTestPrint extends CipherTest {
             $('.morsetable').show();
         } else {
             $('.morsetable').hide();
+        }
+        /**
+         * See if we need to show/hide the Porta Code Table
+         */
+        if (usesPortaTable) {
+            $('.portatable').show();
+        } else {
+            $('.portatable').hide();
         }
         /**
          * Lastly we need to print out the score table

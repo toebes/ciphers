@@ -264,6 +264,8 @@ export interface IInteractiveTest {
     hasSpanish: boolean;
     /** There is a cipher which uses Morse code on the test **/
     hasMorse: boolean;
+    /** There is a cipher which uses the Porta table on the test */
+    hasPorta: boolean;
     /** Any running keys used **/
     runningKeys?: IRunningKey[];
     /** Score values for all the questions **/
@@ -885,8 +887,10 @@ export class CipherHandler {
     public extraRunningKey: string;
     /** Indicates that the cipher uses a running key */
     public usesRunningKey = false;
-    /** Indicates that the cupher uses a morse code table */
+    /** Indicates that the cipher uses a morse code table */
     public usesMorseTable = false;
+    /** Indicates that the cipher uses a Porta code table */
+    public usesPortaTable = false;
     /** The direction of the last advance */
     public advancedir = 0;
     /** The Jquery element associated with a keypress */

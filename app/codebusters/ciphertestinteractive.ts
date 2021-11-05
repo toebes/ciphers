@@ -114,6 +114,7 @@ export class CipherTestInteractive extends CipherTest {
             testtype: test.testtype,
             hasSpanish: false,
             hasMorse: false,
+            hasPorta: false,
             qdata: [],
         };
         // Clean up the custom header if it came in blank so we don't have anything undefined in the data structure
@@ -175,6 +176,9 @@ export class CipherTestInteractive extends CipherTest {
             /* Does this cipher involve morse code? */
             if (cipherhandler.usesMorseTable) {
                 interactive.hasMorse = true;
+            }
+            if (cipherhandler.usesPortaTable) {
+                interactive.hasPorta = true;
             }
             const qerror = cipherhandler.CheckAppropriate(interactive.testtype);
             if (qerror !== '') {

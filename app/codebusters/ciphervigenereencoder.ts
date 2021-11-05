@@ -39,6 +39,7 @@ interface ICribInfo {
 export class CipherVigenereEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Vigenere';
+    public usesPortaTable = false;
     public ciphermap: Mapper;
     public validTests: ITestType[] = [
         ITestType.None,
@@ -115,8 +116,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.ciphermap = mapperFactory(cipherType);
         if (cipherType === ICipherType.Porta) {
             this.validTests = this.validPortaTests;
+            this.usesPortaTable = true;
         } else {
             this.validTests = this.validVigenereTests;
+            this.usesPortaTable = false;
         }
         return changed;
     }

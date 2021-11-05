@@ -12,7 +12,11 @@
         "serve": "webpack serve --mode=development",
         "build": "webpack --mode=production --env=zip=y",
         "dev": "webpack --mode=development",
+        "preinstall": "npx npm-force-resolutions",
         "analyze": "webpack --mode=production --analyze --env=zip=y"
+    },
+    "resolutions": {
+        "marked": "^2.0.0"
     },
     "devDependencies": {
         "@babel/eslint-parser": "^7.14.5",
@@ -62,7 +66,6 @@
     },
     "dependencies": {
         "@azure/msal-browser": "^2.14.2",
-        "@ckeditor/ckeditor5-build-inline": "github:toebes/ckeditor5-build-inline",
         "@convergence/convergence": "*",
         "@convergence/input-element-bindings": "^0.4.0",
         "@shopify/draggable": "*",
@@ -70,6 +73,7 @@
         "@types/jquery": "^3.5.5",
         "@types/katex": "^0.11.0",
         "charmap": "^1.1.6",
+        "ckeditor5": "github:toebes/ckeditor5#master",
         "datatables": "^1.10.18",
         "datatables.net-plugins": "^1.10.24",
         "datatables.net-zf": "^1.10.25",
@@ -81,7 +85,7 @@
         "jquery": "^3.6.0",
         "js-cookie": "^2.2.1",
         "katex": "^0.13.11",
-        "npm": "^7.17.0",
+        "npm-force-resolutions": "^0.0.10",
         "sheetjs": "^2.0.0",
         "split-grid": "^1.0.11",
         "split.js": "^1.6.4",

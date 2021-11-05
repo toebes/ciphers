@@ -1,4 +1,4 @@
-import * as InlineEditor from '@ckeditor/ckeditor5-build-inline';
+import * as InlineEditor from 'ckeditor5/packages/ckeditor5-build-inline';
 import { cloneObject, makeFilledArray } from '../common/ciphercommon';
 import {
     CipherHandler,

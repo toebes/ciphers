@@ -15,9 +15,6 @@
         "preinstall": "npx npm-force-resolutions",
         "analyze": "webpack --mode=production --analyze --env=zip=y"
     },
-    "resolutions": {
-        "marked": "^2.0.0"
-    },
     "devDependencies": {
         "@babel/eslint-parser": "^7.14.5",
         "@types/datatables.net": "^1.10.19",
@@ -29,7 +26,7 @@
         "acorn": "^8.3.0",
         "babel-core": "^6.26.3",
         "babel-loader": "^8.2.2",
-        "babel-preset-es2015": "^6.24.1",
+        "babel-preset-env": "^1.7.0",
         "braces": "^3.0.2",
         "copy-webpack-plugin": "^9.0.0",
         "css-loader": "^5.2.6",
@@ -44,7 +41,6 @@
         "eslint-plugin-prettier": "^3.4.0",
         "eslint-plugin-promise": "^5.1.0",
         "eslint-plugin-react": "^7.24.0",
-        "eslint-plugin-standard": "^5.0.0",
         "expose-loader": "^3.0.0",
         "file-loader": "^6.2.0",
         "html-webpack-plugin": "^5.3.1",
@@ -73,7 +69,7 @@
         "@types/jquery": "^3.5.5",
         "@types/katex": "^0.11.0",
         "charmap": "^1.1.6",
-        "ckeditor5": "github:toebes/ckeditor5#master",
+        "@ckeditor/ckeditor5-build-inline": "github:toebes/ckeditor5-build-inline",
         "datatables": "^1.10.18",
         "datatables.net-plugins": "^1.10.24",
         "datatables.net-zf": "^1.10.25",

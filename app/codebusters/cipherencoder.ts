@@ -755,6 +755,24 @@ export class CipherEncoder extends CipherHandler {
         if (testType === ITestType.aregional) {
             extraclass = ' atest';
         }
+
+        if (this.state.operation === 'keyword') {
+            const keyanswer = this.state.keyword.toUpperCase();
+            let keytype = "Keyword";
+            if (this.minimizeString(keyanswer).length !== keyanswer.length) {
+                keytype = "Key Phrase"
+            }
+            result.append(
+                $('<h3/>').text(keytype + " Answer:")
+            );
+            result.append(
+                $('<div/>', {
+                    class: 'TOANSWER' + extraclass,
+                }).text(keyanswer)
+            );
+            result.append($('<hr/>'));
+
+        }
         let tosolve = 0;
         let toanswer = 1;
         if (this.state.operation === 'encode') {

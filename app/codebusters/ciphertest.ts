@@ -1832,8 +1832,55 @@ export class CipherTest extends CipherHandler {
                 }
                 // If we hadn't found it, let's go ahead and add it
                 if (needNew) {
-                    // Fix any browser injection issues
-                    toAdd.question = toAdd.question.replace(/<script/i, "&lt;script");
+                    // After we pull in the string, we need to filter it down to only the HTML that we allow.
+                    // This is basically a whitelist that only allows a few HTML elements
+                    //    strong
+                    //    i
+                    //    p
+                    //    ul
+                    //    ol
+                    //    li
+                    //    blockquote
+                    //    span style="xxxx"
+                    // Anything else between <> is thrown away, even extra elements on the span
+                    //
+                    //  To do this we have a complex regexp that whitelists
+                    //     <                             Anything that starts with a left bracket            
+                    //       (\/?)                       $1 capture group for any leading / (like </ul>)
+                    //       (                           $2 capture group for the white list of elements we allow
+                    //         strong|
+                    //         i|
+                    //         p|
+                    //         ul|
+                    //         ol|
+                    //         li|
+                    //         blockquote|
+                    //         span|
+                    //                                   and anything else is ignored
+                    //       )  
+                    //       (?:                         Third capture group which is ignored.                             
+                    //         [^>]*                     Throw away anything that is before the style=
+                    //           (                       $3 capture group which gets the style=
+                    //             \s+style="[^"]*")|       With double quotes
+                    //             \s+style='[^']*')|       or single quotes
+                    //                                      or no style at all
+                    //           )
+                    //       [^>]*
+                    //     >
+                    const re1 = /<(\/?)(strong|i|p|ul|ol|li|blockquote|span|)(?:[^>]*(\s+style="[^"]*")|)[^>]*>/gi;
+                    const re2 = /<(\/?)(strong|i|p|ul|ol|li|blockquote)[^>]*>/gi;
+                    // Toss out any malformed HTML elements that don't have their closing >
+                    toAdd.question = toAdd.question.replace(/<[^>]*$/, '');
+                    // As well as any HTML comments  <!--- and --->
+                    toAdd.question = toAdd.question.replace(/<!---.*--->/g, '');
+                    // Eliminate all the html elements that we don't like as well as any attribute except style
+                    toAdd.question = toAdd.question.replace(re1, '<$1$2$3>');
+                    // Get rid of the styles on everything except for the <span elements
+                    toAdd.question = toAdd.question.replace(re2, '<$1>');
+                    // Get rid of any solo styles (it would come from something like <h1 style="xxx">)
+                    toAdd.question = toAdd.question.replace(/<style[^>]*>/gi, '');
+                    // Get rid of any empty elements finally
+                    toAdd.question = toAdd.question.replace(/<\/?>/g, '');;
 
                     const newval = this.setFileEntry(-1, toAdd);
                     cipherCache[newval] = toAdd;

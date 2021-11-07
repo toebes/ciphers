@@ -1871,8 +1871,8 @@ export class CipherTest extends CipherHandler {
                     const re2 = /<(\/?)(strong|i|p|ul|ol|li|blockquote)[^>]*>/gi;
                     // Toss out any malformed HTML elements that don't have their closing >
                     toAdd.question = toAdd.question.replace(/<[^>]*$/, '');
-                    // As well as any HTML comments  <!--- and --->
-                    toAdd.question = toAdd.question.replace(/<!---.*--->/g, '');
+                    // As well as any HTML comments  <!-- and -->
+                    toAdd.question = toAdd.question.replace(/<!--.*-->/g, '');
                     // Eliminate all the html elements that we don't like as well as any attribute except style
                     toAdd.question = toAdd.question.replace(re1, '<$1$2$3>');
                     // Get rid of the styles on everything except for the <span elements

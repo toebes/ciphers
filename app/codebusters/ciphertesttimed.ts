@@ -941,6 +941,7 @@ export class CipherTestTimed extends CipherTest {
         const session = answermodel.session().domain();
         this.testTimeInfo.truetime.stopTiming();
         answermodel.close().then(() => session.dispose());
+        this.disconnectRealtime();
         // Make a temporary copy of all the 
         this.saveBackupCopy();
         this.setTestStatusMessage(message, this.testTimeInfo.endTime);

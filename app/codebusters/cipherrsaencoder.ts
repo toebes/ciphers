@@ -108,37 +108,37 @@ const optRSA5Formulas = [
 ];
 const optRSA5TemplateAnswerStrings = [
     "<p>##NAME1## needs to use ##NAME2##'s public key (" +
-        fwspan('<em>n</em> = ##R2N##') +
-        ', ' +
-        fwspan('<em>e</em> = ##R2E##') +
-        ') in order to encrypt the value ##SAFECOMBO##.</p>' +
-        '<p>Hence the formula is: ' +
-        fwspan('value ^ e mod n') +
-        '</p>',
+    fwspan('<em>n</em> = ##R2N##') +
+    ', ' +
+    fwspan('<em>e</em> = ##R2E##') +
+    ') in order to encrypt the value ##SAFECOMBO##.</p>' +
+    '<p>Hence the formula is: ' +
+    fwspan('value ^ e mod n') +
+    '</p>',
     "<p>##NAME2## needs to use ##NAME1##'s public key (" +
-        fwspan('<em>n</em> = ##R1N##') +
-        ', ' +
-        fwspan('<em>e</em> = ##R1E##') +
-        ') in order to encrypt the value ##SAFECOMBO##.</p>' +
-        '<p>Hence the formula is: ' +
-        fwspan('value ^ e mod n') +
-        '</p>',
+    fwspan('<em>n</em> = ##R1N##') +
+    ', ' +
+    fwspan('<em>e</em> = ##R1E##') +
+    ') in order to encrypt the value ##SAFECOMBO##.</p>' +
+    '<p>Hence the formula is: ' +
+    fwspan('value ^ e mod n') +
+    '</p>',
     '<p>##NAME1## needs to use their own private key (' +
-        fwspan('<em>n</em> = ##R1N##') +
-        ', ' +
-        fwspan('<em>d</em> = ##R1D##') +
-        ") because ##NAME2## had to encode it using ##NAME1##'s public key of (##R1N##,##R1E##).</p>" +
-        '<p>In order to decrypt the value ##SAFECOMBO##, ##NAME1## must use the formula: ' +
-        fwspan('value ^ d mod n') +
-        '</p>',
+    fwspan('<em>n</em> = ##R1N##') +
+    ', ' +
+    fwspan('<em>d</em> = ##R1D##') +
+    ") because ##NAME2## had to encode it using ##NAME1##'s public key of (##R1N##,##R1E##).</p>" +
+    '<p>In order to decrypt the value ##SAFECOMBO##, ##NAME1## must use the formula: ' +
+    fwspan('value ^ d mod n') +
+    '</p>',
     '<p>##NAME2## needs to use their own private key (' +
-        fwspan('<em>n</em> = ##R2N##') +
-        ', ' +
-        fwspan('<em>d</em> = ##R2D##') +
-        ") because ##NAME1## had to encode it using ##NAME2##'s public key of (##R2N##,##R2E##).</p>" +
-        '<p>In order to decrypt the value ##SAFECOMBO##, ##NAME2## must use the formula: ' +
-        fwspan('value ^ d mod n') +
-        '</p>',
+    fwspan('<em>n</em> = ##R2N##') +
+    ', ' +
+    fwspan('<em>d</em> = ##R2D##') +
+    ") because ##NAME1## had to encode it using ##NAME2##'s public key of (##R2N##,##R2E##).</p>" +
+    '<p>In order to decrypt the value ##SAFECOMBO##, ##NAME2## must use the formula: ' +
+    fwspan('value ^ d mod n') +
+    '</p>',
 ];
 /**
  * CipherBaconianEncoder - This class handles all of the actions associated with encoding
@@ -148,7 +148,7 @@ export class CipherRSAEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#RSA';
 
-    public validTests: ITestType[] = [ITestType.None, ITestType.cstate];
+    public validTests: ITestType[] = [ITestType.None];
     public defaultstate: IRSAState = {
         cipherString: '',
         question: '',
@@ -978,15 +978,15 @@ export class CipherRSAEncoder extends CipherEncoder {
             $('<div/>').append(
                 renderMath(
                     'Φ=(' +
-                        this.state.rsa1.p +
-                        '-1)*(' +
-                        this.state.rsa1.q +
-                        '-1)=' +
-                        p_1 +
-                        '*' +
-                        q_1 +
-                        '=' +
-                        this.state.rsa1.phi
+                    this.state.rsa1.p +
+                    '-1)*(' +
+                    this.state.rsa1.q +
+                    '-1)=' +
+                    p_1 +
+                    '*' +
+                    q_1 +
+                    '=' +
+                    this.state.rsa1.phi
                 )
             )
         );
@@ -1317,23 +1317,23 @@ export class CipherRSAEncoder extends CipherEncoder {
 
         const div1 = $('<div/>').html(
             this.state.name1 +
-                ' needs to send only their public key' +
-                ' (<em>e</em>=' +
-                this.state.rsa1.e +
-                ', <em>n</em>=' +
-                this.state.rsa1.n +
-                ') to ' +
-                this.state.name2
+            ' needs to send only their public key' +
+            ' (<em>e</em>=' +
+            this.state.rsa1.e +
+            ', <em>n</em>=' +
+            this.state.rsa1.n +
+            ') to ' +
+            this.state.name2
         );
         const div2 = $('<div/>').html(
             this.state.name2 +
-                ' needs to send only their public key' +
-                ' (<em>e</em>=' +
-                this.state.rsa2.e +
-                ', <em>n</em>=' +
-                this.state.rsa2.n +
-                ') to ' +
-                this.state.name1
+            ' needs to send only their public key' +
+            ' (<em>e</em>=' +
+            this.state.rsa2.e +
+            ', <em>n</em>=' +
+            this.state.rsa2.n +
+            ') to ' +
+            this.state.name1
         );
         if (qorder === 0) {
             result.append(div1).append(div2);
@@ -1404,13 +1404,13 @@ export class CipherRSAEncoder extends CipherEncoder {
             $('<div/>').append(
                 renderMath(
                     sequence_of +
-                        '=' +
-                        seq_previous +
-                        '- (' +
-                        quotient_current +
-                        '*' +
-                        seq_current +
-                        ')'
+                    '=' +
+                    seq_previous +
+                    '- (' +
+                    quotient_current +
+                    '*' +
+                    seq_current +
+                    ')'
                 )
             )
         );
@@ -1424,12 +1424,12 @@ export class CipherRSAEncoder extends CipherEncoder {
             $('<div/>').append(
                 renderMath(
                     sequence_of +
-                        '=' +
-                        seq_previous +
-                        '-' +
-                        paren_left +
-                        quotient_current * seq_current +
-                        paren_right
+                    '=' +
+                    seq_previous +
+                    '-' +
+                    paren_left +
+                    quotient_current * seq_current +
+                    paren_right
                 )
             )
         );
@@ -1518,17 +1518,17 @@ export class CipherRSAEncoder extends CipherEncoder {
                 .append(
                     renderMath(
                         'r_{' +
-                            prev_index +
-                            '}=' +
-                            R_iMinus1 +
-                            ', s_{' +
-                            prev_index +
-                            '}=' +
-                            S_iMinus1 +
-                            ', t_{' +
-                            prev_index +
-                            '}=' +
-                            T_iMinus1
+                        prev_index +
+                        '}=' +
+                        R_iMinus1 +
+                        ', s_{' +
+                        prev_index +
+                        '}=' +
+                        S_iMinus1 +
+                        ', t_{' +
+                        prev_index +
+                        '}=' +
+                        T_iMinus1
                     )
                 )
         );
@@ -1538,17 +1538,17 @@ export class CipherRSAEncoder extends CipherEncoder {
                 .append(
                     renderMath(
                         'r_{' +
-                            curr_index +
-                            '}=' +
-                            R_i +
-                            ', s_{' +
-                            curr_index +
-                            '}=' +
-                            S_i +
-                            ', t_{' +
-                            curr_index +
-                            '}=' +
-                            T_i
+                        curr_index +
+                        '}=' +
+                        R_i +
+                        ', s_{' +
+                        curr_index +
+                        '}=' +
+                        S_i +
+                        ', t_{' +
+                        curr_index +
+                        '}=' +
+                        T_i
                     )
                 )
         );
@@ -1782,20 +1782,20 @@ export class CipherRSAEncoder extends CipherEncoder {
                         $('<div/>').append(
                             renderMath(
                                 encrypted +
-                                    '^{' +
-                                    power +
-                                    '}\\equiv ' +
-                                    powerval +
-                                    '^2\\equiv{' +
-                                    powerval +
-                                    '^2}\\mod{' +
-                                    mod +
-                                    '}\\equiv ' +
-                                    mult +
-                                    '\\mod{' +
-                                    mod +
-                                    '}\\equiv ' +
-                                    newpowerval
+                                '^{' +
+                                power +
+                                '}\\equiv ' +
+                                powerval +
+                                '^2\\equiv{' +
+                                powerval +
+                                '^2}\\mod{' +
+                                mod +
+                                '}\\equiv ' +
+                                mult +
+                                '\\mod{' +
+                                mod +
+                                '}\\equiv ' +
+                                newpowerval
                             )
                         )
                     )
@@ -1820,17 +1820,17 @@ export class CipherRSAEncoder extends CipherEncoder {
                             .append(
                                 renderMath(
                                     'result=(' +
-                                        rval +
-                                        '*' +
-                                        powerval +
-                                        ')\\mod{' +
-                                        mod +
-                                        '}=' +
-                                        mult +
-                                        '\\mod{' +
-                                        mod +
-                                        '}=' +
-                                        newrval
+                                    rval +
+                                    '*' +
+                                    powerval +
+                                    ')\\mod{' +
+                                    mod +
+                                    '}=' +
+                                    mult +
+                                    '\\mod{' +
+                                    mod +
+                                    '}=' +
+                                    newrval
                                 )
                             )
                     );

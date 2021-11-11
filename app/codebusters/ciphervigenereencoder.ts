@@ -98,7 +98,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public restore(data: IState, suppressOutput = false): void {
         this.state = cloneObject(this.defaultstate) as IVigenereState;
         this.copyState(this.state, data);
-        if (!suppressOutput) {
+        if (suppressOutput) {
+            this.setCipherType(this.state.cipherType);
+        } else {
             this.setUIDefaults();
             this.updateOutput();
         }

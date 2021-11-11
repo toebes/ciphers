@@ -86,6 +86,8 @@ export class CipherHillEncoder extends CipherEncoder {
             }
         }
         const result: ITestQuestionFields = {
+            // We must use the array version because we allow multiple characters
+            // in each cell
             answer: makeFilledArray(len, ' '),
             notes: '',
         };
@@ -314,9 +316,9 @@ export class CipherHillEncoder extends CipherEncoder {
         if (!isCoPrime(detval, charset.length)) {
             $('#err').text(
                 'Matrix is not invertable.  Determinant ' +
-                    mod26(detval) +
-                    ' is not coprime with ' +
-                    charset.length
+                mod26(detval) +
+                ' is not coprime with ' +
+                charset.length
             );
             return undefined;
         }
@@ -426,8 +428,8 @@ export class CipherHillEncoder extends CipherEncoder {
 
         p = $('<p/>').text(
             'Looking up ' +
-                detmod26 +
-                ' in the table supplied with the test (or by computing it with the '
+            detmod26 +
+            ' in the table supplied with the test (or by computing it with the '
         );
         p.append(
             $('<a/>', {
@@ -436,8 +438,8 @@ export class CipherHillEncoder extends CipherEncoder {
         );
         p.append(
             ') we find that it is ' +
-                detinv +
-                ' which we substitute into the formula to compute the matrix:'
+            detinv +
+            ' which we substitute into the formula to compute the matrix:'
         );
         result.append(p);
         equation =
@@ -608,8 +610,8 @@ export class CipherHillEncoder extends CipherEncoder {
         result.append(renderMath(equation));
         p = $('<p/>').text(
             'Looking up ' +
-                determinantMod26 +
-                ' in the table supplied with the test (or by computing it with the '
+            determinantMod26 +
+            ' in the table supplied with the test (or by computing it with the '
         );
         p.append(
             $('<a/>', {
@@ -618,8 +620,8 @@ export class CipherHillEncoder extends CipherEncoder {
         );
         p.append(
             ') we find that the inverse is ' +
-                determinantInverse +
-                ' which we substitute into the formula to compute the matrix:'
+            determinantInverse +
+            ' which we substitute into the formula to compute the matrix:'
         );
         result.append(p);
 

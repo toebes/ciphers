@@ -1,4 +1,4 @@
-import { cloneObject, makeFilledArray, StringMap } from '../common/ciphercommon';
+import { cloneObject, StringMap } from '../common/ciphercommon';
 import {
     IScoreInformation,
     ITestQuestionFields,
@@ -97,9 +97,10 @@ export class CipherTapCodeEncoder extends CipherEncoder {
             len += strset[0].length;
         }
         const result: ITestQuestionFields = {
-            answer: makeFilledArray(len, ' '),
+            version: 2,
+            answer: this.repeatStr(' ', len),
             notes: '',
-            separators: makeFilledArray(len, ' '),
+            separators: this.repeatStr(' ', len),
         };
         return result;
     }

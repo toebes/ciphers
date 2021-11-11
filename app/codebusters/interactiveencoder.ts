@@ -13,7 +13,7 @@ export class InteractiveEncoder extends InteractiveHandler {
      * @param answer Answer string to check
      * @param realtimeSolvetime Handler for the realtime number data for the solution time
      */
-    public checkAnswer(answer: string[], realtimeSolvetime: RealTimeNumber): void {
+    public checkAnswer(answer: string, realtimeSolvetime: RealTimeNumber): void {
         const now = this.testTimeInfo.truetime.UTCNow();
         $('#checktimed').prop('disabled', true);
         let answertest = '';
@@ -100,38 +100,57 @@ export class InteractiveEncoder extends InteractiveHandler {
         testTimeInfo: ITestTimeInfo
     ): void {
         this.testTimeInfo = testTimeInfo;
+        let realtimeSolvetime = null;
         const qnumdisp = String(qnum + 1);
         const qdivid = '#Q' + qnumdisp + ' ';
-
-        const realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
-        const realtimeReplacement = this.attachInteractiveReplacementsHandler(
-            realTimeElement,
-            qnumdisp
-        );
-        const realtimeSeparators = this.attachInteractiveSeparatorsHandler(
-            realTimeElement,
-            qnumdisp
-        );
-        this.attachInteractiveNotesHandler(qnumdisp, realTimeElement);
-
-        this.bindSingleCharacterField(qdivid, realtimeAnswer, realtimeReplacement);
-        this.bindSeparatorsField(qdivid, realtimeSeparators);
-
+        const version = realTimeElement.elementAt('version').value() as number;
         // If we are dealing with the timed question, we need to get the information necessary to check the answer
         if (qnum === -1) {
-            const realtimeSolvetime = realTimeElement.elementAt('solvetime') as RealTimeNumber;
+            realtimeSolvetime = realTimeElement.elementAt('solvetime') as RealTimeNumber;
             if (realTimeElement.hasKey('solvetime')) {
                 realtimeSolvetime.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => {
                     this.updateTimerCheckButton(realtimeSolvetime);
                 });
             }
-            $('#checktimed')
-                .off('click')
-                .on('click', () => {
-                    this.checkAnswer(realtimeAnswer.value(), realtimeSolvetime);
-                });
             // Start the process for updating the check answer button
             this.trackAnswerTime(realtimeSolvetime);
         }
+        // Version 2 changes the array of strings to be a single string
+        if (version === 2) {
+            const realtimeAnswer = this.attachInteractiveStringHandler(realTimeElement, qnumdisp, 'I', 'answer');
+            const realtimeReplacement = this.attachInteractiveStringHandler(realTimeElement, qnumdisp, 'R', 'replacements');
+            const realtimeSeparators = this.attachInteractiveStringHandler(realTimeElement, qnumdisp, 'S', 'separators');
+
+            this.bindSingleCharacterField(qdivid, null, null, realtimeAnswer, realtimeReplacement);
+            this.bindSeparatorsFieldV2(qdivid, realtimeSeparators);
+            if (qnum === -1) {
+                $('#checktimed')
+                    .off('click')
+                    .on('click', () => {
+                        this.checkAnswer(realtimeAnswer.value(), realtimeSolvetime);
+                    });
+            }
+        } else {
+
+            const realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
+            const realtimeReplacement = this.attachInteractiveReplacementsHandler(realTimeElement, qnumdisp);
+            const realtimeSeparators = this.attachInteractiveSeparatorsHandler(realTimeElement, qnumdisp);
+
+            this.bindSingleCharacterField(qdivid, realtimeAnswer, realtimeReplacement);
+            this.bindSeparatorsField(qdivid, realtimeSeparators);
+            if (qnum === -1) {
+                $('#checktimed')
+                    .off('click')
+                    .on('click', () => {
+                        let answer = '';
+                        for (let c in realtimeAnswer.value()) {
+                            answer += c;
+                        }
+                        this.checkAnswer(answer, realtimeSolvetime);
+                    });
+            }
+        }
+
+        this.attachInteractiveNotesHandler(qnumdisp, realTimeElement);
     }
 }

@@ -84,6 +84,8 @@ export class CipherAffineEncoder extends CipherEncoder {
      */
     public getInteractiveTemplate(): ITestQuestionFields {
         const result: ITestQuestionFields = {
+            // Affine must keep the array approach because we allow multiple
+            // characters in each cell
             answer: makeFilledArray(this.state.cipherString.length, ''),
             notes: '',
         };

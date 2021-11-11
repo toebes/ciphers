@@ -130,6 +130,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         interactiveClass: InteractiveMorseEncoder,
         canPrint: true,
     },
+    Porta: {
+        cipherType: ICipherType.Porta,
+        cipherClass: CipherVigenereEncoder,
+        interactiveClass: InteractiveEncoder,
+        canPrint: true,
+    },
     QuoteAnalyze: {
         cipherType: ICipherType.None,
         cipherClass: CipherQuoteAnalyze,

@@ -17,19 +17,30 @@ export class InteractiveRailFenceEncoder extends InteractiveEncoder {
     ): void {
         const qnumdisp = String(qnum + 1);
         const qdivid = '#Q' + qnumdisp + ' ';
+        const version = realTimeElement.elementAt('version').value() as number;
 
-        const realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
-        const realtimeReplacement = this.attachInteractiveReplacementsHandler(
-            realTimeElement,
-            qnumdisp
-        );
-        const realtimeSeparators = this.attachInteractiveSeparatorsHandler(
-            realTimeElement,
-            qnumdisp
-        );
+        if (version === 2) {
+            const realtimeAnswer = this.attachInteractiveStringHandler(realTimeElement, qnumdisp, 'I', 'answer');
+            const realtimeReplacement = this.attachInteractiveStringHandler(realTimeElement, qnumdisp, 'R', 'replacements');
+            const realtimeSeparators = this.attachInteractiveStringHandler(realTimeElement, qnumdisp, 'S', 'separators');
 
+            this.bindSingleCharacterField(qdivid, null, null, realtimeAnswer, realtimeReplacement);
+            this.bindSeparatorsFieldV2(qdivid, realtimeSeparators);
+        } else {
+
+            const realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
+            const realtimeReplacement = this.attachInteractiveReplacementsHandler(
+                realTimeElement,
+                qnumdisp
+            );
+            const realtimeSeparators = this.attachInteractiveSeparatorsHandler(
+                realTimeElement,
+                qnumdisp
+            );
+
+            this.bindSingleCharacterField(qdivid, realtimeAnswer, realtimeReplacement);
+            this.bindSeparatorsField(qdivid, realtimeSeparators);
+        }
         this.attachInteractiveNotesHandler(qnumdisp, realTimeElement);
-        this.bindSingleCharacterField(qdivid, realtimeAnswer, realtimeReplacement);
-        this.bindSeparatorsField(qdivid, realtimeSeparators);
     }
 }

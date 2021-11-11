@@ -5,7 +5,6 @@ import {
     setCharAt,
     setDisabled,
     StringMap,
-    makeFilledArray,
 } from '../common/ciphercommon';
 import {
     ITestType,
@@ -133,9 +132,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // Each cipher character corresponds to 5 baconian characters
         const anslen = this.getEncodingString().length * 5;
         // We need an answer, separators and replacement boxes for each baconian character worth
-        result.answer = makeFilledArray(anslen, ' ');
-        result.separators = makeFilledArray(anslen, ' ');
-        result.replacements = makeFilledArray(anslen, ' ');
+        // We can pack everything into a single string
+        result.version = 2;
+        result.answer = this.repeatStr(' ', anslen);
+        result.separators = this.repeatStr(' ', anslen);
+        result.replacements = this.repeatStr(' ', anslen);
         return result;
     }
     /** Where we are in the editing of the words */
@@ -884,10 +885,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
             result.append(
                 $('<p/>').text(
                     "The A letters are represented by '" +
-                        this.state.texta +
-                        "' and the B letters by '" +
-                        this.state.textb +
-                        "'"
+                    this.state.texta +
+                    "' and the B letters by '" +
+                    this.state.textb +
+                    "'"
                 )
             );
         }

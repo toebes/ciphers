@@ -1,4 +1,4 @@
-import { cloneObject, makeFilledArray, StringMap } from '../common/ciphercommon';
+import { cloneObject, StringMap } from '../common/ciphercommon';
 import {
     IScoreInformation,
     ITestQuestionFields,
@@ -59,7 +59,8 @@ export class CipherPigPenEncoder extends CipherEncoder {
     public getInteractiveTemplate(): ITestQuestionFields {
         const len = this.state.cipherString.length;
         const result: ITestQuestionFields = {
-            answer: makeFilledArray(len, ' '),
+            version: 2,
+            answer: this.repeatStr(' ', len),
             notes: '',
         };
         return result;

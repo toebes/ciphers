@@ -1,4 +1,4 @@
-import { BoolMap, cloneObject, makeFilledArray } from '../common/ciphercommon';
+import { BoolMap, cloneObject } from '../common/ciphercommon';
 import {
     ITestQuestionFields,
     ITestType,
@@ -81,7 +81,8 @@ export class CipherTableEncoder extends CipherEncoder {
     public getInteractiveTemplate(): ITestQuestionFields {
         const len = this.state.cipherString.length;
         const result: ITestQuestionFields = {
-            answer: makeFilledArray(len, ' '),
+            version: 2,
+            answer: this.repeatStr(' ', len),
             notes: '',
         };
         return result;
@@ -446,18 +447,18 @@ export class CipherTableEncoder extends CipherEncoder {
                 );
                 p.append(
                     'Since we have a single letter word, we try out ' +
-                        let1word +
-                        '=A and ' +
-                        let1word +
-                        '=I.'
+                    let1word +
+                    '=A and ' +
+                    let1word +
+                    '=I.'
                 );
                 result.append(p);
                 p = $('<p/>').text(
                     'With ' +
-                        let1word +
-                        '=A we look in the decoding table for a ' +
-                        let1word +
-                        ' in the A column'
+                    let1word +
+                    '=A we look in the decoding table for a ' +
+                    let1word +
+                    ' in the A column'
                 );
                 p.append(' and see that it is the ' + akey + ' row');
                 result.append(p);
@@ -466,10 +467,10 @@ export class CipherTableEncoder extends CipherEncoder {
                 result.append(p);
                 p = $('<p/>').text(
                     'With ' +
-                        let1word +
-                        '=I we look in the decoding table for a ' +
-                        let1word +
-                        ' in the I column'
+                    let1word +
+                    '=I we look in the decoding table for a ' +
+                    let1word +
+                    ' in the I column'
                 );
                 p.append(' and see that it is the ' + ikey + ' row');
                 result.append(p);
@@ -480,8 +481,8 @@ export class CipherTableEncoder extends CipherEncoder {
                     result.append(
                         $('<p/>').text(
                             'Based on this, we believe that the key row is ' +
-                                realkey +
-                                ' which we can use to decode the remaining letters'
+                            realkey +
+                            ' which we can use to decode the remaining letters'
                         )
                     );
                 } else {
@@ -606,20 +607,20 @@ export class CipherTableEncoder extends CipherEncoder {
                     result.append(
                         $('<p/>').text(
                             'Based on this, we believe that the key row is ' +
-                                goodkeys[0] +
-                                ' which we can use to decode the remaining letters'
+                            goodkeys[0] +
+                            ' which we can use to decode the remaining letters'
                         )
                     );
                     p = $('<p/>').text(
                         'We can confirm it by using the ' +
-                            goodkeys[0] +
-                            ' row to decode ' +
-                            todecode
+                        goodkeys[0] +
+                        ' row to decode ' +
+                        todecode
                     );
                     p.append(
                         ", we see it comes out as '" +
-                            this.decodeCaesar(longword, goodkeys[0]) +
-                            "'"
+                        this.decodeCaesar(longword, goodkeys[0]) +
+                        "'"
                     );
                     if (goodkeys[0] === realkey) {
                         p.append(
@@ -631,7 +632,7 @@ export class CipherTableEncoder extends CipherEncoder {
                     result.append(
                         $('<p/>').text(
                             'Since we have several possible choices, we have to try them out on ' +
-                                todecode
+                            todecode
                         )
                     );
                     for (const key of goodkeys) {
@@ -643,8 +644,8 @@ export class CipherTableEncoder extends CipherEncoder {
                         result.append(
                             $('<p/>').text(
                                 'Based on this, we believe that the key row is ' +
-                                    realkey +
-                                    ' which we can use to decode the remaining letters'
+                                realkey +
+                                ' which we can use to decode the remaining letters'
                             )
                         );
                     } else {
@@ -668,8 +669,8 @@ export class CipherTableEncoder extends CipherEncoder {
                         result.append(
                             $('<p/>').text(
                                 'Based on this, we believe that the key row is ' +
-                                    key +
-                                    ' which we can use to decode the remaining letters'
+                                key +
+                                ' which we can use to decode the remaining letters'
                             )
                         );
                         break;

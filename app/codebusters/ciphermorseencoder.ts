@@ -4,7 +4,6 @@ import { IScoreInformation, ITestQuestionFields, ITestType } from '../common/cip
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { ICipherType } from '../common/ciphertypes';
-import { makeFilledArray } from '../common/ciphercommon';
 import { JTTable } from '../common/jttable';
 
 export const morseindex = 1;
@@ -35,12 +34,13 @@ export class CipherMorseEncoder extends CipherEncoder {
         );
         const encodedString = strings[ctindex];
         const anslen = encodedString[0].length;
-        // console.log('The encoded string length is ' + anslen);
 
+        result.version = 2;
         // We need an answer, separators and replacement boxes for each morse character pair worth
-        result.answer = makeFilledArray(anslen, ' ');
-        result.separators = makeFilledArray(anslen, ' ');
-        result.replacements = makeFilledArray(anslen, ' ');
+        // We can use the optimized string version since each entry is a single character
+        result.answer = this.repeatStr(' ', anslen);
+        result.separators = this.repeatStr(' ', anslen);
+        result.replacements = this.repeatStr(' ', anslen);
         return result;
     }
 

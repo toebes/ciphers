@@ -1,4 +1,4 @@
-import { cloneObject, makeFilledArray } from '../common/ciphercommon';
+import { cloneObject } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
@@ -135,8 +135,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
 
         const result: ITestQuestionFields = {
-            answer: makeFilledArray(encoded.length, ''),
-            replacements: makeFilledArray(encoded.length, ''),
+            version: 2,
+            answer: this.repeatStr(' ', encoded.length),
+            replacements: this.repeatStr(' ', encoded.length),
             notes: '',
         };
         return result;

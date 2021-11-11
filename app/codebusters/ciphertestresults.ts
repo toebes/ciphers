@@ -681,7 +681,14 @@ export class CipherTestResults extends CipherTestManage {
             const state = sourcemodel.source[question] as IState;
             const ihandler = CipherPrintFactory(state.cipherType, state.curlang);
             ihandler.restore(state, true);
-            scoreInformation = ihandler.genScore(answers[0].answer);
+            // Handle version 2 format of the answers which just is a single string
+            let ansarray: string[] = null;
+            if (answers[0].version >= 2) {
+                ansarray = (answers[0].answer as string).split('');
+            } else {
+                ansarray = answers[0].answer as string[];
+            }
+            scoreInformation = ihandler.genScore(ansarray);
             testScore += scoreInformation.score;
             // solvetime is in milliseconds, so needs to be rounded...
             bonusTime = Math.round(solvetime / 1000);
@@ -719,7 +726,14 @@ export class CipherTestResults extends CipherTestManage {
             ihandler.restore(state, true);
 
             try {
-                scoreInformation = ihandler.genScore(answer);
+                let ansarray: string[] = null;
+                if (answers[i].version >= 2) {
+                    ansarray = (answer as string).split('');
+                } else {
+                    ansarray = answer as string[];
+                }
+
+                scoreInformation = ihandler.genScore(ansarray);
                 console.log('Answer ' + i + ' (' + answer + '),\n\tscored at: ' +
                     scoreInformation.score.toString() + ' out of ' + state.points);
             } catch (e) {

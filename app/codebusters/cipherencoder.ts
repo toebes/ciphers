@@ -1,5 +1,5 @@
 import * as InlineEditor from '@ckeditor/ckeditor5-build-inline';
-import { cloneObject, makeFilledArray } from '../common/ciphercommon';
+import { cloneObject } from '../common/ciphercommon';
 import {
     CipherHandler,
     IEncodeType,
@@ -136,14 +136,14 @@ export class CipherEncoder extends CipherHandler {
         let replen = this.getSourceCharset().length;
         let anslen = this.state.cipherString.length;
 
-
-
-        result.answer = makeFilledArray(this.state.cipherString.length, ' ');
+        // We can put everything into a single string.
+        result.version = 2;
+        result.answer = this.repeatStr(' ', anslen);
         // For a patristocrat we need to have a place to store the separators
         if (this.state.cipherType == ICipherType.Patristocrat) {
-            result.separators = makeFilledArray(this.state.cipherString.length, ' ');
+            result.separators = this.repeatStr(' ', anslen);
         }
-        result.replacements = makeFilledArray(replen, ' ');
+        result.replacements = this.repeatStr(' ', replen);
         return result;
     }
     /**

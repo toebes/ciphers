@@ -48,7 +48,7 @@ Then the answer array will be `{"I", " ", "D", "O", "N", " ", "T", " ", "L", "I"
 Typically the answer is bound to a RealTimeArray
 ```
 let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;
-realtimeAnswer.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => { this.propagateAns(qnumdisp, event.index, event.value.value()); });
+realtimeAnswer.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => { this.propagateEntry('I', qnumdisp, event.index, event.value.value()); });
 ```
 The generated HTML fields are typically an input field with the `awc` class and an ID of the form
 

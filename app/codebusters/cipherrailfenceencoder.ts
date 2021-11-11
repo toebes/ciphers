@@ -441,11 +441,15 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             this.state.cipherString.length
         );
         const cipherString = strings[0];
-        const len = cipherString[0].length;
+        let len = 0;
+        if (strings.length > 0) {
+            len = cipherString[0].length;
+        }
         const result: ITestQuestionFields = {
-            answer: makeFilledArray(len, ' '),
-            replacements: makeFilledArray(6 * len, ' '),
-            separators: makeFilledArray(len, ' '),
+            version: 2,
+            answer: this.repeatStr(' ', len),
+            replacements: this.repeatStr(' ', 6 * len),
+            separators: this.repeatStr(' ', len),
             notes: '',
         };
         return result;

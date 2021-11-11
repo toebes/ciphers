@@ -170,7 +170,7 @@ export interface ITestQuestionFields {
      *
      *   Typically the answer is bound to a RealTimeArray
      *      let realtimeAnswer = realTimeElement.elementAt("answer") as RealTimeArray;
-     *      realtimeAnswer.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => { this.propagateAns(qnumdisp, event.index, event.value.value()); });
+     *      realtimeAnswer.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => { this.propagateEntry('I', qnumdisp, event.index, event.value.value()); });
      *
      *   The generated HTML fields are typically an input field with the awc class and an ID of the form
      *      I<qnum>_<offset>
@@ -187,7 +187,7 @@ export interface ITestQuestionFields {
      *              bindTextInput(answerfield[0] as HTMLInputElement, realtimeAnswer.elementAt(i));
      *         }
      **/
-    answer: string[];
+    answer: string[] | string;
     /** The replacement choices that has been entered on the test.
      *  This is applicable to most ciphers
      *
@@ -211,9 +211,9 @@ export interface ITestQuestionFields {
      *              bindTextInput(replacementfield[0] as HTMLInputElement, realtimeReplacement.elementAt(i));
      *         }
      * */
-    replacements?: string[];
+    replacements?: string[] | string;
     /** Deliberate separators between letters to aid in solving a Patristocrat  */
-    separators?: string[];
+    separators?: string[] | string;
     /** Any notes typed in the work section below the cipher
      *   This is typically bound to a textarea field with a class of intnote and an id of the form
      *      in<qnum>
@@ -228,6 +228,10 @@ export interface ITestQuestionFields {
      * Time that the timed question was successfully solved.  0 indicates not solved.
      */
     solvetime?: number;
+    /**
+     * The version of the template.  Version 2 indicates that it can use the newer convergence features
+     */
+    version?: number;
 }
 
 export interface IRunningKey {

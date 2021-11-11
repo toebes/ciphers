@@ -5,14 +5,22 @@ import { InteractiveEncoder } from './interactiveencoder';
 
 export class InteractiveAffineEncoder extends InteractiveEncoder {
     /**
-     * Propagate an answer from the realtime system to the local interface
+     * Propagate an entry from the realtime system to the local interface
+     * @param enttype String for the type of entry to get
      * @param qnumdisp Question number formated for using in an ID ("0" is the timed question)
      * @param index Which character index to update
      * @param value New replacement character for that index
      */
-    public propagateAns(qnumdisp: string, index: number, value: string): void {
-        let c = value.toUpperCase();
-        $('#I' + qnumdisp + '_' + String(index)).val(c);
+    public propagateEntry(enttype: string, qnumdisp: string, index: number, value: string): void {
+        if (enttype === 'I') {
+            const dest = this.getInteractiveEntry(enttype, qnumdisp, index);
+            if (!!dest) {
+                let c = value.toUpperCase();
+                dest.value = c;
+            }
+        } else {
+            super.propagateEntry(enttype, qnumdisp, index, value);
+        }
     }
     /**
      * attachInteractiveHandlers attaches the realtime updates to all of the fields
@@ -283,7 +291,7 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                     if (this.isValidChar(newchar) || newchar === ' ') {
                         // console.log('Setting ' + id + ' to ' + newchar);
                         this.markUndo(null);
-                        this.setRepl(id, newchar, realtimeReplacement);
+                        this.setRepl(id, newchar, realtimeReplacement, null);
                         // current = focusables.index(event.target);
                         // next = focusables.eq(current + 1).length
                         //     ? focusables.eq(current + 1)

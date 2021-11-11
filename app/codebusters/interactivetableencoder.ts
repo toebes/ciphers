@@ -17,11 +17,15 @@ export class InteractiveTableEncoder extends InteractiveEncoder {
     ): void {
         const qnumdisp = String(qnum + 1);
         const qdivid = '#Q' + qnumdisp + ' ';
+        const version = realTimeElement.elementAt('version').value() as number;
 
-        const realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
-
+        if (version === 2) {
+            const realtimeAnswer = this.attachInteractiveStringHandler(realTimeElement, qnumdisp, 'I', 'answer');
+            this.bindSingleCharacterField(qdivid, null, null, realtimeAnswer, null);
+        } else {
+            const realtimeAnswer = this.attachInteractiveAnswerHandler(realTimeElement, qnumdisp);
+            this.bindSingleCharacterField(qdivid, realtimeAnswer, null);
+        }
         this.attachInteractiveNotesHandler(qnumdisp, realTimeElement);
-
-        this.bindSingleCharacterField(qdivid, realtimeAnswer, null);
     }
 }

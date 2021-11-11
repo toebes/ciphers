@@ -6,6 +6,10 @@ import {
     RealTimeString,
     RealTimeArray,
     ArraySetEvent,
+    StringSpliceEvent,
+    StringInsertEvent,
+    StringRemoveEvent,
+    StringSetValueEvent,
 } from '@convergence/convergence';
 import { bindTextInput } from '@convergence/input-element-bindings';
 
@@ -30,7 +34,7 @@ export class InteractiveHandler extends CipherHandler {
      * @param newchar New character to set as the answer
      * @param realtimeAnswer Interface to the realtime system
      */
-    public setAns(id: string, newchar: string, realtimeAnswer: RealTimeArray): void {
+    public setAns(id: string, newchar: string, realtimeAnswer: RealTimeArray, realtimeAnswerString?: RealTimeString): void {
         const parts = id.split('_');
         // Make sure we have a proper element that we can be updating
         // The format of the element id is I<qnum>_<index> but we only need the index portion
@@ -41,23 +45,120 @@ export class InteractiveHandler extends CipherHandler {
                 c = ' ';
             }
             $('#' + id).val(c);
-            realtimeAnswer.set(index, c);
+            if (realtimeAnswer !== null) {
+                realtimeAnswer.set(index, c);
+            } else {
+                realtimeAnswerString.splice(index, 1, c);
+            }
         }
     }
     /**
-     * Propagate an answer from the realtime system to the local interface
+     * Counts the number of entries associated with an entry
+     * @param enttype Type of entry ('I" 'S' 'R')
+     * @param qnumdisp Question number formated for using in an ID ("0" is the timed question)
+     * @returns number of entries
+     */
+    public countInteractiveEntries(enttype: string, qnumdisp: string): number {
+        return document.querySelectorAll('[id^=' + enttype + qnumdisp + '_]').length
+    }
+    /**
+     * Get the HTML element for an entry
+     * @param enttype String for the type of entry to get
+     * @param qnumdisp Question number formated for using in an ID ("0" is the timed question)
+     * @param index Which character index to update
+     * @returns HTMLElement corresponding to the entry
+     */
+    public getInteractiveEntry(enttype: string, qnumdisp: string, index: number): HTMLInputElement {
+        return <HTMLInputElement>document.getElementById(enttype + qnumdisp + '_' + String(index))
+    }
+    /**
+     * Propagate an entry from the realtime system to the local interface
+     * @param enttype String for the type of entry to get
      * @param qnumdisp Question number formated for using in an ID ("0" is the timed question)
      * @param index Which character index to update
      * @param value New replacement character for that index
      */
-    public propagateAns(qnumdisp: string, index: number, value: string): void {
-        let c = value.toUpperCase();
-        if (!this.isValidChar(c)) {
-            c = ' ';
-        }
-        $('#I' + qnumdisp + '_' + String(index)).val(c);
-    }
+    public propagateEntry(enttype: string, qnumdisp: string, index: number, value: string): void {
+        const dest = this.getInteractiveEntry(enttype, qnumdisp, index);
+        if (!!dest) {
+            // Separators have a special case here
+            if (enttype === 'S') {
+                const sepitems = document.querySelectorAll('#Q' + qnumdisp + ' .S' + String(index));
+                if (value == '|') {
+                    sepitems.forEach((elem: HTMLElement) => elem.classList.add('es'))
+                } else {
+                    sepitems.forEach((elem: HTMLElement) => elem.classList.remove('es'))
+                }
 
+            } else {
+                let c = value.toUpperCase();
+                if (!this.isValidChar(c)) {
+                    c = ' ';
+                }
+                dest.value = c;
+            }
+        }
+    }
+    /**
+     * Insert characters into the answer at a given spot
+     * @param enttype String for the type of entry to get
+     * @param qnumdisp Question number formated for using in an ID ("0" is the timed question)
+     * @param index Which character index to update
+     * @param value New replacement characters to insert for that index
+     */
+    public insertEntryChars(enttype: string, qnumdisp: string, index: number, value: string): void {
+        let entries = this.countInteractiveEntries(enttype, qnumdisp);
+        let shift = value.length;
+        // First we need to move everything beyond the string by the length of the string
+        let tomove = entries - (index + shift);
+        if (tomove > 0) {
+            for (let i = 0; i < tomove; i++) {
+                let c = ' ';
+                let dest = this.getInteractiveEntry(enttype, qnumdisp, entries - i - 1);
+                if (!!dest) {
+                    let src = this.getInteractiveEntry(enttype, qnumdisp, entries - shift - i - 1);
+                    if (!!src) {
+                        c = src.value;
+                    }
+                    dest.value = c;
+                }
+            }
+        }
+        // Then we get to put all the characters in place
+        for (let i = 0; i < shift; i++) {
+            let dest = this.getInteractiveEntry(enttype, qnumdisp, index + i);
+            if (!!dest) {
+                dest.value = value.substr(i, 1);
+            }
+        }
+    }
+    /**
+     * Delete characters from the answer at a given spot
+     * @param enttype String for the type of entry to get
+     * @param qnumdisp Question number formated for using in an ID ("0" is the timed question)
+     * @param index Which character index to update
+     * @param todelete Number of characters to delete
+     */
+    public deleteEntryChars(enttype: string, qnumdisp: string, index: number, todelete: number): void {
+        let entries = this.countInteractiveEntries(enttype, qnumdisp);
+        // Everything from this position on will change
+        for (let pos = index; pos < entries; pos++) {
+            // By default it gets blanked out
+            let c = ' ';
+            let srcpos = index + todelete;
+            const dest = this.getInteractiveEntry(enttype, qnumdisp, pos);
+            if (!!dest) {
+                // Unless there is a character remaining to pull from that is not being deleted
+                if (srcpos < entries) {
+                    const src = this.getInteractiveEntry(enttype, qnumdisp, srcpos);
+                    if (!!src) {
+                        c = src.value;
+                    }
+                }
+                dest.value = c;
+            }
+        }
+    }
     /**
      * Sometimes the replacement isn't a 'validChar', it is a symbol, like a dot or a dash.
      * The default implementation is to call setRepl(), but this should be over-ridden to
@@ -65,13 +166,15 @@ export class InteractiveHandler extends CipherHandler {
      * @param id Replacement slot input field which is being changed
      * @param newSymbol New symbol to set as the replacement
      * @param realtimeReplacement Interface to the realtime system
+     * @param realtimeReplacementString Interface to the realtime system
      */
     public setReplacementSymbol(
         id: string,
         newSymbol: string,
-        realtimeReplacement: RealTimeArray
+        realtimeReplacement: RealTimeArray,
+        realtimeReplacementString: RealTimeString
     ): void {
-        this.setRepl(id, newSymbol, realtimeReplacement);
+        this.setRepl(id, newSymbol, realtimeReplacement, realtimeReplacementString);
     }
 
     /**
@@ -83,7 +186,7 @@ export class InteractiveHandler extends CipherHandler {
      * @param newchar New character to set as the replacement
      * @param realtimeReplacement Interface to the realtime system
      */
-    public setRepl(id: string, newchar: string, realtimeReplacement: RealTimeArray): void {
+    public setRepl(id: string, newchar: string, realtimeReplacement: RealTimeArray, realtimeReplacementString: RealTimeString): void {
         // Make sure we have a proper element that we can be updating
         // The format of the element id is R<qnum>_<index> but we only need the index portion
         const parts = id.split('_');
@@ -94,7 +197,12 @@ export class InteractiveHandler extends CipherHandler {
                 c = ' ';
             }
             $('#' + id).val(c);
-            realtimeReplacement.set(index, c);
+            if (realtimeReplacement !== null) {
+                realtimeReplacement.set(index, c);
+            }
+            else {
+                realtimeReplacementString.splice(index, 1, c);
+            }
         }
     }
     /**
@@ -111,19 +219,6 @@ export class InteractiveHandler extends CipherHandler {
         $('#R' + qnumdisp + '_' + String(index)).val(c);
     }
     /**
-     * Propagate a replacement string from the realtime system to the local interface
-     * @param qnumdisp Question number formatted for using in an ID ("0" is the timed question)
-     * @param index Which character index to update
-     * @param value New replacement character for that index
-     */
-    public propagateSep(qnumdisp: string, index: number, value: string): void {
-        if (value == '|') {
-            $('#Q' + qnumdisp + ' .S' + String(index)).addClass('es');
-        } else {
-            $('#Q' + qnumdisp + ' .S' + String(index)).removeClass('es');
-        }
-    }
-    /**
      * Handle clicking on a separator to toggle the line between letters
      * @param id Element clicked on
      * @param realtimeSeparators Runtime structure to track separators
@@ -138,7 +233,7 @@ export class InteractiveHandler extends CipherHandler {
             if (separators !== undefined) {
                 let c = separators[index];
                 c = c === '|' ? ' ' : '|';
-                this.propagateSep(parts[0].substr(1), index, c);
+                this.propagateEntry('S', parts[0].substr(1), index, c);
                 realtimeSeparators.set(index, c);
             }
         }
@@ -154,6 +249,39 @@ export class InteractiveHandler extends CipherHandler {
             .off('click')
             .on('click', (e) => {
                 this.clickSeparator($(e.target).attr('id'), realtimeSeparators);
+            });
+    }
+    /**
+     * Handle clicking on a separator to toggle the line between letters
+     * @param id Element clicked on
+     * @param realtimeSeparators Runtime structure to track separators
+     */
+    public clickSeparatorV2(id: string, realtimeSeparators: RealTimeString): void {
+        // Make sure we have a proper element that we can be updating
+        // The format of the element id is S<qnum>_<index> and we need both portions
+        const parts = id.split('_');
+        if (parts.length > 1) {
+            const index = Number(parts[1]);
+            const separators = realtimeSeparators.value();
+            if (separators !== undefined) {
+                let c = separators.substr(index, 1);
+                c = c === '|' ? ' ' : '|';
+                this.propagateEntry('S', parts[0].substr(1), index, c);
+                realtimeSeparators.splice(index, 1, c);
+            }
+        }
+    }
+
+    /**
+     * Bind separator clicks so they appear/disappear on teammates browser
+     * @param qdivid <div> with ID matching question number ("0" is the timed question)
+     * @param realtimeSeparators Runtime structure to track separators
+     */
+    public bindSeparatorsFieldV2(qdivid: string, realtimeSeparators: RealTimeString): void {
+        $(qdivid + '.ir')
+            .off('click')
+            .on('click', (e) => {
+                this.clickSeparatorV2(e.target.id, realtimeSeparators);
             });
     }
 
@@ -186,20 +314,19 @@ export class InteractiveHandler extends CipherHandler {
         if (realTimeElement.hasKey('separators')) {
             const separators = realtimeSeparators.value();
             realtimeSeparators.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => {
-                this.propagateSep(qnumdisp, event.index, event.value.value());
+                this.propagateEntry('Q', qnumdisp, event.index, event.value.value());
             });
             for (const i in separators) {
-                this.propagateSep(qnumdisp, Number(i), separators[i]);
+                this.propagateEntry('Q', qnumdisp, Number(i), separators[i]);
             }
         }
         return realtimeSeparators;
     }
-
     /**
-     * Realtime handling for the "replacements" field.
-     * @param realTimeElement Runtime structure to track the "replacements" field
-     * @param qnumdisp Question number formatted for using in an ID ("0" is the timed question)
-     */
+    * Realtime handling for the "replacements" field.
+    * @param realTimeElement Runtime structure to track the "replacements" field
+    * @param qnumdisp Question number formatted for using in an ID ("0" is the timed question)
+    */
     public attachInteractiveReplacementsHandler(
         realTimeElement: RealTimeObject,
         qnumdisp: string
@@ -227,21 +354,83 @@ export class InteractiveHandler extends CipherHandler {
         realTimeElement: RealTimeObject,
         qnumdisp: string
     ): RealTimeArray {
+        const enttype = 'I';
         //
         // The "answer" portion is for the typed answer to the cipher
         const realtimeAnswer = realTimeElement.elementAt('answer') as RealTimeArray;
         realtimeAnswer.on(RealTimeArray.Events.SET, (event: ArraySetEvent) => {
-            this.propagateAns(qnumdisp, event.index, event.value.value());
+            this.propagateEntry(enttype, qnumdisp, event.index, event.value.value());
         });
 
         // Propagate the initial values into the fields
         const answers = realtimeAnswer.value();
         for (const i in answers) {
-            this.propagateAns(qnumdisp, Number(i), answers[i]);
+            this.propagateEntry(enttype, qnumdisp, Number(i), answers[i]);
         }
         return realtimeAnswer;
     }
 
+    /**
+     * Realtime handling for the "answer" field. Version 2
+     * @param realTimeElement Runtime structure to track the "answer" field
+     * @param qnumdisp Question number formatted for using in an ID ("0" is the timed question)
+     */
+    public attachInteractiveStringHandler(
+        realTimeElement: RealTimeObject,
+        qnumdisp: string,
+        enttype: string,
+        realtimename: string
+    ): RealTimeString {
+        //
+        // The "answer" portion is for the typed answer to the cipher
+        const realtimeAnswer = realTimeElement.elementAt(realtimename) as RealTimeString;
+        if (realtimeAnswer !== null) {
+            realtimeAnswer.on(RealTimeString.Events.SPLICE, (event: StringSpliceEvent) => {
+                // from:  https://docs.convergence.io/js-api/classes/real_time_data.realtimestring.html#splice
+                // On a successful splice, one of three events will be emitted base on how the method was called
+                // (and the effect change that will be made to the string after any remote conflicts are resolved) as follows:
+                //   A StringInsertEvent ==> if deleteCount equals 0 and insertValue is a non-empty string.
+                //   A StringRemoveEvent ==> if deleteCount is greater than zero and insertValue is an empty string.
+                //   A StringSpliceEvent ==> if deleteCount is greater than zero and insertValue is non-empty string.
+                // 
+                //  index: number        the zero-based index at which to start removing characters
+                //  deleteCount: number  the number of characters to remove in the current string.
+                //  insertValue: string  The value to insert at the index.
+                let deleteCount = event.deleteCount;
+                let index = event.index;
+                let changes = Math.min(deleteCount, event.insertValue.length);
+                // Replace everything that is not shifting.
+                // In general this should be everything in the splice request
+                for (let i = 0; i < changes; i++) {
+                    this.propagateEntry(enttype, qnumdisp, index + i, event.insertValue.substr(i, 1));
+                }
+                // We may have extra to either insert or delete (hopefully not)
+                if (event.insertValue.length > changes) {
+                    this.insertEntryChars(enttype, qnumdisp, index + changes, event.insertValue.substr(changes));
+                } else if (deleteCount > event.insertValue.length) {
+                    this.deleteEntryChars(enttype, qnumdisp, index + changes, deleteCount - changes);
+                }
+            }).on(RealTimeString.Events.INSERT, (event: StringInsertEvent) => {
+                this.insertEntryChars(enttype, qnumdisp, event.index, event.value.valueOf());
+            }).on(RealTimeString.Events.REMOVE, (event: StringRemoveEvent) => {
+                this.deleteEntryChars(enttype, qnumdisp, event.index, event.value.valueOf().length);
+            }).on(RealTimeString.Events.VALUE, (event: StringSetValueEvent) => {
+                let newstr = event.element.value();
+                for (let i = 0; i < newstr.length; i++) {
+                    this.propagateEntry(enttype, qnumdisp, i, newstr.substr(i, 1));
+                }
+            });
+
+            // Propagate the initial values into the fields
+            const answers = realtimeAnswer.value();
+            if (!!answers) {
+                for (let i = 0; i < answers.length; i++) {
+                    this.propagateEntry(enttype, qnumdisp, Number(i), answers[i]);
+                }
+            }
+        }
+        return realtimeAnswer;
+    }
     /**
      * Bind single character fields (i.e. answer or replacement) for keystrokes, skip binding that field
      * if the field passed is 'null'.
@@ -252,9 +441,11 @@ export class InteractiveHandler extends CipherHandler {
     public bindSingleCharacterField(
         qdivid: string,
         realtimeAnswer: RealTimeArray,
-        realtimeReplacement: RealTimeArray
+        realtimeReplacement: RealTimeArray,
+        realtimeAnswerString?: RealTimeString,
+        realtimeReplacementString?: RealTimeString
     ): void {
-        if (realtimeAnswer != null) {
+        if (realtimeAnswer != null || realtimeAnswerString != null) {
             $(qdivid + '.awc')
                 .off('keydown')
                 .on('keydown', (event) => {
@@ -286,7 +477,7 @@ export class InteractiveHandler extends CipherHandler {
                     } else if (event.which === 46) {
                         // delete key
                         this.markUndo(null);
-                        this.setAns(id, ' ', realtimeAnswer);
+                        this.setAns(id, ' ', realtimeAnswer, realtimeAnswerString);
                         event.preventDefault();
                     } else if (event.which === 8) {
                         // Backspace key.
@@ -304,7 +495,7 @@ export class InteractiveHandler extends CipherHandler {
                             next.focus();
                         }
                         this.markUndo(null);
-                        this.setAns(id, ' ', realtimeAnswer);
+                        this.setAns(id, ' ', realtimeAnswer, realtimeAnswerString);
                         event.preventDefault();
                     }
                 })
@@ -325,7 +516,7 @@ export class InteractiveHandler extends CipherHandler {
                     if (this.isValidChar(newchar) || newchar === ' ') {
                         // console.log('Setting ' + id + ' to ' + newchar);
                         this.markUndo(null);
-                        this.setAns(id, newchar, realtimeAnswer);
+                        this.setAns(id, newchar, realtimeAnswer, realtimeAnswerString);
                         current = focusables.index(event.target);
                         next = focusables.eq(current + 1).length
                             ? focusables.eq(current + 1)
@@ -337,7 +528,7 @@ export class InteractiveHandler extends CipherHandler {
                     event.preventDefault();
                 });
         }
-        if (realtimeReplacement != null) {
+        if (realtimeReplacement != null || realtimeReplacementString != null) {
             $(qdivid + '.awr')
                 .off('keydown')
                 .on('keydown', (event) => {
@@ -404,7 +595,7 @@ export class InteractiveHandler extends CipherHandler {
                     } else if (event.which === 46) {
                         // delete key
                         this.markUndo(null);
-                        this.setRepl(id, ' ', realtimeAnswer);
+                        this.setRepl(id, ' ', realtimeReplacement, realtimeReplacementString);
                         event.preventDefault();
                     } else if (event.which === 8) {
                         // Backspace key.
@@ -422,7 +613,7 @@ export class InteractiveHandler extends CipherHandler {
                             next.focus();
                         }
                         this.markUndo(null);
-                        this.setRepl(id, ' ', realtimeAnswer);
+                        this.setRepl(id, ' ', realtimeReplacement, realtimeReplacementString);
                         event.preventDefault();
                     }
                 })
@@ -445,15 +636,13 @@ export class InteractiveHandler extends CipherHandler {
                         isMorse === '1' &&
                         (newchar === 'O' || newchar === '.' || newchar === '-' || newchar === 'X')
                     ) {
-                        newchar = newchar
-                            .replace(/O/g, '9679')
-                            .replace(/\./g, '9679')
-                            .replace(/-/g, '9644')
-                            .replace(/X/g, '9747');
+                        newchar = newchar.toUpperCase().replace(/O/g, String.fromCharCode(9679))
+                            .replace(/\./g, String.fromCharCode(9679))
+                            .replace(/-/g, String.fromCharCode(9644))
+                            .replace(/X/g, String.fromCharCode(9747))
 
-                        // console.log('Setting ' + id + ' to ' + newchar);
                         this.markUndo(null);
-                        this.setReplacementSymbol(id, newchar, realtimeReplacement);
+                        this.setReplacementSymbol(id, newchar, realtimeReplacement, realtimeReplacementString);
                         current = focusables.index(event.target);
                         next = focusables.eq(current + 1).length
                             ? focusables.eq(current + 1)
@@ -462,7 +651,7 @@ export class InteractiveHandler extends CipherHandler {
                     } else if (this.isValidChar(newchar) || newchar === ' ') {
                         // console.log('Setting ' + id + ' to ' + newchar)
                         this.markUndo(null);
-                        this.setRepl(id, newchar, realtimeReplacement);
+                        this.setRepl(id, newchar, realtimeReplacement, realtimeReplacementString);
                         current = focusables.index(event.target);
                         next = focusables.eq(current + 1).length
                             ? focusables.eq(current + 1)

@@ -4,7 +4,6 @@ import { formatTime } from '../common/ciphercommon';
 import { RealTimeObject, RealTimeNumber, NumberSetValueEvent } from '@convergence/convergence';
 
 export class InteractiveEncoder extends InteractiveHandler {
-    private testTimeInfo: ITestTimeInfo;
     /** Handler for our interval time which keeps checking that time is right */
     private IntervalTimer: number = undefined;
 

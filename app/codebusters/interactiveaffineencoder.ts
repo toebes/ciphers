@@ -29,6 +29,7 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
      * @param testTimeInfo Timing information for the current test.
      */
     public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo): void {
+        this.testTimeInfo = testTimeInfo;
         const qnumdisp = String(qnum + 1);
         //
         // The "answer" portion is for the typed answer to the cipher

@@ -1,4 +1,4 @@
-import { CipherHandler, IState } from '../common/cipherhandler';
+import { CipherHandler, IState, ITestTimeInfo } from '../common/cipherhandler';
 import { IEncoderState } from './cipherencoder';
 import { cloneObject } from '../common/ciphercommon';
 import {
@@ -14,6 +14,7 @@ import {
 import { bindTextInput } from '@convergence/input-element-bindings';
 
 export class InteractiveHandler extends CipherHandler {
+    public testTimeInfo: ITestTimeInfo;
     /**
      * Restore the state from a stored record
      * @param data Saved state to restore
@@ -59,6 +60,8 @@ export class InteractiveHandler extends CipherHandler {
      * @returns number of entries
      */
     public countInteractiveEntries(enttype: string, qnumdisp: string): number {
+        this.testTimeInfo.currentQuestion = qnumdisp;
+
         return document.querySelectorAll('[id^=' + enttype + qnumdisp + '_]').length
     }
     /**
@@ -69,6 +72,7 @@ export class InteractiveHandler extends CipherHandler {
      * @returns HTMLElement corresponding to the entry
      */
     public getInteractiveEntry(enttype: string, qnumdisp: string, index: number): HTMLInputElement {
+        this.testTimeInfo.currentQuestion = qnumdisp;
         return <HTMLInputElement>document.getElementById(enttype + qnumdisp + '_' + String(index))
     }
     /**

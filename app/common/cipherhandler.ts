@@ -156,6 +156,8 @@ export interface ITestTimeInfo {
     endTimedQuestion: number;
     /** Time that the test will end */
     endTime: number;
+    /** The last question which was touched */
+    currentQuestion: string;
 }
 /**
  * ITestQuestionFields is the runtime data to track the answer to a particular question.

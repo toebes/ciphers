@@ -16,7 +16,6 @@ import {
     HistoricalModel,
     HistoricalObject,
     RealTimeObject,
-    ModelService,
     HistoricalNumber,
     NumberSetValueEvent,
 } from '@convergence/convergence';
@@ -57,6 +56,7 @@ export class CipherTestPlayback extends CipherTest {
         startTime: 0,
         endTime: 0,
         endTimedQuestion: 0,
+        currentQuestion: "0"
     };
     public lastScrubTime: number = -1;
     public shadowOffsets: NumberMap = {};
@@ -64,6 +64,7 @@ export class CipherTestPlayback extends CipherTest {
     private playbackInterval = 0;
     private inScrubTo = false;
     private teamName = '';
+    public lastScrolledTo = '';
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -133,6 +134,15 @@ export class CipherTestPlayback extends CipherTest {
         if (this.inScrubTo || scrubTime == this.lastScrubTime) {
             return;
         }
+        // Scroll so that the current question is on the screen
+        if (this.testTimeInfo.currentQuestion !== this.lastScrolledTo) {
+            var element = document.getElementById("Q" + this.testTimeInfo.currentQuestion);
+            if (!!element) {
+                element.scrollIntoView({ behavior: "smooth", block: 'center' });
+                this.lastScrolledTo = this.testTimeInfo.currentQuestion;
+            }
+        }
+
         this.inScrubTo = true;
         this.lastScrubTime = scrubTime;
         this.answermodel.playToTime(new Date(scrubTime))

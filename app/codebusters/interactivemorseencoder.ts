@@ -79,6 +79,7 @@ export class InteractiveMorseEncoder extends InteractiveEncoder {
         realTimeElement: RealTimeObject,
         testTimeInfo: ITestTimeInfo
     ): void {
+        this.testTimeInfo = testTimeInfo;
         const qnumdisp = String(qnum + 1);
         const qdivid = '#Q' + qnumdisp + ' ';
         const version = realTimeElement.elementAt('version').value() as number;

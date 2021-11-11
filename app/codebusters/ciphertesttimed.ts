@@ -56,6 +56,7 @@ export class CipherTestTimed extends CipherTest {
         startTime: 0,
         endTime: 0,
         endTimedQuestion: 0,
+        currentQuestion: "0",
     };
     public realtimeSessionNotes: RealTimeElement;
     public preInitializationTimeAnomaly: string = '';
@@ -940,8 +941,11 @@ export class CipherTestTimed extends CipherTest {
         this.realtimeIdleTracker.value(this.totalIdleTime);
         const session = answermodel.session().domain();
         this.testTimeInfo.truetime.stopTiming();
-        answermodel.close().then(() => session.dispose());
-        this.disconnectRealtime();
+        answermodel.close().then(() => {
+            session.dispose();
+            this.disconnectRealtime();
+        });
+
         // Make a temporary copy of all the 
         this.saveBackupCopy();
         this.setTestStatusMessage(message, this.testTimeInfo.endTime);

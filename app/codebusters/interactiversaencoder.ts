@@ -15,6 +15,7 @@ export class InteractiveRSAEncoder extends InteractiveEncoder {
         realTimeElement: RealTimeObject,
         testTimeInfo: ITestTimeInfo
     ): void {
+        this.testTimeInfo = testTimeInfo;
         const qnumdisp = String(qnum + 1);
 
         //

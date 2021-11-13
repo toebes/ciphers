@@ -113,9 +113,11 @@ export class CipherTestSchedule extends CipherTestManage {
         this.getRealtimeSource(sourcemodelid)
             .then((sourceModel) => {
                 this.sourceModel = sourceModel
+
                 if (this.sourceModel.sciTestCount <= 0) {
                     this.sourceModel.sciTestCount = undefined;
                 }
+                this.isScilympiad = (this.sourceModel !== undefined && this.sourceModel.sciTestCount !== undefined);
                 this.testmodelid = sourceModel.testid;
                 const testInfo = sourceModel.source['TEST.0'] as ITest
                 $("#title").val(testInfo.title);
@@ -127,13 +129,6 @@ export class CipherTestSchedule extends CipherTestManage {
             .catch((error) => {
                 this.reportFailure('Could not open model for ' + sourcemodelid + ' Error:' + error);
             });
-    }
-    /**
-     * 
-     * @returns Boolean indicating that this is an active Scilympiad test
-     */
-    public isScilympiad(): boolean {
-        return (this.sourceModel !== undefined && this.sourceModel.sciTestCount !== undefined);
     }
     /**
      * setTitle updates the title on a source model associated with the current test
@@ -187,7 +182,7 @@ export class CipherTestSchedule extends CipherTestManage {
         const table = new JTTable({ class: 'cell shrink publist' });
         const row = table.addHeaderRow();
         let hideClass = '';
-        if (this.isScilympiad()) {
+        if (this.isScilympiad) {
             hideClass = 'hidden';
         }
         row.add('Action')
@@ -209,14 +204,14 @@ export class CipherTestSchedule extends CipherTestManage {
     private populateRow(row: JTRow, rownum: number, answerModelID: string, answertemplate: IAnswerTemplate): void {
         const rowID = String(rownum);
         let rowclass = ""
-        if (this.isScilympiad()) {
+        if (this.isScilympiad) {
             rowclass = "sci"
         }
         const deleteButton = $('<a/>', {
             type: 'button',
             class: 'pubdel alert button',
         }).text('Delete')
-        if (this.isScilympiad()) {
+        if (this.isScilympiad) {
             deleteButton.attr('disabled', 'disabled')
         }
 
@@ -246,7 +241,7 @@ export class CipherTestSchedule extends CipherTestManage {
             (answertemplate.endtimed - answertemplate.starttime) / timestampFromMinutes(1)
         );
         row.add(buttons)
-        if (this.isScilympiad()) {
+        if (this.isScilympiad) {
             const dateval = new Date(answertemplate.starttime).toISOString();
             row.add({
                 settings: { class: "hidden" }, content:
@@ -292,7 +287,7 @@ export class CipherTestSchedule extends CipherTestManage {
             ) // This stays using convergence
             .then((results) => {
                 let total = 0;
-                if (this.isScilympiad()) {
+                if (this.isScilympiad) {
                     // If we are using Scilympiad then we have to sort the results.
                     let orderedMap: { [index: string]: IAnswerTemplate } = {}
                     let modelMap: StringMap = {}
@@ -538,7 +533,7 @@ export class CipherTestSchedule extends CipherTestManage {
      * markSaveAll sets the save all button based on the state of anything else needed to be saved.
      */
     public updateCommandButtons(): void {
-        if (!this.isScilympiad()) {
+        if (!this.isScilympiad) {
             const unsaved = $('.pubsave:not([disabled])')
             if (unsaved.length > 0) {
                 $('#savesched').removeAttr('disabled');
@@ -986,7 +981,7 @@ export class CipherTestSchedule extends CipherTestManage {
             const row = table.addBodyRow();
             this.populateRow(row, newRowID, answermodelid, answertemplate);
             $('.testlist').empty()
-            if (this.isScilympiad()) {
+            if (this.isScilympiad) {
                 let scilympiadContent = $("<div/>").text("This test available for Scilympiad with " + this.sourceModel.sciTestCount + " teams using id:").append($("<h3>").text(this.sourceModel.sciTestId))
                 $('.testlist').append(makeCallout(scilympiadContent, 'primary'))
             }
@@ -1015,7 +1010,7 @@ export class CipherTestSchedule extends CipherTestManage {
         let testDuration = 50;
         let timedDuration = 10;
         let saveDirty = false;
-        if (this.isScilympiad()) {
+        if (this.isScilympiad) {
             newTestCount = this.sourceModel.sciTestCount
             startTime = this.sourceModel.sciTestTime;
             testDuration = this.sourceModel.sciTestLength
@@ -1136,8 +1131,10 @@ export class CipherTestSchedule extends CipherTestManage {
                 let teams = Number($("#sciteams").val());
                 if (teams <= 0) {
                     this.sourceModel.sciTestCount = undefined;
+                    this.isScilympiad = false;
                 } else {
                     this.sourceModel.sciTestCount = teams;
+                    this.isScilympiad = true;
                 }
                 this.sourceModel.sciTestId = ($("#scitestid").val() as string).toLowerCase();
                 this.sourceModel.sciTestLength = Number($("#sciduration").val());
@@ -1157,7 +1154,7 @@ export class CipherTestSchedule extends CipherTestManage {
         let timedLength = 10
         let testCount = 24
         let testId = "Enter TEST Id from Scilympiad";
-        if (this.isScilympiad()) {
+        if (this.isScilympiad) {
             startTime = this.sourceModel.sciTestTime
             testCount = this.sourceModel.sciTestCount
             testLength = this.sourceModel.sciTestLength
@@ -1608,13 +1605,6 @@ export class CipherTestSchedule extends CipherTestManage {
         const tr = elem.closest('tr');
         const id = tr.attr('data-source') as string;
         return id;
-    }
-    public isValidEmailAddress(emailAddress: string): boolean {
-        if (this.isScilympiad()) {
-            return true;
-        }
-        var pattern = /^([a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+(\.[a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+)*|"((([ \t]*\r\n)?[ \t]+)?([\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*(([ \t]*\r\n)?[ \t]+)?")@(([a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.)+([a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.?$/i;
-        return pattern.test(emailAddress);
     }
     /**
      * Attach all the UI handlers for created DOM elements

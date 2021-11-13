@@ -287,9 +287,9 @@ export class CipherTest extends CipherHandler {
      */
     public genPublishedEditState(testdisp: IPublishDisp): JQuery<HTMLElement> {
         const radiobuttons = [
-            { title: 'Permissions', value: 'permissions' },
-            { title: 'Schedule Test', value: 'schedule' },
-            { title: 'Test Results', value: 'results' },
+            { title: 'Permissions', value: 'permissions', class: 'chkmod' },
+            { title: 'Schedule Test', value: 'schedule', class: 'chkmod' },
+            { title: 'Test Results', value: 'results', class: 'chkmod' },
         ];
         let result = $("<div/>")
         result.append(this.genTestManageState('published'));

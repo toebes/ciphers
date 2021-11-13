@@ -37,8 +37,6 @@ export class CipherTestResults extends CipherTestManage {
         // No additional command buttons needed...
     ];
 
-    public isScilympiad: boolean = false;
-
     // Used for exporting results to CSV.
     dataCSV = '##TEAM@INFO##, Total score, OBT total, OBT 1, OBT 2, OBT 3, Start time, End time, Timed solved, Bonus Score';
     private teamData = new Map();

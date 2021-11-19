@@ -1188,6 +1188,14 @@ button.rounded {
     padding: 0;
 }
 
+.dropdown.menu {
+    z-index: 100;
+}
+
+.dropdown.menu li:hover {
+    background-color: #d0d0d0;
+}
+
 .dropdown.menu a {
     background: none;
 }

@@ -563,6 +563,8 @@ export class CipherTest extends CipherHandler {
             )
             .append(' in order to see tests assigned to you.');
         elem.append(callout);
+        // Make sure that the login button has a handler attached to it239
+        this.attachHandlers();
         return false;
     }
     /** Cached realtime domain */

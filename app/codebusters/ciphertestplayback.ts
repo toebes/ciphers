@@ -320,7 +320,8 @@ export class CipherTestPlayback extends CipherTest {
             ihandler.attachInteractiveHandlers(
                 qnum,
                 (observableObject as ObservableObject) as RealTimeObject,
-                this.testTimeInfo
+                this.testTimeInfo,
+                undefined
             );
         } catch (e) {
             // Hmm a bug in the lower code.. Just show it and don't generate this question but at least

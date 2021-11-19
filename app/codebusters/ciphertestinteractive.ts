@@ -116,6 +116,7 @@ export class CipherTestInteractive extends CipherTest {
             hasMorse: false,
             hasPorta: false,
             qdata: [],
+            checkPaper: test.checkPaper,
         };
         // Clean up the custom header if it came in blank so we don't have anything undefined in the data structure
         if (!interactive.useCustomHeader) {

@@ -1,7 +1,14 @@
 import { ITestTimeInfo } from '../common/cipherhandler';
 import { InteractiveHandler } from './interactivehandler';
 import { formatTime } from '../common/ciphercommon';
-import { RealTimeObject, RealTimeNumber, NumberSetValueEvent } from '@convergence/convergence';
+import { RealTimeObject, RealTimeNumber, NumberSetValueEvent, RealTimeModel } from '@convergence/convergence';
+/** This handles the following ciphers:
+ *   Baconian
+ *   Patristocrat
+ *   Porta
+ *   TapCode
+ *   Vigenere
+ */
 
 export class InteractiveEncoder extends InteractiveHandler {
     /** Handler for our interval time which keeps checking that time is right */
@@ -92,13 +99,16 @@ export class InteractiveEncoder extends InteractiveHandler {
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
      * @param testTimeInfo Timing information for the current test.
+     * @param realtimeConidence RealtimeNumber for the confidence value associated with the question for this user
      */
     public attachInteractiveHandlers(
         qnum: number,
         realTimeElement: RealTimeObject,
-        testTimeInfo: ITestTimeInfo
+        testTimeInfo: ITestTimeInfo,
+        realtimeConfidence: RealTimeNumber
     ): void {
-        this.testTimeInfo = testTimeInfo;
+        this.setupConfidence(testTimeInfo, realtimeConfidence);
+
         let realtimeSolvetime = null;
         const qnumdisp = String(qnum + 1);
         const qdivid = '#Q' + qnumdisp + ' ';

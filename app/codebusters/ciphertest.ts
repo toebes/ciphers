@@ -1100,6 +1100,21 @@ export class CipherTest extends CipherHandler {
         }
         return changed;
     }
+    /**
+     * Record a checkPaper checkbox change
+     * @param checkPaper We want to check for any copy of a worked problem from paper
+     * @returns 
+     */
+    public setCheckPaper(checkPaper: boolean): boolean {
+        let changed = false;
+        const test = this.getTestEntry(this.state.test);
+        if (checkPaper !== test.checkPaper) {
+            changed = true;
+            test.checkPaper = checkPaper;
+            this.setTestEntry(this.state.test, test);
+        }
+        return changed;
+    }
     public checkXMLImport(): void {
         if (this.state.importURL !== undefined) {
             if (this.state.importURL !== '') {
@@ -1362,10 +1377,11 @@ export class CipherTest extends CipherHandler {
     public genTestTypeDropdown(
         id: string,
         title: string,
-        testtype: ITestType
+        testtype: ITestType,
+        sizeclass: string
     ): JQuery<HTMLElement> {
         const inputgroup = $('<div/>', {
-            class: 'input-group cell small-12 medium-12 large-12',
+            class: sizeclass,
         });
         $('<span/>', { class: 'input-group-label' })
             .text(title)

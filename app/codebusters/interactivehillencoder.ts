@@ -1,7 +1,10 @@
 import { ITestTimeInfo } from '../common/cipherhandler';
-import { RealTimeObject, RealTimeArray } from '@convergence/convergence';
+import { RealTimeObject, RealTimeArray, RealTimeNumber } from '@convergence/convergence';
 import { bindTextInput } from '@convergence/input-element-bindings';
 import { InteractiveEncoder } from './interactiveencoder';
+/** This handles the following ciphers:
+ *   Hill
+ */
 
 export class InteractiveHillEncoder extends InteractiveEncoder {
     /**
@@ -9,13 +12,16 @@ export class InteractiveHillEncoder extends InteractiveEncoder {
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
      * @param testTimeInfo Timing information for the current test.
+     * @param realtimeConidence RealtimeNumber for the confidence value associated with the question for this user
      */
     public attachInteractiveHandlers(
         qnum: number,
         realTimeElement: RealTimeObject,
-        testTimeInfo: ITestTimeInfo
+        testTimeInfo: ITestTimeInfo,
+        realtimeConfidence: RealTimeNumber
     ): void {
-        this.testTimeInfo = testTimeInfo;
+        this.setupConfidence(testTimeInfo, realtimeConfidence);
+
         const qnumdisp = String(qnum + 1);
 
         //

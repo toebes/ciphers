@@ -1,8 +1,10 @@
 import { ITestTimeInfo } from '../common/cipherhandler';
-import { RealTimeObject, RealTimeArray } from '@convergence/convergence';
-import { bindTextInput } from '@convergence/input-element-bindings';
+import { RealTimeObject, RealTimeArray, RealTimeNumber } from '@convergence/convergence';
 import { InteractiveEncoder } from './interactiveencoder';
 
+/** This handles the following ciphers:
+ *   Affine
+ */
 export class InteractiveAffineEncoder extends InteractiveEncoder {
     /**
      * Propagate an entry from the realtime system to the local interface
@@ -27,9 +29,16 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
      * @param testTimeInfo Timing information for the current test.
+     * @param realtimeConidence RealtimeNumber for the confidence value associated with the question for this user
      */
-    public attachInteractiveHandlers(qnum: number, realTimeElement: RealTimeObject, testTimeInfo: ITestTimeInfo): void {
-        this.testTimeInfo = testTimeInfo;
+    public attachInteractiveHandlers(
+        qnum: number,
+        realTimeElement: RealTimeObject,
+        testTimeInfo: ITestTimeInfo,
+        realtimeConfidence: RealTimeNumber
+    ): void {
+        this.setupConfidence(testTimeInfo, realtimeConfidence);
+
         const qnumdisp = String(qnum + 1);
         //
         // The "answer" portion is for the typed answer to the cipher
@@ -119,8 +128,8 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                             }
                             // Move the cursor to the end of the field
                             const length = String(next.val()).length;
-                            next.focus()
-                                .prop('selectionStart', length)
+                            this.setNext(next);
+                            next.prop('selectionStart', length)
                                 .prop('selectionEnd', length)
                             event.preventDefault();
                         }
@@ -133,8 +142,8 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                             next = focusables.eq(current + 1).length
                                 ? focusables.eq(current + 1)
                                 : focusables.eq(0);
-                            next.focus()
-                                .prop('selectionStart', 0)
+                            this.setNext(next);
+                            next.prop('selectionStart', 0)
                                 .prop('selectionEnd', 0)
 
                             event.preventDefault();
@@ -152,8 +161,8 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                             }
                             // Move the cursor to the end of the field
                             const length = String(next.val()).length;
-                            next.focus()
-                                .prop('selectionStart', length)
+                            this.setNext(next);
+                            next.prop('selectionStart', length)
                                 .prop('selectionEnd', length)
                         }
                     }
@@ -186,18 +195,11 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                             current = focusables.index(event.target);
                             if (current === 0) {
                                 next = focusables.last(); //Move to last text field
-                                next.focus();
+                                this.setNext(next);
                             } else if (pos === 0) {
                                 next = focusables.eq(current - 1); // Move to previous text field
-                                next.focus();
+                                this.setNext(next);
                             }
-                            // current = focusables.index(event.target);
-                            //     if (current === 0) {
-                            //         next = focusables.last(); //Move to last text field
-                            //     } else{
-                            //         next = focusables.eq(current - 1); // Move to previous text field
-                            //     }
-                            // next.focus();
                         } else if (event.which === 39) {
                             // right
                             current = focusables.index(event.target);
@@ -206,9 +208,8 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                                 next = focusables.eq(current + 1).length
                                     ? focusables.eq(current + 1)
                                     : focusables.eq(0);
-                                next.focus();
                             }
-                            next.focus();
+                            this.setNext(next);
                         } else if (event.which === 46 || event.which === 8) {
                             // Backspace and delete
                             this.markUndo(null);
@@ -219,7 +220,7 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                             } else {
                                 next = focusables.eq(current - 1);
                             }
-                            next.focus();
+                            this.setNext(next);
                         }
                         event.preventDefault();
                     });

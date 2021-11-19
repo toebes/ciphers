@@ -18,6 +18,7 @@ import {
     RealTimeObject,
     HistoricalNumber,
     NumberSetValueEvent,
+    ModelService,
 } from '@convergence/convergence';
 import { CipherInteractiveFactory } from './cipherfactory';
 import { JTTable } from '../common/jttable';
@@ -159,8 +160,18 @@ export class CipherTestPlayback extends CipherTest {
                 const fullmmsg = " Model starts at Version " + firstVersion + " Time=" + timestampToFriendly(firstTime) + " [" + firstTime + "] " +
                     " and ends at Version " + lastVersion + " Time=" + timestampToFriendly(lastTime) + " [" + lastTime + "] " +
                     " expected to go to " + timestampToFriendly(scrubTime) + " [" + scrubTime + "]";
-                this.reportFailure('Convergence API problem moving forward: ' + error + " --- " + fullmmsg);
+                if (String(error).indexOf("The requested model did not exist at the specified time") < 0) {
+                    this.reportFailure('Convergence API problem moving: ' + error + " --- " + fullmmsg);
+                }
                 this.inScrubTo = false;
+                // Move us to a known position
+                this.updatePlaybackClock(scrubTime);
+                if (this.answermodel.version() !== 1) {
+                    this.answermodel.playTo(1).then(() => {
+                    }).catch((error) => {
+                        this.reportFailure('Convergence API problem moving: ' + error);
+                    });
+                }
             });
     }
     /**
@@ -377,23 +388,142 @@ export class CipherTestPlayback extends CipherTest {
                         $("#idle" + idslot).text(this.computeOBT(idleTracker.value()));
                     }
                 }
+                const earliest = answermodel.minTime().getTime();
+                const latest = answermodel.maxTime().getTime();
+
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const elem = new Foundation.Slider($('#scrubslider'), {
                     start: answertemplate.starttime,
                     end: answertemplate.endtime,
-                    initialStart: answertemplate.endtime,
+                    initialStart: latest,
                 });
+                // Figure out the actual start and end times in the model
                 const target = $('.default-header');
                 target.hide();
+
+                this.CreateSliderHistogram(modelService, answermodel, answertemplate.starttime, answertemplate.endtime);
                 $('#scrubslider').on('changed.zf.slider', () => {
-                    const newTime = parseInt($('#scrubslider input').val() as string);
-                    this.scrubTo(newTime);
+                    let newTime = parseInt($('#scrubslider input').val() as string);
+                    let limitTime = newTime;
+                    if (limitTime < earliest) {
+                        limitTime = earliest;
+                    } else if (limitTime > latest) {
+                        limitTime = latest;
+                    }
+                    console.log("Slider dragto=" + newTime + " Limit to" + limitTime);
+                    this.scrubTo(limitTime);
+                    if (limitTime !== newTime) {
+                        $("#scrubslider input").val(limitTime).trigger('change');
+                    }
                 });
                 // If they close the window or navigate away, we want to close all our connections
                 $(window).on('beforeunload', () => this.shutdownTest());
                 this.openTestModel(testModelID);
             });
         });
+    }
+    /**
+     * Compute and display a historgram of where the test taker touched the test
+     * @param modelService ModelService for opening a new HistoricalModel
+     * @param playbackModel The model that we are opening a second copy of
+     * @param starttime The start time for the test
+     * @param endtime The end time for the test
+     */
+    async CreateSliderHistogram(modelService: ModelService, playbackModel: HistoricalModel, starttime: number, endtime: number) {
+        let pctstart = 0;
+        let pctend = 100;
+        const earliest = playbackModel.minTime().getTime();
+        const latest = playbackModel.maxTime().getTime();
+        const timerWidth = (endtime - starttime);
+
+        // Figure out where the start and end of the test is and make it a percentage
+        if (earliest >= starttime && earliest <= endtime) {
+            pctstart = (earliest - starttime) / timerWidth * 100;
+        }
+        if (latest >= starttime && earliest <= endtime) {
+            pctend = ((latest - starttime) / timerWidth * 100);//- pctstart;
+        }
+
+        // Make a second copy of the history model so that we can move around it without bothering the rest of the system
+        const answermodel = await modelService.history(playbackModel.modelId());
+        // Arbitrarily we are splitting the test into 5 second chunks for the histogram
+        const slots = 50 * (60 / 5);
+
+        // Collect the slot positions
+        let slotheight: number[][] = [];
+        // Start at the end of the model (which is where it opens up to)
+        let pos = answermodel.version();
+        let currentslot = -1;
+        let currentcount = 0;
+        let maxcount = 0;
+
+        // Create a SVG canvas for us to draw into
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', 'black');
+        svg.classList.add('slider-fill');
+        svg.classList.add('slider-ticks');
+        $("#scrubslider").append(svg);
+        // Put in a rectangle that corresponds to where all the events take place
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('fill', 'lightgreen');
+        rect.setAttribute('y', '30%');
+        rect.setAttribute('x', pctstart + '%');
+        rect.setAttribute('height', '40%');
+        rect.setAttribute('width', pctend + '%');
+        rect.setAttribute('stroke', 'none');
+        svg.append(rect);
+
+        // Go through the model and count how many events fall into each slot
+        while (pos > 0) {
+            // Figure out the time of the current event
+            let slottime = answermodel.time().getTime();
+            // And bucket it into a slot
+            let thisslot = Math.trunc(slots * (slottime - starttime) / timerWidth);
+            // See if we are on a different slot from the past event
+            if (thisslot !== currentslot) {
+                if (currentslot !== -1) {
+                    // If we actually had any previous data, then save it
+                    slotheight.push([currentslot, currentcount]);
+                    if (currentcount > maxcount) {
+                        // Remember the tallest one so we can scale appropriately
+                        maxcount = currentcount;
+                    }
+                    currentcount = 0;
+                }
+            }
+            // Remember the current slot and incremement the total count for next time
+            currentslot = thisslot;
+            currentcount++;
+            // Once we reach the end of the model, skip out
+            if (answermodel.version() === 1) {
+                break;
+            }
+            // Back up one version in the model
+            pos--;
+            if (pos > 0) {
+                await answermodel.backward();
+            }
+        }
+        // We computed all the slot heights, now go through and create the SVG elements which are mini lines
+        for (let slotdata of slotheight) {
+            // Get the saved data (slot and frequency)
+            let currentslot = slotdata[0];
+            let height = slotdata[1];
+            // Convert the frequency to an appropriately sized bar centered in the view
+            let pctheight = 100 * height / maxcount;
+            let top = (100 - pctheight) / 2;
+            let bottom = top + pctheight;
+            // And the x position is based on which slot we are on
+            let xpos = 100 * currentslot / slots;
+            // Create the line to hold the data and position it as calculated
+            let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', xpos + '%');
+            line.setAttribute('x2', xpos + '%');
+            line.setAttribute('y1', top + '%');
+            line.setAttribute('y2', bottom + '%');
+            svg.append(line);
+        }
     }
     /**
      * Open the test model for the test template.

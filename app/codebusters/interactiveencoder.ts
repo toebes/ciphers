@@ -117,12 +117,20 @@ export class InteractiveEncoder extends InteractiveHandler {
         if (qnum === -1) {
             realtimeSolvetime = realTimeElement.elementAt('solvetime') as RealTimeNumber;
             if (realTimeElement.hasKey('solvetime')) {
-                realtimeSolvetime.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => {
+                // If we are in playback mode, just update the solved time the first time we get in
+                if (realtimeConfidence === undefined) {
                     this.updateTimerCheckButton(realtimeSolvetime);
-                });
+                } else {
+
+                    realtimeSolvetime.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => {
+                        this.updateTimerCheckButton(realtimeSolvetime);
+                    });
+                }
             }
-            // Start the process for updating the check answer button
-            this.trackAnswerTime(realtimeSolvetime);
+            if (realtimeConfidence !== undefined) {
+                // Start the process for updating the check answer button
+                this.trackAnswerTime(realtimeSolvetime);
+            }
         }
         // Version 2 changes the array of strings to be a single string
         if (version === 2) {

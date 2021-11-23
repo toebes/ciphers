@@ -947,11 +947,15 @@ export class CipherTestTimed extends CipherTest {
         // Go through and ask all the questions if there is a confidence factor to consider
         let confidenceList = $("<ul/>");
         let needsConfidence = false
+        let requeststr = ""
+        let extra = ""
         for (const qnum in this.LoadedHandlers) {
             const handler = this.LoadedHandlers[qnum];
             let confidence = handler.checkConfidence();
             if (confidence > 20000) {
                 needsConfidence = true;
+                requeststr += extra + qnum
+                extra = ","
                 if (qnum === "0") {
                     confidenceList.append($("<li/>").text("Timed Question: Confidence=" + confidence));
                 } else {
@@ -973,12 +977,15 @@ export class CipherTestTimed extends CipherTest {
         this.setTestStatusMessage(message, this.testTimeInfo.endTime);
 
         if (this.checkPaper && needsConfidence) {
+            const result = $(".testcontent")
             const title = $("<h3/>").text("Paper Copy Confidence Values");
-            const callout = makeCallout(
-                $("<div/>")
-                    .append(title)
-                    .append(confidenceList), 'primary');
-            $('.testcontent').append(callout);
+            const calloutContent = $("<div/>")
+                .append(title)
+                .append(confidenceList);
+            this.displayUploadQR(calloutContent, this.state.testID, requeststr);
+
+            const callout = makeCallout(calloutContent, 'primary');
+            result.append(callout);
         }
         $('#topsplit').hide();
         $('.gutter-row-1').hide();

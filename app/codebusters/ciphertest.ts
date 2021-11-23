@@ -18,6 +18,7 @@ import { CipherPrintFactory } from './cipherfactory';
 import { AuthenticatingEvent, ConnectedEvent, ConnectingEvent, ConnectionFailedEvent, ConnectionScheduledEvent, ConvergenceDomain, DisconnectedEvent, IFallbackAuthChallenge, InterruptedEvent, LogLevel } from '@convergence/convergence';
 import Convergence = require('@convergence/convergence');
 import { anyMap, CBUpdateUserPermissions, StoreModelBody } from './api';
+import { makeSVGQR } from '../common/makesvgqr';
 
 export interface ConvergenceLoginParameters {
     username: string;
@@ -118,6 +119,8 @@ export interface ITestState extends IState {
     jwt?: string;
     /** Flag to not score results for use during national test to track OBT */
     preResults?: string;
+    /** Extra request for what is being uploaded from the test */
+    request?: string;
 }
 
 interface INewCipherEntry {
@@ -1946,6 +1949,45 @@ export class CipherTest extends CipherHandler {
                 }
             }
         }
+    }
+    /**
+     * Display the Upload QR code
+     * @param elem Place to put the instructions
+     * @param modelID Which model to load for
+     * @param extra Any extra details about what to upload
+     */
+    public displayUploadQR(elem: JQuery<HTMLElement>, modelID: string, extra: string): void {
+        const line2 = $('<div/>', { class: "attachline" });
+        const buttons = $('<div/>', { class: 'button-group round shrink' });
+        const host = window.location.host
+        const protocol = window.location.protocol
+        const path = window.location.pathname
+        // the path will be either "codebusters/xxx.html" or "xxx.html"
+        // Basically we want to delete everything after the last / (if it exists)
+        // and replace it with TestAttach.html
+        let newpath = path.replace(/\/[^\/]*$/, "")
+        if (newpath !== "") {
+            newpath += "/";
+        }
+        let uri = protocol + "//" + host + "/" + newpath + "TestAttach.html?testID=" + modelID;
+        if (extra !== "") {
+            uri += "&request=" + encodeURIComponent(extra);
+        }
+        // Put up a button to click to attach..
+        buttons.append(
+            $('<a/>', {
+                type: 'button',
+                class: 'button',
+                href: uri
+            }).text('Attach Images for this test'));
+        const instructions = $('<span/>', { class: 'btext' })
+            .append(buttons)
+            .append($('<p/>').text("You can also scan this QR code on your phone to upload images for the test"))
+        line2.append(instructions)
+        const svgQR = makeSVGQR(uri + modelID);
+        svgQR.classList.add("qrinst")
+        line2.append(svgQR)
+        elem.append(line2);
     }
     public attachHandlers(): void {
         super.attachHandlers();

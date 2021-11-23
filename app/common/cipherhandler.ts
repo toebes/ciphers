@@ -11,7 +11,7 @@ import { InitStorage, JTStorage } from './jtstore';
 import { JTTable, JTRow } from './jttable';
 import { parseQueryString } from './parsequerystring';
 import { textStandard } from '../common/readability';
-import { RealTimeModel, RealTimeNumber, RealTimeObject } from '@convergence/convergence';
+import { RealTimeNumber, RealTimeObject } from '@convergence/convergence';
 import { TrueTime } from './truetime';
 import { API } from '../codebusters/api';
 import { JTFIncButton } from './jtfIncButton';

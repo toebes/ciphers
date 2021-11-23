@@ -39,6 +39,7 @@ import { CipherTestPlayback } from './ciphertestplayback';
 import { CipherLogin } from './cipherlogin';
 import { CipherMaintenance } from './ciphermaintenance'
 import { CipherScilympiad } from './cipherscilympiad';
+import { CipherTestAttach } from './ciphertestattach';
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -199,6 +200,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     TestInteractive: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestInteractive,
+        interactiveClass: CipherHandler,
+        canPrint: false,
+    },
+    TestAttach: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestAttach,
         interactiveClass: CipherHandler,
         canPrint: false,
     },

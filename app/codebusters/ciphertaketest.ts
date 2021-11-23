@@ -27,7 +27,7 @@ export class CipherTakeTest extends CipherTest {
     public cmdButtons: JTButtonItem[] = [];
 
     /** Handler for our interval time which keeps checking that time is right */
-    private IntervalTimer: number = undefined;
+    public IntervalTimer: number = undefined;
     private lastDelta: number = 0;
 
     /**
@@ -80,6 +80,9 @@ export class CipherTakeTest extends CipherTest {
         this.setMenuMode(menuMode.test);
         $('.testlist').replaceWith(this.genTestList());
         // Start a process to check the time and update the display at least once a second
+        if (this.IntervalTimer !== undefined) {
+            clearInterval(this.IntervalTimer);
+        }
         this.IntervalTimer = window.setInterval(() => {
             this.checkTime();
         }, timestampFromSeconds(1));
@@ -110,34 +113,7 @@ export class CipherTakeTest extends CipherTest {
                 .add('Team')
                 .add('Type');
             result.append(table.generate());
-            const domain = this.getConvergenceDomain();
-            if (domain === 'scienceolympiad') {
-                // const callout = $('<div/>', {
-                //     class: 'divtest callout primary',
-                // }).append($("<p/>", { class: "h2" }).append($("<b/>").text("You are almost there!")))
-                //     .append($("<p/>", { class: "h4" }).text("For the state test, you must click the appropriate link below. ")
-                //         .append($("<em/>").text("Please note, you may have to log in again to access the test domain.")))
-                //     .append($("<ul/>")
-                //         .append($("<li/>", { class: "h3" }).append(
-                //             $("<a/>", { href: "https://ncb.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division B State Test"))
-                //         )
-                //         .append($("<li/>", { class: "h3" }).append(
-                //             $("<a/>", { href: "https://ncc.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division C State Test"))
-                //         )
-                //     )
-                // result.append(callout)
-            } else if (domain === 'ncbscienceolympiad') {
-                $("h2").text("North Carolina Division A and B Codebusters Tests")
-                result
-                    .append($("<p/>"))
-                    .append($("<a/>", { href: "https://toebes.com/codebusters/TakeTest.html" }).text("Go back to main Codebusters Site"))
-
-            } else if (domain === 'nccscienceolympiad') {
-                $("h2").text("North Carolina Division C Codebusters Tests")
-                result
-                    .append($("<p/>"))
-                    .append($("<a/>", { href: "https://toebes.com/codebusters/TakeTest.html" }).text("Go back to main Codebusters Site"))
-            }
+            this.DisplayDomainTitle(result);
             this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                 this.findAllTests(domain);
             });
@@ -145,10 +121,45 @@ export class CipherTakeTest extends CipherTest {
         return result;
     }
     /**
+     * 
+     * @param result Place to put the title
+     */
+    public DisplayDomainTitle(result: JQuery<HTMLElement>) {
+        const domain = this.getConvergenceDomain();
+        if (domain === 'scienceolympiad') {
+            // const callout = $('<div/>', {
+            //     class: 'divtest callout primary',
+            // }).append($("<p/>", { class: "h2" }).append($("<b/>").text("You are almost there!")))
+            //     .append($("<p/>", { class: "h4" }).text("For the state test, you must click the appropriate link below. ")
+            //         .append($("<em/>").text("Please note, you may have to log in again to access the test domain.")))
+            //     .append($("<ul/>")
+            //         .append($("<li/>", { class: "h3" }).append(
+            //             $("<a/>", { href: "https://ncb.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division B State Test"))
+            //         )
+            //         .append($("<li/>", { class: "h3" }).append(
+            //             $("<a/>", { href: "https://ncc.toebes.com/codebusters/TakeTest.html" }).text("North Carolina Division C State Test"))
+            //         )
+            //     )
+            // result.append(callout)
+        } else if (domain === 'ncbscienceolympiad') {
+            $("h2").text("North Carolina Division A and B Codebusters Tests");
+            result
+                .append($("<p/>"))
+                .append($("<a/>", { href: "https://toebes.com/codebusters/TakeTest.html" }).text("Go back to main Codebusters Site"));
+
+        } else if (domain === 'nccscienceolympiad') {
+            $("h2").text("North Carolina Division C Codebusters Tests");
+            result
+                .append($("<p/>"))
+                .append($("<a/>", { href: "https://toebes.com/codebusters/TakeTest.html" }).text("Go back to main Codebusters Site"));
+        }
+    }
+
+    /**
      * Find all the test sources on the server
      * @param domain Convergence Domain to query against
      */
-    private findAllTests(domain: ConvergenceDomain): void {
+    public findAllTests(domain: ConvergenceDomain): void {
         const modelService = domain.models();
         // We know that we are logged in because the toplevel routine confirms it, but
         // just incase we still need a default for the userid

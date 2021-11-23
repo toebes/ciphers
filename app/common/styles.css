@@ -22,6 +22,23 @@ table.sticky thead tr th {
     top: 0;
 }
 
+div.attachline {
+    display: inline-block;
+}
+
+.attachline .btext {
+    vertical-align: middle;
+    display:inline-block;
+    text-align: center;
+    width:200px;
+}
+
+.attachline .qrinst {
+    background: white;
+    height: 400px;
+    vertical-align: middle;
+}
+
 .slider-ticks {
     z-index: 2;
     background: none;
@@ -55,6 +72,10 @@ li.purge {
     border:2px dashed red !important;
 }
 
+.qrinst {
+    display: inline-block;
+    height: 400px;
+}
 .hidden,
 .qplain {
     display: none;

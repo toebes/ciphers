@@ -1297,6 +1297,15 @@ button.rounded {
     z-index: 3;
 }
 
+.countdown {
+    font-size: 24pt;
+}
+.countdown .ctime {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    background-color: yellow;
+}
+
 .timer {
     position: fixed;
     right: 20px;

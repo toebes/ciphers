@@ -1,16 +1,44 @@
 import { ConvergenceDomain } from '@convergence/convergence';
-import { timestampFromMinutes, makeCallout } from '../common/ciphercommon';
+import { timestampFromMinutes, makeCallout, formatTime } from '../common/ciphercommon';
 import { CipherTakeTest } from './ciphertaketest';
-import { IAnswerTemplate } from './ciphertest';
+import { IAnswerTemplate, ITestState } from './ciphertest';
 
 
 /* The number of minutes after a test that they can still submit */
-const AttachTimeLimit = 1000;
+const AttachTimeLimit = 120;
 /**
  * CipherTestAttach
  *  Allows attaching an image to a previously taken test.
  */
 export class CipherTestAttach extends CipherTakeTest {
+    public targetTime: number = undefined;
+    /**
+     * Restore the state from either a saved file or a previous undo record
+     * @param data Saved state to restore
+     */
+    public restore(data: ITestState, suppressOutput = false): void {
+        super.restore(data, suppressOutput);
+        if (this.state.request === "") {
+            this.state.request = undefined;
+        }
+    }
+    /**
+     * checkTime is called on a regular interval to confirm that the clock on the computer is set correctly
+     * it uses the truetime class to figure out the actual time from the server.  if the time is
+     * off by more than 10 seconds, we let them know that they can fix their clock
+     */
+    public checkTime(): void {
+        super.checkTime();
+        if (this.targetTime !== undefined) {
+            const now = this.truetime.UTCNow();
+            if (this.targetTime < now) {
+                location.reload();
+            } else {
+                const remain = this.targetTime - now;
+                $(".ctime").text(formatTime(remain))
+            }
+        }
+    }
     /**
      * Generates a list of all the tests on the server in a table.
      * @returns HTML content of list of tests
@@ -25,10 +53,6 @@ export class CipherTestAttach extends CipherTakeTest {
             this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                 this.findAllTests(domain);
             });
-        } else {
-            result.append($("<h2/>").text("Attach images here:"))
-            // result.append($("<input/>", { type: "file", accept: "image/*", capture: "camera" }));
-            result.append($("<input/>", { type: "file", accept: "image/*", "multiple": true }));
         }
         return result;
     }
@@ -115,8 +139,8 @@ export class CipherTestAttach extends CipherTakeTest {
                 return true;
             } else if (testid === answerModelID) {
                 // This is the one that they asked for.. Put up the UI for attaching
-                result.append($("<h2/>").text("Attach images here:"))
-                result.append($("<input/>", { type: "file", accept: "image/*", capture: "camera" }));
+                this.targetTime = answertemplate.endtime + timestampFromMinutes(AttachTimeLimit);
+                result.append(this.buildUploadUI());
                 return true;
             }
             // This is a test that is possible, but they are asking for a different test
@@ -147,6 +171,92 @@ export class CipherTestAttach extends CipherTakeTest {
             result.append(makeCallout(message, 'alert'));
         }
         return true;
+    }
+    /**
+     * Show the upload template for attaching images
+     * @param endtime Time limit for uploading the images
+     * @returns 
+     */
+    public buildUploadUI(): JQuery<HTMLElement> {
+        let prompt = $("<div/>");
+        let prompttext = "Attach images here"
+        // Figure out what questions we are prompting them for
+        let needed = "";
+        if (this.state.request !== undefined) {
+            prompttext = "Please upload a picture of your paper work for the following question";
+            // the list is the request separated by commas
+            const needs = this.state.request.split(',');
+            let extra = "";
+            for (const qnum of needs) {
+                // If we have more than one, change the question to be questions
+                if (extra === "") {
+                    prompttext += "s";
+                }
+                // After the first one, we put a comma in front of each item
+                needed += extra;
+                extra = ", ";
+                // Question 0 is special - it is the Timed question
+                if (qnum === "0") {
+                    needed += "Timed Question";
+                } else {
+                    needed += "Question " + qnum;
+                }
+            }
+        }
+        // See if we actually have questions identified to upload images for.
+        // If not, just use a generic message
+        prompt.append($("<h3>").text(prompttext + ": " + needed));
+        // Give them a countdown timer 
+        prompt.append($("<div/>", { class: "countdown" }).text("Time Remaining: ")
+            .append($("<span/>", { class: "ctime" }))
+        );
+        // Here's the input button for browsing a file
+        prompt.append($("<input/>", { class: 'paperimg', type: "file", accept: "image/*", capture: "camera" }));
+        // Plus we give them a button to add another input field
+        prompt.append($("<button/>", { class: 'dupinput button small rounded' }).text('Add another image'));
+        prompt.append($("<br/>"));
+        // And the most important button to submit to the server
+        prompt.append($("<button/>", { class: 'subimage alert button rounded' }).text('Submit Images'));
+        // Something that might be useful is to show a preview of the images
+        // https://stackoverflow.com/questions/25699159/how-to-browse-multiple-image-or-file-in-jquery
+        // has a really nice sample showing how
+        return makeCallout(prompt, 'primary');
+    }
+    /**
+     * Add another image selecting input button
+     * @param target Button requesting the action
+     */
+    public dupInput(target: HTMLElement): void {
+        $(target).before($("<input/>", { class: 'paperimg', type: "file", accept: "image/*", capture: "camera" }));
+    }
+    /**
+     * Submit the images to the server
+     */
+    public submitImages(): void {
+        // Dump out a list of all the files being uploaded
+        $('.paperimg').each((i, elem) => { console.log($(elem).val()) })
+        // TODO:
+        // Submit them
+        //  this.state.testID is the test we are submitting it for
+        //  const userid = this.getConfigString('userid', 'NOBODY');
+        //  this.targettime is when it should have been submitted by
+        alert("Submitting Images");
+    }
+    /**
+     * Attach all the UI handlers for created DOM elements
+     */
+    public attachHandlers(): void {
+        super.attachHandlers();
+        $('.subimage')
+            .off('click')
+            .on('click', (e) => {
+                this.submitImages();
+            });
+        $('.dupinput')
+            .off('click')
+            .on('click', (e) => {
+                this.dupInput(e.target);
+            });
     }
 
 }

@@ -910,7 +910,9 @@ div.sols .sol {
     font-family: 'Courier New', Courier, monospace;
 }
 
-#qtext {
+#qtext.richtext,
+#texta.richtext,
+#textb.richtext {
     border: 1px solid #cacaca;
 }
 

@@ -20,6 +20,7 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
+import { decodeHTML } from 'entities';
 
 const baconMap: StringMap = {
     A: 'AAAAA',
@@ -88,6 +89,11 @@ interface IBaconianState extends IEncoderState {
      * Note that any punctuation is included at the end of the string
      */
     words: string[];
+}
+interface encodeLine {
+    plaintext: string[];
+    baconian: string[];
+    ciphertext: string[];
 }
 /**
  * CipherBaconianEncoder - This class handles all of the actions associated with encoding
@@ -269,8 +275,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public updateOutput(): void {
         $('.opfield').hide();
         $('.' + this.state.operation).show();
-        $('#texta').val(this.state.texta);
-        $('#textb').val(this.state.textb);
+        this.setRichText('texta', this.state.texta);
+        this.setRichText('textb', this.state.textb);
         $('#linewidth').val(this.state.linewidth);
         const abmap = this.getABMap();
         for (const c in abmap) {
@@ -286,7 +292,58 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public init(lang: string): void {
         super.init(lang);
     }
-    public makeReplacement(str: string, maxEncodeWidth: number): string[][] {
+    /**
+     * Parse out an A/B set into an array of strings.
+     * Note that we have to do this because some characters actually are comprised of
+     * two UTF characters (high surrogates/low surrogates)
+     *   see:  https://dmitripavlutin.com/what-every-javascript-developer-should-know-about-unicode/
+     *   and: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/codePointAt
+     * We also need to include trailing spaces with the characters so that they display well.
+     * @param text A/B text to split out
+     * @returns Array of strings
+     */
+    public buildset(text: string): string[] {
+        // First we need to get rid of all the HTML elements in the string
+        const remain = decodeHTML(text.replace(/<[^>]*>/g, '')).replace(/[\s\xa0]+/g, ' ')
+        // All the entities need to be converted 
+        let result: string[] = [];
+        let lastc = undefined;
+        let highsurrogate = false;
+        for (let c of remain) {
+            if (highsurrogate) {
+                lastc += c;
+                highsurrogate = false;
+            } else if (/[\uD800-\uDFFF]/.test(c)) {
+                if (lastc !== undefined) {
+                    result.push(lastc);
+                }
+                highsurrogate = true;
+                lastc = c;
+            } else if (c === ' ') {
+                if (lastc === undefined) {
+                    lastc = c
+                } else {
+                    lastc += c
+                }
+            } else {
+                if (lastc !== undefined) {
+                    result.push(lastc);
+                }
+                lastc = c;
+            }
+        }
+        if (lastc !== undefined) {
+            result.push(lastc);
+        }
+        return result;
+    }
+    /**
+     * 
+     * @param str 
+     * @param maxEncodeWidth 
+     * @returns 
+     */
+    public makeBaconianReplacement(str: string, maxEncodeWidth: number): encodeLine[] {
         const langreplace = this.langreplace[this.state.curlang];
         // Since the word baconian is so different, we break it out to a different routine
         if (this.state.operation === 'words') {
@@ -294,10 +351,13 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         let sourceline = '';
         let baconline = '';
-        let encodeline = '';
-        const result: string[][] = [];
+        let encodeline: string[] = [];
+        const result: encodeLine[] = [];
         const letpos: NumberMap = { A: 0, B: 0 };
         let sharedpos = 0;
+        // Build up a proper set for the a and b strings
+        let aset = this.buildset(this.state.texta);
+        let bset = this.buildset(this.state.textb);
         for (let t of str) {
             // See if the character needs to be mapped.
             if (typeof langreplace[t] !== 'undefined') {
@@ -310,32 +370,29 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 baconline += bacontext;
                 for (const ab of bacontext) {
                     if (this.state.operation === 'let4let') {
-                        let abstring = this.state.texta;
+                        let abset = aset;
                         if (ab !== 'A') {
-                            abstring = this.state.textb;
+                            abset = bset;
                         }
                         let pos = letpos[ab];
-                        if (pos >= abstring.length) {
+                        if (pos >= abset.length) {
                             pos = 0;
                         }
-                        encodeline += abstring.substr(pos, 1);
+                        encodeline.push(abset[pos]);
                         pos++;
                         letpos[ab] = pos;
                     } else if (this.state.operation === 'sequence') {
-                        let abstring = this.state.texta;
+                        let abset = aset;
                         if (ab !== 'A') {
-                            abstring = this.state.textb;
+                            abset = bset;
                         }
-                        if (sharedpos >= abstring.length) {
+                        if (sharedpos >= abset.length) {
                             sharedpos = 0;
                         }
-                        encodeline += abstring.substr(sharedpos, 1);
+                        encodeline.push(abset[sharedpos]);
                         sharedpos++;
                     } else {
-                        // Words
-                        sourceline += ' ';
-                        baconline += ' ';
-                        encodeline += bacontext;
+                        // Words - this code never gets executed
                     }
                 }
             }
@@ -345,16 +402,26 @@ export class CipherBaconianEncoder extends CipherEncoder {
             if (encodeline.length >= maxEncodeWidth) {
                 const sourcepart = sourceline.substr(0, maxEncodeWidth);
                 const baconpart = baconline.substr(0, maxEncodeWidth);
-                const encodepart = encodeline.substr(0, maxEncodeWidth);
+                const encodepart = encodeline.slice(0, maxEncodeWidth);
                 sourceline = sourceline.substr(maxEncodeWidth);
                 baconline = baconline.substr(maxEncodeWidth);
-                encodeline = encodeline.substr(maxEncodeWidth);
-                result.push([sourcepart, baconpart, encodepart]);
+                encodeline = encodeline.slice(maxEncodeWidth);
+                result.push({
+                    plaintext: sourcepart.split(''),
+                    baconian: baconpart.split(''),
+                    ciphertext: encodepart
+                });
             }
         }
         // and add any residual parts
         if (encodeline.length > 0) {
-            result.push([sourceline, baconline, encodeline]);
+            result.push(
+
+                {
+                    plaintext: sourceline.split(''),
+                    baconian: baconline.split(''),
+                    ciphertext: encodeline
+                })
         }
         return result;
     }
@@ -393,6 +460,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
+        console.log("genPreCommands")
         const result = $('<div/>');
         // Show them what tests the question is used on
         this.genTestUsage(result);
@@ -433,7 +501,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         result.append(
             JTFLabeledInput(
                 'A Text',
-                'text',
+                'richtext',
                 'texta',
                 this.state.texta,
                 'small-12 medium-6 large-6 opfield let4let sequence'
@@ -442,7 +510,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         result.append(
             JTFLabeledInput(
                 'B Text',
-                'text',
+                'richtext',
                 'textb',
                 this.state.textb,
                 'small-12 medium-6 large-6 opfield let4let sequence'
@@ -619,22 +687,22 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>');
         const cipherString = this.getEncodingString();
-        const strings = this.makeReplacement(cipherString, this.getEncodeWidth());
+        const strings = this.makeBaconianReplacement(cipherString, this.getEncodeWidth());
         for (const strset of strings) {
             result.append(
                 $('<div/>', {
                     class: 'BACON TOSOLVE',
-                }).text(strset[2])
+                }).text(strset.ciphertext.join(''))
             );
             result.append(
                 $('<div/>', {
                     class: 'BACON TOSOLVE2',
-                }).text(strset[1])
+                }).text(strset.baconian.join(''))
             );
             result.append(
                 $('<div/>', {
                     class: 'BACON TOANSWER',
-                }).text(strset[0])
+                }).text(strset.plaintext.join(''))
             );
         }
         result.append(
@@ -649,8 +717,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @param str String to encode
      * @param maxEncodeWidth Maximum line length
      */
-    public makeWordReplacement(str: string, maxEncodeWidth: number): string[][] {
-        const result: string[][] = [];
+    public makeWordReplacement(str: string, maxEncodeWidth: number): encodeLine[] {
+        const result: encodeLine[] = [];
         this.buildWordMap();
         this.buildBaconianWordList(str);
         let wordline = '';
@@ -690,11 +758,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 prefix === '.' ||
                 wordline.length + resword.length + prefix.length > maxEncodeWidth
             ) {
-                result.push([
-                    decodeline + padToMatch('', prefix),
-                    baconline + prefix,
-                    wordline + prefix,
-                ]);
+                result.push({
+                    plaintext: (decodeline + padToMatch('', prefix)).split(''),
+                    baconian: (baconline + prefix).split(''),
+                    ciphertext: (wordline + prefix).split(''),
+                });
                 wordline = resword;
                 baconline = baconian;
                 decodeline = decode;
@@ -710,7 +778,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
         if (wordline !== '') {
-            result.push([decodeline, baconline, wordline]);
+            result.push({
+                plaintext: decodeline.split(''),
+                baconian: baconline.split(''),
+                ciphertext: wordline.split('')
+            });
         }
         return result;
     }
@@ -720,12 +792,12 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>');
-        const strings = this.makeReplacement(this.getEncodingString(), this.getEncodeWidth());
+        const strings = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
         for (const strset of strings) {
             result.append(
                 $('<div/>', {
                     class: 'BACON TOSOLVEQ',
-                }).text(strset[2])
+                }).text(strset.ciphertext.join(''))
             );
         }
         return result;
@@ -735,17 +807,16 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @param strings Array of string arrays to output
      * @param qnum Question number that the table is for
      */
-    public genInteractiveBaconianTable(strings: string[][], qnum: number): JQuery<HTMLElement> {
+    public genInteractiveBaconianTable(strings: encodeLine[], qnum: number): JQuery<HTMLElement> {
         const qnumdisp = String(qnum + 1);
         const table = new JTTable({ class: 'ansblock cipherint baconian SOLVER' });
         let pos = 0;
-        const stringindex = 2;
         const inputidbase = 'I' + qnumdisp + '_';
         const spcidbase = 'S' + qnumdisp + '_';
         const workidbase = 'R' + qnumdisp + '_';
 
         for (const splitLines of strings) {
-            const cipherline = splitLines[stringindex];
+            const cipherline = splitLines.ciphertext;
             // We need to generate a row of lines for each split up cipher text
             // The first row is the cipher text
             const rowcipher = table.addBodyRow();
@@ -813,7 +884,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
         const qnumdisp = String(qnum + 1);
         const result = $('<div/>', { id: 'Q' + qnumdisp });
-        const strings = this.makeReplacement(this.getEncodingString(), this.getEncodeWidth());
+        const strings = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
 
         result.append(this.genInteractiveBaconianTable(strings, qnum));
 
@@ -826,7 +897,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public genScore(answerlong: string[]): IScoreInformation {
         // Get what the question layout was so we can extract the answer
-        const strings = this.makeReplacement(this.getEncodingString(), this.getEncodeWidth());
+        const strings = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
 
         const solution: string[] = [];
         const answer: string[] = [];
@@ -899,22 +970,61 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
+
         $('#texta')
-            .off('input')
-            .on('input', (e) => {
-                const texta = $(e.target).val() as string;
-                this.markUndo(null);
-                if (this.setTexta(texta)) {
-                    this.updateOutput();
+            .off('richchange')
+            .on('richchange', (e, newtext) => {
+                const texta = newtext;
+                let oldtexta = this.state.texta;
+                if (oldtexta === undefined) {
+                    oldtexta = '';
+                }
+                if (texta !== oldtexta) {
+                    let oldtexta2 = oldtexta;
+                    if (oldtexta === '') {
+                        oldtexta2 = '&nbsp;';
+                    }
+                    // Don't push an undo operation if all that happened was that the
+                    // rich text editor put a paragraph around our text
+                    if (
+                        texta !== '<p>' + oldtexta + '</p>' &&
+                        texta !== '<p>' + oldtexta2 + '</p>'
+                    ) {
+                        this.markUndo('texta');
+                    }
+                    if (this.setTexta(texta)) {
+                        // Don't call UpdateOutput() because it will recreate the RichText Input and move the cursor
+                        // Instead this.load() does all the work we need
+                        this.load();
+                    }
                 }
             });
         $('#textb')
-            .off('input')
-            .on('input', (e) => {
-                const textb = $(e.target).val() as string;
-                this.markUndo(null);
-                if (this.setTextb(textb)) {
-                    this.updateOutput();
+            .off('richchange')
+            .on('richchange', (e, newtext) => {
+                const textb = newtext;
+                let oldtextb = this.state.textb;
+                if (oldtextb === undefined) {
+                    oldtextb = '';
+                }
+                if (textb !== oldtextb) {
+                    let oldtextb2 = oldtextb;
+                    if (oldtextb === '') {
+                        oldtextb2 = '&nbsp;';
+                    }
+                    // Don't push an undo operation if all that happened was that the
+                    // rich text editor put a paragraph around our text
+                    if (
+                        textb !== '<p>' + oldtextb + '</p>' &&
+                        textb !== '<p>' + oldtextb2 + '</p>'
+                    ) {
+                        this.markUndo('textb');
+                    }
+                    if (this.setTextb(textb)) {
+                        // Don't call UpdateOutput() because it will recreate the RichText Input and move the cursor
+                        // Instead this.load() does all the work we need
+                        this.load();
+                    }
                 }
             });
         $('.abclick')

@@ -73,6 +73,7 @@
         "datatables": "^1.10.18",
         "datatables.net-plugins": "^1.10.24",
         "datatables.net-zf": "^1.10.25",
+        "entities": "^3.0.1",
         "es5-shim": "^4.5.15",
         "es6-shim": "^0.35.6",
         "flatpickr": "^4.6.9",

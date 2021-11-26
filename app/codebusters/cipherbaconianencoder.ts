@@ -90,11 +90,32 @@ interface IBaconianState extends IEncoderState {
      */
     words: string[];
 }
-interface encodeLine {
+/**
+ * A single encoded line.  The Arrays of strings should all be the same length
+ * and represent the mapping between the plain text characters and the cipher text characters
+ * Note for a word baconian, only one in five plain text characters will be non blank.
+ */
+interface encodedLine {
+    /* The original plain text before encoding */
     plaintext: string[];
+    /* The corresponding baconian letter */
     baconian: string[];
+    /* The encoded cipher text */
     ciphertext: string[];
+
 }
+/**
+ * A set of encode lines split based on the nominal line length
+ */
+interface encodedLines {
+    /* These are the output lines split based on the line length */
+    lines: encodedLine[];
+    /* For convenience we also break it into words ignorning line length */
+    plainword: string[];
+    baconword: string[];
+    cipherword: string[];
+}
+
 /**
  * CipherBaconianEncoder - This class handles all of the actions associated with encoding
  * a Baconian cipher.
@@ -278,11 +299,13 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.setRichText('texta', this.state.texta);
         this.setRichText('textb', this.state.textb);
         $('#linewidth').val(this.state.linewidth);
+        $('#crib').val(this.state.crib);
         const abmap = this.getABMap();
         for (const c in abmap) {
             $('#l' + c).text(abmap[c]);
         }
         JTRadioButtonSet('operation', this.state.operation);
+        this.validateQuestion();
         super.updateOutput();
         this.updateWordSelects();
     }
@@ -343,7 +366,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @param maxEncodeWidth 
      * @returns 
      */
-    public makeBaconianReplacement(str: string, maxEncodeWidth: number): encodeLine[] {
+    public makeBaconianReplacement(str: string, maxEncodeWidth: number): encodedLines {
         const langreplace = this.langreplace[this.state.curlang];
         // Since the word baconian is so different, we break it out to a different routine
         if (this.state.operation === 'words') {
@@ -352,7 +375,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let sourceline = '';
         let baconline = '';
         let encodeline: string[] = [];
-        const result: encodeLine[] = [];
+        const result: encodedLines = { lines: [], baconword: [], cipherword: [], plainword: [] };
         const letpos: NumberMap = { A: 0, B: 0 };
         let sharedpos = 0;
         // Build up a proper set for the a and b strings
@@ -406,7 +429,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 sourceline = sourceline.substr(maxEncodeWidth);
                 baconline = baconline.substr(maxEncodeWidth);
                 encodeline = encodeline.slice(maxEncodeWidth);
-                result.push({
+                result.lines.push({
                     plaintext: sourcepart.split(''),
                     baconian: baconpart.split(''),
                     ciphertext: encodepart
@@ -415,8 +438,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         // and add any residual parts
         if (encodeline.length > 0) {
-            result.push(
-
+            result.lines.push(
                 {
                     plaintext: sourceline.split(''),
                     baconian: baconline.split(''),
@@ -456,6 +478,130 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.attachHandlers();
     }
     /**
+     * Check for any errors we can find in the question
+     */
+    public validateQuestion(): void {
+        let msg = '';
+        let sampleLink: JQuery<HTMLElement> = undefined;
+        if (this.state.operation === 'words') {
+            const crib = this.minimizeString(this.state.crib).toUpperCase();
+            if (crib !== '') {
+                const cribpos = this.placeCrib();
+                if (cribpos !== undefined) {
+                    const questionText = this.minimizeString(this.state.question.toUpperCase());
+                    if (questionText.match("this.state.crib") === null) {
+                        msg =
+                            'The Question Text does not specify how the Crib letters ' +
+                            this.state.crib +
+                            ' are used';
+                    }
+                }
+            }
+        }
+        if (msg !== '') {
+            sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
+        }
+        this.setErrorMsg(msg, 'vq', sampleLink);
+
+    }
+    /**
+     * Generates the sample question text for a cipher
+     * @returns HTML as a string
+     */
+    public genSampleQuestionText(): string {
+        let msg = '';
+        if (this.state.operation !== 'words') {
+            msg = '<p>The following symbols encode a quote using a Baconian cipher</p>';
+        } else {
+            msg = '<p>The following strange headlines encode a quote using a Baconian cipher. ';
+            const plaintext = this.minimizeString(this.getEncodingString());
+            const criblook = this.minimizeString(this.state.crib);
+            if (criblook.length > 0) {
+                const cribpos = this.placeCrib();
+                if (cribpos === 0) {
+                    msg += "You are told that the deciphered text starts with " +
+                        this.genMonoText(this.state.crib);
+                } else if (cribpos === (plaintext.length - criblook.length)) {
+                    msg += "You are told that the deciphered text ends with " +
+                        this.genMonoText(this.state.crib);
+                } else if (cribpos === 1) {
+                    msg += "You are told that the deciphered text starts with a single letter followed by " +
+                        this.genMonoText(this.state.crib);
+                } else {
+                    // Not at the begining or the end
+                    msg += "You are told that the deciphered text contains " +
+                        this.genMonoText(this.state.crib) + " somewhere";
+                }
+            }
+            msg += "</p>";
+        }
+        return msg;
+    }
+    /**
+     * Locate the crib in the cipher and return the corresponding cipher text
+     * characters
+     * @param encoding Encoded cipher set
+     * @param crib string to look for
+     * @returns String containing Cipher text characters correspond to the crib
+     */
+    public placeCrib(): number {
+        // If they haven't given us a crib, then we don't have to worry about placing it
+        if (this.state.crib === undefined || this.state.crib === '') {
+            return 0;
+        }
+        const plaintext = this.minimizeString(this.getEncodingString());
+        const criblook = this.minimizeString(this.state.crib);
+        // See if the crib occurs anywhere in the cipher string
+        let pos = plaintext.search(criblook);
+        // If not found then we are done
+        if (pos < 0) {
+            return undefined;
+        }
+        // if we find the crib, just make sure there isn't a second copy at the end
+        if (pos > 0 && pos < (plaintext.length - criblook.length)) {
+            if (!plaintext.substr(plaintext.length - criblook.length).localeCompare(criblook)) {
+                pos = plaintext.length - criblook.length;
+            }
+        }
+        return pos;
+    }
+    /**
+     * Check to see that the Crib can be laced in the cipher
+     * @param result The place to put any error messages
+     * @param encoded The encoded content to check
+     */
+    public checkHintCrib(result: JQuery<HTMLElement>, encoded: encodedLines): void {
+        let hint = this.state.hint;
+        if (hint === undefined) {
+            hint = '';
+        }
+        let msg = '';
+
+        // The crib is only used for the words baconian
+        if (this.state.operation === 'words') {
+            // Make sure we can find the crib
+            const cribpos = this.placeCrib();
+            if (cribpos === undefined) {
+                msg = 'Unable to find placement of the crib';
+                result.append(
+                    $('<h4/>').text('Unable to find placement of the crib: ' + this.state.crib)
+                );
+            }
+            // Go through and figure out what letters we have mapped with the hint
+            $(".hinted").removeClass("hinted");
+            const criblen = this.minimizeString(this.state.crib).length;
+            for (let i = cribpos; i < cribpos + criblen; i++) {
+                //lB
+                let ciphertext = this.minimizeString(encoded.cipherword[i].toUpperCase());
+                for (let j = 0; j < ciphertext.length; j++) {
+                    let c = ciphertext.substr(j, 1);
+                    $("#l" + c).addClass("hinted");
+                }
+            }
+        }
+        this.setErrorMsg(msg, 'mchc');
+    }
+    /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
      * @returns HTML DOM elements to display in the section
      */
@@ -472,8 +618,19 @@ export class CipherBaconianEncoder extends CipherEncoder {
         ];
         result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
 
+        result.append(this.createQuestionTextDlg());
         this.genQuestionFields(result);
         this.genEncodeField(result);
+        result.append(
+            JTFLabeledInput(
+                'Crib Text',
+                'text',
+                'crib',
+                this.state.crib,
+                'crib small-12 medium-12 large-12 opfield words'
+            )
+        );
+
         // Build a table so that they can click on letters to make A or B
         const table = new JTTable({
             class: 'cell shrink tfreq opfield words',
@@ -687,22 +844,26 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>');
         const cipherString = this.getEncodingString();
-        const strings = this.makeBaconianReplacement(cipherString, this.getEncodeWidth());
-        for (const strset of strings) {
+        const encoded = this.makeBaconianReplacement(cipherString, this.getEncodeWidth());
+        // See if we have a CRIB to compare against.
+        if (this.state.crib !== "" && this.state.crib !== undefined) {
+            this.checkHintCrib(result, encoded)
+        }
+        for (const line of encoded.lines) {
             result.append(
                 $('<div/>', {
                     class: 'BACON TOSOLVE',
-                }).text(strset.ciphertext.join(''))
+                }).text(line.ciphertext.join(''))
             );
             result.append(
                 $('<div/>', {
                     class: 'BACON TOSOLVE2',
-                }).text(strset.baconian.join(''))
+                }).text(line.baconian.join(''))
             );
             result.append(
                 $('<div/>', {
                     class: 'BACON TOANSWER',
-                }).text(strset.plaintext.join(''))
+                }).text(line.plaintext.join(''))
             );
         }
         result.append(
@@ -713,17 +874,17 @@ export class CipherBaconianEncoder extends CipherEncoder {
         return result;
     }
     /**
-     * Generate the list of replacement strings for a given baconian word cipher
+     * Generate the list of replacement encodings for a given baconian word cipher
      * @param str String to encode
      * @param maxEncodeWidth Maximum line length
      */
-    public makeWordReplacement(str: string, maxEncodeWidth: number): encodeLine[] {
-        const result: encodeLine[] = [];
+    public makeWordReplacement(str: string, maxEncodeWidth: number): encodedLines {
+        const result: encodedLines = { lines: [], baconword: [], cipherword: [], plainword: [] };
         this.buildWordMap();
         this.buildBaconianWordList(str);
         let wordline = '';
         let baconline = '';
-        let decodeline = '';
+        let plaintextline = '';
         let prefix = '';
         // Iterate through each letter and look it up in the map
         for (let i = 0; i < this.baconianWords.length; i++) {
@@ -747,27 +908,30 @@ export class CipherBaconianEncoder extends CipherEncoder {
             // We now have:
             // resword - the chosen baconian encode word
             // baconian - the baconian characters for the word
-            let decode = revBaconMap[baconian];
+            let plaintext = revBaconMap[baconian];
+            result.plainword.push(plaintext);
+            result.baconword.push(baconian);
+            result.cipherword.push(resword);
             baconian = padToMatch(baconian, resword);
-            if (decode.length === 1) {
-                decode = padToMatch('  ' + decode, resword);
+            if (plaintext.length === 1) {
+                plaintext = padToMatch('  ' + plaintext, resword);
             } else {
-                decode = padToMatch(' ' + decode, resword);
+                plaintext = padToMatch(' ' + plaintext, resword);
             }
             if (
                 prefix === '.' ||
                 wordline.length + resword.length + prefix.length > maxEncodeWidth
             ) {
-                result.push({
-                    plaintext: (decodeline + padToMatch('', prefix)).split(''),
+                result.lines.push({
+                    plaintext: (plaintextline + padToMatch('', prefix)).split(''),
                     baconian: (baconline + prefix).split(''),
                     ciphertext: (wordline + prefix).split(''),
                 });
                 wordline = resword;
                 baconline = baconian;
-                decodeline = decode;
+                plaintextline = plaintext;
             } else {
-                decodeline += padToMatch('', prefix) + decode;
+                plaintextline += padToMatch('', prefix) + plaintext;
                 baconline += prefix + baconian;
                 wordline += prefix + resword;
             }
@@ -778,8 +942,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
         if (wordline !== '') {
-            result.push({
-                plaintext: decodeline.split(''),
+            result.lines.push({
+                plaintext: plaintextline.split(''),
                 baconian: baconline.split(''),
                 ciphertext: wordline.split('')
             });
@@ -792,22 +956,22 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>');
-        const strings = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
-        for (const strset of strings) {
+        const encoded = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
+        for (const line of encoded.lines) {
             result.append(
                 $('<div/>', {
                     class: 'BACON TOSOLVEQ',
-                }).text(strset.ciphertext.join(''))
+                }).text(line.ciphertext.join(''))
             );
         }
         return result;
     }
     /**
      * Generates the interactive editing for a cipher table of text
-     * @param strings Array of string arrays to output
+     * @param encoded Array of string arrays to output
      * @param qnum Question number that the table is for
      */
-    public genInteractiveBaconianTable(strings: encodeLine[], qnum: number): JQuery<HTMLElement> {
+    public genInteractiveBaconianTable(encoded: encodedLines, qnum: number): JQuery<HTMLElement> {
         const qnumdisp = String(qnum + 1);
         const table = new JTTable({ class: 'ansblock cipherint baconian SOLVER' });
         let pos = 0;
@@ -815,7 +979,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         const spcidbase = 'S' + qnumdisp + '_';
         const workidbase = 'R' + qnumdisp + '_';
 
-        for (const splitLines of strings) {
+        for (const splitLines of encoded.lines) {
             const cipherline = splitLines.ciphertext;
             // We need to generate a row of lines for each split up cipher text
             // The first row is the cipher text
@@ -884,9 +1048,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
         const qnumdisp = String(qnum + 1);
         const result = $('<div/>', { id: 'Q' + qnumdisp });
-        const strings = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
+        const encoded = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
 
-        result.append(this.genInteractiveBaconianTable(strings, qnum));
+        result.append(this.genInteractiveBaconianTable(encoded, qnum));
 
         result.append($('<textarea/>', { id: 'in' + String(qnum + 1), class: 'intnote' }));
         return result;
@@ -897,14 +1061,14 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public genScore(answerlong: string[]): IScoreInformation {
         // Get what the question layout was so we can extract the answer
-        const strings = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
+        const encoded = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
 
         const solution: string[] = [];
         const answer: string[] = [];
         const stringindex = 0;
 
         // Figure out what the expected answer should be
-        for (const splitLines of strings) {
+        for (const splitLines of encoded.lines) {
             for (const c of splitLines[stringindex]) {
                 if (this.isValidChar(c)) {
                     solution.push(c);

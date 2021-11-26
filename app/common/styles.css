@@ -1551,6 +1551,11 @@ table.baconian.cipherint td {
     padding: 0;
 }
 
+.hinted {
+    background-color: lightgreen;
+    font-weight: bold;
+}
+
 table.affineint td {
     width: 35px;
     padding: 0;

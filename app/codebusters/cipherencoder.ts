@@ -114,6 +114,9 @@ export class CipherEncoder extends CipherHandler {
             encodeType: this.state.encodeType,
             sourceCharset: this.getSourceCharset(),
         };
+        if (this.state.specialbonus) {
+            result.specialbonus = true;
+        }
         const interactiveContent = $('<div/>').append(this.genInteractive(qnum, testType));
         const testHTML = interactiveContent.html();
         result.testHTML = this.obverse(testHTML);

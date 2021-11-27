@@ -22,6 +22,12 @@ on:
 
 jobs:
   analyze:
+    name: configure Pagefile
+      uses: al-cheb/configure-pagefile-action@v1.2
+      with:
+        minimum-size: 32GB
+        maximum-size: 32GB
+      
     name: Analyze
     runs-on: ubuntu-latest
     permissions:

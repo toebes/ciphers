@@ -24,9 +24,11 @@ export interface ITestResultsData {
     // non-displayed fields
     bonusBasis: number;
     hasTimed: boolean;
+    hasSpecial: boolean;
     testId: string;
     isTieBroke: boolean;
     // displayed fields
+    specialBonusScored: number;
     startTime: string;
     endTime: string;
     bonusTime: number;

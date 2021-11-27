@@ -1,5 +1,5 @@
 import { CipherTestManage } from './ciphertestmanage';
-import { IState, ITestQuestionFields, toolMode } from '../common/cipherhandler';
+import { IScoreInformation, IState, ITestQuestionFields, toolMode } from '../common/cipherhandler';
 import { IAnswerTemplate, ITestState, ITestUser, SourceModel } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
 import {
@@ -444,6 +444,26 @@ export class CipherTestResults extends CipherTestManage {
                     ).toString(),
                 });
         }
+        if (itemTest.hasSpecial) {
+            const bonusTableRow = viewTable.addFooterRow();
+            let specialBonus = "0";
+            if (itemTest.specialBonusScored === 1) {
+                specialBonus = "150";
+            } else if (itemTest.specialBonusScored === 2) {
+                specialBonus = "350";
+            } else if (itemTest.specialBonusScored === 3) {
+                specialBonus = "750";
+            }
+            bonusTableRow
+                .add('Special Bonus')
+                .add(itemTest.specialBonusScored.toString())
+                .add({
+                    settings: { colspan: 3, class: 'grey' },
+                    content: '',
+                })
+                .add(specialBonus);
+
+        }
         // Final (totals) row
         const totalTableRow = viewTable.addFooterRow();
         totalTableRow
@@ -602,6 +622,7 @@ export class CipherTestResults extends CipherTestManage {
                 const testResultsData: ITestResultsData = {
                     bonusBasis: 0,
                     hasTimed: false,
+                    hasSpecial: false,
                     testId: modelId,
                     isTieBroke: false,
                     startTime: timestampToFriendly(model.starttime),
@@ -609,6 +630,7 @@ export class CipherTestResults extends CipherTestManage {
                     bonusTime: 0,
                     testTakers: userList,
                     score: 0,
+                    specialBonusScored: 0,
                     questions: [],
                     teamname: model.teamname,
                     teamtype: model.teamtype
@@ -661,7 +683,7 @@ export class CipherTestResults extends CipherTestManage {
         let bonusWindow = 0;
         let bonusTime = 0;
         let testScore = 0;
-        let scoreInformation = undefined;
+        let scoreInformation/*:IScoreInformation*/ = undefined;
         const testInformation = sourcemodel.source['TEST.0'];
         const questionInformation: ITestQuestion = {
             correctLetters: 0,
@@ -748,6 +770,12 @@ export class CipherTestResults extends CipherTestManage {
                 e.stackTrace;
             }
             testScore += scoreInformation.score;
+            if (state.specialbonus) {
+                testResultsData.hasSpecial = true;
+                if (scoreInformation.deduction === "0") {
+                    testResultsData.specialBonusScored++;
+                }
+            }
             questionInformation.correctLetters = scoreInformation.correctLetters;
             questionInformation.questionNumber = i;
             questionInformation.points = state.points;

@@ -111,7 +111,6 @@ export class InteractiveHandler extends CipherHandler {
                     } else if (deltatime < timestampFromSeconds(5)) { // 3000-4999 ms
                         this.confidence += 1100 - (deltatime / 5)     // range of 100-500 confidence
                     }
-                    this.confidence += Math.max(0, 5000 - deltatime);
                     const deltaConfidence = this.confidence - this.startingConfidence;
                     if (deltaConfidence > 20000) {
                         this.checkConfidence();

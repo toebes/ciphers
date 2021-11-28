@@ -21,6 +21,7 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 import { decodeHTML } from 'entities';
+import { LocalIndexReference } from '@convergence/convergence';
 
 const baconMap: StringMap = {
     A: 'AAAAA',
@@ -849,23 +850,26 @@ export class CipherBaconianEncoder extends CipherEncoder {
         if (this.state.crib !== "" && this.state.crib !== undefined) {
             this.checkHintCrib(result, encoded)
         }
+
+        const table = new JTTable({ class: 'bacon ansblock shrink cell unstriped' });
+
         for (const line of encoded.lines) {
-            result.append(
-                $('<div/>', {
-                    class: 'BACON TOSOLVE',
-                }).text(line.ciphertext.join(''))
-            );
-            result.append(
-                $('<div/>', {
-                    class: 'BACON TOSOLVE2',
-                }).text(line.baconian.join(''))
-            );
-            result.append(
-                $('<div/>', {
-                    class: 'BACON TOANSWER',
-                }).text(line.plaintext.join(''))
-            );
+            const rowcipher = table.addBodyRow();
+            const rowbaconian = table.addBodyRow();
+            const rowanswer = table.addBodyRow();
+            const rowblank = table.addBodyRow();
+
+            for (let i in line.ciphertext) {
+                rowcipher.add(line.ciphertext[i]);
+                rowbaconian.add(line.baconian[i]);
+                rowanswer.add({
+                    settings: { class: 'a' },
+                    content: line.plaintext[i]
+                });
+            }
+            rowblank.add('\xa0');
         }
+        result.append(table.generate());
         result.append(
             $('<div/>', {
                 class: 'TOANSWER',

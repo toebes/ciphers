@@ -32,6 +32,7 @@ export interface ITestResultsData {
     startTime: string;
     endTime: string;
     bonusTime: number;
+    specialBonusScore: number;
     testTakers: string;
     score: number;
     teamname: string;

@@ -628,6 +628,7 @@ export class CipherTestResults extends CipherTestManage {
                     startTime: timestampToFriendly(model.starttime),
                     endTime: timestampToFriendly(model.endtime),
                     bonusTime: 0,
+                    specialBonusScore: 0,
                     testTakers: userList,
                     score: 0,
                     specialBonusScored: 0,
@@ -682,6 +683,8 @@ export class CipherTestResults extends CipherTestManage {
     private calculateOneScore(sourcemodel: SourceModel, testResultsData: ITestResultsData, answers: ITestQuestionFields[], solvetime: number, bonusEnded: number, startTime: number) {
         let bonusWindow = 0;
         let bonusTime = 0;
+        let specialBonus = 0;
+        let specialBonusScore = 0;
         let testScore = 0;
         let scoreInformation/*:IScoreInformation*/ = undefined;
         const testInformation = sourcemodel.source['TEST.0'];
@@ -782,12 +785,16 @@ export class CipherTestResults extends CipherTestManage {
             questionInformation.cipherType = state.cipherType;
             questionInformation.incorrectLetters =
                 scoreInformation.incorrectLetters;
+            if (state.specialbonus && questionInformation.incorrectLetters == 0) {
+                specialBonus++;
+            }
             questionInformation.deduction = scoreInformation.deduction;
             questionInformation.score = scoreInformation.score;
             testResultsData.questions[i] = questionInformation;
         }
 
-        testResultsData.score = testScore;
+        testResultsData.specialBonusScore = specialBonusScore = 50 * specialBonus * (specialBonus + 2);
+        testResultsData.score = testScore + specialBonusScore;
         testResultsData.bonusTime = bonusTime;
         return { bonusTime, bonusWindow };
     }

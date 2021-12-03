@@ -1447,7 +1447,7 @@ export class CipherTest extends CipherHandler {
         for (const entry of this.cipherChoices) {
             // Make sure that this type of cipher is legal for this type of test
             const cipherhandler = CipherPrintFactory(entry.cipherType, entry.lang);
-            if (cipherhandler.CheckAppropriate(testtype) === '') {
+            if (cipherhandler.CheckAppropriate(testtype, true) === '') {
                 const option = $('<option />', {
                     value: entry.cipherType,
                 });
@@ -1541,7 +1541,7 @@ export class CipherTest extends CipherHandler {
                 // If we know the type of test, see if it has any problems with the question
                 const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
                 cipherhandler.restore(state);
-                qerror = cipherhandler.CheckAppropriate(testtype);
+                qerror = cipherhandler.CheckAppropriate(testtype, false);
                 if (qerror !== '') {
                     if (order === -1) {
                         qerror = 'Timed question: ' + qerror;

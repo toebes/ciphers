@@ -148,11 +148,12 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Determines if this generator is appropriate for a given test
      * type.  For Division A and B, only decode is allowed
      * @param testType Test type to compare against
+     * @param anyOperation Don't restrict based on the type of operation
      * @returns String indicating error or blank for success
      */
-    public CheckAppropriate(testType: ITestType): string {
-        let result = super.CheckAppropriate(testType);
-        if (result === '' && testType !== undefined) {
+    public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
+        let result = super.CheckAppropriate(testType, anyOperation);
+        if (!anyOperation && result === '' && testType !== undefined) {
             if (
                 testType !== ITestType.cregional &&
                 testType !== ITestType.cstate &&

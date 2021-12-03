@@ -115,11 +115,12 @@ export class CipherAffineEncoder extends CipherEncoder {
      *   encode - cregional/cstate
      *   crypt - cstate/bstate
      * @param testType Test type to compare against
+     * @param anyOperation Don't restrict based on the type of operation
      * @returns String indicating error or blank for success
      */
-    public CheckAppropriate(testType: ITestType): string {
-        let result = super.CheckAppropriate(testType);
-        if (result === '' && testType !== undefined) {
+    public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
+        let result = super.CheckAppropriate(testType, anyOperation);
+        if (!anyOperation && result === '' && testType !== undefined) {
             if (
                 testType !== '' &&
                 testType !== ITestType.cregional &&

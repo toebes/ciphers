@@ -153,7 +153,7 @@ export class CipherTestInteractive extends CipherTest {
             if (interactive.testtype === ITestType.aregional) {
                 qerror = 'Not allowed for Division A';
             } else {
-                qerror = cipherhandler.CheckAppropriate(interactive.testtype);
+                qerror = cipherhandler.CheckAppropriate(interactive.testtype, false);
             }
             if (qerror !== '') {
                 errors.push('Timed Question: ' + qerror);
@@ -181,7 +181,7 @@ export class CipherTestInteractive extends CipherTest {
             if (cipherhandler.usesPortaTable) {
                 interactive.hasPorta = true;
             }
-            const qerror = cipherhandler.CheckAppropriate(interactive.testtype);
+            const qerror = cipherhandler.CheckAppropriate(interactive.testtype, false);
             if (qerror !== '') {
                 errors.push('Question ' + String(qnum + 1) + ': ' + qerror);
             }

@@ -181,7 +181,7 @@ export class CipherTestPrint extends CipherTest {
             if (test.testtype === ITestType.aregional) {
                 qerror = 'Not allowed for Division A';
             } else {
-                qerror = cipherhandler.CheckAppropriate(test.testtype);
+                qerror = cipherhandler.CheckAppropriate(test.testtype, false);
             }
             if (qerror !== '') {
                 errors.push('Timed Question: ' + qerror);
@@ -232,7 +232,7 @@ export class CipherTestPrint extends CipherTest {
                 ' bodyheight=' +
                 document.body.clientHeight
             );
-            const qerror = cipherhandler.CheckAppropriate(test.testtype);
+            const qerror = cipherhandler.CheckAppropriate(test.testtype, false);
             if (qerror !== '') {
                 errors.push('Question ' + String(qnum + 1) + ': ' + qerror);
             }

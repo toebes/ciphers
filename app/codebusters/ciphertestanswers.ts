@@ -167,7 +167,7 @@ export class CipherTestAnswers extends CipherTest {
             if (test.testtype === ITestType.aregional) {
                 qerror = 'Not allowed for Division A';
             } else {
-                qerror = cipherhandler.CheckAppropriate(test.testtype);
+                qerror = cipherhandler.CheckAppropriate(test.testtype, false);
             }
             if (qerror !== '') {
                 $('.testerrors').append(
@@ -201,7 +201,7 @@ export class CipherTestAnswers extends CipherTest {
                     e;
                 result.append($('<h1>').text(msg));
             }
-            const qerror = cipherhandler.CheckAppropriate(test.testtype);
+            const qerror = cipherhandler.CheckAppropriate(test.testtype, false);
             if (qerror !== '') {
                 $('.testerrors').append(
                     $('<div/>', {

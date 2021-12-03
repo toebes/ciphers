@@ -687,9 +687,10 @@ export class CipherEncoder extends CipherHandler {
      * type.  This default implementation just checks against the
      * list of valid tests declared by the class.
      * @param testType Test type to compare against
+     * @param anyOperation Don't restrict based on the type of operation
      * @returns String indicating error or blank for success
      */
-    public CheckAppropriate(testType: ITestType): string {
+    public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
         if (testType === ITestType.aregional) {
             if (this.state.cipherType === ICipherType.Patristocrat) {
                 return 'Patristocrats not appropriate for Division A tests';
@@ -708,19 +709,20 @@ export class CipherEncoder extends CipherHandler {
         )) {
             return 'Special Bonus not allowed for Aristocrats/Patristocrats/Xenocrypts';
         }
-        // Make sure the operation type is legal.
-        if (this.state.operation === 'keyword') {
-            if (testType !== ITestType.cregional && testType !== ITestType.cstate) {
-                return 'Keyword/Key Phrase decoding not allowed for ' + this.getTestTypeName(testType);
+        if (!anyOperation) {
+            // Make sure the operation type is legal.
+            if (this.state.operation === 'keyword') {
+                if (testType !== ITestType.cregional && testType !== ITestType.cstate) {
+                    return 'Keyword/Key Phrase decoding not allowed for ' + this.getTestTypeName(testType);
+                }
+                if (this.state.encodeType !== 'k1' && this.state.encodeType !== 'k2' && this.state.encodeType !== 'k3') {
+                    return 'Keyword/Key Phrase decoding not allowed with ' + this.state.encodeType.toUpperCase() + ' Alphabet for ' + this.getTestTypeName(testType);
+                }
+            } else {
+                if (this.state.encodeType === 'k4') {
+                    return this.state.encodeType.toUpperCase() + ' Alphabet not allowed for ' + this.getTestTypeName(testType);
+                }
             }
-            if (this.state.encodeType !== 'k1' && this.state.encodeType !== 'k2' && this.state.encodeType !== 'k3') {
-                return 'Keyword/Key Phrase decoding not allowed with ' + this.state.encodeType.toUpperCase() + ' Alphabet for ' + this.getTestTypeName(testType);
-            }
-        } else {
-            if (this.state.encodeType === 'k4') {
-                return this.state.encodeType.toUpperCase() + ' Alphabet not allowed for ' + this.getTestTypeName(testType);
-            }
-
         }
         if (testType === undefined || this.validTests.indexOf(testType) >= 0) {
             return '';

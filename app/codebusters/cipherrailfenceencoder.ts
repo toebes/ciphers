@@ -466,11 +466,12 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * Determines if this generator is appropriate for a given test
      * type.  For Division A, the Caesar is limited to an offset +- 3
      * @param testType Test type to compare against
+     * @param anyOperation Don't restrict based on the type of operation
      * @returns String indicating error or blank for success
      */
-    public CheckAppropriate(testType: ITestType): string {
-        let result = super.CheckAppropriate(testType);
-        if (result === '' && testType !== undefined) {
+    public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
+        let result = super.CheckAppropriate(testType, anyOperation);
+        if (!anyOperation && result === '' && testType !== undefined) {
             // Due to a fluke in rule writing for 2022, the railfence only allows for cryptanalysis 
             // at the division B state level
             // Basically what is allowed is:
@@ -1061,9 +1062,9 @@ export class CipherRailFenceEncoder extends CipherEncoder {
                     break;
                 }
             }
-//startLocation
+            //startLocation
             if ((this.state.railOffset >= (rfs.getCharsPerZigzag() / 2) - 1) && (startLocation > rfs.getCharsPerZigzag() / 2)) {
-//            if (startLocation > rfs.getCharsPerZigzag() / 2) {
+                //            if (startLocation > rfs.getCharsPerZigzag() / 2) {
                 secondSpacesCount = (2 * rails) - (2 * r) - 1; //2 * rails - (2 * (r - 1) + 3); //-5, -7, -9;
                 firstSpacesCount = rfs.getCharsPerZigzag() - 2 - secondSpacesCount;
             }

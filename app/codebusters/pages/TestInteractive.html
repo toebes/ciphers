@@ -12,14 +12,14 @@
     <% for (var index in htmlWebpackPlugin.files.js) { %>
         <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
         <% } %>
-    <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-    <h2>
-        <%= htmlWebpackPlugin.options.title %>
-    </h2>
-    <div class="precmds"></div>
-    <div class="cmdbuttons"></div>
-    <div class="testerrors"></div>
-    <div class="testlist"></div>
+            <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+            <h2>
+                <%= htmlWebpackPlugin.options.title %>
+            </h2>
+            <div class="precmds"></div>
+            <div class="cmdbuttons"></div>
+            <div class="testerrors"></div>
+            <div class="testlist"></div>
 </body>
 
 </html>

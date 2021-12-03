@@ -66,6 +66,16 @@ config = {
                 include: [path.resolve(__dirname, 'app')],
                 exclude: [path.resolve(__dirname, 'node_modules')],
             },
+            // With the special case of allowing the qr-code-generator to sit in the
+            // npm directory it was installed from.
+            {
+                test: /\.ts$/,
+                loader: 'ts-loader',
+                include: [
+                    path.join(__dirname, 'node_modules', 'qr-code-generator', 'typescript-javascript', 'qrcodegen.ts'),
+                ],
+                options: { allowTsInNodeModules: true }
+            },
             // All .css files are processed with the css-loader, style-loader
             {
                 test: /\.css$/,
@@ -765,6 +775,14 @@ config = {
             chunks: ['codebusters'],
             cipher: 'TestInteractive',
             title: 'Interactive Test',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'TestAttach.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'TestManage.html'),
+            chunks: ['codebusters'],
+            cipher: 'TestAttach',
+            title: 'Attach Paper Work Images',
         }),
         new HtmlWebpackPlugin({
             inject: false,

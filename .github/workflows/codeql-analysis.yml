@@ -17,11 +17,19 @@ on:
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ master ]
+    paths-ignore: 
+     - '**/Languages/*.js'
   schedule:
     - cron: '41 3 * * 5'
 
 jobs:
   analyze:
+    name: configure Pagefile
+      uses: al-cheb/configure-pagefile-action@v1.2
+      with:
+        minimum-size: 32GB
+        maximum-size: 32GB
+      
     name: Analyze
     runs-on: ubuntu-latest
     permissions:

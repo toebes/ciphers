@@ -1,6 +1,6 @@
 import { CipherHandler, IState, ITestTimeInfo } from '../common/cipherhandler';
 import { IEncoderState } from './cipherencoder';
-import { cloneObject } from '../common/ciphercommon';
+import { cloneObject, timestampFromSeconds } from '../common/ciphercommon';
 import {
     RealTimeObject,
     RealTimeString,
@@ -10,11 +10,21 @@ import {
     StringInsertEvent,
     StringRemoveEvent,
     StringSetValueEvent,
+    RealTimeNumber,
+    NumberSetValueEvent,
 } from '@convergence/convergence';
 import { bindTextInput } from '@convergence/input-element-bindings';
 
 export class InteractiveHandler extends CipherHandler {
     public testTimeInfo: ITestTimeInfo;
+    /** The current confidence factor found in the shared model */
+    public startingConfidence = 0;
+    /** Our computed confidence */
+    public confidence = 0;
+    /** The realtime object for the confidence on the current question */
+    public realtimeConfidence: RealTimeNumber;
+    /** The nominal interval where we don't increase confidence */
+    public normalTypingInterval = 0;
     /**
      * Restore the state from a stored record
      * @param data Saved state to restore
@@ -42,6 +52,7 @@ export class InteractiveHandler extends CipherHandler {
         if (parts.length > 1) {
             const index = Number(parts[1]);
             let c = newchar.toUpperCase();
+            this.calculateConfidence(id);
             if (!this.isValidChar(c)) {
                 c = ' ';
             }
@@ -52,6 +63,87 @@ export class InteractiveHandler extends CipherHandler {
                 realtimeAnswerString.splice(index, 1, c);
             }
         }
+    }
+    /**
+     * 
+     * @param qnum Question number to set handler for
+     * @param testTimeInfo Timing information for the current test.
+     * @param realtimeConidence RealtimeNumber for the confidence value associated with the question for this user
+     */
+    public setupConfidence(testTimeInfo: ITestTimeInfo, realtimeConfidence: RealTimeNumber): void {
+        this.testTimeInfo = testTimeInfo;
+        this.testTimeInfo.prevField = undefined;
+        this.confidence = 0;
+        this.startingConfidence = 0;
+
+        if (realtimeConfidence !== undefined) {
+            // Save the handle to the confidence number so that we can update it
+            this.realtimeConfidence = realtimeConfidence;
+            this.startingConfidence = realtimeConfidence.value();
+            if (this.startingConfidence === undefined) {
+                this.startingConfidence = 0;
+            }
+            this.confidence = this.startingConfidence;
+            realtimeConfidence.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => {
+                let deltaConfidence = this.confidence - this.startingConfidence;
+                this.startingConfidence = event.element.value();
+                this.confidence = this.startingConfidence + deltaConfidence;
+            });
+        }
+    }
+    /**
+     * Compute a confidence delta for entry into a field and update the total confidence
+     * @param id field that was typed into
+     */
+    public calculateConfidence(id: string) {
+        if (id === this.testTimeInfo.prevField) {
+            if (id.substr(0, 1) === 'I') {
+                // this is an answer field
+                const deltatime = this.testTimeInfo.truetime.UTCNow() - this.testTimeInfo.prevTime;
+                if (deltatime > 0) {
+                    // Calculate a confidence in copying based on the type of cipher
+                    // If they take longer than x seconds to type then there is no impact 
+                    // It is also a scale that the slower they type, the less the confidence impact
+                    if (deltatime < timestampFromSeconds(1)) {  // under 1000 ms
+                        this.confidence += 5000 - deltatime;    // range of 4000-5000 confidence
+                    } else if (deltatime < timestampFromSeconds(3)) {  // 1000-2999 ms
+                        this.confidence += 2500 - (deltatime / 2);        // range of 1000-2000 confidence
+                    } else if (deltatime < timestampFromSeconds(5)) { // 3000-4999 ms
+                        this.confidence += 1100 - (deltatime / 5)     // range of 100-500 confidence
+                    }
+                    const deltaConfidence = this.confidence - this.startingConfidence;
+                    if (deltaConfidence > 20000) {
+                        this.checkConfidence();
+                    }
+                }
+                console.log("Typing in previous answer field: " + id + " Deltatime =" + deltatime + " Confidence=" + this.confidence);
+            } else {
+                console.log("Typing in a non-answer field");
+            }
+            this.testTimeInfo.prevField = undefined;
+        }
+    }
+    /**
+     * Calculate a final confidence factor and save it if necessary
+     * @returns number representing confidence in copying from an outside source
+     */
+    public checkConfidence(): number {
+        if (this.realtimeConfidence !== undefined && this.confidence !== this.startingConfidence) {
+            this.realtimeConfidence.value(this.confidence);
+            this.startingConfidence = this.confidence;
+        }
+        return this.confidence;
+    }
+    /**
+     * Remember where we automatically navigate to in order to catch potential copying from another source
+     * @param next Field that was navigated to
+     */
+    public setNext(next: JQuery<HTMLElement>) {
+        const id = next.attr('id');
+        console.log("+++Setting Next:" + id);
+        this.testTimeInfo.prevField = id;
+        this.testTimeInfo.prevTime = this.testTimeInfo.truetime.UTCNow();
+        next.trigger("focus");
     }
     /**
      * Counts the number of entries associated with an entry
@@ -197,6 +289,7 @@ export class InteractiveHandler extends CipherHandler {
         if (parts.length > 1) {
             const index = Number(parts[1]);
             let c = newchar.toUpperCase();
+            this.calculateConfidence(id);
             if (!this.isValidChar(c)) {
                 c = ' ';
             }
@@ -468,7 +561,7 @@ export class InteractiveHandler extends CipherHandler {
                         } else {
                             next = focusables.eq(current - 1);
                         }
-                        next.focus();
+                        this.setNext(next);
                         event.preventDefault();
                     } else if (event.which === 39) {
                         // right
@@ -476,7 +569,7 @@ export class InteractiveHandler extends CipherHandler {
                         next = focusables.eq(current + 1).length
                             ? focusables.eq(current + 1)
                             : focusables.eq(0);
-                        next.focus();
+                        this.setNext(next);
                         event.preventDefault();
                     } else if (event.which === 46) {
                         // delete key
@@ -496,7 +589,7 @@ export class InteractiveHandler extends CipherHandler {
                                 next = focusables.eq(current - 1);
                             }
                             id = next.attr('id');
-                            next.focus();
+                            this.setNext(next);
                         }
                         this.markUndo(null);
                         this.setAns(id, ' ', realtimeAnswer, realtimeAnswerString);
@@ -525,7 +618,7 @@ export class InteractiveHandler extends CipherHandler {
                         next = focusables.eq(current + 1).length
                             ? focusables.eq(current + 1)
                             : focusables.eq(0);
-                        next.focus();
+                        this.setNext(next);
                     } else {
                         // console.log('Not valid:' + newchar);
                     }
@@ -558,7 +651,7 @@ export class InteractiveHandler extends CipherHandler {
                         } else {
                             next = focusables.eq(current - 1);
                         }
-                        next.focus();
+                        this.setNext(next);
                         event.preventDefault();
                     } else if ((event.which === 38 || event.which === 40) && isRails == '1') {
                         // navigate RailFence rails up and down... no wrapping.
@@ -586,7 +679,7 @@ export class InteractiveHandler extends CipherHandler {
                             // else move by one whole row...up or down.
                             next = focusables.eq(current + direction * lineLength);
                         }
-                        next.focus();
+                        this.setNext(next);
                         event.preventDefault();
                     } else if (event.which === 39) {
                         // right
@@ -594,7 +687,7 @@ export class InteractiveHandler extends CipherHandler {
                         next = focusables.eq(current + 1).length
                             ? focusables.eq(current + 1)
                             : focusables.eq(0);
-                        next.focus();
+                        this.setNext(next);
                         event.preventDefault();
                     } else if (event.which === 46) {
                         // delete key
@@ -614,7 +707,7 @@ export class InteractiveHandler extends CipherHandler {
                                 next = focusables.eq(current - 1);
                             }
                             id = next.attr('id');
-                            next.focus();
+                            this.setNext(next);
                         }
                         this.markUndo(null);
                         this.setRepl(id, ' ', realtimeReplacement, realtimeReplacementString);
@@ -651,7 +744,7 @@ export class InteractiveHandler extends CipherHandler {
                         next = focusables.eq(current + 1).length
                             ? focusables.eq(current + 1)
                             : focusables.eq(0);
-                        next.focus();
+                        this.setNext(next);
                     } else if (this.isValidChar(newchar) || newchar === ' ') {
                         // console.log('Setting ' + id + ' to ' + newchar)
                         this.markUndo(null);
@@ -660,7 +753,7 @@ export class InteractiveHandler extends CipherHandler {
                         next = focusables.eq(current + 1).length
                             ? focusables.eq(current + 1)
                             : focusables.eq(0);
-                        next.focus();
+                        this.setNext(next);
                     } else {
                         // console.log('Not valid:' + newchar);
                     }

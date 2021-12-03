@@ -1,7 +1,14 @@
 import { ITestTimeInfo } from '../common/cipherhandler';
 import { InteractiveHandler } from './interactivehandler';
 import { formatTime } from '../common/ciphercommon';
-import { RealTimeObject, RealTimeNumber, NumberSetValueEvent } from '@convergence/convergence';
+import { RealTimeObject, RealTimeNumber, NumberSetValueEvent, RealTimeModel } from '@convergence/convergence';
+/** This handles the following ciphers:
+ *   Baconian
+ *   Patristocrat
+ *   Porta
+ *   TapCode
+ *   Vigenere
+ */
 
 export class InteractiveEncoder extends InteractiveHandler {
     /** Handler for our interval time which keeps checking that time is right */
@@ -92,13 +99,16 @@ export class InteractiveEncoder extends InteractiveHandler {
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
      * @param testTimeInfo Timing information for the current test.
+     * @param realtimeConidence RealtimeNumber for the confidence value associated with the question for this user
      */
     public attachInteractiveHandlers(
         qnum: number,
         realTimeElement: RealTimeObject,
-        testTimeInfo: ITestTimeInfo
+        testTimeInfo: ITestTimeInfo,
+        realtimeConfidence: RealTimeNumber
     ): void {
-        this.testTimeInfo = testTimeInfo;
+        this.setupConfidence(testTimeInfo, realtimeConfidence);
+
         let realtimeSolvetime = null;
         const qnumdisp = String(qnum + 1);
         const qdivid = '#Q' + qnumdisp + ' ';
@@ -107,12 +117,20 @@ export class InteractiveEncoder extends InteractiveHandler {
         if (qnum === -1) {
             realtimeSolvetime = realTimeElement.elementAt('solvetime') as RealTimeNumber;
             if (realTimeElement.hasKey('solvetime')) {
-                realtimeSolvetime.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => {
+                // If we are in playback mode, just update the solved time the first time we get in
+                if (realtimeConfidence === undefined) {
                     this.updateTimerCheckButton(realtimeSolvetime);
-                });
+                } else {
+
+                    realtimeSolvetime.on(RealTimeNumber.Events.VALUE, (event: NumberSetValueEvent) => {
+                        this.updateTimerCheckButton(realtimeSolvetime);
+                    });
+                }
             }
-            // Start the process for updating the check answer button
-            this.trackAnswerTime(realtimeSolvetime);
+            if (realtimeConfidence !== undefined) {
+                // Start the process for updating the check answer button
+                this.trackAnswerTime(realtimeSolvetime);
+            }
         }
         // Version 2 changes the array of strings to be a single string
         if (version === 2) {

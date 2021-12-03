@@ -91,7 +91,20 @@ export class CipherTestGenerator extends CipherTest {
             );
         }
 
-        testdiv.append(this.genTestTypeDropdown('testtype', 'Test Type', test.testtype));
+        const testTypeBox = $('<div/>', { class: 'grid-x grid-margin-x' });
+        testTypeBox.append(
+            this.genTestTypeDropdown('testtype',
+                'Test Type',
+                test.testtype,
+                'input-group cell small-12 medium-8 large-6'));
+        testTypeBox.append(JTFLabeledInput(
+            'Check Paper',
+            'checkbox',
+            'ckpaper',
+            test.checkPaper,
+            'small-12 medium-4 large-6'
+        ));
+        testdiv.append(testTypeBox);
 
         const table = new JTTable({ class: 'cell stack queslist' });
         const row = table.addHeaderRow();
@@ -572,6 +585,15 @@ export class CipherTestGenerator extends CipherTest {
             .on('change', (e) => {
                 // We need to lookup the id and convert it to a test type
                 if (this.setTestType(this.mapTestTypeString($(e.target).val() as string))) {
+                    this.updateOutput();
+                }
+                e.preventDefault();
+            });
+        $('#ckpaper')
+            .off('change')
+            .on('change', (e) => {
+                const checked = $(e.target).prop("checked");
+                if (this.setCheckPaper(checked)) {
                     this.updateOutput();
                 }
                 e.preventDefault();

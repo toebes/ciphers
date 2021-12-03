@@ -1,21 +1,25 @@
 import { ITestTimeInfo } from '../common/cipherhandler';
-import { RealTimeObject } from '@convergence/convergence';
+import { RealTimeModel, RealTimeNumber, RealTimeObject } from '@convergence/convergence';
 import { InteractiveEncoder } from './interactiveencoder';
+/** This handles the following ciphers:
+ *   Railfence
+ */
 
 export class InteractiveRailFenceEncoder extends InteractiveEncoder {
     /**
      * attachInteractiveHandlers attaches the realtime updates to all of the fields
-     * Table encoder only has answer field and notes.
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
      * @param testTimeInfo Timing information for the current test.
+     * @param realtimeConidence RealtimeNumber for the confidence value associated with the question for this user
      */
     public attachInteractiveHandlers(
         qnum: number,
         realTimeElement: RealTimeObject,
-        testTimeInfo: ITestTimeInfo
+        testTimeInfo: ITestTimeInfo,
+        realtimeConfidence: RealTimeNumber
     ): void {
-        this.testTimeInfo = testTimeInfo;
+        this.setupConfidence(testTimeInfo, realtimeConfidence);
 
         const qnumdisp = String(qnum + 1);
         const qdivid = '#Q' + qnumdisp + ' ';

@@ -1,8 +1,16 @@
 {
+    "include": [
+        "node_modules/qr-code-generator/typescript-javascript/qrcodegen.ts",
+        "app/**/*"
+   ],
+   "exclude": [
+    "node_modules/qr-code-generator/typescript-javascript/qrcodegen-output-demo.ts",
+    "node_modules/qr-code-generator/typescript-javascript/qrcodegen-input-demo.ts",
+   ],
     "compilerOptions": {
         "charset": "utf8",
         "sourceMap": true,
         "target": "es5",
-        "lib": ["es5", "es6", "dom"]
-    }
+        "lib": ["es5", "es6", "dom"],
+        }
 }

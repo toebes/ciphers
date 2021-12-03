@@ -17,7 +17,7 @@ interface IRailFenceState extends IState {
     /** Railfence railss value */
     rails: number;
     isRailRange: boolean;
-    offset: number;     // Offset for the zigzag
+    railOffset: number;     // Offset for the zigzag
 }
 /**
  * This class creates a Rail Fence solver.
@@ -27,6 +27,8 @@ class RailFenceSolver {
     private readonly solution: string[][];
     // The number of rails in the rail fence
     private readonly railCount: number;
+    // The offset of where to start
+    private readonly offset: number;
     // Array with the number of characters per rails.
     private readonly charactersInRails: number[];
     // Array with the number of leftover characters (0, 1 or 2).
@@ -48,8 +50,9 @@ class RailFenceSolver {
      * @param rails The number of rails in the rail fence
      * @param inputText The inputText to be encoded
      */
-    constructor(rails: number, inputText: string) {
+    constructor(rails: number, offset: number, inputText: string) {
         this.railCount = rails;
+        this.offset = offset;
         const text = sanitizeString(inputText);
         this.textLength = text.length;
 
@@ -81,12 +84,7 @@ class RailFenceSolver {
 
                 // Test if a character should be placed in the array location
                 if (
-                    this.placeCharacter(
-                        railIndex,
-                        colArrayIndex,
-                        this.railCount,
-                        this.charsPerZigzag
-                    )
+                    placeCharacter(railIndex, colArrayIndex, this.offset, this.railCount, this.charsPerZigzag)
                 ) {
                     this.solution[railArrayIndex][colArrayIndex] = text.charAt(colArrayIndex);
                     // Update counts for complete zigzag or leftovers -- this is used in solution table.
@@ -114,7 +112,7 @@ class RailFenceSolver {
             this.swizzledSolution[railArrayIndex] = [];
             for (let columnIndex = 1; columnIndex <= this.textLength; columnIndex++) {
                 const colArrayIndex = columnIndex - 1;
-                if (this.placeCharacter(railIndex, colArrayIndex, rails, swizzledCharsPerZigzag)) {
+                if (placeCharacter(railIndex, colArrayIndex, 0, rails, swizzledCharsPerZigzag)) {
                     this.swizzledSolution[railArrayIndex][
                         colArrayIndex
                     ] = this.getRailFenceEncoding().charAt(nextCharIndex);
@@ -369,35 +367,44 @@ class RailFenceSolver {
 
         return returnValue;
     }
-    /**
-     * The method return true if a character should be placed at the given
-     * rail and column for the current railfence.
-     * @param rail of the railfence to test
-     * @param column of the railfence to test
-     */
-    private placeCharacter(
-        rail: number,
-        column: number,
-        railCount: number,
-        charsPerZigZag: number
-    ): boolean {
-        let returnValue = false;
-        const zigzagPosition = (column % charsPerZigZag) + 1;
+}
 
-        if (zigzagPosition <= charsPerZigZag / 2 + 1) {
-            // this is the down slope, including the very top and the bottom
-            if (zigzagPosition === rail) {
-                returnValue = true;
-            }
-        } else {
-            // this is the up slope
-            if (zigzagPosition - (zigzagPosition - railCount) * 2 === rail) {
-                returnValue = true;
-            }
+/**
+ * The method return true if a character should be placed at the given
+ * rail and column for the current railfence.
+ * @param rail of the railfence to test
+ * @param column of the railfence to test
+ * @param offset of where to start the rails
+ * @param railCount total number of rails in the question
+ * @param charsPerZigZag number of characters placed in one complete zigzag
+ */
+function placeCharacter(
+    rail: number,
+    column: number,
+    offset: number,
+    railCount: number,
+    charsPerZigZag: number): boolean {
+    let returnValue = false;
+    const zigzagPosition = (((column % charsPerZigZag) + offset) % charsPerZigZag + 1);
+
+    // railCount is the number of positions in a 'down' slope, so if zigzagPosition is <= railCount, then the
+    // character is on a down slpoe.
+    // zigzagPosition of a character is the location of that character in the zigzag but with the offset, this
+    // gets shifted, but there are still the same number of characters in the zigzag.
+
+    if (zigzagPosition <= charsPerZigZag / 2 + 1) {
+        // this is the down slope, including the very top and the bottom
+        if (zigzagPosition === rail) {
+            returnValue = true;
         }
-
-        return returnValue;
+    } else {
+        // this is the up slope
+        if ((2 * railCount) - zigzagPosition /*zigzagPosition - (zigzagPosition - railCount) * 2 */ === rail) {
+            returnValue = true;
+        }
     }
+
+    return returnValue;
 }
 
 /**
@@ -416,7 +423,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         cipherString: '',
         cipherType: ICipherType.Railfence,
         rails: 2,
-        offset: 0,
+        railOffset: 0,
         isRailRange: false,
         replacement: {},
     };
@@ -435,7 +442,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * @returns Template of question fields to be filled in at runtime.
      */
     public getInteractiveTemplate(): ITestQuestionFields {
-        const rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.cipherString);
+        const rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.railOffset, this.state.cipherString);
         const strings: string[][] = this.makeReplacement(
             rfs.getRailFenceEncoding(),
             this.state.cipherString.length
@@ -474,7 +481,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
             if (testType === ITestType.bstate && this.state.operation !== 'crypt') {
                 result = 'Only Cryptanalysis problems are allowed on ' + this.getTestTypeName(testType);
-            } else if (testType === ITestType.bstate && this.state.offset !== 0) {
+            } else if (testType === ITestType.bstate && this.state.railOffset !== 0) {
                 result = 'Only a zero offset is allowed on ' + this.getTestTypeName(testType);
             } else if (testType === ITestType.cregional && this.state.operation !== 'decode') {
                 result = 'Only Decode problems are allowed on ' + this.getTestTypeName(testType);
@@ -493,6 +500,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             // TODO: the min and max should probably be made to CONSTANTS.
             if (rails >= 2 && rails <= 6) {
                 this.state.rails = rails;
+                $('#err').text('');
                 changed = true;
             } else {
                 $('#err').text('The number of rails must be between 2 and 6.');
@@ -500,6 +508,26 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         }
         return changed;
     }
+
+    /**
+     * Set the offset for the start of the rail
+     * @param railOffset the offset value
+     */
+    public setRailOffset(railOffset: number): boolean {
+        let changed = false;
+        if (railOffset !== this.state.railOffset) {
+            const maxRailOffset = (2 * this.state.rails) - 2;
+            if (railOffset >= 0 && railOffset < maxRailOffset) {
+                this.state.railOffset = railOffset;
+                $('#err').text('');
+                changed = true;
+            } else {
+                $('#err').text('The rail offset must be between 0 and ' + (maxRailOffset - 1));
+            }
+        }
+        return changed;
+    }
+
     public toggleRailRange(): void {
         this.state.isRailRange = !this.state.isRailRange;
     }
@@ -606,6 +634,18 @@ export class CipherRailFenceEncoder extends CipherEncoder {
                 }
                 this.advancedir = 0;
             });
+        $('#railOffset')
+            .off('inout')
+            .on('input', (e) => {
+                const newRailOffset = Number($(e.target).val());
+                if (newRailOffset !== this.state.railOffset) {
+                    this.markUndo(null);
+                    if (this.setRailOffset(newRailOffset)) {
+                        this.updateOutput();
+                    }
+                }
+                this.advancedir = 0;
+            });
         $('#isRailRange')
             .off('click')
             .on('click', (e) => {
@@ -617,6 +657,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
     public setUIDefaults(): void {
         this.setRails(this.state.rails);
+        this.setRailOffset(this.state.railOffset);
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -625,6 +666,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public updateOutput(): void {
         super.updateOutput();
         $('#rails').val(this.state.rails);
+        $("#railOffset").val(this.state.railOffset);
         const v = String(this.state.isRailRange);
         $('#isRailRange').val(v);
     }
@@ -646,6 +688,12 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         });
         inputbox.append(
             JTFIncButton('Rails', 'rails', this.state.rails, 'small-12 medium-4 large-4')
+        );
+        result.append(inputbox);
+
+        // Create a spinner for the rail start offset.  it has a range of 0-?
+        inputbox.append(
+            JTFIncButton('Rail offset', 'railOffset', this.state.railOffset, 'small-12 medium-4 large-4')
         );
         result.append(inputbox);
 
@@ -731,7 +779,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>' /*, { class: 'grid-x' }*/);
 
-        const rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.cipherString);
+        const rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.railOffset, this.state.cipherString);
 
         // Get the text characters from each rail, concatenated together
         //result.append($('<p/>').text(rfs.getRailFenceEncoding()));
@@ -774,7 +822,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        const rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.cipherString);
+        const rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.railOffset, this.state.cipherString);
         const strings: string[][] = this.makeReplacement(
             rfs.getRailFenceEncoding(),
             this.state.cipherString.length
@@ -848,7 +896,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'TOSOLVE' });
 
-        const rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.cipherString);
+        const rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.railOffset, this.state.cipherString);
 
         // Get the text characters from each rail, concatenated together
         //result.append($('<p/>').text(rfs.getRailFenceEncoding()));
@@ -897,7 +945,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
         const rails = this.state.rails;
 
-        const rfs: RailFenceSolver = new RailFenceSolver(rails, this.state.cipherString);
+        const rfs: RailFenceSolver = new RailFenceSolver(rails, this.state.railOffset, this.state.cipherString);
 
         if (this.state.isRailRange) {
             const solutionText =
@@ -927,7 +975,8 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             // we we conclude there are x rails
         }
 
-        const solutionText: string = 'This is how you solve it for ' + this.state.rails + ' rails.';
+        const solutionText: string = 'This is how you solve it for ' + this.state.rails + ' rails' +
+            ((this.state.railOffset > 0) ? ', and a rail offset of ' + this.state.railOffset : ' and no rail offset') + '.';
         result.append($('<h4/>').text(solutionText));
 
         const solutionIntro = $('<p/>');
@@ -967,22 +1016,57 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         // First rail
         solutionIntro.append($('<h5/>').text('Rail 1'));
         let charsInRail = rfs.getCharactersInRail(1);
+        let guidance = ' with';
+        if (this.state.railOffset > 0) {
+            guidance = ' starting at position ';
+        }
+        let startLocation = undefined;
+
+        // loop over columns
+        for (let i = 0; i < rfs.getCharsPerZigzag(); i++) {
+            if (placeCharacter(1, i, this.state.railOffset, this.state.rails, rfs.getCharsPerZigzag())) {
+                startLocation = i + 1;
+                break;
+            }
+        }
+
+        // startLocation = (((column % charsPerZigZag) + offset) % charsPerZigZag) + 1
+        // startLocation = (rfs.getCharsPerZigzag() - 1 + this.state.railOffset) % (rfs.getCharsPerZigzag() + 1) + 1;
+        // (rfs.getCharsPerZigzag() + 1 - this.state.railOffset)
         solutionIntro.append(
             'Copy the first ',
             $('<code/>').append(charsInRail.toString()),
-            ' characters from the cipher text along the first rail, with ',
+            ' characters from the cipher text along the first rail,',
+            guidance,
+            ((this.state.railOffset > 0) ? $('<code/>').append(startLocation.toString()) : ''),
+            ((this.state.railOffset > 0) ? '.  Put ' : ''),
             $('<code/>').append(spacesBetween.toString()),
             CipherRailFenceEncoder.getPluralityString(spacesBetween, [
                 ' space between each character',
                 ' spaces between each character.',
             ]),
-            '  Each of these letter is the first character of a zig-zag.'
         );
 
         // middle rails
         for (r = 2; r < rails; r++) {
-            const firstSpacesCount = 2 * rails - (2 * (r - 1) + 3); //-5, -7, -9;
-            const secondSpacesCount = rfs.getCharsPerZigzag() - 2 - firstSpacesCount;
+            // needs to be switched for offset > half of CharsPerzigzag
+            let firstSpacesCount = (2 * rails) - (2 * r) - 1; //2 * rails - (2 * (r - 1) + 3); //-5, -7, -9;
+            let secondSpacesCount = rfs.getCharsPerZigzag() - 2 - firstSpacesCount;
+
+
+            // loop over columns
+            for (let i = 0; i < rfs.getCharsPerZigzag(); i++) {
+                if (placeCharacter(r, i, this.state.railOffset, this.state.rails, rfs.getCharsPerZigzag())) {
+                    startLocation = i + 1;
+                    break;
+                }
+            }
+//startLocation
+            if ((this.state.railOffset >= (rfs.getCharsPerZigzag() / 2) - 1) && (startLocation > rfs.getCharsPerZigzag() / 2)) {
+//            if (startLocation > rfs.getCharsPerZigzag() / 2) {
+                secondSpacesCount = (2 * rails) - (2 * r) - 1; //2 * rails - (2 * (r - 1) + 3); //-5, -7, -9;
+                firstSpacesCount = rfs.getCharsPerZigzag() - 2 - secondSpacesCount;
+            }
 
             solutionIntro.append($('<h5/>').text('Rail '.concat(r.toString())));
             solutionIntro.append(
@@ -991,7 +1075,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
                 ' characters of the cipher string along rail ',
                 $('<code/>').append(r.toString()),
                 ', starting at position ',
-                $('<code/>').append(r.toString()),
+                $('<code/>').append(startLocation.toString()),
                 '.  '
             );
             if (firstSpacesCount === secondSpacesCount) {
@@ -1022,11 +1106,19 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         // Last rail
         solutionIntro.append($('<h5/>').text('Rail '.concat(r.toString())));
         charsInRail = rfs.getCharactersInRail(rails);
+        // loop over columns
+        for (let i = 0; i < rfs.getCharsPerZigzag(); i++) {
+            if (placeCharacter(rails, i, this.state.railOffset, this.state.rails, rfs.getCharsPerZigzag())) {
+                startLocation = i + 1;
+                break;
+            }
+        }
+
         solutionIntro.append(
             'Copy the last ',
             $('<code/>').append(charsInRail.toString()),
             ' characters from the cipher text along the last rail, starting at position ',
-            $('<code/>').append(r.toString()),
+            $('<code/>').append(startLocation.toString()),
             ' with ',
             $('<code/>').append(spacesBetween.toString()),
             CipherRailFenceEncoder.getPluralityString(spacesBetween, [

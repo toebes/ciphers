@@ -22,6 +22,31 @@ table.sticky thead tr th {
     top: 0;
 }
 
+div.attachline {
+    display: inline-block;
+}
+
+.attachline .btext {
+    vertical-align: middle;
+    display:inline-block;
+    text-align: center;
+    width:200px;
+}
+
+.attachline .qrinst {
+    background: white;
+    height: 400px;
+    vertical-align: middle;
+}
+
+.slider-ticks {
+    z-index: 2;
+    background: none;
+    width: 100%;
+    height: 24px;
+    top: -8px;
+}
+
 .login-info {
     display: block;
     float: right;
@@ -47,6 +72,10 @@ li.purge {
     border:2px dashed red !important;
 }
 
+.qrinst {
+    display: inline-block;
+    height: 400px;
+}
 .hidden,
 .qplain {
     display: none;
@@ -802,6 +831,18 @@ textarea.intnote {
 .ul {
     text-decoration: underline;
 }
+
+table.bacon td {
+    padding:0;
+    font-size: 24px;
+    line-height: 100%;
+}
+
+table.bacon tbody,
+table.bacon tbody tr {
+    border: none;
+}
+
 .BACON.TOSOLVE,
 .BACON.TOSOLVE2,
 .BACON.TOSOLVEQ,
@@ -881,7 +922,9 @@ div.sols .sol {
     font-family: 'Courier New', Courier, monospace;
 }
 
-#qtext {
+#qtext.richtext,
+#texta.richtext,
+#textb.richtext {
     border: 1px solid #cacaca;
 }
 
@@ -1180,6 +1223,14 @@ button.rounded {
     padding: 0;
 }
 
+.dropdown.menu {
+    z-index: 100;
+}
+
+.dropdown.menu li:hover {
+    background-color: #d0d0d0;
+}
+
 .dropdown.menu a {
     background: none;
 }
@@ -1258,6 +1309,15 @@ button.rounded {
     background: transparent;
     padding-top:1px;
     z-index: 3;
+}
+
+.countdown {
+    font-size: 24pt;
+}
+.countdown .ctime {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    background-color: yellow;
 }
 
 .timer {
@@ -1501,6 +1561,11 @@ table.cipherint td {
 table.baconian.cipherint td {
     border: none;
     padding: 0;
+}
+
+.hinted {
+    background-color: lightgreen;
+    font-weight: bold;
 }
 
 table.affineint td {

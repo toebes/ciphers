@@ -1,5 +1,5 @@
 import { CipherTest, ITestState, IAnswerTemplate, IAnswerAudit } from './ciphertest';
-import { toolMode, ITestTimeInfo, menuMode, IState, IInteractiveTest } from '../common/cipherhandler';
+import { toolMode, ITestTimeInfo, menuMode, IState, IInteractiveTest, CipherHandler } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import {
     cloneObject,
@@ -60,6 +60,11 @@ export class CipherTestTimed extends CipherTest {
     };
     public realtimeSessionNotes: RealTimeElement;
     public preInitializationTimeAnomaly: string = '';
+    public LoadedHandlers: CipherHandler[] = [];
+    public checkPaper = false;
+    /* This is which entry in the assigned section of the answer template corresponds to the active user taking the test */
+    /* A value of -1 indicates that a coach is taking the test (and as such won't be tracked) */
+    public activeUserSlot = -1;
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -318,19 +323,22 @@ export class CipherTestTimed extends CipherTest {
     }
     /**
      * makeInteractive creates an interactive question by invoking the appropriate factory for the saved state
+     * @param answermodel Model of the interactive test
      * @param elem HTML DOM element to append UI elements for the question
      * @param state Saved state for the Interactive question to display
      * @param qnum Question number, -1 indicated a timed question
-     * @param testtype The type of test that it is being generated for
-     * @param realTimeObject Realtime object to establish collaboration for
      */
-    public makeInteractive(elem: JQuery<HTMLElement>, state: IState, qnum: number, realTimeObject: RealTimeObject): void {
+    public makeInteractive(answermodel: RealTimeModel, elem: JQuery<HTMLElement>, state: IState, qnum: number): void {
         // Sometimes the handlers die because of insufficient data passed to them (or because they are accessing something that they shouldn't)
         // We protect from this to also prevent it from popping back to the higher level try/catch which is dealing with any communication
         // errors to the server
         try {
+            const realTimeObject = answermodel.elementAt('answers', qnum + 1) as RealTimeObject
+
             // Find the right class to render the cipher
             const ihandler = CipherInteractiveFactory(state.cipherType, state.curlang);
+            // Save it so we can interregate it later
+            this.LoadedHandlers.push(ihandler);
             // and restore the state
             ihandler.restore(state);
 
@@ -384,7 +392,15 @@ export class CipherTestTimed extends CipherTest {
             elem.append(result);
             // Now that it is active, we can attach all the handlers to it to process the data and keep
             // it in sync with the realtime components
-            ihandler.attachInteractiveHandlers(qnum, realTimeObject, this.testTimeInfo);
+            this.activeUserSlot
+            const realtimeConfidence = answermodel.elementAt(
+                'assigned',
+                this.activeUserSlot,
+                'confidence',
+                qnum + 1
+            ) as RealTimeNumber;
+
+            ihandler.attachInteractiveHandlers(qnum, realTimeObject, this.testTimeInfo, realtimeConfidence);
         } catch (e) {
             // Hmm a bug in the lower code.. Just show it and don't generate this question but at least
             // we can continue and generate the other questions.
@@ -411,7 +427,7 @@ export class CipherTestTimed extends CipherTest {
                     // We need confirm that they are actually allowed to take this test.
                     // this.getConfigString("userid", "") must be non-blank and be present as one
                     // of the slots in answertemplate.assigned
-                    let userfound = -1;
+                    this.activeUserSlot = -1;
                     const loggedinuserid = this.getConfigString('userid', '');
                     if (loggedinuserid === '') {
                         this.shutdownTest(
@@ -433,10 +449,10 @@ export class CipherTestTimed extends CipherTest {
                             notes = staticAnswerModel.assigned[i].notes;
                         }
                         if (userid === loggedinuserid) {
-                            userfound = i;
+                            this.activeUserSlot = i;
                             name = this.getUsersFullName();
-                            realtimeAnswermodel.elementAt('assigned', userfound, 'displayname').value(name);
-                            realtimeAnswermodel.elementAt('assigned', userfound, 'notes').value(notes);
+                            realtimeAnswermodel.elementAt('assigned', this.activeUserSlot, 'displayname').value(name);
+                            realtimeAnswermodel.elementAt('assigned', this.activeUserSlot, 'notes').value(notes);
                         }
                         const idslot = String(Number(i) + 1);
                         if (name === '' && userid !== '') {
@@ -458,7 +474,7 @@ export class CipherTestTimed extends CipherTest {
                             $("#idle" + idslot).text(this.computeOBT(idleTracker.value()));
                             // Of course if we know who the active user is (i.e. not a coach) remember the
                             // id so that we can update it as well as how much idle time they had previously
-                            if (userfound === i) {
+                            if (this.activeUserSlot === i) {
                                 this.obtID = "#idle" + idslot
                                 this.realtimeIdleTracker = idleTracker
                                 this.totalIdleTime = idleTracker.value();
@@ -466,7 +482,7 @@ export class CipherTestTimed extends CipherTest {
                         }
                     }
                     // Make sure that they were found in the list of active users for this test
-                    if (userfound < 0) {
+                    if (this.activeUserSlot < 0) {
                         // Ok they aren't a user, but we can assume that they are a coach since we had permission to open the model.
                         // We will proceed as if they are a coach, but if the promise tells us otherwise, we can shut down the test
                         // to the test because it was successfully opened
@@ -474,7 +490,7 @@ export class CipherTestTimed extends CipherTest {
                     } else {
                         const realtimeSessionid = realtimeAnswermodel.elementAt(
                             'assigned',
-                            userfound,
+                            this.activeUserSlot,
                             'sessionid'
                         ) as RealTimeString;
                         // Make sure that we are the only copy for this yser
@@ -482,7 +498,7 @@ export class CipherTestTimed extends CipherTest {
 
                         this.realtimeSessionNotes = realtimeAnswermodel.elementAt(
                             'assigned',
-                            userfound,
+                            this.activeUserSlot,
                             'notes'
                         );
                     }
@@ -619,6 +635,7 @@ export class CipherTestTimed extends CipherTest {
     public buildScoreTemplateAndHints(testmodel: IInteractiveTest, answermodel: RealTimeModel): void {
         this.setTimerMessage('Connecting to test server... ');
 
+        this.checkPaper = !!testmodel.checkPaper;
         const target = $('.testcontent');
         target.hide();
 
@@ -789,20 +806,10 @@ export class CipherTestTimed extends CipherTest {
         target.hide();
         // Generate the questions
         if (testmodel.timed !== undefined) {
-            this.makeInteractive(
-                target,
-                testmodel.timed,
-                -1,
-                answermodel.elementAt('answers', 0) as RealTimeObject
-            );
+            this.makeInteractive(answermodel, target, testmodel.timed, -1);
         }
         for (let qnum = 0; qnum < testmodel.count; qnum++) {
-            this.makeInteractive(
-                target,
-                testmodel.questions[qnum],
-                qnum,
-                answermodel.elementAt('answers', qnum + 1) as RealTimeObject
-            );
+            this.makeInteractive(answermodel, target, testmodel.questions[qnum], qnum);
         }
         // Give them an easy way to exit the test
         target.append(
@@ -937,6 +944,25 @@ export class CipherTestTimed extends CipherTest {
         }
         $('.testcontent').hide();
         $('.iinstructions').hide();
+        // Go through and ask all the questions if there is a confidence factor to consider
+        let confidenceList = $("<ul/>");
+        let needsConfidence = false
+        let requeststr = ""
+        let extra = ""
+        for (const qnum in this.LoadedHandlers) {
+            const handler = this.LoadedHandlers[qnum];
+            let confidence = handler.checkConfidence();
+            if (confidence > 20000) {
+                needsConfidence = true;
+                requeststr += extra + qnum
+                extra = ","
+                if (qnum === "0") {
+                    confidenceList.append($("<li/>").text("Timed Question: Confidence=" + confidence));
+                } else {
+                    confidenceList.append($("<li/>").text("Question" + qnum + ": Confidence=" + confidence));
+                }
+            }
+        }
         // Save any idle time we had.
         this.realtimeIdleTracker.value(this.totalIdleTime);
         const session = answermodel.session().domain();
@@ -949,6 +975,18 @@ export class CipherTestTimed extends CipherTest {
         // Make a temporary copy of all the 
         this.saveBackupCopy();
         this.setTestStatusMessage(message, this.testTimeInfo.endTime);
+
+        if (this.checkPaper && needsConfidence) {
+            const result = $(".testcontent")
+            const title = $("<h3/>").text("Paper Copy Confidence Values");
+            const calloutContent = $("<div/>")
+                .append(title)
+                .append(confidenceList);
+            this.displayUploadQR(calloutContent, this.state.testID, requeststr);
+
+            const callout = makeCallout(calloutContent, 'primary');
+            result.append(callout);
+        }
         $('#topsplit').hide();
         $('.gutter-row-1').hide();
         $('.timer').hide();

@@ -27,12 +27,17 @@ export function JTFLabeledInput(
             .text(value)
             .appendTo(inputgroup);
     } else if (type === 'checkbox') {
-        $('<input/>', {
-            id: id,
-            class: 'input-group-button checkbox',
-            type: type,
-            value: value,
-        }).appendTo(inputgroup);
+        // For a checkbox, the value is a boolean indicated that it should be checked
+        const checkbox =
+            $('<input/>', {
+                id: id,
+                class: 'input-group-button checkbox',
+                type: type
+            })
+        if (value as boolean) {
+            checkbox.prop('checked', 'checked')
+        }
+        checkbox.appendTo(inputgroup);
     } else if (type === 'readonly') {
         $('<p/>', {
             id: id,

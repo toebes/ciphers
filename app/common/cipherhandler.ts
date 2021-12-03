@@ -11,7 +11,7 @@ import { InitStorage, JTStorage } from './jtstore';
 import { JTTable, JTRow } from './jttable';
 import { parseQueryString } from './parsequerystring';
 import { textStandard } from '../common/readability';
-import { RealTimeObject } from '@convergence/convergence';
+import { RealTimeNumber, RealTimeObject } from '@convergence/convergence';
 import { TrueTime } from './truetime';
 import { API } from '../codebusters/api';
 import { JTFIncButton } from './jtfIncButton';
@@ -145,6 +145,8 @@ export interface ITest {
     answermodelid?: string;
     /** ID of the source stored on the interactive server */
     sourcemodelid?: string;
+    /** Indicates that we should check for copying from paper */
+    checkPaper?: boolean;
 }
 
 export interface ITestTimeInfo {
@@ -158,6 +160,10 @@ export interface ITestTimeInfo {
     endTime: number;
     /** The last question which was touched */
     currentQuestion: string;
+    /** The time we last typed a character */
+    prevTime?: number;
+    /** The last field we ended up on  */
+    prevField?: string;
 }
 /**
  * ITestQuestionFields is the runtime data to track the answer to a particular question.
@@ -276,6 +282,8 @@ export interface IInteractiveTest {
     runningKeys?: IRunningKey[];
     /** Score values for all the questions **/
     qdata: IQuestionData[];
+    /** Track offline work */
+    checkPaper?: boolean;
 }
 
 /**
@@ -1595,6 +1603,13 @@ export class CipherHandler {
             }
         }
         return result;
+    }
+    /**
+     * Calculate a final confidence factor and save it if necessary
+     * @returns number representing confidence in copying from an outside source
+     */
+    public checkConfidence(): number {
+        return 0;
     }
     /**
      * Count the number of differences between two strings.
@@ -3829,11 +3844,13 @@ export class CipherHandler {
      * @param qnum Question number to set handler for
      * @param realTimeElement RealTimeObject for synchronizing the contents
      * @param testTimeInfo Timing information for the current test.
+     * @param realtimeConidence RealtimeNumber for the confidence value associated with the question for this user
      */
     public attachInteractiveHandlers(
         qnum: number,
         realTimeElement: RealTimeObject,
-        testTimeInfo: ITestTimeInfo
+        testTimeInfo: ITestTimeInfo,
+        realtimeConfidence: RealTimeNumber
     ): void { }
 
     /**

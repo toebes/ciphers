@@ -1073,7 +1073,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
         // Figure out what the expected answer should be
         for (const splitLines of encoded.lines) {
-            for (const c of splitLines[stringindex]) {
+            for (const c of splitLines.plaintext) {
                 if (this.isValidChar(c)) {
                     solution.push(c);
                 }

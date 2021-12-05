@@ -738,13 +738,17 @@ export class CipherEncoder extends CipherHandler {
         const strings = this.genTestStrings(ITestType.None);
 
         let toanswer = 1;
-        if (this.state.operation === 'encode') {
-            toanswer = 0;
-        }
-
         let solution: string[] = [];
-        for (const strset of strings) {
-            solution = solution.concat(strset[toanswer].split(''));
+
+        if (this.state.operation === 'keyword') {
+            solution = this.state.keyword.toUpperCase().split('');
+        } else {
+            if (this.state.operation === 'encode') {
+                toanswer = 0;
+            }
+            for (const strset of strings) {
+                solution = solution.concat(strset[toanswer].split(''));
+            }
         }
 
         return this.calculateScore(solution, answer, this.state.points);

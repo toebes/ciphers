@@ -3886,8 +3886,9 @@ export class CipherHandler {
                 }
             }
         }
-        // Up to 2 wrong os OK
-        penaltyLetters = wrongCount - 2;
+        // Up to 2 wrong os OK, unless it is a keyword solution
+        const INCORRECT_ALLOWED = (this.state.operation !== 'keyword') ? 2 : 0;
+        penaltyLetters = wrongCount - INCORRECT_ALLOWED;
         if (penaltyLetters < 0) {
             score = points;
         } else {

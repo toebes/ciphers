@@ -295,7 +295,7 @@ export interface IScoreInformation {
     /** Total count of incorrect letters */
     incorrectLetters: number;
     /** Deduction, max is number of points -- goes right in the result table*/
-    deduction: string;
+    deduction: number;
     /** Score for this question -- added to running total score */
     score: number;
 }
@@ -2378,7 +2378,7 @@ export class CipherHandler {
         const scoreInformation: IScoreInformation = {
             correctLetters: 0,
             incorrectLetters: 999,
-            deduction: 'max',
+            deduction: 999999,
             score: 1000000,
         };
         return scoreInformation;
@@ -3868,7 +3868,7 @@ export class CipherHandler {
         const scoreInformation: IScoreInformation = {
             correctLetters: 0,
             incorrectLetters: 0,
-            deduction: '-',
+            deduction: 0,
             score: 0,
         };
         let score: number;
@@ -3901,7 +3901,7 @@ export class CipherHandler {
         }
         scoreInformation.correctLetters = correctCount;
         scoreInformation.incorrectLetters = wrongCount;
-        scoreInformation.deduction = (points - score).toString();
+        scoreInformation.deduction = points - score;
         scoreInformation.score = score;
         return scoreInformation;
     }

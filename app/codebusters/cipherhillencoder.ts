@@ -998,7 +998,7 @@ export class CipherHillEncoder extends CipherEncoder {
         let scoreInformation: IScoreInformation = {
             correctLetters: 0,
             incorrectLetters: 0,
-            deduction: '0',
+            deduction: 0,
             score: 0,
         };
         const vals = this.getValidKey(this.state.keyword);
@@ -1022,7 +1022,7 @@ export class CipherHillEncoder extends CipherEncoder {
                 scoreInformation.score = this.state.points;
             } else {
                 // no points (initialized to 0)
-                scoreInformation.deduction = this.state.points.toString();
+                scoreInformation.deduction = this.state.points;
             }
         } else {
             const encoded = this.computeHill(vals);

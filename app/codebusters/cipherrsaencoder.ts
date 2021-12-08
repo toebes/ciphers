@@ -390,7 +390,7 @@ export class CipherRSAEncoder extends CipherEncoder {
         let scoreInformation: IScoreInformation = {
             correctLetters: 0,
             incorrectLetters: 1,
-            deduction: this.state.points.toString(),
+            deduction: this.state.points,
             score: 0,
         };
 
@@ -405,7 +405,7 @@ export class CipherRSAEncoder extends CipherEncoder {
             if (this.state.year === enteredAnswer) {
                 scoreInformation.correctLetters = 1;
                 scoreInformation.incorrectLetters = 0;
-                scoreInformation.deduction = '0';
+                scoreInformation.deduction = 0;
                 scoreInformation.score = this.state.points;
             }
         } else {

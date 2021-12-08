@@ -373,8 +373,6 @@ export class CipherTestResults extends CipherTestManage {
             timestampToFriendly(answertemplate.starttime) + ', ' +
             timestampToFriendly(answertemplate.endtime) + ', ' +
             '##BONUS@TIME##, ##BONUS@SCORE##, ##SPECIAL@BONUS##';
-
-
     }
 
     public genTestDetailsTable(itemTest: ITestResultsData, testQuestions: ITestQuestion[]): JQuery<HTMLElement> {

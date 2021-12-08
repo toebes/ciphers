@@ -8,6 +8,7 @@
 export interface ITestQuestion {
     // non-displayed fields
     correctLetters: number;
+    isSpecialBonus: boolean;
     // displayed fields
     questionNumber: number;
     points: number;
@@ -28,7 +29,7 @@ export interface ITestResultsData {
     testId: string;
     isTieBroke: boolean;
     // displayed fields
-    specialBonusScored: number;
+    specialBonusesEarned: number;
     startTime: string;
     endTime: string;
     bonusTime: number;

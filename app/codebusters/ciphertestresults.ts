@@ -38,7 +38,7 @@ export class CipherTestResults extends CipherTestManage {
     ];
 
     // Used for exporting results to CSV.
-    dataCSV = '##TEAM@INFO##, Total score, OBT total, OBT 1, OBT 2, OBT 3, Start time, End time, Timed solved, Bonus Score';
+    dataCSV = '##TEAM@INFO##, Total score, OBT total, OBT 1, OBT 2, OBT 3, Start time, End time, Timed solved, Timed Bonus Score, Special Bonus Score';
     private teamData = new Map();
 
     /**
@@ -372,7 +372,7 @@ export class CipherTestResults extends CipherTestManage {
             obt3 + ', ' +
             timestampToFriendly(answertemplate.starttime) + ', ' +
             timestampToFriendly(answertemplate.endtime) + ', ' +
-            '##BONUS@TIME##';
+            '##BONUS@TIME##, ##BONUS@SCORE##, ##SPECIAL@BONUS##';
 
 
     }
@@ -411,15 +411,23 @@ export class CipherTestResults extends CipherTestManage {
 
             // Remaining questions
             if (indexQuestion >= 1) {
+                const specialBonusQuestion = itemQuestion.isSpecialBonus ? 'specialbonus' : '';
+                const specialBonusPoints = (itemQuestion.isSpecialBonus && (itemQuestion.deduction === 0)) ? 'specialbonus' : '';
                 const viewTableRow = viewTable.addBodyRow();
                 viewTableRow
-                    .add(indexQuestion.toString())
+                    .add({
+                        settings: { class: specialBonusQuestion },
+                        content: (indexQuestion.toString() + (itemQuestion.isSpecialBonus ? ' (Special Bonus)' : '')),
+                    })
                     .add(itemQuestion.points.toString())
                     .add(itemQuestion.cipherType)
                     .add(itemQuestion.incorrectLetters.toString() + ' out of ' +
                         (itemQuestion.correctLetters + itemQuestion.incorrectLetters).toString())
                     .add(itemQuestion.deduction.toString())
-                    .add(itemQuestion.score.toString());
+                    .add({
+                        settings: { class: specialBonusPoints },
+                        content: itemQuestion.score.toString(),
+                    });
             }
         });
         // Bonus row
@@ -446,22 +454,14 @@ export class CipherTestResults extends CipherTestManage {
         }
         if (itemTest.hasSpecial) {
             const bonusTableRow = viewTable.addFooterRow();
-            let specialBonus = "0";
-            if (itemTest.specialBonusScored === 1) {
-                specialBonus = "150";
-            } else if (itemTest.specialBonusScored === 2) {
-                specialBonus = "350";
-            } else if (itemTest.specialBonusScored === 3) {
-                specialBonus = "750";
-            }
             bonusTableRow
                 .add('Special Bonus')
-                .add(itemTest.specialBonusScored.toString())
+                .add(itemTest.specialBonusesEarned.toString())
                 .add({
                     settings: { colspan: 3, class: 'grey' },
                     content: '',
                 })
-                .add(specialBonus);
+                .add(String(itemTest.specialBonusScore));
 
         }
         // Final (totals) row
@@ -529,11 +529,11 @@ export class CipherTestResults extends CipherTestManage {
                 const details: JQuery<HTMLElement> = this.genTestDetailsTable(itemTest, scoredTests[indexTest].questions);
 
                 // Build a 'row' of CSV data.
-                let teamInfo = this.teamData[itemTest.teamname].replace('##TOTAL@SCORE##', (itemTest.score === -2 ? 'NS' : itemTest.score)) + ', ';
+                let teamInfo = this.teamData[itemTest.teamname].replace('##TOTAL@SCORE##', (itemTest.score === -2 ? 'NS' : itemTest.score));
                 this.teamData.delete(itemTest.teamname);
-                let solved = itemTest.bonusTime;
                 teamInfo = teamInfo.replace('##BONUS@TIME##', formatTime(timestampFromSeconds(itemTest.bonusTime)));
-                teamInfo += this.calculateTimingBonus(itemTest.bonusTime);
+                teamInfo = teamInfo.replace('##BONUS@SCORE##', String(this.calculateTimingBonus(itemTest.bonusTime)));
+                teamInfo = teamInfo.replace('##SPECIAL@BONUS##', itemTest.specialBonusScore);
 
                 let questionsScores = '';
                 let questionsIncorrectLetters = '';
@@ -631,7 +631,7 @@ export class CipherTestResults extends CipherTestManage {
                     specialBonusScore: 0,
                     testTakers: userList,
                     score: 0,
-                    specialBonusScored: 0,
+                    specialBonusesEarned: 0,
                     questions: [],
                     teamname: model.teamname,
                     teamtype: model.teamtype
@@ -683,13 +683,13 @@ export class CipherTestResults extends CipherTestManage {
     private calculateOneScore(sourcemodel: SourceModel, testResultsData: ITestResultsData, answers: ITestQuestionFields[], solvetime: number, bonusEnded: number, startTime: number) {
         let bonusWindow = 0;
         let bonusTime = 0;
-        let specialBonus = 0;
         let specialBonusScore = 0;
         let testScore = 0;
-        let scoreInformation/*:IScoreInformation*/ = undefined;
+        let scoreInformation = undefined;
         const testInformation = sourcemodel.source['TEST.0'];
         const questionInformation: ITestQuestion = {
             correctLetters: 0,
+            isSpecialBonus: false,
             questionNumber: 0,
             points: 0,
             cipherType: '',
@@ -720,6 +720,7 @@ export class CipherTestResults extends CipherTestManage {
             // add any bonus points to final score.
             testScore += this.calculateTimingBonus(bonusTime, bonusWindow);
             questionInformation.correctLetters = scoreInformation.correctLetters;
+            questionInformation.isSpecialBonus = state.specialbonus;
             questionInformation.points = state.points;
             questionInformation.cipherType = state.cipherType;
             questionInformation.incorrectLetters = scoreInformation.incorrectLetters;
@@ -732,6 +733,7 @@ export class CipherTestResults extends CipherTestManage {
         for (let i = 1; i < answers.length; i++) {
             const questionInformation: ITestQuestion = {
                 correctLetters: 0,
+                isSpecialBonus: false,
                 questionNumber: 0,
                 points: 0,
                 cipherType: '',
@@ -776,24 +778,24 @@ export class CipherTestResults extends CipherTestManage {
             if (state.specialbonus) {
                 testResultsData.hasSpecial = true;
                 if (scoreInformation.deduction === "0") {
-                    testResultsData.specialBonusScored++;
+                    testResultsData.specialBonusesEarned++;
                 }
             }
             questionInformation.correctLetters = scoreInformation.correctLetters;
+            questionInformation.isSpecialBonus = state.specialbonus;
             questionInformation.questionNumber = i;
             questionInformation.points = state.points;
             questionInformation.cipherType = state.cipherType;
-            questionInformation.incorrectLetters =
-                scoreInformation.incorrectLetters;
-            if (state.specialbonus && questionInformation.incorrectLetters == 0) {
-                specialBonus++;
-            }
+            questionInformation.incorrectLetters = scoreInformation.incorrectLetters;
             questionInformation.deduction = scoreInformation.deduction;
+            if (state.specialbonus && questionInformation.deduction === 0) {
+                testResultsData.specialBonusesEarned++;
+            }
             questionInformation.score = scoreInformation.score;
             testResultsData.questions[i] = questionInformation;
         }
 
-        testResultsData.specialBonusScore = specialBonusScore = 50 * specialBonus * (specialBonus + 2);
+        testResultsData.specialBonusScore = specialBonusScore = 50 * testResultsData.specialBonusesEarned * (testResultsData.specialBonusesEarned + 2);
         testResultsData.score = testScore + specialBonusScore;
         testResultsData.bonusTime = bonusTime;
         return { bonusTime, bonusWindow };

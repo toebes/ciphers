@@ -1,6 +1,6 @@
 import { CipherTestManage } from './ciphertestmanage';
 import { toolMode, IState, CipherHandler, ITest } from '../common/cipherhandler';
-import { ITestState, IAnswerTemplate, ITestUser, RealtimeSinglePermission, SourceModel } from './ciphertest';
+import { ITestState, IAnswerTemplate, ITestUser, RealtimeSinglePermission, SourceModel, globalPermissionId } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
 import {
     cloneObject,
@@ -623,8 +623,8 @@ export class CipherTestSchedule extends CipherTestManage {
         const teamname = $('#N_' + eid).val() as string;
         const teamtype = $('#C_' + eid).val() as string;
         const testStart = $('#S_' + eid).val() as string;
-        let testDuration = $('#D_' + eid).val() as number;
-        let timedDuration = $('#T_' + eid).val() as number;
+        let testDuration = Number($('#D_' + eid).val());
+        let timedDuration = Number($('#T_' + eid).val());
         let starttime = Date.parse(testStart);
         // If they try to schedule it more than four weeks in the figure, just back it up to half an hour from now
         if (starttime > (now + timestampFromWeeks(4))) {
@@ -1033,8 +1033,8 @@ export class CipherTestSchedule extends CipherTestManage {
             const uiUser2 = ($('#U1_' + eid).val() as string).trim();
             const uiUser3 = ($('#U2_' + eid).val() as string).trim();
             const uiStartTime = $('#S_' + eid).val() as string;
-            let uiTestDuration = $('#D_' + eid).val() as number;
-            let uiTimedDuration = $('#T_' + eid).val() as number;
+            let uiTestDuration = Number($('#D_' + eid).val());
+            let uiTimedDuration = Number($('#T_' + eid).val());
 
             // If any users are different, update them.
             // This can only really occur if they change the Scilympiad id
@@ -1199,9 +1199,10 @@ export class CipherTestSchedule extends CipherTestManage {
      * saveTestModelPermissions Adds all permissions to the Test Model
      * @param testmodelid ID of the test model
      */
-    public saveTestModelPermissions(): void {
+    public async saveTestModelPermissions() {
         const testmodelid = this.testmodelid;
         this.updateCommandButtons();
+        console.log("*****Entering save TestModelPermissions");
         // Go through all of the UI Elements and gather the email addresses
         const usermap: BoolMap = { globalPermissionId: true }
         $('input[id^="U"]').each((_i, elem) => {
@@ -1213,29 +1214,38 @@ export class CipherTestSchedule extends CipherTestManage {
         const readOnlyPermission: RealtimeSinglePermission = { read: true, write: false, remove: false, manage: false };
         const removePermission: RealtimeSinglePermission = { read: false, write: false, remove: false, manage: false };
         // Start with what is currently on the model
-        this.getRealtimePermissions(testmodelid).then((permissionset) => {
-            // Then check each user to see if they already have access
-            for (const user in usermap) {
-                const permissions = permissionset[user];
-                // If they don't have any permissions or their read permissions are turned off, we want to give them just read access
-                // this prevents us from removing the full access access for the main owner of the test model
-                if (permissions === undefined || permissions.read === false) {
-                    this.updateRealtimePermissions(testmodelid, user, readOnlyPermission).catch((error) => {
+        let permissionset = await this.getRealtimePermissions(testmodelid)
+            .catch((error) => {
+                this.reportFailure('Unable to get permissions for ' + testmodelid + ':' + error);
+                return;
+            });
+
+        // Then check each user to see if they already have access
+        for (const user in usermap) {
+            const permissions = permissionset[user];
+            // If they don't have any permissions or their read permissions are turned off, we want to give them just read access
+            // this prevents us from removing the full access access for the main owner of the test model
+            if (permissions === undefined || permissions.read === false) {
+                await this.updateRealtimePermissions(testmodelid, user, readOnlyPermission).catch((error) => {
+                    this.reportFailure('Unable to set permissions for ' + user + ' on ' + testmodelid + ':' + error);
+                });
+            }
+        }
+        // Now we need to delete any read access permissions who no longer are referencing the model
+        for (let user in permissionset) {
+            const permissions = permissionset[user];
+            if (permissions.write === false && permissions.remove == false && permissions.manage === false && !usermap[user] && user !== globalPermissionId) {
+                // they no longer are referencing the model, so we can delete them
+                if (permissions.read !== false) {
+                    await this.updateRealtimePermissions(testmodelid, user, removePermission).catch((error) => {
                         this.reportFailure('Unable to set permissions for ' + user + ' on ' + testmodelid + ':' + error);
                     });
-                }
-                // Now we need to delete any read access permissions who no longer are referencing the model
-                for (let user in permissionset) {
-                    const permissions = permissionset[user];
-                    if (permissions.write === false && permissions.remove == false && permissions.manage === false && !usermap[user]) {
-                        // they no longer are referencing the model, so we can delete them
-                        this.updateRealtimePermissions(testmodelid, user, removePermission).catch((error) => {
-                            this.reportFailure('Unable to set permissions for ' + user + ' on ' + testmodelid + ':' + error);
-                        });
-                    }
+                } else {
+                    // SEAN: TODO - once the API handles this, we can delete this else clause
+                    console.log('*** TODO: ' + user + ' does not have access, so should not be in the access list');
                 }
             }
-        });
+        }
     }
     /**
      * Update the permissions on a model entry
@@ -1378,7 +1388,6 @@ export class CipherTestSchedule extends CipherTestManage {
                     this.saveUserPermissions(modelService, modelid, removed, added)
                         .then(() => { resolve(); })
                         .catch((error) => { reject(error) });
-                    resolve();
                 })
                 .catch((error) => { reject(error) });
         })
@@ -1393,9 +1402,6 @@ export class CipherTestSchedule extends CipherTestManage {
     public showDelete(modelService: ModelService, modelid: string, id: string): Promise<void> {
         const tr = $('tr#R' + id)
         const elem = $('tr#R' + id + " .pubdel")
-        console.log('showDelete id=' + id + ' tr len=' + tr.length + ' pubdel len=' + elem.length)
-        console.log(tr)
-        console.log(elem)
         elem.removeClass("alert")
             .addClass("warning")
             .text("Deleting...")

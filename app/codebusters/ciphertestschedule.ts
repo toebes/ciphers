@@ -668,7 +668,6 @@ export class CipherTestSchedule extends CipherTestManage {
      */
     public saveDirty(modelService: ModelService): void {
         let tosave = $('.pubsave[data-dirty]');
-        console.log('saveOneScheduled count=' + tosave.length)
         if (tosave.length > 0) {
             let elem = tosave[0]
             // Temporarily change the save button to indicate that we are saving and
@@ -1136,13 +1135,22 @@ export class CipherTestSchedule extends CipherTestManage {
                     this.sourceModel.sciTestCount = teams;
                     this.isScilympiad = true;
                 }
-                this.sourceModel.sciTestId = ($("#scitestid").val() as string).toLowerCase();
+                const tourid = ($("#scitourid").val() as string).toLowerCase().trim();
+                const testid = ($("#scitestid").val() as string).toLowerCase().trim();
+                this.sourceModel.sciTestId = tourid + testid;
+
                 this.sourceModel.sciTestLength = Number($("#sciduration").val());
                 this.sourceModel.sciTestTimed = Number($("#scitimed").val());
                 const starttime = $("#scistart").val() as string
                 this.sourceModel.sciTestTime = Date.parse(starttime);
+                if (this.sourceModel.sciTestId.length != 10 ||
+                    this.sourceModel.sciTestId === "0000000000") {
+                    $('#schedscidlg').foundation('close');
+                    alert("The Tournament ID must be a 4 character non-zero string and the Test ID must be a 6 character non-zero string");
+                    return;
+                }
                 // Save the source Model
-                this.saveRealtimeSource(this.sourceModel, this.state.testID)
+                this.saveRealtimeSource(this.sourceModel, this.state.testID);
                 this.setScilympiadSchedule();
 
                 $('#schedscidlg').foundation('close');
@@ -1152,14 +1160,17 @@ export class CipherTestSchedule extends CipherTestManage {
         let startTime = Date.now() + timestampFromMinutes(30)
         let testLength = 50
         let timedLength = 10
-        let testCount = 24
-        let testId = "Enter TEST Id from Scilympiad";
+        let testCount = 24;
+        let tourId = "0000"
+        let testId = "000000";
         if (this.isScilympiad) {
             startTime = this.sourceModel.sciTestTime
             testCount = this.sourceModel.sciTestCount
             testLength = this.sourceModel.sciTestLength
             timedLength = this.sourceModel.sciTestTimed
-            testId = this.sourceModel.sciTestId
+            let scitestId = this.sourceModel.sciTestId
+            tourId = scitestId.substr(0, 4);
+            testId = scitestId.substr(4);
         }
         let startInput = flatpickr("#scistart", {
             altInput: true,
@@ -1173,6 +1184,7 @@ export class CipherTestSchedule extends CipherTestManage {
         $("#sciduration").val(testLength);
         $("#scitimed").val(timedLength);
         $("#sciteams").val(testCount);
+        $("#scitourid").val(tourId);
         $("#scitestid").val(testId);
         // Put up the dialog to ask them.
         $('#schedscidlg').foundation('open');
@@ -1202,7 +1214,6 @@ export class CipherTestSchedule extends CipherTestManage {
     public async saveTestModelPermissions() {
         const testmodelid = this.testmodelid;
         this.updateCommandButtons();
-        console.log("*****Entering save TestModelPermissions");
         // Go through all of the UI Elements and gather the email addresses
         const usermap: BoolMap = { globalPermissionId: true }
         $('input[id^="U"]').each((_i, elem) => {
@@ -1510,6 +1521,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 'This manages the tests on the Codebusters platform.  Once all the tests have been created, you need to copy the testid to the Scilympiad platform.'
             ))
             .append($("<div/>"))
+            .append(JTFLabeledInput('Scilympiad Tournament Id', 'text', 'scitourid', "", ''))
             .append(JTFLabeledInput('Scilympiad Test Id', 'text', 'scitestid', "", ''))
             .append($("<div/>", { class: 'cell' })
                 .append($('<div/>', { class: 'input-group' })

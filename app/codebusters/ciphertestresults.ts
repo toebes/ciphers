@@ -1,5 +1,5 @@
 import { CipherTestManage } from './ciphertestmanage';
-import { IScoreInformation, IState, ITestQuestionFields, toolMode } from '../common/cipherhandler';
+import { IState, ITestQuestionFields, toolMode } from '../common/cipherhandler';
 import { IAnswerTemplate, ITestState, ITestUser, SourceModel } from './ciphertest';
 import { ICipherType } from '../common/ciphertypes';
 import {
@@ -38,7 +38,7 @@ export class CipherTestResults extends CipherTestManage {
     ];
 
     // Used for exporting results to CSV.
-    dataCSV = '##TEAM@INFO##, Total score, OBT total, OBT 1, OBT 2, OBT 3, Start time, End time, Timed solved, Timed Bonus Score, Special Bonus Score';
+    dataCSV = '##TEAM@INFO##, Score, OBT total, OBT 1, OBT 2, OBT 3, Start time, End time, Timed solved, Timed Bonus Score, Special Bonus Score';
     private teamData = new Map();
 
     /**
@@ -103,7 +103,7 @@ export class CipherTestResults extends CipherTestManage {
                     this.getRealtimeSource(this.state.testID).then((sourceModel) => {
                         this.isScilympiad = (sourceModel !== undefined && sourceModel.sciTestCount > 0);
                         this.dataCSV = this.dataCSV.replace('##TEAM@INFO##',
-                            this.isScilympiad ? 'Team' : 'School, Type');
+                            this.isScilympiad ? 'Team #, Status, Notes' : 'School, Type');
 
                         let questionsScores = '';
                         let questionsIncorrectLetters = '';
@@ -319,7 +319,7 @@ export class CipherTestResults extends CipherTestManage {
         let teamName = answertemplate.teamname;
         if (this.isScilympiad) {
             teamName = teamName.replace('Team ', '').trim();
-            teamName = 'C' + teamName.padStart(2, '0');
+            // teamName = 'C' + teamName.padStart(2, '0');
             if (this.isNoShowTest(answertemplate.assigned)) {
                 scoreValue = 'NS';
                 scoreId = 'scoreNS';
@@ -358,21 +358,28 @@ export class CipherTestResults extends CipherTestManage {
             }).text(scoreValue)); // Overall score will be filled in after scoring
 
         // Store data for CSV export...
-        let obt = this.isScilympiad ? userList.substring(0, userList.indexOf('[')).trim() : '';
-        let obtx = userList.match(/.*\[(\d+:\d+).*(\d+:\d+).*(\d+:\d+)\]/);
-        let obt1 = this.isScilympiad ? (obtx != null ? obtx[1] : '') : '';
-        let obt2 = this.isScilympiad ? (obtx != null ? obtx[2] : '') : '';
-        let obt3 = this.isScilympiad ? (obtx != null ? obtx[3] : '') : '';
-        this.teamData[answertemplate.teamname] = (this.isScilympiad ? teamName : answertemplate.teamname) + ', ' +
-            (this.isScilympiad ? '' : answertemplate.teamtype + ', ') +
-            '##TOTAL@SCORE##, ' +
+        let obt = ', , , ';
+
+        let teamdata = "";
+        if (this.isScilympiad) {
+            let obtx = userList.match(/.*\[(\d+:\d+).*(\d+:\d+).*(\d+:\d+)\]/);
+            if (obtx != null) {
+                obt = obtx[1] + ',' + obtx[2] + ',' + obtx[3] + ',';
+            }
+
+            teamdata = teamName + ', ' +
+                '##TEAM@STATUS## , ##SCORE@NOTES## ,';
+        } else {
+            teamdata = answertemplate.teamname + ', ' + answertemplate.teamtype + ', ';
+        }
+        teamdata += '##TOTAL@SCORE##, ' +
             csvTotalIdleTime + ', ' +
-            obt1 + ', ' +
-            obt2 + ', ' +
-            obt3 + ', ' +
+            obt +
             timestampToFriendly(answertemplate.starttime) + ', ' +
             timestampToFriendly(answertemplate.endtime) + ', ' +
             '##BONUS@TIME##, ##BONUS@SCORE##, ##SPECIAL@BONUS##';
+
+        this.teamData[answertemplate.teamname] = teamdata;
     }
 
     public genTestDetailsTable(itemTest: ITestResultsData, testQuestions: ITestQuestion[]): JQuery<HTMLElement> {
@@ -527,7 +534,16 @@ export class CipherTestResults extends CipherTestManage {
                 const details: JQuery<HTMLElement> = this.genTestDetailsTable(itemTest, scoredTests[indexTest].questions);
 
                 // Build a 'row' of CSV data.
-                let teamInfo = this.teamData[itemTest.teamname].replace('##TOTAL@SCORE##', (itemTest.score === -2 ? 'NS' : itemTest.score));
+                let teamInfo = this.teamData[itemTest.teamname];
+                if (this.isScilympiad) {
+                    teamInfo = teamInfo.replace('##TOTAL@SCORE##', (itemTest.score === -2 ? '0' : itemTest.score));
+                } else {
+                    teamInfo = teamInfo.replace('##TOTAL@SCORE##', (itemTest.score === -2 ? 'NS' : itemTest.score));
+                }
+                teamInfo = teamInfo.replace('##TEAM@STATUS##', (itemTest.score === -2 ? 'NS' : 'C'));
+                // No notes for now.
+                teamInfo = teamInfo.replace('##SCORE@NOTES##', '');
+
                 this.teamData.delete(itemTest.teamname);
                 teamInfo = teamInfo.replace('##BONUS@TIME##', formatTime(timestampFromSeconds(itemTest.bonusTime)));
                 teamInfo = teamInfo.replace('##BONUS@SCORE##', String(this.calculateTimingBonus(itemTest.bonusTime)));
@@ -820,7 +836,7 @@ export class CipherTestResults extends CipherTestManage {
         //
         const csvFilename = $('#title').text() + '.csv';
         var hiddenElement = document.createElement('a');
-        hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(this.dataCSV);
+        hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(this.dataCSV);
         hiddenElement.target = '_blank';
         hiddenElement.download = csvFilename;
         hiddenElement.click();

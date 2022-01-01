@@ -484,8 +484,6 @@ export class CipherRailFenceEncoder extends CipherEncoder {
                 result = 'Only Cryptanalysis problems are allowed on ' + this.getTestTypeName(testType);
             } else if (testType === ITestType.bstate && this.state.railOffset !== 0) {
                 result = 'Only a zero offset is allowed on ' + this.getTestTypeName(testType);
-            } else if (testType === ITestType.cregional && this.state.operation !== 'decode') {
-                result = 'Only Decode problems are allowed on ' + this.getTestTypeName(testType);
             }
         }
         return result;

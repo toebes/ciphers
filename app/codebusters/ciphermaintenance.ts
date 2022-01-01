@@ -336,7 +336,7 @@ export class CipherMaintenance extends CipherTestManage {
         } else {
 
             // Get the list of all remaining models to process
-            let entries = $('li[data-entry]');
+            let entries = $('li[data-entryxx]'); //let entries = $('li[data-entry]');
             if (entries.length > 0) {
                 // We have at least one so get it
                 let entry = entries[0];
@@ -564,7 +564,9 @@ export class CipherMaintenance extends CipherTestManage {
                 })
                 $(".ans").append($("<p/>").text((totalAnswers + totalPurged) + " Answer Models. " + totalAnswers + " Kept " + totalPurged + " Removed."))
                 // We have all the answer models, so next we go for the source models
-                this.findAllSourceModels(modelService);
+                // this.findAllSourceModels(modelService); 
+                // Actually for now we don't want to do that, so just look at the active tests.
+                this.processActiveTests(modelService);
             })
             .catch(error => {
                 this.reportFailure('error querying model:' + error)

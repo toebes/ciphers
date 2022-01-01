@@ -1307,8 +1307,10 @@ export class CipherTestSchedule extends CipherTestManage {
                                     .setAllUserPermissions(allPermissions)
                                     .then(() => { resolve(); })
                                     .catch((error) => { reject(error); });
+                            } else {
+                                resolve();
                             }
-                        });
+                        }).catch((error) => { reject(error); });
                     } else if (changed) {
                         permissionManager.setAllUserPermissions(allPermissions)
                             .then(() => { resolve(); })

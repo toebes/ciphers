@@ -28,6 +28,7 @@ config = {
         library: 'MyLib',
         umdNamedDefine: true,
         devtoolModuleFilenameTemplate: '[absolute-resource-path]',
+        clean: true
     },
     resolve: {
         alias: {

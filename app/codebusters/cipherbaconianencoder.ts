@@ -860,7 +860,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
             const rowblank = table.addBodyRow();
 
             for (let i in line.ciphertext) {
-                rowcipher.add(line.ciphertext[i]);
+                // Spaces need to become nonbreaking space
+                let ct = line.ciphertext[i].replace(/ /g, '\xa0');
+                rowcipher.add(ct);
                 rowbaconian.add(line.baconian[i]);
                 rowanswer.add({
                     settings: { class: 'a' },
@@ -997,6 +999,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             const rowblank = table.addBodyRow();
 
             for (const c of cipherline) {
+                let ct = c.replace(/ /g, '\xa0');
                 // The word baconian only needs blocks under the valid characters but the
                 // others get blocks under every character (since there is no restriction on
                 // what the cipher characters can be)
@@ -1008,7 +1011,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     // upside down caret that is a part of the cipher text field
                     const field = $('<div/>')
                         .append($('<div/>', { class: 'ir', id: spcidbase + spos }).html('&#711;'))
-                        .append(c);
+                        .append(ct);
                     rowcipher.add({ settings: { class: 'q v ' + sepclass }, content: field });
                     // We have a box for them to put whetever baconian substitution in that they want
                     rowanswer.add({
@@ -1034,8 +1037,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     pos++;
                 } else {
                     // Not a character to edit, so just leave a blank column for it.
-                    rowcipher.add(c);
-                    rowanswer.add(c);
+                    rowcipher.add(ct);
+                    rowanswer.add(ct);
                     rowunder.add(' ');
                 }
                 // And of course we need a blank line between rows

@@ -699,8 +699,9 @@ export class CipherEncoder extends CipherHandler {
                 return 'Xenocrypts not appropriate for Division A tests';
             }
         }
-        if (testType !== ITestType.cregional && testType !== ITestType.cstate && this.state.specialbonus) {
-            return 'Special Bonus only allowed on Division C tests';
+        if (testType !== ITestType.cregional && testType !== ITestType.cstate &&
+            testType !== ITestType.bregional && testType !== ITestType.bstate && this.state.specialbonus) {
+            return 'Special Bonus only allowed on Division B/C tests';
         }
         if (this.state.specialbonus && (
             this.state.cipherType === ICipherType.Aristocrat ||

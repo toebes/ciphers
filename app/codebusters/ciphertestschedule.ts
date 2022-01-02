@@ -12,10 +12,11 @@ import {
     makeCallout,
     timestampFromWeeks,
     StringMap,
+    NumberMap,
 } from '../common/ciphercommon';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRow, JTTable } from '../common/jttable';
-import { ConvergenceDomain, RealTimeModel, ModelService, ModelPermissions, PagedData } from '@convergence/convergence';
+import { ConvergenceDomain, RealTimeModel, ModelService, ModelPermissions, PagedData, LocalPropertyReference } from '@convergence/convergence';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFDialog } from '../common/jtfdialog';
 
@@ -25,7 +26,16 @@ import { EnsureUsersExistParameters } from './api';
 
 import * as XLSX from 'xlsx';
 import { Instance } from 'flatpickr/dist/types/instance';
-
+interface TeamData {
+    teamnumber: string,
+    school: string,
+    teamname: string,
+}
+interface FileJSONData {
+    json: { [index: string]: unknown }[];
+    starttimeFudgeFactor: number;
+    error: string;
+}
 /**
  * CipherTestScheduled
  *    This shows a list of all Scheduled tests.
@@ -289,32 +299,31 @@ export class CipherTestSchedule extends CipherTestManage {
                 let total = 0;
                 if (this.isScilympiad) {
                     // If we are using Scilympiad then we have to sort the results.
-                    let orderedMap: { [index: string]: IAnswerTemplate } = {}
+                    let answerTemplates: IAnswerTemplate[] = [];
                     let modelMap: StringMap = {}
-                    let maxTeam = 0;
+                    let teamMap: StringMap = {}
                     results.data.forEach((result) => {
                         const answertemplate = result.data as IAnswerTemplate;
-                        orderedMap[answertemplate.teamname] = answertemplate
+                        answerTemplates.push(answertemplate);
+                        let teamnum = answertemplate.teamname.replace(/\D/g, '');
+                        if (teamnum === '') {
+                            teamnum = answertemplate.teamname;
+                        } else {
+                            // prefix with zeros and take the right most 8 digits
+                            teamnum = teamnum.padStart(8, '0');
+                        }
+                        console.log(answertemplate.teamname + ' ' + teamnum)
+                        teamMap[answertemplate.teamname] = teamnum;
                         modelMap[answertemplate.teamname] = result.modelId;
-                        let thisTeam = Number(answertemplate.teamname.substr(5))
-                        if (thisTeam > maxTeam) {
-                            maxTeam = thisTeam;
+                    });
+                    const sorted = answerTemplates.sort((a, b) => teamMap[a.teamname].localeCompare(teamMap[b.teamname]));
+                    for (const record of sorted) {
+                        let modelid = modelMap[record.teamname]
+                        if (modelid === undefined) {
+                            console.log("Unable to find the model for " + record.teamname);
                         }
                         total++;
-                    });
-                    for (let team = 1; team <= total; team++) {
-                        let slot = team;
-                        let teamname = 'Team ' + String(slot)
-                        if (modelMap[teamname] === undefined) {
-                            // Hmm something is out of order, so we need to find a team that can fit in this slot starting at the total slot and going down until we do get one
-                            teamname = 'Team ' + String(maxTeam);
-                            // We used that one, so find the next potential one
-                            maxTeam--;
-                            while (maxTeam > total && modelMap['Team ' + String(maxTeam)] == undefined) {
-                                maxTeam--;
-                            }
-                        }
-                        this.addUITestEntry(modelMap[teamname], orderedMap[teamname]);
+                        this.addUITestEntry(modelid, record);
                     }
                 }
                 else {
@@ -444,6 +453,10 @@ export class CipherTestSchedule extends CipherTestManage {
 
             this.showDelete(modelService, modelid, rowid).then(() => {
                 tr.remove();
+                // If we deleted the last row in the table then we want to refresh the page so that we start with a clean slate
+                if ($('.publist tbody tr').length === 0) {
+                    location.reload();
+                }
                 setTimeout(() => { this.deleteFirstRequested(modelService) }, 100);
             }).catch((error) => {
                 this.reportFailure('Could not remove ' + modelid + ' ' + error);
@@ -763,6 +776,137 @@ export class CipherTestSchedule extends CipherTestManage {
         // Put up the dialog to ask them.
         $('#propscheddlg').foundation('open');
     }
+
+    /**
+     * Reads a file as either EXCEL or JSON
+     * @param reader FileReader to process data from
+     * @returns FileJSONData structure with the JSON content, time adjustment factor and any error message
+     */
+
+    private readXLSorCSV(filename: string, reader: FileReader): FileJSONData {
+        let result: FileJSONData = {
+            json: undefined,
+            starttimeFudgeFactor: 25596,  // Set time adjustment to most common use case of PC/excel.
+            error: ""
+        };
+
+        const data = new Uint8Array(reader.result as ArrayBuffer);
+        try {
+            // Load excel file...
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]]; // get the first worksheet
+            const epoch1904 = workbook.Workbook.WBProps.date1904;
+            // We have to adjust the date based on the epoch in the file.
+            // By default an excel file will have an epoch either January 1, 1900 or January 1, 1904
+            // depending on whether the file was done on a mac or a PC originally.
+            //    see https://excel.tips.net/T002051_Converting_UNIX_Date_Time_Stamps.html and
+            //        https://docs.microsoft.com/en-us/office/troubleshoot/excel/1900-and-1904-date-system
+            if (epoch1904) {
+                result.starttimeFudgeFactor -= 1461;
+            }
+            result.json = XLSX.utils.sheet_to_json(sheet) as { [index: string]: unknown }[];
+        } catch (e) {
+            console.log('Error loading excel file, try loading as a CSV');
+            try {
+                // Make a big buffer
+                const dataLength = data.byteLength;
+                let csvData = '';
+                for (let i = 0; i < dataLength; i++) {
+                    const char = String.fromCharCode(data[i]);
+                    // New line check, sanitize to always be '\n'
+                    if (char.match(/[^\r\n]+/g) !== null) {
+                        csvData += char;
+                    } else {
+                        csvData += '\n';
+                    }
+                }
+                const lines = csvData.split('\n');
+                result.json = [];
+
+                // https://stackoverflow.com/questions/12052825/regular-expression-for-all-printable-characters-in-javascript
+                // see answer from HoldOffHunger
+                // match returns true if anything is non printable.
+                if (lines[0].match(/[\p{Cc}\p{Cn}\p{Cs}]+/gu)) {
+                    result.error = 'Header line contains invalid characters.'
+                    return;
+                }
+
+                const header = lines[0].split(',');
+
+                // Start with first data record.
+                for (let i = 1; i < lines.length; i++) {
+                    // Skip blank lines and comments and lines with unprintable characters
+                    if (lines[i].trim().length === 0 || lines[i].startsWith('#') || lines[i].match(/[\p{Cc}\p{Cn}\p{Cs}]+/gu)) {
+                        continue;
+                    }
+                    let jsonRecord = {};
+                    let empty = true
+                    const currentLine = lines[i].split(',');
+                    for (let j = 0; j < header.length; j++) {
+                        if (currentLine[j] === undefined || currentLine[j].trim() === '') {
+                            continue;
+                        }
+                        empty = false
+                        jsonRecord[header[j].trim()] = currentLine[j].trim();
+                    }
+                    if (!empty) {
+                        result.json.push(jsonRecord)
+                    }
+                }
+                // Time does not need adjustment, can be used as it.
+                result.starttimeFudgeFactor = 0;
+            } catch (e) {
+                result.error = 'Invalid CSV file: "' + filename + '". ' + e.toString();
+            }
+        }
+        if (result.json === undefined) {
+            result.error = 'No import records found in "' + filename + '".';
+        }
+        return result;
+    }
+    /**
+     * Read an upload file to get the list of teams
+     * @param file uploaded file to read data from
+     * @returns Array of team records
+     */
+    public importTeamData(file: File): void {
+        let teamData: TeamData[] = [];
+        const reader = new FileReader();
+        reader.onload = (): void => {
+            let fileJSONData = this.readXLSorCSV(file.name, reader);
+            if (fileJSONData.error !== "") {
+                console.log(fileJSONData.error);
+                $('#scierr').text(fileJSONData.error).show();
+                return undefined;
+            }
+            let schoolnamefield = 'School';
+            let teamtypefield = 'Team';
+            let teamnumfield = 'Team No';
+            let foundTeams: BoolMap = {};
+            let testCount = 0;
+            for (const record of fileJSONData.json) {
+                let team: TeamData = { teamnumber: undefined, school: "", teamname: "" }
+                team.teamnumber = record[teamnumfield] as string;
+                team.school = record[schoolnamefield] as string;
+                team.teamname = record[teamtypefield] as string;
+                if (team.teamnumber !== undefined && !foundTeams[team.teamnumber]) {
+                    testCount++;
+                    teamData.push(team);
+                    foundTeams[team.teamnumber] = true;
+                }
+            }
+            // We have the list of teams now..
+            this.sourceModel.sciTestCount = testCount;
+
+            // Save the source Model
+            this.saveRealtimeSource(this.sourceModel, this.state.testID);
+            this.setScilympiadSchedule(teamData);
+            $('#schedscidlg').foundation('close');
+
+        }
+        reader.readAsArrayBuffer(file);
+    }
+
     /**
      * Process the imported file
      * @param reader File to process
@@ -770,94 +914,27 @@ export class CipherTestSchedule extends CipherTestManage {
     public processImport(file: File): void {
         const reader = new FileReader();
         reader.onload = (): void => {
-            // Set time adjustment to most common use case of PC/excel.
-            let starttimeFudgeFactor = 25569;
-            const tzOffset = timestampFromMinutes(new Date().getTimezoneOffset());
-            let json = undefined;
-            const data = new Uint8Array(reader.result as ArrayBuffer);
-            try {
-                // Load excel file...
-                const workbook = XLSX.read(data, { type: 'array' });
-                const sheet = workbook.Sheets[workbook.SheetNames[0]]; // get the first worksheet
-                const epoch1904 = workbook.Workbook.WBProps.date1904;
-                // We have to adjust the date based on the epoch in the file.
-                // By default an excel file will have an epoch either January 1, 1900 or January 1, 1904
-                // depending on whether the file was done on a mac or a PC originally.
-                //    see https://excel.tips.net/T002051_Converting_UNIX_Date_Time_Stamps.html and
-                //        https://docs.microsoft.com/en-us/office/troubleshoot/excel/1900-and-1904-date-system
-                if (epoch1904) {
-                    starttimeFudgeFactor -= 1461;
-                }
-                json = XLSX.utils.sheet_to_json(sheet) as { [index: string]: unknown }[];
-            } catch (e) {
-                console.log('Error loading excel file, try loading as a CSV');
-                try {
-                    // Make a big buffer
-                    const dataLength = data.byteLength;
-                    let csvData = '';
-                    for (let i = 0; i < dataLength; i++) {
-                        const char = String.fromCharCode(data[i]);
-                        // New line check, sanitize to always be '\n'
-                        if (char.match(/[^\r\n]+/g) !== null) {
-                            csvData += char;
-                        } else {
-                            csvData += '\n';
-                        }
-                    }
-                    const lines = csvData.split('\n');
-                    const result = [];
-
-                    // https://stackoverflow.com/questions/12052825/regular-expression-for-all-printable-characters-in-javascript
-                    // see answer from HoldOffHunger
-                    // match returns true if anything is non printable.
-                    if (lines[0].match(/[\p{Cc}\p{Cn}\p{Cs}]+/gu)) {
-                        throw 'Header line contains invalid characters.'
-                    }
-
-                    const header = lines[0].split(',');
-
-                    // Start with first data record.
-                    for (let i = 1; i < lines.length; i++) {
-                        // Skip bland lines and comments and lines with unprintable characters
-                        if (lines[i].trim().length === 0 || lines[i].startsWith('#') || lines[i].match(/[\p{Cc}\p{Cn}\p{Cs}]+/gu)) {
-                            continue;
-                        }
-                        let jsonRecord = {};
-                        const currentLine = lines[i].split(',');
-                        for (let j = 0; j < header.length; j++) {
-                            if (currentLine[j] === undefined || currentLine[j].trim() === '') {
-                                continue;
-                            }
-                            jsonRecord[header[j].trim()] = currentLine[j].trim();
-                        }
-                        result.push(jsonRecord)
-                    }
-                    // Time does not need adjustment, can be used as it.
-                    starttimeFudgeFactor = 0;
-                    json = result;
-                } catch (e) {
-                    const errorMessage = 'Invalid CSV file: "' + file.name + '". ' + e.toString();
-                    console.log(errorMessage);
-                    $('#xmlerr').text(errorMessage).show();
-                    return;
-                }
+            let fileJSONData = this.readXLSorCSV(file.name, reader);
+            if (fileJSONData.error !== "") {
+                console.log(fileJSONData.error);
+                $('#xmlerr').text(fileJSONData.error).show();
+                return;
             }
+            const tzOffset = timestampFromMinutes(new Date().getTimezoneOffset());
+
             try {
-                if (json === undefined) {
-                    throw 'No import records found.';
-                }
                 let timefield = 'Time';
                 let userfields: string[] = [];
                 let schoolnamefield = 'School';
                 let teamtypefield = 'Type';
                 let lengthfield = 'Length';
                 let timedfield = 'Timed';
-                if (json.length > 0) {
+                if (fileJSONData.json.length > 0) {
                     let defaultStartTime = Date.now()
                     let defaultTestLength = 50
                     let defaultTimedLength = 10
                     // Now we go through the records and process them
-                    for (const record of json) {
+                    for (const record of fileJSONData.json) {
                         console.log(record);
                         // Figure out what columns are to be used
                         for (const fieldname in record) {
@@ -903,7 +980,7 @@ export class CipherTestSchedule extends CipherTestManage {
                         }
                         let starttime = record[timefield] as number;
                         if (starttime !== undefined) {
-                            if (starttimeFudgeFactor > 0) {
+                            if (fileJSONData.starttimeFudgeFactor > 0) {
                                 console.log('Start time = ' + starttime);
                                 // If the time is less than one day then they didn't give us a date, only a time
                                 // so we are going to assume that it is starting today at the time they gave us
@@ -914,13 +991,13 @@ export class CipherTestSchedule extends CipherTestManage {
                                         Number(d) + starttime * timestampFromMinutes(60 * 24);
                                 } else {
                                     // Now that we have the time, make the adjustment for Excel if needed, otherwise, NO-OP.
-                                    starttime -= starttimeFudgeFactor;
+                                    starttime -= fileJSONData.starttimeFudgeFactor;
                                     starttime *= timestampFromMinutes(60 * 24);
                                     starttime += tzOffset;
                                 }
                             } else {
                                 // CVS file will provide a human readable string that can be parsed and needs no conversion
-                                starttime = Date.parse(record[timefield]);
+                                starttime = Date.parse(record[timefield] as string);
                             }
                             console.log('Mapped to ' + timestampToFriendly(starttime));
                             answertemplate.starttime = starttime;
@@ -981,7 +1058,8 @@ export class CipherTestSchedule extends CipherTestManage {
             this.populateRow(row, newRowID, answermodelid, answertemplate);
             $('.testlist').empty()
             if (this.isScilympiad) {
-                let scilympiadContent = $("<div/>").text("This test available for Scilympiad with " + this.sourceModel.sciTestCount + " teams using id:").append($("<h3>").text(this.sourceModel.sciTestId))
+                let scilympiadContent = $("<div/>").text("This test available for Scilympiad with " + this.sourceModel.sciTestCount + " teams using id:")
+                    .append($("<h3>").text('TourID: ' + this.sourceModel.sciTestId.substring(0, 4) + ' TestID: ' + this.sourceModel.sciTestId.substring(4)))
                 $('.testlist').append(makeCallout(scilympiadContent, 'primary'))
             }
             $('.testlist').append(table.generate());
@@ -999,119 +1077,157 @@ export class CipherTestSchedule extends CipherTestManage {
         return String(newRowID)
     }
     /**
-     * 
+     * Schedule a test to run for Scilympiad
+     * VERY IMPORTANT: We assume that the list of teams has already been deduped before coming to this routine.
+     * @param teamData List of teams to schedule the event for
      */
-    public setScilympiadSchedule(): void {
+    public setScilympiadSchedule(teamData: TeamData[]): void {
         // See if the number is different 
-        const currentTestCount = $('.publist tr.sci').length
-        let newTestCount = 0;
+        // We need to do this in a couple of stages
+        // First we figure out what tests we currently have.  The row will have an id R<n> going generally from 0 to the total number of records
+        //  In each row <n> we will have id values 
+        //        U0_<n>  - The account of the first participant.  It is set to '<TourID><TestID>-<TeamName>-1'
+        //        U1_<n>  - The account of the first participant.  It is set to '<TourID><TestID>-<TeamName>-2'
+        //        U2_<n>  - The account of the first participant.  It is set to '<TourID><TestID>-<TeamName>-3'
+        //        S_<n>   - The start time for the test
+        //        C_<n>   - The team type (arbitrary string)
+        //        D_<n>   - Duration of the test in minutes
+        //        T_<n>   - Timed question duration in minutes
+        //        N_<n>   - The ID of the team (Scilympiad calls it Team Number)
+        //        NX_<n>  - A visible ID of the team. It should be the same as N_<n>
+
+        const existing: NumberMap = {};
+        const trSet = $('.publist tbody tr');
+        const currentTestCount = trSet.length
+        // Figure out what teams we currently have
+        trSet.each((_i, elem) => {
+            const eid = elem.id.substring(1);
+            const uiTeamNum = ($('#N_' + eid).val() as string).trim();
+            existing[uiTeamNum] = Number(eid);
+        });
         let startTime = Date.now();
         let testDuration = 50;
         let timedDuration = 10;
         let saveDirty = false;
+        let doDeletes = false;
         if (this.isScilympiad) {
-            newTestCount = this.sourceModel.sciTestCount
             startTime = this.sourceModel.sciTestTime;
             testDuration = this.sourceModel.sciTestLength
             timedDuration = this.sourceModel.sciTestTimed
         }
-        // Figure out how many of the tests are going to stay and need to be checked for any differences
-        let toUpdate = newTestCount;
-        if (toUpdate > currentTestCount) {
-            toUpdate = currentTestCount;
+        let toAdd: TeamData[] = [];
+        // Next we go through the list of all the teams to be scheduled.
+        for (const record of teamData) {
+            let existRow = existing[record.teamnumber];
+            // If this is a duplicate team number we will just ignore it.
+            if (existRow === -1) {
+                continue;
+            }
+            // See if the team already was scheduled and just update the information for it
+            if (existRow === undefined) {
+                // New team number so we will have to add it.
+                toAdd.push(record);
+            } else {
+                // Remember we processed this team already
+                existing[record.teamnumber] = -1;
+                let teamStr = record.teamnumber;
+                let eid = String(existRow);
+                let userBase = this.sourceModel.sciTestId + "-" + teamStr + "-";
+                let changed = false;
+
+                // Figure out who is scheduled for the test and the times for it
+                const uiUser1 = ($('#U0_' + eid).val() as string).trim();
+                const uiUser2 = ($('#U1_' + eid).val() as string).trim();
+                const uiUser3 = ($('#U2_' + eid).val() as string).trim();
+                const uiStartTime = $('#S_' + eid).val() as string;
+                let uiTestDuration = Number($('#D_' + eid).val());
+                let uiTimedDuration = Number($('#T_' + eid).val());
+
+                // If any users are different, update them.
+                // This can only really occur if they change the Scilympiad id
+                if (uiUser1 !== userBase + "1") {
+                    $('#U0_' + eid).val(userBase + "1");
+                    changed = true;
+                }
+                if (uiUser2 !== userBase + "2") {
+                    $('#U1_' + eid).val(userBase + "2");
+                    changed = true;
+                }
+                if (uiUser3 !== userBase + "3") {
+                    $('#U2_' + eid).val(userBase + "3");
+                    changed = true;
+                }
+
+                // See if the test time changed
+                const startTimeStr = new Date(startTime).toISOString();
+                if (startTimeStr !== uiStartTime) {
+                    $('#S_' + eid).val(startTimeStr);
+                    $("#SX_" + eid).val(timestampToFriendly(startTime));
+                    changed = true;
+                }
+                // Duration for the test
+                if (testDuration !== uiTestDuration) {
+                    $('#D_' + eid).val(testDuration)
+                    $("#DX_" + eid).text(String(testDuration))
+                    changed = true;
+                }
+                // And the timed question
+                if (timedDuration !== uiTimedDuration) {
+                    $('#T_' + eid).val(timedDuration)
+                    $("#TX_" + eid).text(String(timedDuration))
+                    changed = true;
+                }
+                // If we did actally change anything, we need to make it as dirty
+                if (changed) {
+                    saveDirty = true;
+                    $("#NX_" + eid).val(teamStr);
+                    this.setDirty(eid);
+                }
+            }
         }
-        // Go through all the tests that are staying
-        for (let teamNumber = 0; teamNumber < toUpdate; teamNumber++) {
-            let teamStr = String(teamNumber + 1);
-            let eid = String(teamNumber);
-            let userBase = this.sourceModel.sciTestId + "-" + teamStr + "-";
-            let changed = false;
-
-            // Figure out who is scheduled for the test and the times for it
-            const uiUser1 = ($('#U0_' + eid).val() as string).trim();
-            const uiUser2 = ($('#U1_' + eid).val() as string).trim();
-            const uiUser3 = ($('#U2_' + eid).val() as string).trim();
-            const uiStartTime = $('#S_' + eid).val() as string;
-            let uiTestDuration = Number($('#D_' + eid).val());
-            let uiTimedDuration = Number($('#T_' + eid).val());
-
-            // If any users are different, update them.
-            // This can only really occur if they change the Scilympiad id
-            if (uiUser1 !== userBase + "1") {
-                $('#U0_' + eid).val(userBase + "1");
-                changed = true;
-            }
-            if (uiUser2 !== userBase + "2") {
-                $('#U1_' + eid).val(userBase + "2");
-                changed = true;
-            }
-            if (uiUser3 !== userBase + "3") {
-                $('#U2_' + eid).val(userBase + "3");
-                changed = true;
-            }
-
-            // See if the test time changed
-            const startTimeStr = new Date(startTime).toISOString();
-            if (startTimeStr !== uiStartTime) {
-                $('#S_' + eid).val(startTimeStr);
-                $("#SX_" + eid).val(timestampToFriendly(startTime));
-                changed = true;
-            }
-            // Duration for the test
-            if (testDuration !== uiTestDuration) {
-                $('#D_' + eid).val(testDuration)
-                $("#DX_" + eid).text(String(testDuration))
-                changed = true;
-            }
-            // And the timed question
-            if (timedDuration !== uiTimedDuration) {
-                $('#T_' + eid).val(timedDuration)
-                $("#TX_" + eid).text(String(timedDuration))
-                changed = true;
-            }
-            // If we did actally change anything, we need to make it as dirty
-            if (changed) {
-                saveDirty = true;
-                $("#NX_" + eid).val("Team " + teamStr);
-                this.setDirty(eid);
+        // Next we go through and mark everything that needed to be deleted 
+        for (const [key, value] of Object.entries(existing)) {
+            // Mark them as needing to be deleted.  We will let the deletes run first and then have the save code run.
+            if (value !== -1) {
+                doDeletes = true;
+                $("tr#R" + String(value)).addClass('dodel')
             }
         }
-        if (newTestCount < currentTestCount) {
-            // Go through and mark the records for deletion and then process it
-            for (let i = newTestCount; i < currentTestCount; i++) {
-                $("tr#R" + String(i)).addClass('dodel')
+
+        // Now we go through and add everything that is new
+        for (const record of toAdd) {
+            let teamStr = record.teamnumber;
+            let userBase = this.sourceModel.sciTestId + "-" + teamStr + "-"
+            const answertemplate: IAnswerTemplate = {
+                testid: "",
+                starttime: startTime,
+                endtime: startTime + timestampFromMinutes(testDuration),
+                endtimed: startTime + timestampFromMinutes(timedDuration),
+                answers: [],
+                assigned: [{ userid: userBase + "1" }, { userid: userBase + "2" }, { userid: userBase + "3" }],
+                teamname: teamStr,
+                teamtype: record.teamname
             }
+            const newRowID = this.addUITestEntry("", answertemplate);
+            this.setDirty(newRowID);
+            saveDirty = true;
+        }
+        if (saveDirty) {
+            this.attachHandlers();
+        }
+        // We may have files to save, and files to delete or both.
+        // Fortunately the delete code will call saveAllDirty when it is complete
+        if (doDeletes) {
             // Ok we have everything we want to go away set, so let the delete process run
             this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
                 const modelService = domain.models();
                 // Note that when the delete process finishes, it will also save any dirty entries
-                this.deleteFirstRequested(modelService)
+                this.deleteFirstRequested(modelService);
             });
-        } else if (newTestCount > currentTestCount) {
-            for (let teamNumber = currentTestCount; teamNumber < newTestCount; teamNumber++) {
-                let teamStr = String(teamNumber + 1);
-                let userBase = this.sourceModel.sciTestId + "-" + teamStr + "-"
-                const answertemplate: IAnswerTemplate = {
-                    testid: "",
-                    starttime: startTime,
-                    endtime: startTime + timestampFromMinutes(testDuration),
-                    endtimed: startTime + timestampFromMinutes(timedDuration),
-                    answers: [],
-                    assigned: [{ userid: userBase + "1" }, { userid: userBase + "2" }, { userid: userBase + "3" }],
-                    teamname: "Team " + teamStr,
-                    teamtype: ""
-                }
-                const newRowID = this.addUITestEntry("", answertemplate);
-                this.setDirty(newRowID);
-            }
-            this.attachHandlers();
-            // Now that it is added, queue the process to save everything marked dirty
-            this.saveAllDirty();
         } else if (saveDirty) {
             // Nothing added or removed, but we do need to save anything that changed
             this.saveAllDirty();
         }
-
     }
     /**
      * Import a schedule
@@ -1149,11 +1265,16 @@ export class CipherTestSchedule extends CipherTestManage {
                     alert("The Tournament ID must be a 4 character non-zero string and the Test ID must be a 6 character non-zero string");
                     return;
                 }
-                // Save the source Model
-                this.saveRealtimeSource(this.sourceModel, this.state.testID);
-                this.setScilympiadSchedule();
-
-                $('#schedscidlg').foundation('close');
+                // Parse the uploaded file
+                const fileinput: HTMLInputElement = $('#sciFile')[0] as HTMLInputElement;
+                const files = fileinput.files;
+                let teamData: TeamData[] = undefined;
+                if (files.length && typeof FileReader !== undefined) {
+                    this.importTeamData(files[0])
+                }
+                let error = "No valid file to load teams from";
+                console.log(error);
+                $('#scierr').text(error).show();
             })
         // We need to populate the dialog with the right information
         // we pick some reasonable defaults if nothing is already specified
@@ -1186,6 +1307,24 @@ export class CipherTestSchedule extends CipherTestManage {
         $("#sciteams").val(testCount);
         $("#scitourid").val(tourId);
         $("#scitestid").val(testId);
+        $('#oksci').prop('disabled', true);
+        $('#sciimportstatus')
+            .removeClass('success')
+            .addClass('secondary');
+        $('#scitoimport').text('No File Selected');
+        $('#sciFile')
+            .val('')
+            .off('change')
+            .on('change', (e) => {
+                $('#scierr').text('').hide();
+                $('#oksci').removeAttr('disabled');
+                $('#sciimportstatus')
+                    .removeClass('secondary')
+                    .addClass('success');
+                const fileinput: HTMLInputElement = $('#sciFile')[0] as HTMLInputElement;
+                const files = fileinput.files;
+                $('#scitoimport').text(files[0].name + ' selected');
+            });
         // Put up the dialog to ask them.
         $('#schedscidlg').foundation('open');
     }
@@ -1520,7 +1659,7 @@ export class CipherTestSchedule extends CipherTestManage {
             .append($('<div/>', {
                 class: 'callout alert',
             }).text(
-                'This manages the tests on the Codebusters platform.  Once all the tests have been created, you need to copy the testid to the Scilympiad platform.'
+                'This manages the tests on the Codebusters platform.  You will need to download the list of teams from the scilympiad Event Supervisor Event Team Roster..'
             ))
             .append($("<div/>"))
             .append(JTFLabeledInput('Scilympiad Tournament Id', 'text', 'scitourid', "", ''))
@@ -1531,7 +1670,34 @@ export class CipherTestSchedule extends CipherTestManage {
                     .append(this.dateTimeInput('scistart', Date.now(), ' input-group-field'))))
             .append(JTFIncButton('Test Duration', 'sciduration', 0, ''))
             .append(JTFIncButton('Timed Limit', 'scitimed', 0, ''))
-            .append(JTFIncButton('Number of Teams', 'sciteams', 0, ''))
+            //.append(JTFIncButton('Number of Teams', 'sciteams', 0, ''))
+            .append($('<div/>', {
+                id: 'sciimportstatus',
+                class: 'callout secondary',
+            }).append(
+                $('<label/>', {
+                    for: 'sciFile',
+                    class: 'impfile button',
+                }).text('Select File')
+            )
+                .append(
+                    $('<input/>', {
+                        type: 'file',
+                        id: 'sciFile',
+                        accept: '.xls,.xlsx,.csv',
+                        class: 'impfile show-for-sr',
+                    })
+                )
+                .append(
+                    $('<span/>', {
+                        id: 'scitoimport',
+                        class: 'impfile',
+                    }).text('No File Selected')
+                ).append(
+                    $('<div/>', {
+                        id: 'xmlerr',
+                        class: 'callout alert',
+                    }).hide()))
         const ScheduleScilympiadDlg = JTFDialog(
             'schedscidlg',
             'Schedule for Scilympiad',

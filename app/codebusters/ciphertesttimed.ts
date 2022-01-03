@@ -866,14 +866,17 @@ export class CipherTestTimed extends CipherTest {
             // Once the total exceeds the cached value by 10 seconds, we update the realtime data and save the new value as the total
             // We also watch the values for all three of them.  If any of them change, we update the corresponding field in the UI
             // See if they are the active window
-            if (!document.hasFocus() && !window.parent.document.hasFocus()) {
-                this.totalIdleTime += now - this.lastActiveTime;
-                if (this.totalIdleTime > timestampFromSeconds(10)) {
-                    const msg = this.computeOBT(this.totalIdleTime);
-                    $(this.obtID).text(msg);
-                    // See if it is time for us to update it
-                    if (this.totalIdleTime > (this.realtimeIdleTracker.value() + timestampFromSeconds(10))) {
-                        this.realtimeIdleTracker.value(this.totalIdleTime);
+            // For now we disable it for scilympiad because it is a cross origin request
+            if (!this.state.scilympiad) {
+                if (!document.hasFocus() /* && !window.parent.document.hasFocus()*/) {
+                    this.totalIdleTime += now - this.lastActiveTime;
+                    if (this.totalIdleTime > timestampFromSeconds(10)) {
+                        const msg = this.computeOBT(this.totalIdleTime);
+                        $(this.obtID).text(msg);
+                        // See if it is time for us to update it
+                        if (this.totalIdleTime > (this.realtimeIdleTracker.value() + timestampFromSeconds(10))) {
+                            this.realtimeIdleTracker.value(this.totalIdleTime);
+                        }
                     }
                 }
             }

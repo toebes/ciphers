@@ -104,8 +104,10 @@ export class CipherAffineEncoder extends CipherEncoder {
         if (isNaN(this.state.solclick2)) {
             this.state.solclick2 = -1;
         }
-        this.setUIDefaults();
-        this.updateOutput();
+        if (!suppressOutput) {
+            this.setUIDefaults();
+            this.updateOutput();
+        }
     }
     /**
      * Determines if this generator is appropriate for a given test

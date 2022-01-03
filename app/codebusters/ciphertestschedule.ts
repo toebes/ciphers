@@ -396,6 +396,8 @@ export class CipherTestSchedule extends CipherTestManage {
         teamname: string,
         teamtype: string): Promise<string> {
         // Build an answer template to store in the model
+        const questions = this.answerTemplate.answers.length + 1;
+
         const answerTemplate: IAnswerTemplate = {
             testid: this.testmodelid,
             starttime: starttime,
@@ -412,7 +414,7 @@ export class CipherTestSchedule extends CipherTestManage {
                 displayname: '',
                 starttime: 0,
                 idletime: 0,
-                confidence: [],
+                confidence: makeFilledArray(questions, 0) as number[],
                 notes: '',
                 sessionid: '',
             };

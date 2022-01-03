@@ -1728,6 +1728,7 @@ table.nameline td.u {
     overflow:scroll;
     padding-top:30px;
     margin-top:10px;
+    margin-bottom: 10px;
 }
 
 .gutter-row-1 {

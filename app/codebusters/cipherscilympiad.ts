@@ -311,7 +311,7 @@ export class CipherScilympiad extends CipherTest {
      * @param testid Id of test model
      */
     public gotoTakeTest(testid: string): void {
-        location.assign('TestTimed.html?testID=' + testid);
+        location.assign('TestTimed.html?scilympiad=y&testID=' + testid);
     }
     /**
      * Locate the model id for an element.  This looks for the data-source attribute of the containing TR

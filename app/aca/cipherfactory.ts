@@ -119,7 +119,7 @@ export function CipherFactory(
     reqlang: string
 ): CipherHandler {
     let lang = "en";
-    console.log("Selecting:" + ciphertypestr + " lang=" + lang);
+    // console.log("Selecting:" + ciphertypestr + " lang=" + lang);
     if (typeof reqlang !== "undefined") {
         lang = reqlang.toLowerCase();
     }

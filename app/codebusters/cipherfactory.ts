@@ -274,7 +274,7 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
 // CipherFactory returns a handler for a particular cipher type string and language
 export function CipherFactory(ciphertypestr: string, reqlang: string): CipherHandler {
     let lang = 'en';
-    console.log('Selecting:' + ciphertypestr + ' lang=' + lang);
+    // console.log('Selecting:' + ciphertypestr + ' lang=' + lang);
     if (typeof reqlang !== 'undefined') {
         lang = reqlang.toLowerCase();
     }
@@ -297,7 +297,7 @@ export function CipherFactory(ciphertypestr: string, reqlang: string): CipherHan
 export function CipherInteractiveFactory(ciphertypestr: string, reqlang: string): CipherHandler {
     let lang = 'en';
     const ciphertype = ciphertypestr as ICipherType;
-    console.log('Selecting:' + ciphertypestr + ' lang=' + lang);
+    // console.log('Selecting:' + ciphertypestr + ' lang=' + lang);
     let cipherTool: CipherHandler;
     if (typeof reqlang !== 'undefined') {
         lang = reqlang.toLowerCase();

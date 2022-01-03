@@ -812,16 +812,18 @@ export class CipherTestTimed extends CipherTest {
             this.makeInteractive(answermodel, target, testmodel.questions[qnum], qnum);
         }
         // Give them an easy way to exit the test
-        target.append(
-            $('<button/>', {
-                type: 'button',
-                class: 'button large rounded centered',
-                id: 'exittest',
-            }).text('Exit Test')
-        );
-        $('#exittest').on('click', () => {
-            this.shutdownTest(answermodel, 'Exit test requested by user.');
-        });
+        if (!this.state.scilympiad) {
+            target.append(
+                $('<button/>', {
+                    type: 'button',
+                    class: 'button large rounded centered',
+                    id: 'exittest',
+                }).text('Exit Test')
+            );
+            $('#exittest').on('click', () => {
+                this.shutdownTest(answermodel, 'Exit test requested by user.');
+            });
+        }
 
         this.setMenuMode(menuMode.test);
         $('.mainmenubar').hide();
@@ -864,7 +866,7 @@ export class CipherTestTimed extends CipherTest {
             // Once the total exceeds the cached value by 10 seconds, we update the realtime data and save the new value as the total
             // We also watch the values for all three of them.  If any of them change, we update the corresponding field in the UI
             // See if they are the active window
-            if (!document.hasFocus()) {
+            if (!document.hasFocus() && !window.parent.document.hasFocus()) {
                 this.totalIdleTime += now - this.lastActiveTime;
                 if (this.totalIdleTime > timestampFromSeconds(10)) {
                     const msg = this.computeOBT(this.totalIdleTime);

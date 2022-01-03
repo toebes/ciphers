@@ -879,9 +879,12 @@ export class CipherTestSchedule extends CipherTestManage {
                 $('#scierr').text(fileJSONData.error).show();
                 return undefined;
             }
-            let schoolnamefield = 'School';
-            let teamtypefield = 'Team';
-            let teamnumfield = 'Team No';
+            const schoolnamefield = 'School';
+            const teamtypefield = 'Team';
+            const teamnumfield = 'Team No';
+            const touridfield = 'Tour Id';
+            const testidfield = 'Test Id';
+
             let foundTeams: BoolMap = {};
             let testCount = 0;
             for (const record of fileJSONData.json) {
@@ -889,11 +892,22 @@ export class CipherTestSchedule extends CipherTestManage {
                 team.teamnumber = record[teamnumfield] as string;
                 team.school = record[schoolnamefield] as string;
                 team.teamname = record[teamtypefield] as string;
+                // See if they provided us a Test id/Tournament ID
+                const tourId = record[touridfield] as string;
+                const testId = record[testidfield] as string;
+                if (tourId !== undefined && testId !== undefined) {
+                    this.sourceModel.sciTestId = tourId.toLocaleLowerCase() + testId.toLocaleLowerCase();
+                }
                 if (team.teamnumber !== undefined && !foundTeams[team.teamnumber]) {
                     testCount++;
                     teamData.push(team);
                     foundTeams[team.teamnumber] = true;
                 }
+            }
+            if (this.sourceModel.sciTestId.length != 10 ||
+                this.sourceModel.sciTestId === "0000000000") {
+                alert("The Tournament ID must be a 4 character non-zero string and the Test ID must be a 6 character non-zero string");
+                return;
             }
             // We have the list of teams now..
             this.sourceModel.sciTestCount = testCount;
@@ -1059,7 +1073,7 @@ export class CipherTestSchedule extends CipherTestManage {
             $('.testlist').empty()
             if (this.isScilympiad) {
                 let scilympiadContent = $("<div/>").text("This test available for Scilympiad with " + this.sourceModel.sciTestCount + " teams using id:")
-                    .append($("<h3>").text('TourID: ' + this.sourceModel.sciTestId.substring(0, 4) + ' TestID: ' + this.sourceModel.sciTestId.substring(4)))
+                    .append($("<h3>").text('TourID: ' + this.sourceModel.sciTestId.substring(0, 4).toLocaleUpperCase() + ' TestID: ' + this.sourceModel.sciTestId.substring(4).toLocaleUpperCase()))
                 $('.testlist').append(makeCallout(scilympiadContent, 'primary'))
             }
             $('.testlist').append(table.generate());
@@ -1243,28 +1257,10 @@ export class CipherTestSchedule extends CipherTestManage {
             .removeAttr('disabled')
             .off('click')
             .on('click', () => {
-                let teams = Number($("#sciteams").val());
-                if (teams <= 0) {
-                    this.sourceModel.sciTestCount = undefined;
-                    this.isScilympiad = false;
-                } else {
-                    this.sourceModel.sciTestCount = teams;
-                    this.isScilympiad = true;
-                }
-                const tourid = ($("#scitourid").val() as string).toLowerCase().trim();
-                const testid = ($("#scitestid").val() as string).toLowerCase().trim();
-                this.sourceModel.sciTestId = tourid + testid;
-
                 this.sourceModel.sciTestLength = Number($("#sciduration").val());
                 this.sourceModel.sciTestTimed = Number($("#scitimed").val());
                 const starttime = $("#scistart").val() as string
                 this.sourceModel.sciTestTime = Date.parse(starttime);
-                if (this.sourceModel.sciTestId.length != 10 ||
-                    this.sourceModel.sciTestId === "0000000000") {
-                    $('#schedscidlg').foundation('close');
-                    alert("The Tournament ID must be a 4 character non-zero string and the Test ID must be a 6 character non-zero string");
-                    return;
-                }
                 // Parse the uploaded file
                 const fileinput: HTMLInputElement = $('#sciFile')[0] as HTMLInputElement;
                 const files = fileinput.files;
@@ -1304,9 +1300,6 @@ export class CipherTestSchedule extends CipherTestManage {
         startInput.setDate(formattedDate);
         $("#sciduration").val(testLength);
         $("#scitimed").val(timedLength);
-        $("#sciteams").val(testCount);
-        $("#scitourid").val(tourId);
-        $("#scitestid").val(testId);
         $('#oksci').prop('disabled', true);
         $('#sciimportstatus')
             .removeClass('success')
@@ -1662,15 +1655,12 @@ export class CipherTestSchedule extends CipherTestManage {
                 'This manages the tests on the Codebusters platform.  You will need to download the list of teams from the scilympiad Event Supervisor Event Team Roster..'
             ))
             .append($("<div/>"))
-            .append(JTFLabeledInput('Scilympiad Tournament Id', 'text', 'scitourid', "", ''))
-            .append(JTFLabeledInput('Scilympiad Test Id', 'text', 'scitestid', "", ''))
             .append($("<div/>", { class: 'cell' })
                 .append($('<div/>', { class: 'input-group' })
                     .append($('<span/>', { class: 'input-group-label' }).text('Start Time'))
                     .append(this.dateTimeInput('scistart', Date.now(), ' input-group-field'))))
             .append(JTFIncButton('Test Duration', 'sciduration', 0, ''))
             .append(JTFIncButton('Timed Limit', 'scitimed', 0, ''))
-            //.append(JTFIncButton('Number of Teams', 'sciteams', 0, ''))
             .append($('<div/>', {
                 id: 'sciimportstatus',
                 class: 'callout secondary',

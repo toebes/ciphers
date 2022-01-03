@@ -121,6 +121,8 @@ export interface ITestState extends IState {
     preResults?: string;
     /** Extra request for what is being uploaded from the test */
     request?: string;
+    /** nonblank indicates it was launched from scilympiad */
+    scilympiad?: string;
 }
 
 interface INewCipherEntry {

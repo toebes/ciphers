@@ -98,6 +98,81 @@ export class CipherTestTimed extends CipherTest {
             }
         }
     }
+    public showNotice(): JQuery<HTMLElement> {
+        const morsedata: string[][] = [
+            ['2', ' ', '8', ' ', '1', ' ', '3', ' ', '4', ' ', '4', ' ', '8', ' ', '1', ' ', '7', '	'],
+            ['●', '–', '×', '–', '●', '●', '●', '×', '–', '●', '–', '●', '×', '–', '●', '●', '×', '●'],
+            ['A', ' ', ' ', 'B', ' ', ' ', ' ', ' ', 'C', ' ', ' ', ' ', ' ', 'D', ' ', ' ', ' ', 'E'],
+        ];
+        const mtable = new JTTable({ class: "ansblock cipherint baconian SOLVER" });
+        let nrow = mtable.addBodyRow();
+        let mrow = mtable.addBodyRow();
+        let crow = mtable.addBodyRow();
+        let brow = mtable.addBodyRow();
+        for (let i = 0; i < morsedata[0].length; i++) {
+            nrow.add({ settings: { class: "q v" }, content: morsedata[0][i] });
+            mrow.add($("<input/>", { class: "awr", type: "text", ismorse: "1", value: morsedata[1][i], disabled: "disabled" }))
+            crow.add({
+                settings: { class: "e v" },
+                content: $("<input/>", { class: "awc", type: "text", value: morsedata[2][i], disabled: "disabled" })
+            })
+            brow.add({ settings: { class: "s" }, content: " " });
+        }
+
+        const bacondata: string[][] = [
+            ['-', '+', '+', '+', '-', '+', '-', '-', '+', '-', '+', '-', '+', '-', '+', '-', '+', '+', '-', '-', '+', '+', '-', '+', '+'],
+            ['B', 'A', 'A', 'A', 'B', 'A', 'B', 'B', 'A', 'B', 'A', 'B', 'A', 'B', 'A', 'B', 'A', 'A', 'B', 'B', 'A', 'A', 'B', 'A', 'A'],
+            [' ', 'S', ' ', ' ', ' ', 'O', ' ', ' ', ' ', ' ', ' ', 'L', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'V', ' ', ' ', ' ', 'E', ' '],
+        ];
+        const btable = new JTTable({ class: "ansblock cipherint baconian SOLVER" });
+        let nrow2 = btable.addBodyRow();
+        let mrow2 = btable.addBodyRow();
+        let crow2 = btable.addBodyRow();
+        let brow2 = btable.addBodyRow();
+        for (let i = 0; i < bacondata[0].length; i++) {
+            let extraclass = "";
+            if (i % 5 === 4) {
+                extraclass = " es";
+            }
+            nrow2.add({ settings: { class: "q v" + extraclass }, content: bacondata[0][i] });
+            mrow2.add({
+                settings: { class: extraclass },
+                content: $("<input/>", { class: "awr", type: "text", value: bacondata[1][i], disabled: "disabled" })
+            })
+            crow2.add({
+                settings: { class: "e v" + extraclass },
+                content: $("<input/>", { class: "awc", type: "text", value: bacondata[2][i], disabled: "disabled" })
+            })
+            brow2.add({ settings: { class: "s" }, content: " " });
+        }
+
+        let content = $("<div/>");
+        content.append($("<h4>").text("Important!"))
+            .append($('<p/>', { class: "h5" }).text(
+                "If you start seeing double letters in an input box," +
+                "it means that there was a network hiccup. " +
+                "If you refresh the web page, you should reconnect and be able to continue with your test."))
+            .append($('<p/>').text(
+                "When solving a Morbit, Pollux or Baconian cipher, you must put the answer " +
+                "under the corresponding solution character. " +
+                "This means that on a Baconian answer, " +
+                "four out of five answer boxes in a row should be blank and Morbit/Pollux " +
+                "answers should only have one letter " +
+                "under the characters that make up the morse code. " +
+                "For example if the morse code text was ●–×–●●●×–●–●×–●●×● " +
+                "(which corresponds to ABCDE) you should write the answer as below. " +
+                "Also note that the system does not grade anything that is not in the " +
+                "yellow underlined boxes so you do not have to fill in the morse " +
+                "characters or the AB of the Baconian. "
+            ))
+            .append(mtable.generate())
+            .append($('<p/>').text(
+                "Likewise for a Baconian you can only fill in one of the five positions for the Baconian letter. " +
+                "It can be in any of the positions, but you should only fill in a single one of them."
+            ))
+            .append(btable.generate());
+        return makeCallout(content, 'warning');
+    }
     /**
      * Sets up the timer so that it displays the countdown
      * @param msg Message string for the timer
@@ -108,7 +183,8 @@ export class CipherTestTimed extends CipherTest {
             .text(msg)
             .append($('<span/>', { id: 'remaintime', class: 'timestamp' }));
 
-        target.empty().append(makeCallout(intervalInfo, 'primary'));
+        target.empty().append(makeCallout(intervalInfo, 'primary'))
+            .append(this.showNotice());
     }
     /**
      * Update the remaining time for the test

@@ -891,7 +891,7 @@ export class CipherTestSchedule extends CipherTestManage {
             let testCount = 0;
             for (const record of fileJSONData.json) {
                 let team: TeamData = { teamnumber: undefined, school: "", teamname: "" }
-                team.teamnumber = record[teamnumfield] as string;
+                team.teamnumber = (record[teamnumfield] as string).toLocaleLowerCase();
                 team.school = record[schoolnamefield] as string;
                 team.teamname = record[teamtypefield] as string;
                 // See if they provided us a Test id/Tournament ID
@@ -1266,7 +1266,6 @@ export class CipherTestSchedule extends CipherTestManage {
                 // Parse the uploaded file
                 const fileinput: HTMLInputElement = $('#sciFile')[0] as HTMLInputElement;
                 const files = fileinput.files;
-                let teamData: TeamData[] = undefined;
                 if (files.length && typeof FileReader !== undefined) {
                     this.importTeamData(files[0])
                 }
@@ -1351,7 +1350,7 @@ export class CipherTestSchedule extends CipherTestManage {
         // Go through all of the UI Elements and gather the email addresses
         const usermap: BoolMap = { globalPermissionId: true }
         $('input[id^="U"]').each((_i, elem) => {
-            const userid = $(elem).val() as string
+            const userid = ($(elem).val() as string).toLocaleLowerCase();
             if (userid !== '') {
                 usermap[userid] = true;
             }

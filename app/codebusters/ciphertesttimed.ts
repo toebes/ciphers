@@ -1021,7 +1021,11 @@ export class CipherTestTimed extends CipherTest {
     private shutdownTest(answermodel: RealTimeModel, message?: string): void {
         $(window).off('beforeunload');
         if (message === undefined) {
-            message = 'Time is up. The test is now over.  Scheduled end time ';
+            if (this.state.scilympiad) {
+                message += 'Time is up. The test is now over. Click the Finish Test button to go back to Scilympiad.  Scheduled end time ';
+            } else {
+                message = 'Time is up. The test is now over.  Scheduled end time ';
+            }
         }
         $('.testcontent').hide();
         $('.iinstructions').hide();
@@ -1044,6 +1048,11 @@ export class CipherTestTimed extends CipherTest {
                 }
             }
         }
+        if (this.state.scilympiad) {
+            needsConfidence = false;
+            message += " Click the Finish Test button to go back to Scilympiad.";
+        }
+
         // Save any idle time we had.
         this.realtimeIdleTracker.value(this.totalIdleTime);
         const session = answermodel.session().domain();

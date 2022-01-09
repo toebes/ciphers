@@ -115,6 +115,7 @@ interface encodedLines {
     plainword: string[];
     baconword: string[];
     cipherword: string[];
+    plainanswer: string[];
 }
 
 /**
@@ -170,6 +171,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     /** Where we are in the editing of the words */
     public wordpos = 0;
     public baconianWords: string[];
+    public baconianPlain: string[];
     /** Mapping table of all baconian strings to known words */
     public wordlookup: { [index: string]: string[] };
     public setUIDefaults(): void {
@@ -283,10 +285,12 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public buildBaconianWordList(cipherString: string): void {
         this.baconianWords = [];
+        this.baconianPlain = [];
         // Iterate through each letter and look it up in the map
         for (const c of cipherString) {
             if (this.isValidChar(c)) {
                 this.baconianWords.push(baconMap[c]);
+                this.baconianPlain.push(c);
             }
         }
     }
@@ -376,7 +380,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let sourceline = '';
         let baconline = '';
         let encodeline: string[] = [];
-        const result: encodedLines = { lines: [], baconword: [], cipherword: [], plainword: [] };
+        const result: encodedLines = { lines: [], baconword: [], cipherword: [], plainword: [], plainanswer: [] };
         const letpos: NumberMap = { A: 0, B: 0 };
         let sharedpos = 0;
         // Build up a proper set for the a and b strings
@@ -390,6 +394,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             const bacontext = baconMap[t];
             // Make sure that this is a valid character to map from
             if (bacontext !== undefined) {
+                result.plainanswer.push(t);
                 sourceline += '  ' + t + '  ';
                 baconline += bacontext;
                 for (const ab of bacontext) {
@@ -885,7 +890,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @param maxEncodeWidth Maximum line length
      */
     public makeWordReplacement(str: string, maxEncodeWidth: number): encodedLines {
-        const result: encodedLines = { lines: [], baconword: [], cipherword: [], plainword: [] };
+        const result: encodedLines = { lines: [], baconword: [], cipherword: [], plainword: [], plainanswer: [] };
         this.buildWordMap();
         this.buildBaconianWordList(str);
         let wordline = '';
@@ -918,6 +923,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             result.plainword.push(plaintext);
             result.baconword.push(baconian);
             result.cipherword.push(resword);
+            result.plainanswer.push(this.baconianPlain[i]);
             baconian = padToMatch(baconian, resword);
             if (plaintext.length === 1) {
                 plaintext = padToMatch('  ' + plaintext, resword);
@@ -1070,15 +1076,19 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // Get what the question layout was so we can extract the answer
         const encoded = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
 
-        const solution: string[] = [];
+        let solution: string[] = [];
         const answer: string[] = [];
         const stringindex = 0;
 
         // Figure out what the expected answer should be
-        for (const splitLines of encoded.lines) {
-            for (const c of splitLines.plaintext) {
-                if (this.isValidChar(c)) {
-                    solution.push(c);
+        if (this.state.operation === 'words') {
+            solution = encoded.plainanswer;
+        } else {
+            for (const splitLines of encoded.lines) {
+                for (const c of splitLines.plaintext) {
+                    if (this.isValidChar(c)) {
+                        solution.push(c);
+                    }
                 }
             }
         }

@@ -8,6 +8,8 @@ import { JTFDialog } from '../common/jtfdialog';
 import Convergence = require('@convergence/convergence');
 import { LogLevel, ModelService } from '@convergence/convergence';
 import { IRealtimeObject } from './ciphertest';
+import jwt_decode from "jwt-decode";
+import { JTTable } from '../common/jttable';
 
 
 export interface MaintenanceState extends IState {
@@ -26,6 +28,19 @@ export interface MaintenanceState extends IState {
     jwt?: string
 }
 
+export interface jwtinfo {
+    aud: string
+    email: string
+    exp: number
+    isAdmin: string
+    isSci: string
+    iss: string
+    nbf: number
+    sub: string
+    teamId: string
+    testId: string
+    userId: string
+}
 /**
  * CipherMaintenance
  *   This allows for migrating and deleting old tests/users from the server
@@ -35,6 +50,11 @@ export class CipherMaintenance extends CipherTestManage {
     private todelete: BoolMap = {
         "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX": true,
     }
+
+    private jwttokens: string[] = [
+    ];
+
+
     public activeToolMode: toolMode = toolMode.codebusters;
 
     public defaultstate: MaintenanceState = {
@@ -95,6 +115,19 @@ export class CipherMaintenance extends CipherTestManage {
      */
     public createMainMenu(): JQuery<HTMLElement> {
         const result = super.createMainMenu();
+
+        if (this.jwttokens.length > 0) {
+            const table = new JTTable({ class: "cell" });
+            for (let i = 0; i < this.jwttokens.length; i++) {
+                let row = table.addBodyRow();
+                var decodedHeader = jwt_decode(this.jwttokens[i]) as jwtinfo; //, { header: true });
+                row.add(String(i));
+                row.add(decodedHeader.teamId);
+                row.add(decodedHeader.testId);
+                row.add(decodedHeader.userId);
+            }
+            result.append(table.generate());
+        }
         // Create the dialog for selecting which cipher to load
         result.append(this.createLoginDlg());
         return result;

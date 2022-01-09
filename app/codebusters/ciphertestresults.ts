@@ -652,11 +652,21 @@ export class CipherTestResults extends CipherTestManage {
                 };
 
                 let modelTime = datamodel.time().valueOf();
+                let projectedendtime = model.endtime;
+                // Special case for Division B NI22.  Remove this after Feb 1 2022
+                /// If it was 1641691800000 then change the end time to be 1641691260000
+                if (projectedendtime === 1641691800000) {
+                    projectedendtime = 1641691260000;
+                }
+                //  If it was 1641693000000 then change the end time to be 1641692460000
+                if (projectedendtime === 1641693000000) {
+                    projectedendtime = 1641692460000;
+                }
                 // See if we have to backup the model to be at the time the test actually ended.
                 // We give them 5 seconds of grace just to be nice.
-                if (modelTime > (model.endtime + timestampFromSeconds(5))) {
+                if (modelTime > (projectedendtime + timestampFromSeconds(5))) {
                     elem.text("Scrubbing...");
-                    this.rewindModel(datamodel, model.endtime).then(() => {
+                    this.rewindModel(datamodel, projectedendtime).then(() => {
                         model = datamodel.root().value() as IAnswerTemplate;
                         elem.text("Computing...");
                         this.calculateOneScore(sourcemodel, testResultsData, model.answers, solvetime, model.endtimed, model.starttime);

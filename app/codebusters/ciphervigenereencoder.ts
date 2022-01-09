@@ -604,18 +604,20 @@ export class CipherVigenereEncoder extends CipherEncoder {
         const strings = this.buildReplacementVigenere(
             this.state.cipherString,
             this.state.keyword,
-            9999
+            40
         );
         let dest = 1;
         if (this.state.operation === 'encode') {
             dest = 0;
         }
 
-        let solution = undefined;
+        let solution: string[] = undefined;
         for (const strset of strings) {
-            solution = strset[dest].split('');
+            if (solution === undefined) {
+                solution = []
+            }
+            solution.push(...strset[dest].split(''));
         }
-
         return this.calculateScore(solution, answer, this.state.points);
     }
 

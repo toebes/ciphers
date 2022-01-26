@@ -19,6 +19,7 @@ import { AuthenticatingEvent, ConnectedEvent, ConnectingEvent, ConnectionFailedE
 import Convergence = require('@convergence/convergence');
 import { anyMap, CBUpdateUserPermissions, StoreModelBody } from './api';
 import { makeSVGQR } from '../common/makesvgqr';
+import { AzureAPI } from './azure-api';
 
 export interface ConvergenceLoginParameters {
     username: string;
@@ -123,6 +124,8 @@ export interface ITestState extends IState {
     request?: string;
     /** nonblank indicates it was launched from scilympiad */
     scilympiad?: string;
+    /** token for uploading test images */
+    imageUploadToken?: string;
 }
 
 interface INewCipherEntry {
@@ -1971,7 +1974,12 @@ export class CipherTest extends CipherHandler {
         if (newpath !== "") {
             newpath += "/";
         }
-        let uri = protocol + "//" + host + "/" + newpath + "TestAttach.html?testID=" + modelID;
+
+        // TODO: Get token here.
+        AzureAPI.getImagesForModel(modelID);
+
+        const imageUploadToken = "TOKEN";
+        let uri = protocol + "//" + host + "/" + newpath + "TestAttach.html?testID=" + modelID + "&imageUploadToken=" + imageUploadToken;
         if (extra !== "") {
             uri += "&request=" + encodeURIComponent(extra);
         }
@@ -1986,11 +1994,12 @@ export class CipherTest extends CipherHandler {
             .append(buttons)
             .append($('<p/>').text("You can also scan this QR code on your phone to upload images for the test"))
         line2.append(instructions)
-        const svgQR = makeSVGQR(uri + modelID);
+        const svgQR = makeSVGQR(uri);
         svgQR.classList.add("qrinst")
         line2.append(svgQR)
         elem.append(line2);
     }
+
     public attachHandlers(): void {
         super.attachHandlers();
         $('#printtest')

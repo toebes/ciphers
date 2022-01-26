@@ -1,4 +1,5 @@
 import { ConvergenceDomain } from '@convergence/convergence';
+import { string } from 'yargs';
 import { timestampFromMinutes, makeCallout, formatTime } from '../common/ciphercommon';
 import { CipherTakeTest } from './ciphertaketest';
 import { IAnswerTemplate, ITestState } from './ciphertest';
@@ -18,6 +19,7 @@ export class CipherTestAttach extends CipherTakeTest {
      */
     public restore(data: ITestState, suppressOutput = false): void {
         super.restore(data, suppressOutput);
+
         if (this.state.request === "") {
             this.state.request = undefined;
         }
@@ -233,14 +235,17 @@ export class CipherTestAttach extends CipherTakeTest {
      * Submit the images to the server
      */
     public submitImages(): void {
-        // Dump out a list of all the files being uploaded
-        $('.paperimg').each((i, elem) => { console.log($(elem).val()) })
-        // TODO:
-        // Submit them
-        //  this.state.testID is the test we are submitting it for
-        //  const userid = this.getConfigString('userid', 'NOBODY');
-        //  this.targettime is when it should have been submitted by
-        alert("Submitting Images");
+        const testId = this.state.testID;
+        if (testId !== undefined && testId != null) {
+            // Dump out a list of all the files being uploaded
+            $('.paperimg').each((i, elem) => { console.log($(elem).val()) })
+
+            const uploaderUsername = this.getConfigString(CipherTestAttach.KEY_USER_ID, 'Unknown');
+            const imageUploadToken = this.state.imageUploadToken;
+            const modelId = this.state.testID;
+
+            alert("Submitting Images");
+        }
     }
     /**
      * Attach all the UI handlers for created DOM elements

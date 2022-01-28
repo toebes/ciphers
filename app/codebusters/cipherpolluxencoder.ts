@@ -41,9 +41,16 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
     };
     public state: IPolluxState = cloneObject(this.defaultstate) as IPolluxState;
     public encodecharset = '0123456789';
+    public sourcecharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+    public restore(data: IEncoderState, suppressOutput = false): void {
+        super.restore(data, suppressOutput)
+        this.setSourceCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
+    }
 
     public setUIDefaults(): void {
         super.setUIDefaults();
+        this.setSourceCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
         this.setCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
         this.setOperation(this.state.operation);
     }
@@ -452,8 +459,8 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         if (unknowns > 0) {
             result.append(
                 'At this point in time, ' +
-                    String(unknowns) +
-                    ' ciphertext characters still need to be mapped. '
+                String(unknowns) +
+                ' ciphertext characters still need to be mapped. '
             );
             return true;
         }
@@ -942,7 +949,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         if (!this.hasUnknowns(result, knownmap, working)) {
             result.append(
                 'Which means that the hint has provide all of the' +
-                    ' cipher digit mapping and there is no work to solve it'
+                ' cipher digit mapping and there is no work to solve it'
             );
         } else {
             let limit = 20;
@@ -965,8 +972,8 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                     result.append(
                         $('<h4.>').text(
                             'There are no more automated solving techniques, ' +
-                                'so you need to do some trial and error with the remaining unknowns. ' +
-                                'Please feel free to submit an issue with the example so we can improve this.'
+                            'so you need to do some trial and error with the remaining unknowns. ' +
+                            'Please feel free to submit an issue with the example so we can improve this.'
                         )
                     );
                     msg = 'Automated solver is unable to find an automatic solution.';

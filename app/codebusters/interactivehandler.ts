@@ -53,7 +53,7 @@ export class InteractiveHandler extends CipherHandler {
             const index = Number(parts[1]);
             let c = newchar.toUpperCase();
             this.calculateConfidence(id);
-            if (!this.isValidChar(c)) {
+            if (!this.isValidSourceChar(c)) {
                 c = ' ';
             }
             $('#' + id).val(c);
@@ -188,7 +188,7 @@ export class InteractiveHandler extends CipherHandler {
 
             } else {
                 let c = value.toUpperCase();
-                if (!this.isValidChar(c)) {
+                if (!this.isValidSourceChar(c)) {
                     c = ' ';
                 }
                 dest.value = c;
@@ -290,7 +290,7 @@ export class InteractiveHandler extends CipherHandler {
             const index = Number(parts[1]);
             let c = newchar.toUpperCase();
             this.calculateConfidence(id);
-            if (!this.isValidChar(c)) {
+            if (!this.isValidSourceChar(c)) {
                 c = ' ';
             }
             $('#' + id).val(c);
@@ -310,7 +310,7 @@ export class InteractiveHandler extends CipherHandler {
      */
     public propagateRepl(qnumdisp: string, index: number, value: string): void {
         let c = value.toUpperCase();
-        if (!this.isValidChar(c)) {
+        if (!this.isValidSourceChar(c)) {
             c = ' ';
         }
         $('#R' + qnumdisp + '_' + String(index)).val(c);
@@ -610,7 +610,7 @@ export class InteractiveHandler extends CipherHandler {
                         newchar = event.key.toUpperCase();
                     }
 
-                    if (this.isValidChar(newchar) || newchar === ' ') {
+                    if (this.isValidSourceChar(newchar) || newchar === ' ') {
                         // console.log('Setting ' + id + ' to ' + newchar);
                         this.markUndo(null);
                         this.setAns(id, newchar, realtimeAnswer, realtimeAnswerString);
@@ -745,7 +745,7 @@ export class InteractiveHandler extends CipherHandler {
                             ? focusables.eq(current + 1)
                             : focusables.eq(0);
                         this.setNext(next);
-                    } else if (this.isValidChar(newchar) || newchar === ' ') {
+                    } else if (this.isValidSourceChar(newchar) || newchar === ' ') {
                         // console.log('Setting ' + id + ' to ' + newchar)
                         this.markUndo(null);
                         this.setRepl(id, newchar, realtimeReplacement, realtimeReplacementString);

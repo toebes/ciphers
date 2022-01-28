@@ -290,7 +290,7 @@ export class InteractiveAffineEncoder extends InteractiveEncoder {
                         newchar = event.key.toUpperCase();
                     }
 
-                    if (this.isValidChar(newchar) || newchar === ' ') {
+                    if (this.isValidSourceChar(newchar) || newchar === ' ') {
                         // console.log('Setting ' + id + ' to ' + newchar);
                         this.markUndo(null);
                         this.setRepl(id, newchar, realtimeReplacement, null);

@@ -24,7 +24,7 @@ export class InteractiveEncoder extends InteractiveHandler {
         $('#checktimed').prop('disabled', true);
         let answertest = '';
         for (const c of answer) {
-            if (c !== '' && this.isValidChar(c)) {
+            if (c !== '' && this.isValidSourceChar(c)) {
                 answertest += c;
             } else {
                 answertest += '?';

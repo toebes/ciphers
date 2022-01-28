@@ -2521,6 +2521,15 @@ export class CipherHandler {
         }
     }
     /**
+     * Determines if a character is part of the valid character set for the cipher
+     */
+    public isValidSourceChar(char: string): boolean {
+        if (char === '') {
+            return false;
+        }
+        return this.sourcecharset.indexOf(char) >= 0;
+    }
+    /**
      * Gets the current character set used for output of the cipher
      */
     public getCharset(): string {

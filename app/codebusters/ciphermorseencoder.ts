@@ -21,10 +21,19 @@ export class CipherMorseEncoder extends CipherEncoder {
     ];
 
     /**
-     * getInteractiveTemplate creates the answer template for synchronization of
-     * the realtime answers when the test is being given.
-     * @returns Question arrays to be used at runtime
+     * Initializes the encoder/decoder.
+     * Select the character sets based on the language and initialize the
+     * current state
      */
+    public init(lang: string): void {
+        super.init(lang);
+        this.setSourceCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
+    }
+    /**
+      * getInteractiveTemplate creates the answer template for synchronization of
+      * the realtime answers when the test is being given.
+      * @returns Question arrays to be used at runtime
+      */
     public getInteractiveTemplate(): ITestQuestionFields {
         const result = super.getInteractiveTemplate();
         // Each cipher character corresponds to 2 symbols consisting of dots, dashes or xes characters

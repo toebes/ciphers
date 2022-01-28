@@ -49,7 +49,7 @@ export class InteractiveMorseEncoder extends InteractiveEncoder {
         if (!!dest) {
             if (enttype === 'R') {
                 let c = value.toUpperCase();
-                // if (!this.isValidChar(c)) {
+                // if (!this.isValidSourceChar(c)) {
                 //     c = ' ';
                 // }
                 dest.value = c;

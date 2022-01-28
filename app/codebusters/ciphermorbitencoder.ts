@@ -35,10 +35,26 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
     public state: IEncoderState = cloneObject(this.defaultstate) as IEncoderState;
     public encodecharset = '123456789';
     public maxEncodeWidth = 50;
+    public sourcecharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    /**
+     * Initializes the encoder/decoder.
+     * Select the character sets based on the language and initialize the
+     * current state
+     */
+    public init(lang: string): void {
+        super.init(lang);
+        this.setSourceCharset(this.sourcecharset);
+    }
+    public restore(data: IEncoderState, suppressOutput = false): void {
+        super.restore(data, suppressOutput)
+        this.setSourceCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
+        this.setCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
+    }
 
     public setUIDefaults(): void {
         super.setUIDefaults();
         this.fixReplacement();
+        this.setSourceCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
         this.setCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
         this.setOperation(this.state.operation);
     }
@@ -486,8 +502,8 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
         if (unknowns > 0) {
             result.append(
                 'At this point in time, ' +
-                    String(unknowns) +
-                    ' ciphertext characters still need to be mapped. '
+                String(unknowns) +
+                ' ciphertext characters still need to be mapped. '
             );
             return true;
         }
@@ -993,8 +1009,8 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
                             // stop for it.  Just log a message and continue on
                             console.log(
                                 'No legal choices for previous ' +
-                                    lastunknown +
-                                    ' which contain an X'
+                                lastunknown +
+                                ' which contain an X'
                             );
                         } else if (legal.length === 1) {
                             // There is only one answer, so we can update the map with it
@@ -1321,7 +1337,7 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
         if (!this.hasUnknowns(result, knownmap, working)) {
             result.append(
                 'Which means that the hint has provide all of the' +
-                    ' cipher digit mapping and there is no work to solve it'
+                ' cipher digit mapping and there is no work to solve it'
             );
         } else {
             let limit = 20;
@@ -1349,8 +1365,8 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
                     result.append(
                         $('<h4.>').text(
                             'There are no more automated solving techniques, ' +
-                                'so you need to do some trial and error with the remaining unknowns. ' +
-                                'Please feel free to submit an issue with the example so we can improve this.'
+                            'so you need to do some trial and error with the remaining unknowns. ' +
+                            'Please feel free to submit an issue with the example so we can improve this.'
                         )
                     );
                     limit = 0;

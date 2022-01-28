@@ -28,9 +28,9 @@ div.attachline {
 
 .attachline .btext {
     vertical-align: middle;
-    display:inline-block;
+    display: inline-block;
     text-align: center;
-    width:200px;
+    width: 200px;
 }
 
 .attachline .qrinst {
@@ -69,7 +69,7 @@ li.purge {
 
 .bademail {
     background-color: pink !important;
-    border:2px dashed red !important;
+    border: 2px dashed red !important;
 }
 
 .qrinst {
@@ -96,9 +96,9 @@ th.desc::after {
 .prev {
     display: none;
 }
-body.fs  {
+body.fs {
     height: 100vh;
-    overflow:hidden;
+    overflow: hidden;
 }
 body.txt {
     padding: 1rem;
@@ -201,7 +201,8 @@ body.txt {
     display: inline;
     color: red;
 }
-span.goodtime,span.badtime {
+span.goodtime,
+span.badtime {
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
     font-size: 32px;
@@ -749,19 +750,19 @@ table.SOLVER th.es {
 }
 table.intfreq td,
 table.SOLVER td {
-    text-align:center;
+    text-align: center;
     vertical-align: top;
     margin: 0px;
     padding: 0px;
     background-color: white;
+    min-width: 1rem;
 }
 
 table.SOLVER td.TOSOLVEC {
     padding-top: 30px;
 }
 
-table.SOLVER 
-table.SOLVER td {
+table.SOLVER table.SOLVER td {
     border: none;
 }
 
@@ -777,7 +778,7 @@ input.awc {
 }
 
 table.baconian input.awr {
-    width:100%;
+    width: 100%;
     border: none;
 }
 
@@ -796,7 +797,7 @@ input.awc {
 
 .TOSOLVEC,
 .awr,
-.awc{
+.awc {
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
     margin-bottom: 0pt;
@@ -833,7 +834,7 @@ textarea.intnote {
 }
 
 table.bacon td {
-    padding:0;
+    padding: 0;
     font-size: 24px;
     line-height: 100%;
 }
@@ -1109,10 +1110,10 @@ button.rounded {
 } */
 
 .button-group.round.shrink a:first-child {
-    border-radius: .625rem 0 0 .625rem;
+    border-radius: 0.625rem 0 0 0.625rem;
 }
 .button-group.round.shrink a:last-child {
-    border-radius: 0 .625rem .625rem 0rem;
+    border-radius: 0 0.625rem 0.625rem 0rem;
 }
 
 .button-group .button {
@@ -1295,7 +1296,7 @@ button.rounded {
 .disconnected {
     position: fixed;
     left: 10px;
-    top:10px;
+    top: 10px;
     width: 100%;
     z-index: 3;
 }
@@ -1307,7 +1308,7 @@ button.rounded {
     width: 95%;
     border: 1px solid green;
     background: transparent;
-    padding-top:1px;
+    padding-top: 1px;
     z-index: 3;
 }
 
@@ -1328,7 +1329,7 @@ button.rounded {
     height: 50px;
     border: 1px solid green;
     background: white;
-    padding-top:1px;
+    padding-top: 1px;
     z-index: 3;
 }
 
@@ -1360,7 +1361,7 @@ button.rounded {
 }
 
 .participant .idle {
-    display:inline;
+    display: inline;
     background: red;
 }
 .participant .uid {
@@ -1383,7 +1384,6 @@ button.rounded {
     font-size: 24pt;
     font-weight: bold;
 }
-
 
 div.rn,
 div.sn,
@@ -1449,15 +1449,15 @@ div.vsolv {
 }
 .ansblock.atest td.o.v {
     height: 3rem !important;
-    padding: .75rem;
+    padding: 0.75rem;
 }
 .ansblock.atest td.a {
     height: 3.5rem !important;
-    padding: .75rem;
+    padding: 0.75rem;
 }
 .ansblock.atest td.e {
     height: 3.5rem !important;
-    padding: .75rem;
+    padding: 0.75rem;
 }
 .ansblock.atest .q.v {
     font-size: 14px;
@@ -1716,18 +1716,18 @@ table.nameline td.u {
 .testgrid {
     grid-template-rows: 5% 10px 95%;
     display: grid;
-    height:100vh;
-    }
-    
+    height: 100vh;
+}
+
 #topsplit {
     grid-area: 1 / 1/ 1/ 1;
-    overflow:scroll;
+    overflow: scroll;
 }
 #bottomsplit {
     grid-area: 3 / 1/ 3/ 1;
-    overflow:scroll;
-    padding-top:30px;
-    margin-top:10px;
+    overflow: scroll;
+    padding-top: 30px;
+    margin-top: 10px;
     margin-bottom: 10px;
 }
 
@@ -1740,7 +1740,7 @@ table.nameline td.u {
 }
 
 .gutter-row-1 .tab {
-    background-color:lightblue;
+    background-color: lightblue;
     position: relative;
     top: 0px;
     left: 48%;
@@ -1885,14 +1885,7 @@ table.nameline td.u {
     color: white;
     padding: 3px 10px 3px 15px;
     margin: 5px;
-    -webkit-clip-path: polygon(
-        75% 0%,
-        100% 50%,
-        75% 100%,
-        0% 100%,
-        25% 50%,
-        0% 0%
-    );
+    -webkit-clip-path: polygon(75% 0%, 100% 50%, 75% 100%, 0% 100%, 25% 50%, 0% 0%);
     clip-path: polygon(75% 0%, 100% 50%, 75% 100%, 0% 100%, 25% 50%, 0% 0%);
 }
 .prevnav {
@@ -1900,14 +1893,7 @@ table.nameline td.u {
     color: white;
     padding: 3px 15px 3px 10px;
     margin: 5px;
-    -webkit-clip-path: polygon(
-        100% 0%,
-        75% 50%,
-        100% 100%,
-        25% 100%,
-        0% 50%,
-        25% 0%
-    );
+    -webkit-clip-path: polygon(100% 0%, 75% 50%, 100% 100%, 25% 100%, 0% 50%, 25% 0%);
     clip-path: polygon(100% 0%, 75% 50%, 100% 100%, 25% 100%, 0% 50%, 25% 0%);
 }
 .page {
@@ -1945,7 +1931,7 @@ table.nameline td.u {
     font-size: 12px;
 }
 .awc {
-    display:block;
+    display: block;
     width: 16px;
     padding: 0px;
     border: none;
@@ -2102,7 +2088,7 @@ table.railfence-sm tbody {
     display: none;
 }
 
-.uppercase{
+.uppercase {
     text-transform: uppercase;
 }
 

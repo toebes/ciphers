@@ -394,11 +394,13 @@ export type calloutTypes = 'secondary' | 'primary' | 'success' | 'warning' | 'al
  * makeCallout constructs a callout
  * @param content Content for the callout
  * @param type Type of callout (default=alert)
+ * @param closable Set true if the callout can be closed
  * @returns HTML Dom for callout
  */
 export function makeCallout(
     content: string | JQuery<HTMLElement>,
-    type?: calloutTypes
+    type?: calloutTypes,
+    closable?: boolean,
 ): JQuery<HTMLElement> {
     if (type === undefined) {
         type = 'alert';
@@ -406,6 +408,9 @@ export function makeCallout(
     const callout = $('<div/>', {
         class: 'callout ' + type,
     });
+    if (closable) {
+        callout.attr('data-closable', "");
+    }
     if (jQuery.type(content) === 'string') {
         callout.text(content as string);
     } else {

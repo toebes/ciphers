@@ -1,6 +1,6 @@
 import { CipherHandler, IState, ITestTimeInfo } from '../common/cipherhandler';
 import { IEncoderState } from './cipherencoder';
-import { cloneObject, timestampFromSeconds } from '../common/ciphercommon';
+import { cloneObject, makeCallout, timestampFromSeconds } from '../common/ciphercommon';
 import {
     RealTimeObject,
     RealTimeString,
@@ -49,19 +49,44 @@ export class InteractiveHandler extends CipherHandler {
         const parts = id.split('_');
         // Make sure we have a proper element that we can be updating
         // The format of the element id is I<qnum>_<index> but we only need the index portion
+        try {
+            if (parts.length > 1) {
+                const index = Number(parts[1]);
+                let c = newchar.toUpperCase();
+                this.calculateConfidence(id);
+                if (!this.isValidSourceChar(c)) {
+                    c = ' ';
+                }
+                $('#' + id).val(c);
+                if (realtimeAnswer !== null) {
+                    realtimeAnswer.set(index, c);
+                } else {
+                    realtimeAnswerString.splice(index, 1, c);
+                }
+            }
+        } catch (error) {
+            this.showRealtimeError('Answer', id, newchar, error)
+        }
+    }
+    public showRealtimeError(errtype: string, id: string, newchar: string, error: string) {
+        const emsg = "Network Error: " + errtype + ": On Id:" + id + " c:" + newchar + " Error=" + error;
+        console.log(emsg)
+        const parts = id.split('_');
+        let callout = $("<div>", { class: "RTNet_Error" }).append(makeCallout(
+            $('<div/>')
+                .append($('<h4>').text(emsg))
+                .append($('<p/>')
+                    .append($('<i/>').text("If this persists, please refresh the page to reconnect"))),
+            'alert', true
+        ))
+        $(".RTNet_Error").remove();
         if (parts.length > 1) {
-            const index = Number(parts[1]);
-            let c = newchar.toUpperCase();
-            this.calculateConfidence(id);
-            if (!this.isValidSourceChar(c)) {
-                c = ' ';
-            }
-            $('#' + id).val(c);
-            if (realtimeAnswer !== null) {
-                realtimeAnswer.set(index, c);
-            } else {
-                realtimeAnswerString.splice(index, 1, c);
-            }
+            const index = Number(parts[0].substring(1));
+            console.log("Putting under #Q" + index);
+            $("#Q" + index).prepend(callout);
+        } else {
+            console.log('Putting under testerrors')
+            $(".testerrors").append(callout);
         }
     }
     /**
@@ -140,7 +165,6 @@ export class InteractiveHandler extends CipherHandler {
      */
     public setNext(next: JQuery<HTMLElement>) {
         const id = next.attr('id');
-        console.log("+++Setting Next:" + id);
         this.testTimeInfo.prevField = id;
         this.testTimeInfo.prevTime = this.testTimeInfo.truetime.UTCNow();
         next.trigger("focus");
@@ -285,21 +309,25 @@ export class InteractiveHandler extends CipherHandler {
     public setRepl(id: string, newchar: string, realtimeReplacement: RealTimeArray, realtimeReplacementString: RealTimeString): void {
         // Make sure we have a proper element that we can be updating
         // The format of the element id is R<qnum>_<index> but we only need the index portion
-        const parts = id.split('_');
-        if (parts.length > 1) {
-            const index = Number(parts[1]);
-            let c = newchar.toUpperCase();
-            this.calculateConfidence(id);
-            if (!this.isValidSourceChar(c)) {
-                c = ' ';
+        try {
+            const parts = id.split('_');
+            if (parts.length > 1) {
+                const index = Number(parts[1]);
+                let c = newchar.toUpperCase();
+                this.calculateConfidence(id);
+                if (!this.isValidSourceChar(c)) {
+                    c = ' ';
+                }
+                $('#' + id).val(c);
+                if (realtimeReplacement !== null) {
+                    realtimeReplacement.set(index, c);
+                }
+                else {
+                    realtimeReplacementString.splice(index, 1, c);
+                }
             }
-            $('#' + id).val(c);
-            if (realtimeReplacement !== null) {
-                realtimeReplacement.set(index, c);
-            }
-            else {
-                realtimeReplacementString.splice(index, 1, c);
-            }
+        } catch (error) {
+            this.showRealtimeError('Replacement', id, newchar, error)
         }
     }
     /**
@@ -323,16 +351,20 @@ export class InteractiveHandler extends CipherHandler {
     public clickSeparator(id: string, realtimeSeparators: RealTimeArray): void {
         // Make sure we have a proper element that we can be updating
         // The format of the element id is S<qnum>_<index> and we need both portions
-        const parts = id.split('_');
-        if (parts.length > 1) {
-            const index = Number(parts[1]);
-            const separators = realtimeSeparators.value();
-            if (separators !== undefined) {
-                let c = separators[index];
-                c = c === '|' ? ' ' : '|';
-                this.propagateEntry('S', parts[0].substr(1), index, c);
-                realtimeSeparators.set(index, c);
+        try {
+            const parts = id.split('_');
+            if (parts.length > 1) {
+                const index = Number(parts[1]);
+                const separators = realtimeSeparators.value();
+                if (separators !== undefined) {
+                    let c = separators[index];
+                    c = c === '|' ? ' ' : '|';
+                    this.propagateEntry('S', parts[0].substr(1), index, c);
+                    realtimeSeparators.set(index, c);
+                }
             }
+        } catch (error) {
+            this.showRealtimeError('Separator', id, '', error)
         }
     }
 
@@ -356,16 +388,20 @@ export class InteractiveHandler extends CipherHandler {
     public clickSeparatorV2(id: string, realtimeSeparators: RealTimeString): void {
         // Make sure we have a proper element that we can be updating
         // The format of the element id is S<qnum>_<index> and we need both portions
-        const parts = id.split('_');
-        if (parts.length > 1) {
-            const index = Number(parts[1]);
-            const separators = realtimeSeparators.value();
-            if (separators !== undefined) {
-                let c = separators.substr(index, 1);
-                c = c === '|' ? ' ' : '|';
-                this.propagateEntry('S', parts[0].substr(1), index, c);
-                realtimeSeparators.splice(index, 1, c);
+        try {
+            const parts = id.split('_');
+            if (parts.length > 1) {
+                const index = Number(parts[1]);
+                const separators = realtimeSeparators.value();
+                if (separators !== undefined) {
+                    let c = separators.substr(index, 1);
+                    c = c === '|' ? ' ' : '|';
+                    this.propagateEntry('S', parts[0].substr(1), index, c);
+                    realtimeSeparators.splice(index, 1, c);
+                }
             }
+        } catch (error) {
+            this.showRealtimeError('SeparatorV2', id, '', error)
         }
     }
 

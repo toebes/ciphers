@@ -138,6 +138,12 @@ export class CipherEncoder extends CipherHandler {
         const result = super.getInteractiveTemplate();
         let replen = this.getSourceCharset().length;
         let anslen = this.state.cipherString.length;
+        // If we are doing a keyword, then we need to get right string length
+        // for the answers.
+        if (this.state.operation === 'keyword') {
+            replen += anslen;
+            anslen = this.state.keyword.length;
+        }
 
         // We can put everything into a single string.
         result.version = 2;

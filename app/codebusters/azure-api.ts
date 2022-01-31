@@ -1,5 +1,3 @@
-import { int } from "qr-code-generator";
-
 export interface ImageInformation {
     /** location of the image */
     uri: string;
@@ -16,7 +14,7 @@ export interface TokenInformation {
 
 export interface ImageUploadResponse {
     /** number of images successfully uploaded */
-    filesUploaded: int;
+    filesUploaded: number;
 }
 
 const AZURE_API_BASE_URL = "https://codebusters.azure-api.net/api";

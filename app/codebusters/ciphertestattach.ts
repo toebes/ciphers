@@ -1,5 +1,4 @@
 import { ConvergenceDomain } from '@convergence/convergence';
-import { string } from 'yargs';
 import { timestampFromMinutes, makeCallout, formatTime } from '../common/ciphercommon';
 import { AzureAPI } from './azure-api';
 import { CipherTakeTest } from './ciphertaketest';

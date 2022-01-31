@@ -582,9 +582,10 @@ export class CipherTest extends CipherHandler {
      */
     public disconnectRealtime(): void {
         if (this.cachedDomain !== undefined) {
-            this.cachedDomain.removeAllListeners();
-            this.cachedDomain.disconnect();
+            const domain = this.cachedDomain;
             this.cachedDomain = undefined;
+            domain.removeAllListeners();
+            domain.disconnect();
         }
     }
     /**

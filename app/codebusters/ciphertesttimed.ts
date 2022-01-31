@@ -65,6 +65,8 @@ export class CipherTestTimed extends CipherTest {
     /* This is which entry in the assigned section of the answer template corresponds to the active user taking the test */
     /* A value of -1 indicates that a coach is taking the test (and as such won't be tracked) */
     public activeUserSlot = -1;
+    /** This requests that the test be shut down */
+    public testCompleted = false;
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -935,7 +937,10 @@ export class CipherTestTimed extends CipherTest {
         this.lastActiveTime = this.testTimeInfo.truetime.UTCNow();
         const intervaltimer = window.setInterval(() => {
             const now = this.testTimeInfo.truetime.UTCNow();
-
+            if (this.testCompleted) {
+                clearInterval(intervaltimer);
+                return;
+            }
             // We want to track their total idle time.  Initially we pull it from the realtime data and set it as the total 
             // as well as remember the last value it was set as
             // then as they are idle, we add to our total.
@@ -1020,6 +1025,7 @@ export class CipherTestTimed extends CipherTest {
      */
     private shutdownTest(answermodel: RealTimeModel, message?: string): void {
         $(window).off('beforeunload');
+        this.testCompleted = true;
         if (message === undefined) {
             if (this.state.scilympiad) {
                 message += 'Time is up. The test is now over. Click the Finish Test button to go back to Scilympiad.  Scheduled end time ';
@@ -1058,8 +1064,8 @@ export class CipherTestTimed extends CipherTest {
         const session = answermodel.session().domain();
         this.testTimeInfo.truetime.stopTiming();
         answermodel.close().then(() => {
-            session.dispose();
             this.disconnectRealtime();
+            session.dispose();
         });
 
         // Make a temporary copy of all the 

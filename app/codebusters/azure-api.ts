@@ -26,6 +26,9 @@ const HEADER_NAME_API_VERSION = "Api-Version";
 const HEADER_API_VERSION_VALUE = "v1";
 
 const HTTP_GET = "GET";
+const HTTP_POST = "POST";
+
+const KEY_TOKEN = "token";
 const ERROR_MESSAGE_UNKNOWN = "An unknown error has occurred.";
 
 export class AzureAPI {
@@ -54,9 +57,10 @@ export class AzureAPI {
      * @param httpMethod The HTTP method to perform (Such as GET, POST, PUT, etc)
      * @param endpoint The endpoint appended to the base url
      * @param headers Any custom headers that need to be present (If null creates empty Headers object)
+     * @param formData If the request has any form data to send in the request
      * @returns A promise with the result being the parsed JSON body from the request.
      */
-    private static performRequest(httpMethod: string, endpoint: string, headers: Headers = new Headers()): Promise<any> {
+    private static performRequest(httpMethod: string, endpoint: string, headers: Headers = new Headers(), formData?: FormData): Promise<any> {
         // Without the Api-Version header, all requests would return a 404.
         headers.append(HEADER_NAME_API_VERSION, HEADER_API_VERSION_VALUE);
 
@@ -64,13 +68,14 @@ export class AzureAPI {
         return new Promise((resolve, reject) => {
             fetch(url, {
                 method: httpMethod,
-                headers: headers
+                headers: headers,
+                body: formData
             }).then((response) => {
                 response.json().then(json => {
                     if (response.ok) {
                         resolve(json);
                     } else {
-                        reject(json.error ?? ERROR_MESSAGE_UNKNOWN);
+                        reject(json.error ?? json.message ?? ERROR_MESSAGE_UNKNOWN);
                     }
                 }).catch(error => {
                     reject(error);
@@ -81,29 +86,61 @@ export class AzureAPI {
         });
     }
 
+    /**
+     * Retrieves images associated with the given model id
+     * @param modelId Specific model's id
+     * @returns An array of image information found with the model id
+     */
     public static getImagesForModel(modelId: string): Promise<ImageInformation[]> {
         const endpoint = this.getBaseModelEndpoint(modelId) + "/images";
         return new Promise((resolve, reject) => {
-            this.performRequest(HTTP_GET, endpoint).then(response => {
-                // TODO: Parse the response into JSON elements of the image information
+            this.performRequest(HTTP_GET, endpoint).then(json => {
+                var arrayOfImageInformation = json as ImageInformation[];
+                resolve(arrayOfImageInformation);
             }).catch(reason => {
                 reject(reason);
             });
         });
     }
 
+    /**
+     * An image upload token is fetched for the given model id.
+     * @param modelId Specific model's id
+     * @param uploaderUsername Username of the user requesting the token
+     * @returns A token that can be used to upload images for the given model id.
+     */
     public static getImageUploadToken(modelId: string, uploaderUsername: string): Promise<TokenInformation> {
-        const endpoint = this.getBaseModelEndpoint(modelId) + "/image/token";
+        const endpoint = this.getBaseModelEndpoint(modelId) + "/image/token?username=" + uploaderUsername;
         return new Promise((resolve, reject) => {
-            this.performRequest(HTTP_GET, endpoint).then(response => {
-                // TODO: Parse the response into JSON elements of the token information
+            this.performRequest(HTTP_GET, endpoint).then(json => {
+                const tokenInformation = json as TokenInformation;
+                resolve(tokenInformation)
             }).catch(reason => {
                 reject(reason);
             });
         });
     }
 
-    public static uploadImagesForModel(modelId: string, token: string): Promise<ImageUploadResponse> {
-        return null;
+    /**
+     * Uploads form data (Which includes as many image files) against the given model id.
+     * Images are then stored on the server for further processing by the backend.
+     * @param modelId Specific model's id
+     * @param token Token to authorize uploading images for the given model id
+     * @param formData Form that holds the files attached to be sent to the server
+     * @returns A response that lets the user know how many images were processed
+     */
+    public static uploadImagesForModel(modelId: string, token: string, formData: FormData = new FormData()): Promise<ImageUploadResponse> {
+        // Token is required for request authentication
+        formData.append(KEY_TOKEN, token);
+
+        const endpoint = this.getBaseModelEndpoint(modelId) + "/images";
+        return new Promise((resolve, reject) => {
+            this.performRequest(HTTP_POST, endpoint, undefined, formData).then(json => {
+                const imageUploadResponse = json as ImageUploadResponse;
+                resolve(imageUploadResponse);
+            }).catch(reason => {
+                reject(reason);
+            });
+        });
     }
 }

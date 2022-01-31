@@ -1975,29 +1975,33 @@ export class CipherTest extends CipherHandler {
             newpath += "/";
         }
 
-        // TODO: Get token here.
-        AzureAPI.getImagesForModel(modelID);
+        const uploaderUsername = this.getConfigString(CipherTest.KEY_USER_ID, 'Unknown');
+        AzureAPI.getImageUploadToken(modelID, uploaderUsername).then(response => {
+            const imageUploadToken = response.token;
 
-        const imageUploadToken = "TOKEN";
-        let uri = protocol + "//" + host + "/" + newpath + "TestAttach.html?testID=" + modelID + "&imageUploadToken=" + imageUploadToken;
-        if (extra !== "") {
-            uri += "&request=" + encodeURIComponent(extra);
-        }
-        // Put up a button to click to attach..
-        buttons.append(
-            $('<a/>', {
-                type: 'button',
-                class: 'button',
-                href: uri
-            }).text('Attach Images for this test'));
-        const instructions = $('<span/>', { class: 'btext' })
-            .append(buttons)
-            .append($('<p/>').text("You can also scan this QR code on your phone to upload images for the test"))
-        line2.append(instructions)
-        const svgQR = makeSVGQR(uri);
-        svgQR.classList.add("qrinst")
-        line2.append(svgQR)
-        elem.append(line2);
+            let uri = protocol + "//" + host + "/" + newpath + "TestAttach.html?testID=" + modelID + "&imageUploadToken=" + imageUploadToken;
+            if (extra !== "") {
+                uri += "&request=" + encodeURIComponent(extra);
+            }
+
+            // Put up a button to click to attach..
+            buttons.append(
+                $('<a/>', {
+                    type: 'button',
+                    class: 'button',
+                    href: uri
+                }).text('Attach Images for this test'));
+            const instructions = $('<span/>', { class: 'btext' })
+                .append(buttons)
+                .append($('<p/>').text("You can also scan this QR code on your phone to upload images for the test"))
+            line2.append(instructions)
+            const svgQR = makeSVGQR(uri);
+            svgQR.classList.add("qrinst")
+            line2.append(svgQR)
+            elem.append(line2);
+        }).catch(error => {
+            console.log(error);
+        });
     }
 
     public attachHandlers(): void {

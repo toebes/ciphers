@@ -1,6 +1,7 @@
 import { ConvergenceDomain } from '@convergence/convergence';
 import { string } from 'yargs';
 import { timestampFromMinutes, makeCallout, formatTime } from '../common/ciphercommon';
+import { AzureAPI } from './azure-api';
 import { CipherTakeTest } from './ciphertaketest';
 import { IAnswerTemplate, ITestState } from './ciphertest';
 
@@ -238,13 +239,27 @@ export class CipherTestAttach extends CipherTakeTest {
         const testId = this.state.testID;
         if (testId !== undefined && testId != null) {
             // Dump out a list of all the files being uploaded
-            $('.paperimg').each((i, elem) => { console.log($(elem).val()) })
+            // $('.paperimg').each((i, elem) => { console.log($(elem).val()) })
+            const inputFields = document.getElementsByClassName('paperimg');
 
-            const uploaderUsername = this.getConfigString(CipherTestAttach.KEY_USER_ID, 'Unknown');
+            const formData = new FormData();
+            for (let index = 0; index < inputFields.length; index++) {
+                const elementAtIndex = inputFields.item(index);
+                const inputField = elementAtIndex as HTMLInputElement;
+                const files = inputField.files;
+                for (const file in files) {
+                    formData.append('files', file)
+                }
+            }
+
             const imageUploadToken = this.state.imageUploadToken;
             const modelId = this.state.testID;
 
-            alert("Submitting Images");
+            AzureAPI.uploadImagesForModel(modelId, imageUploadToken, formData).then(response => {
+                alert(response.filesUploaded + " image(s) have been uploaded!");
+            }).catch(error => {
+                alert("Error occurred: " + error);
+            });
         }
     }
     /**

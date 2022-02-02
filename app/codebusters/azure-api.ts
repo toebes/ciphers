@@ -17,11 +17,8 @@ export interface ImageUploadResponse {
     filesUploaded: number;
 }
 
-const AZURE_API_BASE_URL = "https://codebusters.azure-api.net/api";
-const MODEL_ENDPOINT = "/model"
-
-const HEADER_NAME_API_VERSION = "Api-Version";
-const HEADER_API_VERSION_VALUE = "v1";
+const AZURE_API_BASE_URL = "https://codebustersfunctions.azurewebsites.net/api";
+const MODEL_ENDPOINT = "model"
 
 const HTTP_GET = "GET";
 const HTTP_POST = "POST";
@@ -59,9 +56,6 @@ export class AzureAPI {
      * @returns A promise with the result being the parsed JSON body from the request.
      */
     private static performRequest(httpMethod: string, endpoint: string, headers: Headers = new Headers(), formData?: FormData): Promise<any> {
-        // Without the Api-Version header, all requests would return a 404.
-        headers.append(HEADER_NAME_API_VERSION, HEADER_API_VERSION_VALUE);
-
         const url = this.getCompleteUrl(endpoint);
         return new Promise((resolve, reject) => {
             fetch(url, {
@@ -90,7 +84,7 @@ export class AzureAPI {
      * @returns An array of image information found with the model id
      */
     public static getImagesForModel(modelId: string): Promise<ImageInformation[]> {
-        const endpoint = this.getBaseModelEndpoint(modelId) + "/images";
+        const endpoint = this.getBaseModelEndpoint(modelId) + "/images?code=RQq8gjiBxSpMLb9dI3Xr/7EVJLb6FWfVOQtJKRskSukFML3evtpCZg==";
         return new Promise((resolve, reject) => {
             this.performRequest(HTTP_GET, endpoint).then(json => {
                 var arrayOfImageInformation = json as ImageInformation[];
@@ -108,7 +102,7 @@ export class AzureAPI {
      * @returns A token that can be used to upload images for the given model id.
      */
     public static getImageUploadToken(modelId: string, uploaderUsername: string): Promise<TokenInformation> {
-        const endpoint = this.getBaseModelEndpoint(modelId) + "/image/token?username=" + uploaderUsername;
+        const endpoint = this.getBaseModelEndpoint(modelId) + "/image/token?code=CT5Gs7zhsx0R7MhJHPzXXWWd7qfIHz3pB1Q2cGajiy8tm12WcOPZXQ==&username=" + uploaderUsername;
         return new Promise((resolve, reject) => {
             this.performRequest(HTTP_GET, endpoint).then(json => {
                 const tokenInformation = json as TokenInformation;
@@ -131,7 +125,7 @@ export class AzureAPI {
         // Token is required for request authentication
         formData.append(KEY_TOKEN, token);
 
-        const endpoint = this.getBaseModelEndpoint(modelId) + "/images";
+        const endpoint = this.getBaseModelEndpoint(modelId) + "/images?code=2Yf26uaUpXtqfSgv/SbhvbmOFVioDj6UaURUJjRhYAIp9Izdwv0t5Q==";
         return new Promise((resolve, reject) => {
             this.performRequest(HTTP_POST, endpoint, undefined, formData).then(json => {
                 const imageUploadResponse = json as ImageUploadResponse;

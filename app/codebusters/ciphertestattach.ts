@@ -242,12 +242,17 @@ export class CipherTestAttach extends CipherTakeTest {
             const inputFields = document.getElementsByClassName('paperimg');
 
             const formData = new FormData();
-            for (let index = 0; index < inputFields.length; index++) {
-                const elementAtIndex = inputFields.item(index);
+            console.log(inputFields);
+            for (let indexInputField = 0; indexInputField < inputFields.length; indexInputField++) {
+                const elementAtIndex = inputFields.item(indexInputField);
                 const inputField = elementAtIndex as HTMLInputElement;
                 const files = inputField.files;
-                for (const file in files) {
-                    formData.append('files', file)
+
+                console.log(files);
+
+                for (let indexFile = 0; indexFile < files.length; indexFile++) {
+                    const file = files.item(indexFile);
+                    formData.append("files", file);
                 }
             }
 

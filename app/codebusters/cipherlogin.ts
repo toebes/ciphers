@@ -106,7 +106,7 @@ export class CipherLogin extends CipherHandler {
         console.log('Microsoft user has logged in.');
         const account = authenticationResult.account;
         const username = account.username;
-        this.setConfigString(CipherHandler.KEY_USER_ID, username);
+        this.setConfigString(CipherHandler.KEY_USER_ID, username.toLowerCase());
 
         const name = account.name;
         if (name !== null && name.length > 0) {
@@ -172,7 +172,7 @@ export class CipherLogin extends CipherHandler {
                     const parameters: GenerateUserSpecificConvergenceToken = {
                         convergencePassword: convergencePassword,
                         convergenceUsername: convergenceUsername,
-                        userid: convergenceProxyUsername,
+                        userid: convergenceProxyUsername.toLowerCase(),
                         isAdmin: convergenceProxyIsAdmin === 'Y',
                         sciEventId: convergenceProxyTestid,
                         sciTeamId: convergenceProxyTeam,
@@ -191,12 +191,12 @@ export class CipherLogin extends CipherHandler {
                                 );
                                 this.setConfigString(
                                     CipherHandler.KEY_USER_ID,
-                                    convergenceProxyUsername
+                                    convergenceProxyUsername.toLowerCase()
                                 );
                                 this.setConfigString(CipherHandler.KEY_FIRST_NAME, 'Proxy');
                                 this.setConfigString(
                                     CipherHandler.KEY_LAST_NAME,
-                                    convergenceProxyUsername
+                                    convergenceProxyUsername.toLowerCase()
                                 );
                                 this.returnToCaller();
                             } else {
@@ -218,7 +218,7 @@ export class CipherLogin extends CipherHandler {
         console.log('Google user has logged in.');
         const profile = googleUser.getBasicProfile();
 
-        this.setConfigString(CipherHandler.KEY_USER_ID, profile.getEmail());
+        this.setConfigString(CipherHandler.KEY_USER_ID, profile.getEmail().toLowerCase());
         this.setConfigString(CipherHandler.KEY_FIRST_NAME, profile.getGivenName());
         this.setConfigString(CipherHandler.KEY_LAST_NAME, profile.getFamilyName());
 

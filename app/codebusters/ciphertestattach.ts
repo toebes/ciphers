@@ -1,5 +1,6 @@
 import { ConvergenceDomain } from '@convergence/convergence';
 import { timestampFromMinutes, makeCallout, formatTime } from '../common/ciphercommon';
+import { AzureAPI } from './azure-api';
 import { CipherTakeTest } from './ciphertaketest';
 import { IAnswerTemplate, ITestState } from './ciphertest';
 
@@ -18,6 +19,7 @@ export class CipherTestAttach extends CipherTakeTest {
      */
     public restore(data: ITestState, suppressOutput = false): void {
         super.restore(data, suppressOutput);
+
         if (this.state.request === "") {
             this.state.request = undefined;
         }
@@ -233,14 +235,36 @@ export class CipherTestAttach extends CipherTakeTest {
      * Submit the images to the server
      */
     public submitImages(): void {
-        // Dump out a list of all the files being uploaded
-        $('.paperimg').each((i, elem) => { console.log($(elem).val()) })
-        // TODO:
-        // Submit them
-        //  this.state.testID is the test we are submitting it for
-        //  const userid = this.getConfigString('userid', 'NOBODY');
-        //  this.targettime is when it should have been submitted by
-        alert("Submitting Images");
+        const testId = this.state.testID;
+        if (testId !== undefined && testId != null) {
+            // Dump out a list of all the files being uploaded
+            // $('.paperimg').each((i, elem) => { console.log($(elem).val()) })
+            const inputFields = document.getElementsByClassName('paperimg');
+
+            const formData = new FormData();
+            console.log(inputFields);
+            for (let indexInputField = 0; indexInputField < inputFields.length; indexInputField++) {
+                const elementAtIndex = inputFields.item(indexInputField);
+                const inputField = elementAtIndex as HTMLInputElement;
+                const files = inputField.files;
+
+                console.log(files);
+
+                for (let indexFile = 0; indexFile < files.length; indexFile++) {
+                    const file = files.item(indexFile);
+                    formData.append("files", file);
+                }
+            }
+
+            const imageUploadToken = this.state.imageUploadToken;
+            const modelId = this.state.testID;
+
+            AzureAPI.uploadImagesForModel(modelId, imageUploadToken, formData).then(response => {
+                alert(response.filesUploaded + " image(s) have been uploaded!");
+            }).catch(error => {
+                alert("Error occurred: " + error);
+            });
+        }
     }
     /**
      * Attach all the UI handlers for created DOM elements

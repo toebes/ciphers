@@ -19,6 +19,7 @@ import { AuthenticatingEvent, ConnectedEvent, ConnectingEvent, ConnectionFailedE
 import Convergence = require('@convergence/convergence');
 import { anyMap, CBUpdateUserPermissions, StoreModelBody } from './api';
 import { makeSVGQR } from '../common/makesvgqr';
+import { AzureAPI } from './azure-api';
 
 export interface ConvergenceLoginParameters {
     username: string;
@@ -123,6 +124,8 @@ export interface ITestState extends IState {
     request?: string;
     /** nonblank indicates it was launched from scilympiad */
     scilympiad?: string;
+    /** token for uploading test images */
+    imageUploadToken?: string;
 }
 
 interface INewCipherEntry {
@@ -579,9 +582,10 @@ export class CipherTest extends CipherHandler {
      */
     public disconnectRealtime(): void {
         if (this.cachedDomain !== undefined) {
-            this.cachedDomain.removeAllListeners();
-            this.cachedDomain.disconnect();
+            const domain = this.cachedDomain;
             this.cachedDomain = undefined;
+            domain.removeAllListeners();
+            domain.disconnect();
         }
     }
     /**
@@ -1971,26 +1975,36 @@ export class CipherTest extends CipherHandler {
         if (newpath !== "") {
             newpath += "/";
         }
-        let uri = protocol + "//" + host + "/" + newpath + "TestAttach.html?testID=" + modelID;
-        if (extra !== "") {
-            uri += "&request=" + encodeURIComponent(extra);
-        }
-        // Put up a button to click to attach..
-        buttons.append(
-            $('<a/>', {
-                type: 'button',
-                class: 'button',
-                href: uri
-            }).text('Attach Images for this test'));
-        const instructions = $('<span/>', { class: 'btext' })
-            .append(buttons)
-            .append($('<p/>').text("You can also scan this QR code on your phone to upload images for the test"))
-        line2.append(instructions)
-        const svgQR = makeSVGQR(uri + modelID);
-        svgQR.classList.add("qrinst")
-        line2.append(svgQR)
-        elem.append(line2);
+
+        const uploaderUsername = this.getConfigString(CipherTest.KEY_USER_ID, 'Unknown');
+        AzureAPI.getImageUploadToken(modelID, uploaderUsername).then(response => {
+            const imageUploadToken = response.token;
+
+            let uri = protocol + "//" + host + "/" + newpath + "TestAttach.html?testID=" + modelID + "&imageUploadToken=" + imageUploadToken;
+            if (extra !== "") {
+                uri += "&request=" + encodeURIComponent(extra);
+            }
+
+            // Put up a button to click to attach..
+            buttons.append(
+                $('<a/>', {
+                    type: 'button',
+                    class: 'button',
+                    href: uri
+                }).text('Attach Images for this test'));
+            const instructions = $('<span/>', { class: 'btext' })
+                .append(buttons)
+                .append($('<p/>').text("You can also scan this QR code on your phone to upload images for the test"))
+            line2.append(instructions)
+            const svgQR = makeSVGQR(uri);
+            svgQR.classList.add("qrinst")
+            line2.append(svgQR)
+            elem.append(line2);
+        }).catch(error => {
+            console.log(error);
+        });
     }
+
     public attachHandlers(): void {
         super.attachHandlers();
         $('#printtest')

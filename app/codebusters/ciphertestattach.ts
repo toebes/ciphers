@@ -5,8 +5,9 @@ import { CipherTakeTest } from './ciphertaketest';
 import { IAnswerTemplate, ITestState } from './ciphertest';
 
 
-/* The number of minutes after a test that they can still submit */
-const AttachTimeLimit = 120;
+/* The number of seconds after a test that they can still submit */
+const AttachTimeLimit = 600;
+
 /**
  * CipherTestAttach
  *  Allows attaching an image to a previously taken test.

@@ -48,14 +48,21 @@ export class CipherTestAttach extends CipherTakeTest {
     public genTestList(): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'testlist' });
 
-        if (this.confirmedLoggedIn(' in order to see tests assigned to you.', result)) {
-            const top = $("<div/>", { class: 'publist' });
-            result.append(top);
-            this.DisplayDomainTitle(result);
-            this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-                this.findAllTests(domain);
-            });
-        }
+        // if (this.confirmedLoggedIn(' in order to see tests assigned to you.', result)) {
+        //     const top = $("<div/>", { class: 'publist' });
+        //     result.append(top);
+        //     this.DisplayDomainTitle(result);
+        //     this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+        //         this.findAllTests(domain);
+        //     });
+        // }
+
+        const top = $("<div/>", { class: 'publist' });
+        result.append(top);
+        this.DisplayDomainTitle(result);
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+            this.findAllTests(domain);
+        });
         return result;
     }
     /**

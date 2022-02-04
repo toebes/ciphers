@@ -6,7 +6,8 @@ import { IAnswerTemplate, ITestState } from './ciphertest';
 
 
 /* The number of minutes after a test that they can still submit */
-const AttachTimeLimit = 120;
+const AttachTimeLimit = 10;
+
 /**
  * CipherTestAttach
  *  Allows attaching an image to a previously taken test.
@@ -48,14 +49,21 @@ export class CipherTestAttach extends CipherTakeTest {
     public genTestList(): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'testlist' });
 
-        if (this.confirmedLoggedIn(' in order to see tests assigned to you.', result)) {
-            const top = $("<div/>", { class: 'publist' });
-            result.append(top);
-            this.DisplayDomainTitle(result);
-            this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
-                this.findAllTests(domain);
-            });
-        }
+        // if (this.confirmedLoggedIn(' in order to see tests assigned to you.', result)) {
+        //     const top = $("<div/>", { class: 'publist' });
+        //     result.append(top);
+        //     this.DisplayDomainTitle(result);
+        //     this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+        //         this.findAllTests(domain);
+        //     });
+        // }
+
+        const top = $("<div/>", { class: 'publist' });
+        result.append(top);
+        this.DisplayDomainTitle(result);
+        this.cacheConnectRealtime().then((domain: ConvergenceDomain) => {
+            this.findAllTests(domain);
+        });
         return result;
     }
     /**

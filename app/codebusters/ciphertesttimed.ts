@@ -150,10 +150,17 @@ export class CipherTestTimed extends CipherTest {
 
         let content = $("<div/>");
         content.append($("<h4>").text("Important!"))
-            .append($('<p/>', { class: "h5" }).text(
-                "If you start seeing double letters in an input box," +
-                "it means that there was a network hiccup. " +
-                "If you refresh the web page, you should reconnect and be able to continue with your test."))
+            .append($('<ul/>')
+                .append($('<li/>').text("If you work any problems on paper, please make sure you give them to your coach in case " +
+                    "the person scoring the test wants to see your work. "))
+                .append($('<li/>').text("There is a known problem that in rare circumstances when two people working on the same test type " +
+                    "in the same field at the exact same time (measured in miliseconds) the system ends up inserting text and shifting " +
+                    "other letters in the cipher by one position"))
+                .append($('<li/>').text("If you start seeing double letters in an input box," +
+                    "or an error message about network problems " +
+                    "it means that there was a network hiccup. " +
+                    "If you refresh the web page, you should reconnect and be able to continue with your test."))
+            )
             .append($('<p/>').text(
                 "When solving a Morbit, Pollux or Baconian cipher, you must put the answer " +
                 "under the corresponding solution character. " +
@@ -1071,6 +1078,19 @@ export class CipherTestTimed extends CipherTest {
         // Make a temporary copy of all the 
         this.saveBackupCopy();
         this.setTestStatusMessage(message, this.testTimeInfo.endTime);
+
+        if (!this.state.scilympiad) {
+            const content = " If you did any work on paper, please give your papers to your coach in case " +
+                "the event supervisor wants to see your work."
+            const result = $(".testcontent")
+            const title = $("<h2/>").text("➤➤➤ Please save any paper you worked on");
+            const calloutContent = $("<div/>")
+                .append(title)
+                .append($("<h4/>").text(content));
+
+            const callout = makeCallout(calloutContent, 'warning');
+            result.append(callout);
+        }
 
         if (this.checkPaper && needsConfidence) {
             const result = $(".testcontent")

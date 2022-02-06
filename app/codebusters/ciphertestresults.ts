@@ -379,7 +379,7 @@ export class CipherTestResults extends CipherTestManage {
             timestampToFriendly(answertemplate.endtime) + ', ' +
             '##BONUS@TIME##, ##BONUS@SCORE##, ##SPECIAL@BONUS##';
 
-        this.teamData[answertemplate.teamname] = teamdata;
+        this.teamData[answertemplate.teamname + '-' + answertemplate.teamtype] = teamdata;
     }
 
     public genTestDetailsTable(itemTest: ITestResultsData, testQuestions: ITestQuestion[]): JQuery<HTMLElement> {
@@ -534,7 +534,7 @@ export class CipherTestResults extends CipherTestManage {
                 const details: JQuery<HTMLElement> = this.genTestDetailsTable(itemTest, scoredTests[indexTest].questions);
 
                 // Build a 'row' of CSV data.
-                let teamInfo = this.teamData[itemTest.teamname];
+                let teamInfo = this.teamData[itemTest.teamname + '-' + itemTest.teamtype];
                 if (this.isScilympiad) {
                     teamInfo = teamInfo.replace('##TOTAL@SCORE##', (itemTest.score === -2 ? '0' : itemTest.score));
                 } else {

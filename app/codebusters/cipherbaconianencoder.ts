@@ -385,7 +385,13 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let sharedpos = 0;
         // Build up a proper set for the a and b strings
         let aset = this.buildset(this.state.texta);
+        if (aset.length === 0) {
+            aset.push(" ")
+        }
         let bset = this.buildset(this.state.textb);
+        if (bset.length === 0) {
+            bset.push(" ")
+        }
         for (let t of str) {
             // See if the character needs to be mapped.
             if (typeof langreplace[t] !== 'undefined') {

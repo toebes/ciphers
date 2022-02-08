@@ -6,7 +6,9 @@
 .idea/
 out/
 AffineEncrypt - Copy.html
-SamplePhrases.xlsx
+*.xlsx
+*.xls
+*.csv
 node_modules/*
 dist/*
 .DS_Store

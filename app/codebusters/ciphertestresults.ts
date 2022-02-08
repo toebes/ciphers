@@ -544,7 +544,7 @@ export class CipherTestResults extends CipherTestManage {
                 // No notes for now.
                 teamInfo = teamInfo.replace('##SCORE@NOTES##', '');
 
-                this.teamData.delete(itemTest.teamname);
+                this.teamData.delete(itemTest.teamname + '-' + itemTest.teamtype);
                 teamInfo = teamInfo.replace('##BONUS@TIME##', formatTime(timestampFromSeconds(itemTest.bonusTime)));
                 teamInfo = teamInfo.replace('##BONUS@SCORE##', String(this.calculateTimingBonus(itemTest.bonusTime)));
                 teamInfo = teamInfo.replace('##SPECIAL@BONUS##', itemTest.specialBonusScore);

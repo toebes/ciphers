@@ -1672,16 +1672,13 @@ export class CipherHandler {
     /**
      * Creates an HTML table to display the frequency of characters for printing
      * on the test and answer key
-     * showanswers controls whether we display the answers or just the key
-     * encodeType tells the type of encoding to print.  If it is 'random' then
-     * we leave it blank.
+     * @param qnum number - Question number to generate table for
+     * @param encodeType string -  tells the type of encoding to print.
+     *                    If it is 'random' then we leave it blank.
+     * @param extraclass string - any extra classes to add to the generated table
+     * @returns HTMLElement representing the generated table
      */
-    public genInteractiveFreqTable(
-        qnum: number,
-        encodeType: string,
-        extraclass: string,
-        offset: number = 0
-    ): JQuery<HTMLElement> {
+    public genInteractiveFreqTable(qnum: number, encodeType: string, extraclass: string): JQuery<HTMLElement> {
         const table = new JTTable({
             class: 'shrink unstriped intfreq' + extraclass,
         });
@@ -1719,7 +1716,7 @@ export class CipherHandler {
             replrow.add({
                 celltype: 'td',
                 content: $('<input/>', {
-                    id: 'R' + String(qnum + 1 + offset) + '_' + pos,
+                    id: 'R' + String(qnum + 1) + '_' + pos,
                     class: 'awr',
                     type: 'text',
                 }),

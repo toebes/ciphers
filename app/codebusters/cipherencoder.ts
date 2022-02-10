@@ -910,7 +910,6 @@ export class CipherEncoder extends CipherHandler {
         const result = $('<div/>', { id: 'Q' + qnumdisp });
         let inputoffset = 0;
         let cipherinputclass = 'awc';
-        let freqoffset = 0;
         // If we are doing a keyword, then we have to have a separate answer set of fields
         if (this.state.operation === 'keyword') {
             const keyanswer = this.state.keyword.toUpperCase();
@@ -948,7 +947,6 @@ export class CipherEncoder extends CipherHandler {
             cipherinputclass = 'awr'
             idclass = 'R' + qnumdisp + '_';
             inputoffset = this.getCharset().length;
-            freqoffset = keyanswer.length;
             result.append($('<p/>').append($("<b/>").text("Cipher:")));
         }
 
@@ -1003,7 +1001,7 @@ export class CipherEncoder extends CipherHandler {
             );
         }
 
-        result.append(this.genInteractiveFreqTable(qnum, this.state.encodeType, extraclass, freqoffset));
+        result.append(this.genInteractiveFreqTable(qnum, this.state.encodeType, extraclass));
         result.append($('<textarea/>', { id: 'in' + qnumdisp, class: 'intnote' }));
         return result;
     }

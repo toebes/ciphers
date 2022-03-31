@@ -939,7 +939,9 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         }
         // And then fill it in with what we do know.
         for (const c of hint) {
-            knownmap[c] = morseletmap[c];
+            if (morseletmap[c] !== undefined) {
+                knownmap[c] = morseletmap[c];
+            }
         }
 
         this.genKnownTable(result, knownmap);

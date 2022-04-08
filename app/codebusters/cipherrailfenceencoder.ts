@@ -480,9 +480,10 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             //  Division C Regional: Decode with any offset
             //  Division C State: Decode+Cryptanalysis with any offset
 
-            if (testType === ITestType.bstate && this.state.operation !== 'crypt') {
-                result = 'Only Cryptanalysis problems are allowed on ' + this.getTestTypeName(testType);
-            } else if (testType === ITestType.bstate && this.state.railOffset !== 0) {
+            //    if (testType === ITestType.bstate && this.state.operation !== 'crypt') {
+            //        result = 'Only Cryptanalysis problems are allowed on ' + this.getTestTypeName(testType);
+            //    } else
+            if (testType === ITestType.bstate && this.state.railOffset !== 0) {
                 result = 'Only a zero offset is allowed on ' + this.getTestTypeName(testType);
             }
         }

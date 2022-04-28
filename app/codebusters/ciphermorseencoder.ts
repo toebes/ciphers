@@ -463,6 +463,10 @@ export class CipherMorseEncoder extends CipherEncoder {
         }
         const regex = new RegExp(cribRegex, 'g');
         const match = regex.exec(plainText);
+        // If the crib wasn't found, then tell them so
+        if (match === null) {
+            return ""
+        }
         // The indexes are directly corresponding between letter location and cipher text.
         const cipherCrib = cipherText.substr(match.index, match[0].length);
         return cipherCrib.trim();

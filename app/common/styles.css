@@ -2161,10 +2161,10 @@ table.railfence-sm tbody {
     div.affinework {
         height: 12rem;
     }
-    .grid-x {
+    /* .grid-x {
         display: block;
         flex-flow: default;
-    }
+    } */
     .grid-x > .shrink {
         width: default;
     }

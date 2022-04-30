@@ -1,4 +1,4 @@
-import * as InlineEditor from '@ckeditor/ckeditor5-build-inline';
+import { CKInlineEditor } from '../common/ckeditor.js';
 import { cloneObject } from '../common/ciphercommon';
 import {
     CipherHandler,
@@ -75,7 +75,7 @@ export class CipherEncoder extends CipherHandler {
      * This is a cache of all active editors on the page.
      * It is indexed by the id of the HTML element
      */
-    public editor: { [key: string]: InlineEditor } = {};
+    public editor: { [key: string]: CKInlineEditor } = {};
     public cipherName = 'Aristocrat';
 
     public cmdButtons: JTButtonItem[] = [
@@ -1495,7 +1495,7 @@ export class CipherEncoder extends CipherHandler {
             const id = $(elem).prop('id') as string;
             if (id !== '' && !(id in this.editor)) {
                 this.editor[id] = null;
-                InlineEditor.create(elem)
+                CKInlineEditor.create(elem)
                     .then((editor) => {
                         const initialtext = $(elem).val();
                         this.editor[id] = editor;

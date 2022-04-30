@@ -5,6 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const WebpackShellPlugin = require('webpack-shell-plugin-next');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const { bundler, styles } = require( '@ckeditor/ckeditor5-dev-utils' );
 
 const package = require('./package.json');
 const toolsVersion = package.version;
@@ -81,7 +82,20 @@ config = {
             {
                 test: /\.css$/,
                 include: __dirname,
-                use: ['style-loader', 'css-loader'],
+                use: ['style-loader',
+                    'css-loader',
+                    {
+                        loader: 'postcss-loader',
+                        options: {
+                            postcssOptions: styles.getPostCssConfig({
+                                themeImporter: {
+                                    themePath: require.resolve('@ckeditor/ckeditor5-theme-lark')
+                                },
+                                minify: true
+                            })
+                        }
+                    },
+                ],
             },
             // All small .png files (mostly the icons for jqueryui) are inlined
             // with the URL loader
@@ -100,7 +114,7 @@ config = {
             {
                 test: /\.(svg)$/,
                 use: {
-                    loader: 'url-loader',
+                    loader: 'svg-inline-loader',
                     options: {
                         limit: 20000,
                         esModule: false

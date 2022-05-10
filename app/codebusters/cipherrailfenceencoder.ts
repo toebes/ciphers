@@ -43,6 +43,8 @@ class RailFenceSolver {
     private readonly charsLeftover: number;
     // Solution, but with different number of rails.
     private readonly swizzledSolution: string[][];
+    // Array with rail number by offset index
+    private readonly railByOffset: number[];
 
     /**
      * Creates a Rail Fence solver.  Every character in the passed in inputText will
@@ -64,6 +66,11 @@ class RailFenceSolver {
 
         this.solution = [];
         this.swizzledSolution = [];
+
+        this.railByOffset = [];
+        for (let index = 1; index <= this.charsPerZigzag; index++) {
+            this.railByOffset.push((index <= this.railCount) ? index : this.railCount - (index % this.railCount))
+        }
 
         // Loop over the rails to place characters
         for (let railIndex = 1; railIndex <= this.railCount; railIndex++) {
@@ -190,6 +197,22 @@ class RailFenceSolver {
         returnValue.append($('<p/>', { class: 'TOANSWER' }).text(decoded));
 
         return returnValue;
+    }
+
+    // Determintes the number of spaces between the first and second characters on the same rail.
+    public spacesToNext(rail: number) {
+        let count = 0;
+        let counting = false;
+        for (let i = this.offset; i < this.offset + this.charsPerZigzag; i++) {
+            if (counting) count++;
+            if (rail === this.railByOffset[i % this.charsPerZigzag]) {
+                if (!counting)
+                    counting = true;
+                else
+                    break;
+            }
+        }
+        return count - 1;
     }
 
     public getTextLength(): number {
@@ -1030,9 +1053,6 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             }
         }
 
-        // startLocation = (((column % charsPerZigZag) + offset) % charsPerZigZag) + 1
-        // startLocation = (rfs.getCharsPerZigzag() - 1 + this.state.railOffset) % (rfs.getCharsPerZigzag() + 1) + 1;
-        // (rfs.getCharsPerZigzag() + 1 - this.state.railOffset)
         solutionIntro.append(
             'Copy the first ',
             $('<code/>').append(charsInRail.toString()),
@@ -1050,7 +1070,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         // middle rails
         for (r = 2; r < rails; r++) {
             // needs to be switched for offset > half of CharsPerzigzag
-            let firstSpacesCount = (2 * rails) - (2 * r) - 1; //2 * rails - (2 * (r - 1) + 3); //-5, -7, -9;
+            let firstSpacesCount = rfs.spacesToNext(r);
             let secondSpacesCount = rfs.getCharsPerZigzag() - 2 - firstSpacesCount;
 
 
@@ -1060,12 +1080,6 @@ export class CipherRailFenceEncoder extends CipherEncoder {
                     startLocation = i + 1;
                     break;
                 }
-            }
-            //startLocation
-            if ((this.state.railOffset >= (rfs.getCharsPerZigzag() / 2) - 1) && (startLocation > rfs.getCharsPerZigzag() / 2)) {
-                //            if (startLocation > rfs.getCharsPerZigzag() / 2) {
-                secondSpacesCount = (2 * rails) - (2 * r) - 1; //2 * rails - (2 * (r - 1) + 3); //-5, -7, -9;
-                firstSpacesCount = rfs.getCharsPerZigzag() - 2 - secondSpacesCount;
             }
 
             solutionIntro.append($('<h5/>').text('Rail '.concat(r.toString())));

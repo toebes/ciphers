@@ -140,14 +140,14 @@ export class CipherKeyPhraseSolver extends CipherSolver {
             this.holdupdates = true;
             for (let i = 0; i < key.length; i++) {
                 let ct = str.substr(pos + i, 1);
-                let pt = key.substr(i, 1);
+                let pt = key.substring(i, i + 1);
                 this.setReplacementChar(ct, pt);
             }
             this.setPlainText(this.state.plainText);
             this.setPlainText(
                 this.state.plainText.substr(0, pos) +
-                    key +
-                    this.state.plainText.substr(pos + key.length)
+                key +
+                this.state.plainText.substr(pos + key.length)
             );
             this.holdupdates = false;
             this.updateMatchDropdowns("");
@@ -200,8 +200,8 @@ export class CipherKeyPhraseSolver extends CipherSolver {
         let solution = "";
         let str = this.cleanString(this.state.cipherString).toUpperCase();
         for (let i = 0, len = str.length; i < len; i++) {
-            let p = str.substr(i, 1);
-            let c = this.state.plainText.substr(i, 1);
+            let p = str.substring(i, i + 1);
+            let c = this.state.plainText.substring(i, i + 1);
             if (this.isValidChar(p)) {
                 if (c === " ") {
                     c = "?";
@@ -224,8 +224,8 @@ export class CipherKeyPhraseSolver extends CipherSolver {
         let row;
 
         for (let i = 0, len = str.length; i < len; i++) {
-            let t = str.substr(i, 1).toUpperCase();
-            let pt = this.state.plainText.substr(i, 1).toUpperCase();
+            let t = str.substring(i, i + 1).toUpperCase();
+            let pt = this.state.plainText.substring(i, i + 1).toUpperCase();
             if (this.isValidChar(t)) {
                 if (table === undefined) {
                     table = new JTTable({ class: "tword" });
@@ -355,7 +355,7 @@ export class CipherKeyPhraseSolver extends CipherSolver {
             let replacement = cloneObject(this.state.replacement);
             for (let i = 0; i < str.length; i++) {
                 let ct = cipher.substr(pos + i, 1);
-                let pt = str.substr(i, 1);
+                let pt = str.substring(i, i + 1);
                 if (!this.isValidChar(pt)) {
                     if (pt !== ct) {
                         matched = false;
@@ -430,7 +430,7 @@ export class CipherKeyPhraseSolver extends CipherSolver {
             this.UpdateFreqEditTable();
         } else {
             for (let i = 0; i < this.state.plainText.length; i++) {
-                let c = this.state.plainText.substr(i, 1);
+                let c = this.state.plainText.substring(i, i + 1);
                 if (c === " ") {
                     c = "";
                 }

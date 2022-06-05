@@ -156,7 +156,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         let sortset = [];
         for (let i = 0; i < this.state.rails; i++) {
             sortset.push({
-                let: railorder.substr(i, 1),
+                let: railorder.substring(i, i + 1),
                 order: i,
             });
         }
@@ -291,7 +291,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         repchar: string,
         newchar: string,
         elem?: JQuery<HTMLElement>
-    ): void {}
+    ): void { }
 
     /**
      * Builds the GUI for the solver
@@ -303,7 +303,7 @@ export class CipherRailfenceSolver extends CipherSolver {
         let outlines: string[][] = [];
         for (let rail = 0; rail < this.state.rails; rail++) {
             let line: Array<string> = [];
-            for (let {} of str) {
+            for (let { } of str) {
                 line.push(" ");
             }
             outlines.push(line);
@@ -402,7 +402,7 @@ export class CipherRailfenceSolver extends CipherSolver {
     ): JQuery<HTMLElement> {
         let ans: string[] = [];
         if (isZigZag) {
-            for (let {} of str) {
+            for (let { } of str) {
                 ans.push(" ");
             }
         }
@@ -477,7 +477,7 @@ export class CipherRailfenceSolver extends CipherSolver {
      * Fills in the frequency portion of the frequency table.  For the Ragbaby
      * we don't have the frequency table, so this doesn't need to do anything
      */
-    public displayFreq(): void {}
+    public displayFreq(): void { }
     /**
      * Creates an HTML table to display the frequency of characters
      */

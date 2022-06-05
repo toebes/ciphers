@@ -128,7 +128,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
                         .append(
                             $("<div/", { class: "callout small warning" }).text(
                                 "More than five unique characters found, using only the first five:" +
-                                    result
+                                result
                             )
                         );
                 }
@@ -260,7 +260,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
         this.freq = {};
 
         for (let i = 0, len = str.length; i < len; i++) {
-            let t = str.substr(i, 1).toUpperCase();
+            let t = str.substring(i, i + 1).toUpperCase();
             if (this.isValidChar(t)) {
                 if (firstchar === "") {
                     firstchar = t;
@@ -507,7 +507,7 @@ export class CipherCheckerboardSolver extends CipherSolver {
     /**
      * We don't have to do anything for reverse replacements
      */
-    public UpdateReverseReplacements(): void {}
+    public UpdateReverseReplacements(): void { }
     /**
      * Handle a dropdown event.  They are changing the mapping for a character.
      * Process the change, but first we need to swap around any other character which

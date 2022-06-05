@@ -15,24 +15,13 @@ export class CipherACAProblems extends CipherTest {
     public defaultstate: ITestState = {
         cipherString: "",
         cipherType: ICipherType.Test,
-        test: 0,
     };
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [
-        {
-            title: "Export Problems",
-            color: "primary",
-            id: "export",
-            download: true,
-        },
         { title: "Generate Submission", color: "primary", id: "gensub" },
-        { title: "Import Problems from File", color: "primary", id: "import" },
-        {
-            title: "Import Problems from URL",
-            color: "primary",
-            id: "importurl",
-        },
-        { title: "Delete All Problems", color: "alert", id: "delall" },
+        { title: "See all Issues", color: "primary", id: "seeall" },
+        { title: "Download Current Work", color: "primary", id: "export", download: true, },
+        { title: "Import Saved Work", color: "primary", id: "importxml" },
     ];
     /**
      * Restore the state from either a saved file or a previous undo record
@@ -43,6 +32,7 @@ export class CipherACAProblems extends CipherTest {
         this.state = cloneObject(this.defaultstate) as ITestState;
         this.state.curlang = curlang;
         this.copyState(this.state, data);
+        this.restoreCurrentTest()
         /** See if we have to import an XML file */
         this.checkXMLImport();
         this.setUIDefaults();
@@ -80,7 +70,23 @@ export class CipherACAProblems extends CipherTest {
     public genACAProblemTable(buttons: buttonInfo[]): JQuery<HTMLElement> {
         let result = $("<div/>", { class: "questions" });
 
-        let cipherCount = this.getCipherCount();
+        const testcount = this.getTestCount();
+        if (testcount === 0) {
+            result.append($('<h3>').text('No Issues Imported Yet'));
+            return result;
+        }
+
+        if (this.state.test > testcount) {
+            result.append($('<h3>').text('Issue not found'));
+            return result;
+        }
+
+        const test = this.getTestEntry(this.state.test);
+
+        this.saveCurrentTest()
+
+        let cipherCount = test.questions.length;
+
         let table = new JTTable({ class: "cell stack queslist" });
         let row = table.addHeaderRow();
         row.add("ID")
@@ -91,7 +97,7 @@ export class CipherACAProblems extends CipherTest {
             .add("Cipher");
 
         for (let entry = 0; entry < cipherCount; entry++) {
-            this.addProblemRow(table, entry, entry, buttons);
+            this.addProblemRow(table, entry, test.questions[entry], buttons);
         }
 
         result.append(table.generate());
@@ -113,8 +119,12 @@ export class CipherACAProblems extends CipherTest {
         let extratext = "";
         let row = table.addBodyRow();
 
-        row.add(String(order));
         let state = this.getFileEntry(qnum);
+        let qnumtxt = String(order)
+        if (state.qnum !== undefined) {
+            qnumtxt = state.qnum
+        }
+        row.add(qnumtxt);
         if (state === null) {
             state = {
                 cipherType: ICipherType.None,
@@ -126,12 +136,26 @@ export class CipherACAProblems extends CipherTest {
             class: "button-group round shrink",
         });
         for (let btninfo of buttons) {
+            let title = btninfo.title
+            let disabled = btninfo.disabled
+
+            if (btninfo.btnClass === "entrysolve") {
+                // See if we have a solver for this
+                let solveURL = this.getSolveURL(state);
+                if (solveURL === "") {
+                    title = "No Solver";
+                    disabled = true
+                }
+            }
             let button = $("<button/>", {
                 "data-entry": order,
                 type: "button",
                 class: btninfo.btnClass + " button",
-            }).html(btninfo.title);
-            if (btninfo.disabled === true) {
+            }).html(title);
+
+
+
+            if (disabled === true) {
                 button.attr("disabled", "disabled");
             }
             buttonset.append(button);
@@ -182,18 +206,15 @@ export class CipherACAProblems extends CipherTest {
      * Make a link download the JSON for the problems
      * @param link <A> link to associate download with
      */
-    public exportQuestions(link: JQuery<HTMLElement>): void {
-        let result = {};
-        let cipherCount = this.getCipherCount();
-        for (let entry = 0; entry < cipherCount; entry++) {
-            result["CIPHER." + String(entry)] = this.getFileEntry(entry);
-        }
-        let blob = new Blob([JSON.stringify(result)], {
-            type: "text/json",
+    public exportCurrentIssue(link: JQuery<HTMLElement>): void {
+        const test = this.getTestEntry(this.state.test);
+        const blob = new Blob([this.generateTestJSON(test)], {
+            type: 'text/json',
         });
+
         let url = URL.createObjectURL(blob);
 
-        link.attr("download", "aca_problems.json");
+        link.attr("download", test.title + '.json');
         link.attr("href", url);
     }
     /**
@@ -208,17 +229,37 @@ export class CipherACAProblems extends CipherTest {
      * Import questions from a file or URL
      * @param useLocalData true indicates import from a file
      */
-    public importQuestions(useLocalData: boolean): void {
+    public importData(useLocalData: boolean, useJSON: boolean): void {
+        if (useJSON) {
+            $('#xmlFile').attr('accept', '.json')
+        } else {
+            $('#xmlFile').attr('accept', '.txt')
+        }
         this.openXMLImport(useLocalData);
     }
     /**
      * Process imported XML
      */
     public importXML(data: any): void {
-        console.log("Importing XML");
-        console.log(data);
         this.processTestXML(data);
         this.updateOutput();
+    }
+    /**
+     * Process the imported file
+     * @param reader File to process
+     */
+    public processImport(file: File): void {
+        const reader = new FileReader();
+        reader.readAsText(file);
+        reader.onload = (e): void => {
+            try {
+                const data = JSON.parse(e.target.result as string);
+                this.processTestXML(data);
+                $('#ImportFile').foundation('close');
+            } catch (e) {
+                $('#xmlerr').text('Not a valid import file');
+            }
+        };
     }
     /**
      * Open a solving helper for a CON
@@ -291,44 +332,15 @@ export class CipherACAProblems extends CipherTest {
      * Show the generated solution for submission
      */
     public gotoGenerateSubmission(): void {
-        location.assign("ACASubmit.html");
+        location.assign("ACASubmit.html?test=" + String(this.state.test));
     }
     /**
-     * This prompts a user and then deletes all ciphers
+     * Show the generated solution for submission
      */
-    public gotoDeleteAllCiphers(): void {
-        $("#okdel")
-            .off("click")
-            .on("click", e => {
-                let cipherCount = this.getCipherCount();
-                for (let entry = cipherCount - 1; entry >= 0; entry--) {
-                    this.deleteFileEntry(entry);
-                }
-                $("#delalldlg").foundation("close");
-                this.updateOutput();
-            });
-        $("#okdel").removeAttr("disabled");
-        $("#delalldlg").foundation("open");
+    public gotoAllIssues(): void {
+        location.assign("ACAManage.html");
     }
-    /**
-     * Create the hidden dialog asking about deleting all problems
-     * @returns HTML DOM Element for dialog
-     */
-    private createDeleteAllDlg(): JQuery<HTMLElement> {
-        let dlgContents = $("<div/>", {
-            class: "callout alert",
-        }).text(
-            "This will delete all loaded problems.  Are you sure you want to do this?"
-        );
-        let DeleteAllDlg = JTFDialog(
-            "delalldlg",
-            "Delete all Problems",
-            dlgContents,
-            "okdel",
-            "Yes, Delete them!"
-        );
-        return DeleteAllDlg;
-    }
+
     /**
      * Create the hidden dialog for editing part of a CON
      */
@@ -365,34 +377,38 @@ export class CipherACAProblems extends CipherTest {
      */
     public createMainMenu(): JQuery<HTMLElement> {
         let result = super.createMainMenu();
-        // Create the dialog for selecting which cipher to load
         result
-            .append(this.createDeleteAllDlg())
             .append(this.createEditCONDlg());
         return result;
     }
+
 
     public attachHandlers(): void {
         super.attachHandlers();
         $("#export")
             .off("click")
             .on("click", e => {
-                this.exportQuestions($(e.target));
+                this.exportCurrentIssue($(e.target));
             });
         $("#import")
             .off("click")
             .on("click", () => {
-                this.importQuestions(true);
+                this.importData(true, false);
+            });
+        $("#importxml")
+            .off("click")
+            .on("click", () => {
+                this.importData(true, true);
             });
         $("#importurl")
             .off("click")
             .on("click", () => {
-                this.importQuestions(false);
+                this.importData(false, false);
             });
-        $("#delall")
+        $("#seeall")
             .off("click")
             .on("click", e => {
-                this.gotoDeleteAllCiphers();
+                this.gotoAllIssues();
             });
         $(".entrydel")
             .off("click")

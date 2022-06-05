@@ -1874,6 +1874,13 @@ table.nameline td.u {
     height: 0.9em;
 }
 
+.nxtnav.nosolver:hover,
+.prevnav.nosolver:hover {
+    background-color: darkred;
+    cursor: not-allowed;
+    color: white;
+}
+
 .nxtnav:hover,
 .prevnav:hover {
     background: white;

@@ -11,6 +11,8 @@
     "scripts": {
         "serve": "webpack serve --mode=development",
         "build": "webpack --mode=production --env=zip=y",
+        "serve-aca": "webpack serve --mode=development  --config webpack-aca.config.js",
+        "build-aca": "webpack --mode=production --env=zip=y --config webpack-aca.config.js",
         "dev": "webpack --mode=development",
         "preinstall": "npx npm-force-resolutions",
         "analyze": "webpack --mode=production --analyze --env=zip=y"

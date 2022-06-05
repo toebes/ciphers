@@ -152,15 +152,133 @@ export class CipherSolver extends CipherHandler {
      * Display the question text if there is any
      */
     public showQuestion(): void {
-        $("#qtext").empty();
+        const result = $("#qtext");
+        result.empty()
+
+        const elem = $("<div/>", {
+            class: "callout primary",
+        })
+        this.genQuestionUsage(elem);
+
         if (this.state.question !== "") {
-            $("#qtext").append(
-                $("<div/>", {
-                    class: "callout primary",
-                }).html(this.state.question)
+
+            elem.append(
+                $("<h3/>").html(this.state.question)
             );
         }
+        result.append(elem);
     }
+
+    /**
+     * 
+     * @param entry Test entry to get title for
+     * @param num Default question number if title is not found
+     * @returns displayable string for the entry
+     */
+    public getConTitle(entry: number, num: number): string {
+        const state = this.getFileEntry(entry);
+        let result = undefined
+        if (state !== null) {
+            if (state.qnum !== undefined && state.qnum !== "") {
+                result = state.qnum;
+            } else {
+                result = `CON #${num + 1}`
+            }
+        }
+        return result
+    }
+    /**
+     * Get a URL for a solver for a CON
+     * @param entry Which cipher entry to open solver for
+     */
+    public getSolveCipherURL(entry: number): string {
+        let state = this.getFileEntry(entry);
+        if (state === null) {
+            return ""
+        }
+        let solveURL = this.getSolveURL(state);
+        if (solveURL !== "") {
+            if (solveURL.indexOf("?") > -1) {
+                solveURL += "&editEntry=" + entry;
+            } else {
+                solveURL += "?editEntry=" + entry;
+            }
+        }
+        return solveURL;
+    }
+    /**
+     * 
+     * @param elem Element to put usage into
+     */
+    public genQuestionUsage(result: JQuery<HTMLElement>): void {
+        if (this.savefileentry !== -1) {
+            // Find out what tests this is a part of
+            const testCount = this.getTestCount();
+            for (let entry = 0; entry < testCount; entry++) {
+                const test = this.getTestEntry(entry);
+                let use = '';
+                let prevq, nextq, prevtxt, nexttxt;
+                let prevURL = undefined;
+                let nextURL = undefined;
+
+                // See if this is one of the questions on the test
+                const qnum = test.questions.indexOf(this.savefileentry);
+                if (qnum !== -1) {
+                    use = this.getConTitle(test.questions[qnum], qnum)
+
+                    if (qnum > 0) {
+                        // It is not the first, use the previous entry.
+                        prevq = test.questions[qnum - 1];
+                        prevtxt = this.getConTitle(prevq, qnum);
+                        prevURL = this.getSolveCipherURL(prevq)
+                        if (prevtxt === undefined) {
+                            prevq = undefined;
+                        }
+                    }
+                    // If it isn't the last, the next is the one after it
+                    if (qnum < test.questions.length) {
+                        nextq = test.questions[qnum + 1];
+                        nexttxt = this.getConTitle(nextq, qnum + 1)
+                        nextURL = this.getSolveCipherURL(nextq)
+                        if (nexttxt === undefined) {
+                            nextq = undefined;
+                        }
+                    }
+                }
+                if (use !== '') {
+                    // It is used as a con.  First we need to find out if the
+                    // question is actually appropriate for the test.
+                    // To do this we need to load the class for the question
+                    const link = $('<a/>', {
+                        class: 'chkmod',
+                        href: 'ACAProblems.html?test=' + String(entry),
+                    }).text(test.title + ' ' + use);
+
+                    const testset = $('<div/>', { class: 'testset2' });
+
+                    if (prevq !== undefined) {
+                        let linkprev = $('<a/>', { class: 'prevnav chkmod', href: prevURL, })
+                        if (prevURL === "") {
+                            linkprev = $("<span/>", { class: 'prevnav nosolver chkmod' })
+                        }
+                        linkprev.text(prevtxt);
+                        testset.append(linkprev).append(' ');
+                    }
+                    testset.append(link);
+                    if (nextq !== undefined) {
+                        let linknext = $('<a/>', { class: 'nxtnav chkmod', href: nextURL, })
+                        if (nextURL === "") {
+                            linknext = $("<span/>", { class: 'nxtnav nosolver chkmod' })
+                        }
+                        linknext.text(nexttxt);
+                        testset.append(linknext).append(' ');
+                    }
+                    result.append(testset);
+                }
+            }
+        }
+    }
+
 
     /**
      * Given an alphabet string, normalize it eliminating all of the
@@ -185,7 +303,7 @@ export class CipherSolver extends CipherHandler {
         let charset = this.getSourceCharset();
         let previdx = -str.length;
         for (let i = 0; i < str.length; i++) {
-            let c = str.substr(i, 1);
+            let c = str.substring(i, i + 1);
             let idx = charset.indexOf(c);
             // If this is a valid character that is greater than the
             // previous one then we just increase our length
@@ -264,7 +382,7 @@ export class CipherSolver extends CipherHandler {
     public genKeywordAlphabet(str: string): string {
         let result = "";
         let found: BoolMap = {};
-        for (let c of (str + this.getSourceCharset()).toUpperCase()) {
+        for (let c of (this.minimizeString(str) + this.getSourceCharset()).toUpperCase()) {
             if (found[c] !== true) {
                 result += c;
                 found[c] = true;
@@ -282,36 +400,51 @@ export class CipherSolver extends CipherHandler {
      * @param targetStr String to map it onto
      */
     public mapAlphabet(mapStr: string, targetStr: string): string {
-        let shift = 0;
-        let shiftC = "";
         let mapped = mapStr;
+        let foundmap = false;
         // First figure out the shift offset
-        for (let i = 0; i < targetStr.length; i++) {
-            let c = targetStr.substr(i, 1);
+        for (let i = 0; i < mapStr.length; i++) {
+            let c = mapStr.substring(i, i + 1);
             if (this.isValidChar(c)) {
-                let idx = mapStr.indexOf(c);
-                if (idx !== -1) {
-                    mapped = mapStr.substr(idx - i) + mapStr.substr(0, idx - i);
-                    break;
+                let t = this.state.replacement[c];
+                if (t !== "" && t !== undefined) {
+                    let idx = targetStr.indexOf(t);
+                    if (idx !== -1) {
+                        idx = ((i - idx) + mapStr.length) % mapStr.length
+                        foundmap = true;
+                        mapped = mapStr.substring(idx) + mapStr.substring(0, idx);
+                        break;
+                    }
                 }
             }
+        }
+        if (!foundmap) {
+            $(".err")
+                .empty()
+                .append(
+                    $("<div>", { class: "callout warning" }).text(
+                        "Unable to map because there are no valid characters mapped in order to determine the shift of the alphabets"
+                    )
+                );
+            return undefined;
         }
         // Now check everything in the mapped string to make sure it is ok with
         // the target.  If they are both valid characters but not the same,
         // We need to generate an error message
-        for (let i = 0; i < targetStr.length; i++) {
-            let t = targetStr.substr(i, 1);
-            let m = mapped.substr(i, 1);
-            if (t !== m && this.isValidChar(t) && this.isValidChar(m)) {
+        for (let i = 0; i < mapped.length; i++) {
+            let c = mapped.substring(i, i + 1);
+            let m = targetStr.substring(i, i + 1);
+            let t = this.state.replacement[c]
+            if (this.isValidChar(c) && t !== m && this.isValidChar(t) && this.isValidChar(m)) {
                 $(".err")
                     .empty()
                     .append(
                         $("<div>", { class: "callout warning" }).text(
                             "Unable to map because " +
-                                t +
-                                " and " +
-                                m +
-                                " would collide."
+                            t +
+                            " and " +
+                            m +
+                            " would collide for a mapping of " + c + "."
                         )
                     );
                 return undefined;
@@ -324,8 +457,8 @@ export class CipherSolver extends CipherHandler {
      */
     public applyKeyword(): void {
         let keywords = this.state.keyword.split("/", 2);
-        let mapping1 = "";
-        let mapping2 = "";
+        let mapping1 = undefined
+        let mapping2 = undefined;
         let alphabet1 = this.genKeywordAlphabet(keywords[0]);
         let alphabet2 = this.genKeywordAlphabet(keywords[1]);
         let sourceAlphabet = this.getReplacementOrder();
@@ -334,39 +467,31 @@ export class CipherSolver extends CipherHandler {
         // For each type of mapping type it is different.
         switch (this.state.encodeType) {
             case "k1":
-                mapping1 = this.mapAlphabet(alphabet1, this.getDestAlphabet());
-                if (mapping1 !== undefined) {
-                    // Apply the letters
-                    this.setCharStrings(this.getSourceCharset(), mapping1);
-                }
+                mapping1 = this.getSourceCharset();
+                mapping2 = alphabet1
                 break;
             case "k2":
-                mapping1 = this.mapAlphabet(
-                    alphabet1,
-                    this.getReverseAlphabet(sourceAlphabet)
-                );
-                if (mapping1 !== undefined) {
-                    // Apply the letters
-                    this.setCharStrings(mapping1, sourceAlphabet);
-                }
+                mapping1 = alphabet1;
+                mapping2 = this.getSourceCharset();
                 break;
             case "k3":
-                mapping1 = this.mapAlphabet(alphabet1, sourceAlphabet);
-                mapping2 = this.mapAlphabet(alphabet1, destAlphabet);
-                if (mapping1 !== undefined && mapping2 !== undefined) {
-                    this.setCharStrings(mapping1, mapping2);
-                }
+                mapping1 = alphabet1;
+                mapping2 = alphabet1;
                 break;
             case "k4":
-                mapping1 = this.mapAlphabet(alphabet1, sourceAlphabet);
-                mapping2 = this.mapAlphabet(alphabet2, destAlphabet);
-                if (mapping1 !== undefined && mapping2 !== undefined) {
-                    this.setCharStrings(mapping1, mapping2);
-                }
+                mapping1 = alphabet1;
+                mapping2 = alphabet2;
                 break;
             default:
                 break;
         }
+        if (mapping1 != undefined && mapping2 != undefined) {
+            mapping1 = this.mapAlphabet(mapping1, mapping2);
+            if (mapping1 !== undefined && mapping2 !== undefined) {
+                this.setCharStrings(mapping1, mapping2);
+            }
+        }
+
         return;
     }
     /**
@@ -658,7 +783,7 @@ export class CipherSolver extends CipherHandler {
         let ids = this.getSortedContainerIDs(container);
         let replOrder = "";
         for (let id of ids) {
-            replOrder += id.substr(id.length - 1);
+            replOrder += id.substring(id.length - 1);
         }
         this.state.replOrder = replOrder;
     }
@@ -730,7 +855,7 @@ export class CipherSolver extends CipherHandler {
             i <= len - width * this.cipherWidth;
             i++
         ) {
-            let piece = work.substr(i, width * this.cipherWidth);
+            let piece = work.substring(i, i + width * this.cipherWidth);
             if (isNaN(tfreq[piece])) {
                 tfreq[piece] = 0;
             }
@@ -766,7 +891,7 @@ export class CipherSolver extends CipherHandler {
                         vpos < vlen;
                         vpos++
                     ) {
-                        final += extra + valtext.substr(vpos * 2, 2);
+                        final += extra + valtext.substring(vpos * 2, (vpos * 2) + 2);
                         extra = " ";
                     }
                     valtext = final;
@@ -884,7 +1009,7 @@ export class CipherSolver extends CipherHandler {
         let prevs: StringMap = {};
         let posts: StringMap = {};
 
-        let minfreq = freq[consonantline.substr(12, 1)];
+        let minfreq = freq[consonantline.substring(12, 13)];
         for (let c of this.getCharset()) {
             prevs[c] = "";
             posts[c] = "";
@@ -1006,9 +1131,9 @@ export class CipherSolver extends CipherHandler {
                 .append(
                     $("<div/>", { class: "callout error small" }).text(
                         "Unable to find " +
-                            str +
-                            " as " +
-                            this.normalizeHTML(str)
+                        str +
+                        " as " +
+                        this.normalizeHTML(str)
                     )
                 );
         } else {
@@ -1051,8 +1176,8 @@ export class CipherSolver extends CipherHandler {
         let logmsg2 = "|" + checkstr + "| HINT ";
         let logmsg3 = "";
         for (let i = 0; i < cribstr.length; i++) {
-            let pt = cribstr.substr(i, 1);
-            let ct = checkstr.substr(i, 1);
+            let pt = cribstr.substring(i, i + 1);
+            let ct = checkstr.substring(i, i + 1);
             let expected = this.langfreq[this.state.curlang][pt] * 1000.0;
             let matched = (this.freq[ct] * 1000.0) / this.totfreq;
             logmsg += " " + pt + "=" + expected;
@@ -1228,7 +1353,7 @@ export class CipherSolver extends CipherHandler {
         let datachars = "";
 
         for (let i = 0, len = str.length; i < len; i++) {
-            let t = str.substr(i, 1).toUpperCase();
+            let t = str.substring(i, i + 1).toUpperCase();
             if (this.isValidChar(t)) {
                 datachars += t;
                 combinedtext += '<span data-char="' + t + '">?</span>';
@@ -1274,8 +1399,8 @@ export class CipherSolver extends CipherHandler {
         console.log("setStandardMultiChars " + reqstr);
         this.holdupdates = true;
         for (let i = 0; i < reqstr.length; i += this.cipherWidth + 1) {
-            let repchar = reqstr.substr(i, 1);
-            let newchar = reqstr.substr(i + 1, this.cipherWidth);
+            let repchar = reqstr.substring(i, i + 1);
+            let newchar = reqstr.substring(i + 1, i + 1 + this.cipherWidth);
             console.log("Set " + repchar + " to " + newchar);
             this.updateSel(repchar, newchar);
         }
@@ -1293,7 +1418,7 @@ export class CipherSolver extends CipherHandler {
     public setCharStrings(repchars: string, newchars: string): void {
         this.holdupdates = true;
         for (let i = 0; i < repchars.length; i++) {
-            this.setChar(repchars.substr(i, 1), newchars.substr(i, 1));
+            this.setChar(repchars.substring(i, i + 1), newchars.substring(i, i + 1));
         }
         this.holdupdates = false;
         this.updateMatchDropdowns("");

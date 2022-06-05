@@ -10,7 +10,8 @@ import { CipherTest, ITestState } from "./ciphertest";
 export class CipherACASubmit extends CipherTest {
     public activeToolMode: toolMode = toolMode.aca;
     public cmdButtons: JTButtonItem[] = [
-        { title: "Problems Management", color: "primary", id: "probman" },
+        { title: "Edit Solutions", color: "primary", id: "probman" },
+        { title: "See all Issues", color: "primary", id: "seeall" },
     ];
     /**
      * Restore the state from either a saved file or a previous undo record
@@ -47,6 +48,23 @@ export class CipherACASubmit extends CipherTest {
         let result = $("<div/>", {
             class: "sublist",
         }).append($("<div/>").text(" "));
+
+        const testcount = this.getTestCount();
+        if (testcount === 0) {
+            result.append($('<h3>').text('No Issues Imported Yet'));
+            return result;
+        }
+
+        if (this.state.test > testcount) {
+            result.append($('<h3>').text('Issue not found'));
+            return result;
+        }
+
+        const test = this.getTestEntry(this.state.test);
+
+        let cipherCount = test.questions.length;
+
+
         let sols = { AA: 0, PP: 0, CC: 0, XX: 0, EE: 0, SS: 0, tot: 0 };
         let missed = {
             AA: false,
@@ -59,8 +77,9 @@ export class CipherACASubmit extends CipherTest {
         };
         let mapsoltypes = { A: "AA", P: "PP", C: "CC", X: "XX", E: "EE" };
 
-        let cipherCount = this.getCipherCount();
-        for (let entry = 0; entry < cipherCount; entry++) {
+
+        for (let idx = 0; idx < cipherCount; idx++) {
+            let entry = test.questions[idx]
             let state = this.getFileEntry(entry);
             if (state === null) {
                 state = {
@@ -77,7 +96,7 @@ export class CipherACASubmit extends CipherTest {
             }
             let qnum = "UNKNOWN";
             if (state.question !== undefined && state.question !== "") {
-                let parts = state.question.split(".");
+                let parts = state.qnum.split(".");
                 qnum = parts[0];
                 let types = qnum.toUpperCase().split("-");
                 let outtype = "SS";
@@ -99,7 +118,7 @@ export class CipherACASubmit extends CipherTest {
         // Now generate the solution count line
         // MA2017 AA PP CC XX EE SS Issue YTD
         // MiB *  *  * 8  5  0    64 149
-        let titlestr = "<ISSUED>  ";
+        let titlestr = test.title + " ";
         let textstr = "<NOM HERE>";
         for (let t of ["AA", "PP", "CC", "XX", "EE", "SS", "tot"]) {
             if (t === "tot") {
@@ -121,7 +140,13 @@ export class CipherACASubmit extends CipherTest {
         return result;
     }
     public gotoProblemManagement(): void {
-        location.assign("ACAProblems.html");
+        location.assign("ACAProblems.html?test=" + String(this.state.test));
+    }
+    /**
+     * Show the generated solution for submission
+     */
+    public gotoAllIssues(): void {
+        location.assign("ACAManage.html");
     }
     public attachHandlers(): void {
         super.attachHandlers();
@@ -129,6 +154,11 @@ export class CipherACASubmit extends CipherTest {
             .off("click")
             .on("click", () => {
                 this.gotoProblemManagement();
+            });
+        $("#seeall")
+            .off("click")
+            .on("click", e => {
+                this.gotoAllIssues();
             });
     }
 }

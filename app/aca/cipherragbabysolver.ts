@@ -462,10 +462,10 @@ export class CipherRagbabySolver extends CipherSolver {
     public findPossible(str: string): void {
         let res = $("<span/>").text(
             "Unable to find " +
-                str +
-                " as " +
-                this.normalizeHTML(str) +
-                " - Not yet implemented"
+            str +
+            " as " +
+            this.normalizeHTML(str) +
+            " - Not yet implemented"
         );
         $(".findres")
             .empty()
@@ -477,7 +477,7 @@ export class CipherRagbabySolver extends CipherSolver {
      * Fills in the frequency portion of the frequency table.  For the Ragbaby
      * we don't have the frequency table, so this doesn't need to do anything
      */
-    public displayFreq(): void {}
+    public displayFreq(): void { }
     /**
      * Analyze the encoded text
      */
@@ -568,7 +568,7 @@ export class CipherRagbabySolver extends CipherSolver {
         }
 
         for (let i = 0, len = str.length; i < len; i++) {
-            let t = str.substr(i, 1).toUpperCase();
+            let t = str.substring(i, i + 1).toUpperCase();
             if (this.isValidChar(t)) {
                 let off = (wordidx + wordlen) % this.state.alphalen;
                 let id = t + off;

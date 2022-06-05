@@ -155,7 +155,7 @@ export class CipherMorseSolver extends CipherSolver {
         // exactly cipherwidth times the length of the input string
         //
         for (let i = 0, len = str.length; i < len; i++) {
-            c = str.substr(i, 1).toUpperCase();
+            c = str.substring(i, i + 1).toUpperCase();
             if (this.isValidChar(c)) {
                 intext += c;
                 // Figure out what this character corresponds to.  If it
@@ -181,7 +181,7 @@ export class CipherMorseSolver extends CipherSolver {
         // Now that we have the strings, go through and output the rows
         //
         for (let i = 0, len = intext.length; i < len; i++) {
-            c = intext.substr(i, 1);
+            c = intext.substring(i, i + 1);
             let mpos, td;
             td = $("<td/>", { colspan: cipherwidth });
             if (this.state.locked[c]) {
@@ -375,7 +375,7 @@ export class CipherMorseSolver extends CipherSolver {
         });
         freqrow.add("Frequency");
         for (let i = 0, len = charset.length; i < len; i++) {
-            let c = charset.substr(i, 1);
+            let c = charset.substring(i, i + 1);
             headrow.add(c);
             freqrow.add({
                 settings: { id: "f" + c, class: "fq" },

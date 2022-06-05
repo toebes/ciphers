@@ -11,6 +11,7 @@ AffineEncrypt - Copy.html
 *.csv
 node_modules/*
 dist/*
+dist-aca/*
 .DS_Store
 pom.xml
 CipherTools*.zip
@@ -27,3 +28,4 @@ life-lessons.txt
 newquotes.txt
 science-tags.txt
 dl.py
+public/

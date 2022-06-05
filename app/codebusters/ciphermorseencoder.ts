@@ -459,7 +459,7 @@ export class CipherMorseEncoder extends CipherEncoder {
         // The regex is a sequence of letters, each letter followed by
         // one or more spaces.
         for (let i = 0; i < crib.length; i++) {
-            cribRegex += crib.substr(i, 1) + notLetters;
+            cribRegex += crib.substring(i, i + 1) + notLetters;
         }
         const regex = new RegExp(cribRegex, 'g');
         const match = regex.exec(plainText);

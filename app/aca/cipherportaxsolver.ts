@@ -274,8 +274,8 @@ export class CipherPortaxSolver extends CipherSolver {
         this.setPlainText(this.state.plainText);
         this.setPlainText(
             this.state.plainText.substr(0, pos) +
-                newchar +
-                this.state.plainText.substr(pos + newchar.length)
+            newchar +
+            this.state.plainText.substr(pos + newchar.length)
         );
         this.recomputePortax(pos);
         this.updatePortaxSlot(pos);
@@ -405,7 +405,7 @@ export class CipherPortaxSolver extends CipherSolver {
             let piece = str.substr(pos, this.state.period * 2);
             let width = Math.floor((piece.length + 1) / 2);
             for (let i = 0; i < width; i++) {
-                let c1 = piece.substr(i, 1);
+                let c1 = piece.substring(i, i + 1);
                 let c2 = piece.substr(width + i, 1);
                 part.ct1.push(c1);
                 part.ct2.push(c2);
@@ -459,7 +459,7 @@ export class CipherPortaxSolver extends CipherSolver {
                 let dtype = part.dtype[i];
                 let p1slot = part.pos + i;
                 let p2slot = part.pos + i + width;
-                let kc = keyword.substr(i, 1);
+                let kc = keyword.substring(i, i + 1);
                 crow1.add({
                     settings: { class: "c1" },
                     content: c1,

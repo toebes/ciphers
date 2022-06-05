@@ -248,7 +248,7 @@ export class InteractiveHandler extends CipherHandler {
         for (let i = 0; i < shift; i++) {
             let dest = this.getInteractiveEntry(enttype, qnumdisp, index + i);
             if (!!dest) {
-                dest.value = value.substr(i, 1);
+                dest.value = value.substring(i, i + 1);
             }
         }
     }
@@ -535,7 +535,7 @@ export class InteractiveHandler extends CipherHandler {
                 // Replace everything that is not shifting.
                 // In general this should be everything in the splice request
                 for (let i = 0; i < changes; i++) {
-                    this.propagateEntry(enttype, qnumdisp, index + i, event.insertValue.substr(i, 1));
+                    this.propagateEntry(enttype, qnumdisp, index + i, event.insertValue.substring(i, i + 1));
                 }
                 // We may have extra to either insert or delete (hopefully not)
                 if (event.insertValue.length > changes) {
@@ -550,7 +550,7 @@ export class InteractiveHandler extends CipherHandler {
             }).on(RealTimeString.Events.VALUE, (event: StringSetValueEvent) => {
                 let newstr = event.element.value();
                 for (let i = 0; i < newstr.length; i++) {
-                    this.propagateEntry(enttype, qnumdisp, i, newstr.substr(i, 1));
+                    this.propagateEntry(enttype, qnumdisp, i, newstr.substring(i, i + 1));
                 }
             });
 

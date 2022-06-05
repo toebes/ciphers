@@ -510,8 +510,8 @@ export class CipherEncoder extends CipherHandler {
         // the input chracterset alphabet may not be in the same order as the
         // actual alphabet.
         for (let i = 0, len = repl.length; i < len; i++) {
-            const repc = repl.substr(i, 1);
-            const orig = cset.substr(i, 1);
+            const repc = repl.substring(i, i + 1);
+            const orig = cset.substring(i, i + 1);
             // Remember that we are backwards because this an encoder
             this.setChar(orig, repc);
             // Just make sure that we don't happen to have the same character
@@ -598,7 +598,7 @@ export class CipherEncoder extends CipherHandler {
         // it, then remove it from the list of legal characters and add it
         // to the output string
         for (let i = 0, len = keyword.length; i < len; i++) {
-            const c = keyword.substr(i, 1).toUpperCase();
+            const c = keyword.substring(i, i + 1).toUpperCase();
             // Is it one of the characters we haven't used?
             const pos = unassigned.indexOf(c);
             if (pos >= 0) {
@@ -859,7 +859,7 @@ export class CipherEncoder extends CipherHandler {
             const rowanswer = table.addBodyRow();
 
             for (let i = 0; i < keyanswer.length; i++) {
-                const c = keyanswer.substr(i, 1);
+                const c = keyanswer.substring(i, i + 1);
                 if (this.isValidChar(c)) {
                     rowanswer.add({
                         settings: { class: 'e v' },
@@ -925,7 +925,7 @@ export class CipherEncoder extends CipherHandler {
             const rowanswer = table.addBodyRow();
 
             for (let i = 0; i < keyanswer.length; i++) {
-                const c = keyanswer.substr(i, 1);
+                const c = keyanswer.substring(i, i + 1);
                 const spos = String(i);
                 if (this.isValidChar(c)) {
                     rowanswer.add({

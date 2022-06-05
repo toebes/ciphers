@@ -15,11 +15,15 @@ export const CipherMenu: menuItem[] = [
         ],
     },
     {
-        title: 'Edit',
-        classname: 'menufile',
+        title: 'CON Management',
+        classname: 'menuaca',
         menu: [
-            { title: 'Undo', action: 'undo', classname: 'undo disabled_menu' },
-            { title: 'Redo', action: 'redo', classname: 'redo disabled_menu' },
+            { title: 'ACA Imported Issues', href: 'ACAManage.html' },
+            { title: 'Current ACA Cons', href: 'ACAProblems.html' },
+            // { title: '', classname: 'divider' },
+
+            // { title: 'Undo', action: 'undo', classname: 'undo disabled_menu' },
+            // { title: 'Redo', action: 'redo', classname: 'redo disabled_menu' },
         ],
     },
     {
@@ -148,7 +152,6 @@ export const CipherMenu: menuItem[] = [
         title: 'ACA Solving Assistants',
         classname: 'menuaca',
         menu: [
-            { title: 'Problem List', href: 'ACAProblems.html' },
             { title: '', classname: 'divider' },
             {
                 title: 'Aristocrat/Patristocrat Solving Assistant',

@@ -247,7 +247,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         // Zero out the frequency table
         this.freq = {};
         for (let i = 0, len = sourcecharset.length; i < len; i++) {
-            this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0;
+            this.freq[sourcecharset.substring(i, i + 1).toUpperCase()] = 0;
         }
 
         // Now go through the string to encode and compute the character

@@ -65,6 +65,7 @@ export const enum ICipherType {
     SeriatedPlayfair = 'seriatedplayfair',
     Slidefair = 'slidefair',
     Standard = 'standard',
+    Sudoku = 'sudoku',
     Swagman = 'swagman',
     Syllabary = 'syllabary',
     TapCode = 'tapcode',

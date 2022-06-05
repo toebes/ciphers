@@ -154,7 +154,7 @@ export class CipherHomophonicSolver extends CipherSolver {
         mapset = mapset.substr(mapset.length - 1) + mapset;
         let result = '';
         for (let i of this.HomophonicVals) {
-            result += mapset.substr(i, 1);
+            result += mapset.substring(i, i + 1);
         }
         return result;
     }
@@ -313,7 +313,7 @@ export class CipherHomophonicSolver extends CipherSolver {
             let matched = true;
             for (let i = 0; i < findlen; i++) {
                 let set = keyset[pos + i];
-                let c = tofind.substr(i, 1);
+                let c = tofind.substring(i, i + 1);
                 if (keyvals[set] === -1) {
                     // this.HomophonicVals[pos+i] is the character we are mapping
                     // tofind.substr(pos,1) is the character we expect to map it to

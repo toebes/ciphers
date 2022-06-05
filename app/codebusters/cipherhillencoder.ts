@@ -295,7 +295,7 @@ export class CipherHillEncoder extends CipherEncoder {
 
         // Parse out the key and create the matrix to multiply by
         for (let i = 0, len = key.length; i < len; i++) {
-            const t = key.substr(i, 1).toUpperCase();
+            const t = key.substring(i, i + 1).toUpperCase();
             const x = charset.indexOf(t);
             if (x < 0) {
                 console.log('Invalid character:' + t);

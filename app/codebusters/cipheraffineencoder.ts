@@ -497,7 +497,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         const msgstr = msg.toUpperCase();
 
         for (let i = 0; i < msgLength; i++) {
-            const messageChar = msgstr.substr(i, 1);
+            const messageChar = msgstr.substring(i, i + 1);
             let cipherChar = '';
             if (this.isValidChar(messageChar)) {
                 message += messageChar;
@@ -546,8 +546,8 @@ export class CipherAffineEncoder extends CipherEncoder {
             const toprow = table.addBodyRow();
             const bottomrow = table.addBodyRow();
             for (let i = 0; i < strset[0].length; i++) {
-                const plainchar = strset[1].substr(i, 1);
-                const cipherchar = strset[0].substr(i, 1);
+                const plainchar = strset[1].substring(i, i + 1);
+                const cipherchar = strset[0].substring(i, i + 1);
 
                 if (this.isValidChar(plainchar)) {
                     if (this.state.operation === 'encode') {
@@ -746,7 +746,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     public encodeString(s: string): string {
         let encoded = '';
         for (let i = 0; i < s.length; i++) {
-            encoded += this.state.replacement[s.substr(i, 1)];
+            encoded += this.state.replacement[s.substring(i, i + 1)];
         }
         return encoded;
     }
@@ -757,7 +757,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         const charset = this.getCharset();
         for (let i = 0; i < charset.length; i++) {
             let c = -1;
-            const letter = charset.substr(i, 1);
+            const letter = charset.substring(i, i + 1);
             c = this.state.a * i + this.state.b;
             while (c >= 26) {
                 c -= 26;
@@ -782,7 +782,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         this.completeSolution = true;
 
         for (i = 0; i < msgLength; i++) {
-            const messageChar = msg.substr(i, 1).toUpperCase();
+            const messageChar = msg.substring(i, i + 1).toUpperCase();
             let cipherChar = '';
             if (this.isValidChar(messageChar)) {
                 message += messageChar;

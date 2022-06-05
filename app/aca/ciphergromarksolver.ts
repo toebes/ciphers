@@ -34,15 +34,15 @@ export class CipherGromarkSolver extends CipherSolver {
         str = str.replace(/\s+/g, " ");
         // Get the leading digits
         for (let i = 0, len = str.length; i < len; i++) {
-            c = str.substr(i, 1);
+            c = str.substring(i, i + 1);
             if (c !== " ") {
                 if (!isNaN(c)) {
                     offsets[offpos++] = parseInt(c, 10);
                 } else {
                     return $(
                         '<div class="error">Gromark must start with 5 numeric digits - found ' +
-                            c +
-                            "</div>"
+                        c +
+                        "</div>"
                     );
                 }
             }
@@ -53,7 +53,7 @@ export class CipherGromarkSolver extends CipherSolver {
         }
         // Now we pull the single check digit off the end
         for (let i = str.length - 1; i > 0; i--) {
-            c = str.substr(i, 1);
+            c = str.substring(i, i + 1);
             if (c !== " ") {
                 if (!isNaN(c)) {
                     str = str.substr(1, i - 1);
@@ -61,8 +61,8 @@ export class CipherGromarkSolver extends CipherSolver {
                 }
                 return $(
                     '<div class="error">Gromark must end with single numeric check digit - found ' +
-                        c +
-                        "</div>"
+                    c +
+                    "</div>"
                 );
             }
         }
@@ -74,7 +74,7 @@ export class CipherGromarkSolver extends CipherSolver {
 
         // Now go through and get all the characters
         for (let i = 0, len = str.length; i < len; i++) {
-            c = str.substr(i, 1).toUpperCase();
+            c = str.substring(i, i + 1).toUpperCase();
             if (this.isValidChar(c)) {
                 offpos++;
                 // Compute the running offset
@@ -148,7 +148,7 @@ export class CipherGromarkSolver extends CipherSolver {
             freqrow = $("<tr/>");
             freqrow.append($("<th/>").text(n));
             for (let i = 0, len = charset.length; i < len; i++) {
-                c = charset.substr(i, 1).toUpperCase();
+                c = charset.substring(i, i + 1).toUpperCase();
                 if (n === 0) {
                     headrow.append($("<th/>").text(c));
                 }
@@ -166,7 +166,7 @@ export class CipherGromarkSolver extends CipherSolver {
         freqrow.append($("<th/>").text("Frequency"));
         replrow.append($("<th/>").text("Replacement"));
         for (let i = 0, len = charset.length; i < len; i++) {
-            c = charset.substr(i, 1).toUpperCase();
+            c = charset.substring(i, i + 1).toUpperCase();
             headrow.append($("<th/>").text(c));
             freqrow.append($('<td id="f' + c + '"/>'));
             let td = $("<td/>");
@@ -392,7 +392,7 @@ export class CipherGromarkSolver extends CipherSolver {
         charset += charset;
         // Iterate through all of our characters
         for (i = 0; i < len; i++) {
-            let c = charset.substr(i, 1);
+            let c = charset.substring(i, i + 1);
             let repl = this.state.replacement[c];
             // See if we have a replacement for it.
             if (this.isValidChar(repl)) {
@@ -419,7 +419,7 @@ export class CipherGromarkSolver extends CipherSolver {
         // Double the character set so we can get the wrapping for free
         charset += charset;
         for (let i = 0, len = str.length; i < len; i++) {
-            let c = str.substr(i, 1);
+            let c = str.substring(i, i + 1);
             let piece = gromark.substr(i * this.cipherWidth, this.cipherWidth);
             // Let's compute the value for the letter plus the offset
             let offset = charset.indexOf(c) + parseInt(piece.substr(1, 1), 10);
@@ -437,14 +437,14 @@ export class CipherGromarkSolver extends CipherSolver {
         if (tomatch.length * this.cipherWidth !== gromark.length) {
             console.log(
                 'Invalid check comparing "' +
-                    tomatch +
-                    '"(' +
-                    tomatch.length +
-                    ') against "' +
-                    gromark +
-                    '"(' +
-                    gromark.length +
-                    ")"
+                tomatch +
+                '"(' +
+                tomatch.length +
+                ') against "' +
+                gromark +
+                '"(' +
+                gromark.length +
+                ")"
             );
             return 0;
         }
@@ -453,7 +453,7 @@ export class CipherGromarkSolver extends CipherSolver {
         let sets = {};
         let matchlevel = 1;
         for (i = 0; i < tomatch.length; i++) {
-            let c = tomatch.substr(i, 1);
+            let c = tomatch.substring(i, i + 1);
             let piece = gromark.substr(i * this.cipherWidth, this.cipherWidth);
             // See if we already know that this letter actually maps to something.
             if (typeof this.gromarkRepl[piece] !== "undefined") {
@@ -541,7 +541,7 @@ export class CipherGromarkSolver extends CipherSolver {
             let tres =
                 '<table class="mfind"><thead><tr><th>Pos</th><th>Type</th><th>Gromark</th>';
             for (i = 0; i < len; i++) {
-                tres += "<th>" + charset.substr(i, 1) + "</th>";
+                tres += "<th>" + charset.substring(i, i + 1) + "</th>";
             }
             res =
                 tres +

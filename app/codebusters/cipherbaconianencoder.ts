@@ -247,8 +247,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // Make a mapping of the characters for convenience
         const charset = this.getCharset();
         for (let i = 0; i < charset.length; i++) {
-            const c = charset.substr(i, 1);
-            const ab = this.state.abMapping.substr(i, 1);
+            const c = charset.substring(i, i + 1);
+            const ab = this.state.abMapping.substring(i, i + 1);
             ablookup[c] = ab;
         }
         return ablookup;

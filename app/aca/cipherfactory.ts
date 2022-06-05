@@ -1,5 +1,6 @@
 import { CipherHandler } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
+import { CipherACAManage } from "./cipheracamanage";
 import { CipherACAProblems } from "./cipheracaproblems";
 import { CipherACASubmit } from "./cipheracasubmit";
 import { CipherCheckerboardSolver } from "./ciphercheckerboardsolver";
@@ -35,6 +36,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     ACASubmit: {
         cipherType: ICipherType.Test,
         cipherClass: CipherACASubmit,
+        canPrint: false,
+    },
+    ACAManage: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherACAManage,
         canPrint: false,
     },
     Checkerboard: {

@@ -239,8 +239,8 @@ export class CipherTapCodeEncoder extends CipherEncoder {
         // Figure out what the expected answer should be
         for (const splitLines of strings) {
             for (let i = 0; i < splitLines[plainTextSlot].length; i++) {
-                const p = splitLines[plainTextSlot].substr(i, 1);
-                const c = splitLines[cipherTextSlot].substr(i, 1);
+                const p = splitLines[plainTextSlot].substring(i, i + 1);
+                const c = splitLines[cipherTextSlot].substring(i, i + 1);
                 if (this.isValidChar(p)) {
                     solution.push(p);
                 }

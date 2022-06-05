@@ -81,6 +81,10 @@ export interface IState {
     replOrder?: string;
     /** Type of encoding */
     encodeType?: IEncodeType;
+    /** The question number */
+    qnum?: string;
+    /** author of the cipher */
+    author?: string;
     /** A formatted solution string */
     solution?: string;
     /** Is the problem solved? */
@@ -321,6 +325,9 @@ export class CipherHandler {
         sv: 'Swedish',
         ia: 'Interlingua',
         la: 'Latin',
+        af: 'Afrikaans',
+        ca: 'Catalan',
+        '??': '????'    // Unknown language. They need to pick it
     };
     public guidanceURL = 'TestGuidance.html';
     /**
@@ -339,6 +346,8 @@ export class CipherHandler {
         sv: 'AÅÄBCDEFGHIJKLMNOÖPQRSTUVWXYZ',
         ia: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         la: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        ca: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        af: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
     };
     /**
      * Character replacement for purposes of encoding
@@ -385,6 +394,8 @@ export class CipherHandler {
             sv: {},
             ia: {},
             la: {},
+            ca: {},
+            af: {},
         };
     /**
      * This maps which characters are to be used when encoding an ACA cipher
@@ -401,6 +412,8 @@ export class CipherHandler {
         sv: 'AÅÄBCDEFGHIJKLMNOÖPRSTUVYZ',
         ia: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         la: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        ca: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        af: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
     };
     /**
      * This maps which characters are to be encoded to for an ACA cipher
@@ -417,6 +430,8 @@ export class CipherHandler {
         sv: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         ia: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         la: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        ca: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        af: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
     };
     /**
      * Character replacement for purposes of encoding
@@ -463,6 +478,8 @@ export class CipherHandler {
             sv: {},
             ia: {},
             la: {},
+            ca: {},
+            af: {},
         };
     /**
      * Language character frequency
@@ -981,6 +998,13 @@ export class CipherHandler {
             $('.menu-text a').text('Science Olympiad CodeBusters');
         }
     }
+
+    // public restoreCurrentTest(): void {
+    //     if (this.state.test)
+    // }
+    // this.storageTestEntryPrefix
+    // this.saveCurrentTest()
+
     /**
      * Gets the total number of saved tests
      * Cipher-Test-Count [number] holds the number of tests in the system.
@@ -1475,9 +1499,11 @@ export class CipherHandler {
         $('#okimport')
             .off('click')
             .on('click', (e) => {
+                console.log(`okimport clicked uselocalData=${useLocalData}`)
                 if (useLocalData) {
                     const fileinput: HTMLInputElement = $('#xmlFile')[0] as HTMLInputElement;
                     const files = fileinput.files;
+                    console.log(`processing files.length=${files.length} typeof FileReader=${typeof FileReader}`)
                     if (files.length && typeof FileReader !== undefined) {
                         this.processImport(files[0]);
                     }
@@ -2157,9 +2183,10 @@ export class CipherHandler {
         this.activeToolMode = toolMode.codebusters;
         switch (mode) {
             case menuMode.aca:
-                $('.menufile').show();
+                $('.menufile').hide();
                 $('.menuaca').show();
                 $('.menucb').hide();
+                $('.login-info').hide();
                 this.activeToolMode = toolMode.aca;
                 break;
             case menuMode.test:
@@ -2266,21 +2293,21 @@ export class CipherHandler {
         const rowblank = table.addBodyRow();
 
         for (let i = 0; i < cipherline.length; i++) {
-            const c = cipherline.substr(i, 1);
+            const c = cipherline.substring(i, i + 1);
             let aclass = 'e v';
             let a = ' ';
             if (answerline !== undefined) {
-                a = answerline.substr(i, 1);
+                a = answerline.substring(i, i + 1);
                 aclass = 'a v';
             }
             if (overline !== undefined) {
                 if (this.isValidChar(c)) {
                     rowover.add({
                         settings: { class: 'o v' },
-                        content: overline.substr(i, 1),
+                        content: overline.substring(i, i + 1),
                     });
                 } else {
-                    rowover.add(overline.substr(i, 1));
+                    rowover.add(overline.substring(i, i + 1));
                 }
             }
             if (this.isValidChar(c)) {
@@ -2343,7 +2370,7 @@ export class CipherHandler {
                         }),
                     });
                 }
-                const c = cipherline.substr(i, 1);
+                const c = cipherline.substring(i, i + 1);
                 if (this.isValidChar(c)) {
                     rowcipher.add({
                         settings: { class: 'q v' },
@@ -2587,7 +2614,7 @@ export class CipherHandler {
         // Zero out the frequency table
         this.freq = {};
         for (let i = 0, len = sourcecharset.length; i < len; i++) {
-            this.freq[sourcecharset.substr(i, 1).toUpperCase()] = 0;
+            this.freq[sourcecharset.substring(i, i + 1).toUpperCase()] = 0;
         }
         // Now go through the string to encode and compute the character
         // to map to as well as update the frequency of the match
@@ -2663,7 +2690,7 @@ export class CipherHandler {
             counts[i] = 0;
         }
         for (let i = 0; i < str.length; i++) {
-            const c = str.substr(i, 1).toUpperCase();
+            const c = str.substring(i, i + 1).toUpperCase();
             const pos = charset.indexOf(c);
             if (pos >= 0) {
                 counts[pos]++;
@@ -2672,7 +2699,7 @@ export class CipherHandler {
         }
         let chiSquare = 0.0;
         for (let i = 0; i < len; i++) {
-            const c = charset.substr(i, 1);
+            const c = charset.substring(i, i + 1);
             const expected = this.langfreq[this.state.curlang][c];
             if (expected !== undefined && expected !== 0) {
                 chiSquare += Math.pow(counts[i] - total * expected, 2) / (total * expected);
@@ -2821,7 +2848,7 @@ export class CipherHandler {
     public isValidReplacement(str: string, repl: string[], used: BoolMap): boolean {
         //   console.log(str)
         for (let i = 0, len = str.length; i < len; i++) {
-            const c = str.substr(i, 1);
+            const c = str.substring(i, i + 1);
             if (repl[i] !== '') {
                 if (c !== repl[i]) {
                     //             console.log("No match c=" + c + " repl[" + i + "]=" + repl[i])

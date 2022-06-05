@@ -469,7 +469,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         const factor = msgLength / keyLength;
         keyString = this.repeatStr(key.toUpperCase(), factor + 1);
         for (let i = 0; i < msgLength; i++) {
-            const messageChar = encoded.substr(i, 1).toUpperCase();
+            const messageChar = encoded.substring(i, i + 1).toUpperCase();
             const m = charset.indexOf(messageChar);
             if (m >= 0) {
                 let keyChar = keyString.substr(keyIndex, 1).toUpperCase();

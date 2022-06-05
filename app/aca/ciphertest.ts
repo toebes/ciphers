@@ -1,20 +1,19 @@
 import { cloneObject, NumberMap } from "../common/ciphercommon";
 import {
     CipherHandler,
-    IRunningKey,
     IState,
     ITest,
     toolMode
 } from "../common/cipherhandler";
-import { getCipherTitle, ICipherType } from "../common/ciphertypes";
+import { ICipherType } from "../common/ciphertypes";
 import { JTButtonItem } from "../common/jtbuttongroup";
-import { JTRadioButton, JTRadioButtonSet } from "../common/jtradiobutton";
 
 export interface buttonInfo {
     title: string;
     btnClass: string;
     disabled?: boolean;
 }
+export type sourceTestData = { [key: string]: IState | ITest };
 
 export interface ITestState extends IState {
     /** Number of points a question is worth */
@@ -44,6 +43,24 @@ export class CipherTest extends CipherHandler {
         { title: "Import Tests from File", color: "primary", id: "import" },
         { title: "Import Tests from URL", color: "primary", id: "importurl" }
     ];
+
+    public restoreCurrentTest(): void {
+        console.log(`restoreCurrentTest: ${this.state.test}`)
+        if (this.state.test === undefined) {
+            const teststr = this.getConfigString('aca_issue', '0')
+            this.state.test = Number(teststr)
+            console.log(`Set test to be ${this.state.test} from '${teststr}'`)
+        }
+    }
+
+    public saveCurrentTest(): void {
+        console.log(`saveCurrentTest: ${this.state.test}`)
+        if (this.state.test !== undefined) {
+            console.log(`Saving it!`)
+            this.setConfigString('aca_issue', String(this.state.test))
+        }
+    }
+
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -69,7 +86,7 @@ export class CipherTest extends CipherHandler {
         }
     }
     public gotoEditTest(test: number): void {
-        location.assign("TestGenerator.html?test=" + String(test));
+        location.assign("ACAProblems.html?test=" + String(test));
     }
     public gotoEditCipher(entry: number): void {
         let entryURL = this.getEntryURL(entry);
@@ -78,6 +95,31 @@ export class CipherTest extends CipherHandler {
         } else {
             alert("No editor found");
         }
+    }
+    /**
+     * generateTestData converts the current test information to a map which can be saved/restored later
+     * @param test Test to generate data for
+     * @returns string form of the JSON for the test
+     */
+    public generateTestData(test: ITest): sourceTestData {
+        const result = {};
+        result['TEST.0'] = test;
+
+        if (test.timed !== -1) {
+            result['CIPHER.' + String(test.timed)] = this.getFileEntry(test.timed);
+        }
+        for (const entry of test.questions) {
+            result['CIPHER.' + String(entry)] = this.getFileEntry(entry);
+        }
+        return result;
+    }
+    /**
+     * generateTestJSON converts the current test information to a JSON string
+     * @param test Test to generate data for
+     * @returns string form of the JSON for the test
+     */
+    public generateTestJSON(test: ITest): string {
+        return JSON.stringify(this.generateTestData(test));
     }
     /**
      * Compare two arbitrary objects to see if they are equivalent
@@ -152,6 +194,7 @@ export class CipherTest extends CipherHandler {
     }
     // tslint:disable-next-line:cyclomatic-complexity
     public processTestXML(data: any): void {
+        console.log(data);
         // Load in all the ciphers we know of so that we don't end up doing a duplicate
         let cipherCount = this.getCipherCount();
         let cipherCache: { [index: number]: IState } = {};
@@ -161,6 +204,7 @@ export class CipherTest extends CipherHandler {
         }
         // First we get all the ciphers defined and add them to the list of ciphers
         for (let ent in data) {
+            console.log(`Working on ${ent}`)
             let pieces = ent.split(".");
             // Make sure we have a valid object that we can bring in
             if (
@@ -192,6 +236,7 @@ export class CipherTest extends CipherHandler {
                 }
             }
         }
+        console.log(`Found ${cipherCount} entries`)
         // Now that we have all the ciphers in, we can go back and add the tests
         for (let ent in data) {
             let pieces = ent.split(".");
@@ -200,21 +245,14 @@ export class CipherTest extends CipherHandler {
                 pieces[0] === "TEST" &&
                 typeof data[ent] === "object" &&
                 data[ent].title !== undefined &&
-                data[ent].timed !== undefined &&
                 data[ent].questions !== undefined
             ) {
+                console.log(`Found a test: ${ent}`)
                 // It is a cipher entry // It is an object // with a title // with a timed question
                 // and questions
                 let newTest: ITest = data[ent];
                 // Go through and fix up all the entries.  First the timed question
-                if (
-                    newTest.timed !== -1 &&
-                    inputMap[newTest.timed] !== undefined
-                ) {
-                    newTest.timed = inputMap[newTest.timed];
-                } else {
-                    newTest.timed = -1;
-                }
+                newTest.timed = -1;
                 // and then all of the entries
                 for (let entry = 0; entry < newTest.questions.length; entry++) {
                     if (inputMap[newTest.questions[entry]] !== undefined) {
@@ -227,8 +265,10 @@ export class CipherTest extends CipherHandler {
                 // For good measure, just fix up the questions length
                 newTest.count = newTest.questions.length;
                 let testnum = this.findTest(newTest);
+                console.log(`Finding test found ${testnum}`)
                 if (testnum === -1) {
                     testnum = this.setTestEntry(-1, newTest);
+                    console.log(`Stored test entry as ${testnum}`)
                 }
                 if (testnum !== -1) {
                     this.gotoEditTest(testnum);

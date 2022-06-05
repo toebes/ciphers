@@ -140,7 +140,7 @@ export function padLeft(val: number, width: number): string {
 export function extractKey(str: string): string {
     let lastc;
     for (let i = str.length - 1; i >= 0; i--) {
-        const c = str.substr(i, 1);
+        const c = str.substring(i, i + 1);
         if (c !== '?') {
             if (lastc !== undefined && c > lastc) {
                 return str.substr(0, i + 1);

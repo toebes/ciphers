@@ -148,7 +148,7 @@ export class CipherACAProblems extends CipherTest {
                 }
             }
             let button = $("<button/>", {
-                "data-entry": order,
+                "data-entry": qnum,
                 type: "button",
                 class: btninfo.btnClass + " button",
             }).html(title);

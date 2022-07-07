@@ -43,8 +43,9 @@ export class CipherAffineEncoder extends CipherEncoder {
     public guidanceURL = 'TestGuidance.html#Affine';
     public validTests: ITestType[] = [
         ITestType.None,
-        ITestType.cregional,
-        ITestType.cstate,
+        // Affine gets dropped for Division C for the 2022-2023 season
+        // ITestType.cregional, 
+        // ITestType.cstate,
         ITestType.bregional,
         ITestType.bstate,
     ];

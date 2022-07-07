@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body>
+    <% for (var index in htmlWebpackPlugin.files.js) { %>
+        <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
+        <% } %>
+            <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+            <h2>
+                <%= htmlWebpackPlugin.options.title %>
+            </h2>
+            <div class="precmds"></div>
+            <div class="cmdbuttons"></div>
+            <div id="qtext" class="cell"></div>
+            <div class="ans clearfix" id="answer"></div>
+            <div class="freq"></div>
+            <div class="postcmds"></div>
+            <div class="sanalysis" id="analysis"></div>
+            <div class="references">
+                <h2>Cipher Description</h2>
+                <a href="https://www.cryptogram.org/downloads/aca.info/ciphers/NumberedKey.pdf">NUMBERED KEY (2.5 – 3
+                    times the length of the extended key)</a>
+                <h2>References</h2>
+
+                <h3 class="t"><a name="numbered_key_cipher">Numbered Key Cipher</a></h3>
+                <div class="a">Estimating Key Length of a Numbered Key Cipher <span class="w">MATANZA</span><a
+                        href="http://www.cryptogram.org/members/Cm_PDFs/2011-2015.pdf#page=70" class="r">May-Jun 2011
+                        p.6</a></div>
+                <div class="a">Solving a Numbered Key Cipher <span class="w">TSOJ</span><a
+                        href="http://www.cryptogram.org/members/Cm_PDFs/2016-2020.pdf#page=652" class="r">Nov-Dec 2019
+                        p.8</a></div>
+                <div class="a">Suggested Lengths <span class="w">BION</span><a
+                        href="http://www.cryptogram.org/members/Cm_PDFs/2011-2015.pdf#page=803" class="r">May-Jun 2015
+                        p.7</a></div>
+                <div class="a">The Numbered Key Cipher <span class="w">BION</span><a
+                        href="http://www.cryptogram.org/members/Cm_PDFs/2006-2010.pdf#page=836" class="r">May-Jun 2010
+                        p.4</a></div>
+
+            </div>
+</body>
+
+</html>

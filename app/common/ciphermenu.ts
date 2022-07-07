@@ -184,6 +184,11 @@ export const CipherMenu: menuItem[] = [
                 solveType: [ICipherType.Homophonic],
             },
             {
+                title: 'Numbered Key Solving Assistant',
+                href: 'NumberedKeySolver.html',
+                solveType: [ICipherType.NumberedKey],
+            },
+            {
                 title: 'Xenocrypt Solving Assistant',
                 href: 'XenocryptSolver.html',
                 solveType: [ICipherType.Xenocrypt],

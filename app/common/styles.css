@@ -543,6 +543,12 @@ table.mword .locked {
     background-color: cyan;
 }
 
+.twordn thead th,
+.twordn tbody td {
+    margin: 0;
+    padding: 0.2rem;
+    vertical-align: top;
+}
 .tword {
     height: 55px;
     margin: 0;

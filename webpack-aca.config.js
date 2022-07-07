@@ -388,6 +388,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'NumberedKeySolver.html',
+            template: path.join(__dirname, 'app', 'aca', 'pages', 'NumberedKeySolver.html'),
+            cipher: 'NumberedKeySolver',
+            title: 'Numbered Key Asssistant',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'RagbabySolver.html',
             template: path.join(__dirname, 'app', 'aca', 'pages', 'RagbabySolver.html'),
             cipher: 'RagbabySolver',

@@ -11,6 +11,7 @@ import { CipherGromarkSolver } from "./ciphergromarksolver";
 import { CipherHomophonicSolver } from "./cipherhomophonicsolver";
 import { CipherKeyPhraseSolver } from "./cipherkeyphrasesolver";
 import { CipherMorbitSolver } from "./ciphermorbitsolver";
+import { CipherNumberedKeySolver } from "./ciphernumberedkeysolver";
 import { CipherPortaxSolver } from "./cipherportaxsolver";
 import { CipherRagbabySolver } from "./cipherragbabysolver";
 import { CipherRailfenceSolver } from "./cipherrailfencesolver";
@@ -86,6 +87,11 @@ let cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Morbit: {
         cipherType: ICipherType.Morbit,
         cipherClass: CipherMorbitSolver,
+        canPrint: false,
+    },
+    NumberedKeySolver: {
+        cipherType: ICipherType.NumberedKey,
+        cipherClass: CipherNumberedKeySolver,
         canPrint: false,
     },
     PortaxSolver: {

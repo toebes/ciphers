@@ -3,6 +3,7 @@ import { ICipherType } from '../common/ciphertypes';
 import { CipherAffineEncoder } from './cipheraffineencoder';
 import { CipherBaconianEncoder } from './cipherbaconianencoder';
 import { CipherEncoder } from './cipherencoder';
+import { CipherFractionatedMorseEncoder } from './cipherfractionatedmorseencoder';
 import { CipherHillEncoder } from './cipherhillencoder';
 import { CipherGenerateHomophone } from './cipherhomophones';
 import { CipherMorbitEncoder } from './ciphermorbitencoder';
@@ -81,6 +82,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherType: ICipherType.Aristocrat,
         cipherClass: CipherEncoder,
         interactiveClass: InteractiveEncoder,
+        canPrint: true,
+    },
+    FractionatedMorse: {
+        cipherType: ICipherType.FractionatedMorse,
+        cipherClass: CipherFractionatedMorseEncoder,
+        interactiveClass: InteractiveMorseEncoder,
         canPrint: true,
     },
     GenerateHomophone: {

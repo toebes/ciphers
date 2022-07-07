@@ -162,7 +162,7 @@ export class CipherTestTimed extends CipherTest {
                     "If you refresh the web page, you should reconnect and be able to continue with your test."))
             )
             .append($('<p/>').text(
-                "When solving a Morbit, Pollux or Baconian cipher, you must put the answer " +
+                "When solving a Morbit, Fractionated Morse, Pollux or Baconian cipher, you must put the answer " +
                 "under the corresponding solution character. " +
                 "This means that on a Baconian answer, " +
                 "four out of five answer boxes in a row should be blank and Morbit/Pollux " +

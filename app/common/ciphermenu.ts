@@ -42,7 +42,7 @@ export const CipherMenu: menuItem[] = [
                 title: 'Affine',
                 href: 'AffineEncrypt.html',
                 cipherType: ICipherType.Affine,
-                classname: 'chkmod menub menuc',
+                classname: 'chkmod menub',
             },
             {
                 title: 'Aristocrat',
@@ -99,6 +99,12 @@ export const CipherMenu: menuItem[] = [
                 classname: 'chkmod menub menuc',
             },
             {
+                title: 'Fractionated Morse',
+                href: 'FractionatedMorseEncrypt.html',
+                cipherType: ICipherType.FractionatedMorse,
+                classname: 'chkmod menub menuc',
+            },
+            {
                 title: 'Rail Fence',
                 href: 'RailFenceEncrypt.html',
                 cipherType: ICipherType.Railfence,
@@ -132,7 +138,7 @@ export const CipherMenu: menuItem[] = [
                 title: 'Vigen&egrave;re',
                 href: 'VigenereEncrypt.html',
                 cipherType: ICipherType.Vigenere,
-                classname: 'chkmod menua menub menuc',
+                classname: 'chkmod menua',
             },
             {
                 title: 'Xenocrypt',

@@ -64,12 +64,16 @@ export class CipherMorseEncoder extends CipherEncoder {
         let msg = '';
         let showsample = false;
         let sampleLink: JQuery<HTMLElement> = undefined;
+        let hinttext = 'Hint Digits';
+        if (this.state.cipherType === ICipherType.FractionatedMorse) {
+            hinttext = 'Crib';
+        }
         const questionText = this.state.question.toUpperCase();
         if (this.state.operation === 'decode') {
             // Look to see if the Hint Digits appear in the Question Text
             let notfound = '';
             if (this.state.hint === undefined || this.state.hint === '') {
-                msg = 'No Hint Digits provided';
+                msg = 'No ' + hinttext + ' provided';
             } else {
                 for (const c of this.state.hint) {
                     if (questionText.indexOf(c) < 0) {
@@ -79,12 +83,12 @@ export class CipherMorseEncoder extends CipherEncoder {
                 if (notfound !== '') {
                     if (notfound.length === 1) {
                         msg =
-                            'The Hint Digit ' +
+                            'The ' + hinttext + ' ' +
                             notfound +
                             " doesn't appear to be mentioned in the Question Text.";
                     } else {
                         msg =
-                            'The Hint Digits ' +
+                            'The ' + hinttext + ' ' +
                             notfound +
                             " don't appear to be mentioned in the Question Text.";
                     }
@@ -154,9 +158,13 @@ export class CipherMorseEncoder extends CipherEncoder {
         return result;
     }
     public addHintCrib(result: JQuery<HTMLElement>): void {
+        let hinttitle = 'Hint Digits';
+        if (this.state.cipherType === ICipherType.FractionatedMorse) {
+            hinttitle = 'Crib'
+        }
         result.append(
             JTFLabeledInput(
-                'Hint Digits',
+                hinttitle,
                 'number',
                 'hint',
                 this.state.hint,

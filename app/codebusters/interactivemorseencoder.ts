@@ -4,6 +4,7 @@ import { InteractiveEncoder } from './interactiveencoder';
 /** This handles the following ciphers:
  *   Morbit
  *   Pollux
+ *   FractionatedMorse
  */
 
 export class InteractiveMorseEncoder extends InteractiveEncoder {

@@ -249,6 +249,7 @@ export class CipherTest extends CipherHandler {
         { cipherType: ICipherType.TapCode },
         { cipherType: ICipherType.Morbit },
         { cipherType: ICipherType.Pollux },
+        { cipherType: ICipherType.FractionatedMorse },
         { cipherType: ICipherType.Railfence },
     ];
     /**

@@ -43,10 +43,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public ciphermap: Mapper;
     public validTests: ITestType[] = [
         ITestType.None,
-        ITestType.cregional,
-        ITestType.cstate,
-        ITestType.bregional,
-        ITestType.bstate,
+        // Remove Vigenere from Division B/C for the 2022-2023 season
+        // ITestType.cregional,
+        // ITestType.cstate,
+        // ITestType.bregional,
+        // ITestType.bstate,
         ITestType.aregional,
     ];
 

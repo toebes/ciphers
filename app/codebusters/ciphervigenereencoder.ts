@@ -53,21 +53,17 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
     public validVigenereTests: ITestType[] = [
         ITestType.None,
-        ITestType.cregional,
-        ITestType.cstate,
-        ITestType.bregional,
-        ITestType.bstate,
+        // Remove Vigenere from Division B/C for the 2022-2023 season
+        // ITestType.cregional,
+        // ITestType.cstate,
+        // ITestType.bregional,
+        // ITestType.bstate,
         ITestType.aregional,
     ];
-    /**
-     * Special case: for A Regional tests:
-     *   The Caesar Cipher, also called a shift cipher, with a shift of
-     *   no more than 3 characters in either direction.
-     *    E.g. a can map to x,y,z,b,c,d,
-     */
     public validPortaTests: ITestType[] = [
         ITestType.None,
         ITestType.bstate,
+        ITestType.bregional,
         ITestType.cregional,
         ITestType.cstate,
     ];

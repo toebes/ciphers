@@ -440,7 +440,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
     public guidanceURL = 'TestGuidance.html#RailFence';
 
-    public validTests: ITestType[] = [ITestType.None, ITestType.bstate, ITestType.cregional, ITestType.cstate];
+    public validTests: ITestType[] = [ITestType.None, ITestType.bstate, ITestType.bregional, ITestType.cregional, ITestType.cstate];
 
     public defaultstate: IRailFenceState = {
         cipherString: '',
@@ -495,17 +495,12 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
         let result = super.CheckAppropriate(testType, anyOperation);
         if (!anyOperation && result === '' && testType !== undefined) {
-            // Due to a fluke in rule writing for 2022, the railfence only allows for cryptanalysis 
-            // at the division B state level
-            // Basically what is allowed is:
-            //  Division B Regional:  nothing
+            // What is allowed is:
+            //  Division B Regional:  Decode with 0 offset
             //  Division B State: Cryptanalysis with zero offset
             //  Division C Regional: Decode with any offset
             //  Division C State: Decode+Cryptanalysis with any offset
 
-            //    if (testType === ITestType.bstate && this.state.operation !== 'crypt') {
-            //        result = 'Only Cryptanalysis problems are allowed on ' + this.getTestTypeName(testType);
-            //    } else
             if (testType === ITestType.bstate && this.state.railOffset !== 0) {
                 result = 'Only a zero offset is allowed on ' + this.getTestTypeName(testType);
             }

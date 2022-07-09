@@ -69,6 +69,12 @@ export const CipherMenu: menuItem[] = [
                 classname: 'chkmod menua menub menuc',
             },
             {
+                title: 'Cryptarithm',
+                href: 'CryptarithmEncrypt.html',
+                cipherType: ICipherType.Cryptarithm,
+                classname: 'chkmod menub menuc',
+            },
+            {
                 title: 'Hill (2x2 and 3x3)',
                 href: 'HillEncrypt.html',
                 cipherType: ICipherType.Hill,

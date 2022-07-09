@@ -2,6 +2,7 @@ import { CipherHandler } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { CipherAffineEncoder } from './cipheraffineencoder';
 import { CipherBaconianEncoder } from './cipherbaconianencoder';
+import { CipherCryptarithmEncoder } from './cryptarithmencoder';
 import { CipherEncoder } from './cipherencoder';
 import { CipherFractionatedMorseEncoder } from './cipherfractionatedmorseencoder';
 import { CipherHillEncoder } from './cipherhillencoder';
@@ -78,6 +79,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         interactiveClass: InteractiveTableEncoder,
         canPrint: true,
     },
+    Cryptarithm: {
+        cipherType: ICipherType.Cryptarithm,
+        cipherClass: CipherCryptarithmEncoder,
+        interactiveClass: InteractiveEncoder, // TODO: Implement the interactive encoder for it
+        canPrint: true,
+    },
     Encoder: {
         cipherType: ICipherType.Aristocrat,
         cipherClass: CipherEncoder,
@@ -87,7 +94,7 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     FractionatedMorse: {
         cipherType: ICipherType.FractionatedMorse,
         cipherClass: CipherFractionatedMorseEncoder,
-        interactiveClass: InteractiveMorseEncoder,
+        interactiveClass: InteractiveMorseEncoder,   // TODO: Implement the interactive encoder for it
         canPrint: true,
     },
     GenerateHomophone: {

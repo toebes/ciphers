@@ -233,6 +233,7 @@ export class CipherTest extends CipherHandler {
         { cipherType: ICipherType.Caesar },
         { cipherType: ICipherType.Atbash },
         { cipherType: ICipherType.Aristocrat },
+        { cipherType: ICipherType.Cryptarithm },
         {
             cipherType: ICipherType.Aristocrat,
             lang: 'es',

@@ -304,6 +304,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'CryptarithmEncrypt.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
+            cipher: 'Cryptarithm',
+            title: 'Cryptarithm Encrypt',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'FractionatedMorseEncrypt.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
             cipher: 'FractionatedMorse',

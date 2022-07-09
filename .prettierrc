@@ -4,6 +4,7 @@
   "useTabs": false,
   "semi": true,
   "tabWidth": 4,
+  "endOfLine": "auto",
   "trailingComma": "es5",
   "arrowParens": "always"
 }

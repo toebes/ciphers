@@ -293,7 +293,7 @@ export class CipherTapCodeEncoder extends CipherEncoder {
                 'with C in it giving you a table like:'
             )
         );
-        result.append($('<img/>', { src: tapcode.default }));
+        result.append($('<img/>', { src: tapcode }));
         result.append(
             $('<p/>').text(
                 'Then go through the cipher text and put ' +

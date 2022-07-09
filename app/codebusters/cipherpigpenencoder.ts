@@ -9,8 +9,8 @@ import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
-import pigpen1 = require('../images/pigpen1.png');
-import pigpen2 = require('../images/pigpen2.png');
+const pigpen1 = require('../images/pigpen1.png');
+const pigpen2 = require('../images/pigpen2.png');
 
 /**
  * CipherPigPenEncoder - This class handles all of the actions associated with encoding
@@ -225,7 +225,7 @@ export class CipherPigPenEncoder extends CipherEncoder {
                 'by drawing two tic-tac-toe boards followed by two big Xs. '
             )
         );
-        result.append($('<img/>', { src: pigpen1.default }));
+        result.append($('<img/>', { src: pigpen1 }));
         result.append(
             $('<p/>').text(
                 'Then write the alphabet in the tic-tac-toe ' +
@@ -240,7 +240,7 @@ export class CipherPigPenEncoder extends CipherEncoder {
                 'second X. like:'
             )
         );
-        result.append($('<img/>', { src: pigpen2.default }));
+        result.append($('<img/>', { src: pigpen2 }));
         result.append(
             $('<p/>').text(
                 'With that decode table, it should be quick ' +

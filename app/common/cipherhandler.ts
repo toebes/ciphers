@@ -15,7 +15,8 @@ import { RealTimeNumber, RealTimeObject } from '@convergence/convergence';
 import { TrueTime } from './truetime';
 import { API } from '../codebusters/api';
 import { JTFIncButton } from './jtfIncButton';
-declare var __DATE_BUILT__: string;
+// eslint-disable-next-line no-underscore-dangle
+declare let __DATE_BUILT__: string;
 
 export const enum menuMode {
     aca, // ACA Solving Aid - File, edit menu and ACA menus
@@ -282,6 +283,8 @@ export interface IInteractiveTest {
     hasMorse: boolean;
     /** There is a cipher which uses the Porta table on the test */
     hasPorta: boolean;
+    /** There is a cipher which uses the Vigenere table on the test */
+    hasVigenere: boolean;
     /** Any running keys used **/
     runningKeys?: IRunningKey[];
     /** Score values for all the questions **/
@@ -922,6 +925,8 @@ export class CipherHandler {
     public usesMorseTable = false;
     /** Indicates that the cipher uses a Porta code table */
     public usesPortaTable = false;
+    /** Indicates that the cipher uses a Vigenere code table */
+    public usesVigenereTable = false;
     /** The direction of the last advance */
     public advancedir = 0;
     /** The Jquery element associated with a keypress */
@@ -1464,7 +1469,8 @@ export class CipherHandler {
     /**
      * Process imported XML
      */
-    public importXML(data: any): void { }
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    public importXML(_data: any): void { }
     /**
      * Put up a dialog to select an XML file to import
      */
@@ -2539,8 +2545,7 @@ export class CipherHandler {
     public isValidChar(char: string): boolean {
         if (char === '') {
             return false;
-        }
-        else {
+        } else {
             return this.charset.indexOf(char) >= 0;
         }
     }
@@ -2577,9 +2582,7 @@ export class CipherHandler {
      */
     public UpdateFreqEditTable(): void {
         $('.freq').each((i: number, elem: HTMLElement) => {
-            $(elem)
-                .empty()
-                .append(this.createFreqEditTable());
+            $(elem).empty().append(this.createFreqEditTable());
         });
         this.attachHandlers();
     }

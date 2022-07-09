@@ -115,6 +115,7 @@ export class CipherTestInteractive extends CipherTest {
             hasSpanish: false,
             hasMorse: false,
             hasPorta: false,
+            hasVigenere: false,
             qdata: [],
             checkPaper: test.checkPaper,
         };
@@ -178,8 +179,13 @@ export class CipherTestInteractive extends CipherTest {
             if (cipherhandler.usesMorseTable) {
                 interactive.hasMorse = true;
             }
+            /* Or a porta */
             if (cipherhandler.usesPortaTable) {
                 interactive.hasPorta = true;
+            }
+            /* Or vigenere? */
+            if (cipherhandler.usesVigenereTable) {
+                interactive.hasVigenere = true;
             }
             const qerror = cipherhandler.CheckAppropriate(interactive.testtype, false);
             if (qerror !== '') {

@@ -82,6 +82,7 @@ export class CipherTestPrint extends CipherTest {
         const errors: string[] = [];
         let usesMorseTable = false;
         let usesPortaTable = false;
+        let usesVigenereTable = false;
         let SpanishCount = 0;
         let SpecialBonusCount = 0;
         elem.empty();
@@ -214,6 +215,9 @@ export class CipherTestPrint extends CipherTest {
             if (cipherhandler.usesPortaTable) {
                 usesPortaTable = true;
             }
+            if (cipherhandler.usesVigenereTable) {
+                usesVigenereTable = true;
+            }
             page.append(thisquestion);
             const thisheight = thisquestion.outerHeight();
             if (thisheight + accumulated > pagesize || qcount > 1) {
@@ -323,6 +327,14 @@ export class CipherTestPrint extends CipherTest {
             $('.portatable').show();
         } else {
             $('.portatable').hide();
+        }
+        /**
+         * See if we need to show/hide the Vigenere Code Table
+         */
+        if (usesVigenereTable) {
+            $('.vigeneretable').show();
+        } else {
+            $('.vigeneretable').hide();
         }
         /**
          * Lastly we need to print out the score table

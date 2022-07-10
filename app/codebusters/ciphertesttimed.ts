@@ -786,6 +786,14 @@ export class CipherTestTimed extends CipherTest {
             $('.vigeneretable').hide();
         }
         /**
+         * See if we need to show/hide the Vigenere Code Table
+         */
+        if (testmodel.hasDancingMen) {
+            $('.dancingmentable').show();
+        } else {
+            $('.dancingmentable').hide();
+        }
+        /**
          * Lastly we need to print out the score table
          */
         const table = new JTTable({

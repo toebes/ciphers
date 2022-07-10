@@ -116,6 +116,7 @@ export class CipherTestInteractive extends CipherTest {
             hasMorse: false,
             hasPorta: false,
             hasVigenere: false,
+            hasDancingMen: false,
             qdata: [],
             checkPaper: test.checkPaper,
         };
@@ -186,6 +187,10 @@ export class CipherTestInteractive extends CipherTest {
             /* Or vigenere? */
             if (cipherhandler.usesVigenereTable) {
                 interactive.hasVigenere = true;
+            }
+            /* or Dancing Men? */
+            if (cipherhandler.usesDancingMenTable) {
+                interactive.hasDancingMen = true;
             }
             const qerror = cipherhandler.CheckAppropriate(interactive.testtype, false);
             if (qerror !== '') {

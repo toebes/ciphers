@@ -285,6 +285,8 @@ export interface IInteractiveTest {
     hasPorta: boolean;
     /** There is a cipher which uses the Vigenere table on the test */
     hasVigenere: boolean;
+    /** There is a cipher which uses the Dancing Men table on the test */
+    hasDancingMen: boolean;
     /** Any running keys used **/
     runningKeys?: IRunningKey[];
     /** Score values for all the questions **/
@@ -927,6 +929,8 @@ export class CipherHandler {
     public usesPortaTable = false;
     /** Indicates that the cipher uses a Vigenere code table */
     public usesVigenereTable = false;
+    /** Indicates that the cipher uses a Dancing Men Table */
+    public usesDancingMenTable = false;
     /** The direction of the last advance */
     public advancedir = 0;
     /** The Jquery element associated with a keypress */

@@ -17,6 +17,7 @@ import { CipherEncoder, IEncoderState } from './cipherencoder';
 export class CipherDancingMenEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#DancingMen';
+    public usesDancingMenTable = true;
 
     public validTests: ITestType[] = [ITestType.None, ITestType.aregional];
     public defaultstate: IEncoderState = {

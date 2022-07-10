@@ -265,7 +265,14 @@ config = {
             filename: 'Rule-Summary-2022.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Rule-Summary-2022.html'),
             cipher: 'TestManage',
-            title: '2021-2020 Season Science Olympiad Rules Summary',
+            title: '2021-2022 Season Science Olympiad Rules Summary',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'Rule-Summary-2023.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Rule-Summary-2023.html'),
+            cipher: 'TestManage',
+            title: '2022-2023 Season Science Olympiad Rules Summary',
         }),
         new HtmlWebpackPlugin({
             inject: false,

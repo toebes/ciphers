@@ -46,8 +46,9 @@ export class CipherTableEncoder extends CipherEncoder {
      */
     public validCaesarTests: ITestType[] = [
         ITestType.None,
-        ITestType.cregional,
-        ITestType.cstate,
+        /** We took Caesar out from the Division C for the 2022-2023 season */
+        // ITestType.cregional,
+        // ITestType.cstate,
         ITestType.bregional,
         ITestType.bstate,
         ITestType.aregional,

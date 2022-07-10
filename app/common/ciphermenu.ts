@@ -75,9 +75,9 @@ export const CipherMenu: menuItem[] = [
                 classname: 'chkmod menub menuc',
             },
             {
-                title: 'Dancing Man',
-                href: 'DancingManEncrypt.html',
-                cipherType: ICipherType.DancingMan,
+                title: 'Dancing Men',
+                href: 'DancingMenEncrypt.html',
+                cipherType: ICipherType.DancingMen,
                 classname: 'chkmod menua',
             },
             {

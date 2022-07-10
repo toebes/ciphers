@@ -11,17 +11,17 @@ import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 
 /**
- * CipherDancingManEncoder - This class handles all of the actions associated with encoding
- * a DancingMan cipher.
+ * CipherDancingMenEncoder - This class handles all of the actions associated with encoding
+ * a DancingMen cipher.
  */
-export class CipherDancingManEncoder extends CipherEncoder {
+export class CipherDancingMenEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL = 'TestGuidance.html#DancingMan';
+    public guidanceURL = 'TestGuidance.html#DancingMen';
 
     public validTests: ITestType[] = [ITestType.None, ITestType.aregional];
     public defaultstate: IEncoderState = {
         cipherString: '',
-        cipherType: ICipherType.DancingMan,
+        cipherType: ICipherType.DancingMen,
         replacement: {},
     };
     public state: IEncoderState = cloneObject(this.defaultstate) as IEncoderState;
@@ -97,7 +97,7 @@ export class CipherDancingManEncoder extends CipherEncoder {
         }
         const strings = this.makeReplacement(this.state.cipherString, width);
         const table = new JTTable({
-            class: 'ansblock shrink cell unstriped dancingman' + extraclass,
+            class: 'ansblock shrink cell unstriped dancingmen' + extraclass,
         });
         const tosolve = 0;
         const toanswer = 1;
@@ -156,7 +156,7 @@ export class CipherDancingManEncoder extends CipherEncoder {
         let pos = 0;
         const strings = this.makeReplacement(this.state.cipherString, width);
 
-        const table = new JTTable({ class: 'SOLVER ansblock DancingMan' + extraclass });
+        const table = new JTTable({ class: 'SOLVER ansblock DancingMen' + extraclass });
         for (const strset of strings) {
             const qrow = table.addBodyRow();
             const arow = table.addBodyRow();
@@ -202,7 +202,7 @@ export class CipherDancingManEncoder extends CipherEncoder {
         }
         const strings = this.makeReplacement(this.state.cipherString, width);
         const table = new JTTable({
-            class: 'ansblock shrink cell unstriped DancingMan' + extraclass,
+            class: 'ansblock shrink cell unstriped DancingMen' + extraclass,
         });
         let tosolve = 0;
         if (this.state.operation === 'encode') {
@@ -219,12 +219,12 @@ export class CipherDancingManEncoder extends CipherEncoder {
         result.append($('<h3/>').text('How to Solve'));
         result.append(
             $('<p/>').text(
-                'First you want to find the table of the dancing man characters in the resources for the test. ' +
+                'First you want to find the table of the Dancing Men characters in the resources for the test. ' +
                 'It should look like:'
             )
         );
         result.append(
-            $('<p/>', { class: 'dancingman' }).text(
+            $('<p/>', { class: 'dancingmen' }).text(
                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
             )
         )

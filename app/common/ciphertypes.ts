@@ -12,7 +12,7 @@ export const enum ICipherType {
     Bazeries = 'bazeries',
     Beaufort = 'beaufort',
     Bifid = 'bifid',
-    DancingMan = 'dancingman',
+    DancingMen = 'dancingmen',
     Cadenus = 'cadenus',
     Caesar = 'caesar',
     Checkerboard = 'checkerboard',

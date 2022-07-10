@@ -1485,21 +1485,21 @@ div.vsolv {
 }
 
 @font-face {
-    font-family: dancingman;
-    src: url(fonts/DancingManSO.woff);
+    font-family: dancingmen;
+    src: url(fonts/DancingMenSO.woff);
 }
 
-.dancingman.ansblock .q.v {
+.dancingmen.ansblock .q.v {
     border: none;
     font-size: 36pt;
-    font-family: dancingman;
+    font-family: dancingmen;
 }
 
-.dancingman.ansblock td.a {
+.dancingmen.ansblock td.a {
     border: 1px solid block;
 }
-p.dancingman {
-    font-family: dancingman;
+p.dancingmen {
+    font-family: dancingmen;
     font-size: 36pt;
 }
 

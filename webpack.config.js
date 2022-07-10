@@ -311,10 +311,10 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
-            filename: 'DancingManEncrypt.html',
+            filename: 'DancingMenEncrypt.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
-            cipher: 'DancingMan',
-            title: 'Dancing Man Encoder',
+            cipher: 'DancingMen',
+            title: 'Dancing Men Encoder',
         }),
         new HtmlWebpackPlugin({
             inject: false,

@@ -214,6 +214,14 @@ const cipherTypeConfig = new Map(<[ICipherType, any][]>[
         },
     ],
     [
+        ICipherType.DancingMen,
+        {
+            title: 'Dancing Men',
+            id: 'dancingmen',
+            equiv: [ICipherType.DancingMen],
+        },
+    ],
+    [
         ICipherType.Digrafid,
         /* Not Yet Implemented */ {
             title: 'Digrafid',

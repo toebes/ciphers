@@ -225,8 +225,13 @@ export class CipherDancingMenEncoder extends CipherEncoder {
             )
         );
         result.append(
-            $('<p/>', { class: 'dancingmen' }).text(
-                'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+            $('<p/>', { class: 'dancingmen center' }).text(
+                'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            )
+        )
+        result.append(
+            $('<p/>', { class: 'dancingmen center' }).text(
+                '0123456789'
             )
         )
         result.append(

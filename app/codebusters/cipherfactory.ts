@@ -3,6 +3,7 @@ import { ICipherType } from '../common/ciphertypes';
 import { CipherAffineEncoder } from './cipheraffineencoder';
 import { CipherBaconianEncoder } from './cipherbaconianencoder';
 import { CipherCryptarithmEncoder } from './cryptarithmencoder';
+import { CipherDancingManEncoder } from './cipherdancingmanencoder';
 import { CipherEncoder } from './cipherencoder';
 import { CipherFractionatedMorseEncoder } from './cipherfractionatedmorseencoder';
 import { CipherHillEncoder } from './cipherhillencoder';
@@ -83,6 +84,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherType: ICipherType.Cryptarithm,
         cipherClass: CipherCryptarithmEncoder,
         interactiveClass: InteractiveEncoder, // TODO: Implement the interactive encoder for it
+        canPrint: true,
+    },
+    DancingMan: {
+        cipherType: ICipherType.DancingMan,
+        cipherClass: CipherDancingManEncoder,
+        interactiveClass: InteractiveTableEncoder,
         canPrint: true,
     },
     Encoder: {

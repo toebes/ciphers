@@ -231,6 +231,7 @@ export class CipherTest extends CipherHandler {
     public cipherChoices: INewCipherEntry[] = [
         { cipherType: ICipherType.Affine },
         { cipherType: ICipherType.Caesar },
+        { cipherType: ICipherType.DancingMan },
         { cipherType: ICipherType.Atbash },
         { cipherType: ICipherType.Aristocrat },
         { cipherType: ICipherType.Cryptarithm },

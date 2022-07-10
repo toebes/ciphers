@@ -1484,6 +1484,25 @@ div.vsolv {
     src: url(fonts/PigpenCipher.woff);
 }
 
+@font-face {
+    font-family: dancingman;
+    src: url(fonts/DancingManSO.woff);
+}
+
+.dancingman.ansblock .q.v {
+    border: none;
+    font-size: 36pt;
+    font-family: dancingman;
+}
+
+.dancingman.ansblock td.a {
+    border: 1px solid block;
+}
+p.dancingman {
+    font-family: dancingman;
+    font-size: 36pt;
+}
+
 .pigpen.ansblock .q.v {
     border: none;
     font-family: pigpen;

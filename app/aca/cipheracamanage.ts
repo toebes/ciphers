@@ -32,6 +32,7 @@ const CipherTypeLookup: { [key: string]: ICipherType } = {
     'CONDI': ICipherType.Condi,
     'COUNTER': ICipherType.Counter,
     'CRYPTARITHM': ICipherType.Cryptarithm,
+    'DANCINGMAN': ICipherType.DancingMan,
     'DIGRAFID': ICipherType.Digrafid,
     'FOURSQUARE': ICipherType.Foursquare,
     'FRACTIONATED MORSE': ICipherType.FractionatedMorse,

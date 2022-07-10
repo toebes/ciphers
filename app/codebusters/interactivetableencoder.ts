@@ -5,6 +5,7 @@ import { InteractiveEncoder } from './interactiveencoder';
  *   Atbash
  *   Caesar
  *   PigPen
+ *   DancingMan
  */
 
 export class InteractiveTableEncoder extends InteractiveEncoder {

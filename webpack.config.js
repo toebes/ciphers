@@ -311,6 +311,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'DancingManEncrypt.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
+            cipher: 'DancingMan',
+            title: 'Dancing Man Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'FractionatedMorseEncrypt.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
             cipher: 'FractionatedMorse',

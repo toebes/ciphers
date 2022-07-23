@@ -1051,33 +1051,33 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     public attachHandlers(): void {
-        super.attachHandlers();
-        $('#dotchar')
-            .off('input')
-            .on('input', (e) => {
-                const chars = $(e.target).val() as string;
-                this.markUndo('dotchar');
-                if (this.setDotChars(chars)) {
-                    this.updateOutput();
-                }
-            });
-        $('#dashchar')
-            .off('input')
-            .on('input', (e) => {
-                const chars = $(e.target).val() as string;
-                this.markUndo('dashchar');
-                if (this.setDashChars(chars)) {
-                    this.updateOutput();
-                }
-            });
-        $('#xchar')
-            .off('input')
-            .on('input', (e) => {
-                const chars = $(e.target).val() as string;
-                this.markUndo('xchar');
-                if (this.setXChars(chars)) {
-                    this.updateOutput();
-                }
-            });
+        // super.attachHandlers();
+        // $('#dotchar')
+        //     .off('input')
+        //     .on('input', (e) => {
+        //         const chars = $(e.target).val() as string;
+        //         this.markUndo('dotchar');
+        //         if (this.setDotChars(chars)) {
+        //             this.updateOutput();
+        //         }
+        //     });
+        // $('#dashchar')
+        //     .off('input')
+        //     .on('input', (e) => {
+        //         const chars = $(e.target).val() as string;
+        //         this.markUndo('dashchar');
+        //         if (this.setDashChars(chars)) {
+        //             this.updateOutput();
+        //         }
+        //     });
+        // $('#xchar')
+        //     .off('input')
+        //     .on('input', (e) => {
+        //         const chars = $(e.target).val() as string;
+        //         this.markUndo('xchar');
+        //         if (this.setXChars(chars)) {
+        //             this.updateOutput();
+        //         }
+        //     });
     }
 }

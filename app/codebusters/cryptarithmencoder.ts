@@ -35,6 +35,9 @@ interface ICribPos {
     ciphertext: string;
     position: number;
 }
+
+const ERROR_MESSAGE_CIPHER_UNDER_DEVELOPMENT = "This cipher is currently under development for the 2022-2023 season. Please check back in the future!"
+
 /**
  * CipherCryptarithmEncoder implements the Cryptarithm methods
  */
@@ -60,6 +63,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         solclick2: -1,
         replacement: {},
     };
+
     public state: ICryptarithmState = cloneObject(this.defaultstate) as ICryptarithmState;
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
@@ -67,8 +71,12 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         this.redocmdButton,
         this.guidanceButton,
     ];
+
     /* We have identified a complete solution */
     public completeSolution = false;
+
+    private errorMessageUnderDevelopment: string = "";
+
     /**
      * Make a copy of the current state
      */
@@ -77,6 +85,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         const savestate = cloneObject(this.state) as IState;
         return savestate;
     }
+
     /**
      * getInteractiveTemplate creates the answer template for synchronization of
      * the realtime answers when the test is being given.
@@ -141,6 +150,10 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                     'Cryptanalysis problems are not allowed on ' + this.getTestTypeName(testType);
             }
         }
+
+        // TODO: Remove this once functionality is complete.
+        result = ERROR_MESSAGE_CIPHER_UNDER_DEVELOPMENT;
+
         return result;
     }
     public setUIDefaults(): void {
@@ -275,104 +288,14 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         }
         return false;
     }
-    public validateQuestion(): void {
-        let msg = '';
-        let sampleLink: JQuery<HTMLElement> = undefined;
-        const questionText = this.state.question.toUpperCase();
-        if (this.state.operation === 'crypt') {
-            const cribpos = this.placeCrib();
-            if (cribpos === undefined) {
-                msg = 'Not enough hint digits selected';
-            } else {
-                if (cribpos.length === 1) {
-                    msg =
-                        'The Question Text does not specify how the Crib letters ' +
-                        cribpos[0].plaintext +
-                        ' are mapped';
-                    // See if they mention both letters at once
-                    if (
-                        this.findQuestionMatch(
-                            questionText,
-                            cribpos[0].plaintext,
-                            cribpos[0].ciphertext,
-                            cribpos[0].position
-                        )
-                    ) {
-                        msg = '';
-                        // If not, see if they are mentioned one at a time.
-                    } else if (
-                        this.findQuestionMatch(
-                            questionText,
-                            cribpos[0].plaintext[0],
-                            cribpos[0].ciphertext[0],
-                            cribpos[0].position
-                        ) &&
-                        this.findQuestionMatch(
-                            questionText,
-                            cribpos[0].plaintext[1],
-                            cribpos[0].ciphertext[1],
-                            cribpos[0].position + 1
-                        )
-                    ) {
-                        msg = '';
-                    }
-                } else {
-                    // crib letters are not adjacent.  Look for them both separately
-                    for (const cribent of cribpos) {
-                        if (
-                            !this.findQuestionMatch(
-                                questionText,
-                                cribent.plaintext,
-                                cribent.ciphertext,
-                                cribent.position
-                            )
-                        ) {
-                            msg =
-                                'The Question Text does not specify how the Crib letter ' +
-                                cribent.plaintext +
-                                ' is mapped';
-                            break;
-                        }
-                    }
-                }
-            }
-        } else {
-            // Look to see if they specify a and b
-            const rea = new RegExp('A.*' + String(this.state.a));
-            const reb = new RegExp('B.*' + String(this.state.b));
-            if (!questionText.match(rea)) {
-                if (!questionText.match(reb)) {
-                    msg = "The Question Text doesn't appear to mention the value of A or B. ";
-                } else {
-                    msg = "The Question Text doesn't appear to mention the value of A. ";
-                }
-            } else if (!questionText.match(reb)) {
-                msg = "The Question Text doesn't appear to mention the value of B. ";
-            }
-            // Check to see if they specified encode/encryption
-            //    for an encode type problem or
-            //   decode/decryption for a decode type problem
-            if (this.state.operation === 'encode') {
-                if (questionText.indexOf('ENCRY') < 0 && questionText.indexOf('ENCOD') < 0) {
-                    msg += "The Question Text doesn't indicate that the text should be encoded.";
-                }
-            } else {
-                if (
-                    questionText.indexOf('DECRY') < 0 &&
-                    questionText.indexOf('DECOD') < 0 &&
-                    questionText.indexOf('BEEN ENC') < 0 &&
-                    questionText.indexOf('WAS ENC') < 0
-                ) {
-                    msg += "The Question Text doesn't indicate that the text should be decoded.";
-                }
-            }
-        }
-        if (msg !== '') {
-            sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
-        }
 
+    public validateQuestion(): void {
+        // TODO: Remove this once functionality is implemented.
+        let msg = ERROR_MESSAGE_CIPHER_UNDER_DEVELOPMENT;
+        let sampleLink: JQuery<HTMLElement> = undefined;
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
+
     /**
      * Generates the sample question text for a cipher
      * @returns HTML as a string

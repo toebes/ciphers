@@ -3,9 +3,10 @@ import { ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { IEncoderState } from './cipherencoder';
-import { tomorse, frommorse } from '../common/morse';
+import { tomorse, frommorse, ConvertToMorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, morseindex, ptindex } from './ciphermorseencoder';
+import { decode } from 'entities';
 
 interface IFractionatedMorseState extends IEncoderState {
     dotchars: string;
@@ -29,6 +30,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         ITestType.bregional,
         ITestType.bstate,
     ];
+    keywordMap: string[] = [];
     public readonly morseReplaces: string[] = [
         "OOO",
         "OO-",
@@ -61,7 +63,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         cipherString: '',
         cipherType: ICipherType.FractionatedMorse,
         replacement: {},
-        operation: 'decode',
+        operation: 'crypt',
         dotchars: '123',
         dashchars: '456',
         xchars: '7890',
@@ -193,6 +195,101 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
         return result;
     }
+
+    /**
+     * Creates an HTML table to display the frequency of characters for printing
+     * on the test and answer key
+     * showanswers controls whether we display the answers or just the key
+     * encodeType tells the type of encoding to print.  If it is 'random' then
+     * we leave it blank.
+     * @param showanswers Display the answers as part of the table
+     * @param encodeType The type of encoding (random/k1/k2)
+     * @param extraclass Extra class to add to the generated table
+     */
+    public generateReplacementTable(
+        showanswers: boolean,
+        encodeType: string,
+        extraclass: string
+    ): JQuery<HTMLElement> {
+        const table = new JTTable({
+            class: 'prfreq fractionatedmorse shrink cell unstriped ' + extraclass,
+        });
+        const charset = this.keywordMap;
+        let replalphabet = this.state.replacement;
+        if (encodeType === 'random' || encodeType === undefined) {
+            encodeType = '';
+        }
+        const replacementsRow = table.addBodyRow({ class: 'replacement' });
+        const fractionsRow = table.addBodyRow();
+
+        replacementsRow.add({ celltype: 'th', content: 'Replacement' });
+        fractionsRow.add({ celltype: 'th', content: 'Morse fraction' });
+
+        let count = 0;
+        for (const c of charset) {
+            let repl = '';
+            if (showanswers) {
+                replacementsRow.add({ content: c + '&nbsp;' });
+            } else {
+                replacementsRow.add({ content: '&nbsp;&nbsp;' });
+            }
+
+            fractionsRow.add({ content: this.normalizeHTML(this.morseReplaces[count].split('').join('<br/>')) });
+            count++;
+        }
+        return table.generate();
+    }
+
+    /**
+     * Generate the HTML to display the question for a cipher
+     */
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
+        const result = $('<div/>');
+        this.genAlphabet();
+        const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
+
+        for (const strset of strings) {
+            const ctext = strset[ctindex].replace(/ /g, '&nbsp;');
+            result.append(
+                $('<div/>', {
+                    class: 'TOSOLVEQ',
+                })
+                    .html(ctext)
+                    .append($('<br/><br/>'))
+            );
+        }
+        result.append(this.generateReplacementTable(false, this.state.encodeType, ''));
+        return result;
+    }
+
+    /**
+     * Generate the HTML to display the answer for a cipher
+     */
+    public genAnswer(testType: ITestType): JQuery<HTMLElement> {
+        const result = $('<div/>');
+        const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
+
+        for (const strset of strings) {
+            result.append(
+                $('<div/>', {
+                    class: 'TOSOLVE',
+                }).text(strset[ctindex])
+            );
+            result.append(
+                $('<div/>', {
+                    class: 'TOSOLVE',
+                }).html(this.normalizeHTML(strset[morseindex]))
+            );
+            result.append(
+                $('<div/>', {
+                    class: 'TOANSWER',
+                }).text(strset[ptindex])
+            );
+        }
+        result.append(this.generateReplacementTable(true, this.state.encodeType, ''));
+        return result;
+    }
+
     /**
      * Using the currently selected replacement set, encodes a string
      * This breaks it up into lines of maxEncodeWidth characters or less so that
@@ -218,7 +315,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         const result: string[][] = [];
         let opos = 0;
         let extra = '';
-        let encoded = '';
         let failed = false;
         let msg = '';
         let spaceextra = '';
@@ -226,16 +322,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         // value so we can figure out if we can reuse it.
         const morseletmap: StringMap = this.buildMorseletMap();
 
-        if (this.state.dotchars.length === 0) {
-            msg += 'No characters specified for O. ';
-            failed = true;
-        }
-        if (this.state.dashchars.length === 0) {
-            msg += 'No characters specified for -. ';
-            failed = true;
-        }
-        if (this.state.xchars.length === 0) {
-            msg += 'No characters specified for X. ';
+        if (this.state.keyword.length === 0) {
+            msg += 'No keyword specified. ';
             failed = true;
         }
         // Check to see if we have any duplicated characters
@@ -249,6 +337,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 failed = true;
             }
         }
+
         this.setErrorMsg(msg, 'polmr');
         if (failed) {
             return result;
@@ -260,14 +349,16 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             X: this.state.xchars,
         };
 
-        // Zero out the frequency table
-        this.freq = {};
-        for (let i = 0, len = sourcecharset.length; i < len; i++) {
-            this.freq[sourcecharset.substring(i, i + 1).toUpperCase()] = 0;
-        }
+        this.keywordMap = this.genKstring(this.state.keyword, 0, this.langcharset['en']).split('');
+        console.log('String: ' + str);
+
+        let partialMorse = '';
+        let stashedMorse = '';
 
         // Now go through the string to encode and compute the character
         // to map to as well as update the frequency of the match
+        let extraFraction = '';
+        let makeupMorse = 0;
         for (let t of str.toUpperCase()) {
             // See if the character needs to be mapped.
             if (typeof langreplace[t] !== 'undefined') {
@@ -276,7 +367,27 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             // Spaces between words use two separator characters
             if (!this.isValidChar(t)) {
                 extra = spaceextra;
+                if (t !== ' ') {
+                    extraFraction = 'X';
+                } else {
+                    extraFraction = spaceextra;
+                    lastsplit = encodeline.length;
+                }
             } else if (typeof tomorse[t] !== 'undefined') {
+
+                if (makeupMorse > 0) {
+                    console.log('removing encoded string');
+                    encodeline = encodeline.substring(0, (encodeline.length - 3));
+                    morseline = morseline.substring(0, (morseline.length - makeupMorse));
+                }
+                console.log('   stashed is >' + stashedMorse);
+                partialMorse += (stashedMorse + extraFraction + tomorse[t]);
+                // Spaces between letters use one separator character
+                extraFraction = 'X';
+
+                console.log('Processing letter: ' + t + ' of: ' + str.toUpperCase());
+                console.log('Partial morse: ' + partialMorse);
+
                 const morselet = tomorse[t];
                 // Spaces between letters use one separator character
                 decodeline +=
@@ -284,21 +395,32 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     t +
                     this.repeatStr(' ', morselet.length - 1);
                 morseline += extra + morselet;
-                for (const m of extra + morselet) {
-                    let c = this.state.encoded[opos++];
-                    // Figure out what letter we want to map it to.
-                    // If it already was mapped to a valid letter, we keep it.
-                    /// Otherwise we have to pick one of the letters randomly.
-                    if (morseletmap[c] !== m) {
-                        let mapset = mapstr[m];
-                        if (mapset.length < 1) {
-                            mapset = '?';
+
+                console.log('Going to stash:' + partialMorse + ' with substring of: ' + 3 * Math.floor((partialMorse.length / 3)));
+                stashedMorse = partialMorse.substring(3 * Math.floor((partialMorse.length / 3)));
+                if (partialMorse.length % 3 == 2) {
+                    makeupMorse = 1;
+                    partialMorse += 'X';
+                    morseline += 'X';
+                } else if (partialMorse.length % 3 == 1) {
+                    makeupMorse = 2;
+                    partialMorse += 'XX'
+                    morseline += 'XX';
+                }
+                else {
+                    makeupMorse = 0;
+                }
+                while (partialMorse.length > 2) {
+                    let morseFraction = partialMorse.substring(0, 3);
+                    console.log('Morse fraction: ' + morseFraction);
+                    for (let y = 0; y < this.morseReplaces.length; y++) {
+                        if (morseFraction === this.morseReplaces[y]) {
+                            let c = this.keywordMap[y];
+                            encodeline += (' ' + c + ' ');
+                            partialMorse = partialMorse.substring(3);
+                            break;
                         }
-                        const index = Math.floor(Math.random() * mapset.length);
-                        c = mapset[index];
                     }
-                    encodeline += c;
-                    encoded += c;
                 }
                 // We have finished the letter, so next we will continue with
                 // an X
@@ -307,6 +429,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             }
             // See if we have to split the line now
             if (encodeline.length >= maxEncodeWidth) {
+                console.log('>Last split = ' + lastsplit);
                 if (lastsplit === -1) {
                     result.push([encodeline, morseline, decodeline]);
                     encodeline = '';
@@ -323,15 +446,16 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     result.push([encodepart, morsepart, decodepart]);
                 }
             }
+            console.log('<Last split = ' + lastsplit);
         }
-
         // And put together any residual parts
         if (encodeline.length > 0) {
             result.push([encodeline, morseline, decodeline]);
         }
-        this.state.encoded = encoded;
+        //        this.state.encoded = encoded;
         return result;
     }
+
     /**
      * Builds up a string map which maps all of the digits to the possible
      * morse mapping characters.

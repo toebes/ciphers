@@ -6,12 +6,8 @@ import { IEncoderState } from './cipherencoder';
 import { tomorse, frommorse, ConvertToMorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, morseindex, ptindex } from './ciphermorseencoder';
-import { decode } from 'entities';
 
 interface IFractionatedMorseState extends IEncoderState {
-    dotchars: string;
-    dashchars: string;
-    xchars: string;
     encoded: string;
 }
 
@@ -64,10 +60,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         cipherType: ICipherType.FractionatedMorse,
         replacement: {},
         operation: 'crypt',
-        dotchars: '123',
-        dashchars: '456',
-        xchars: '7890',
         encoded: '',
+        keyword: '',
     };
     public state: IFractionatedMorseState = cloneObject(this.defaultstate) as IFractionatedMorseState;
     public encodecharset = '0123456789';
@@ -137,38 +131,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         return hint;
     }
 
-    public setDotChars(dotchars: string): boolean {
-        let result = false;
-        if (dotchars !== this.state.dotchars) {
-            result = true;
-            this.state.dotchars = dotchars;
-        }
-        return result;
-    }
-    public setDashChars(dashchars: string): boolean {
-        let result = false;
-        if (dashchars !== this.state.dashchars) {
-            result = true;
-            this.state.dashchars = dashchars;
-        }
-        return result;
-    }
-    public setXChars(xchars: string): boolean {
-        let result = false;
-        if (xchars !== this.state.xchars) {
-            result = true;
-            this.state.xchars = xchars;
-        }
-        return result;
-    }
     public randomize(): void {
         this.state.encoded = '';
     }
     public updateOutput(): void {
         this.guidanceURL = 'TestGuidance.html#' + this.cipherName + this.state.operation;
-        $('#dotchar').val(this.state.dotchars);
-        $('#dashchar').val(this.state.dashchars);
-        $('#xchar').val(this.state.xchars);
         super.updateOutput();
     }
     /**
@@ -343,12 +310,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             return result;
         }
 
-        const mapstr: StringMap = {
-            O: this.state.dotchars,
-            '-': this.state.dashchars,
-            X: this.state.xchars,
-        };
-
         this.keywordMap = this.genKstring(this.state.keyword, 0, this.langcharset['en']).split('');
         console.log('String: ' + str);
 
@@ -462,24 +423,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      */
     private buildMorseletMap(): StringMap {
         const morseletmap: StringMap = {};
-        for (const i of this.state.xchars) {
-            if (morseletmap[i] === undefined) {
-                morseletmap[i] = '';
-            }
-            morseletmap[i] += 'X';
-        }
-        for (const i of this.state.dotchars) {
-            if (morseletmap[i] === undefined) {
-                morseletmap[i] = '';
-            }
-            morseletmap[i] += 'O';
-        }
-        for (const i of this.state.dashchars) {
-            if (morseletmap[i] === undefined) {
-                morseletmap[i] = '';
-            }
-            morseletmap[i] += '-';
-        }
         return morseletmap;
     }
 
@@ -1064,7 +1007,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             this.setErrorMsg(msg, 'polgs');
             return result;
         }
-        const morseletmap = this.buildMorseletMap();
         const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
         const knownmap: StringMap = {};
 
@@ -1076,12 +1018,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         // Assume we don't know what anything is
         for (const c of this.encodecharset) {
             knownmap[c] = 'O-X';
-        }
-        // And then fill it in with what we do know.
-        for (const c of hint) {
-            if (morseletmap[c] !== undefined) {
-                knownmap[c] = morseletmap[c];
-            }
         }
 
         this.genKnownTable(result, knownmap);
@@ -1154,32 +1090,5 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
-        $('#dotchar')
-            .off('input')
-            .on('input', (e) => {
-                const chars = $(e.target).val() as string;
-                this.markUndo('dotchar');
-                if (this.setDotChars(chars)) {
-                    this.updateOutput();
-                }
-            });
-        $('#dashchar')
-            .off('input')
-            .on('input', (e) => {
-                const chars = $(e.target).val() as string;
-                this.markUndo('dashchar');
-                if (this.setDashChars(chars)) {
-                    this.updateOutput();
-                }
-            });
-        $('#xchar')
-            .off('input')
-            .on('input', (e) => {
-                const chars = $(e.target).val() as string;
-                this.markUndo('xchar');
-                if (this.setXChars(chars)) {
-                    this.updateOutput();
-                }
-            });
     }
 }

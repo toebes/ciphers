@@ -561,23 +561,24 @@ export class CipherTest extends CipherHandler {
      * @returns Boolean indicating that a user is validly logged in
      */
     public confirmedLoggedIn(msg: string, elem: JQuery<HTMLElement>): boolean {
-        const userid = this.getConfigString('userid', '');
-        if (userid !== '') {
-            return true;
-        }
-        const callout = $('<div/>', {
-            class: 'callout alert',
-        })
-            .append('Please ')
-            .append(
-                $('<div/>', {
-                    class: 'login-button button',
-                }).text('Login')
-            )
-            .append(' in order to see tests assigned to you.');
-        elem.append(callout);
-        // Make sure that the login button has a handler attached to it239
-        this.attachHandlers();
+        // NOTE: Disable Interactive tests
+        // const userid = this.getConfigString('userid', '');
+        // if (userid !== '') {
+        //     return true;
+        // }
+        // const callout = $('<div/>', {
+        //     class: 'callout alert',
+        // })
+        //     .append('Please ')
+        //     .append(
+        //         $('<div/>', {
+        //             class: 'login-button button',
+        //         }).text('Login')
+        //     )
+        //     .append(' in order to see tests assigned to you.');
+        // elem.append(callout);
+        // // Make sure that the login button has a handler attached to it239
+        // this.attachHandlers();
         return false;
     }
     /** Cached realtime domain */

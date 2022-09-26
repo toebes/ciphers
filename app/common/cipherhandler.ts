@@ -1996,11 +1996,11 @@ export class CipherHandler {
         $('.langsel').each((i: number, elem: HTMLElement) => {
             this.genLangDropdown($(elem));
         });
-
-        if (this.isAuthenticated()) {
-            $('.login-button').hide();
-            $('#logged-in-user').text('Welcome ' + this.getUsersFullName());
-        }
+        // NOTE: Disable Interactive tests
+        // if (this.isAuthenticated()) {
+        //     $('.login-button').hide();
+        //     $('#logged-in-user').text('Welcome ' + this.getUsersFullName());
+        // }
         // Hide the realtime config menu if they didn't hit the control key
         $('.menuhelp').on('mouseover', (e) => {
             if (e.ctrlKey) {
@@ -3340,16 +3340,17 @@ export class CipherHandler {
         const divLoginInfo = $('<div/>', {
             class: 'login-info',
         })
-            .append(
-                $('<div/>', {
-                    class: 'login-button button',
-                }).text('Login')
-            )
-            .append(
-                $('<div/>', {
-                    id: 'logged-in-user',
-                })
-            );
+        // NOTE: Disable Interactive tests
+        // .append(
+        //     $('<div/>', {
+        //         class: 'login-button button',
+        //     }).text('Login')
+        // )
+        // .append(
+        //     $('<div/>', {
+        //         id: 'logged-in-user',
+        //     })
+        // );
 
         result
             .append(JTCreateMenu(CipherMenu, 'cmainmenu', 'Cipher Tools', divLoginInfo))

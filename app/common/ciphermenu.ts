@@ -265,13 +265,14 @@ export const CipherMenu: menuItem[] = [
                 action: 'guidance',
                 classname: 'guidance menucb',
             },
-            { title: 'Signout', classname: 'menucb', action: 'signout' },
+            // NOTE: Disable Interactive tests
+            // { title: 'Signout', classname: 'menucb', action: 'signout' },
             /*{ title: '[TESTING] Register', action: 'register', classname: 'register menucb' },*/
-            {
-                title: '[ADMIN] Configuration',
-                action: 'realtimeconfig',
-                classname: 'realtimeconfig menucb',
-            },
+            // {
+            //     title: '[ADMIN] Configuration',
+            //     action: 'realtimeconfig',
+            //     classname: 'realtimeconfig menucb',
+            // },
         ],
     },
 ];

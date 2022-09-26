@@ -477,6 +477,9 @@ table.cmath td.math {
 table.cmath td {
     background-color: #eaeaea;
 }
+table.cmath.plain td {
+    background-color: inherit;
+}
 table.cmath td.ovl {
     border-top: 2px solid black;
 }

@@ -2,7 +2,7 @@ import { CipherHandler } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { CipherAffineEncoder } from './cipheraffineencoder';
 import { CipherBaconianEncoder } from './cipherbaconianencoder';
-import { CipherCryptarithmEncoder } from './cryptarithmencoder';
+import { CipherCryptarithmEncoder } from './ciphercryptarithmencoder';
 import { CipherDancingMenEncoder } from './cipherdancingmenencoder';
 import { CipherEncoder } from './cipherencoder';
 import { CipherFractionatedMorseEncoder } from './cipherfractionatedmorseencoder';

@@ -3,15 +3,14 @@
  */
 export function JTFLabeledInput(
     title: string,
-    type: 'text' | 'number' | 'file' | 'textarea' | 'richtext' | 'checkbox' | 'password' | 'readonly',
+    type: 'text' | 'number' | 'file' | 'textarea' | 'richtext' | 'checkbox' | 'checkboxr' | 'password' | 'readonly',
     id: string,
     value: number | string | boolean,
     sizeClass: string
 ): JQuery<HTMLElement> {
     const inputgroup = $('<div/>', { class: 'input-group' });
-    $('<span/>', { class: 'input-group-label' })
-        .text(title)
-        .appendTo(inputgroup);
+    const label = $('<span/>', { class: 'input-group-label' }).text(title)
+    if (type !== 'checkboxr') { label.appendTo(inputgroup); }
     if (type === 'richtext') {
         $('<div/>', {
             id: id,
@@ -26,18 +25,21 @@ export function JTFLabeledInput(
         })
             .text(value)
             .appendTo(inputgroup);
-    } else if (type === 'checkbox') {
+    } else if (type === 'checkbox' || type === 'checkboxr') {
         // For a checkbox, the value is a boolean indicated that it should be checked
         const checkbox =
             $('<input/>', {
                 id: id,
                 class: 'input-group-button checkbox',
-                type: type
+                type: 'checkbox'
             })
         if (value as boolean) {
             checkbox.prop('checked', 'checked')
         }
         checkbox.appendTo(inputgroup);
+        if (type === 'checkboxr') {
+            label.appendTo(inputgroup);
+        }
     } else if (type === 'readonly') {
         $('<p/>', {
             id: id,

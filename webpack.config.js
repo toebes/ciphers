@@ -246,13 +246,14 @@ config = {
             cipher: '',
             title: 'How To',
         }),
-        new HtmlWebpackPlugin({
-            inject: false,
-            filename: 'Maintenance.html',
-            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Maintenance.html'),
-            cipher: 'Maintenance',
-            title: 'Maintenance',
-        }),
+        // NOTE: Disbable Interactive tests
+        // new HtmlWebpackPlugin({
+        //     inject: false,
+        //     filename: 'Maintenance.html',
+        //     template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Maintenance.html'),
+        //     cipher: 'Maintenance',
+        //     title: 'Maintenance',
+        // }),
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'Policies.html',
@@ -527,13 +528,13 @@ config = {
         //     cipher: 'TestInteractive',
         //     title: 'Interactive Test',
         // }),
-        new HtmlWebpackPlugin({
-            inject: false,
-            filename: 'TestAttach.html',
-            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'TestManage.html'),
-            cipher: 'TestAttach',
-            title: 'Attach Paper Work Images',
-        }),
+        // new HtmlWebpackPlugin({
+        //     inject: false,
+        //     filename: 'TestAttach.html',
+        //     template: path.join(__dirname, 'app', 'codebusters', 'pages', 'TestManage.html'),
+        //     cipher: 'TestAttach',
+        //     title: 'Attach Paper Work Images',
+        // }),
         // NOTE: Disable interactive tests
         // new HtmlWebpackPlugin({
         //     inject: false,

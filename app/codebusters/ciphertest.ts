@@ -287,8 +287,8 @@ export class CipherTest extends CipherHandler {
             { title: 'Test Packet', value: 'testprint' },
             { title: 'Answer Key', value: 'testans' },
             { title: 'Answers and Solutions', value: 'testsols' },
-            { title: 'Interactive Test', value: 'testint' },
         ];
+        // { title: 'Interactive Test', value: 'testint' },  // NOTE: Disable interactive tests
         return JTRadioButton(8, 'testdisp', radiobuttons, testdisp);
     }
     /**
@@ -310,13 +310,15 @@ export class CipherTest extends CipherHandler {
     /**
      * Put up the test management radio button for selecting which tests to view.
      * @param testmanage State
+     * NOTE: Disable interactive tests.
      */
     public genTestManageState(testmanage: ITestManage): JQuery<HTMLElement> {
-        const radiobuttons = [
-            { title: 'Local', value: 'local' },
-            { title: 'Published', value: 'published' },
-        ];
-        return JTRadioButton(8, 'testmanage', radiobuttons, testmanage);
+        // const radiobuttons = [
+        //     { title: 'Local', value: 'local' },
+        //     { title: 'Published', value: 'published' },
+        // ];
+        // return JTRadioButton(8, 'testmanage', radiobuttons, testmanage);
+        return $("<span/>");
     }
     /**
      * Report an error to the user.  This creates a closable warning box placed into the ans section
@@ -1218,12 +1220,13 @@ export class CipherTest extends CipherHandler {
     public gotoPrintTestSols(test: number): void {
         location.assign('TestAnswers.html?test=' + String(test) + '&sols=y');
     }
-    public gotoInteractiveTest(test: number): void {
-        location.assign('TestInteractive.html?test=' + String(test));
-    }
-    public gotoTestPublished(): void {
-        location.assign('TestPublished.html');
-    }
+    // NOTE: Disable interactive test
+    // public gotoInteractiveTest(test: number): void {
+    //     location.assign('TestInteractive.html?test=' + String(test));
+    // }
+    // public gotoTestPublished(): void {
+    //     location.assign('TestPublished.html');
+    // }
     public gotoTestLocal(): void {
         location.assign('TestManage.html');
     }
@@ -1265,27 +1268,30 @@ export class CipherTest extends CipherHandler {
             case 'testsols':
                 this.gotoPrintTestSols(this.state.test);
                 break;
-            case 'testint':
-                this.gotoInteractiveTest(this.state.test);
-                break;
+            // NOTE: Disable interactive tests
+            // case 'testint':
+            //     this.gotoInteractiveTest(this.state.test);
+            //     break;
         }
     }
     public gotoTestManage(testmanage: ITestManage): void {
-        switch (testmanage) {
-            case 'published':
-                this.gotoTestPublished();
-                break;
-            default:
-            case 'local':
-                this.gotoTestLocal();
-                break;
-        }
+        // NOTE: Disable interactive tests
+        // switch (testmanage) {
+        //     case 'published':
+        //         this.gotoTestPublished();
+        //         break;
+        //     default:
+        //     case 'local':
+        this.gotoTestLocal();
+        //         break;
+        // }
     }
     public gotoPublishDisplay(testdisp: IPublishDisp, shiftKey: boolean): void {
         switch (testdisp) {
-            case 'published':
-                this.gotoTestPublished();
-                break;
+            // NOTE: Disable interactive tests
+            // case 'published':
+            //         this.gotoTestPublished();
+            //         break;
             case 'permissions':
                 this.gotoPublishedTestPermissions(this.state.testID);
                 break;

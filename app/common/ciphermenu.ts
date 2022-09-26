@@ -26,11 +26,12 @@ export const CipherMenu: menuItem[] = [
             // { title: 'Redo', action: 'redo', classname: 'redo disabled_menu' },
         ],
     },
-    {
-        title: 'Take a Test',
-        href: 'TakeTest.html',
-        classname: 'menucb menubutton',
-    },
+    // // NOTE: Disable interactive tests
+    // {
+    //     title: 'Take a Test',
+    //     href: 'TakeTest.html',
+    //     classname: 'menucb menubutton',
+    // },
     {
         title: 'Test Generation Tools',
         classname: 'menucb',

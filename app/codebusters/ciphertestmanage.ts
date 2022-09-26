@@ -137,13 +137,14 @@ export class CipherTestManage extends CipherTest {
                     class: 'testsols button',
                 }).text('Answers and Solutions')
             );
-            buttons.append(
-                $('<a/>', {
-                    'data-entry': entry,
-                    type: 'button',
-                    class: 'testint button',
-                }).text('Interactive Test')
-            );
+            // NOTE: Disable interactive tests
+            // buttons.append(
+            //     $('<a/>', {
+            //         'data-entry': entry,
+            //         type: 'button',
+            //         class: 'testint button',
+            //     }).text('Interactive Test')
+            // );
 
             row.add($('<div/>', { class: 'grid-x' }).append(buttons))
                 .add(test.title)
@@ -255,11 +256,12 @@ export class CipherTestManage extends CipherTest {
             .on('click', (e) => {
                 this.gotoPrintTestAnswers(Number($(e.target).attr('data-entry')));
             });
-        $('.testint')
-            .off('click')
-            .on('click', (e) => {
-                this.gotoInteractiveTest(Number($(e.target).attr('data-entry')));
-            });
+        // NOTE: Disable interactive tests
+        // $('.testint')
+        //     .off('click')
+        //     .on('click', (e) => {
+        //         this.gotoInteractiveTest(Number($(e.target).attr('data-entry')));
+        //     });
         $('.testsols')
             .off('click')
             .on('click', (e) => {

@@ -596,7 +596,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         }
         // If one of the used letters doesn't have a mapping then we aren't done
         for (const e in knownmap) {
-            if (knownmap[e] ==='XXX' && used[e] === true) {
+            if (knownmap[e] === 'XXX' && used[e] === true) {
                 unknowns++;
             }
         }
@@ -1110,7 +1110,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
         let didFindZ = true;
 
-        if ((this.state.keyword.indexOf('Z') > -1) || (knownmap['Z'] !== 'XXX')){
+        if ((this.state.keyword.indexOf('Z') > -1) || (knownmap['Z'] !== 'XXX')) {
             didFindZ = false;
         } else {
             knownmap[this.keywordMap[25]] = this.morseReplaces[25];
@@ -1208,7 +1208,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
         //this.findCloseWords('sol')
 
-        if ((this.state.keyword.indexOf('Z') > -1) || (knownmap['Z'] !== 'XXX')){
+        if ((this.state.keyword.indexOf('Z') > -1) || (knownmap['Z'] !== 'XXX')) {
             didFindZ = false;
         } else {
             knownmap[this.keywordMap[25]] = this.morseReplaces[25];
@@ -1261,6 +1261,13 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             //     knownmap[c] = morseletmap[c];
             // }
         }
+        // And then fill it in with what we do know.
+        // TODO
+        // for (const c of hint) {
+        //     if (morseletmap[c] !== undefined) {
+        //         knownmap[c] = morseletmap[c];
+        //     }
+        // }
 
         // This is just for displaying what we know...
         // this.genKnownTable(result, knownmap); --> generateFractionatedTable() is superior to genKnownTable()
@@ -1291,19 +1298,19 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
 
 
-                // The first character is never an X
-                // else if (this.checkFirstCT(result, knownmap, working)) {
-                //     // We eliminated at least one letter from being an X
-                // } else if (this.findTriples(result, knownmap, working)) {
-                //     // We eliminated at least one letter from being an X
-                // } else if (this.findSpacers(result, knownmap, working)) {
-                //     // We found at least one new letter that must be an X
-                // } else if (this.findInvalidMorse(result, knownmap, working)) {
-                //     // We found at least one morse code that invalidated a choice
-                // } else if (this.findSingleMorse(result, knownmap, working)) {
-                //     // We found at least one morse code that invalidated a choice
-                // } else if (this.testSingleMorse(result, knownmap, working)) {
-                //     // We found at least one morse code that invalidated a choice
+                    // The first character is never an X
+                    // else if (this.checkFirstCT(result, knownmap, working)) {
+                    //     // We eliminated at least one letter from being an X
+                    // } else if (this.findTriples(result, knownmap, working)) {
+                    //     // We eliminated at least one letter from being an X
+                    // } else if (this.findSpacers(result, knownmap, working)) {
+                    //     // We found at least one new letter that must be an X
+                    // } else if (this.findInvalidMorse(result, knownmap, working)) {
+                    //     // We found at least one morse code that invalidated a choice
+                    // } else if (this.findSingleMorse(result, knownmap, working)) {
+                    //     // We found at least one morse code that invalidated a choice
+                    // } else if (this.testSingleMorse(result, knownmap, working)) {
+                    //     // We found at least one morse code that invalidated a choice
                 } else {
                     // Nothing more that we can do..
                     result.append(

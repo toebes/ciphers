@@ -64,7 +64,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         keyword: '',
     };
     public state: IFractionatedMorseState = cloneObject(this.defaultstate) as IFractionatedMorseState;
-    public encodecharset = '0123456789';
+    public encodecharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     public sourcecharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
     public restore(data: IEncoderState, suppressOutput = false): void {
@@ -108,7 +108,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     }
                 }
             }
-        } else {
+        }/* TODO else {
             const hintchars = this.state.hint;
             if (hintchars === undefined || hintchars === '') {
                 hint = 'hint characters need to be defined';
@@ -124,7 +124,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     extra = ', ';
                 }
             }
-        }
+        }*/
         if (hint === '') {
             hint = 'the hint needs to be defined';
         }
@@ -287,23 +287,24 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         let spaceextra = '';
         // Build out a mapping of the replacement characters to their morselet
         // value so we can figure out if we can reuse it.
-        const morseletmap: StringMap = this.buildMorseletMap();
+        // TODO        const morseletmap: StringMap = this.buildMorseletMap();
 
         if (this.state.keyword.length === 0) {
             msg += 'No keyword specified. ';
             failed = true;
         }
         // Check to see if we have any duplicated characters
-        for (const c in morseletmap) {
-            if (c < '0' || c > '9') {
-                msg += c + ' is not a valid digit. ';
-                failed = true;
-            }
-            if (morseletmap[c].length > 1) {
-                msg += c + ' used for more than one letter: ' + morseletmap[c];
-                failed = true;
-            }
-        }
+        // TODO
+        // for (const c in morseletmap) {
+        //     if (c < '0' || c > '9') {
+        //         msg += c + ' is not a valid digit. ';
+        //         failed = true;
+        //     }
+        //     if (morseletmap[c].length > 1) {
+        //         msg += c + ' used for more than one letter: ' + morseletmap[c];
+        //         failed = true;
+        //     }
+        // }
 
         this.setErrorMsg(msg, 'polmr');
         if (failed) {
@@ -420,11 +421,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     /**
      * Builds up a string map which maps all of the digits to the possible
      * morse mapping characters.
-     */
     private buildMorseletMap(): StringMap {
         const morseletmap: StringMap = {};
         return morseletmap;
     }
+     */
 
     /**
      * Generates displayable table of mappings of cipher characters
@@ -444,7 +445,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      * Generates a displayable state of the currently decoded morse string.
      * There are three rows:
      *   [ctindex=0] The cipher text
-     *   [morseindex=1] The known morse mapping characters (? means it could be - or O)
+     *   [morseindex=1] The known morse mapping characters (XXX means it could be - or O)
      *   [ptindex=2] The decoded plain text characters
      *
      * Those characters that are known are shown
@@ -459,9 +460,12 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             let morse = '';
             let plaintext = '';
             for (const c of ctset[ctindex]) {
+                if (c === ' ') {
+                    continue;
+                }
                 // See if we know what this character maps to exactly
                 const possibilities = knownmap[c];
-                if (possibilities.length === 1) {
+                if (possibilities !== 'XXX') {
                     // Yes, we know that it defined so remember the morselet
                     morse += possibilities;
                     // Is it a separator?
@@ -1007,6 +1011,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             this.setErrorMsg(msg, 'polgs');
             return result;
         }
+        // TODO        const morseletmap = this.buildMorseletMap();
         const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
         const knownmap: StringMap = {};
 
@@ -1025,9 +1030,17 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
         // Assume we don't know what anything is
         for (const c of this.encodecharset) {
-            knownmap[c] = 'O-X';
+            knownmap[c] = 'XXX';
         }
+        // And then fill it in with what we do know.
+        // TODO
+        // for (const c of hint) {
+        //     if (morseletmap[c] !== undefined) {
+        //         knownmap[c] = morseletmap[c];
+        //     }
+        // }
 
+        // This is just for displaying what we know...
         this.genKnownTable(result, knownmap);
         result.append('Based on that information we can map the cipher text as:');
         let working = this.genKnownMapping(strings, knownmap);

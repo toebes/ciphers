@@ -460,7 +460,8 @@ export class CipherMorseEncoder extends CipherEncoder {
         }
 
         // Assuming our operation is cryptanalysis...
-        if (this.state.cipherType === 'pollux') {
+        if (this.state.cipherType === ICipherType.Pollux ||
+            this.state.cipherType === ICipherType.FractionatedMorse) {
             notLetters = '\\ {0,}';
         }
 

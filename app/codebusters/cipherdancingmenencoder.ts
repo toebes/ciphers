@@ -203,7 +203,7 @@ export class CipherDancingMenEncoder extends CipherEncoder {
         }
         const strings = this.makeReplacement(this.state.cipherString, width);
         const table = new JTTable({
-            class: 'ansblock shrink cell unstriped DancingMen' + extraclass,
+            class: 'ansblock shrink cell unstriped dancingmen' + extraclass,
         });
         let tosolve = 0;
         if (this.state.operation === 'encode') {

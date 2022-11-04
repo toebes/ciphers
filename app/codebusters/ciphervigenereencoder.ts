@@ -111,6 +111,14 @@ export class CipherVigenereEncoder extends CipherEncoder {
         const savestate = cloneObject(this.state) as IState;
         return savestate;
     }
+    /**
+     * Initializes the encoder/decoder.
+     * Make sure we have the right tables for the cipher checks
+     */
+    public init(lang: string): void {
+        super.init(lang);
+        this.setCipherType(this.state.cipherType);
+    }
     public setCipherType(cipherType: ICipherType): boolean {
         const changed = super.setCipherType(cipherType);
         this.ciphermap = mapperFactory(cipherType);

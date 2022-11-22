@@ -80,6 +80,13 @@
             "problemMatcher": [],
             "label": "npm: build",
             "detail": "webpack --mode=production --env=zip=y"
+        },
+        {
+            "type": "npm",
+            "script": "serve",
+            "problemMatcher": [],
+            "label": "npm: serve",
+            "detail": "webpack serve --mode=development"
         }
     ]
 }

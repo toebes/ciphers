@@ -289,7 +289,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         // value so we can figure out if we can reuse it.
         // TODO        const morseletmap: StringMap = this.buildMorseletMap();
 
-        if (this.state.keyword.length === 0) {
+        if (this.state.keyword == undefined || this.state.keyword.length === 0) {
             msg += 'No keyword specified. ';
             failed = true;
         }
@@ -565,6 +565,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         knownmap: StringMap,
         working: string[][]
     ): boolean {
+        // TODO: RTL exception workaround
+        return false;
         if (working.length > 0) {
             const strset = working[0];
             if (strset[morseindex].length > 0 && strset[morseindex][0] === ' ') {
@@ -831,7 +833,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         for (const strset of working) {
             for (const c of strset[ctindex]) {
                 const morsec = knownmap[c];
-                if (morsec.length != 1) {
+                if (morsec === undefined || morsec.length != 1) {
                     tryit = false;
                 } else if (morsec === 'X') {
                     if (tryit && morsestr !== '') {
@@ -912,7 +914,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         for (const strset of working) {
             for (const c of strset[ctindex]) {
                 const morsec = knownmap[c];
-                if (morsec.length != 1) {
+                if (morsec === undefined || morsec.length != 1) {
                     tryit = false;
                     xcount = 0;
                 } else if (morsec === 'X') {
@@ -1034,11 +1036,13 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         }
         // And then fill it in with what we do know.
         // TODO
-        // for (const c of hint) {
-        //     if (morseletmap[c] !== undefined) {
-        //         knownmap[c] = morseletmap[c];
-        //     }
-        // }
+        let morseFractionMap = []
+        let morseletmap = []
+        for (const c of hint) {
+            if (morseletmap[c] !== undefined) {
+                knownmap[c] = morseletmap[c];
+            }
+        }
 
         // This is just for displaying what we know...
         this.genKnownTable(result, knownmap);

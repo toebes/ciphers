@@ -317,133 +317,134 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         // TODO        const morseletmap: StringMap = this.buildMorseletMap();
 
         if (this.state.keyword == undefined || this.state.keyword.length === 0) {
-            msg += 'No keyword specified. ';
-            failed = true;
-        }
-        // Check to see if we have any duplicated characters
-        // TODO
-        // for (const c in morseletmap) {
-        //     if (c < '0' || c > '9') {
-        //         msg += c + ' is not a valid digit. ';
-        //         failed = true;
-        //     }
-        //     if (morseletmap[c].length > 1) {
-        //         msg += c + ' used for more than one letter: ' + morseletmap[c];
-        //         failed = true;
-        //     }
-        // }
-
-        this.setErrorMsg(msg, 'polmr');
-        if (failed) {
-            return result;
-        }
-
-        this.keywordMap = this.genKstring(this.state.keyword, 0, this.langcharset['en']).split('');
-        console.log('String: ' + str);
-
-        let partialMorse = '';
-        let stashedMorse = '';
-
-        // Now go through the string to encode and compute the character
-        // to map to as well as update the frequency of the match
-        let extraFraction = '';
-        let makeupMorse = 0;
-        for (let t of str.toUpperCase()) {
-            // See if the character needs to be mapped.
-            if (typeof langreplace[t] !== 'undefined') {
-                t = langreplace[t];
+            if (this.state.keyword == undefined || this.state.keyword.length === 0) {
+                msg += 'No keyword specified. ';
+                failed = true;
             }
-            // Spaces between words use two separator characters
-            if (!this.isValidChar(t)) {
-                extra = spaceextra;
-                if (t !== ' ') {
+            // Check to see if we have any duplicated characters
+            // TODO
+            // for (const c in morseletmap) {
+            //     if (c < '0' || c > '9') {
+            //         msg += c + ' is not a valid digit. ';
+            //         failed = true;
+            //     }
+            //     if (morseletmap[c].length > 1) {
+            //         msg += c + ' used for more than one letter: ' + morseletmap[c];
+            //         failed = true;
+            //     }
+            // }
+
+            this.setErrorMsg(msg, 'polmr');
+            if (failed) {
+                return result;
+            }
+
+            this.keywordMap = this.genKstring(this.state.keyword, 0, this.langcharset['en']).split('');
+            console.log('String: ' + str);
+
+            let partialMorse = '';
+            let stashedMorse = '';
+
+            // Now go through the string to encode and compute the character
+            // to map to as well as update the frequency of the match
+            let extraFraction = '';
+            let makeupMorse = 0;
+            for (let t of str.toUpperCase()) {
+                // See if the character needs to be mapped.
+                if (typeof langreplace[t] !== 'undefined') {
+                    t = langreplace[t];
+                }
+                // Spaces between words use two separator characters
+                if (!this.isValidChar(t)) {
+                    extra = spaceextra;
+                    if (t !== ' ') {
+                        extraFraction = 'X';
+                    } else {
+                        extraFraction = spaceextra;
+                        lastsplit = encodeline.length;
+                    }
+                } else if (typeof tomorse[t] !== 'undefined') {
+
+                    if (makeupMorse > 0) {
+                        console.log('removing encoded string');
+                        encodeline = encodeline.substring(0, (encodeline.length - 3));
+                        morseline = morseline.substring(0, (morseline.length - makeupMorse));
+                    }
+                    console.log('   stashed is >' + stashedMorse);
+                    partialMorse += (stashedMorse + extraFraction + tomorse[t]);
+                    // Spaces between letters use one separator character
                     extraFraction = 'X';
-                } else {
-                    extraFraction = spaceextra;
-                    lastsplit = encodeline.length;
-                }
-            } else if (typeof tomorse[t] !== 'undefined') {
 
-                if (makeupMorse > 0) {
-                    console.log('removing encoded string');
-                    encodeline = encodeline.substring(0, (encodeline.length - 3));
-                    morseline = morseline.substring(0, (morseline.length - makeupMorse));
-                }
-                console.log('   stashed is >' + stashedMorse);
-                partialMorse += (stashedMorse + extraFraction + tomorse[t]);
-                // Spaces between letters use one separator character
-                extraFraction = 'X';
+                    console.log('Processing letter: ' + t + ' of: ' + str.toUpperCase());
+                    console.log('Partial morse: ' + partialMorse);
 
-                console.log('Processing letter: ' + t + ' of: ' + str.toUpperCase());
-                console.log('Partial morse: ' + partialMorse);
+                    const morselet = tomorse[t];
+                    // Spaces between letters use one separator character
+                    decodeline +=
+                        this.repeatStr(' ', extra.length) +
+                        t +
+                        this.repeatStr(' ', morselet.length - 1);
+                    morseline += extra + morselet;
 
-                const morselet = tomorse[t];
-                // Spaces between letters use one separator character
-                decodeline +=
-                    this.repeatStr(' ', extra.length) +
-                    t +
-                    this.repeatStr(' ', morselet.length - 1);
-                morseline += extra + morselet;
-
-                console.log('Going to stash:' + partialMorse + ' with substring of: ' + 3 * Math.floor((partialMorse.length / 3)));
-                stashedMorse = partialMorse.substring(3 * Math.floor((partialMorse.length / 3)));
-                if (partialMorse.length % 3 == 2) {
-                    makeupMorse = 1;
-                    partialMorse += 'X';
-                    morseline += 'X';
-                } else if (partialMorse.length % 3 == 1) {
-                    makeupMorse = 2;
-                    partialMorse += 'XX'
-                    morseline += 'XX';
-                }
-                else {
-                    makeupMorse = 0;
-                }
-                while (partialMorse.length > 2) {
-                    let morseFraction = partialMorse.substring(0, 3);
-                    console.log('Morse fraction: ' + morseFraction);
-                    for (let y = 0; y < this.morseReplaces.length; y++) {
-                        if (morseFraction === this.morseReplaces[y]) {
-                            let c = this.keywordMap[y];
-                            encodeline += (' ' + c + ' ');
-                            partialMorse = partialMorse.substring(3);
-                            break;
+                    console.log('Going to stash:' + partialMorse + ' with substring of: ' + 3 * Math.floor((partialMorse.length / 3)));
+                    stashedMorse = partialMorse.substring(3 * Math.floor((partialMorse.length / 3)));
+                    if (partialMorse.length % 3 == 2) {
+                        makeupMorse = 1;
+                        partialMorse += 'X';
+                        morseline += 'X';
+                    } else if (partialMorse.length % 3 == 1) {
+                        makeupMorse = 2;
+                        partialMorse += 'XX'
+                        morseline += 'XX';
+                    }
+                    else {
+                        makeupMorse = 0;
+                    }
+                    while (partialMorse.length > 2) {
+                        let morseFraction = partialMorse.substring(0, 3);
+                        console.log('Morse fraction: ' + morseFraction);
+                        for (let y = 0; y < this.morseReplaces.length; y++) {
+                            if (morseFraction === this.morseReplaces[y]) {
+                                let c = this.keywordMap[y];
+                                encodeline += (' ' + c + ' ');
+                                partialMorse = partialMorse.substring(3);
+                                break;
+                            }
                         }
                     }
+                    // We have finished the letter, so next we will continue with
+                    // an X
+                    extra = 'X';
+                    spaceextra = 'XX';
                 }
-                // We have finished the letter, so next we will continue with
-                // an X
-                extra = 'X';
-                spaceextra = 'XX';
-            }
-            // See if we have to split the line now
-            if (encodeline.length >= maxEncodeWidth) {
-                console.log('>Last split = ' + lastsplit);
-                if (lastsplit === -1) {
-                    result.push([encodeline, morseline, decodeline]);
-                    encodeline = '';
-                    decodeline = '';
-                    morseline = '';
-                    lastsplit = -1;
-                } else {
-                    const encodepart = encodeline.substr(0, lastsplit);
-                    const decodepart = decodeline.substr(0, lastsplit);
-                    const morsepart = morseline.substr(0, lastsplit);
-                    encodeline = encodeline.substr(lastsplit);
-                    decodeline = decodeline.substr(lastsplit);
-                    morseline = morseline.substr(lastsplit);
-                    result.push([encodepart, morsepart, decodepart]);
+                // See if we have to split the line now
+                if (encodeline.length >= maxEncodeWidth) {
+                    console.log('>Last split = ' + lastsplit);
+                    if (lastsplit === -1) {
+                        result.push([encodeline, morseline, decodeline]);
+                        encodeline = '';
+                        decodeline = '';
+                        morseline = '';
+                        lastsplit = -1;
+                    } else {
+                        const encodepart = encodeline.substr(0, lastsplit);
+                        const decodepart = decodeline.substr(0, lastsplit);
+                        const morsepart = morseline.substr(0, lastsplit);
+                        encodeline = encodeline.substr(lastsplit);
+                        decodeline = decodeline.substr(lastsplit);
+                        morseline = morseline.substr(lastsplit);
+                        result.push([encodepart, morsepart, decodepart]);
+                    }
                 }
+                console.log('<Last split = ' + lastsplit);
             }
-            console.log('<Last split = ' + lastsplit);
+            // And put together any residual parts
+            if (encodeline.length > 0) {
+                result.push([encodeline, morseline, decodeline]);
+            }
+            //        this.state.encoded = encoded;
+            return result;
         }
-        // And put together any residual parts
-        if (encodeline.length > 0) {
-            result.push([encodeline, morseline, decodeline]);
-        }
-        //        this.state.encoded = encoded;
-        return result;
-    }
 
     /**
      * Builds up a string map which maps all of the digits to the possible

@@ -1014,6 +1014,14 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         if (hint === undefined) {
             return result;
         }
+        // TEMPORARY HACK - Disable the automated solution since this appears to be
+        // the version for the Morbit/Pollux and not the Fractionated Morse one
+        //
+        // For now we don't know how to solve it, so just put a message up
+        result.append('No automated solution available at this point in time.');
+
+        return result;
+        // END TEMPORARY HACK
 
         // Assume we don't know what anything is
         for (const c of this.encodecharset) {

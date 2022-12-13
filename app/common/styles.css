@@ -598,6 +598,17 @@ table.tfreq,
     border: 1px solid black;
 }
 
+a.updmap {
+    margin: 10px;
+}
+.updnote {
+    margin: auto 5px;
+    font-style: italic;
+}
+table.cmap {
+    margin: 0px 10px;
+}
+
 table.tfreq,
 table.satable {
     border-collapse: collapse;
@@ -812,6 +823,19 @@ input.awc {
     margin-bottom: 0pt;
     line-height: 100%;
     white-space: pre-wrap;
+    text-align: center;
+}
+
+.crc {
+    margin-bottom: 10px;
+}
+
+.crr,
+.crc {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-size: 22px;
+    width: 1rem;
     text-align: center;
 }
 

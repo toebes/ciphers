@@ -11,6 +11,27 @@ enum CryptarithmType {
     Equations,
 }
 
+export interface cryptarithmForumlaItem {
+    formula: string
+    expected: string
+    totalFormula: number;
+    totalExpected: number;
+    usedFormula: BoolMap
+    newFormula: BoolMap
+    usedExpected: BoolMap
+    newExpected: BoolMap
+}
+export interface legalMap {
+    [index: string]: number[];
+}
+
+export interface cryptarithmPossible {
+    nonzeros: BoolMap
+    currentVals: NumberMap
+    legal: legalMap;
+
+}
+
 export interface cryptarithmLineItem {
     prefix: string;
     indent: number;
@@ -25,8 +46,30 @@ export interface cryptarithmParsed {
     maxwidth: number
     usedletters: BoolMap
     lineitems: Array<cryptarithmLineItem>
+    nonzeros: BoolMap
 }
 
+/**
+ * Find all the possible values that a character can map to
+ * @param parsed Parsed Cryptarighm structure
+ * @param base Number base to operate in
+ * @returns Legal map of all possible values that can be used
+ */
+export function buildLegal(parsed: cryptarithmParsed, base: number = 10) {
+    const result: legalMap = {}
+    for (const c in parsed.usedletters) {
+        let first = 0;
+        if (parsed.nonzeros[c]) {
+            first = 1;
+        }
+        result[c] = [first];
+        first++;
+        for (; first < base; first++) {
+            result[c].push(first)
+        }
+    }
+    return result;
+}
 // For the sake of efficiency, we limit the maximum base to 16 and
 // the maximum length of a string to 16 characters.  These can
 // be increased.  MAX_BASE can be increased arbitrarily.
@@ -830,7 +873,8 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
         base: base,
         maxwidth: 0,
         lineitems: [],
-        usedletters: {}
+        usedletters: {},
+        nonzeros: {}
     }
     str = str.replace(new RegExp("gives root", "g"), "^");
     // Sometimes they use a different division sign
@@ -1047,7 +1091,7 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
                     cryptarithmType === CryptarithmType.Addition ||
                     cryptarithmType === CryptarithmType.Subtraction
                 ) {
-                    lastbase = lastval + "+";
+                    lastbase += lastval + "+";
                 } else if (
                     cryptarithmType === CryptarithmType.Multiplication
                 ) {
@@ -1237,6 +1281,13 @@ export function parseCryptarithm(str: string, base: number = 10): cryptarithmPar
                         }
                         content += c;
                         rootLen++;
+                    }
+                }
+                // The first digit of the content can't be a zero
+                if (content.length > 0) {
+                    let c = content.substring(0, 1);
+                    if (c.toLocaleLowerCase !== c.toUpperCase) {
+                        result.nonzeros[c] = true;
                     }
                 }
 

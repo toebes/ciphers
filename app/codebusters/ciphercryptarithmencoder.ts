@@ -1,4 +1,6 @@
-import { cloneObject, makeFilledArray, BoolMap, NumberMap } from '../common/ciphercommon';
+import { ReadVResult } from 'fs';
+import { string } from 'yargs';
+import { BoolMap, cloneObject, makeFilledArray, NumberMap } from '../common/ciphercommon';
 import {
     IState,
     ITestType,
@@ -7,7 +9,7 @@ import {
     IScoreInformation,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
-import { buildSolver, cryptarithmParsed, cryptarithmSumandSearch, parseCryptarithm } from '../common/cryptarithm';
+import { buildLegal, cryptarithmForumlaItem, cryptarithmParsed, cryptarithmSumandSearch, legalMap, parseCryptarithm } from '../common/cryptarithm';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
@@ -18,6 +20,10 @@ interface ICryptarithmState extends IState {
     problem: string;
     /** Keywords for generating the problem */
     wordlist: string[];
+    /** Mapping of letters to values */
+    mapping: NumberMap;
+    /** The mapping is valid for the formula */
+    validmapping: boolean;
 }
 
 type ITemplateType = 'add' | 'mul' | 'div' | 'root';
@@ -68,8 +74,11 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         cipherString: '' /** The type of cipher we are doing */,
         cipherType: ICipherType.Cryptarithm /** The first clicked number in the solution */,
         replacement: {},
+        mapping: {},
+        validmapping: false,
     };
 
+    public base = 10;
     public testButton: JTButtonItem = {
         title: 'Test',
         id: 'test1',
@@ -135,6 +144,17 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         return result;
     }
     /**
+     * Updates the stored state cipher string
+     * @param cipherString Cipher string to set
+     */
+    public setCipherString(cipherString: string): boolean {
+        let changed = super.setCipherString(cipherString);
+        if (changed) {
+            this.state.validmapping = false;
+        }
+        return changed;
+    }
+    /**
      * Update the list of words to search for
      * @param wordlist List of words to set
      * @returns true if the wordlist has changed
@@ -154,6 +174,9 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public updateOutput(): void {
         super.updateOutput();
         $('#wordlist').val(this.state.wordlist.join('\n'))
+
+
+        this.showMapping(false);
 
         this.guidanceURL = 'TestGuidance.html#Cryptarithm';
 
@@ -324,8 +347,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         // }
 
         const result = $('<div/>', { class: 'grid-x' });
-        let foo = parseCryptarithm(this.state.cipherString, 10);
-        result.append(this.buildSolver(foo))
+        let parsed = parseCryptarithm(this.state.cipherString, this.base);
+        result.append(this.buildSolver(parsed, true))
 
         return result;
     }
@@ -356,8 +379,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
-        let foo = parseCryptarithm(this.state.cipherString, 10);
-        result.append(buildSolver(foo))
+        let parsed = parseCryptarithm(this.state.cipherString, this.base);
+        result.append(this.buildSolver(parsed, true))
         // let plainindex = 0;
         // let cipherindex = 1;
         // const strings = this.buildReplacement(this.state.cipherString, 40);
@@ -399,8 +422,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
 
-        let foo = parseCryptarithm(this.state.cipherString, 10);
-        result.append(buildSolver(foo))
+        let parsed = parseCryptarithm(this.state.cipherString, this.base);
+        result.append(this.buildSolver(parsed, false))
 
         // let plainindex = 0;
 
@@ -547,6 +570,34 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                     .append($('<div/>', { class: 'findout', id: 'findout' }))
                 )
             ))
+        // Build the mapping table
+        const table = new JTTable({
+            class: 'cell shrink tfreq cmap',
+        });
+        const toprow = table.addHeaderRow();
+        const bottomrow = table.addBodyRow();
+        for (let i = 0; i < this.base; i++) {
+            toprow.add(String(i))
+            bottomrow.add({
+                celltype: 'td',
+                settings: { id: "cm" + String(i) },
+                content: "?"
+            });
+
+        }
+        result.append($('<div/>', { class: 'grid-x' })
+            .append($('<div/>', { class: 'cell auto' })
+                .append($('<div/>', { class: 'input-group' })
+                    .append($('<span/>', { class: 'input-group-label' }).text('Mapping'))
+                    .append(table.generate())
+                    .append($('<a/>', {
+                        class: 'button rounded updmap',
+                        disabled: 'disabled'
+                    }).text('Check Problem and Update'))
+                    .append($('<div/>', { class: 'updnote' }).text("Note that this can take a while depending on the problem complexity"))
+                ))
+        )
+
         result.append($('<div/>', { class: 'grid-x' })
             .append(JTFLabeledInput("Solution", "text", "toencode", this.state.cipherString, 'auto'))
             .append($('<div/>', { class: 'cell shrink' })
@@ -555,16 +606,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                     class: 'dosol button',
                 }).text('Generate'))))
         result.append($('<div/>', { class: 'callout secondary solwork', style: 'display:none' }).append($('<div/>').text("problem work")))
-        // .append($('<div/>', { class: 'cell shrink' })
-        //     .append($('<a/>', {
-        //         class: 'exportcsv button', disabled: 'disabled',
-        //     }).text('Export CSV'))));
-        // const inputbox = $('<div/>', {
-        //     class: 'grid-x grid-margin-x',
-        // });
-        // inputbox.append(JTFIncButton('A', 'a', this.state.a, 'small-12 medium-4 large-4'));
-        // inputbox.append(JTFIncButton('B', 'b', this.state.b, 'small-12 medium-4 large-4'));
-        // result.append(inputbox);
         return result;
     }
     /**
@@ -611,11 +652,11 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             let unique = new Set(thisstr.split("")).size
             // console.log(`++Check ${thisstr} unique=${unique} depth=${depth}`)
             localcount++;
-            if (unique <= 10) {
+            if (unique <= this.base) {
                 let localset = choices.slice();
                 localset.push(i)
                 // This is a valid one, so we remember it
-                if (unique === 10) {
+                if (unique === this.base) {
                     this.wordmatches[depth].push(localset);
                     // Let/s report the match
                     let extra = ""
@@ -699,20 +740,20 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
 
     /**
      * 
-     * @param formula Parsed Cryptarithm to generate output for
+     * @param parsed Parsed Cryptarithm to generate output for
      * @returns HTML representation of output
      */
-    public buildSolver(formula: cryptarithmParsed): JQuery<HTMLElement> {
+    public buildSolver(parsed: cryptarithmParsed, showanswer: boolean): JQuery<HTMLElement> {
         // We have built the lineitems array, now we just need to turn it into
         // a table (respecting the maxwidth)
         let table = $("<table/>", { class: "cmath unstriped plain" });
         let tbody = $("<tbody/>");
-        for (let item of formula.lineitems) {
+        for (let item of parsed.lineitems) {
             let tr = $("<tr/>");
             // Pad on the left with as many columns as we need
-            if (item.content.length < formula.maxwidth) {
+            if (item.content.length < parsed.maxwidth) {
                 $("<td/>", {
-                    colspan: formula.maxwidth - item.content.length,
+                    colspan: parsed.maxwidth - item.content.length,
                 })
                     .html("&nbsp;")
                     .appendTo(tr);
@@ -742,7 +783,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                     break;
                 }
                 default: {
-                    td = $("<td/>").text(item.prefix); //.addClass("math")
+                    td = $("<td/>").text(item.prefix).addClass("math");
                     break;
                 }
             }
@@ -754,18 +795,28 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             if (item.content !== "") {
                 for (let c of item.content) {
                     td = $("<td/>");
-                    $("<div/>", { class: "slil" })
-                        .text(c)
-                        .appendTo(td);
                     if (c === ")") {
+                        td.text(c);
                         td.addClass("math");
                         addclass = "ovl";
-                    } else if (formula.usedletters[c]) {
-                        $("<input/>", {
-                            type: "text",
-                            class: "sli",
-                            "data-char": c,
-                        }).appendTo(td);
+                    } else if (parsed.usedletters[c]) {
+                        $("<div/>", { class: "crr" })
+                            .text(c)
+                            .appendTo(td);
+                        if (showanswer) {
+                            let mapval = '?';
+                            if (this.state.mapping[c] !== undefined) {
+                                mapval = String(this.state.mapping[c])
+                            }
+                            $("<div>", {
+                                class: "crc",
+                            }).text(mapval).appendTo(td);
+                        }
+                        else {
+                            $("<div>", {
+                                class: "crc",
+                            }).html("&nbsp;").appendTo(td);
+                        }
                     }
                     if (addclass) {
                         td.addClass(addclass);
@@ -773,18 +824,16 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                     td.appendTo(tr);
                 }
             }
-            let content = $("");
-            if (item.formula !== "") {
-                content = $("<span/>", {
+
+            if (showanswer && item.formula !== "") {
+                const td = $('<td/>').append($("<span/>", {
                     class: "formula",
                     "data-formula": item.formula,
                     "data-expect": item.expected,
-                });
+                }).text(item.formula + '=' + item.expected));
+                td.appendTo(tr);
             }
 
-            $("<td/>", { class: "solv" })
-                .append(content)
-                .appendTo(tr);
             tr.appendTo(tbody);
         }
 
@@ -797,7 +846,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      * Check to see if a solution is valid for the current criteria
      * @param wordlist 
      */
-     public checkSolution(wordlist: number[]) {
+    public checkSolution(wordlist: number[]) {
         const sumands: string[] = []
         for (let ent of wordlist) {
             sumands.push(this.state.wordlist[ent]);
@@ -805,9 +854,417 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         const desc = sumands.sort((a, b) => b.length - a.length);
 
         let sum = sumands.shift();
-        const solutions = cryptarithmSumandSearch(sumands, sum, 10);
+        const solutions = cryptarithmSumandSearch(sumands, sum, this.base);
 
     }
+    /**
+     * Show the current mapping of numbers
+     * @param ignorevalid Show the mapping even if it isn't valid (for debugging and tracing progress)
+     */
+    public showMapping(ignorevalid: boolean) {
+
+        let showmapping = ignorevalid;
+        if (this.state.validmapping) {
+            showmapping = true;
+            $('.updmap').attr('disabled', 'disabled')
+        } else {
+            $('.updmap').removeAttr('disabled')
+            $('.updnote').text("Note that this can take a while depending on the problem complexity")
+        }
+        if (showmapping) {
+            for (let c in this.state.mapping) {
+                let val = this.state.mapping[c];
+                $('#cm' + String(val)).text(c)
+            }
+        } else {
+            for (let i = 0; i < this.base; i++) {
+                $('#cm' + String(i)).text('?')
+            }
+        }
+    }
+    /**
+     * Formats a number in the current base and returns a normalized version of it
+     */
+    public basedStr(val: number): string {
+        return val.toString(this.base).toUpperCase();
+    }
+    /**
+     * Safe version of eval to compute a generated formula
+     */
+    public compute(str: string): string {
+        try {
+            let val = Function('"use strict";return (' + str + ")")();
+            return this.basedStr(val);
+        } catch (e) {
+            return str;
+        }
+    }
+
+    /**
+     * 
+     */
+    public updateMap() {
+        // Ok this is going to take a while...we want to spin it off as a task that searches. 
+        // We will update the display as we work, but if at any point in time they type
+        // on the problem we will have to abort the process. 
+        // As a test we will arbitrarily set the mappings
+        let parsed = parseCryptarithm(this.state.cipherString, this.base);
+        let allletters: BoolMap = {}
+        let letterOrder: string[] = [];
+        let formulaSet: cryptarithmForumlaItem[] = []
+
+        for (let item of parsed.lineitems) {
+            if (item.formula !== "") {
+                const formulaItem: cryptarithmForumlaItem = {
+                    formula: item.formula,
+                    expected: item.expected,
+                    totalFormula: 0,
+                    totalExpected: 0,
+                    usedFormula: {},
+                    newFormula: {},
+                    usedExpected: {},
+                    newExpected: {}
+                }
+
+                for (let c of item.formula) {
+                    if (parsed.usedletters[c]) {
+                        formulaItem.usedFormula[c] = true;
+                        if (!allletters[c]) {
+                            allletters[c] = true;
+                            letterOrder.push(c)
+                            formulaItem.newFormula[c] = true;
+                        }
+                    }
+                }
+                formulaItem.totalFormula = letterOrder.length
+                for (let c of item.expected) {
+                    if (parsed.usedletters[c]) {
+                        formulaItem.usedExpected[c] = true;
+                        if (!allletters[c]) {
+                            allletters[c] = true;
+                            letterOrder.push(c)
+                            formulaItem.newExpected[c] = true;
+                        }
+                    }
+                }
+                formulaItem.totalExpected = letterOrder.length
+                formulaSet.push(formulaItem)
+            }
+        }
+        // It is possible that some of the letters used don't actually appear in a formula 
+        // For example with the remainder of a division.  We just need to add them to the list of letters
+        for (let c in parsed.usedletters) {
+            if (!allletters[c]) {
+                letterOrder.push(c);
+                allletters[c] = true;
+            }
+        }
+        let legal = buildLegal(parsed, this.base);
+        this.try(formulaSet, legal, letterOrder);
+    }
+    /**
+     * Start the process of searching for matching formulas
+     * @param formulaSet The set of formulas to match against (we only look at the first one at this level)
+     * @param legal The possible legal values to match against
+     * @param letterOrder The order of letters to be substituting for
+     */
+    public try(formulaSet: cryptarithmForumlaItem[], legal: legalMap, letterOrder: string[]) {
+        this.trystep(formulaSet, legal, letterOrder, -1, 0, 0, 0)
+    }
+    /**
+     * Substitutes all the current mappings in a string and converts to base 10 to evaluate
+     * @param str String to sustitute
+     * @param legal Current mappings
+     * @returns 
+     */
+    public subFormula(str: string, legal: legalMap): string {
+        let result = ""
+        for (let c of str) {
+            if (legal[c] !== undefined) {
+                result += legal[c][0]
+            } else {
+                result += c;
+            }
+        }
+        // Now we need to convert everything to base 10 so we can
+        // properly evaluate it
+        let gathered = "";
+        let intermediate = result;
+        result = "";
+        for (let c of intermediate) {
+            if (!isNaN(parseInt(c, this.base))) {
+                // Throw away leading zeros so that it will parse
+                if (gathered === "0") {
+                    gathered = c;
+                } else {
+                    gathered += c;
+                }
+            } else if (gathered !== "") {
+                result += parseInt(gathered, this.base) + c;
+                gathered = "";
+            } else {
+                result += c;
+            }
+        }
+        if (gathered !== "") {
+            result += parseInt(gathered, this.base);
+        }
+        return result;
+    }
+    /**
+     * 
+     * @param str Result string to look at
+     * @param legal 
+     * @returns 
+     */
+    public checkResult(computed: string, expected: string, used: Boolean[], legal: legalMap): boolean {
+        let len = computed.length;
+        if (len !== expected.length) {
+            return false;
+        }
+
+        let subUsed = [...used]
+        const subLegal: legalMap = {}
+        for (let c in legal) {
+            subLegal[c] = legal[c]
+        }
+
+        for (let i = 0; i < len; i++) {
+            let cv = parseInt(computed.substring(i, i + 1), this.base);
+            let ec = expected.substring(i, i + 1)
+            if (subLegal[ec].length === 1) {
+                if (subLegal[ec][0] !== cv) {
+                    return false;
+                }
+            } else {
+                if (subUsed[cv] || !subLegal[ec].includes(cv)) {
+                    return false;
+                }
+                subUsed[cv] = true;
+                subLegal[ec] = [cv]
+            }
+        }
+        return true;
+    }
+    /**
+     * Evaluate everything at a level checking for a match
+     * @param level How far down in the letter set we are
+     * @param formulaSet The set of formulas to match against (we only look at the first one at this level)
+     * @param legal The possible legal values to match against
+     * @param letterOrder The order of letters to be substituting for
+     * @param used Which values are already used
+     * @param found How many matches we have found
+     * @returns Number of matches found added to found (i.e. found if none were found or found+1 if one is found)
+     */
+
+    public tryLevel(level: number, formulaSet: cryptarithmForumlaItem[], legal: legalMap, letterOrder: string[], used: Boolean[], found: number): number {
+        let formulapos = 0
+        let formulaItem = formulaSet[formulapos];
+
+        let subUsed = [...used]
+        const subLegal: legalMap = {}
+        for (let c of letterOrder) {
+            subLegal[c] = legal[c]
+        }
+
+        // See if we have enough letters to satisfy a formula without having to map any new letters.
+        while (level >= formulaItem.totalFormula) {
+            // We have enough to substitute for the formula.  
+            let formula = this.subFormula(formulaItem.formula, subLegal)
+            let result = this.compute(formula);
+            if (!this.checkResult(result, formulaItem.expected, subUsed, subLegal)) {
+                // It doesn't match, so there is no reason to try anything else.
+                return found;
+            }
+            // Ok it checks out, now we need to fill in the legal values because there are more formulas to go
+            if (formulaItem.totalExpected > level) {
+                for (let i = 0; i < result.length; i++) {
+                    let cv = parseInt(result.substring(i, i + 1), this.base);
+                    let ec = formulaItem.expected.substring(i, i + 1)
+                    subLegal[ec] = [cv]
+                    subUsed[cv] = true
+                }
+                level = formulaItem.totalExpected;
+            }
+            formulapos++
+            if (formulapos == formulaSet.length) {
+                // Success!!!!
+                if (found == 0) {
+                    // We need to save the mappings
+                    this.state.mapping = {}
+                    for (let c in subLegal) {
+                        if (subLegal[c].length === 1) {
+                            this.state.mapping[c] = subLegal[c][0];
+                        } else {
+                            let filtered = this.filterSet(subLegal[c], subUsed)
+                            if (filtered.length === 1) {
+                                const v = filtered[0]
+                                subUsed[v] = true
+                                this.state.mapping[c] = v
+                            }
+                        }
+                    }
+                }
+                return found + 1;
+            }
+            // We know there is at least one more formula available to us
+            formulaItem = formulaSet[formulapos]
+        }
+
+        // If there are no more formulas, then we have solved the problem
+        // Note that this does mean that not all the letters are known
+        if (formulapos >= formulaSet.length) {
+            console.log('****Incomplete Solution???')
+            // We need to save the mappings
+            this.state.mapping = {}
+            for (let c in subLegal) {
+                if (subLegal[c].length === 1) {
+                    this.state.mapping[c] = subLegal[c][0];
+                }
+            }
+            return 1;
+        }
+        // We don't have enough known letters to try out the formula, so try an extra one and recurse to see if it is enough            
+        let l = letterOrder[level];
+        let subset = [...subLegal[l]]
+        for (const v of subset) {
+            if (!subUsed[v]) {
+                subUsed[v] = true
+                subLegal[l] = [v]
+                // We need to filter out all the values that aren't legal for the remaining letters
+                for (let i = level + 1; i < this.base; i++) {
+                    const sc = letterOrder[i]
+                    if (sc !== undefined) {
+                        subLegal[sc] = this.filterSet(legal[sc], subUsed)
+                    }
+                }
+                // Now we need to try a lower level to check the result
+                found = this.tryLevel(level + 1, formulaSet.slice(formulapos), subLegal, letterOrder, subUsed, found);
+                // If we have more than one match, exit quickly
+                if (found > 1) {
+                    return found;
+                }
+                subUsed[v] = false
+            }
+        }
+        return found;
+    }
+    /**
+     * Filter an arry of values to identify only the legal ones that can still be used
+     * @param vals array of values to filter
+     * @param used Indicator of values that have already been used
+     * @returns Filtered array 
+     */
+    public filterSet(vals: number[], used: Boolean[]): number[] {
+        let result: number[] = [];
+        for (let v of vals) {
+            if (!used[v]) {
+                result.push(v)
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Try one level of the numbers to see if a solution can be matched
+     * Note that this routine breaks for the UI to get a chance to update because the lower level code may
+     * take some time to run.
+     * @param formulaSet The set of formulas to try
+     * @param legal The current mapping of arrays of legal values for each letter
+     * @param letterOrder The order of letters to try
+     * @param l1pos Position in the first set of letters to try
+     * @param l2pos Position in the second set of letters to try
+     * @param l3pos Position in the third set of letters to try
+     * @param found Number of solutions found.
+     * @returns 
+     */
+    public trystep(formulaSet: cryptarithmForumlaItem[], legal: legalMap, letterOrder: string[], l1pos: number, l2pos: number, l3pos: number, found: number) {
+        const l1 = letterOrder[0]
+        const l2 = letterOrder[1]
+        const l3 = letterOrder[2]
+        // First we need to pick the letter assignments that we are going to work from.
+        for (; ;) {
+            const l1len = legal[l1].length
+            const l2len = legal[l2].length
+            const l3len = legal[l3].length
+            const pctdone = 100.0 * ((l1pos + ((l2pos + (l3pos * l2len)) * l1len)) / (l1len * l2len * l3len))
+            // Find the first set of three values which are all unique
+            l1pos++;
+            if (l1pos >= l1len) {
+                l1pos = 0;
+                l2pos++;
+                if (l2pos >= l2len) {
+                    l2pos = 0;
+                    l3pos++;
+                    if (l3pos >= l3len) {
+                        // WE ARE DONE!!!!
+                        this.showSearchResult(found, 100.0);
+                        return;
+                    }
+                }
+            }
+            const l1c = legal[l1][l1pos];
+            const l2c = legal[l2][l2pos];
+            const l3c = legal[l3][l3pos];
+            if (l1c !== l2c && l1c !== l3c && l2c !== l3c) {
+                const subLegal: legalMap = {}
+                const used: Boolean[] = makeFilledArray(this.base, false)
+                subLegal[l1] = [l1c]
+                subLegal[l2] = [l2c]
+                subLegal[l3] = [l3c]
+                used[l1c] = true
+                used[l2c] = true
+                used[l3c] = true
+                for (let i = 3; i < letterOrder.length; i++) {
+                    let c = letterOrder[i]
+                    subLegal[c] = this.filterSet(legal[c], used);
+                }
+                // We have a working set.  Time to iterate over the entire formula.
+                const newfound = this.tryLevel(3, formulaSet, subLegal, letterOrder, used, found)
+                if (newfound !== found) {
+                    found = newfound
+                    if (found === 1) {
+                        this.showMapping(true);
+                    } else {
+                        // We have more than one solution so we are done
+                        return;
+                    }
+                }
+                this.showSearchResult(found, pctdone)
+                // Either one or no solutions, so keep trying to search
+                setTimeout(() => { this.trystep(formulaSet, legal, letterOrder, l1pos, l2pos, l3pos, found) }, 1)
+                return;
+            }
+        }
+    }
+    /**
+     * Update the UI to show the search results
+     * @param found Number of solutions found
+     */
+    public showSearchResult(found: number, pctdone: number) {
+        let status = ""
+        if (pctdone < 100.0) {
+            status = String(Math.round(pctdone)) + "% Complete - ";
+        }
+        if (found === 1) {
+            this.state.validmapping = true;
+            if (status === "") {
+                $(".updnote").text('One solution found.');
+            } else {
+                $(".updnote").text(status + 'One solution found. Searching for additional solutions');
+            }
+            this.updateOutput();
+        } else if (found > 1) {
+            this.state.validmapping = false;
+            $(".updnote").text('Invalid problem.  More than one solution found.');
+        } else if (status === "") {
+            this.state.validmapping = false;
+            $(".updnote").text('Invalid problem.  No solutions found.');
+        } else {
+            $(".updnote").text(status + 'Searching for solutions.  None found yet.');
+        }
+    }
+
     /**
      * Test out the solver to make sure it works
      */
@@ -864,6 +1321,12 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             .on('click', (e) => {
                 this.findProblems()
             })
+        $('.updmap')
+            .off('click')
+            .on('click', (e) => {
+                this.updateMap()
+            })
+
         $('#test1')
             .off('click')
             .on('click', (e) => {

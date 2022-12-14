@@ -191,7 +191,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public updateOutput(): void {
         super.updateOutput();
         $('#wordlist').val(this.state.wordlist.join('\n'))
-
+        $('#soltext').val(this.state.soltext);
 
         this.showMapping(false);
 
@@ -546,7 +546,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         )
 
         result.append($('<div/>', { class: 'grid-x' })
-            .append(JTFLabeledInput("Solution", "text", "soltext", this.state.cipherString, 'auto'))
+            .append(JTFLabeledInput("Solution", "text", "soltext", this.state.soltext, 'auto'))
             // .append($('<div/>', { class: 'cell shrink' })
             //     .append($('<a/>', {
             //         // 'showing': 'off',

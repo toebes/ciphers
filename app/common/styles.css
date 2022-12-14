@@ -582,6 +582,10 @@ table.tmorse input {
     display: inline;
 }
 
+table.crwork td {
+    width: 1.5rem;
+}
+
 table.tfreq,
 .noselect {
     -webkit-touch-callout: none; /* iOS Safari */

@@ -1,6 +1,7 @@
-import { ReadVResult } from 'fs';
+import { appendFile, ReadVResult } from 'fs';
+import { createSolutionBuilderWithWatch } from 'typescript';
 import { string } from 'yargs';
-import { BoolMap, cloneObject, makeFilledArray, NumberMap } from '../common/ciphercommon';
+import { BoolMap, cloneObject, makeCallout, makeFilledArray, NumberMap } from '../common/ciphercommon';
 import {
     IState,
     ITestType,
@@ -24,6 +25,8 @@ interface ICryptarithmState extends IState {
     mapping: NumberMap;
     /** The mapping is valid for the formula */
     validmapping: boolean;
+    /** The solution text */
+    soltext: string;
 }
 
 type ITemplateType = 'add' | 'mul' | 'div' | 'root';
@@ -72,6 +75,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         problem: '',
         wordlist: [],
         cipherString: '' /** The type of cipher we are doing */,
+        soltext: '', /**  */
         cipherType: ICipherType.Cryptarithm /** The first clicked number in the solution */,
         replacement: {},
         mapping: {},
@@ -163,6 +167,19 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         let changed = false;
         if (wordlist.join(' ') !== this.state.wordlist.join(' ')) {
             this.state.wordlist = wordlist;
+            changed = true;
+        }
+        return changed;
+    }
+    /**
+     * Update the list of words to search for
+     * @param wordlist List of words to set
+     * @returns true if the wordlist has changed
+     */
+    public setSoltext(soltext: string): boolean {
+        let changed = false;
+        if (soltext !== this.state.soltext) {
+            this.state.soltext = soltext;
             changed = true;
         }
         return changed;
@@ -313,44 +330,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      * as the HTML to be displayed
      */
     public build(): JQuery<HTMLElement> {
-        // const msg = this.minimizeString(this.state.cipherString);
-        // const strings = this.buildReplacement(msg, this.maxEncodeWidth);
-        // const result = $('<div/>');
-        // for (const strset of strings) {
-        //     const table = new JTTable({
-        //         class: 'cell shrink tfreq',
-        //     });
-        //     const toprow = table.addBodyRow();
-        //     const bottomrow = table.addBodyRow();
-        //     for (let i = 0; i < strset[0].length; i++) {
-        //         const plainchar = strset[1].substring(i, i + 1);
-        //         const cipherchar = strset[0].substring(i, i + 1);
-
-        //         if (this.isValidChar(plainchar)) {
-        //             toprow.add({
-        //                 settings: {
-        //                     class: 'TOSOLVE',
-        //                     id: 'm' + i,
-        //                 },
-        //                 content: cipherchar,
-        //             });
-        //             bottomrow.add({
-        //                 settings: {
-        //                     class: 'TOANSWER',
-        //                     id: 'p' + i,
-        //                 },
-        //                 content: plainchar,
-        //             });
-        //         }
-        //     }
-        //     result.append(table.generate());
-        // }
-
-        const result = $('<div/>', { class: 'grid-x' });
         let parsed = parseCryptarithm(this.state.cipherString, this.base);
-        result.append(this.buildSolver(parsed, true))
-
-        return result;
+        return this.buildSolver(parsed, true)
     }
 
 
@@ -378,26 +359,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
-        const result = $('<div/>', { class: 'grid-x' });
         let parsed = parseCryptarithm(this.state.cipherString, this.base);
-        result.append(this.buildSolver(parsed, true))
-        // let plainindex = 0;
-        // let cipherindex = 1;
-        // const strings = this.buildReplacement(this.state.cipherString, 40);
-        // const table = new JTTable({
-        //     class: 'ansblock shrink cell unstriped',
-        // });
-        // for (const strset of strings) {
-        //     this.addCipherTableRows(
-        //         table,
-        //         undefined,
-        //         strset[plainindex],
-        //         strset[cipherindex],
-        //         true
-        //     );
-        // }
-        // result.append(table.generate());
-        return result;
+        return this.buildSolver(parsed, true)
     }
     /**
      * Generate the HTML to display the interactive form of the cipher.
@@ -420,23 +383,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
-        const result = $('<div/>', { class: 'grid-x' });
-
         let parsed = parseCryptarithm(this.state.cipherString, this.base);
-        result.append(this.buildSolver(parsed, false))
-
-        // let plainindex = 0;
-
-        // const strings = this.buildReplacement(this.state.cipherString, 40);
-        // const table = new JTTable({
-        //     class: 'ansblock shrink cell unstriped',
-        // });
-        // for (const strset of strings) {
-        //     this.addCipherTableRows(table, undefined, strset[plainindex], undefined, true);
-        // }
-        // result.append(table.generate());
-        // result.append($('<div/>', { class: 'cell Cryptarithmwork' }));
-        return result;
+        return this.buildSolver(parsed, false)
     }
     /**
      * Generate HTML showing the current decoding progress
@@ -501,9 +449,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public genDecodeSolution(): JQuery<HTMLElement> {
         const msg = this.minimizeString(this.state.cipherString);
         const result = $('<div/>', { id: 'solution' });
-        result.append($('<h3/>').text('How to solve'));
-        const p = $('<p/>').text(`Assume magic happens! ${msg}`);
-        result.append(p)
         return result;
     }
 
@@ -546,11 +491,13 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         this.genQuestionFields(result);
         result.append($('<div/>', { class: 'grid-x' })
             .append(JTFLabeledInput("Problem", "text", "toencode", this.state.cipherString, 'auto'))
-            .append($('<div/>', { class: 'cell shrink' })
-                .append($('<a/>', {
-                    // 'showing': 'off',
-                    class: 'doprob button',
-                }).text('Create'))))
+            // .append($('<div/>', { class: 'cell shrink' })
+            //     .append($('<a/>', {
+            //         // 'showing': 'off',
+            //         class: 'doprob button',
+            //     }).text('Create'))
+            //     )
+        )
         result.append($('<div/>', { class: 'callout secondary probwork', style: 'display:none' })
             .append($('<div/>', { class: 'grid-x grid-margin-x' })
                 .append($('<div/>', { class: 'cell small-6 medium-3 large-3' })
@@ -599,12 +546,13 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         )
 
         result.append($('<div/>', { class: 'grid-x' })
-            .append(JTFLabeledInput("Solution", "text", "toencode", this.state.cipherString, 'auto'))
-            .append($('<div/>', { class: 'cell shrink' })
-                .append($('<a/>', {
-                    // 'showing': 'off',
-                    class: 'dosol button',
-                }).text('Generate'))))
+            .append(JTFLabeledInput("Solution", "text", "soltext", this.state.cipherString, 'auto'))
+            // .append($('<div/>', { class: 'cell shrink' })
+            //     .append($('<a/>', {
+            //         // 'showing': 'off',
+            //         class: 'dosol button',
+            //     }).text('Generate')))
+        )
         result.append($('<div/>', { class: 'callout secondary solwork', style: 'display:none' }).append($('<div/>').text("problem work")))
         return result;
     }
@@ -746,7 +694,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public buildSolver(parsed: cryptarithmParsed, showanswer: boolean): JQuery<HTMLElement> {
         // We have built the lineitems array, now we just need to turn it into
         // a table (respecting the maxwidth)
-        let table = $("<table/>", { class: "cmath unstriped plain" });
+        let formulaTable = $("<table/>", { class: "cmath unstriped plain" });
         let tbody = $("<tbody/>");
         for (let item of parsed.lineitems) {
             let tr = $("<tr/>");
@@ -837,9 +785,83 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             tr.appendTo(tbody);
         }
 
-        tbody.appendTo(table);
+        tbody.appendTo(formulaTable);
 
-        return table;
+        let solution = $('<div/>')
+        if (this.state.validmapping && this.state.soltext !== '') {
+
+
+            // Build the mapping table
+            const anstable = new JTTable({
+                class: 'ansblock shrink cell unstriped',
+            });
+            const toprow = anstable.addBodyRow();
+            const bottomrow = anstable.addBodyRow();
+            for (let c of this.state.soltext.toUpperCase()) {
+                let v = this.state.mapping[c]
+                if (c === ' ') {
+                    toprow.add(' ')
+                    bottomrow.add({
+                        content: '&nbsp;',
+                    })
+                } else if (v === undefined) {
+                    toprow.add(c)
+                    bottomrow.add(c)
+                } else {
+                    toprow.add(String(v))
+                    if (showanswer) {
+                        bottomrow.add({
+                            settings: { class: 'a v' },
+                            content: c
+                        })
+                    } else {
+                        bottomrow.add({
+                            settings: { class: 'e v' },
+                            content: '&nbsp;',
+                        })
+                    }
+                }
+            }
+            solution.append(anstable.generate())
+        } else if (!this.state.validmapping) {
+            solution.append(makeCallout("No known solution mapping has been generated.  Please click the Check Problem and Update button", 'alert'))
+        } else {
+            solution.append(makeCallout("No solution text given to solve for", 'alert'))
+        }
+
+        // Build the mapping table
+        const worktable = new JTTable({
+            class: 'tfreq crwork',
+        });
+        const top = worktable.addHeaderRow()
+        top.add('')
+        for (let i = 0; i < this.base; i++) {
+            top.add(String(i))
+        }
+        for (let c in this.state.mapping) {
+            const row = worktable.addBodyRow()
+            row.add({
+                celltype: 'th',
+                content: c
+            })
+            for (let i = 0; i < this.base; i++) {
+                row.add(' ')
+            }
+        }
+
+        let result = $('<div/>')
+        result.append($('<div/>', { class: 'grid-x' })
+            .append($('<div/>', { class: 'cell' })
+                .append($('<p/>', { class: "h5" }).text('Values to decode for solution:'))
+                .append(solution)))
+        result.append('<hr/>')
+        result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
+            .append($('<div/>', { class: 'cell small-6 shrink' })
+                .append($('<p/>', { class: "h5" }).text('Cryptorithm formula'))
+                .append(formulaTable))
+            .append($('<div/>', { class: 'cell shrink' }).append(worktable.generate())))
+        return result;
+
     }
 
     /**
@@ -1332,6 +1354,17 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             .on('click', (e) => {
                 this.doTest();
             })
+        $('#soltext')
+            .off('input')
+            .on('input', (e) => {
+                const soltext = $(e.target).val() as string;
+                if (soltext !== this.state.soltext) {
+                    this.markUndo('keyword');
+                    if (this.setSoltext(soltext)) {
+                        this.updateOutput();
+                    }
+                }
+            });
         $('#wordlist')
             .off('input')
             .on('input', (e) => {

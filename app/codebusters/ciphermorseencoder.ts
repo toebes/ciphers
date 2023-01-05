@@ -511,7 +511,8 @@ export class CipherMorseEncoder extends CipherEncoder {
                 // Clean up the crib characters eliminating any dups.
                 hint = '';
                 for (const c of bighint) {
-                    if (hint.indexOf(c) < 0) {
+                    // skip spaces and collect unique characters for hint
+                    if (c != ' ' && hint.indexOf(c) < 0) {
                         hint += c;
                     }
                 }

@@ -6,6 +6,7 @@ import { IEncoderState } from './cipherencoder';
 import { tomorse, frommorse, ConvertToMorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, morseindex, ptindex } from './ciphermorseencoder';
+import { CipherHandler } from '../common/cipherhandler';
 
 interface IFractionatedMorseState extends IEncoderState {
     encoded: string;
@@ -108,23 +109,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     }
                 }
             }
-        }/* TODO else {
-            const hintchars = this.state.hint;
-            if (hintchars === undefined || hintchars === '') {
-                hint = 'hint characters need to be defined';
-            } else {
-                const morseletmap = this.buildMorseletMap();
-                let extra = '';
-                for (const e of hintchars) {
-                    hint +=
-                        extra +
-                        this.genMonoText(e) +
-                        '=' +
-                        this.genMonoText(this.normalizeHTML(morseletmap[e]));
-                    extra = ', ';
-                }
-            }
-        }*/
+        }
         if (hint === '') {
             hint = 'the hint needs to be defined';
         }
@@ -143,7 +128,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        const result = super.genPreCommands();
+        const result = $('<div/>');
+        this.genTestUsage(result);
+        result.append(this.createQuestionTextDlg());
+        this.genQuestionFields(result);
+        this.genEncodeField(result);
 
         const inputbox = $('<div/>', {
             class: 'grid-x grid-margin-x',
@@ -196,6 +185,44 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         for (const c of charset) {
             let repl = '';
             if (showanswers) {
+                replacementsRow.add({ content: c + '&nbsp;' });
+            } else {
+                replacementsRow.add({ content: '&nbsp;&nbsp;' });
+            }
+
+            fractionsRow.add({ content: this.normalizeHTML(this.morseReplaces[count].split('').join('<br/>')) });
+            count++;
+        }
+        return table.generate();
+    }
+
+    /**
+     * Creates an HTML table to display the frequency of characters for printing
+     * on the test and answer key
+     * showanswers controls whether we display the answers or just the key
+     * encodeType tells the type of encoding to print.  If it is 'random' then
+     * we leave it blank.
+     * @param showanswers Display the answers as part of the table
+     * @param extraclass Extra class to add to the generated table
+     */
+    public generateFractionatedTable(
+        showanswers: boolean,
+        knownMap: StringMap,
+        extraclass: string
+    ): JQuery<HTMLElement> {
+        const table = new JTTable({
+            class: 'prfreq fractionatedmorse shrink cell unstriped ' + extraclass,
+        });
+        const charset = this.keywordMap;
+        const replacementsRow = table.addBodyRow({ class: 'replacement' });
+        const fractionsRow = table.addBodyRow();
+
+        replacementsRow.add({ celltype: 'th', content: 'Replacement' });
+        fractionsRow.add({ celltype: 'th', content: 'Morse fraction' });
+
+        let count = 0;
+        for (const c of charset) {
+            if (showanswers && (knownMap[c] !== 'XXX')) {
                 replacementsRow.add({ content: c + '&nbsp;' });
             } else {
                 replacementsRow.add({ content: '&nbsp;&nbsp;' });
@@ -441,6 +468,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         }
         result.append(table.generate());
     }
+
     /**
      * Generates a displayable state of the currently decoded morse string.
      * There are three rows:
@@ -459,6 +487,9 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         for (const ctset of strings) {
             let morse = '';
             let plaintext = '';
+
+            let startIndex = 0;
+
             for (const c of ctset[ctindex]) {
                 if (c === ' ') {
                     continue;
@@ -468,6 +499,30 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 if (possibilities !== 'XXX') {
                     // Yes, we know that it defined so remember the morselet
                     morse += possibilities;
+
+                    let endLetterIndex = morse.indexOf('X', startIndex);
+                    let endWordIndex = morse.indexOf('XX', startIndex)
+                    if (endLetterIndex > -1) {
+                        let chuckit = morse.substr(startIndex, endLetterIndex - startIndex);
+                        if (chuckit.indexOf(' ') > -1) {
+                            let skipX = 1;
+                            if (endWordIndex > -1) {
+                                skipX += 1;
+                            }
+                            plaintext += this.repeatStr(' ', chuckit.length + (skipX));
+                            startIndex = endLetterIndex + skipX;
+
+                        } else {
+                            let skipX = 1;
+                            if (endWordIndex > -1) {
+                                skipX += 1;
+                            }
+                            plaintext += frommorse[chuckit] + this.repeatStr(' ', chuckit.length + (skipX - 1));
+                            startIndex = endLetterIndex + skipX;
+                        }
+
+                    }
+
                     // Is it a separator?
                     if (possibilities === 'X') {
                         // Did we just follow a separator
@@ -501,8 +556,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     morse += '?';
                     current += '?';
                 } else {
-                    morse += ' ';
-                    current += ' ';
+                    morse += '   ';
+                    current += '   ';
                 }
             }
             // Do we have anything left over at the end of the line?  If so
@@ -534,12 +589,14 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         let unknowns = 0;
         for (const strset of working) {
             for (const c of strset[ctindex]) {
+                if (c === ' ')
+                    continue;
                 used[c] = true;
             }
         }
         // If one of the used letters doesn't have a mapping then we aren't done
         for (const e in knownmap) {
-            if (knownmap[e].length > 1 && used[e] === true) {
+            if (knownmap[e] ==='XXX' && used[e] === true) {
                 unknowns++;
             }
         }
@@ -1003,6 +1060,163 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         }
         return false;
     }
+
+    public noGapFill(
+        result: JQuery<HTMLElement>,
+        knownmap: StringMap,
+        working: string[][]
+    ): boolean {
+
+        let didFill = false;
+
+        // go thru known map and get knowns
+        // do math on the index of the knowns
+
+        let last = '';
+        let lastI = -1;
+        for (const k of this.encodecharset) {
+            if (knownmap[k] !== 'XXX') {
+                let i = this.keywordMap.indexOf(k);
+                if (last !== '') {
+                    // Compare this to last and see if we can fill anything in...
+                    let charDiff = k.charCodeAt(0) - last.charCodeAt(0);
+                    let indexDiff = i - lastI;
+                    if (charDiff === indexDiff && charDiff > 1) {
+                        didFill = true;
+                        for (let p = lastI + 1; p < i; p++) {
+                            knownmap[this.keywordMap[p]] = this.morseReplaces[p];
+                        }
+                    }
+                }
+                last = k;
+                lastI = i;
+            }
+        }
+        // check for last being right distance from the end... then fill those..
+        if (this.encodecharset.indexOf(last) == lastI) {
+            for (let p = lastI + 1; p < this.encodecharset.length; p++) {
+                knownmap[this.keywordMap[p]] = this.morseReplaces[p];
+            }
+        }
+        return didFill;
+    }
+
+
+    public findZ(
+        result: JQuery<HTMLElement>,
+        knownmap: StringMap,
+        working: string[][]
+    ): boolean {
+
+        let didFindZ = true;
+
+        if ((this.state.keyword.indexOf('Z') > -1) || (knownmap['Z'] !== 'XXX')){
+            didFindZ = false;
+        } else {
+            knownmap[this.keywordMap[25]] = this.morseReplaces[25];
+        }
+
+        return didFindZ;
+    }
+
+    /**
+     * Generates the Match dropdown for a given string
+     * @param str Pattern string to generate match dropdown
+     */
+    public findCloseWords(str: string): string[] {
+        if (
+            this.state.curlang === "" ||
+            !this.Frequent.hasOwnProperty(this.state.curlang)
+        ) {
+            this.Frequent
+            //return [];
+        }
+        // Get a template for the pattern of the word so that we can subset
+        // which words we will pull from the precompiled language
+        let pat = this.makeUniquePattern(str, 1);
+        let repl = this.genReplPattern(str);
+        let mselect = $("<select/>").addClass("match");
+        if (typeof this.Frequent[this.state.curlang][pat] !== "undefined") {
+            let matches = this.Frequent[this.state.curlang][pat];
+            let selectclass = "";
+            let matched = false;
+            let added = 0;
+            let used: BoolMap = {};
+            let charset = this.getCharset().toUpperCase();
+            for (let c of charset) {
+                used[c] = false;
+            }
+            for (let c of charset) {
+                used[this.state.replacement[c]] = true;
+            }
+
+            for (let i = 0, len = matches.length; i < len; i++) {
+                let entry = matches[i];
+                if (this.isValidReplacement(entry[0], repl, used)) {
+                    if (!matched) {
+                        selectclass = "l" + entry[3];
+                    }
+                    if (!matched) {
+                        mselect.append(
+                            $("<option/>", {
+                                selected: "",
+                                disabled: "",
+                            })
+                                .addClass("l" + entry[3])
+                                .text(entry[0])
+                        );
+                    }
+                    mselect.append(
+                        $("<option/>")
+                            .addClass("l" + entry[3])
+                            .text(entry[0])
+                    );
+                    added++;
+                    matched = true;
+                    /*    } else if (entry[1] < 100 && added < 9) {
+                    if (selectclass === '') {
+                        selectclass = entry.c;
+                    }
+                    added++;
+                    $('<option/>').addClass('l'+entry[3] + ' nomatch').text(entry.t).appendTo(mselect);
+*/
+                }
+                if (matched && added > 9) {
+                    break;
+                }
+            }
+            if (added === 0) {
+                selectclass = "nopat";
+            }
+            mselect.addClass(selectclass);
+        } else {
+            mselect.addClass("nopat");
+        }
+        return [];
+    }
+
+
+
+    public guessWord(
+        result: JQuery<HTMLElement>,
+        knownmap: StringMap,
+        working: string[][]
+    ): boolean {
+
+        let didFindZ = true;
+        super.loadRawLanguage('en');
+
+        //this.findCloseWords('sol')
+
+        if ((this.state.keyword.indexOf('Z') > -1) || (knownmap['Z'] !== 'XXX')){
+            didFindZ = false;
+        } else {
+            knownmap[this.keywordMap[25]] = this.morseReplaces[25];
+        }
+
+        return didFindZ;
+    }
+
     /**
      * Display how to solve the cipher.
      */
@@ -1027,7 +1241,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         // For now we don't know how to solve it, so just put a message up
         result.append('No automated solution available at this point in time.');
 
-        return result;
+        //return result;
         // END TEMPORARY HACK
 
         // Assume we don't know what anything is
@@ -1039,16 +1253,25 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         let morseFractionMap = []
         let morseletmap = []
         for (const c of hint) {
-            if (morseletmap[c] !== undefined) {
-                knownmap[c] = morseletmap[c];
+            let i = this.keywordMap.indexOf(c);
+            if (i > -1) {
+                knownmap[c] = this.morseReplaces[i];
             }
+            // if (morseletmap[c] !== undefined) {
+            //     knownmap[c] = morseletmap[c];
+            // }
         }
 
         // This is just for displaying what we know...
-        this.genKnownTable(result, knownmap);
-        result.append('Based on that information we can map the cipher text as:');
+        // this.genKnownTable(result, knownmap); --> generateFractionatedTable() is superior to genKnownTable()
+        let workingTable = this.generateFractionatedTable(true, knownmap, '');
+        result.append(workingTable);
+        result.append('Based on that information we can map the cipher text to:');
+        // recalculates based on what is 'known' (in the knownmap).
         let working = this.genKnownMapping(strings, knownmap);
+        // displays the (partial) solution we know so far.
         this.genMapping(result, working);
+        //return result;
         if (!this.hasUnknowns(result, knownmap, working)) {
             result.append(
                 'Which means that the hint has provide all of the' +
@@ -1057,19 +1280,30 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         } else {
             let limit = 20;
             while (limit > 0) {
+
+                // Look for 'no gaps in the alphabet after the keyword and fill this in...
+                if (this.noGapFill(result, knownmap, working)) {
+                    // Filled in a gap of at least 1
+                } else if (this.findZ(result, knownmap, working)) {
+                    // Found 'Z' at the end...
+                } else if (this.guessWord(result, knownmap, working)) {
+
+
+
+
                 // The first character is never an X
-                if (this.checkFirstCT(result, knownmap, working)) {
-                    // We eliminated at least one letter from being an X
-                } else if (this.findTriples(result, knownmap, working)) {
-                    // We eliminated at least one letter from being an X
-                } else if (this.findSpacers(result, knownmap, working)) {
-                    // We found at least one new letter that must be an X
-                } else if (this.findInvalidMorse(result, knownmap, working)) {
-                    // We found at least one morse code that invalidated a choice
-                } else if (this.findSingleMorse(result, knownmap, working)) {
-                    // We found at least one morse code that invalidated a choice
-                } else if (this.testSingleMorse(result, knownmap, working)) {
-                    // We found at least one morse code that invalidated a choice
+                // else if (this.checkFirstCT(result, knownmap, working)) {
+                //     // We eliminated at least one letter from being an X
+                // } else if (this.findTriples(result, knownmap, working)) {
+                //     // We eliminated at least one letter from being an X
+                // } else if (this.findSpacers(result, knownmap, working)) {
+                //     // We found at least one new letter that must be an X
+                // } else if (this.findInvalidMorse(result, knownmap, working)) {
+                //     // We found at least one morse code that invalidated a choice
+                // } else if (this.findSingleMorse(result, knownmap, working)) {
+                //     // We found at least one morse code that invalidated a choice
+                // } else if (this.testSingleMorse(result, knownmap, working)) {
+                //     // We found at least one morse code that invalidated a choice
                 } else {
                     // Nothing more that we can do..
                     result.append(
@@ -1082,9 +1316,10 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     msg = 'Automated solver is unable to find an automatic solution.';
                     break;
                 }
-                working = this.genKnownMapping(strings, knownmap);
-                this.genKnownTable(result, knownmap);
                 result.append('Based on that information we can map the cipher text as:');
+                working = this.genKnownMapping(strings, knownmap);
+                workingTable = this.generateFractionatedTable(true, knownmap, '');
+                result.append(workingTable)
                 this.genMapping(result, working);
                 if (this.hasUnknowns(result, knownmap, working)) {
                     limit--;

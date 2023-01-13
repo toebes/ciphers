@@ -6,7 +6,6 @@ import { IEncoderState } from './cipherencoder';
 import { tomorse, frommorse, ConvertToMorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, morseindex, ptindex } from './ciphermorseencoder';
-import { CipherHandler } from '../common/cipherhandler';
 
 interface IFractionatedMorseState extends IEncoderState {
     encoded: string;

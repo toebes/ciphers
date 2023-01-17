@@ -93,7 +93,7 @@ export class CipherDancingMenEncoder extends CipherEncoder {
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width = 29;
+            width = 22;
             extraclass = ' atest';
         }
         const strings = this.makeReplacement(this.state.cipherString, width);
@@ -151,7 +151,7 @@ export class CipherDancingMenEncoder extends CipherEncoder {
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width = 29;
+            width = 22;
             extraclass = ' atest';
         }
         let pos = 0;
@@ -198,7 +198,7 @@ export class CipherDancingMenEncoder extends CipherEncoder {
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width = 30;
+            width = 22;
             extraclass = ' atest';
         }
         const strings = this.makeReplacement(this.state.cipherString, width);

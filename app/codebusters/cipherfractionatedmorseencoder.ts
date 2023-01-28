@@ -1252,7 +1252,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         let morseFractionMap = []
         let morseletmap = []
         for (const c of hint) {
-<<<<<<< HEAD
             let i = this.keywordMap.indexOf(c);
             if (i > -1) {
                 knownmap[c] = this.morseReplaces[i];
@@ -1268,12 +1267,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         //         knownmap[c] = morseletmap[c];
         //     }
         // }
-=======
-            if (morseletmap[c] !== undefined) {
-                knownmap[c] = morseletmap[c];
-            }
-        }
->>>>>>> 033e1f1 ([fractionated_morse] WIP.)
 
         // This is just for displaying what we know...
         // this.genKnownTable(result, knownmap); --> generateFractionatedTable() is superior to genKnownTable()

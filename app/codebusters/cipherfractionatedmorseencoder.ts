@@ -355,12 +355,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             // Spaces between words use two separator characters
             if (!this.isValidChar(t)) {
                 extra = spaceextra;
-                if (t !== ' ') {
-                    extraFraction = 'X';
-                } else {
                     extraFraction = spaceextra;
                     lastsplit = encodeline.length;
-                }
             } else if (typeof tomorse[t] !== 'undefined') {
 
                 if (makeupMorse > 0) {

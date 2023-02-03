@@ -26,6 +26,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         ITestType.bregional,
         ITestType.bstate,
     ];
+    public loadedLanguage = false;
     keywordMap: string[] = [];
     public readonly morseReplaces: string[] = [
         "OOO",
@@ -55,6 +56,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         "XXO",
         "XX-",
     ];
+    public init(lang: string): void {
+        super.init(lang);
+        this.loadLanguageDictionary('en');
+    }
+
     public defaultstate: IFractionatedMorseState = {
         cipherString: '',
         cipherType: ICipherType.FractionatedMorse,
@@ -63,6 +69,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         encoded: '',
         keyword: '',
     };
+    public needsRefresh = false;
     public state: IFractionatedMorseState = cloneObject(this.defaultstate) as IFractionatedMorseState;
     public encodecharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     public sourcecharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -355,8 +362,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             // Spaces between words use two separator characters
             if (!this.isValidChar(t)) {
                 extra = spaceextra;
-                    extraFraction = spaceextra;
-                    lastsplit = encodeline.length;
+                extraFraction = spaceextra;
+                lastsplit = encodeline.length;
             } else if (typeof tomorse[t] !== 'undefined') {
 
                 if (makeupMorse > 0) {
@@ -1056,6 +1063,12 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         return false;
     }
 
+    /**
+     * Look for 'no gaps in the alphabet after the keyword and fill this in...
+     * @param result Place to output any progress messages
+     * @param knownmap Map of known matches
+     * @param working 
+     */
     public noGapFill(
         result: JQuery<HTMLElement>,
         knownmap: StringMap,
@@ -1190,7 +1203,17 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         return [];
     }
 
-
+    /**
+     * Update all of the match dropdowns in response to a change in the cipher mapping
+     * @param reqstr String to optimize updates for (mostly ignored)
+     */
+    public updateMatchDropdowns(reqstr: string): void {
+        // We know that the language has been loaded
+        this.loadedLanguage = true;
+        if (this.needsRefresh) {
+            this.load();
+        }
+    }
 
     public guessWord(
         result: JQuery<HTMLElement>,
@@ -1199,7 +1222,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     ): boolean {
 
         let didFindZ = true;
-        super.loadRawLanguage('en');
 
         //this.findCloseWords('sol')
 
@@ -1216,6 +1238,10 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      * Display how to solve the cipher.
      */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
+        if (!this.loadedLanguage) {
+            this.needsRefresh = true;
+            return;
+        }
         const result = $('<div/>');
         let msg = '';
         if (this.state.cipherString === '') {
@@ -1230,14 +1256,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         if (hint === undefined) {
             return result;
         }
-        // TEMPORARY HACK - Disable the automated solution since this appears to be
-        // the version for the Morbit/Pollux and not the Fractionated Morse one
-        //
-        // For now we don't know how to solve it, so just put a message up
-        result.append('No automated solution available at this point in time.');
-
-        //return result;
-        // END TEMPORARY HACK
 
         // Assume we don't know what anything is
         for (const c of this.encodecharset) {
@@ -1289,10 +1307,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 } else if (this.findZ(result, knownmap, working)) {
                     // Found 'Z' at the end...
                 } else if (this.guessWord(result, knownmap, working)) {
-
-
-
-
                     // The first character is never an X
                     // else if (this.checkFirstCT(result, knownmap, working)) {
                     //     // We eliminated at least one letter from being an X

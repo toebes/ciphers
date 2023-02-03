@@ -3010,86 +3010,114 @@ export class CipherHandler {
         result.append(inputgroup);
     }
     /**
+     * @returns root cipherHandler that we can access shared information off of
+     */
+    public getRootCipherTool(): CipherHandler {
+        return (window as any).cipherTool as CipherHandler;
+    }
+
+    /**
      * Loads a language in response to a dropdown event
+     * @param lang Language to load (2 character abbreviation)
      */
     public loadLanguage(lang: string): void {
-        $('#loadeng').hide();
         this.state.curlang = lang;
         this.setCharset(this.langcharset[lang]);
-        this.showLangStatus('warning', 'Attempting to load ' + this.langmap[lang] + '...');
-        $.getScript('Languages/' + lang + '.js', (data, textStatus, jqxhr) => {
-            this.showLangStatus('secondary', '');
-            this.updateMatchDropdowns('');
-        }).fail((jqxhr, settings, exception) => {
-            console.log('Complied language file not found for ' + lang + '.js');
-            this.loadRawLanguage(lang);
-        });
+        this.loadLanguageDictionary(lang);
     }
     /**
-     * Loads a raw language from the server
-     * lang Language to load (2 character abbreviation)
+     * Load a language table from the server.  We attempt to get a compiled one first (which should be really fast)
+     * but will resort to a plain text file if it isn't found.
+     * @param lang Language to load (2 character abbreviation)
      */
-    public loadRawLanguage(lang: string): void {
-        /* const jqxhr = */ $.get('Languages/' + lang + '.txt', () => { }).done((data) => {
-        // empty out all the frequent words
-        this.showLangStatus('warning', 'Processing ' + this.langmap[lang] + '...');
-        this.Frequent[lang] = {};
-        this.state.curlang = lang;
-        let charset = this.langcharset[lang];
-        const langreplace = this.langreplace[lang];
-        this.setCharset(charset);
-        const lines = data.split('\n');
-        const len = lines.length;
-        charset = charset.toUpperCase();
-        for (let i = 0; i < len; i++) {
-            const pieces = lines[i]
-                .replace(/\r/g, ' ')
-                .toUpperCase()
-                .split(/ /);
-            // make sure that all the characters in the pieces are valid
-            // for this character set.  Otherwise we can throw it away
-            let legal = true;
-            for (const c of pieces[0]) {
-                if (charset.indexOf(c) < 0) {
-                    if (typeof langreplace[c] === 'undefined') {
-                        console.log(
-                            'skipping out on ' + pieces[0] + ' for ' + c + ' against ' + charset
-                        );
-                        legal = false;
-                        break;
-                    }
-                    pieces[0] = pieces[0].replace(c, langreplace[c]);
-                }
-            }
-            if (legal) {
-                const pat = this.makeUniquePattern(pieces[0], 1);
-                const elem: patelem = [pieces[0].toUpperCase(), i, pieces[1], 0];
-                if (i < 500) {
-                    elem[3] = 0;
-                } else if (i < 1000) {
-                    elem[3] = 1;
-                } else if (i < 2000) {
-                    elem[3] = 3;
-                } else if (i < 5000) {
-                    elem[3] = 4;
-                } else {
-                    elem[3] = 5;
-                }
-                if (typeof this.Frequent[lang][pat] === 'undefined') {
-                    this.Frequent[lang][pat] = [];
-                }
-                this.Frequent[lang][pat].push(elem);
-            }
+    public loadLanguageDictionary(lang: string) {
+        const rootCipherTool = this.getRootCipherTool();
+        if (rootCipherTool.Frequent[lang] !== undefined) {
+            this.Frequent[lang] = rootCipherTool.Frequent[lang];
+            this.updateMatchDropdowns('');
+        } else {
+            $('#loadeng').hide();
+            this.showLangStatus('warning', 'Attempting to load ' + this.langmap[lang] + '...');
+            $.getScript('Languages/' + lang + '.js', (data, textStatus, jqxhr) => {
+                // The compiled languages set the global root and not necessarily this sub object 
+                this.Frequent[lang] = rootCipherTool.Frequent[lang]
+                this.showLangStatus('secondary', '');
+                this.updateMatchDropdowns('');
+            }).fail((jqxhr, settings, exception) => {
+                console.log('Complied language file not found for ' + lang + '.js');
+                this.loadRawDictionary(lang);
+            });
         }
-        // console.log(this.Frequent)
-        $('.langout').each((i: number, elem: HTMLElement) => {
-            this.showLangStatus('warning', 'Dumping ' + this.langmap[lang] + '...');
-            $(elem).text(this.dumpLang(lang));
-        });
-        this.showLangStatus('secondary', '');
-        this.updateMatchDropdowns('');
-    });
+    }
+
+    /**
+     * Loads a raw language from the server
+     * @param lang Language to load (2 character abbreviation)
+     */
+    public loadRawDictionary(lang: string): void {
         this.showLangStatus('warning', 'Loading ' + this.langmap[lang] + '...');
+        $.get('Languages/' + lang + '.txt', () => { }).done((data) => {
+            // empty out all the frequent words
+            this.showLangStatus('warning', 'Processing ' + this.langmap[lang] + '...');
+            this.Frequent[lang] = {};
+            this.state.curlang = lang;
+            let charset = this.langcharset[lang];
+            const langreplace = this.langreplace[lang];
+            this.setCharset(charset);
+            const lines = data.split('\n');
+            const len = lines.length;
+            charset = charset.toUpperCase();
+            for (let i = 0; i < len; i++) {
+                const pieces = lines[i]
+                    .replace(/\r/g, ' ')
+                    .toUpperCase()
+                    .split(/ /);
+                // make sure that all the characters in the pieces are valid
+                // for this character set.  Otherwise we can throw it away
+                let legal = true;
+                for (const c of pieces[0]) {
+                    if (charset.indexOf(c) < 0) {
+                        if (typeof langreplace[c] === 'undefined') {
+                            console.log(
+                                'skipping out on ' + pieces[0] + ' for ' + c + ' against ' + charset
+                            );
+                            legal = false;
+                            break;
+                        }
+                        pieces[0] = pieces[0].replace(c, langreplace[c]);
+                    }
+                }
+                if (legal) {
+                    const pat = this.makeUniquePattern(pieces[0], 1);
+                    const elem: patelem = [pieces[0].toUpperCase(), i, pieces[1], 0];
+                    if (i < 500) {
+                        elem[3] = 0;
+                    } else if (i < 1000) {
+                        elem[3] = 1;
+                    } else if (i < 2000) {
+                        elem[3] = 3;
+                    } else if (i < 5000) {
+                        elem[3] = 4;
+                    } else {
+                        elem[3] = 5;
+                    }
+                    if (typeof this.Frequent[lang][pat] === 'undefined') {
+                        this.Frequent[lang][pat] = [];
+                    }
+                    this.Frequent[lang][pat].push(elem);
+                }
+            }
+            // console.log(this.Frequent)
+            $('.langout').each((i: number, elem: HTMLElement) => {
+                this.showLangStatus('warning', 'Dumping ' + this.langmap[lang] + '...');
+                $(elem).text(this.dumpLang(lang));
+            });
+            // We need to also save it on the root object
+            const rootCipherTool = this.getRootCipherTool();
+            rootCipherTool.Frequent[lang] = this.Frequent[lang];
+            this.showLangStatus('secondary', '');
+            this.updateMatchDropdowns('');
+        });
     }
     /**
      * Updates the language status message box with a message (or clears it)

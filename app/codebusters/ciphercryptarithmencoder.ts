@@ -1,7 +1,4 @@
-import { appendFile, ReadVResult } from 'fs';
-import { createSolutionBuilderWithWatch } from 'typescript';
-import { string } from 'yargs';
-import { BoolMap, cloneObject, makeCallout, makeFilledArray, NumberMap } from '../common/ciphercommon';
+import { BoolMap, cloneObject, makeCallout, makeFilledArray, NumberMap, StringMap } from '../common/ciphercommon';
 import {
     IState,
     ITestType,
@@ -11,7 +8,7 @@ import {
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { buildLegal, cryptarithmForumlaItem, cryptarithmParsed, cryptarithmSumandSearch, legalMap, parseCryptarithm } from '../common/cryptarithm';
-import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTButtonItem, JTButtonGroup } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder } from './cipherencoder';
@@ -31,10 +28,17 @@ interface ICryptarithmState extends IState {
 
 type ITemplateType = 'add' | 'mul' | 'div' | 'root';
 
-
 interface ITemplate {
     type: ITemplateType,
     template: string,
+}
+
+interface parsedTemplate {
+    type: ITemplateType;
+    symbols: number;
+    uses: number[][];
+    replaces: string;
+
 }
 
 /**
@@ -43,23 +47,38 @@ interface ITemplate {
 export class CipherCryptarithmEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Cryptarithm';
-    public wordmatches: number[][][];
+    //    public wordmatches: number[][][];
 
     public templates: ITemplate[] = [
         { type: 'add', template: "A+B=C" },
         { type: 'add', template: "A+B+C=D" },
         { type: 'add', template: "A+B+B=C" },
         { type: 'add', template: "A+A=B" },
-        { type: 'add', template: "A-B=C" },
-        { type: 'add', template: "A-B-C=D" },
-        { type: 'add', template: "A-B-B=C" },
-        // { type: 'add', template: "A+B=C; D+E=F" },  // TODO: Need to support multiple operations
+        { type: 'add', template: "C-B=A" },
+        { type: 'add', template: "D-A-B=C" },
+        { type: 'add', template: "C-A-A=B" },
+        // // { type: 'add', template: "A+B=C; D+E=F" },  // TODO: Need to support multiple operations
         // { type: 'add', template: "A+B=C; D-E=F" },  // TODO: Need to support multiple operations
-        { type: 'mul', template: "A*B=C" },
+        // { type: 'mul', template: "A*B=C" },
         // { type: 'mul', template: "A*B=?" },  // TODO: Need to be able to specify the result
-        { type: 'div', template: "A/B=C" },
+        // { type: 'div', template: "A/B=C" },
         // { type: 'div', template: "A/B=?" },  // TODO: Need to be able to specify the result
     ]
+    public parsedTemplates: { [index: string]: parsedTemplate } = {
+        // W X Y Z
+        // W X Z Y 
+        // W Y Z X  
+        // X Y Z W 
+
+        "A+B=C": { type: 'add', symbols: 3, uses: [[0, 1]], replaces: "ABC" },
+        "A+B+C=D": { type: 'add', symbols: 4, uses: [[0, 1, 2]], replaces: "ABCD" },
+        "A+B+B=C": { type: 'add', symbols: 3, uses: [[0, 1, 1], [1, 0, 0]], replaces: "ABBC" },
+        "A+A=B": { type: 'add', symbols: 2, uses: [[0, 0]], replaces: "AAB" },
+        "C-B=A": { type: 'add', symbols: 3, uses: [[0, 1]], replaces: "BAC" },
+        "D-A-B=C": { type: 'add', symbols: 4, uses: [[0, 1, 2]], replaces: "ABCD" },
+        "C-A-A=B": { type: 'add', symbols: 3, uses: [[1, 1, 0], [0, 0, 1]], replaces: "AABC" },
+    }
+
 
     public validTests: ITestType[] = [
         ITestType.None,
@@ -83,9 +102,11 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     };
 
     public base = 10;
-    public testButton: JTButtonItem = {
-        title: 'Test',
-        id: 'test1',
+    public generatemode = false;
+    public doingSearch = false;
+    public generateButton: JTButtonItem = {
+        title: 'Generate Problems',
+        id: 'generate',
         color: 'primary',
     };
     public state: ICryptarithmState = cloneObject(this.defaultstate) as ICryptarithmState;
@@ -93,9 +114,36 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
-        this.testButton,
+        this.generateButton,
         this.guidanceButton,
     ];
+
+    public searchButton: JTButtonItem = {
+        title: 'Search',
+        class: 'findprobs',
+        color: 'primary',
+    };
+
+    public stopSearchButton: JTButtonItem = {
+        title: 'Stop Searching',
+        id: 'stopsearch',
+        color: 'alert',
+        disabled: true
+    };
+
+    public doCipherButton: JTButtonItem = {
+        title: 'Back to Current Cipher',
+        id: 'docipher',
+        color: 'primary',
+    };
+
+    public problemButtons: JTButtonItem[] = [
+        this.searchButton,
+        this.stopSearchButton,
+        this.doCipherButton,
+        // this.guidanceButton,
+    ];
+
     /* We have identified a complete solution */
     public completeSolution = false;
     /**
@@ -199,6 +247,14 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
 
         this.validateQuestion();
         this.attachHandlers();
+        if (this.generatemode) {
+            $('.probwork').show()
+            $('.cipherwork').hide()
+        } else {
+            $('.probwork').hide()
+            $('.cipherwork').show()
+
+        }
     }
     public setQuestionText(question: string): void {
         super.setQuestionText(question);
@@ -323,6 +379,10 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         }
         return result;
     }
+    public genCmdButtons(): JQuery<HTMLElement> {
+        return $('<div/>', { class: 'cipherwork' }).append(super.genCmdButtons())
+    }
+
     /**
      * Using the currently selected replacement set, encodes a string
      * This breaks it up into lines of maxEncodeWidth characters or less so that
@@ -447,21 +507,23 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     }
 
     public genDecodeSolution(): JQuery<HTMLElement> {
-        const msg = this.minimizeString(this.state.cipherString);
         const result = $('<div/>', { id: 'solution' });
         return result;
     }
 
-    public genx(): JQuery<HTMLElement> {
-        let result = $('<div/>', { class: 'cell small-6 medium-3 large-3' })
+    /**
+     * Generate the potential list of problem styles
+     */
+    public genProblemStyleList(): JQuery<HTMLElement> {
+        let result = $('<div/>', { class: 'cell small-6 medium-9 large-9' })
         result.append($('<div/>', { class: 'toptitle' }).text('Problem Style'))
         result.append(
             $('<div/>', { class: 'expanded button-group round shrink' })
                 .append($('<a/>', { class: 'tall button' }).text('All'))
                 .append($('<a/>', { class: 'tnone button' }).text('None'))
                 .append($('<a/>', { class: 'taddsub button' }).text('+/-'))
-                .append($('<a/>', { class: 'tmul button' }).text('*'))
-                .append($('<a/>', { class: 'tdiv button' }).text('/'))
+            // .append($('<a/>', { class: 'tmul button' }).text('*'))  // TODO When we have multiplication
+            // .append($('<a/>', { class: 'tdiv button' }).text('/'))  // TODO When we have division
         )
         for (const i in this.templates) {
             const inputgroup = $('<div/>', { class: 'input-group' });
@@ -470,6 +532,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 $('<input/>', {
                     id: "A" + String(i),
                     class: 'input-group-button checkbox targany targ' + this.templates[i].type,
+                    checked: 'checked',
                     'data-template': this.templates[i].template,
                     type: 'checkbox'
                 })
@@ -486,19 +549,15 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      */
     public genPreCommands(): JQuery<HTMLElement> {
         const result = $('<div/>');
-        this.genTestUsage(result);
-        result.append(this.createQuestionTextDlg());
-        this.genQuestionFields(result);
-        result.append($('<div/>', { class: 'grid-x' })
+        const cipherwork = $('<div/>', { class: 'cipherwork' });
+        result.append(cipherwork);
+        this.genTestUsage(cipherwork);
+        cipherwork.append(this.createQuestionTextDlg());
+        this.genQuestionFields(cipherwork);
+        cipherwork.append($('<div/>', { class: 'grid-x' })
             .append(JTFLabeledInput("Problem", "text", "toencode", this.state.cipherString, 'auto'))
-            // .append($('<div/>', { class: 'cell shrink' })
-            //     .append($('<a/>', {
-            //         // 'showing': 'off',
-            //         class: 'doprob button',
-            //     }).text('Create'))
-            //     )
         )
-        result.append($('<div/>', { class: 'callout secondary probwork', style: 'display:none' })
+        result.append($('<div/>', { class: 'callout secondary probwork' })
             .append($('<div/>', { class: 'grid-x grid-margin-x' })
                 .append($('<div/>', { class: 'cell small-6 medium-3 large-3' })
                     .append($('<div/>', { class: 'toptitle' }).text('Words to Try'))
@@ -509,13 +568,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                             rows: 26,
                         })
                     ))
-                .append(this.genx())
-                .append($('<div/>', { class: 'cell small-12 medium-6 large-6' })
-                    .append($('<div/>', { class: 'toptitle' }).text('Potential Cryptarithms'))
-                    .append($('<button/>', { class: 'findprobs button rounded' }).text('Search'))
-                    .append($('<div/>', { class: 'callout warning', id: 'searchres' }).text('None found'))
-                    .append($('<div/>', { class: 'findout', id: 'findout' }))
-                )
+                .append(this.genProblemStyleList())
             ))
         // Build the mapping table
         const table = new JTTable({
@@ -532,7 +585,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             });
 
         }
-        result.append($('<div/>', { class: 'grid-x' })
+        cipherwork.append($('<div/>', { class: 'grid-x' })
             .append($('<div/>', { class: 'cell auto' })
                 .append($('<div/>', { class: 'input-group' })
                     .append($('<span/>', { class: 'input-group-label' }).text('Mapping'))
@@ -545,15 +598,19 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 ))
         )
 
-        result.append($('<div/>', { class: 'grid-x' })
+        cipherwork.append($('<div/>', { class: 'grid-x' })
             .append(JTFLabeledInput("Solution", "text", "soltext", this.state.soltext, 'auto'))
-            // .append($('<div/>', { class: 'cell shrink' })
-            //     .append($('<a/>', {
-            //         // 'showing': 'off',
-            //         class: 'dosol button',
-            //     }).text('Generate')))
         )
-        result.append($('<div/>', { class: 'callout secondary solwork', style: 'display:none' }).append($('<div/>').text("problem work")))
+        result.append(
+            $('<div/>', { class: 'probwork' })
+                .append(JTButtonGroup(this.problemButtons))
+        )
+        result.append($('<div/>', { class: 'callout secondary probwork' })
+
+            .append($('<div/>', { class: 'toptitle' }).text('Potential Cryptarithms'))
+            .append($('<div/>', { class: 'callout warning', id: 'searchres' }).text('None found'))
+            .append($('<div/>', { class: 'findout', id: 'findout' })))
+
         return result;
     }
     /**
@@ -583,6 +640,11 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public enableAllTargets() {
         $('.targany').prop('checked', true)
     }
+    /**
+     * Update the searching status message
+     * @param status Status string to show
+     * @param calloutclass Class of message to show
+     */
     public setSearchResult(status: string, calloutclass: 'secondary' | 'primary' | 'success' | 'warning' | 'alert'): void {
         $('#searchres')
             .empty()
@@ -593,83 +655,132 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             .removeClass('alert')
             .addClass(calloutclass).append($('<div/>').text(status))
     }
-    public findx(basestr: string, index: number, depth: number, choices: number[], count: number): number {
-        let localcount = 0;
+    /**
+     * Find a set of strings which have 10 unique characters
+     * @param basestr Collected string so far
+     * @param index Where we are in the wordlist
+     * @param depth How many words we have collected
+     * @param choices Words in the list that we have picked so far
+     */
+    public findx(basestr: string, index: number, depth: number, choices: number[], templates: string[], maxdepth: number): number {
+        let count = 0;
         for (let i = index + 1; i < this.state.wordlist.length; i++) {
             let thisstr = basestr + this.state.wordlist[i];
             let unique = new Set(thisstr.split("")).size
             // console.log(`++Check ${thisstr} unique=${unique} depth=${depth}`)
-            localcount++;
             if (unique <= this.base) {
                 let localset = choices.slice();
                 localset.push(i)
                 // This is a valid one, so we remember it
                 if (unique === this.base) {
-                    this.wordmatches[depth].push(localset);
-                    // Let/s report the match
+                    // Let'/'s report the match
                     let extra = ""
-                    let output = `Found match of ${depth} with `;
+                    let output = `Checking potential of ${depth} with `;
                     for (let ent of localset) {
                         output += extra + this.state.wordlist[ent]
                         extra = ", "
                     }
-                    $("#findout").append($('<div/>').text(output))
-                }
-                if (depth < 6) {
-                    count += this.findx(thisstr, i, depth + 1, localset, count)
-                }
-            }
-        }
-        return localcount;
-    }
-    public matchOne(depth: number, slot: number, templates: string[]) {
-        // Find us a slot to work on
-        // console.log(`matchOne depth=${depth} slot=${slot} entries=${this.wordmatches[depth].length} templates=${templates.join(',')}`)
-        while (depth <= 7 && slot >= this.wordmatches[depth].length) {
-            depth++;
-            slot = 0;
-        }
-        if (depth <= 7) {
-            // Let/s report the match
-            let extra = ""
-            let output = `Working on depth ${depth} with `;
-            for (let ent of this.wordmatches[depth][slot]) {
-                output += extra + this.state.wordlist[ent]
-                extra = ", "
-            }
-            this.checkSolution(this.wordmatches[depth][slot])
-            this.setSearchResult(output, 'secondary')
+                    // $("#findout").append($('<div/>').text(output))
+                    this.setSearchResult(output, 'secondary')
 
-            slot++;
-            setTimeout(() => { this.matchOne(depth, slot, templates) }, 10)
+                    for (let template of templates) {
+                        count += this.checkSolution(localset, template)
+                    }
+                }
+                if (depth < maxdepth) {
+                    count += this.findx(thisstr, i, depth + 1, localset, templates, maxdepth)
+                }
+            }
+        }
+        return count;
+    }
+    public setSearching(doingSearch: boolean) {
+        this.doingSearch = doingSearch
+        if (doingSearch) {
+            $('.findprobs').attr('disabled', 'disabled')
+            $('#stopsearch').removeAttr('disabled')
+            $('#docipher').attr('disabled', 'disabled')
         } else {
-            this.setSearchResult('Complete', 'primary')
+            $('.findprobs').removeAttr('disabled')
+            $('#stopsearch').attr('disabled', 'disabled')
+            $('#docipher').removeAttr('disabled')
         }
     }
+    // public matchOne(depth: number, slot: number, templates: string[]) {
+    //     // Find us a slot to work on
+    //     // console.log(`matchOne depth=${depth} slot=${slot} entries=${this.wordmatches[depth].length} templates=${templates.join(',')}`)
+    //     while (depth <= 7 && slot >= this.wordmatches[depth].length) {
+    //         depth++;
+    //         slot = 0;
+    //     }
+    //     if (depth <= 7) {
+    //         // Let/s report the match
+    //         let extra = ""
+    //         let output = `Working on depth ${depth} with `;
+    //         for (let ent of this.wordmatches[depth][slot]) {
+    //             output += extra + this.state.wordlist[ent]
+    //             extra = ", "
+    //         }
+    //         $("#findout").append($('<div/>').text(output))
 
-    // Find all the groups of <n> words which include exactly 10 unique letters
+    //         for (let template of templates) {
+    //             this.checkSolution(this.wordmatches[depth][slot], template)
+    //         }
+    //         this.setSearchResult(output, 'secondary')
+
+    //         slot++;
+    //         if (this.doingSearch) {
+    //             setTimeout(() => { this.matchOne(depth, slot, templates) }, 10)
+    //         } else {
+    //             this.setSearchResult('Search Stopped', 'warning')
+    //         }
+    //     } else {
+    //         this.setSearching(false);
+    //         this.setSearchResult('Search Complete', 'primary')
+    //     }
+    // }
+
+    /**
+     * Process one word in the word list to find all other matches
+     * @param index Index into the word list to look at
+     * @param templates Templates to match against
+     */
+    public findOneWordSet(index: number, count: number, templates: string[], maxdepth: number) {
+        if (index < this.state.wordlist.length) {
+            count += this.findx(this.state.wordlist[index], index, 2, [index], templates, maxdepth)
+
+            if (this.doingSearch) {
+                setTimeout(() => { this.findOneWordSet(index + 1, count, templates, maxdepth) }, 10);
+            } else {
+                this.setSearchResult('Search Stopped ' + String(count) + " Cryptarithms found", 'warning')
+            }
+            return;
+        }
+        this.setSearching(false);
+        this.setSearchResult('Search Complete: ' + String(count) + " Cryptarithms found", 'success')
+    }
+    /**
+     * Find all the groups of <n> words which include exactly 10 unique letters
+     * @param templates Templates to match against
+     */
     public findWordGroups(templates: string[]) {
-        this.wordmatches = [];
-        for (let depth = 0; depth < 8; depth++) {
-            this.wordmatches.push([])
+        this.setSearching(true);
+        $("#findout").empty();
+        let maxdepth = 0
+        for (let template of templates) {
+            const parsed = this.parsedTemplates[template]
+            if (parsed.symbols > maxdepth) {
+                maxdepth = parsed.symbols
+            }
         }
-        for (let i = 0; i < this.state.wordlist.length; i++) {
-            this.findx(this.state.wordlist[i], i, 2, [i], 0)
-        }
-        // Now figure out how many matches we found
-        let finalcount = 0;
-        for (let depth in this.wordmatches) {
-            finalcount += this.wordmatches[depth].length
-        }
-        this.setSearchResult(`Found ${finalcount} potential wordsets`, 'primary')
-        //next we want to test out each one to see if we can find a solution for it
-        setTimeout(() => { this.matchOne(2, 0, templates) }, 10);
+        this.findOneWordSet(0, 0, templates, maxdepth)
     }
 
     /**
      * Find all problems which meet the critaria
      */
     public findProblems() {
+        // Let them know we are in search mode
         this.setSearchResult('working with ' + this.state.wordlist.length + ' words.', 'success');
         // Figure out what templates they are going to use
         const templatechoices = $('.targany:checked');
@@ -789,8 +900,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
 
         let solution = $('<div/>')
         if (this.state.validmapping && this.state.soltext !== '') {
-
-
             // Build the mapping table
             const anstable = new JTTable({
                 class: 'ansblock shrink cell unstriped',
@@ -849,7 +958,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             }
         }
 
-        let result = $('<div/>')
+        let result = $('<div/>', { class: 'cipherwork' })
         result.append($('<div/>', { class: 'grid-x' })
             .append($('<div/>', { class: 'cell' })
                 .append($('<p/>', { class: "h5" }).text('Values to decode for solution'))
@@ -868,17 +977,120 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      * Check to see if a solution is valid for the current criteria
      * @param wordlist 
      */
-    public checkSolution(wordlist: number[]) {
+
+
+    // public parsedTemplates: { [index: string]: parsedTemplate } = {
+    //     // W X Y Z
+    //     // W X Z Y 
+    //     // W Y Z X  
+    //     // X Y Z W 
+
+    //     "A+B=C": { type: 'add', symbols: 3, uses: [[0, 1]] },
+    //     "A+B+C=D": { type: 'add', symbols: 4, uses: [[0, 1, 2]] },
+    //     "A+B+B=C": { type: 'add', symbols: 3, uses: [[0, 1, 1], [1, 0, 0]] },
+    //     "A+A=B": { type: 'add', symbols: 2, uses: [[0, 0]] },
+    //     "C-B=A": { type: 'add', symbols: 3, uses: [[0, 1]] },
+    //     "D-A-B=C": { type: 'add', symbols: 3, uses: [[0, 1, 2]] },
+    //     "C-A-A=B": { type: 'add', symbols: 3, uses: [[1, 1, 0], [0, 0, 1]] },
+    // }
+
+    public checkSolution(wordlist: number[], template: string): number {
+        const parsed = this.parsedTemplates[template]
+        let found = 0
+        // If we don't have a parsed instructions for the template, just skip out
+        if (parsed === undefined) {
+            return 0
+        }
+        // Make sure that this is a template that we can handle and it happens to work for
+        // the number of symbols we found
+        if (parsed.symbols !== wordlist.length || parsed.type !== 'add') {
+            return 0
+        }
+        let longest = 0
+        let longset: string[] = []
         const sumands: string[] = []
         for (let ent of wordlist) {
-            sumands.push(this.state.wordlist[ent]);
+            let word = this.state.wordlist[ent]
+            if (word.length > longest) {
+                // We have a new long word, so we know any previous long words are to just be summands
+                if (longset.length) {
+                    sumands.push(...longset)
+                }
+                longset = [word]
+                longest = word.length
+            } else if (word.length === longest) {
+                // This is just as long as the longest, so we add it to the set
+                longset.push(word)
+            } else {
+                // Shorter than the longest, so we know it is just a summand
+                sumands.push(word);
+            }
         }
-        const desc = sumands.sort((a, b) => b.length - a.length);
+        // We have sumands which is the array of words we know to be added
+        // longset is the set of words that are the longest length
+        for (let i = 0; i < longset.length; i++) {
+            const sumset = [...sumands]
+            const sum = longset[i]
+            for (let j = 0; j < longset.length; j++) {
+                if (j !== i) {
+                    sumset.push(longset[j])
+                }
+            }
+            for (let uses of parsed.uses) {
+                const sumsearch: string[] = []
+                for (let k of uses) {
+                    sumsearch.push(sumset[k])
+                }
+                let solutions = cryptarithmSumandSearch(sumsearch, sum, this.base, false, false)
+                if (solutions.count === 1) {
+                    found++
+                    let outset = this.formatTemplateProblem(solutions.mapping, template, sumsearch, sum, parsed.replaces)
+                    $("#findout").append($('<div/>').text(" " + outset[0] + " [" + outset[1] + "] Difficulty:" + String(solutions.difficulty))
+                        .prepend($('<a/>', { class: 'rounded small button' }).text('Use')))
 
-        let sum = sumands.shift();
-        const solutions = cryptarithmSumandSearch(sumands, sum, this.base);
-
+                }
+            }
+        }
+        return found
     }
+    /**
+     * Convert a template to a problem
+     * @param mapping Mapping of letters to number values
+     * @param template Output template
+     * @param sumands sumand strings
+     * @param sum sum string
+     */
+    public formatTemplateProblem(mapping: NumberMap, template: string, sumands: string[], sum: string, replaces: string): string[] {
+        let outmap: StringMap = {}
+        let vresult = ""
+        const sumandcount = sumands.length
+        for (let i = 0; i < sumandcount; i++) {
+            let outc = replaces.substring(i, i + 1);
+            outmap[outc] = sumands[i]
+        }
+        outmap[replaces.substring(replaces.length - 1)] = sum
+        let result = ""
+        for (let c of template) {
+            let v = outmap[c]
+            if (v === undefined) {
+                result += c;
+                vresult += c;
+            } else {
+                result += v
+                // We need to map all the letters to the number values
+                for (let t of v) {
+                    let val = mapping[t]
+                    if (val === undefined) {
+                        vresult += t
+                    } else {
+                        vresult += val
+                    }
+                }
+            }
+        }
+        return [result, vresult]
+    }
+
     /**
      * Show the current mapping of numbers
      * @param ignorevalid Show the mapping even if it isn't valid (for debugging and tracing progress)
@@ -1288,12 +1500,18 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     }
 
     /**
-     * Test out the solver to make sure it works
+     * Switch to problem generation mode
      */
-    public doTest() {
-        const sumands = ["SATURN", "URANUS"]
-        const sum = "PLANETS"
-        cryptarithmSumandSearch(sumands, sum)
+    public doGenerate() {
+        this.generatemode = true;
+        this.updateOutput();
+    }
+    /**
+     * Switch to problem edit mode
+     */
+    public doCipher() {
+        this.generatemode = false;
+        this.updateOutput();
     }
 
     /**
@@ -1301,58 +1519,51 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
-        $('.doprob')
-            .off('click')
-            .on('click', (e) => {
-                $('.probwork').toggle();
-            });
-
-        $('.dosol')
-            .off('click')
-            .on('click', (e) => {
-                $('.solwork').toggle();
-            });
         $('.tall')
             .off('click')
-            .on('click', (e) => {
+            .on('click', () => {
                 this.enableAllTargets()
             })
 
         $('.tnone')
             .off('click')
-            .on('click', (e) => {
+            .on('click', () => {
                 this.disableTargets()
             })
         $('.taddsub')
             .off('click')
-            .on('click', (e) => {
+            .on('click', () => {
                 this.enableTargets('add')
             })
         $('.tmul')
             .off('click')
-            .on('click', (e) => {
+            .on('click', () => {
                 this.enableTargets('mul')
             })
         $('.tdiv')
             .off('click')
-            .on('click', (e) => {
+            .on('click', () => {
                 this.enableTargets('div')
             })
         $('.findprobs')
             .off('click')
-            .on('click', (e) => {
+            .on('click', () => {
                 this.findProblems()
             })
         $('.updmap')
             .off('click')
-            .on('click', (e) => {
+            .on('click', () => {
                 this.updateMap()
             })
-
-        $('#test1')
+        $('#generate')
             .off('click')
-            .on('click', (e) => {
-                this.doTest();
+            .on('click', () => {
+                this.doGenerate();
+            })
+        $('#docipher')
+            .off('click')
+            .on('click', () => {
+                this.doCipher();
             })
         $('#soltext')
             .off('input')
@@ -1365,6 +1576,12 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                     }
                 }
             });
+        $('#stopsearch')
+            .off('click')
+            .on('click', () => {
+                this.setSearching(false);
+            })
+
         $('#wordlist')
             .off('input')
             .on('input', (e) => {

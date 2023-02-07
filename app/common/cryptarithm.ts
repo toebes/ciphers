@@ -129,6 +129,18 @@ export function emptyAlphaMap(): NumberMap {
     return result;
 }
 
+export function copyAlphaMap(map: NumberMap): NumberMap {
+    const result: NumberMap = {};
+    for (let c in map) {
+        result[c] = map[c]
+    }
+    return result
+}
+export interface cryptarithmResult {
+    count: number
+    difficulty: number
+    mapping: NumberMap
+}
 /**
  * This routine taken with permission from http://www.trumancollins.net/truman/alphamet/swp.C
  * which is the backend behind http://www.trumancollins.net/truman/alphamet/alpha_gen.shtml
@@ -155,7 +167,7 @@ export function emptyAlphaMap(): NumberMap {
  * @param print true if results to be printed
  * @returns 
  */
-export function cryptarithmSumandSearch(sumands: string[], sum: string, base: number = 10, just_one = false, print = false) {
+export function cryptarithmSumandSearch(sumands: string[], sum: string, base: number = 10, just_one = false, print = false): cryptarithmResult {
     //    {
     let dbgmsg = "";
     let curr_char = '';
@@ -190,7 +202,7 @@ export function cryptarithmSumandSearch(sumands: string[], sum: string, base: nu
 
     if (sum_length > MAX_LEN) {
         console.log(`Sumand must all be ${MAX_LEN} characters or less.`);
-        return (0);
+        return { count: 0, difficulty: -1, mapping: {} };
     }
     for (const sumstr of sumands) {
         if (sumstr.length > MAX_LEN) {
@@ -199,7 +211,7 @@ export function cryptarithmSumandSearch(sumands: string[], sum: string, base: nu
         }
         // If a summand is longer than the sum, then there is no solution.
         if (sumstr.length > sum_length) {
-            return (0);
+            return { count: 0, difficulty: -1, mapping: {} };
         }
     }
 
@@ -212,6 +224,7 @@ export function cryptarithmSumandSearch(sumands: string[], sum: string, base: nu
     let needed_carry = makeFilledArray(MAX_LEN, 0);
 
     const number_map = emptyAlphaMap();
+    let solution_map = emptyAlphaMap();
     // Initialize the array used to count mappings for each character.
     const map_count = emptyAlphaMap();
 
@@ -275,7 +288,7 @@ export function cryptarithmSumandSearch(sumands: string[], sum: string, base: nu
     // solution is impossible.
 
     if (total_letters_used > base) {
-        return (0);
+        return { count: 0, difficulty: -1, mapping: {} };
     }
 
     // Figure out what the maximum carry is from each column.
@@ -296,8 +309,7 @@ export function cryptarithmSumandSearch(sumands: string[], sum: string, base: nu
     }
 
     // When debugging, print out the summands in their new form.
-    // if (DBG_SOLVE) {
-    {
+    if (DBG_SOLVE) {
         for (let i = 0; i < sumands.length; i++) {
             let rowstr = ""
             for (let j = 0; j < MAX_LEN; j++) {
@@ -344,6 +356,7 @@ export function cryptarithmSumandSearch(sumands: string[], sum: string, base: nu
                 // backtrack to the previous column.
 
                 solutions_found++;
+                solution_map = copyAlphaMap(number_map)
                 if (print) {
                     print_solution(number_map, map_count);
                 }
@@ -352,7 +365,7 @@ export function cryptarithmSumandSearch(sumands: string[], sum: string, base: nu
                 // return right now.
 
                 if (just_one) {
-                    return (1);
+                    return { count: 1, difficulty: difficulty_conv(backtrack_count), mapping: solution_map };
                 }
             }
 
@@ -844,8 +857,8 @@ export function cryptarithmSumandSearch(sumands: string[], sum: string, base: nu
     // than one was found, we returned above.
 
     difficulty = difficulty_conv(backtrack_count);
-    console.log(`${solutions_found} Solutions Found.  Difficulty=${difficulty}`)
-    return (solutions_found);
+    // console.log(`${solutions_found} Solutions Found.  Difficulty=${difficulty}`)
+    return { count: solutions_found, difficulty: difficulty, mapping: solution_map };
 }
 // tslint:disable-next-line:cyclomatic-complexity
 /**

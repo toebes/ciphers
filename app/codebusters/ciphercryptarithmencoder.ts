@@ -16,8 +16,6 @@ import { CipherEncoder } from './cipherencoder';
 interface ICryptarithmState extends IState {
     /** Problem */
     problem: string;
-    /** Keywords for generating the problem */
-    wordlist: string[];
     /** Mapping of letters to values */
     mapping: NumberMap;
     /** The mapping is valid for the formula */
@@ -39,6 +37,17 @@ interface parsedTemplate {
     uses: number[][];
     replaces: string;
 
+}
+
+interface searchState {
+    depth: number   // Current search depth
+    found: number   // Number of cryptarithms found
+    basestr: string[] // Combined string for the depth
+    index: number[] // Current index for the depth
+    start: number[] // Starting index for the depth
+    limit: number[] // Limit index for the depth
+    templates: string[] // Templates to match against
+    maxdepth: number // Maximum depth to search to
 }
 
 /**
@@ -92,7 +101,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         /** The type of operation */
         operation: 'encode' /** a value */,
         problem: '',
-        wordlist: [],
         cipherString: '' /** The type of cipher we are doing */,
         soltext: '', /**  */
         cipherType: ICipherType.Cryptarithm /** The first clicked number in the solution */,
@@ -100,6 +108,10 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         mapping: {},
         validmapping: false,
     };
+
+    /** Keywords for generating the problem */
+    public wordlist: string[] = [];
+    public wordlistunique: string[] = [];
 
     public base = 10;
     public generatemode = false;
@@ -213,8 +225,16 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      */
     public setWordlist(wordlist: string[]): boolean {
         let changed = false;
-        if (wordlist.join(' ') !== this.state.wordlist.join(' ')) {
-            this.state.wordlist = wordlist;
+        if (wordlist.join(' ') !== this.wordlist.join(' ')) {
+            this.wordlist = [];
+            this.wordlistunique = [];
+            // We also need to go through and set the unique values
+            for (let word of wordlist) {
+                let cleaned = this.minimizeString(word)
+                let unique = Array.from(new Set(cleaned.split(""))).join("")
+                this.wordlist.push(cleaned)
+                this.wordlistunique.push(unique)
+            }
             changed = true;
         }
         return changed;
@@ -238,7 +258,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      */
     public updateOutput(): void {
         super.updateOutput();
-        $('#wordlist').val(this.state.wordlist.join('\n'))
+        $('#wordlist').val(this.wordlist.join('\n'))
         $('#soltext').val(this.state.soltext);
 
         this.showMapping(false);
@@ -629,14 +649,23 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
 
         this.attachHandlers();
     }
+    /**
+     * Enable the check boxes for a specific type of template
+     * @param targetset type of template to enable
+     */
     public enableTargets(targetset: ITemplateType) {
         $('.targany').prop('checked', false)
         $('.targ' + targetset).prop('checked', true)
-
     }
+    /**
+     * Disable all the templates for searching
+     */
     public disableTargets() {
         $('.targany').prop('checked', false)
     }
+    /**
+     * Enable all the templates for searching
+     */
     public enableAllTargets() {
         $('.targany').prop('checked', true)
     }
@@ -656,44 +685,9 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             .addClass(calloutclass).append($('<div/>').text(status))
     }
     /**
-     * Find a set of strings which have 10 unique characters
-     * @param basestr Collected string so far
-     * @param index Where we are in the wordlist
-     * @param depth How many words we have collected
-     * @param choices Words in the list that we have picked so far
+     * Set the UI for searching vs non-searching mode
+     * @param doingSearch True/False we are in search mode
      */
-    public findx(basestr: string, index: number, depth: number, choices: number[], templates: string[], maxdepth: number): number {
-        let count = 0;
-        for (let i = index + 1; i < this.state.wordlist.length; i++) {
-            let thisstr = basestr + this.state.wordlist[i];
-            let unique = new Set(thisstr.split("")).size
-            // console.log(`++Check ${thisstr} unique=${unique} depth=${depth}`)
-            if (unique <= this.base) {
-                let localset = choices.slice();
-                localset.push(i)
-                // This is a valid one, so we remember it
-                if (unique === this.base) {
-                    // Let'/'s report the match
-                    let extra = ""
-                    let output = `Checking potential of ${depth} with `;
-                    for (let ent of localset) {
-                        output += extra + this.state.wordlist[ent]
-                        extra = ", "
-                    }
-                    // $("#findout").append($('<div/>').text(output))
-                    this.setSearchResult(output, 'secondary')
-
-                    for (let template of templates) {
-                        count += this.checkSolution(localset, template)
-                    }
-                }
-                if (depth < maxdepth) {
-                    count += this.findx(thisstr, i, depth + 1, localset, templates, maxdepth)
-                }
-            }
-        }
-        return count;
-    }
     public setSearching(doingSearch: boolean) {
         this.doingSearch = doingSearch
         if (doingSearch) {
@@ -706,58 +700,102 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             $('#docipher').removeAttr('disabled')
         }
     }
-    // public matchOne(depth: number, slot: number, templates: string[]) {
-    //     // Find us a slot to work on
-    //     // console.log(`matchOne depth=${depth} slot=${slot} entries=${this.wordmatches[depth].length} templates=${templates.join(',')}`)
-    //     while (depth <= 7 && slot >= this.wordmatches[depth].length) {
-    //         depth++;
-    //         slot = 0;
-    //     }
-    //     if (depth <= 7) {
-    //         // Let/s report the match
-    //         let extra = ""
-    //         let output = `Working on depth ${depth} with `;
-    //         for (let ent of this.wordmatches[depth][slot]) {
-    //             output += extra + this.state.wordlist[ent]
-    //             extra = ", "
-    //         }
-    //         $("#findout").append($('<div/>').text(output))
 
-    //         for (let template of templates) {
-    //             this.checkSolution(this.wordmatches[depth][slot], template)
-    //         }
-    //         this.setSearchResult(output, 'secondary')
-
-    //         slot++;
-    //         if (this.doingSearch) {
-    //             setTimeout(() => { this.matchOne(depth, slot, templates) }, 10)
-    //         } else {
-    //             this.setSearchResult('Search Stopped', 'warning')
-    //         }
-    //     } else {
-    //         this.setSearching(false);
-    //         this.setSearchResult('Search Complete', 'primary')
-    //     }
+    //count += this.findx(this.state.wordlist[index], index, 2, [index], templates, maxdepth)
+    // interface searchState {
+    //     depth: number
+    //     basestr : string[]
+    //     index: number[]
+    //     choices: number[][]
+    //     templates: string[]
+    //     maxdepth: number
     // }
+    /**
+     * Find a set of strings which have 10 unique characters
+     * We only want to run through 1000 or so entries before returning to update the UI
+     * @param basestr Collected string so far
+     * @param index Where we are in the wordlist
+     * @param depth How many words we have collected
+     * @param choices Words in the list that we have picked so far
+     */
+    public findx(state: searchState): boolean {
+        for (let processed = 0; processed < 1000; processed++) {
+            let depth = state.depth
+            state.index[depth]++
+            let slot = state.index[depth]
+            if (slot <= state.limit[depth]) {
+                // We can use this level
+                const thisstr = state.basestr[depth - 1] + this.wordlistunique[slot]
+                const uniqueset = new Set(thisstr.split(""))
+                const unique = uniqueset.size
+                // If there are less unique letters than the number base, we know that
+                // we can try to use it.  Otherwise we will have to advance to the next level
+                if (unique <= this.base) {
+                    let found = 0
+                    // This is a potential candidate
+                    if (unique === this.base) {
+                        let localset = state.index.slice(1, depth + 1)
+                        for (let template of state.templates) {
+                            found += this.checkSolution(localset, template)
+                        }
+                    }
+                    // Even though we found one that matches, there might be a lower level
+                    // set of strings which will also work.  For example if we have three words
+                    //              ARTIST, EXTRA, VILLIAN 
+                    // we could also include STAR
+                    //              ARTIST, EXTRA, VILLIAN, STAR 
+                    // and even STARVE
+                    //              ARTIST, EXTRA, VILLIAN, STAR, STARVE 
+                    // because those words don't use any extra letters that weren't in the first three words
+                    state.basestr[state.depth] = Array.from(uniqueset).join("")
+                    if (state.depth < state.maxdepth) {
+                        state.depth++
+                        state.index[state.depth] = slot
+                    }
+                    state.found += found
+                    // Since we did some work and found one, we need to exit to let the UI update
+                    if (found) {
+                        return true
+                    }
+                }
+            } else {
+                // We need to back track up the levels
+                while (state.index[state.depth] >= state.limit[state.depth]) {
+                    state.depth--;
+                    // If we hit the top, we are done!
+                    if (state.depth <= 0) {
+                        return false
+                    }
+                }
+            }
+        }
+        // We ran through a bunch of entries 
+        return true;
+    }
 
     /**
      * Process one word in the word list to find all other matches
      * @param index Index into the word list to look at
      * @param templates Templates to match against
      */
-    public findOneWordSet(index: number, count: number, templates: string[], maxdepth: number) {
-        if (index < this.state.wordlist.length) {
-            count += this.findx(this.state.wordlist[index], index, 2, [index], templates, maxdepth)
+    public findOneWordSet(state: searchState) {
+        // Figure out how far along we are.  We can use the first two levels as a good approximation
+        let processed = state.index[1] * this.wordlist.length + state.index[2];
+        let total = (this.wordlist.length - 1) * this.wordlist.length;
+        let pctcomplete = (100 * processed / total).toFixed(2)
+        this.setSearchResult(String(pctcomplete) + '% Complete - Searching ' + state.maxdepth + ' combinations of ' + this.wordlist.length + ' words. Found ' + state.found + ' Cryptarithms.', 'secondary');
 
+        const running = this.findx(state)
+        if (running) {
             if (this.doingSearch) {
-                setTimeout(() => { this.findOneWordSet(index + 1, count, templates, maxdepth) }, 10);
+                setTimeout(() => { this.findOneWordSet(state) }, 10);
             } else {
-                this.setSearchResult('Search Stopped ' + String(count) + " Cryptarithms found", 'warning')
+                this.setSearchResult('Search Stopped ' + String(state.found) + " Cryptarithms found", 'warning')
             }
             return;
         }
         this.setSearching(false);
-        this.setSearchResult('Search Complete: ' + String(count) + " Cryptarithms found", 'success')
+        this.setSearchResult('Search Complete: ' + String(state.found) + " Cryptarithms found", 'success')
     }
     /**
      * Find all the groups of <n> words which include exactly 10 unique letters
@@ -765,6 +803,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      */
     public findWordGroups(templates: string[]) {
         this.setSearching(true);
+
         $("#findout").empty();
         let maxdepth = 0
         for (let template of templates) {
@@ -773,7 +812,30 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 maxdepth = parsed.symbols
             }
         }
-        this.findOneWordSet(0, 0, templates, maxdepth)
+        // If they only give us 3 words, then that's the furthest down the list we can go
+        if (maxdepth > this.wordlist.length) {
+            maxdepth = this.wordlist.length
+        }
+
+        // First we need to set up the state
+        let state: searchState = {
+            found: 0,
+            depth: 1,
+            basestr: [""],
+            index: [-1],
+            start: [0],
+            limit: [0],
+            templates: templates,
+            maxdepth: maxdepth
+        }
+        // Fix up the state starts and limits
+        for (let i = 0; i < maxdepth; i++) {
+            state.index.push(i - 1)
+            state.start.push(i)
+            state.limit.push(i + (this.wordlist.length - maxdepth))
+            state.basestr.push("")
+        }
+        this.findOneWordSet(state)
     }
 
     /**
@@ -781,10 +843,10 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      */
     public findProblems() {
         // Let them know we are in search mode
-        this.setSearchResult('working with ' + this.state.wordlist.length + ' words.', 'success');
+        this.setSearchResult('working with ' + this.wordlist.length + ' words.', 'success');
         // Figure out what templates they are going to use
         const templatechoices = $('.targany:checked');
-        if (this.state.wordlist.length < 2) {
+        if (this.wordlist.length < 2) {
             this.setSearchResult('The "Words to Try" list needs to have at least two words to work from.  Did you enter any?', 'alert')
         } else if (templatechoices.length === 0) {
             this.setSearchResult('No "Problem Style" templates have been selected.  Please select what type of problem to search for', 'alert')
@@ -1010,7 +1072,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         let longset: string[] = []
         const sumands: string[] = []
         for (let ent of wordlist) {
-            let word = this.state.wordlist[ent]
+            let word = this.wordlist[ent]
             if (word.length > longest) {
                 // We have a new long word, so we know any previous long words are to just be summands
                 if (longset.length) {
@@ -1590,7 +1652,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 if (wordliststr !== "") {
                     wordlist = wordliststr.split(/[^A-Z]+/);
                 }
-                if (wordlist.join(' ') !== this.state.wordlist.join(' ')) {
+                if (wordlist.join(' ') !== this.wordlist.join(' ')) {
                     this.markUndo('wordlist');
                     if (this.setWordlist(wordlist)) {
                         this.updateOutput();

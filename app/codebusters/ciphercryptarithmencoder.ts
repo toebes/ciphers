@@ -1,4 +1,4 @@
-import { BoolMap, cloneObject, makeCallout, makeFilledArray, NumberMap, StringMap } from '../common/ciphercommon';
+import { BoolMap, cloneObject, makeCallout, makeFilledArray, NumberMap, StringMap, setCharAt } from '../common/ciphercommon';
 import {
     IState,
     ITestType,
@@ -38,16 +38,19 @@ interface parsedTemplate {
     replaces: string;
 
 }
-
+/**
+ * This tracks where we are searching so that we can take breaks and
+ * allow the UI to update
+ */
 interface searchState {
-    depth: number   // Current search depth
-    found: number   // Number of cryptarithms found
-    basestr: string[] // Combined string for the depth
-    index: number[] // Current index for the depth
-    start: number[] // Starting index for the depth
-    limit: number[] // Limit index for the depth
+    depth: number       // Current search depth
+    maxdepth: number    // Maximum depth to search to
+    found: number       // Number of cryptarithms found
+    basestr: string[]   // Combined string for the depth
+    index: number[]     // Current index for the depth
+    start: number[]     // Starting index for the depth
+    limit: number[]     // Limit index for the depth
     templates: string[] // Templates to match against
-    maxdepth: number // Maximum depth to search to
 }
 
 /**
@@ -116,6 +119,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public base = 10;
     public generatemode = false;
     public doingSearch = false;
+    private searchTimer: NodeJS.Timeout = undefined;
     public generateButton: JTButtonItem = {
         title: 'Generate Problems',
         id: 'generate',
@@ -695,30 +699,24 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             $('#stopsearch').removeAttr('disabled')
             $('#docipher').attr('disabled', 'disabled')
         } else {
+            if (this.searchTimer !== undefined) {
+                clearTimeout(this.searchTimer)
+                this.searchTimer = undefined
+            }
             $('.findprobs').removeAttr('disabled')
             $('#stopsearch').attr('disabled', 'disabled')
             $('#docipher').removeAttr('disabled')
         }
     }
-
-    //count += this.findx(this.state.wordlist[index], index, 2, [index], templates, maxdepth)
-    // interface searchState {
-    //     depth: number
-    //     basestr : string[]
-    //     index: number[]
-    //     choices: number[][]
-    //     templates: string[]
-    //     maxdepth: number
-    // }
     /**
-     * Find a set of strings which have 10 unique characters
+     * Find a set of strings which have this.base (10) unique characters
      * We only want to run through 1000 or so entries before returning to update the UI
-     * @param basestr Collected string so far
-     * @param index Where we are in the wordlist
-     * @param depth How many words we have collected
-     * @param choices Words in the list that we have picked so far
+     * However if we do find a valid match, we return immediately to update the UI
+     * @param state State structure to hold current place in search
+     * @returns boolean true indicates there are more remaining to search
+     *          false indicates that all the potential combinations have been processed
      */
-    public findx(state: searchState): boolean {
+    public findWordSet(state: searchState): boolean {
         for (let processed = 0; processed < 1000; processed++) {
             let depth = state.depth
             state.index[depth]++
@@ -779,16 +777,18 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      * @param templates Templates to match against
      */
     public findOneWordSet(state: searchState) {
+        this.searchTimer = undefined
         // Figure out how far along we are.  We can use the first two levels as a good approximation
         let processed = state.index[1] * this.wordlist.length + state.index[2];
         let total = (this.wordlist.length - 1) * this.wordlist.length;
         let pctcomplete = (100 * processed / total).toFixed(2)
         this.setSearchResult(String(pctcomplete) + '% Complete - Searching ' + state.maxdepth + ' combinations of ' + this.wordlist.length + ' words. Found ' + state.found + ' Cryptarithms.', 'secondary');
 
-        const running = this.findx(state)
+        const running = this.findWordSet(state)
+        this.attachHandlers();
         if (running) {
             if (this.doingSearch) {
-                setTimeout(() => { this.findOneWordSet(state) }, 10);
+                this.searchTimer = setTimeout(() => { this.findOneWordSet(state) }, 10);
             } else {
                 this.setSearchResult('Search Stopped ' + String(state.found) + " Cryptarithms found", 'warning')
             }
@@ -1106,9 +1106,20 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 let solutions = cryptarithmSumandSearch(sumsearch, sum, this.base, false, false)
                 if (solutions.count === 1) {
                     found++
+                    // We need to build the replacement template
+                    let replacements = "??????????"
+                    for (const c of Object.keys(solutions.mapping)) {
+                        replacements = setCharAt(replacements, solutions.mapping[c], c)
+                    }
                     let outset = this.formatTemplateProblem(solutions.mapping, template, sumsearch, sum, parsed.replaces)
+                    const usebutton = $('<a/>', { class: 'rounded small button useprob', 'data-prob': outset[0], 'data-sol': replacements }).text('Use')
                     $("#findout").append($('<div/>').text(" " + outset[0] + " [" + outset[1] + "] Difficulty:" + String(solutions.difficulty))
-                        .prepend($('<a/>', { class: 'rounded small button' }).text('Use')))
+                        .prepend(usebutton))
+                    $(usebutton)
+                        .off('click')
+                        .on('click', (e) => {
+                            this.setProblem(e.target)
+                        })
 
                 }
             }
@@ -1573,7 +1584,21 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      */
     public doCipher() {
         this.generatemode = false;
+        this.setSearching(false);
         this.updateOutput();
+    }
+
+    public setProblem(elem: HTMLElement) {
+        const problem = $(elem).attr('data-prob')
+        const replacement = $(elem).attr('data-sol')
+        this.setCipherString(problem)
+        // We need to set the replacements
+
+        this.state.validmapping = true;
+        for (let i = 0; i < replacement.length; i++) {
+            this.state.mapping[replacement.substring(i, i + 1)] = i
+        }
+        this.doCipher()
     }
 
     /**
@@ -1643,7 +1668,11 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             .on('click', () => {
                 this.setSearching(false);
             })
-
+        $('.useprob')
+            .off('click')
+            .on('click', (e) => {
+                this.setProblem(e.target)
+            })
         $('#wordlist')
             .off('input')
             .on('input', (e) => {

@@ -129,13 +129,16 @@ export function emptyAlphaMap(): NumberMap {
     return result;
 }
 
-export function copyAlphaMap(map: NumberMap): NumberMap {
+export function copySolutionMap(map: NumberMap, map_count: NumberMap): NumberMap {
     const result: NumberMap = {};
     for (let c in map) {
-        result[c] = map[c]
+        if (map_count[c] > 0) {
+            result[c] = map[c]
+        }
     }
     return result
 }
+
 export interface cryptarithmResult {
     count: number
     difficulty: number
@@ -356,7 +359,7 @@ export function cryptarithmSumandSearch(sumands: string[], sum: string, base: nu
                 // backtrack to the previous column.
 
                 solutions_found++;
-                solution_map = copyAlphaMap(number_map)
+                solution_map = copySolutionMap(number_map, map_count)
                 if (print) {
                     print_solution(number_map, map_count);
                 }

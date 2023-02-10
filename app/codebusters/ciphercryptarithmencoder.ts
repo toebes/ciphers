@@ -43,14 +43,14 @@ interface parsedTemplate {
  * allow the UI to update
  */
 interface searchState {
-    depth: number       // Current search depth
-    maxdepth: number    // Maximum depth to search to
-    found: number       // Number of cryptarithms found
-    basestr: string[]   // Combined string for the depth
-    index: number[]     // Current index for the depth
-    start: number[]     // Starting index for the depth
-    limit: number[]     // Limit index for the depth
-    templates: string[] // Templates to match against
+    depth: number           // Current search depth
+    maxdepth: number        // Maximum depth to search to
+    found: number           // Number of cryptarithms found
+    basearray: string[][]   // Combined array of unique letters for the depth
+    index: number[]         // Current index for the depth
+    start: number[]         // Starting index for the depth
+    limit: number[]         // Limit index for the depth
+    templates: string[]     // Templates to match against
 }
 
 /**
@@ -76,12 +76,10 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         // { type: 'div', template: "A/B=C" },
         // { type: 'div', template: "A/B=?" },  // TODO: Need to be able to specify the result
     ]
-    public parsedTemplates: { [index: string]: parsedTemplate } = {
-        // W X Y Z
-        // W X Z Y 
-        // W Y Z X  
-        // X Y Z W 
 
+    // For now we pre-define the parsed templates.  Eventually we need to write code
+    // that takes the string and parses it into the correponding template
+    public parsedTemplates: { [index: string]: parsedTemplate } = {
         "A+B=C": { type: 'add', symbols: 3, uses: [[0, 1]], replaces: "ABC" },
         "A+B+C=D": { type: 'add', symbols: 4, uses: [[0, 1, 2]], replaces: "ABCD" },
         "A+B+B=C": { type: 'add', symbols: 3, uses: [[0, 1, 1], [1, 0, 0]], replaces: "ABBC" },
@@ -90,7 +88,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         "D-A-B=C": { type: 'add', symbols: 4, uses: [[0, 1, 2]], replaces: "ABCD" },
         "C-A-A=B": { type: 'add', symbols: 3, uses: [[1, 1, 0], [0, 0, 1]], replaces: "AABC" },
     }
-
 
     public validTests: ITestType[] = [
         ITestType.None,
@@ -114,7 +111,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
 
     /** Keywords for generating the problem */
     public wordlist: string[] = [];
-    public wordlistunique: string[] = [];
+    public wordlistuniqueset: string[][] = []
 
     public base = 10;
     public generatemode = false;
@@ -231,13 +228,12 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         let changed = false;
         if (wordlist.join(' ') !== this.wordlist.join(' ')) {
             this.wordlist = [];
-            this.wordlistunique = [];
             // We also need to go through and set the unique values
             for (let word of wordlist) {
                 let cleaned = this.minimizeString(word)
-                let unique = Array.from(new Set(cleaned.split(""))).join("")
+                let uniquearray = Array.from(new Set(cleaned.split("")))
                 this.wordlist.push(cleaned)
-                this.wordlistunique.push(unique)
+                this.wordlistuniqueset.push(uniquearray)
             }
             changed = true;
         }
@@ -723,21 +719,22 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             let slot = state.index[depth]
             if (slot <= state.limit[depth]) {
                 // We can use this level
-                const thisstr = state.basestr[depth - 1] + this.wordlistunique[slot]
-                const uniqueset = new Set(thisstr.split(""))
-                const unique = uniqueset.size
+                const uniquearry = Array.from(new Set(state.basearray[depth - 1].concat(this.wordlistuniqueset[slot])))
+                const unique = uniquearry.length
                 // If there are less unique letters than the number base, we know that
                 // we can try to use it.  Otherwise we will have to advance to the next level
                 if (unique <= this.base) {
                     let found = 0
                     // This is a potential candidate
                     if (unique === this.base) {
+                        // Get the index of all the words we have chosen so far
                         let localset = state.index.slice(1, depth + 1)
+                        // And try them out against all the templates we have
                         for (let template of state.templates) {
                             found += this.checkSolution(localset, template)
                         }
                     }
-                    // Even though we found one that matches, there might be a lower level
+                    // Even though we may have found one that matches, there might be a lower level
                     // set of strings which will also work.  For example if we have three words
                     //              ARTIST, EXTRA, VILLIAN 
                     // we could also include STAR
@@ -745,13 +742,13 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                     // and even STARVE
                     //              ARTIST, EXTRA, VILLIAN, STAR, STARVE 
                     // because those words don't use any extra letters that weren't in the first three words
-                    state.basestr[state.depth] = Array.from(uniqueset).join("")
+                    state.basearray[state.depth] = uniquearry
                     if (state.depth < state.maxdepth) {
                         state.depth++
                         state.index[state.depth] = slot
                     }
                     state.found += found
-                    // Since we did some work and found one, we need to exit to let the UI update
+                    // Since we did some work, if we found one, we need to exit to let the UI update
                     if (found) {
                         return true
                     }
@@ -767,34 +764,34 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 }
             }
         }
-        // We ran through a bunch of entries 
+        // We ran through a bunch of entries, take a break for the UI
         return true;
     }
 
     /**
-     * Process one word in the word list to find all other matches
-     * @param index Index into the word list to look at
-     * @param templates Templates to match against
+     * Main loop to search for sets.  This uses a timeout to repetetively call findWordSet() to
+     * continue processing through all the combinations
+     * @param state State structure to hold current place in search
      */
-    public findOneWordSet(state: searchState) {
+    public findWordSets(state: searchState) {
         this.searchTimer = undefined
         // Figure out how far along we are.  We can use the first two levels as a good approximation
         let processed = state.index[1] * this.wordlist.length + state.index[2];
         let total = (this.wordlist.length - 1) * this.wordlist.length;
         let pctcomplete = (100 * processed / total).toFixed(2)
         this.setSearchResult(String(pctcomplete) + '% Complete - Searching ' + state.maxdepth + ' combinations of ' + this.wordlist.length + ' words. Found ' + state.found + ' Cryptarithms.', 'secondary');
-
+        // Call our workhorse routine.  If it finds any (or goes a while without finding any) it gives a break so we can update the UI
         const running = this.findWordSet(state)
-        this.attachHandlers();
         if (running) {
             if (this.doingSearch) {
-                this.searchTimer = setTimeout(() => { this.findOneWordSet(state) }, 10);
+                this.searchTimer = setTimeout(() => { this.findWordSets(state) }, 1);
             } else {
                 this.setSearchResult('Search Stopped ' + String(state.found) + " Cryptarithms found", 'warning')
             }
             return;
         }
         this.setSearching(false);
+        this.attachHandlers();
         this.setSearchResult('Search Complete: ' + String(state.found) + " Cryptarithms found", 'success')
     }
     /**
@@ -821,21 +818,21 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         let state: searchState = {
             found: 0,
             depth: 1,
-            basestr: [""],
+            basearray: [[]],
             index: [-1],
             start: [0],
             limit: [0],
             templates: templates,
             maxdepth: maxdepth
         }
-        // Fix up the state starts and limits
+        // Set up the state starts and limits
         for (let i = 0; i < maxdepth; i++) {
             state.index.push(i - 1)
             state.start.push(i)
             state.limit.push(i + (this.wordlist.length - maxdepth))
-            state.basestr.push("")
+            state.basearray.push([])
         }
-        this.findOneWordSet(state)
+        this.findWordSets(state)
     }
 
     /**

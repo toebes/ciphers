@@ -231,9 +231,11 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             // We also need to go through and set the unique values
             for (let word of wordlist) {
                 let cleaned = this.minimizeString(word)
-                let uniquearray = Array.from(new Set(cleaned.split("")))
-                this.wordlist.push(cleaned)
-                this.wordlistuniqueset.push(uniquearray)
+                if (!this.wordlist.includes(cleaned)) {
+                    let uniquearray = Array.from(new Set(cleaned.split("")))
+                    this.wordlist.push(cleaned)
+                    this.wordlistuniqueset.push(uniquearray)
+                }
             }
             changed = true;
         }
@@ -1671,8 +1673,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 this.setProblem(e.target)
             })
         $('#wordlist')
-            .off('input')
-            .on('input', (e) => {
+            .off('change')
+            .on('change', (e) => {
                 const wordliststr = ($(e.target).val() as string).trim().toUpperCase();
                 let wordlist = [];
                 if (wordliststr !== "") {

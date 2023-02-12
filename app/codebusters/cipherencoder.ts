@@ -767,12 +767,15 @@ export class CipherEncoder extends CipherHandler {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>');
         const strings = this.genTestStrings(testType);
+        let answerclass = 'TOANSWER'
         let extraclass = '';
         if (testType === ITestType.aregional) {
             extraclass = ' atest';
         }
 
         if (this.state.operation === 'keyword') {
+            answerclass = 'TOANSWERK'
+
             const keyanswer = this.state.keyword.toUpperCase();
             let keytype = "Keyword";
             if (this.minimizeString(keyanswer).length !== keyanswer.length) {
@@ -803,7 +806,7 @@ export class CipherEncoder extends CipherHandler {
             );
             result.append(
                 $('<div/>', {
-                    class: 'TOANSWER' + extraclass,
+                    class: answerclass + extraclass,
                 }).text(strset[toanswer])
             );
         }

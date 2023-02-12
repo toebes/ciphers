@@ -855,7 +855,8 @@ textarea.intnote {
 .TOSOLVE,
 .TOSOLVE2,
 .TOSOLVEQ,
-.TOANSWER {
+.TOANSWER,
+.TOANSWERK {
     font-family: 'Courier New', Courier, monospace;
     font-size: 22px;
     font-weight: bold;
@@ -895,9 +896,13 @@ table.bacon tbody tr {
     margin-bottom: 6rem;
 }
 
+.TOANSWER,
+.TOANSWERK {
+    margin-bottom: 16pt;
+}
+
 .TOANSWER {
     background-color: yellow !important;
-    margin-bottom: 16pt;
 }
 
 .TOSOLVECLICK,

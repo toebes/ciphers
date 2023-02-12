@@ -2175,6 +2175,9 @@ table.railfence-sm tbody {
     div.instructions {
         display: block;
     }
+    div.instructions li {
+        margin-left: 15px;
+    }
     tbody td {
         padding: 0.27rem;
     }

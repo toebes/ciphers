@@ -259,6 +259,8 @@ export interface IQuestionData {
     qnum: number;
     /** The number of points for the question */
     points: number;
+    /** If this is a 'special bonus' question... */
+    specialBonus: boolean;
 }
 export interface IInteractiveTest {
     /** Title of the test */

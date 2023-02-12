@@ -167,7 +167,7 @@ export class CipherTestInteractive extends CipherTest {
             const answertemplate = cipherhandler.getInteractiveTemplate();
             answertemplate.solvetime = 0;
             answerdata.push(answertemplate);
-            interactive.qdata.push({ qnum: -1, points: interactive.timed.points });
+            interactive.qdata.push({ qnum: -1, points: interactive.timed.points, specialBonus: false });
         }
         // Go through all the questions and generate the interactive portion
         for (let qnum = 0; qnum < test.count; qnum++) {
@@ -202,7 +202,7 @@ export class CipherTestInteractive extends CipherTest {
             ) as IState;
             answerdata.push(cipherhandler.getInteractiveTemplate());
             interactive.questions.push(idata);
-            interactive.qdata.push({ qnum: qnum, points: idata.points });
+            interactive.qdata.push({ qnum: qnum, points: idata.points, specialBonus: idata.specialbonus });
             interactive.count++;
 
             // Capture any running keys for the interactive test

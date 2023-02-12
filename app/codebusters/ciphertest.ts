@@ -1684,7 +1684,7 @@ export class CipherTest extends CipherHandler {
         const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
         cipherhandler.restore(state);
         // Remember this question points so we can generate the tiebreaker order
-        this.qdata.push({ qnum: qnum, points: state.points });
+        this.qdata.push({ qnum: qnum, points: state.points, specialBonus: state.specialbonus });
         result.append(cipherhandler.genAnswer(testType));
         if (printSolution) {
             result.append(cipherhandler.genSolution(testType));
@@ -1758,7 +1758,7 @@ export class CipherTest extends CipherHandler {
             }
         }
         // Remember this question points so we can generate the score sheet
-        this.qdata.push({ qnum: qnum, points: state.points });
+        this.qdata.push({ qnum: qnum, points: state.points, specialBonus: state.specialbonus });
         result.append(cipherhandler.genQuestion(testType));
         return result;
     }

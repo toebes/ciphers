@@ -355,6 +355,7 @@ export class CipherTestPrint extends CipherTest {
             class: 'cell shrink testscores',
         });
         let hastimed = false;
+        let hasSpecialBonus = false;
         table
             .addHeaderRow()
             .add('Question')
@@ -369,6 +370,10 @@ export class CipherTestPrint extends CipherTest {
                 hastimed = true;
             } else {
                 qtitle = String(qitem.qnum);
+                if (qitem.specialBonus) {
+                    hasSpecialBonus = true;
+                    qtitle += '&#9733;';
+                }
             }
             const trow = table
                 .addBodyRow()
@@ -393,14 +398,26 @@ export class CipherTestPrint extends CipherTest {
         }
         // }
         // If we had a timed question, we put in the slot for the bonus
-        if (hastimed) {
+        if (hastimed || hasSpecialBonus) {
+
+            let label = 'Bonuses';
+            let timedBonus = 'Timed:';
+            let specialPoints = 'Special Bonus:&nbsp;&nbsp;&#9733; = 150;&nbsp;&nbsp;&#9733;&#9733; = 400;&nbsp;&nbsp;&#9733;&#9733;&#9733; = 750';
+            if (hastimed && !hasSpecialBonus) {
+                specialPoints = ''
+                label = 'Timed Bonus';
+            } else if (!hastimed && hasSpecialBonus) {
+                label = 'Special Bonus';
+                timedBonus = '';
+            }
+
             table
                 .addFooterRow()
-                .add('Bonus')
-                .add('')
+                .add(label)
+                .add(timedBonus)
                 .add({
                     settings: { colspan: 2, class: 'grey' },
-                    content: '',
+                    content: specialPoints,
                 })
                 .add('');
         }

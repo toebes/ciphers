@@ -43,14 +43,15 @@ interface parsedTemplate {
  * allow the UI to update
  */
 interface searchState {
-    depth: number           // Current search depth
-    maxdepth: number        // Maximum depth to search to
-    found: number           // Number of cryptarithms found
-    basearray: string[][]   // Combined array of unique letters for the depth
-    index: number[]         // Current index for the depth
-    start: number[]         // Starting index for the depth
-    limit: number[]         // Limit index for the depth
-    templates: string[]     // Templates to match against
+    startTime: number   // Time that we started for tracking performance
+    depth: number       // Current search depth
+    maxdepth: number    // Maximum depth to search to
+    found: number       // Number of cryptarithms found
+    basemask: number[]  // Combined array of unique letters for the depth
+    index: number[]     // Current index for the depth
+    start: number[]     // Starting index for the depth
+    limit: number[]     // Limit index for the depth
+    templates: string[] // Templates to match against
 }
 
 /**
@@ -59,7 +60,34 @@ interface searchState {
 export class CipherCryptarithmEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Cryptarithm';
-    //    public wordmatches: number[][][];
+    public lettermask: { [index: string]: number } = {
+        'A': 1 << 0,
+        'B': 1 << 1,
+        'C': 1 << 2,
+        'D': 1 << 3,
+        'E': 1 << 4,
+        'F': 1 << 5,
+        'G': 1 << 6,
+        'H': 1 << 7,
+        'I': 1 << 8,
+        'J': 1 << 9,
+        'K': 1 << 10,
+        'L': 1 << 11,
+        'M': 1 << 12,
+        'N': 1 << 13,
+        'O': 1 << 14,
+        'P': 1 << 15,
+        'Q': 1 << 16,
+        'R': 1 << 17,
+        'S': 1 << 18,
+        'T': 1 << 19,
+        'U': 1 << 20,
+        'V': 1 << 21,
+        'W': 1 << 22,
+        'X': 1 << 23,
+        'Y': 1 << 24,
+        'Z': 1 << 25,
+    }
 
     public templates: ITemplate[] = [
         { type: 'add', template: "A+B=C" },
@@ -111,7 +139,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
 
     /** Keywords for generating the problem */
     public wordlist: string[] = [];
-    public wordlistuniqueset: string[][] = []
+    public wordlistmask: number[] = []
 
     public base = 10;
     public generatemode = false;
@@ -219,6 +247,16 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         }
         return changed;
     }
+    public genMask(word: string): number {
+        let result = 0
+        for (let c of word.toUpperCase()) {
+            const val = this.lettermask[c]
+            if (val !== undefined) {
+                result |= val
+            }
+        }
+        return result
+    }
     /**
      * Update the list of words to search for
      * @param wordlist List of words to set
@@ -232,9 +270,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             for (let word of wordlist) {
                 let cleaned = this.minimizeString(word)
                 if (!this.wordlist.includes(cleaned)) {
-                    let uniquearray = Array.from(new Set(cleaned.split("")))
                     this.wordlist.push(cleaned)
-                    this.wordlistuniqueset.push(uniquearray)
+                    this.wordlistmask.push(this.genMask(cleaned))
                 }
             }
             changed = true;
@@ -721,8 +758,13 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             let slot = state.index[depth]
             if (slot <= state.limit[depth]) {
                 // We can use this level
-                const uniquearry = Array.from(new Set(state.basearray[depth - 1].concat(this.wordlistuniqueset[slot])))
-                const unique = uniquearry.length
+                const uniquemask = state.basemask[depth - 1] | this.wordlistmask[slot]
+                // From https://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel 
+                // count the number of one bits in the mask
+                let n = uniquemask - ((uniquemask >> 1) & 0x55555555)
+                n = (n & 0x33333333) + ((n >> 2) & 0x33333333)
+                const unique = ((n + (n >> 4) & 0xF0F0F0F) * 0x1010101) >> 24
+
                 // If there are less unique letters than the number base, we know that
                 // we can try to use it.  Otherwise we will have to advance to the next level
                 if (unique <= this.base) {
@@ -744,7 +786,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                     // and even STARVE
                     //              ARTIST, EXTRA, VILLIAN, STAR, STARVE 
                     // because those words don't use any extra letters that weren't in the first three words
-                    state.basearray[state.depth] = uniquearry
+                    state.basemask[state.depth] = uniquemask
                     if (state.depth < state.maxdepth) {
                         state.depth++
                         state.index[state.depth] = slot
@@ -794,7 +836,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         }
         this.setSearching(false);
         this.attachHandlers();
-        this.setSearchResult('Search Complete: ' + String(state.found) + " Cryptarithms found", 'success')
+        let interval = (new Date().getTime()) - state.startTime
+        this.setSearchResult('Search Complete: ' + String(state.found) + " Cryptarithms found in " + String((interval / 1000).toFixed(2)) + " Seconds", 'success')
     }
     /**
      * Find all the groups of <n> words which include exactly 10 unique letters
@@ -818,9 +861,10 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
 
         // First we need to set up the state
         let state: searchState = {
+            startTime: new Date().getTime(),
             found: 0,
             depth: 1,
-            basearray: [[]],
+            basemask: [],
             index: [-1],
             start: [0],
             limit: [0],
@@ -832,7 +876,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             state.index.push(i - 1)
             state.start.push(i)
             state.limit.push(i + (this.wordlist.length - maxdepth))
-            state.basearray.push([])
+            state.basemask.push(0)
         }
         this.findWordSets(state)
     }

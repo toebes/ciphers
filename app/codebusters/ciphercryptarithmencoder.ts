@@ -30,28 +30,41 @@ interface ITemplate {
     type: ITemplateType,
     template: string,
 }
-
+/**
+ * This template identifies what a parsed string would execute as
+ */
 interface parsedTemplate {
     type: ITemplateType;
     symbols: number;
     uses: number[][];
     replaces: string;
-
+}
+/**
+ * These are execution templates.  They are the reverse of the parsedTemplate
+ * to allow us to take advantage of only checking once for the formulas
+ * A+B=C and C=A-B
+ */
+interface execTemplate {
+    type: ITemplateType;
+    symbols: number;
+    uses: number[];
+    replaces: string;
+    formulas: string[];
 }
 /**
  * This tracks where we are searching so that we can take breaks and
  * allow the UI to update
  */
 interface searchState {
-    startTime: number   // Time that we started for tracking performance
-    depth: number       // Current search depth
-    maxdepth: number    // Maximum depth to search to
-    found: number       // Number of cryptarithms found
-    basemask: number[]  // Combined array of unique letters for the depth
-    index: number[]     // Current index for the depth
-    start: number[]     // Starting index for the depth
-    limit: number[]     // Limit index for the depth
-    templates: string[] // Templates to match against
+    startTime: number           // Time that we started for tracking performance
+    depth: number               // Current search depth
+    maxdepth: number            // Maximum depth to search to
+    found: number               // Number of cryptarithms found
+    basemask: number[]          // Combined array of unique letters for the depth
+    index: number[]             // Current index for the depth
+    start: number[]             // Starting index for the depth
+    limit: number[]             // Limit index for the depth
+    templates: execTemplate[]   // Templates to process
 }
 
 /**
@@ -266,6 +279,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         let changed = false;
         if (wordlist.join(' ') !== this.wordlist.join(' ')) {
             this.wordlist = [];
+            this.wordlistmask = [];
             // We also need to go through and set the unique values
             for (let word of wordlist) {
                 let cleaned = this.minimizeString(word)
@@ -843,15 +857,14 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      * Find all the groups of <n> words which include exactly 10 unique letters
      * @param templates Templates to match against
      */
-    public findWordGroups(templates: string[]) {
+    public findWordGroups(templates: execTemplate[]) {
         this.setSearching(true);
 
         $("#findout").empty();
         let maxdepth = 0
         for (let template of templates) {
-            const parsed = this.parsedTemplates[template]
-            if (parsed.symbols > maxdepth) {
-                maxdepth = parsed.symbols
+            if (template.symbols > maxdepth) {
+                maxdepth = template.symbols
             }
         }
         // If they only give us 3 words, then that's the furthest down the list we can go
@@ -880,7 +893,23 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         }
         this.findWordSets(state)
     }
-
+    /**
+     * Determines if two arrays of numbers are exactly the same
+     * @param a1 First Number array
+     * @param a2 Second Number Array
+     */
+    public isSame(a1: number[], a2: number[]): boolean {
+        let len = a1.length
+        if (len != a2.length) {
+            return false
+        }
+        for (let i = 0; i < len; i++) {
+            if (a1[i] !== a2[i]) {
+                return false
+            }
+        }
+        return true
+    }
     /**
      * Find all problems which meet the critaria
      */
@@ -894,9 +923,29 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         } else if (templatechoices.length === 0) {
             this.setSearchResult('No "Problem Style" templates have been selected.  Please select what type of problem to search for', 'alert')
         } else {
-            const templates: string[] = [];
+            const templates: execTemplate[] = [];
             templatechoices.each((i, elem) => {
-                templates.push($(elem).attr('data-template'))
+                let formula = $(elem).attr('data-template')
+                let parsed = this.parsedTemplates[formula]
+                if (parsed !== undefined) {
+                    // We need to see if there already is a template which is using
+                    for (let use of parsed.uses) {
+                        let found = false
+                        // See if any of the existing templates already use this set.
+                        for (let i = 0; i < templates.length; i++) {
+                            if (this.isSame(templates[i].uses, use)) {
+                                // We found one, so we add our formula to the list
+                                templates[i].formulas.push(formula)
+                                found = true
+                                break
+                            }
+                        }
+                        // We didn't find one, so create a new entry
+                        if (!found) {
+                            templates.push({ type: parsed.type, symbols: parsed.symbols, uses: use, replaces: parsed.replaces, formulas: [formula] })
+                        }
+                    }
+                }
             })
             this.findWordGroups(templates);
         }
@@ -1099,16 +1148,15 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     //     "C-A-A=B": { type: 'add', symbols: 3, uses: [[1, 1, 0], [0, 0, 1]] },
     // }
 
-    public checkSolution(wordlist: number[], template: string): number {
-        const parsed = this.parsedTemplates[template]
+    public checkSolution(wordlist: number[], template: execTemplate): number {
         let found = 0
         // If we don't have a parsed instructions for the template, just skip out
-        if (parsed === undefined) {
+        if (template === undefined) {
             return 0
         }
         // Make sure that this is a template that we can handle and it happens to work for
         // the number of symbols we found
-        if (parsed.symbols !== wordlist.length || parsed.type !== 'add') {
+        if (template.symbols !== wordlist.length || template.type !== 'add') {
             return 0
         }
         let longest = 0
@@ -1141,20 +1189,23 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                     sumset.push(longset[j])
                 }
             }
-            for (let uses of parsed.uses) {
-                const sumsearch: string[] = []
-                for (let k of uses) {
-                    sumsearch.push(sumset[k])
+
+            const sumsearch: string[] = []
+            for (let k of template.uses) {
+                sumsearch.push(sumset[k])
+            }
+            let solutions = cryptarithmSumandSearch(sumsearch, sum, this.base, false, false)
+            if (solutions.count === 1) {
+                found++
+                // We need to build the replacement template
+                let replacements = "??????????"
+                for (const c of Object.keys(solutions.mapping)) {
+                    replacements = setCharAt(replacements, solutions.mapping[c], c)
                 }
-                let solutions = cryptarithmSumandSearch(sumsearch, sum, this.base, false, false)
-                if (solutions.count === 1) {
-                    found++
-                    // We need to build the replacement template
-                    let replacements = "??????????"
-                    for (const c of Object.keys(solutions.mapping)) {
-                        replacements = setCharAt(replacements, solutions.mapping[c], c)
-                    }
-                    let outset = this.formatTemplateProblem(solutions.mapping, template, sumsearch, sum, parsed.replaces)
+                // There might be more than one original template which used
+                // This pattern (such as A+B=C and C-A=B) so output them
+                for (let formula of template.formulas) {
+                    let outset = this.formatTemplateProblem(solutions.mapping, formula, sumsearch, sum, template.replaces)
                     const usebutton = $('<a/>', { class: 'rounded small button useprob', 'data-prob': outset[0], 'data-sol': replacements }).text('Use')
                     $("#findout").append($('<div/>').text(" " + outset[0] + " [" + outset[1] + "] Difficulty:" + String(solutions.difficulty))
                         .prepend(usebutton))
@@ -1163,7 +1214,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                         .on('click', (e) => {
                             this.setProblem(e.target)
                         })
-
                 }
             }
         }

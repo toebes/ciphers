@@ -2339,7 +2339,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 ' cipher digit mapping and there is no work to solve it'
             );
         } else {
-            let limit = 20;
+            let limit = 2;
             while (limit > 0) {
 
                 /*if (this.cleanAndCheckSpans(result, knownmap, working)) {

@@ -68,6 +68,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     public mappingSolution: string[] = Array(26).fill('');
     public mappingWorkspace: string[][] = Array(26).fill(Array(26).fill(null).map((_, i) => i));
 
+    public trialLetters: string[][] = [];
+
     public init(lang: string): void {
         super.init(lang);
         this.loadLanguageDictionary('en');
@@ -278,18 +280,23 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
     private shortenContent(content: string): string {
         const base = content.charCodeAt(0);
-        let isSequence: boolean = true;
-        for (let i = 0; i < content.length; i++) {
-            if (base + i  !== content.charCodeAt(i)) {
-                isSequence = false;
-                break;
+        // let isSequence: boolean = true;
+        // for (let i = 0; i < content.length; i++) {
+        //     if (base + i  !== content.charCodeAt(i)) {
+        //         isSequence = false;
+        //         break;
+        //     }
+        // }
+        // if (isSequence) {
+        //     content = content[0] + '-' + content[content.length - 1];
+        // } else {
+            const big = content;
+            content = '';
+            for (let i = 0; i < big.length; i++) {
+                content += (i % 2 === 0) ? big[i] : ','+ big[i]+'</br>';
             }
-        }
-        if (isSequence) {
-            content = content[0] + '-' + content[content.length - 1];
-        } else {
-            content = '&nbsp;?&nbsp;';
-        }
+            //content = '&nbsp;?&nbsp;';
+        // }
         return content;
     }
 
@@ -555,6 +562,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     // Yes, we know that it defined so remember the morselet
                     morse += possibilities;
 
+                    // Append a X so the last letter is decoded.
+                    if (morse.length === ctset[2].length && morse[morse.length - 1] !== 'X') {
+                        morse += 'X';
+                    }
+
                     let endLetterIndex = morse.indexOf('X', startIndex);
                     let endWordIndex = morse.indexOf('XX', startIndex)
                     if (endLetterIndex > -1) {
@@ -625,10 +637,52 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 }
                 current = '';
             }
-            working.push([ctset[ctindex], morse, plaintext]);
+            let p = ctset[ctindex];
+            let m = morse;
+            let possbileMorse = '';
+            for (let n = 0; n < p.length; n += 3) {
+
+                // console.log(p.substring(n, n + 3).trim()+':'+m.substring(n, n+3));
+                let someMorse = this.sortOut(p.substring(n, n + 3).trim(), m.substring(n, n+3));
+                // console.log('So we got...' + someMorse);
+                possbileMorse += someMorse;
+            }
+            // console.log(p+':'+m);
+            working.push([ctset[ctindex], possbileMorse, plaintext]);
         }
         return working;
     }
+
+    private sortOut(letter: string, morse: string): string {
+        if (morse === '   ') {
+            morse = '+++';
+            for (let i = 0; i < this.possibilitiesMap.length; i++) {
+                if (this.possibilitiesMap[i].indexOf(letter) > -1) {
+                    let frag = morse;
+
+                    for (let j = 0; j < 3; j++) {
+                        let inputDigit = frag[j];
+                        let mapDigit = this.morseReplaces[i][j];
+
+                        if (inputDigit === ' ') {
+                            continue;
+                        } else if (inputDigit === '+') {
+                            morse = morse.substring(0, j) + mapDigit + morse.substring(j+1);
+                        } else if (mapDigit === 'X') {
+                            morse = morse.substring(0, j) + ' ' + morse.substring(j+1);
+                        }
+                        else if (inputDigit === mapDigit) {
+                            morse = morse.substring(0, j) + inputDigit + morse.substring(j+1);
+                        } else {
+                            morse = morse.substring(0, j) + '?' + morse.substring(j+1);
+                        }
+                    }
+                }
+            }
+        }
+        return morse;
+    }
+
     /**
      * Determines if the entire cipher mapping is known
      * @param knownmap Map of current cipher strings
@@ -659,7 +713,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             result.append(
                 'At this point in time, ' +
                 String(unknowns) +
-                ' ciphertext characters still need to be mapped. '
+                ' ciphertext characters still need to be mapped.  '
             );
             return true;
         }
@@ -1288,9 +1342,35 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     }
 
 
+    normalizeFmHTML(str: string): string {
+        return super.normalizeHTML(str).replace(/\?/g, '&nbsp;');
+    }
+
+    private findIsolatedMorseBlankBefore2(result: JQuery<HTMLElement>,
+                                         knownmap: StringMap,
+                                         working: string[][]): boolean {
+        return this.findIsolatedMorseBlankBefore(result, knownmap, working, 2);
+    }
+    private findIsolatedMorseBlankBefore3(result: JQuery<HTMLElement>,
+                                         knownmap: StringMap,
+                                         working: string[][]): boolean {
+        return this.findIsolatedMorseBlankBefore(result, knownmap, working, 3);
+    }
+
+        /**
+     * This method looks for a blank before an all morse fragment of three morse
+     * characters.  Based on the 3 known morse characters, we can run thru the
+     * possibilities of morse sequences that are valid.  So we take into account
+     * length and possible morse sequences that could fit with the known fragment.
+     * @param result
+     * @param knownmap
+     * @param working
+     * @private
+     */
     private findIsolatedMorseBlankBefore(result: JQuery<HTMLElement>,
                                   knownmap: StringMap,
-                                  working: string[][]): boolean {
+                                  working: string[][],
+                                  characterCount: number): boolean {
         let returnValue = false;
         let cipherSequence: string = '';
         let morseSequence: string = '';
@@ -1298,42 +1378,66 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             cipherSequence += working[i][0];
             morseSequence += working[i][1];
         }
-        // blanks before all morse
-        const morseBlanksBefore = /[ ]{3}[O-]{3}/g;
-        // blanks before and after all morse
-        const morseBlanksBeforeAfter = /[ ]{3}[0-]{3}[ ]{3}/g;
-        console.log('====   Narrow down BEGINNING fragment  ====');
-        let before = morseSequence.match(morseBlanksBefore);
+        // blanks before a known all morse fragment (3 morse characters)
+        let morseBlanksBefore = /[ ?]{3}[O-]{3}/g;
+        if (characterCount === 2) {
+            //                                                   C  W
+            // Sometimes we might know the first symbol.  i.e. '0? OOX'
+            // So we want to analyze that one.
+            morseBlanksBefore = /[O\-? ][ ?]{2}[O-]{2}X/g;
+        }
+        console.log('====   Narrow down BEGINNING before fragment of ' + characterCount + '  ====');
 
-        if (before == null)
+        let msg = $('<p/>');
+        msg.append('Look for an unknown mapping BEFORE a <b>' + characterCount + '<\/b> morse digit fragment to eliminate invalid morse sequences and reduce the possible mappings for the letter.  ');
+
+        let someSuffix = morseSequence.match(morseBlanksBefore);
+        if (someSuffix == null || someSuffix === undefined) {
+            console.log('====   NO BEGINNING FOUND   ====');
+            msg.append(' None found.  ');
+            result.append(msg);
             return returnValue;
+        }
 
-        for (let i = 0; i < before.length; i++) {
-            let testLetterIndex = morseSequence.indexOf(before[i]);
+        for (let i = 0; i < someSuffix.length; i++) {
+            let testLetterIndex = morseSequence.indexOf(someSuffix[i]);
+            // if the prefix is not at a fractionated boundary (every 3 symbols), then skip on to the next one.
+            if (testLetterIndex % 3 !== 0)
+                continue;
+            const morseSuffix = someSuffix[i].substring(3, 3 + characterCount).trim();
             let letter = cipherSequence.substr(testLetterIndex, 3).trim();
 
+            msg.append('We find cipher text letter <code>' + letter + '</\code> before a known morse fragment of ' +
+                this.normalizeFmHTML(someSuffix[i]) + '.  ');
+
             console.log('Test the letter "' + letter + '", found at: ' + testLetterIndex);
-            let possibleValidSequences = this.validMorseBegins(morseSequence.substr(testLetterIndex + 3, 3));
-            console.log('Valid morse character sequences that end with "' + before[i] + '" are: ' + possibleValidSequences);
+            let possibleValidSequences = this.validMorseBegins(morseSequence.substr(testLetterIndex + 3, characterCount));
+            console.log('Valid morse character sequences that end with "' + morseSuffix + '" are: ' + possibleValidSequences);
+
+            msg.append('Valid morse character sequence that end with ' + this.normalizeFmHTML(someSuffix[i]) + ' are: ');
 
             let regexList = []
 
-            for (const a in possibleValidSequences) {
+            for (const possibleValidSequence of possibleValidSequences) {
+                msg.append(this.normalizeHTML(possibleValidSequence) + (possibleValidSequence === possibleValidSequences[possibleValidSequences.length - 1] ? '.  ' : ', '));
                 // p is what you get when you chop off the known suffix.
-                let p = possibleValidSequences[a].slice(0, -3);
+                let p = possibleValidSequence.slice(0, -characterCount);
+                // The unknown can not be ALL morse characters because no letter/number is six morse characters.
                 if (p.length === 0) {
-                    // **X
+                    // **X the unknown fragment could end with 'X' (word separator).
                     p = '..X';
                 } else if (p.length === 1) {
-                    // *X?
+                    // *X? the unknown fragment could have 'X' in the middle and a morse char at the end.
                     p = '.X' + p;
                 } else if (p.length === 2) {
+                    // X?? the unknown fragment could start with 'X' (meaning a number since there are 5 morse characters)
                     p += 'X' + p;
                 }
                 // Match P with the possibilitiesMap
                 regexList.push(p);
             }
 
+            // Make a regex string, or'ing the possible before fragments
             let firstString: boolean = true;
             let regularExpression = '';
             for (let regexString in regexList) {
@@ -1344,7 +1448,10 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             }
             let re = RegExp(regularExpression, 'g');
 
+            // Go through the possiblities map and find each entry with the letter and regex test if the mapping
+            // is a possible matches.  If not remove that possbile mapping.
             let count = 0;
+            msg.append('Combining this list with what <code>' + letter + '<\/code> can possibly be... ');
             for (let p in this.possibilitiesMap) {
                 let possibilitiesMapIndex = this.possibilitiesMap[p].indexOf(letter);
                 if (possibilitiesMapIndex > -1) {
@@ -1355,67 +1462,135 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                         this.possibilitiesMap[p] = this.possibilitiesMap[p].replace(letter, '');
                         count -= 1;
                     } else {
-                        console.log('"' + letter + '" might be: ' + this.morseReplaces[p]);
+
+
+                        let x = this.morseReplaces[p].lastIndexOf('X');
+                        let morseRemainder = this.morseReplaces[p];
+                        if (x > -1) {
+                            morseRemainder = this.morseReplaces[p].substring(x+1);
+                        }
+                        console.log('Check "' + morseRemainder + morseSuffix + '"');
+                        let v = frommorse[morseRemainder + morseSuffix].charCodeAt(0);
+                        if (v < 65 || v > 90) {
+                            msg.append('If <code>' + letter + '<\/code> maps to ' + this.normalizeHTML(this.morseReplaces[p]) +
+                                ', it would yield a number in the plain-text, so we will elminate it for now.  ');
+                            console.log('"' + morseRemainder + morseSuffix + '" does not map to a letter, throw it out...');
+                            this.possibilitiesMap[p] = this.possibilitiesMap[p].replace(letter, '');
+                            count -= 1;
+                        } else {
+                            msg.append('<code>' + letter + '<\/code> might be ' + this.normalizeHTML(this.morseReplaces[p]) + '.  ');
+                            console.log('"' + letter + '" might be: ' + this.morseReplaces[p]);
+                            // TODO:  Here and in the BEFORE, we can elmininate from the possibilitiesMap any place letter isn't!
+                        }
                     }
                 }
             }
             console.log('By my count, there are ' + count + ' possibilities for "' + letter + '" left.');
             if (count === 1) {
+                for (let y = 0; y < this.possibilitiesMap.length; y++) {
+                    if (this.possibilitiesMap[y].indexOf(letter) > -1) {
+                        this.possibilitiesMap[y] = letter;
+                    }
+                }
+                msg.append('That leaves one possibility for <code>' + letter + '<\/code>, which is this ' +
+                    this.normalizeHTML(this.findFragmentsForLetter(letter)[0]) + '.');
                 returnValue = true;
+                break;
+            } else {
+                this.trialLetters[letter] = this.findFragmentsForLetter(letter);
             }
 
             const possibleFractions = this.findFragmentsForLetter(letter);
             //validMorseBegins();
             console.log('"' + letter + '" might be one of: ' + possibleFractions);
         }
+        result.append(msg);
+        this.cleanPossibilities(knownmap);
+        this.reconcileKnownMap(knownmap);
+        this.reconcilePossibilitiesMap(knownmap);
         return returnValue;
+    }
+
+    private findIsolatedMorseBlankAfter2(result: JQuery<HTMLElement>,
+                                          knownmap: StringMap,
+                                          working: string[][]): boolean {
+        return this.findIsolatedMorseBlankAfter(result, knownmap, working, 2);
+    }
+    private findIsolatedMorseBlankAfter3(result: JQuery<HTMLElement>,
+                                         knownmap: StringMap,
+                                         working: string[][]): boolean {
+        return this.findIsolatedMorseBlankAfter(result, knownmap, working, 3);
     }
 
     private findIsolatedMorseBlankAfter(result: JQuery<HTMLElement>,
                                          knownmap: StringMap,
-                                         working: string[][]): boolean {
+                                         working: string[][],
+                                         characterCount: number): boolean {
         let returnValue = false;
         let cipherSequence: string = '';
         let morseSequence: string = '';
         for (let i = 0; i < working.length; i++) {
             cipherSequence += working[i][0];
-            morseSequence += working[i][1];
+            morseSequence += working[i][1].replace(/\?/g, ' ');
         }
         // blanks after all morse
-        const morseBlanksAfter = /[O-]{3}[ ]{3}/g;
-        // blanks before and after all morse
-        const morseBlanksBeforeAfter = /[ ]{3}[0-]{3}[ ]{3}/g;
-        console.log('====   Narrow down ENDING fragment  ====');
+        let morseBlanksAfter = /[O-]{3}[ ?]{3}/g;
+        if (characterCount === 2) {
+            morseBlanksAfter = /[X][O-]{2}[0\- ?][ ?]{2}/g;
+        }
+        console.log('====   Narrow down ENDING after fragment of ' + characterCount + '  ====');
 
-        let after = morseSequence.match(morseBlanksAfter);
-        if (after == null)
+        let msg = $('<p/>');
+        msg.append('Look for an unknown mapping AFTER a <b>' + characterCount + '<\/b> morse digit fragment to eliminate invalid morse sequences and reduce the possible mappings for the letter.  ');
+
+        let somePrefix = morseSequence.match(morseBlanksAfter);
+        if (somePrefix == null) {
+            console.log('====   NO ENDING FOUND   ====');
+            msg.append('None found.  ');
+            result.append(msg);
             return returnValue;
-        for (let i = 0; i < after.length; i++) {
-            let testLetterIndex = morseSequence.indexOf(after[i]) + 3;
-            const morsePrefix = after[i].substr(0, 3);
+        }
+
+        for (let i = 0; i < somePrefix.length; i++) {
+            let testLetterIndex = morseSequence.indexOf(somePrefix[i]) + 3;
+            // if the prefix is not at a fractionated boundary (every 3 symbols), then skip on to the next one.
+            if (testLetterIndex % 3 !== 0)
+                continue;
+            const morsePrefix = somePrefix[i].substring(3 - characterCount).trim();
             let letter = cipherSequence.substr(testLetterIndex, 3).trim();
 
+            msg.append('We find cipher text letter <code>' + letter + '</\code> after a known morse fragment of ' +
+                this.normalizeFmHTML(somePrefix[i]) + '.  ');
+
             console.log('Test letter: ' + letter + ' found at: ' + testLetterIndex);
-            let blah = this.validMorseEnds(morseSequence.substr(testLetterIndex - 3, 3));
-            console.log('Valid morse character sequences that start with "' + morsePrefix + '" are: ' + blah);
+            let possibleValidSequences = this.validMorseEnds(morseSequence.substr(testLetterIndex - characterCount, characterCount));
+            console.log('Valid morse character sequences that start with "' + morsePrefix + '" are: ' + possibleValidSequences);
+
+            msg.append('Valid morse character sequences that start with ' + this.normalizeFmHTML(somePrefix[i]) + ' are: ');
 
             let regexList = [];
 
-            for (const a in blah) {
+            for (const possibleValidSequence of possibleValidSequences) {
+                msg.append(this.normalizeHTML(possibleValidSequence) + (possibleValidSequence === possibleValidSequences[possibleValidSequences.length - 1] ? '.  ' : ', '));
                 // p is what you get when you chop off the know prefix
-                let p = blah[a].slice(3);
+                let p = possibleValidSequence.slice(characterCount);
+                // The unknown can not be ALL morse characters because no letter/number is six morse characters.
                 if (p.length === 0) {
+                    // X.. the unknown fragment could begin with 'X' (word separator).
                     p = 'X..';
                 } else if (p.length === 1) {
+                    // *X. the unknown fragment could have 'X' in the middle and a morse char at the end.
                     p = p + 'X.';
                 }
                 else if (p.length === 2) {
+                    // ??X the unknown fragment could end with 'X' (meaning a number since there are 5 morse characters).
                     p = p + 'X';
                 }
                 // Match p with the possibilitiesMap
                 regexList.push(p);
             }
 
+            // Make a regex string, or'ing the possible before fragments
             let firstString: boolean = true;
             let regularExpression = '';
             for (let regexString in regexList) {
@@ -1426,7 +1601,10 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             }
             let re = RegExp(regularExpression, 'g');
 
+            // Go through the possiblities map and find each entry with the letter and regex test if the mapping
+            // is a possible matches.  If not remove that possbile mapping.
             let count = 0;
+            msg.append('Combining this list with what <code>' + letter + '<\/code> can possibly be... ');
             for (let p in this.possibilitiesMap) {
                 let possibilitiesMapIndex = this.possibilitiesMap[p].indexOf(letter);
                 if (possibilitiesMapIndex > -1) {
@@ -1438,13 +1616,22 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                         count -= 1;
                     } else {
                         let x = this.morseReplaces[p].indexOf('X');
-                        let v = frommorse[morsePrefix + this.morseReplaces[p].substr(0, x)].charCodeAt(0);
+                        let morseRemainder = this.morseReplaces[p].substr(0, x);
+                        if (x === -1) {
+                            morseRemainder = this.morseReplaces[p];
+                        }
+                        let v = frommorse[morsePrefix + morseRemainder].charCodeAt(0);
                         if (v < 65 || v > 90) {
+                            msg.append('If <code>' + letter + '<\/code> maps to ' + this.normalizeHTML(this.morseReplaces[p]) +
+                                ', it would yield a number in the plain-text, so we will elminate it for now.  ');
                             console.log('Not a letter, throw it out...');
                             this.possibilitiesMap[p] = this.possibilitiesMap[p].replace(letter, '');
                             count -= 1;
+                        } else {
+                            msg.append('<code>' + letter + '<\/code> might be ' + this.normalizeHTML(this.morseReplaces[p]) + '.  ');
+                            console.log('"' + letter + '" might be: ' + this.morseReplaces[p]);
+                            // TODO:  Here and in the BEFORE, we can elmininate from the possibilitiesMap any place letter isn't!
                         }
-                        console.log('"' + letter + '" might be: ' + this.morseReplaces[p]);
                     }
                 }
             }
@@ -1453,16 +1640,24 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 for (let y = 0; y < this.possibilitiesMap.length; y++) {
                     if (this.possibilitiesMap[y].indexOf(letter) > -1) {
                         this.possibilitiesMap[y] = letter;
-                        break;
+                        this.removeKnownFromPossibilitiesMap(this.possibilitiesMap, y, letter);
                     }
                 }
+                msg.append('That leaves one possibility for <code>' + letter + '<\/code>, which is this ' +
+                    this.normalizeHTML(this.findFragmentsForLetter(letter)[0]) + '.');
                 returnValue = true;
+            } else {
+                this.trialLetters[letter] = this.findFragmentsForLetter(letter);
             }
 
             const possibleLetters = this.findFragmentsForLetter(letter);
             //validMorseBegins();
             console.log('"' + letter + '" might be one of: ' + possibleLetters);
         }
+        result.append(msg);
+        this.cleanPossibilities(knownmap);
+        this.reconcileKnownMap(knownmap);
+        this.reconcilePossibilitiesMap(knownmap);
         return returnValue;
     }
 
@@ -1528,12 +1723,13 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             morseSequence += working[i][1];
         }
         // find a 'blank' morse fraction
-        let singleBlankFraction = /[^ ]{3}[ ]{3}[^ ]{3}/g
+        let singleBlankFraction = /[^? ]{3}[? ]{3}[^? ]{3}/g;
         let dude = morseSequence.match(singleBlankFraction);
         console.log('---------> ' + cipherSequence);
         console.log('+++++++++> ' + morseSequence);
         console.log('=========> ' + dude);
         if (dude === null) {
+            console.log('------> Nothing found <-----');
             return false;
         }
         let blankLetterIndex = morseSequence.indexOf(dude[0]) + 3;
@@ -1560,8 +1756,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      * fillIn(start: int, end: int, lettersPerSlot: int, firstLetter: char)
      */
     public fillInContinuousPossibilitiesMap(thing: string[], startIndex: number, endIndex: number, lettersPerSlot: number, firstLetterIndex: number): string[] {
-
-
 
         for (let i = startIndex; i < endIndex; i++) {
             const letters = this.encodecharset.substr(firstLetterIndex, lettersPerSlot);
@@ -1600,10 +1794,59 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     }
 
 
-    public dumpPossibilitiesMap(thing: string[]) {
-        console.log('Dump');
+    public dumpPossibilitiesMap() {
+        for (let i = 0; i < this.possibilitiesMap.length; i++) {
+            console.log(this.morseReplaces[i] + ' --- ' + this.possibilitiesMap[i]);
+        }
     }
 
+    /**
+     * If there is a real mapping in the knownmap, then set the possibilitiesMap accordingly to have that 1 mapping
+     * and remove the possibilities from everywhere else.
+     * @param knownmap
+     * @private
+     */
+    private reconcilePossibilitiesMap(knownmap: StringMap) {
+
+        for (const k in knownmap) {
+            if (knownmap[k] === 'XXX') {
+                continue;
+            }
+            const letterIndex = this.keywordMap.indexOf(k);
+
+            for (let i = 0; i < this.possibilitiesMap.length; i++) {
+                let indexOfLetter = this.possibilitiesMap[i].indexOf(k);
+                if (indexOfLetter === -1 || i === letterIndex)
+                    continue;
+                this.possibilitiesMap[i] = this.possibilitiesMap[i].substring(0, indexOfLetter) + this.possibilitiesMap[i].substring(indexOfLetter + 1);
+            }
+        }
+    }
+    private cleanPossibilities(knownmap: StringMap) {
+        let letterCounts = {};
+        for (let i = 0; i < this.encodecharset.length; i++) {
+            let count = 0;
+            let foundAt = -1;
+            const letter = this.encodecharset[i];
+            letterCounts[letter] = 0;
+            for (let j = 0; j < this.possibilitiesMap.length; j++) {
+                if (this.possibilitiesMap[j].indexOf(letter) > -1) {
+                    foundAt = j;
+                    count += 1;
+                }
+            }
+            if (count === 1 && knownmap[letter] === 'XXX') {
+                console.log('Found and fixed ' + letter + ' to be ' + this.morseReplaces[foundAt]);
+                knownmap[letter] = this.morseReplaces[foundAt];
+                this.possibilitiesMap[foundAt] = letter;
+            }
+        }
+    }
+
+    /**
+     * If there is 1 possibility in the map, then set the knownmap to that mapping
+     *
+     */
     private reconcileKnownMap(knownmap: StringMap) {
         for (let i = 0; i < this.possibilitiesMap.length; i++) {
             if (this.possibilitiesMap[i].length === 1) {
@@ -1615,6 +1858,239 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         }
     }
 
+    private exploreStandaloneLetter(result: JQuery<HTMLElement>,
+                                    knownmap: StringMap,
+                                    working: string[][]): boolean {
+
+        let sfsm: StringMap = {};
+        let cipherSequence: string = '';
+        let morseSequence: string = '';
+        for (let i = 0; i < working.length; i++) {
+            cipherSequence += working[i][0];
+            morseSequence += working[i][1];
+        }
+        // find a 'blank' morse fraction
+        let blankBetweenXs = /[^ ]{1}XX[ ]{3}[^ ]*/;
+        let dude = morseSequence.match(blankBetweenXs);
+        console.log('---------> ' + cipherSequence);
+        console.log('+++++++++> ' + morseSequence);
+        console.log('=========> ' + dude);
+        if (dude === null) {
+            return false;
+        }
+        let blankLetterIndex = morseSequence.indexOf(dude[0]) + 3;
+        let letter = cipherSequence.substr(blankLetterIndex, 3).trim();
+        console.log('Let analyze the letter that is blank: ' + letter);
+        console.log('Possibilities for this fragment: ');
+        // toss the first character so we start on a word boundary.
+        const incompleteMorse = dude[0].substring(1);
+        const possibles = this.findFragmentsForLetter(letter);
+        for (let i = 0; i < possibles.length; i++) {
+            const frag = incompleteMorse.replace(/   /, possibles[i]);
+            console.log(frag);
+            const sticks = this.decodeFragment(frag);
+            console.log(this.decodeFragment(frag));
+
+            const stick = sticks.split(' ');
+
+            for (let j = 0; j < stick.length; j++) {
+                let stck = stick[j];
+                let matchstr = "";
+                let keepadding = true;
+                let repl = [];
+                let matches = [];
+                let used: BoolMap = {};
+                let slen = stck.length / this.cipherWidth;
+                // First we need to find a pattern for the replacement that we can work with
+
+                for (let i = 0; i < slen; i++) {
+                    let piece = stck.substr(i * this.cipherWidth, this.cipherWidth);
+                    let substitute = "";
+                    if (typeof sfsm[piece] === "undefined") {
+                        keepadding = false;
+                    } else {
+                        substitute = sfsm[piece];
+                    }
+                    if (keepadding) {
+                        matchstr += substitute;
+                    }
+                    repl.push(substitute);
+                }
+                let pat = this.makeUniquePattern(matchstr, this.cipherWidth);
+                let patlen = pat.length;
+                for (let tpat in this.Frequent[this.state.curlang]) {
+                    if (
+                        this.Frequent[this.state.curlang].hasOwnProperty(tpat) &&
+                        tpat.length === slen &&
+                        tpat.substr(0, patlen) === pat
+                    ) {
+                        let tmatches = this.Frequent[this.state.curlang][tpat];
+                        let added = 0;
+                        for (let i = 0, len = tmatches.length; i < len; i++) {
+                            let entry = tmatches[i];
+                            // if (this.isValidReplacement(entry[0], repl, used)) {
+                            //     matches.push(entry);
+                            //     added++;
+                            //     if (added > 3) {
+                            //         break;
+                            //     }
+                            // }
+                        }
+                    }
+                }
+            }
+
+
+        }
+
+        return true;
+    }
+
+    private decodeFragment(frag: string): string {
+        let returnValue = '';
+        const frags = frag.split('X');
+        for (let i = 0; i < frags.length; i++) {
+            returnValue += (frommorse[frags[i]] === undefined ? ' ' : frommorse[frags[i]]);
+        }
+
+        return returnValue.trim();
+    }
+
+    /**
+     * When new known mappings are found, clean up that letter from any other possibilities.  Then see if
+     * a span between known letters can be filled in by counting the unknown slots and the number of unique
+     * unknown letters.  If there is a match, just fill the span in order...
+     * @private
+     */
+    private cleanAndCheckSpans(result: JQuery<HTMLElement>,
+                               knownmap: StringMap,
+                               working: string[][]): boolean {
+        let returnValue = false;
+        let msg = $('<p/>');
+        msg.append('Scanning possibilities table to remove unknowns.  ');
+        // Clean phase...
+        for (let k = 0; k < this.encodecharset.length; k++) {
+            if (knownmap[this.encodecharset[k]] != 'XXX') {
+                // remove k from anywhere it is in the possiblitiesMap
+                for (let i = 0; i < this.possibilitiesMap.length; i++) {
+                    let indexOfLetter = this.possibilitiesMap[i].indexOf(this.encodecharset[k]);
+                    if (indexOfLetter > -1) {
+                        if (this.possibilitiesMap[i].length > 1) {
+                            this.possibilitiesMap[i] = this.possibilitiesMap[i].substring(0, indexOfLetter) + this.possibilitiesMap[i].substring(indexOfLetter + 1);
+                        }
+                    }
+                }
+            }
+        }
+        // Check spans phase...start past the keyword...
+        let startSpan = -1;
+        let endSpan = -1;
+        for (let i = 0; i < this.possibilitiesMap.length; i++) {
+            if (this.possibilitiesMap[i].length === 1) {
+                // i = start of span
+                if (startSpan != -1) {
+                    endSpan = i;
+                } else {
+                    startSpan = i;
+                }
+                if (startSpan > -1 && endSpan > startSpan) {
+                    // Check this span...
+                    const uniqueUnknowns = new Set();
+                    for (let j = startSpan + 1; j < endSpan; j++) {
+                        for (let k = 0; k < this.possibilitiesMap[j].length; k++) {
+                            const uniqueLetter = this.possibilitiesMap[j][k];
+                            uniqueUnknowns.add(uniqueLetter);
+                        }
+                    }
+                    console.log('Span distance...' + (endSpan - startSpan));
+                    console.log('Unique unknowns...' + uniqueUnknowns.size);
+                    if (endSpan - startSpan === uniqueUnknowns.size) {
+                        // Fill in this span...
+                        let startChar = this.possibilitiesMap[startSpan].charCodeAt(0);
+                        for (let j = startSpan + 1; j < endSpan; j++) {
+                            const charToSet = String.fromCharCode(startChar + (j - startSpan));
+                            this.possibilitiesMap[j] = charToSet;
+                            //  removeCharFromPossibilities.
+                            this.removeKnownFromPossibilitiesMap(this.possibilitiesMap, j, charToSet);
+                            // TODO: knownmap needs to be updated so more characters are printer out...
+
+                        }
+                        this.reconcileKnownMap(knownmap);
+                        msg.append('Possible mappings between letters <code>' + startChar + '<\/code> and <code>' +
+                        this.possibilitiesMap[endSpan] + '<\/cpde> can be simplified.');
+                        returnValue = true;
+                    }
+
+                    // reset spans
+                    startSpan = endSpan;
+                    endSpan = -1;
+                }
+            }
+        }
+        if (!returnValue) {
+            msg.append('None found.');
+        }
+        result.append(msg);
+        return returnValue;
+    }
+
+    private takeAGuess(result: JQuery<HTMLElement>,
+                       knownmap: StringMap,
+                       working: string[][]): boolean {
+        let returnValue = false;
+        let msg = $('<p/>');
+        msg.append('Try some possibilities...  ');
+
+        for (const letter in this.trialLetters) {
+
+            const guesses = this.trialLetters[letter];
+            if (guesses === undefined)
+                continue;
+            let message = 'We know <code>' + letter + '</code> can be one of ';
+            let first = true;
+            for (const guess of guesses) {
+                if (!first) {
+                    message += ', ';
+                }
+                message += this.normalizeHTML(guess);
+                first = false;
+            }
+            message += '.  ';
+            msg.append(message);
+            for (const guess of guesses) {
+                msg.append('Try ' + this.normalizeHTML(guess) + ' for ' + letter + ':');
+                result.append(msg);
+                const guessStrings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
+                let localKnownMap = JSON.parse(JSON.stringify(knownmap));
+                localKnownMap[letter] = guess;
+                let working = this.genKnownMapping(guessStrings, localKnownMap);
+                this.genMapping(result, working);
+                msg = $('<p/>');
+                let letterIndex = this.keywordMap.indexOf(letter);
+                let actualMapping = this.morseReplaces[letterIndex];
+                if (guess === actualMapping) {
+                    this.possibilitiesMap[letterIndex] = letter;
+                    this.removeKnownFromPossibilitiesMap(this.possibilitiesMap, letterIndex, letter);
+                    this.trialLetters[letter] = undefined;
+
+                    msg.append('That makes sense!');
+                    returnValue = true;
+                    break;
+                } else {
+                    msg.append('That guess does not look too promising.');
+                }
+            }
+            if (returnValue)
+                break;
+        }
+        this.cleanPossibilities(knownmap);
+        this.reconcileKnownMap(knownmap);
+        this.reconcilePossibilitiesMap(knownmap);
+
+        result.append(msg);
+        return returnValue;
+
+    }
 
     /**
      * Display how to solve the cipher.
@@ -1726,8 +2202,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
                 const knownIndex = this.keywordMap.indexOf(m);
                 delta = knownIndex - i;
+                console.log('DELTA is ' + delta);
 
-                if (delta == 0) {
+
+                // TODO: Bug here when earlier letters are in longer keyword
+                if (delta == 0 && this.keywordMap.indexOf(m) < this.state.keyword.length) {
                     console.log('From here (offset: ' + i + ') to the right is known.');
                     let firstLetterIndex = this.encodecharset.indexOf(m);
                     firstLetterIndex = this.keywordMap.indexOf(m);
@@ -1735,6 +2214,9 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     endAt = this.keywordMap.indexOf(m);
                 } else if (delta < 0) {
                     console.log(m + ' is probably in the keyword');
+                    // remove from possibilities.
+                    this.removeKnownFromPossibilitiesMap(thing, knownIndex, m);
+                    //endAt = this.keywordMap.indexOf(m);
                 } else {
                     console.log('More work to do.  delta: ' + delta);
                     let firstLetterIndex = this.encodecharset.indexOf(m) + 1;
@@ -1758,16 +2240,15 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     endAt = this.keywordMap.indexOf(m);
                 }
 
-                console.log('DELTA is ' + delta);
 
-                for (let j = 0; j < unknownMappedLetters.length; j++) {
-                    if (unknownMappedLetters[i] === m) {
-                        console.log('I is ' + i + '; J is ' + j);
-                        break;
-                    } else {
-                        console.log('No match?');
-                    }
-                }
+                // for (let j = 0; j < unknownMappedLetters.length; j++) {
+                //     if (unknownMappedLetters[i] === m) {
+                //         console.log('I is ' + i + '; J is ' + j);
+                //         break;
+                //     } else {
+                //         console.log('No match?');
+                //     }
+                // }
 
 
 
@@ -1798,10 +2279,36 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             console.log(this.possibilitiesMap[i]);
         }
 
+        // TODO: This is a second pass to clear up any known letters from Continuous Possibilities
+        // for (let k = 0; k < this.encodecharset.length; k++) {
+        //     let adjustmentMade = false;
+        //     if (knownmap[this.encodecharset[k]] != 'XXX') {
+        //         // remove k from anywhere it is in the possiblitiesMap
+        //         for (let i = 0; i < this.possibilitiesMap.length; i++) {
+        //             let indexOfLetter = this.possibilitiesMap[i].indexOf(this.encodecharset[k]);
+        //             if (indexOfLetter > -1) {
+        //                 if (this.possibilitiesMap[i].length > 1) {
+        //                     this.possibilitiesMap[i] = this.possibilitiesMap[i].substring(0, indexOfLetter) + this.possibilitiesMap[i].substring(indexOfLetter + 1);
+        //
+        //             } else {
+        //                     // This is the only thing it can be...so update knownmap
+        //                     console.log("Found a single, so reconcile know map...");
+        //                     this.reconcileKnownMap(knownmap);
+        //                     adjustmentMade = true;
+        //                 }
+        //             }
+        //         }
+        //         // if (adjustmentMade) {
+        //         //     k = 0;
+        //         // }
+        //     }
+        // }
+
 
         // Take the working alphabet string and start at the back and see if a letter can go into the next empty slot
         // (again starting from the back).
 
+        this.reconcilePossibilitiesMap(knownmap);
 
         // This is just for displaying what we know...
         // this.genKnownTable(result, knownmap); --> generateFractionatedTable() is superior to genKnownTable()
@@ -1832,35 +2339,25 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 ' cipher digit mapping and there is no work to solve it'
             );
         } else {
-            let limit = 2;
+            let limit = 20;
             while (limit > 0) {
 
-                if (this.eliminateInvalidSequences(result, knownmap, working)) {
-                    console.log('stop here');
-                } else if (this.findIsolatedMorseBlankBefore(result, knownmap, working)) {
-                    console.log('or stop here');
-                } else if (this.findIsolatedMorseBlankAfter(result, knownmap, working)) {
+                /*if (this.cleanAndCheckSpans(result, knownmap, working)) {
+                    console.log('Checked spans...');
+                } else*/ if (this.findIsolatedMorseBlankBefore3(result, knownmap, working)) {
+                    console.log('Found: eliminateInvalidSequences');
+                } else if (this.findIsolatedMorseBlankBefore2(result, knownmap, working)) {
+                    console.log('Found: exploreStandaloneLetter');
+                } else if (this.findIsolatedMorseBlankAfter3(result, knownmap, working)) {
+                    console.log('Found: exploreStandaloneLetter');
+                } else if (this.findIsolatedMorseBlankAfter2(result, knownmap, working)) {
+                    console.log('Found: exploreStandaloneLetter');
+                } else if (this.exploreStandaloneLetter(result, knownmap, working)) {
+                    console.log('Found: findIsolatedMorseBlankBefore');
+                } else if (this.eliminateInvalidSequences(result, knownmap, working)) {
+                    console.log('Found: findIsolatedMorseBlankAfter');
+                } else if (this.takeAGuess(result, knownmap, working)) {
 
-
-                // Look for 'no gaps in the alphabet after the keyword and fill this in...
-                //} else if (this.noGapFill(result, knownmap, working)) {
-                    // Filled in a gap of at least 1
-                //} else if (this.findZ(result, knownmap, working)) {
-                    // Found 'Z' at the end...
-                //} else if (this.guessWord(result, knownmap, working)) {
-                    // The first character is never an X
-                    // else if (this.checkFirstCT(result, knownmap, working)) {
-                    //     // We eliminated at least one letter from being an X
-                    // } else if (this.findTriples(result, knownmap, working)) {
-                    //     // We eliminated at least one letter from being an X
-                    // } else if (this.findSpacers(result, knownmap, working)) {
-                    //     // We found at least one new letter that must be an X
-                    // } else if (this.findInvalidMorse(result, knownmap, working)) {
-                    //     // We found at least one morse code that invalidated a choice
-                    // } else if (this.findSingleMorse(result, knownmap, working)) {
-                    //     // We found at least one morse code that invalidated a choice
-                    // } else if (this.testSingleMorse(result, knownmap, working)) {
-                    //     // We found at least one morse code that invalidated a choice
                 } else {
                     // Nothing more that we can do..
                     result.append(
@@ -1871,13 +2368,15 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                         )
                     );
                     msg = 'Automated solver is unable to find an automatic solution.';
+                    this.dumpPossibilitiesMap();
                     break;
                 }
                 this.reconcileKnownMap(knownmap);
                 result.append('Based on that information we can map the cipher text as:');
                 working = this.genKnownMapping(strings, knownmap);
                 workingTable = this.generateFractionatedTable(true, knownmap, '');
-                result.append(workingTable)
+                result.append(workingTable);
+                result.append(this.generatePossibilitiesTable(true, thing, ''))
                 this.genMapping(result, working);
                 if (this.hasUnknowns(result, knownmap, working)) {
                     limit--;

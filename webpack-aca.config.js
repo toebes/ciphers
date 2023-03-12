@@ -339,6 +339,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'Analyst_Corner.html',
+            template: path.join(__dirname, 'app', 'aca', 'pages', 'Analyst_Corner.html'),
+            cipher: 'None',
+            title: 'Index to Analyst Corner Ciphers',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'HomophonicSolver.html',
             template: path.join(__dirname, 'app', 'aca', 'pages', 'Solver.html'),
             cipher: 'HomophonicSolver',

@@ -20,6 +20,7 @@ import {
     JTFLabeledInputApply,
 } from "../common/jtflabeledinput";
 import { JTTable } from "../common/jttable";
+import { mapVigenere } from "../common/mapVigenere";
 
 export class CipherSolver extends CipherHandler {
     public sortable: Sortable;
@@ -161,10 +162,38 @@ export class CipherSolver extends CipherHandler {
         this.genQuestionUsage(elem);
 
         if (this.state.question !== "") {
-
-            elem.append(
-                $("<h3/>").html(this.state.question)
-            );
+            // We want to make a hoverover 
+            // <span data-tooltip class="top" tabindex="1" title="">xxx</span>
+            const h3 = $("<h3/>")
+            this.state.question.split(/(\([^\)]+\))/).forEach((val: string) => {
+                if (val.substring(0, 1) === "(") {
+                    let keyword = (val.substring(1, val.length - 1))
+                    let title = ""
+                    let mapper = new mapVigenere()
+                    for (let e of "bcdefghijklmnopqrstuvwxyz") {
+                        for (let c of keyword) {
+                            let m = mapper.decode(c, e)
+                            if (m === "?") {
+                                title += c
+                            } else {
+                                title += m
+                            }
+                        }
+                        title += "\n"
+                    }
+                    const span = $("<span/>", {
+                        'data-tooltip': "",
+                        'data-position': "bottom", 'data-alignment': "center",
+                        tabindex: 1,
+                        title: title
+                    }).text(val);
+                    h3.append(span)
+                } else {
+                    h3.append(document.createTextNode(val))
+                }
+            })
+            $("<h3/>").html(this.state.question)
+            elem.append(h3);
         }
         result.append(elem);
     }
@@ -1482,7 +1511,7 @@ export class CipherSolver extends CipherHandler {
                     }
                     added++;
                     $('<option/>').addClass('l'+entry[3] + ' nomatch').text(entry.t).appendTo(mselect);
-*/
+        */
                 }
                 if (matched && added > 9) {
                     break;

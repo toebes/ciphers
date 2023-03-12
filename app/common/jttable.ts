@@ -95,7 +95,6 @@ export class JTRow {
      * we don't generate anything at all
      */
     public generate(): JQuery<HTMLElement> {
-        console.log(`Row generate length=${this.row.length}`)
         // If the row is empty, we toss it out
         if (this.row.length === 0) {
             return null;
@@ -202,7 +201,6 @@ export class JTTable {
             }
             table.append(thead);
         }
-        console.log(`Table generate ${this.body.length}`)
         if (this.body.length) {
             const tbody = $('<tbody/>');
             for (const row of this.body) {

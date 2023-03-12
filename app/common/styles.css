@@ -93,7 +93,7 @@ th.desc::after {
     content: '\25bc';
     color: darkgreen;
 }
-.prev {
+hr.prev {
     display: none;
 }
 body.fs {

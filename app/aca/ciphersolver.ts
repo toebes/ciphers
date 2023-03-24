@@ -161,7 +161,7 @@ export class CipherSolver extends CipherHandler {
         })
         this.genQuestionUsage(elem);
 
-        if (this.state.question !== "") {
+        if (this.state.question !== undefined && this.state.question !== "") {
             // We want to make a hoverover 
             // <span data-tooltip class="top" tabindex="1" title="">xxx</span>
             const h3 = $("<h3/>")

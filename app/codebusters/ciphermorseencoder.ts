@@ -476,8 +476,15 @@ export class CipherMorseEncoder extends CipherEncoder {
         if (match === null) {
             return ""
         }
+        let lengthAdjustment = 0;
+        if (this.state.cipherType === ICipherType.FractionatedMorse) {
+            // For fractionated morse, we need to have a multiple of 3 to pick up the last ciphertext character.
+            while ((match[0].length + lengthAdjustment) % 3 != 0) {
+                lengthAdjustment += 1;
+            }
+        }
         // The indexes are directly corresponding between letter location and cipher text.
-        const cipherCrib = cipherText.substr(match.index, match[0].length);
+        const cipherCrib = cipherText.substr(match.index, match[0].length + lengthAdjustment);
         return cipherCrib.trim();
     }
     /**

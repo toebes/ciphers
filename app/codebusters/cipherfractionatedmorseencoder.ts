@@ -445,8 +445,9 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
                 const morselet = tomorse[t];
                 // Spaces between letters use one separator character
+                let prefix = (extra.length === 2 ? '/' + this.repeatStr(' ', extra.length - 1) : this.repeatStr(' ', extra.length));
                 decodeline +=
-                    this.repeatStr(' ', extra.length) +
+                    prefix +
                     t +
                     this.repeatStr(' ', morselet.length - 1);
                 morseline += extra + morselet;

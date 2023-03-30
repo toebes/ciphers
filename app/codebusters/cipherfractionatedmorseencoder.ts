@@ -2064,7 +2064,20 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 let localKnownMap = JSON.parse(JSON.stringify(knownmap));
                 localKnownMap[letter] = guess;
                 let working = this.genKnownMapping(guessStrings, localKnownMap);
-                this.genMapping(result, working);
+                let previousWasElipsis = false;
+                let cleanedWorking: string [][] = [];
+                for (let line = 0; line < working.length; line++) {
+                    if (working[line][ctindex].indexOf(letter) === -1) {
+                        if (!previousWasElipsis) {
+                            cleanedWorking.push(['', '...', '']);
+                            previousWasElipsis = true;
+                        }
+                    } else {
+                        cleanedWorking.push(working[line]);
+                        previousWasElipsis = false;
+                    }
+                }
+                this.genMapping(result, cleanedWorking);
                 msg = $('<p/>');
                 let letterIndex = this.keywordMap.indexOf(letter);
                 let actualMapping = this.morseReplaces[letterIndex];
@@ -2099,7 +2112,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     private scanAndFillContinuous(result: JQuery<HTMLElement>, unknownMappedLetters: string, knownmap: StringMap): number {
 
         let approximateKeywordLength = 0;
-        let endAt = this.encodecharset.length - 1;
+        let endAt = this.encodecharset.length;
 
         let thing: string[] = this.possibilitiesMap;
 
@@ -2125,22 +2138,20 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
                 // check for match and the letter is not in the keyword at its natural location (kind of a cheat on the second part.)
                 if (delta === 0 && this.state.keyword.indexOf(theLetter) != -1) {
-                    if (theLetter !== this.encodecharset[endAt]) {
-                        if (!this.mentionedLetters.has(theLetter)) {
-                            let msg = $('<p/>');
-                            msg.append('The mapping of the letters between <code>' + theLetter + '</code> and <code>' +
-                                this.encodecharset[endAt] +
-                                '</code> are now known because the number of unknowns exactly matches the distance between these letters.');
-                            result.append(msg);
-                            for (let loop = i; loop <= endAt; loop++) {
-                                this.mentionedLetters.add(this.encodecharset[loop]);
-                            }
+                    if (!this.mentionedLetters.has(theLetter)) {
+                        let msg = $('<p/>');
+                        msg.append('The mapping of the letters between <code>' + theLetter + '</code> and <code>' +
+                            this.encodecharset[endAt] +
+                            '</code> are now known because the number of unknowns exactly matches the distance between these letters.');
+                        result.append(msg);
+                        for (let loop = i; loop <= endAt; loop++) {
+                            this.mentionedLetters.add(this.encodecharset[loop]);
                         }
                     }
                     // debug
                     //console.log('From here (offset: ' + i + ') to the right is known.');
                     let firstLetterIndex = this.encodecharset.indexOf(theLetter);
-                    thing = this.fillInContinuousPossibilitiesMap(thing, i+1, endAt + 1, delta + 1, firstLetterIndex + 1);
+                    thing = this.fillInContinuousPossibilitiesMap(thing, i + 1, endAt, 1, firstLetterIndex + 1);
                     endAt = this.keywordMap.indexOf(theLetter);
                 } else if (delta < 0 || delta < approximateKeywordLength/* || this.state.keyword.toUpperCase().indexOf(theLetter) > -1*/) {
                     if (!this.mentionedLetters.has(theLetter)) {
@@ -2166,15 +2177,30 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     // Number between these two endpoints in the real alphabet
                     let endLetterIndex = this.encodecharset.indexOf(this.keywordMap[endAt])
                     if (endLetterIndex === -1) {
-                        endLetterIndex = 25;
+                        endLetterIndex = 26;
                     }
                     const lettersInRange = endLetterIndex - firstLetterIndex ;
 
                     // calculate number of blanks between two endpoints in the keyword alphabet
-                    let firstBlankIndex = this.keywordMap.indexOf(theLetter);
+                    let firstBlankIndex = this.keywordMap.indexOf(theLetter) + 1;
 
                     // Number of spaces between the endpoints in the keyword map.
-                    const blanksInRange = endAt - firstBlankIndex - 1;
+                    const blanksInRange = endAt - firstBlankIndex;
+
+                    const potentialLetterSet = this.encodecharset.substring(firstLetterIndex, endLetterIndex);
+                    const realLetterSet = [];
+                    for (let l of potentialLetterSet) {
+                        if (knownmap[l] === 'XXX') {
+                            // save it
+                            realLetterSet.push(l);
+                        }
+                    }
+                    const letterSet = realLetterSet.join('');
+                    const fillSize = letterSet.length + 1 - blanksInRange;
+
+                    for (let j = 0; j < blanksInRange; j++) {
+                        thing[knownIndex + 1 + j] = letterSet.substr(j, fillSize);
+                    }
 
                     let lettersPerSlot = lettersInRange - blanksInRange;
                     if (lettersPerSlot < 1) {
@@ -2200,8 +2226,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                                     this.mentionedLetters.add(this.encodecharset[loop]);
                                 }
                             }
-
-                            thing = this.fillInContinuousPossibilitiesMap(thing, knownIndex + 1, endAt + 1, lettersPerSlot, firstLetterIndex + 1);
                         }
                     } else {
 
@@ -2210,11 +2234,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                         //     continue;
                         if (!this.mentionedLetters.has(theLetter)) {
                             let msg = $('<p/>');
-                            msg.append('Fill in possibilities between <code>' + theLetter + '</code> and <code>' + this.keywordMap[endAt] + '</code>.');
+                            msg.append('Fill in possibilities between <code>' + theLetter + '</code> and ' +
+                                (this.keywordMap[endAt] === undefined ? 'the end.' : '<code>' + this.keywordMap[endAt] + '</code>.'));
                             result.append(msg);
                             this.mentionedLetters.add(theLetter);
                         }
-                        thing = this.fillInContinuousPossibilitiesMap(thing, knownIndex + 1, endAt, lettersPerSlot, firstLetterIndex + 1);
                     }
                     endAt = this.keywordMap.indexOf(theLetter);
                 }

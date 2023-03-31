@@ -1363,9 +1363,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             return returnValue;
         }
 
+        let startSearch = 0;
         for (let i = 0; i < someSuffix.length; i++) {
             let msg = $('<p/>');
-            let testLetterIndex = morseSequence.indexOf(someSuffix[i]);
+            let testLetterIndex = morseSequence.indexOf(someSuffix[i], startSearch);
+            startSearch += testLetterIndex;
             // if the prefix is not at a fractionated boundary (every 3 symbols), then skip on to the next one.
             if (testLetterIndex % 3 !== 0)
                 continue;
@@ -1527,9 +1529,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             return returnValue;
         }
 
+        let startSearch = 0;
         for (let i = 0; i < somePrefix.length; i++) {
             let msg = $('<p/>');
-            let testLetterIndex = morseSequence.indexOf(somePrefix[i]) + 3;
+            let testLetterIndex = morseSequence.indexOf(somePrefix[i], startSearch) + 3;
+            startSearch += testLetterIndex;
             // if the prefix is not at a fractionated boundary (every 3 symbols), then skip on to the next one.
             if (testLetterIndex % 3 !== 0)
                 continue;
@@ -2295,7 +2299,13 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
         const knownmap: StringMap = {};
 
-        const hint = this.checkHintCrib(result, strings);
+        // Make a copy and remove the slash word separator
+        const hintStrings = strings.map(array => array.slice());
+        for (let hintString of hintStrings) {
+            hintString[ptindex] = hintString[ptindex].replace(new RegExp('/', 'g'), ' ');
+        }
+
+        const hint = this.checkHintCrib(result, hintStrings);
         if (hint === undefined) {
             return result;
         }

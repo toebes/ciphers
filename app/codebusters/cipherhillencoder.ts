@@ -945,7 +945,7 @@ export class CipherHillEncoder extends CipherEncoder {
     }
 
     /**
-     * Splits plaintext and ciphertext into a fixed width (default 26) so when
+     * Splits plaintext and ciphertext into a fixed width (default 24) so when
      * tests are printed, question/answer text does not run over the page.
      * Based on cipherhandler.makeReplacement(str, maxWidth), but both strings
      * are passed in and assumed to be equal in length.
@@ -957,7 +957,7 @@ export class CipherHillEncoder extends CipherEncoder {
      * @param secondLine encoded or plaintext line of characters
      * @param width number of characters per table line.
      */
-    public splitToFit(firstLine: string, secondLine: string, width = 26): string[][] {
+    public splitToFit(firstLine: string, secondLine: string, width = 24): string[][] {
         let lastsplit = -1;
         let lineOne = '';
         let lineTwo = '';
@@ -1076,7 +1076,7 @@ export class CipherHillEncoder extends CipherEncoder {
                 plaintext += this.repeatStr(' ', encoded.length - plaintext.length);
             }
 
-            // Split up the text so it fits on a page when printed (default split is 26 characters)
+            // Split up the text so it fits on a page when printed (default split is 24 characters)
             const strings = this.splitToFit(encoded, plaintext);
 
             const table = new JTTable({

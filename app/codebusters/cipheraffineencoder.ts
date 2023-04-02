@@ -660,7 +660,8 @@ export class CipherAffineEncoder extends CipherEncoder {
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
-        const result = $('<div/>', { class: 'grid-x' });
+        const result = $('<div/>');
+        const divx = $('<div/>', { class: 'grid-x' });
         let plainindex = 0;
         if (this.state.operation === 'encode') {
             plainindex = 1;
@@ -674,7 +675,8 @@ export class CipherAffineEncoder extends CipherEncoder {
         for (const strset of strings) {
             this.addCipherTableRows(table, undefined, strset[plainindex], undefined, true);
         }
-        result.append(table.generate());
+        divx.append(table.generate());
+        result.append(divx);
         result.append($('<div/>', { class: 'cell affinework' }));
         return result;
     }

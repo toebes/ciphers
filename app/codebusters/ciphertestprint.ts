@@ -394,7 +394,10 @@ export class CipherTestPrint extends CipherTest {
             // } else {
             trow.add('')
                 .add('')
-                .add('');
+                .add({
+                    settings: { class: 'specialindicator' },
+                    content: (qitem.specialBonus ? '&#9733;' : '')
+                });
         }
         // }
         // If we had a timed question, we put in the slot for the bonus

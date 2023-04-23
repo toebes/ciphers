@@ -1713,6 +1713,9 @@ table.testscores td.t {
     text-align: left;
     padding: 0rem 0.5rem 0rem 4rem;
 }
+table.testscores td.specialindicator {
+    text-align: right;
+}
 table.testscores td.grey {
     background-color: grey;
 }

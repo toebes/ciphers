@@ -123,6 +123,11 @@ export class CipherHillEncoder extends CipherEncoder {
         super.setUIDefaults();
         this.setOperation(this.state.operation);
     }
+    public setQuestionText(question: string): void {
+        super.setQuestionText(question);
+        this.validateQuestion();
+        this.attachHandlers();
+    }
     /**
      * Update the output based on current state settings.  This propagates
      * All values to the UI
@@ -137,6 +142,8 @@ export class CipherHillEncoder extends CipherEncoder {
         }
         JTRadioButtonSet('operation', this.state.operation);
         super.updateOutput();
+        this.validateQuestion();
+        this.attachHandlers();
     }
     /**
      * Set the keyword for encoding
@@ -146,6 +153,10 @@ export class CipherHillEncoder extends CipherEncoder {
         const changed = super.setKeyword(keyword);
         if (this.getValidKey(this.state.keyword) !== undefined) {
             $('#err').text('');
+        }
+        if (changed) {
+            this.validateQuestion();
+            this.attachHandlers();
         }
         return changed;
     }
@@ -222,8 +233,79 @@ export class CipherHillEncoder extends CipherEncoder {
 
         this.genQuestionFields(result);
         this.genEncodeField(result);
+        result.append(this.createQuestionTextDlg());
         result.append(JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, ''));
         return result;
+    }
+    /**
+     * Check for any errors we can find in the question
+     */
+    public validateQuestion(): void {
+        let msg = '';
+        let sampleLink: JQuery<HTMLElement> = undefined;
+        const questionText = this.state.question.toUpperCase();
+        const key = this.state.keyword.toUpperCase();
+
+        if (questionText.indexOf(key) < 0) {
+            msg += `The Question Text doesn't mention the keyword "${key}". `
+        }
+        // Check to see if they specified encode/encryption
+        //    for an encode type problem or
+        //   decode/decryption for a decode type problem
+        // or Compute/matrix for a compute matrix problem
+        if (this.state.operation === 'encode') {
+            if (questionText.indexOf('BEEN ENC') > 0 ||
+                questionText.indexOf('WAS ENC') > 0 ||
+                (questionText.indexOf('ENCRY') < 0 && questionText.indexOf('ENCOD') < 0)) {
+                msg += "The Question Text doesn't indicate that the text should be encoded.";
+            }
+        } else if (this.state.operation === 'decode') {
+            if (questionText.match('DECRYPT.*MATRIX') !== null ||
+                (questionText.indexOf('DECRY') < 0 &&
+                    questionText.indexOf('DECOD') < 0 &&
+                    questionText.indexOf('BEEN ENC') < 0 &&
+                    questionText.indexOf('WAS ENC') < 0)
+            ) {
+                msg += "The Question Text doesn't indicate that the text should be decoded.";
+            }
+        } else {
+            // Compute descryption 
+            if (
+                questionText.indexOf('COMPU') < 0 &&
+                questionText.indexOf('MATRIX') < 0
+            ) {
+                msg += "The Question Text doesn't indicate that the decryption matrix should be computed.";
+            }
+        }
+
+        if (msg !== '') {
+            sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
+        }
+
+        this.setErrorMsg(msg, 'vq', sampleLink);
+    }
+    /**
+     * Generates the sample question text for a cipher
+     * @returns HTML as a string
+     */
+    public genSampleQuestionText(): string {
+
+        let msg = ''
+        let hilltype = '??HILL?? Cipher'
+        const key = this.state.keyword.toUpperCase();
+        if (key.length === 4) {
+            hilltype = "2x2 Hill Cipher"
+        } else if (key.length === 9) {
+            hilltype = "3x3 Hill Cipher"
+        }
+        if (this.state.operation === 'encode') {
+            msg = `<p>Encrypt the following quote with a ${hilltype} using a keyword of ${this.genMonoText(key)}.</p>`
+        } else if (this.state.operation === 'decode') {
+            msg = `<p>Decode the following quote which was encoded as a ${hilltype} using a keyword of ${this.genMonoText(key)}.</p>`
+        } else {
+            msg = `<p>Compute the ${hilltype} decryption matrix for a keyword of ${this.genMonoText(key)}.</p>`
+        }
+        return msg;
     }
     /**
      *

@@ -1905,7 +1905,21 @@ export class CipherTest extends CipherHandler {
                     //       [^>]*
                     //     >
                     const re1 = /<(\/?)(strong|i|p|ul|ol|li|blockquote|span|)(?:[^>]*(\s+style="[^"]*")|)[^>]*>/gi;
-                    const re2 = /<(\/?)(strong|i|p|ul|ol|li|blockquote)[^>]*>/gi;
+                    // The second regex is just for the keywords we want without any style
+                    //      <                            Anything that starts with a left bracket
+                    //        (                          $1 capture group for the entire element
+                    //          \/?                      With an optional leading /
+                    //          strong|                  Followed by the white list of elements we allow
+                    //          i|
+                    //          p|
+                    //          ul
+                    //          |ol
+                    //          |li
+                    //          |blockquote
+                    //        )
+                    //        [^>]*                      Anything up to the closing > is ignored
+                    //      >                            With the closing left bracket
+                    const re2 = /<(\/?strong|i|p|ul|ol|li|blockquote)[^>]*>/gi;
                     // Toss out any malformed HTML elements that don't have their closing >
                     toAdd.question = toAdd.question.replace(/<[^>]*$/, '');
                     // As well as any HTML comments  <!-- and -->

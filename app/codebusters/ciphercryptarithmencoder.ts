@@ -385,10 +385,36 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         }
         return false;
     }
+    /**
+     * Get the values which are mapped to by the solution text
+     * @returns string Numbers for solution values
+     */
+    public getSolValues(): string {
+        let result = ""
+        if (this.state.validmapping && this.state.soltext !== '') {
+            for (let c of this.state.soltext.toUpperCase()) {
+                let v = this.state.mapping[c]
+                if (v !== undefined) {
+                    result += v
+                } else {
+                    result += c
+                }
+            }
+        }
+        return result
+    }
+    /**
+     * Check for any errors we can find in the question
+     */
     public validateQuestion(): void {
         let msg = '';
         let sampleLink: JQuery<HTMLElement> = undefined;
-        // const questionText = this.state.question.toUpperCase();
+        const questionText = this.state.question.toUpperCase();
+        const solValues = this.getSolValues()
+        if (!questionText.match(solValues)) {
+            msg += "The Question Text doesn't mention the values to be solved for.";
+
+        }
         if (msg !== '') {
             sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
         }
@@ -400,7 +426,11 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      * @returns HTML as a string
      */
     public genSampleQuestionText(): string {
-        let msg = '<p>Decode the following Cryptarithm by figuring out what letters stand for which numbers.</p>';
+        const solValues = this.getSolValues()
+
+        let msg = '<p>The following cryptarithm provides the key to decoding the values ' +
+            this.genMonoText(solValues) +
+            '. What do they decode to?</p>';
         return msg;
     }
     /**
@@ -1054,6 +1084,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
 
         let solution = $('<div/>')
         if (this.state.validmapping && this.state.soltext !== '') {
+            let nonmapped = ""
             // Build the mapping table
             const anstable = new JTTable({
                 class: 'ansblock shrink cell unstriped',
@@ -1068,6 +1099,9 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                         content: '&nbsp;',
                     })
                 } else if (v === undefined) {
+                    if (c.toLowerCase() !== c) {
+                        nonmapped += c
+                    }
                     toprow.add(c)
                     bottomrow.add(c)
                 } else {
@@ -1086,6 +1120,15 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 }
             }
             solution.append(anstable.generate())
+            if (nonmapped.length > 0) {
+                let s = ""
+                let dont = "doesn't"
+                if (nonmapped.length > 1) {
+                    s = "s"
+                    dont = "don't"
+                }
+                solution.append(makeCallout(`The solution text uses the letter${s} "${nonmapped}" which ${dont} appear in the cryptarithm.`, 'warning'))
+            }
         } else if (!this.state.validmapping) {
             solution.append(makeCallout("No known solution mapping has been generated.  Please click the Check Problem and Update button", 'alert'))
         } else {

@@ -218,16 +218,16 @@ export class CipherTestScoreAdjust extends CipherTest {
      * Populate the frequency summary table entries
      */
     public FillSummaryTable() {
-        let onesMap = new Map<String, number[]>()
-        let tensMap = new Map<String, number[]>()
+        let onesMap = new Map<String, number[][]>()
+        let tensMap = new Map<String, number[][]>()
 
         // Initialize our maps of data
         for (let cipherSubType of this.cipherSubTypes) {
-            onesMap.set(cipherSubType, makeFilledArray(11, 0))
-            tensMap.set(cipherSubType, makeFilledArray(11, 0))
+            onesMap.set(cipherSubType, [[], [], [], [], [], [], [], [], [], []])
+            tensMap.set(cipherSubType, [[], [], [], [], [], [], [], [], [], []])
         }
-        onesMap.set('All', makeFilledArray(10, 0))
-        tensMap.set('All', makeFilledArray(10, 0))
+        onesMap.set('All', [[], [], [], [], [], [], [], [], [], []])
+        tensMap.set('All', [[], [], [], [], [], [], [], [], [], []])
         // Go through all the ciphers and get the scores and type
         const test = this.getTestEntry(this.state.test);
         for (let entry = -1; entry < test.count; entry++) {
@@ -255,11 +255,13 @@ export class CipherTestScoreAdjust extends CipherTest {
                 }
                 const ones = state.points % 10
                 const tens = Math.trunc((state.points % 100) / 10)
-                this.recordVal(onesMap, cipherSubType, ones);
-                this.recordVal(tensMap, cipherSubType, tens);
+                this.recordVal(onesMap, cipherSubType, ones, entry);
+                this.recordVal(tensMap, cipherSubType, tens, entry);
             }
         }
         // Data has all been calculated, time to update the UI
+        $('.aib').removeClass('gv lv');
+
         for (let cipherSubType of this.cipherSubTypes) {
             this.showSummaryInfo(onesMap, cipherSubType, 'do');
             this.showSummaryInfo(tensMap, cipherSubType, 'dt');
@@ -267,33 +269,45 @@ export class CipherTestScoreAdjust extends CipherTest {
         this.showSummaryInfo(onesMap, 'All', 'do');
         this.showSummaryInfo(tensMap, 'All', 'dt');
     }
+    public setInputClasses(elemSet: number[], classType: string): void {
+        for (let pos of elemSet) {
+            let elemTxt = "T"
+            if (pos >= 0) {
+                elemTxt = String(pos)
+            }
+            $('#sc' + elemTxt).addClass(classType)
+        }
+    }
+
     /**
      * Show the summary information for an individual cipherSubType
      * @param valMap Value map to update
      * @param cipherSubType Cipher sub type entry to update
      * @param id Entry in the subtype map to update
      */
-    public showSummaryInfo(valMap: Map<String, number[]>, cipherSubType: string, id: string) {
+    public showSummaryInfo(valMap: Map<String, number[][]>, cipherSubType: string, id: string) {
         let getVals = valMap.get(cipherSubType);
         const cipherid = cipherSubType.toLowerCase().substring(0, 3);
         let total = 0;
         for (let slot = 0; slot < 10; slot++) {
-            total += getVals[slot];
+            total += getVals[slot].length;
         }
         // Figure out the threshold
         const upperThreshold = Math.ceil(total / 10)
         const lowerThreshold = Math.floor(total / 10)
         for (let slot = 0; slot < 10; slot++) {
-            const slotVal = getVals[slot];
+            const slotVal = getVals[slot].length;
             const elem = $("#" + id + cipherid + String(slot))
             elem.text(slotVal);
 
             if (slotVal > upperThreshold) {
                 elem.removeClass('lv')
                 elem.addClass('gv')
+                this.setInputClasses(getVals[slot], 'gv')
             } else if (slotVal < lowerThreshold) {
                 elem.removeClass('gv')
                 elem.addClass('lv')
+                this.setInputClasses(getVals[slot], 'lv')
             } else {
                 elem.removeClass('gv lv')
             }
@@ -306,11 +320,11 @@ export class CipherTestScoreAdjust extends CipherTest {
      * @param cipherSubType Type of cipher to record data for
      * @param slot Index to be updated
      */
-    public recordVal(valMap: Map<String, number[]>, cipherSubType: string, slot: number) {
+    public recordVal(valMap: Map<String, number[][]>, cipherSubType: string, slot: number, entry: number) {
         const setVals = valMap.get(cipherSubType);
-        setVals[slot] += 1;
+        setVals[slot].push(entry)
         const allvals = valMap.get('All');
-        allvals[slot] += 1;
+        allvals[slot].push(entry)
     }
     /**
      * Create an input field with up/down increment buttons
@@ -539,7 +553,7 @@ export class CipherTestScoreAdjust extends CipherTest {
             .on('input', (e) => {
                 const elem = $(e.target)
                 if (this.updateScore(elem.attr('id'), elem.val() as number)) {
-                    this.updateOutput();
+                    this.FillSummaryTable();
                 }
             })
         $('#title')

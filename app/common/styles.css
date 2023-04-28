@@ -1489,10 +1489,12 @@ div.vsolv {
     text-align: center;
 }
 
+.aib.gv,
 .adjscore .gv {
     background-color: yellow !important;
 }
 
+.aib.lv,
 .adjscore .lv {
     background-color: yellowgreen !important;
 }

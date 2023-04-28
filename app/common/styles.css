@@ -1484,6 +1484,19 @@ div.vsolv {
     height: 3rem;
 }
 
+.adjscore th,
+.adjscore td {
+    text-align: center;
+}
+
+.adjscore .gv {
+    background-color: yellow !important;
+}
+
+.adjscore .lv {
+    background-color: yellowgreen !important;
+}
+
 /* Extra size for elementary school */
 .ansblock.atest tbody td,
 .ansblock.atest tbody th {

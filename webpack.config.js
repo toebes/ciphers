@@ -451,6 +451,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'TestScoreAdjust.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'TestGenerator.html'),
+            cipher: 'TestScoreAdjust',
+            title: 'Test Score Adjust',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TestGenerator.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'TestGenerator.html'),
             cipher: 'TestGenerator',

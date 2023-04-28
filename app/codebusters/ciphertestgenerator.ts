@@ -36,6 +36,7 @@ export class CipherTestGenerator extends CipherTest {
         { title: 'Randomize Order', color: 'primary', id: 'randomize' },
         { title: 'Hide Custom Header', color: 'primary', id: 'hide-custom-header' },
         { title: 'Show Custom Header', color: 'primary', id: 'show-custom-header' },
+        { title: 'Adjust Scores', color: 'primary', id: 'adjust' },
         { title: 'Export Test', color: 'primary', id: 'export' },
         { title: 'Import Tests from File', color: 'primary', id: 'import' },
         { title: 'Import Tests from URL', color: 'primary', id: 'importurl' },
@@ -189,8 +190,8 @@ export class CipherTestGenerator extends CipherTest {
 
 
         /**
- * See if we need to show/hide the Spanish Hints
- */
+         * See if we need to show/hide the Spanish Hints
+         */
         if (SpanishCount > 0) {
             if (SpanishCount > 1) {
                 if (test.testtype !== ITestType.bstate && test.testtype !== ITestType.cstate) {
@@ -518,6 +519,11 @@ export class CipherTestGenerator extends CipherTest {
             .off('click')
             .on('click', () => {
                 this.gotoRandomizeTest();
+            });
+        $('#adjust')
+            .off('click')
+            .on('click', () => {
+                this.gotoAdjustScores(this.state.test);
             });
         $('.quesup')
             .off('click')

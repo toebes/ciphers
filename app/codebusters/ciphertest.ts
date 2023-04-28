@@ -1161,7 +1161,10 @@ export class CipherTest extends CipherHandler {
         this.openXMLImport(useLocalData);
     }
     public gotoEditTest(test: number): void {
-        location.assign('TestGenerator.html?test=' + String(test));
+        location.assign(`TestGenerator.html?test=${test}`);
+    }
+    public gotoAdjustScores(test: number): void {
+        location.assign(`TestScoreAdjust.html?test=${test}`)
     }
     /**
      * generateTestData converts the current test information to a map which can be saved/restored later
@@ -1206,24 +1209,24 @@ export class CipherTest extends CipherHandler {
             testdata.questions[i] = this.setFileEntry(-1, entry);
         }
         const newtest = this.setTestEntry(-1, testdata);
-        location.assign('TestGenerator.html?test=' + String(newtest));
+        location.assign(`TestGenerator.html?test=${newtest}`);
     }
     public deleteTest(test: number): void {
         this.deleteTestEntry(test);
         location.reload();
     }
     public gotoPrintTest(test: number): void {
-        location.assign('TestPrint.html?test=' + String(test));
+        location.assign(`TestPrint.html?test=${test}`);
     }
     public gotoPrintTestAnswers(test: number): void {
-        location.assign('TestAnswers.html?test=' + String(test));
+        location.assign(`TestAnswers.html?test=${test}`);
     }
     public gotoPrintTestSols(test: number): void {
-        location.assign('TestAnswers.html?test=' + String(test) + '&sols=y');
+        location.assign(`TestAnswers.html?test=${test}` + '&sols=y');
     }
     // NOTE: Disable interactive test
     // public gotoInteractiveTest(test: number): void {
-    //     location.assign('TestInteractive.html?test=' + String(test));
+    //     location.assign(`TestInteractive.html?test=${test}`);
     // }
     // public gotoTestPublished(): void {
     //     location.assign('TestPublished.html');
@@ -1236,21 +1239,21 @@ export class CipherTest extends CipherHandler {
      * @param sourcemodelid published ID of test
      */
     public gotoPublishedTestPermissions(sourcemodelid: string): void {
-        location.assign('TestPermissions.html?testID=' + sourcemodelid);
+        location.assign(`TestPermissions.html?testID=${sourcemodelid}`);
     }
     /**
      * Jump to the page to schedule a test
      * @param sourcemodelid published ID of test
      */
     public gotoPublishedSchedule(sourcemodelid: string): void {
-        location.assign('TestSchedule.html?testID=' + sourcemodelid);
+        location.assign(`TestSchedule.html?testID=${sourcemodelid}`);
     }
     /**
      * Jump to the page to show the results of taking the test
      * @param sourcemodelid published ID of test
      */
     public gotoPublishedResults(sourcemodelid: string, showResults: boolean): void {
-        location.assign('TestResults.html?testID=' + sourcemodelid +
+        location.assign(`TestResults.html?testID=${sourcemodelid}` +
             (showResults ? '' : '&preResults=foo'));
     }
 

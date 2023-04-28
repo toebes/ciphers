@@ -8,7 +8,6 @@ import { mapVariant } from './mapVariant';
 import { mapVigenere } from './mapVigenere';
 
 export function mapperFactory(codevariant: ICipherType): Mapper {
-    console.log(codevariant);
     switch (codevariant) {
         case ICipherType.Beaufort:
             return new mapBeaufort();

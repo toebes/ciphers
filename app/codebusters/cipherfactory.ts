@@ -1,4 +1,3 @@
-import { CipherHandler } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { CipherAffineEncoder } from './cipheraffineencoder';
 import { CipherBaconianEncoder } from './cipherbaconianencoder';
@@ -6,8 +5,11 @@ import { CipherCryptarithmEncoder } from './ciphercryptarithmencoder';
 import { CipherDancingMenEncoder } from './cipherdancingmenencoder';
 import { CipherEncoder } from './cipherencoder';
 import { CipherFractionatedMorseEncoder } from './cipherfractionatedmorseencoder';
-import { CipherHillEncoder } from './cipherhillencoder';
 import { CipherGenerateHomophone } from './cipherhomophones';
+import { CipherHandler } from '../common/cipherhandler';
+import { CipherHillEncoder } from './cipherhillencoder';
+import { CipherLogin } from './cipherlogin';
+import { CipherMaintenance } from './ciphermaintenance'
 import { CipherMorbitEncoder } from './ciphermorbitencoder';
 import { CipherPigPenEncoder } from './cipherpigpenencoder';
 import { CipherPolluxEncoder } from './cipherpolluxencoder';
@@ -16,33 +18,32 @@ import { CipherRailFenceEncoder } from './cipherrailfenceencoder';
 import { CipherRSAEncoder } from './cipherrsaencoder';
 import { CipherRunningKeyEdit } from './cipherrunningkeyedit';
 import { CipherRunningKeyEncoder } from './cipherrunningkeyencoder';
+import { CipherScilympiad } from './cipherscilympiad';
 import { CipherTableEncoder } from './ciphertableencoder';
+import { CipherTakeTest } from './ciphertaketest';
 import { CipherTapCodeEncoder } from './ciphertapcodeencoder';
 import { CipherTestAnswers } from './ciphertestanswers';
+import { CipherTestAttach } from './ciphertestattach';
 import { CipherTestGenerator } from './ciphertestgenerator';
-import { CipherTestManage } from './ciphertestmanage';
-import { CipherTestPrint } from './ciphertestprint';
 import { CipherTestInteractive } from './ciphertestinteractive';
+import { CipherTestManage } from './ciphertestmanage';
+import { CipherTestPlayback } from './ciphertestplayback';
+import { CipherTestPrint } from './ciphertestprint';
+import { CipherTestPublished } from './ciphertestpublished';
 import { CipherTestQuestions } from './ciphertestquestions';
+import { CipherTestPermissions } from './ciphertestpermissions';
+import { CipherTestResults } from './ciphertestresults';
+import { CipherTestSchedule } from './ciphertestschedule';
+import { CipherTestScoreAdjust } from './ciphertestscoreadjust';
+import { CipherTestTimed } from './ciphertesttimed';
+import { CipherVigenereEncoder } from './ciphervigenereencoder';
 import { InteractiveAffineEncoder } from './interactiveaffineencoder';
 import { InteractiveEncoder } from './interactiveencoder';
 import { InteractiveHillEncoder } from './interactivehillencoder';
+import { InteractiveMorseEncoder } from './interactivemorseencoder';
 import { InteractiveRailFenceEncoder } from './interactiverailfenceencoder';
 import { InteractiveRSAEncoder } from "./interactiversaencoder";
 import { InteractiveTableEncoder } from './interactivetableencoder';
-import { CipherVigenereEncoder } from './ciphervigenereencoder';
-import { CipherTestPublished } from './ciphertestpublished';
-import { CipherTestPermissions } from './ciphertestpermissions';
-import { CipherTestSchedule } from './ciphertestschedule';
-import { CipherTestResults } from './ciphertestresults';
-import { CipherTakeTest } from './ciphertaketest';
-import { CipherTestTimed } from './ciphertesttimed';
-import { InteractiveMorseEncoder } from './interactivemorseencoder';
-import { CipherTestPlayback } from './ciphertestplayback';
-import { CipherLogin } from './cipherlogin';
-import { CipherMaintenance } from './ciphermaintenance'
-import { CipherScilympiad } from './cipherscilympiad';
-import { CipherTestAttach } from './ciphertestattach';
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -275,6 +276,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     TestSchedule: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestSchedule,
+        interactiveClass: CipherHandler,
+        canPrint: false,
+    },
+    TestScoreAdjust: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestScoreAdjust,
         interactiveClass: CipherHandler,
         canPrint: false,
     },

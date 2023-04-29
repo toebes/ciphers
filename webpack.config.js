@@ -163,6 +163,10 @@ config = {
                     to: dist,
                 },
                 {
+                    from: path.join(__dirname, 'app', 'images', 'so-national-logo.jpg'),
+                    to: path.resolve(__dirname, 'dist', 'images'),
+                },
+                {
                     from: path.join(__dirname, 'app', 'images', 'ncso-main-fullcolor-rgb.jpg'),
                     to: path.resolve(__dirname, 'dist', 'images'),
                 },

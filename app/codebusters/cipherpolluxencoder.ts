@@ -264,7 +264,8 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
                 const morselet = tomorse[t];
                 // Spaces between letters use one separator character
                 decodeline +=
-                    this.repeatStr(' ', extra.length) +
+                    (extra.length === 2 ? '/' : '') +
+                    this.repeatStr(' ', (extra.length === 2 ? extra.length - 1 : extra.length)) +
                     t +
                     this.repeatStr(' ', morselet.length - 1);
                 morseline += extra + morselet;

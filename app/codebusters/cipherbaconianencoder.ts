@@ -21,7 +21,6 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 import { decodeHTML } from 'entities';
-import { LocalIndexReference } from '@convergence/convergence';
 
 const baconMap: StringMap = {
     A: 'AAAAA',
@@ -1084,7 +1083,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
         let solution: string[] = [];
         const answer: string[] = [];
-        const stringindex = 0;
 
         // Figure out what the expected answer should be
         if (this.state.operation === 'words') {

@@ -60,6 +60,46 @@ export class CipherMorseEncoder extends CipherEncoder {
         this.validateQuestion();
         this.attachHandlers();
     }
+    /**
+     * Determines if this generator is appropriate for a given test
+     * type.  For Division A and B, only decode is allowed
+     * @param testType Test type to compare against
+     * @param anyOperation Don't restrict based on the type of operation
+     * @returns String indicating error or blank for success
+     */
+    public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
+        let result = super.CheckAppropriate(testType, anyOperation);
+        if (!anyOperation && result === '' && testType !== undefined) {
+            let minCribLength = undefined
+            let minHintLength = 5
+            if (testType === ITestType.bstate || testType === ITestType.cstate) {
+                minCribLength = 3
+                minHintLength = 4
+            }
+            if (this.state.cipherType == ICipherType.FractionatedMorse) {
+                minCribLength = 4
+            }
+            if (this.state.operation === 'crypt' && minCribLength === undefined) {
+                return `Cryptanalysis is only allowed on State and National Level tests for ${this.state.cipherType} ciphers`
+            }
+            if (this.state.operation === 'crypt' && this.state.crib !== undefined && this.state.crib.length < minCribLength) {
+                return `The crib needs to be at least ${minCribLength} letters long`
+            }
+            if (this.state.operation !== 'crypt') {
+                let hint = this.state.hint;
+                if (hint === undefined) {
+                    hint = '';
+                }
+                if (hint.length < minHintLength) {
+                    return `At least ${minHintLength} hint digits need to be provided`
+                }
+            }
+        }
+        return result;
+    }
+    /**
+     * 
+     */
     public validateQuestion(): void {
         let msg = '';
         let showsample = false;
@@ -491,21 +531,28 @@ export class CipherMorseEncoder extends CipherEncoder {
      * Check the
      * @param result Hint characters or undefined on error
      */
-    public checkHintCrib(result: JQuery<HTMLElement>, strings: string[][]): string {
+    public checkHintCrib(testType: ITestType, result: JQuery<HTMLElement>, strings: string[][]): string {
         let hint = this.state.hint;
         if (hint === undefined) {
             hint = '';
         }
         let msg = '';
 
+        let minCribLength = undefined
+        let minHintLength = 5
+        if (testType === ITestType.bstate || testType === ITestType.cstate || testType === ITestType.None) {
+            minCribLength = 3
+            minHintLength = 4
+        }
+
         result.append($('<h3/>').text('How to solve'));
         if (this.state.operation === 'crypt') {
             // The CRIB should be at least 4 characters
-            if (this.state.crib === undefined || this.state.crib.length < 4) {
+            if (this.state.crib === undefined || this.state.crib.length < minCribLength) {
                 result.append(
-                    $('<h4/>').text('At least 4 crib characters are needed to generate a solution')
+                    $('<h4/>').text(`At least ${minCribLength} crib characters are needed to generate a solution`)
                 );
-                this.setErrorMsg('The crib should be at least 4 characters', 'mchc');
+                this.setErrorMsg(`The crib should be at least ${minCribLength} characters`, 'mchc');
                 return undefined;
             }
             const bighint = this.findCrib(strings, this.minimizeString(this.state.crib));
@@ -533,20 +580,18 @@ export class CipherMorseEncoder extends CipherEncoder {
                     ' characters. '
                 );
             }
-        } else if (hint.length < 4) {
-            msg = 'There need to be at least 4 Hint Digits (6 is expected for a test)';
+        } else if (hint.length < minHintLength) {
+            msg = `There need to be at least ${minHintLength} Hint Digits.`;
         }
         result.append(
-            'Since we are told the mapping of ' +
-            hint +
-            ' ciphertext, we can build the following table:'
+            `Since we are told the mapping of ${hint} ciphertext, we can build the following table:`
         );
 
         this.setErrorMsg(msg, 'mchc');
-        if (hint.length < 4) {
+        if (hint.length < minHintLength) {
             result.append(
                 $('<h4/>').text(
-                    'At least 4 Hint Digits are needed to automatically generate a solution'
+                    `At least ${minHintLength} Hint Digits are needed to automatically generate a solution`
                 )
             );
             return undefined;

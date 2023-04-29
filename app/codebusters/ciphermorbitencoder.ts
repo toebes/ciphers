@@ -1312,7 +1312,7 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
         const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
         const knownmap: MorbitKnownMap = {};
 
-        const hint = this.checkHintCrib(result, strings);
+        const hint = this.checkHintCrib(testType, result, strings);
         if (hint === undefined) {
             return result;
         }

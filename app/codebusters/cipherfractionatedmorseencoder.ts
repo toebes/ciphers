@@ -257,11 +257,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     }
 
     public generatePossibilitiesTable(showanswers: boolean, thing: string[], extraclass: string): JQuery<HTMLElement> {
-        const table = new JTTable( {
+        const table = new JTTable({
             class: 'prfreq fractionatedmorse shrink cell unstriped ' + extraclass,
         });
         const charset = this.keywordMap;
-        const possibilitiesRow = table.addBodyRow( { class: 'replacement' });
+        const possibilitiesRow = table.addBodyRow({ class: 'replacement' });
         const fractionsRow = table.addBodyRow();
 
         possibilitiesRow.add({ celltype: 'th', content: 'Possibilities' });
@@ -294,12 +294,12 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         // if (isSequence) {
         //     content = content[0] + '-' + content[content.length - 1];
         // } else {
-            const big = content;
-            content = '';
-            for (let i = 0; i < big.length; i++) {
-                content += (i % 2 === 0) ? big[i] : ','+ big[i]+'</br>';
-            }
-            //content = '&nbsp;?&nbsp;';
+        const big = content;
+        content = '';
+        for (let i = 0; i < big.length; i++) {
+            content += (i % 2 === 0) ? big[i] : ',' + big[i] + '</br>';
+        }
+        //content = '&nbsp;?&nbsp;';
         // }
         return content;
     }
@@ -629,7 +629,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             for (let n = 0; n < p.length; n += 3) {
 
                 // console.log(p.substring(n, n + 3).trim()+':'+m.substring(n, n+3));
-                let someMorse = this.sortOut(p.substring(n, n + 3).trim(), m.substring(n, n+3));
+                let someMorse = this.sortOut(p.substring(n, n + 3).trim(), m.substring(n, n + 3));
                 // console.log('So we got...' + someMorse);
                 possbileMorse += someMorse;
             }
@@ -653,14 +653,14 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                         if (inputDigit === ' ') {
                             continue;
                         } else if (inputDigit === '+') {
-                            morse = morse.substring(0, j) + mapDigit + morse.substring(j+1);
+                            morse = morse.substring(0, j) + mapDigit + morse.substring(j + 1);
                         } else if (mapDigit === 'X') {
-                            morse = morse.substring(0, j) + ' ' + morse.substring(j+1);
+                            morse = morse.substring(0, j) + ' ' + morse.substring(j + 1);
                         }
                         else if (inputDigit === mapDigit) {
-                            morse = morse.substring(0, j) + inputDigit + morse.substring(j+1);
+                            morse = morse.substring(0, j) + inputDigit + morse.substring(j + 1);
                         } else {
-                            morse = morse.substring(0, j) + '?' + morse.substring(j+1);
+                            morse = morse.substring(0, j) + '?' + morse.substring(j + 1);
                         }
                     }
                 }
@@ -1321,30 +1321,30 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     }
 
     private findIsolatedMorseBlankBefore2(result: JQuery<HTMLElement>,
-                                         knownmap: StringMap,
-                                         working: string[][]): boolean {
+        knownmap: StringMap,
+        working: string[][]): boolean {
         return this.findIsolatedMorseBlankBefore(result, knownmap, working, 2);
     }
     private findIsolatedMorseBlankBefore3(result: JQuery<HTMLElement>,
-                                         knownmap: StringMap,
-                                         working: string[][]): boolean {
+        knownmap: StringMap,
+        working: string[][]): boolean {
         return this.findIsolatedMorseBlankBefore(result, knownmap, working, 3);
     }
 
-        /**
-     * This method looks for a blank before an all morse fragment of three morse
-     * characters.  Based on the 3 known morse characters, we can run thru the
-     * possibilities of morse sequences that are valid.  So we take into account
-     * length and possible morse sequences that could fit with the known fragment.
-     * @param result
-     * @param knownmap
-     * @param working
-     * @private
-     */
+    /**
+ * This method looks for a blank before an all morse fragment of three morse
+ * characters.  Based on the 3 known morse characters, we can run thru the
+ * possibilities of morse sequences that are valid.  So we take into account
+ * length and possible morse sequences that could fit with the known fragment.
+ * @param result
+ * @param knownmap
+ * @param working
+ * @private
+ */
     private findIsolatedMorseBlankBefore(result: JQuery<HTMLElement>,
-                                  knownmap: StringMap,
-                                  working: string[][],
-                                  characterCount: number): boolean {
+        knownmap: StringMap,
+        working: string[][],
+        characterCount: number): boolean {
         let returnValue = false;
         let cipherSequence: string = '';
         let morseSequence: string = '';
@@ -1447,7 +1447,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                         let x = this.morseReplaces[p].lastIndexOf('X');
                         let morseRemainder = this.morseReplaces[p];
                         if (x > -1) {
-                            morseRemainder = this.morseReplaces[p].substring(x+1);
+                            morseRemainder = this.morseReplaces[p].substring(x + 1);
                         }
                         // debug
                         //console.log('Check "' + morseRemainder + morseSuffix + '"');
@@ -1500,20 +1500,20 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     }
 
     private findIsolatedMorseBlankAfter2(result: JQuery<HTMLElement>,
-                                          knownmap: StringMap,
-                                          working: string[][]): boolean {
+        knownmap: StringMap,
+        working: string[][]): boolean {
         return this.findIsolatedMorseBlankAfter(result, knownmap, working, 2);
     }
     private findIsolatedMorseBlankAfter3(result: JQuery<HTMLElement>,
-                                         knownmap: StringMap,
-                                         working: string[][]): boolean {
+        knownmap: StringMap,
+        working: string[][]): boolean {
         return this.findIsolatedMorseBlankAfter(result, knownmap, working, 3);
     }
 
     private findIsolatedMorseBlankAfter(result: JQuery<HTMLElement>,
-                                         knownmap: StringMap,
-                                         working: string[][],
-                                         characterCount: number): boolean {
+        knownmap: StringMap,
+        working: string[][],
+        characterCount: number): boolean {
         let returnValue = false;
         let cipherSequence: string = '';
         let morseSequence: string = '';
@@ -1717,8 +1717,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     }
 
     private eliminateInvalidSequences(result: JQuery<HTMLElement>,
-                                     knownmap: StringMap,
-                                     working: string[][]): boolean {
+        knownmap: StringMap,
+        working: string[][]): boolean {
         let cipherSequence: string = '';
         let morseSequence: string = '';
         for (let i = 0; i < working.length; i++) {
@@ -1779,11 +1779,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         return thing;
     }
 
-    public fillInRangeThings(thing: string[], startIndex: number, endIndex:number, lettersPerSlot: number, firstLetterIndex: number): string[] {
+    public fillInRangeThings(thing: string[], startIndex: number, endIndex: number, lettersPerSlot: number, firstLetterIndex: number): string[] {
         return this.fillInContinuousPossibilitiesMap(thing, startIndex, endIndex, lettersPerSlot, firstLetterIndex);
     }
 
-    public fillInKnownPossibilitiesMap(thing:string[], index: number, letter: string): string[] {
+    public fillInKnownPossibilitiesMap(thing: string[], index: number, letter: string): string[] {
         thing[index] = letter;
 
         this.removeKnownFromPossibilitiesMap(thing, index, letter);
@@ -1875,8 +1875,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     }
 
     private exploreStandaloneLetter(result: JQuery<HTMLElement>,
-                                    knownmap: StringMap,
-                                    working: string[][]): boolean {
+        knownmap: StringMap,
+        working: string[][]): boolean {
 
         let sfsm: StringMap = {};
         let cipherSequence: string = '';
@@ -1983,8 +1983,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      * @private
      */
     private cleanAndCheckSpans(result: JQuery<HTMLElement>,
-                               knownmap: StringMap,
-                               working: string[][]): boolean {
+        knownmap: StringMap,
+        working: string[][]): boolean {
         let returnValue = false;
         let msg = $('<p/>');
         msg.append('Scanning possibilities table to remove unknowns.  ');
@@ -2038,7 +2038,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                         }
                         this.reconcileKnownMap(knownmap);
                         msg.append('Possible mappings between letters <code>' + startChar + '<\/code> and <code>' +
-                        this.possibilitiesMap[endSpan] + '<\/cpde> can be simplified.');
+                            this.possibilitiesMap[endSpan] + '<\/cpde> can be simplified.');
                         returnValue = true;
                     }
 
@@ -2056,8 +2056,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     }
 
     private takeAGuess(result: JQuery<HTMLElement>,
-                       knownmap: StringMap,
-                       working: string[][]): boolean {
+        knownmap: StringMap,
+        working: string[][]): boolean {
         let returnValue = false;
         let msg = $('<p/>');
         msg.append('Try some of the possibilities...  ');
@@ -2088,7 +2088,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 localKnownMap[letter] = guess;
                 let working = this.genKnownMapping(guessStrings, localKnownMap);
                 let previousWasElipsis = false;
-                let cleanedWorking: string [][] = [];
+                let cleanedWorking: string[][] = [];
                 for (let line = 0; line < working.length; line++) {
                     if (working[line][ctindex].indexOf(letter) === -1) {
                         if (!previousWasElipsis) {
@@ -2202,7 +2202,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     if (endLetterIndex === -1) {
                         endLetterIndex = 26;
                     }
-                    const lettersInRange = endLetterIndex - firstLetterIndex ;
+                    const lettersInRange = endLetterIndex - firstLetterIndex;
 
                     // calculate number of blanks between two endpoints in the keyword alphabet
                     let firstBlankIndex = this.keywordMap.indexOf(theLetter) + 1;
@@ -2324,7 +2324,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             hintString[ptindex] = hintString[ptindex].replace(new RegExp('/', 'g'), ' ');
         }
 
-        const hint = this.checkHintCrib(result, hintStrings);
+        const hint = this.checkHintCrib(testType, result, hintStrings);
         if (hint === undefined) {
             return result;
         }
@@ -2400,10 +2400,10 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     //console.log('Found: findIsolatedMorseBlankBefore2');
                 } else if (this.findIsolatedMorseBlankAfter2(result, knownmap, working)) {
                     //console.log('Found: findIsolatedMorseBlankAfter2');
-                // } else if (this.exploreStandaloneLetter(result, knownmap, working)) {
-                //     console.log('Found: exploreStandaloneLetter');
-                // } else if (this.eliminateInvalidSequences(result, knownmap, working)) {
-                //     console.log('Found: findIsolatedMorseBlankAfter');
+                    // } else if (this.exploreStandaloneLetter(result, knownmap, working)) {
+                    //     console.log('Found: exploreStandaloneLetter');
+                    // } else if (this.eliminateInvalidSequences(result, knownmap, working)) {
+                    //     console.log('Found: findIsolatedMorseBlankAfter');
                 } else if (this.takeAGuess(result, knownmap, working)) {
                     //
                     // console.log('Found: findIsolatedMorseBlankAfter2');

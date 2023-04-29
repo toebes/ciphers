@@ -165,6 +165,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
             if (
                 testType !== ITestType.cregional &&
                 testType !== ITestType.cstate &&
+                testType !== ITestType.bregional &&
+                testType !== ITestType.bstate &&
                 this.state.operation === 'encode'
             ) {
                 result = 'Encode problems are not allowed on ' + this.getTestTypeName(testType);

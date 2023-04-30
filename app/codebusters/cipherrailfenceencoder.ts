@@ -818,7 +818,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             answerString = 'Answer: ______________________________________________';
         }
 
-        const ap1 = $('<span/>', { class: 'TOSOLVE' });
+        const ap1 = $('<span/>');
         ap1.append(answerString);
         const ap2 = $('<span/>', { class: 'TOANSWER' });
         ap2.append(this.state.cipherString.toUpperCase());

@@ -179,11 +179,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 result =
                     'Cryptanalysis problems are not allowed on ' + this.getTestTypeName(testType);
             }
-            // Due to a fluke in rule writing for 2022, the Porta only allows for cryptanalysis
-            // at the division B level
-            if (testType === ITestType.bstate && this.state.operation !== 'crypt' && this.state.cipherType === ICipherType.Porta) {
-                result = 'Only Cryptanalysis problems are allowed on ' + this.getTestTypeName(testType);
-            }
         }
         return result;
     }

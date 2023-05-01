@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+    <style>
+        th div.subtype {
+            font-weight: normal;
+            font-size: 11pt;
+        }
+
+        span.dec {
+            font-weight: bold;
+            color: #385623;
+        }
+
+        span.enc {
+            font-weight: bold;
+            color: #806000;
+        }
+
+        span.cra {
+            font-weight: bold;
+            color: #2E74B5;
+        }
+
+        span.keyword {
+            font-weight: bold;
+            color: black;
+        }
+
+        span.matrix {
+            color: #C00000;
+            font-weight: bold;
+        }
+
+
+        span.amount {
+            color: black;
+            font-weight: bold;
+        }
+
+        thead tr th {
+            background-color: #d7ecfa;
+            padding-top: 1px;
+            padding-right: 1px;
+            padding-left: 1px;
+            color: black;
+            font-size: 11.0pt;
+            font-weight: 700;
+            font-style: normal;
+            text-decoration: none;
+            font-family: Calibri, sans-serif;
+            text-align: center;
+            vertical-align: middle;
+            border: 1.0pt solid black;
+            white-space: nowrap;
+
+        }
+
+        .noallow {
+            background-color: #D0CECE !important;
+        }
+
+        .divbreghead {
+            background-color: #D66677;
+        }
+
+        .divbnathead {
+            background-color: #d30d2b;
+        }
+
+        .divbreg {
+            background-color: #D6667770;
+        }
+
+        .divbnat {
+            background-color: #d30d2b70;
+        }
+
+        .divcreghead {
+            background-color: #54B9FC;
+        }
+
+        .divcnathead {
+            background-color: #0a7eca;
+        }
+
+        .divcreg {
+            background-color: #54B9FC70;
+        }
+
+        .divcnat {
+            background-color: #0a7eca70;
+        }
+
+
+
+        tbody td {
+            padding-top: 1px;
+            padding-right: 1px;
+            padding-left: 1px;
+            color: black;
+            font-size: 12.0pt;
+            font-weight: 400;
+            font-style: normal;
+            text-decoration: none;
+            font-family: "Times New Roman", serif;
+            text-align: center;
+            vertical-align: middle;
+            border: 1.0pt solid black;
+            white-space: nowrap;
+        }
+
+        tbody td.nobot {
+            border-bottom: none;
+        }
+
+
+        td.ruleloc {
+            font-size: 11.0pt;
+            font-weight: 400;
+            font-style: italic;
+            text-decoration: none;
+            border-top: none;
+        }
+
+        .drop {
+            background-color: orange !important;
+            text-decoration: line-through !important;
+        }
+
+        .new {
+            background-color: lightgreen !important;
+        }
+
+        tbody th {
+            border: 1.0pt solid black;
+            padding-top: 1px;
+            padding-right: 1px;
+            padding-left: 1px;
+            color: black;
+            font-size: 14.0pt;
+            font-weight: 700;
+            font-style: normal;
+            text-decoration: none;
+            font-family: Calibri, sans-serif;
+            text-align: center;
+            vertical-align: middle;
+            white-space: nowrap;
+            background-color: #d7ecfa;
+        }
+
+        table {
+            font-size: 11.0pt;
+            font-weight: 700;
+            font-style: normal;
+            text-decoration: none;
+            font-family: Calibri, sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <% for (var index in htmlWebpackPlugin.files.js) { %>
+        <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
+        <% } %>
+            <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+
+            <h3>
+                <%= htmlWebpackPlugin.options.title %>
+            </h3>
+            <div class="callout primary">
+                <p>This table summarizes which types of ciphers are used for which division and events. It also
+                    indicates which official rule corresponds to this usage. Blank boxes indicate that the cipher is not
+                    used for that division/category of event.</p>
+                <div id="Rule Summary_18350" align=center>
+                    <table class="hover unstriped">
+                        <thead>
+                            <tr>
+                                <th rowspan=2>Cipher</th>
+                                <th rowspan=2>Type</th>
+                                <th colspan=2 class="divbreghead">Division B</th>
+                                <th colspan=2 class="divcnathead">Division C</th>
+                            </tr>
+                            <tr>
+                                <th class="divbreghead">Regional/Invitational</th>
+                                <th class="divbnathead">State/National</th>
+                                <th class="divcreghead">Regional/Invitational</th>
+                                <th class="divcnathead">State/National</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th rowspan=2>AtBash</th>
+                                <td rowspan=2>Monoalphabetic</td>
+                                <td colspan=2 class="nobot divbreg"><span class="enc">Encode</span>+<span
+                                        class="dec">Decode</span>
+                                </td>
+                                <td colspan=2 rowspan=2 class="noallow divcreg">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td colspan=2 class="ruleloc divbreg">3.f.ii</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Caesar</th>
+                                <td rowspan=2>Monoalphabetic</td>
+                                <td colspan=2 class="nobot divbreg"><span class="enc">Encode</span>+<span
+                                        class="dec">Decode</span>
+                                </td>
+                                <td colspan=2 rowspan=2 class="noallow divcreg">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td colspan=2 class="ruleloc divbreg">3.f.i.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Aristocrat<br>
+                                    <div class="subtype">Random, K1, K2</div>
+                                </th>
+                                <td rowspan=2>Monoalphabetic</td>
+                                <td colspan=2 class="nobot divbreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                                <td colspan=2 class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan=2 class="ruleloc divbreg">3.e.i (1)</td>
+                                <td colspan=2 class="ruleloc divcreg">3.e.i (1)</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Aristocrat Misspelled</th>
+                                <td rowspan=2>Monoalphabetic</td>
+                                <td colspan=2 class="nobot divbreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                                <td colspan=2 class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan=2 class="ruleloc divbreg">3.e.i (2)</td>
+                                <td colspan=2 class="ruleloc divcreg">3.e.i (2)</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Patristocrat</th>
+                                <td rowspan=2>Monoalphabetic</td>
+                                <td colspan=2 class="nobot divbreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                                <td colspan=2 class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan=2 class="ruleloc divbreg">3.e.i (3)</td>
+                                <td colspan=2 class="ruleloc divcreg">3.e.i (3)</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Xenocrypt</th>
+                                <td rowspan=2>Monoalphabetic Language</td>
+                                <td class="nobot divbreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                    <span class="amount">(0 or 1)</span>
+                                </td>
+                                <td class="nobot divbnat"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                    <span class="amount">(1+)</span>
+                                </td>
+                                <td class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+
+                                    <span class="amount">(0 or 1)</span>
+                                </td>
+                                <td class="nobot divcnat"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+
+                                    <span class="amount">(2+)</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ruleloc divbreg">3.e.iii</td>
+                                <td class="ruleloc divbnat">3.h.ii.</td>
+                                <td class="ruleloc divcreg">3.e.iii</td>
+                                <td class="ruleloc divcnat">3.j.i.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Aristocrat, Patristocrat, Xenocrypt<br>
+                                    <div class="subtype">K3</div>
+                                </th>
+                                <td rowspan=2>Monoalphabetic</td>
+                                <td colspan=2 rowspan=2 class="noallow">&nbsp;</td>
+                                <td colspan=2 class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan=2 class="ruleloc divcreg">3.g.i.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Aristocrat, Patristocrat, Xenocrypt<br>
+                                    <div class="subtype">Keyword</div>
+                                </th>
+                                <td rowspan=2>Monoalphabetic</td>
+                                <td colspan=2 rowspan=2 class="noallow">&nbsp;</td>
+                                <td colspan=2 class="nobot divcreg"><span class="keyword">Keyword</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan=2 class="ruleloc divcreg">3.g.ii.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Hill 2x2</th>
+                                <td rowspan=2>Polyalphabetic Math</td>
+                                <td colspan=2 rowspan=2 class="noallow">&nbsp;</td>
+                                <td class="nobot divcreg"><span class="enc">Encode</span>+<span
+                                        class="dec">Decode</span>
+                                </td>
+                                <td class="nobot divcnat"><span class="enc">Encode</span>+<span
+                                        class="dec">Decode</span>+<span class="matrix">Matrix</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ruleloc divcreg">3.g.v.</td>
+                                <td class="ruleloc divcnat">3.j.iii.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Hill 3x3</th>
+                                <td rowspan=2>Polyalphabetic Math</td>
+                                <td colspan=2 rowspan=2 class="noallow">&nbsp;</td>
+                                <td rowspan=2 class="noallow">&nbsp;</td>
+                                <td class="nobot divcnat"><span class="dec">Decode</span></td>
+                            </tr>
+                            <tr>
+                                <td class="ruleloc divcnat">3.j.iii.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Affine</th>
+                                <td rowspan=2>Monoalphabetic Math</td>
+                                <td class="nobot divbreg"><span class="enc">Encode</span>+
+                                    <span class="dec">Decode</span>
+                                </td>
+                                <td class="nobot divbnat"><span class="enc">Encode</span>+<span
+                                        class="dec">Decode</span>+<span class="cra">Cryptanalysis</span>
+                                </td>
+                                <td colspan=2 rowspan=2 class="noallow divcreg">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td class="ruleloc divbreg">3.f.iii.</td>
+                                <td class="ruleloc divbnat">3.i.i.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Cryptarithm
+                                    <div class="subtype">(Base 10)</div>
+                                </th>
+                                <td rowspan=2>Monoalphabetic Math</td>
+                                <td colspan=2 class="nobot divbreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</td>
+                                <td colspan=2 class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</td>
+                            </tr>
+                            <tr>
+                                <td colspan=2 class="ruleloc divbreg">3.e.vi.</td>
+                                <td colspan=2 class="ruleloc divcreg">3.e.vi.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Baconian</th>
+                                <td rowspan=2>Steganography</td>
+                                <td colspan=2 class="nobot divbreg"><span class="cra">Cryptanalysis</span></td>
+                                <td colspan=2 class="nobot divcreg"><span class="cra">Cryptanalysis</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan=2 class="ruleloc divbreg">3.e.ii.</td>
+                                <td colspan=2 class="ruleloc divcreg">3.e.ii.</td>
+                            </tr>
+                            <tr>
+                                <th class="drop" rowspan=2>Morbit</th>
+                                <td class="drop" rowspan=2>Tomogrammic</td>
+                                <td class="drop nobot divbreg"><span class="dec">Decode</span></td>
+                                <td class="drop nobot divbnat"> <span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span> </td>
+                                <td class="drop nobot divcreg"><span class="dec">Decode</span></td>
+                                <td class="drop nobot divcnat"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="drop ruleloc divbreg">3.e.iv.</td>
+                                <td class="drop ruleloc divbnat">3.h.iii., 3.h.vi.</td>
+                                <td class="drop ruleloc divcreg">3.e.iv.</td>
+                                <td class="drop ruleloc divcnat">3.h.iii., 3.h.vi.</td>
+                            </tr>
+                            <tr>
+                                <th class="drop" rowspan=2>Pollux</th>
+                                <td class="drop" rowspan=2>Tomogrammic</td>
+                                <td class="drop nobot divbreg"><span class="dec">Decode</span></td>
+                                <td class="drop nobot divbnat"> <span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                                <td class="drop nobot divcreg"><span class="dec">Decode</span></td>
+                                <td class="drop nobot divcnat"> <span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span> </td>
+                            </tr>
+                            <tr>
+                                <td class="drop ruleloc divbreg">3.e.iv.</td>
+                                <td class="drop ruleloc divbnat">3.h.iii., 3.h.vi.</td>
+                                <td class="drop ruleloc divcreg">3.e.iv.</td>
+                                <td class="drop ruleloc divcnat">3.h.iii., 3.h.vi.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Fractionated Morse</th>
+                                <td rowspan=2>Tomogrammic</td>
+                                <td colspan=2 class="nobot divbreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</td>
+                                <td colspan=2 class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</td>
+                            </tr>
+                            <tr>
+                                <td colspan=2 class="ruleloc divbreg">3.e.v.</td>
+                                <td colspan=2 class="ruleloc divcreg">3.e.v.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan=2>Porta </th>
+                                <td rowspan=2>Polyalphabetic</td>
+                                <td class="nobot divbreg"><span class="enc">Encode</span>+<span
+                                        class="dec">Decode</span>
+                                </td>
+                                <td class="nobot divbnat"><span class="cra">Cryptanalysis</span></td>
+                                <td class="nobot divcreg"><span class="enc">Encode</span>+<span
+                                        class="dec">Decode</span>
+                                </td>
+                                <td class="nobot divcnat"><span class="enc">Encode</span>+<span
+                                        class="dec">Decode</span>+<span class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ruleloc divbreg">3.g.iii.</td>
+                                <td class="ruleloc divbnat">3.h.iv.</td>
+                                <td class="ruleloc divcreg">3.g.iii.</td>
+                                <td class="ruleloc divcnat">3.h.iv.</td>
+                            </tr>
+                            <tr>
+                                <th class="new" rowspan=2>Nihilist</th>
+                                <td class="new" rowspan=2>Polybius Square</td>
+                                <td class="nobot divbreg"><span class="enc">Encode</span>+<span
+                                        class="dec">Decode</span>
+                                </td>
+                                <td class="nobot divbnat"><span class="cra">Cryptanalysis</span></td>
+                                <td class="nobot divcreg"><span class="enc">Encode</span>+<span
+                                        class="dec">Decode</span>
+                                </td>
+                                <td class="nobot divcnat"><span class="enc">Encode</span>+<span
+                                        class="dec">Decode</span>+<span class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ruleloc divbreg">3.e.viii.</td>
+                                <td class="ruleloc divbnat">3.i.ii.</td>
+                                <td class="ruleloc divcreg">3.e.viii.</td>
+                                <td class="ruleloc divcnat">3.j.iv.</td>
+                            </tr>
+                            <tr>
+                                <th class="drop" rowspan=2>Railfence<br>
+                                    <div class="subtype">0 Offset</div>
+                                </th>
+                                <td class="drop" rowspan=2>Transposition </td>
+                                <td class="drop nobot divbreg"><span class="cra">Cryptanalysis</span></td>
+                                <td class="drop nobot divbnat"><span class="cra">Cryptanalysis</span></td>
+                                <td rowspan=2 colspan=2 class="noallow">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td class="drop ruleloc divbreg">3.f.iv.</td>
+                                <td class="drop ruleloc divbnat">3.h.v.</td>
+                            </tr>
+                            <tr>
+                                <th class="drop" rowspan=2>Railfence<br>
+                                    <div class="subtype">Unknown Offset</div>
+                                </th>
+                                <td class="drop" rowspan=2>Transposition</td>
+                                <td rowspan=2 colspan=2 class="noallow">&nbsp;</td>
+                                <td class="drop nobot divcreg"><span class="cra">Cryptanalysis</span></td>
+                                <td class="drop nobot divcnat"><span class="cra">Cryptanalysis</span></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="drop ruleloc divcreg">3.g.iv.</td>
+                                <td class="drop ruleloc divcnat">3.h.v, 3.j.ii.</td>
+                            </tr>
+                            <tr>
+                                <th class="new" rowspan=2>Complete Columnar</th>
+                                <td class="new" rowspan=2>Transposition</td>
+                                <td colspan=2 class="nobot divbreg"><span class="cra">Cryptanalysis</span></td>
+                                <td colspan=2 class="nobot divcnat"><span class="cra">Cryptanalysis</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan=2 class="ruleloc divbreg">3.e.vii.</td>
+                                <td class="ruleloc divcreg">3.e.vii.</td>
+                                <td class="ruleloc divcnat">3.j.iv.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+</body>
+
+</html>

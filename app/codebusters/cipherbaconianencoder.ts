@@ -924,7 +924,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             // We now have:
             // resword - the chosen baconian encode word
             // baconian - the baconian characters for the word
-            let plaintext = revBaconMap[baconian];
+            let plaintext = this.baconianPlain[i];//revBaconMap[baconian];
             result.plainword.push(plaintext);
             result.baconword.push(baconian);
             result.cipherword.push(resword);

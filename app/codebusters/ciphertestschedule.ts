@@ -1301,7 +1301,7 @@ export class CipherTestSchedule extends CipherTestManage {
         startInput.setDate(formattedDate);
         $("#sciduration").val(testLength);
         $("#scitimed").val(timedLength);
-        $('#oksci').prop('disabled', true);
+        $('#oksci').attr('disabled', 'disabled');
         $('#sciimportstatus')
             .removeClass('success')
             .addClass('secondary');

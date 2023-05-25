@@ -577,7 +577,9 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         this.validateQuestion();
         this.attachHandlers();
     }
-
+    /**
+     * Check for any errors we can find in the question
+     */
     public validateQuestion(): void {
         let msg = '';
         let showsample = false;

@@ -142,6 +142,12 @@ export const CipherMenu: menuItem[] = [
                 classname: 'chkmod menua',
             },
             {
+                title: 'Nihilist Substitution',
+                href: 'NihilstSubstitutionEncrypt.html',
+                cipherType: ICipherType.NihilistSubstitution,
+                classname: 'chkmod menub menuc',
+            },
+            {
                 title: 'Porta',
                 href: 'VigenereEncrypt.html',
                 cipherType: ICipherType.Porta,

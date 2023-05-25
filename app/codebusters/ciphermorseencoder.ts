@@ -98,7 +98,7 @@ export class CipherMorseEncoder extends CipherEncoder {
         return result;
     }
     /**
-     * 
+     * Check for any errors we can find in the question
      */
     public validateQuestion(): void {
         let msg = '';

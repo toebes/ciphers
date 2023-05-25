@@ -1257,7 +1257,7 @@ export class CipherHandler {
     public getFileList(ciphertype: ICipherType): JQuery<HTMLElement> {
         let result = null;
         const cipherCount = this.getCipherCount();
-        $('#okopen').prop('disabled', true);
+        $('#okopen').attr('disabled', 'disabled');
         if (cipherCount === 0) {
             result = $('<div/>', {
                 class: 'callout warning filelist',
@@ -1441,7 +1441,7 @@ export class CipherHandler {
             .on('change', (e) => {
                 $('#okopen').removeAttr('disabled');
             });
-        $('#okopen').prop('disabled', true);
+        $('#okopen').attr('disabled', 'disabled');
         $('#okopen')
             .off('click')
             .on('click', (e) => {
@@ -1481,7 +1481,7 @@ export class CipherHandler {
      * Put up a dialog to select an XML file to import
      */
     public openXMLImport(useLocalData: boolean): void {
-        $('#okimport').prop('disabled', true);
+        $('#okimport').attr('disabled', 'disabled');
         $('#importstatus')
             .removeClass('success')
             .addClass('secondary');
@@ -1505,7 +1505,7 @@ export class CipherHandler {
                 if (url !== '') {
                     $('#okimport').removeAttr('disabled');
                 } else {
-                    $('#okimport').prop('disabled', true);
+                    $('#okimport').attr('disabled', 'disabled');
                 }
             });
         $('#okimport')
@@ -3593,7 +3593,7 @@ export class CipherHandler {
                 console.log('B Error ' + b);
                 console.log('C Error ' + c);
                 console.log('Disable the download button...');
-                $('#okdownload').prop('disabled', true);
+                $('#okdownload').attr('disabled', 'disabled');
             },
         }).done(function (a: any, b: string, c: JQueryXHR): void {
             $('.remote-version').html(remote_version);
@@ -3604,7 +3604,7 @@ export class CipherHandler {
                 $('#okdownload').removeAttr('disabled');
             } else {
                 console.log('Disable the download button...');
-                $('#okdownload').prop('disabled', true);
+                $('#okdownload').attr('disabled', 'disabled');
             }
         });
 

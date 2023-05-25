@@ -373,7 +373,7 @@ export class CipherTestGenerator extends CipherTest {
     public getFileList(ciphertype: ICipherType): JQuery<HTMLElement> {
         let result = null;
         const cipherCount = this.getCipherCount();
-        $('#okopen').prop('disabled', true);
+        $('#okopen').attr('disabled', 'disabled');
         if (cipherCount === 0) {
             result = $('<div/>', {
                 class: 'callout warning filelist',
@@ -437,7 +437,7 @@ export class CipherTestGenerator extends CipherTest {
             .on('change', (e) => {
                 $('#okopen').removeAttr('disabled');
             });
-        $('#okopen').prop('disabled', true);
+        $('#okopen').attr('disabled', 'disabled');
         $('#okopen')
             .off('click')
             .on('click', (e) => {

@@ -198,7 +198,7 @@ export class CipherTestPlayback extends CipherTest {
     public startPlayback(speed: number, button: string): void {
         this.stopPlayback();
         $('.noplay')
-            .prop('disabled', true)
+            .attr('disabled', 'disabled')
             .removeClass('primary')
             .addClass('secondary');
         $('.' + button)

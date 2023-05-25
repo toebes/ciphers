@@ -584,6 +584,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'NihilistSubstitutionEncrypt.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
+            cipher: 'NihilistSubstitution',
+            title: 'Nihilist Substitution Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'XenocryptEncrypt.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'XenocryptEncrypt.html'),
             cipher: 'Encoder',

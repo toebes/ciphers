@@ -11,6 +11,7 @@ import { CipherHillEncoder } from './cipherhillencoder';
 import { CipherLogin } from './cipherlogin';
 import { CipherMaintenance } from './ciphermaintenance'
 import { CipherMorbitEncoder } from './ciphermorbitencoder';
+import { CipherNihilistSubstitutionEncoder } from './CipherNihilistSubstitutionEncoder';
 import { CipherPigPenEncoder } from './cipherpigpenencoder';
 import { CipherPolluxEncoder } from './cipherpolluxencoder';
 import { CipherQuoteAnalyze } from './cipherquoteanalyze';
@@ -133,6 +134,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherType: ICipherType.Morbit,
         cipherClass: CipherMorbitEncoder,
         interactiveClass: InteractiveMorseEncoder,
+        canPrint: true,
+    },
+    NihilistSubstitution: {
+        cipherType: ICipherType.NihilistSubstitution,
+        cipherClass: CipherNihilistSubstitutionEncoder,
+        interactiveClass: InteractiveEncoder,
         canPrint: true,
     },
     Patristocrat: {

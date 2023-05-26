@@ -149,7 +149,7 @@ export const CipherMenu: menuItem[] = [
             },
             {
                 title: 'Nihilist Substitution',
-                href: 'NihilstSubstitutionEncrypt.html',
+                href: 'NihilistSubstitutionEncrypt.html',
                 cipherType: ICipherType.NihilistSubstitution,
                 classname: 'chkmod menub menuc',
             },

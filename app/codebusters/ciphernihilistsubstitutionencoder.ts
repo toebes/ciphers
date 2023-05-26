@@ -21,6 +21,8 @@ interface INihilistState extends IEncoderState {
     operation: IOperationType;
     /** The size of the chunking blocks for output - 0 means respect the spaces */
     blocksize: number;
+    /** The polybius key string */
+    polybiusKey: string;
 }
 
 interface ICribInfo {
@@ -58,6 +60,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         findString: '',
         operation: 'decode',
         blocksize: 0,
+        polybiusKey: '',
     };
     public state: INihilistState = cloneObject(this.defaultstate) as INihilistState;
     public cmdButtons: JTButtonItem[] = [
@@ -357,6 +360,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         result.append(this.createQuestionTextDlg());
         this.genQuestionFields(result);
         this.genEncodeField(result);
+
+        result.append(
+            JTFLabeledInput(
+                'Polybius Key',
+                'text',
+                'polybiusKey',
+                this.state.polybiusKey,
+                'small-12 medium-12 large-12'
+            )
+        );
 
         result.append(
             JTFLabeledInput(

@@ -200,7 +200,7 @@ export class CipherEncoder extends CipherHandler {
         $('#offset2').val(this.state.offset2);
         $('#translated').val(this.state.translation);
         if (this.state.operation === 'keyword') {
-            $('#encrand').attr('disabled','disabled');
+            $('#encrand').attr('disabled', 'disabled');
         } else {
             $('#encrand').removeAttr('disabled');
         }
@@ -314,7 +314,7 @@ export class CipherEncoder extends CipherHandler {
             $('#randomize').removeAttr('disabled');
             $('.kval').hide();
         } else {
-            $('#randomize').attr('disabled','disabled');
+            $('#randomize').attr('disabled', 'disabled');
             $('.kval').show();
         }
         if (val === 'k4') {
@@ -1370,12 +1370,17 @@ export class CipherEncoder extends CipherHandler {
     }
 
     public genSampleHint(): string {
+        //return 'the keyword is ' + this.state.keyword.toUpperCase();
         return 'nothing is known';
     }
     public genSampleQuestionText(): string {
+        let enctype = ''
+        if (this.state.encodeType !== 'random') {
+            enctype += this.state.encodeType.toUpperCase();
+        }
         return (
             '<p>A quote has been encoded using the ' +
-            this.cipherName +
+            enctype + ' ' + this.cipherName +
             ' Cipher for you to decode. ' +
             'You are told that ' +
             this.genSampleHint() +

@@ -21,7 +21,7 @@ export class InteractiveEncoder extends InteractiveHandler {
      */
     public checkAnswer(answer: string, realtimeSolvetime: RealTimeNumber): void {
         const now = this.testTimeInfo.truetime.UTCNow();
-        $('#checktimed').prop('disabled', true);
+        $('#checktimed').attr('disabled', 'disabled');
         let answertest = '';
         for (const c of answer) {
             if (c !== '' && this.isValidSourceChar(c)) {
@@ -62,14 +62,14 @@ export class InteractiveEncoder extends InteractiveHandler {
         const solvetime = realtimeSolvetime.value();
         if (solvetime != undefined && solvetime > 0) {
             $('#checktimed')
-                .prop('disabled', true)
+                .attr('disabled', 'disabled')
                 .text('Solved at ' + formatTime(solvetime));
             clearInterval(this.IntervalTimer);
         } else {
             const now = this.testTimeInfo.truetime.UTCNow();
             if (now >= this.testTimeInfo.endTimedQuestion) {
                 $('#checktimed')
-                    .prop('disabled', true)
+                    .attr('disabled', 'disabled')
                     .text('No bonus available');
                 clearInterval(this.IntervalTimer);
             } else {

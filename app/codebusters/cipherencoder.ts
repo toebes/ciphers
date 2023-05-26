@@ -200,7 +200,7 @@ export class CipherEncoder extends CipherHandler {
         $('#offset2').val(this.state.offset2);
         $('#translated').val(this.state.translation);
         if (this.state.operation === 'keyword') {
-            $('#encrand').prop('disabled', true);
+            $('#encrand').attr('disabled','disabled');
         } else {
             $('#encrand').removeAttr('disabled');
         }
@@ -314,7 +314,7 @@ export class CipherEncoder extends CipherHandler {
             $('#randomize').removeAttr('disabled');
             $('.kval').hide();
         } else {
-            $('#randomize').prop('disabled', true);
+            $('#randomize').attr('disabled','disabled');
             $('.kval').show();
         }
         if (val === 'k4') {

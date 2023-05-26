@@ -117,7 +117,7 @@ export function sanitizeString(text: string, keepCase = false): string {
  */
 export function setDisabled(sel: string, disabled: boolean): void {
     if (disabled) {
-        $(sel).prop('disabled', true);
+        $(sel).attr('disabled', 'disabled');
     } else {
         $(sel).removeAttr('disabled');
     }

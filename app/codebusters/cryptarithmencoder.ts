@@ -275,6 +275,9 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         }
         return false;
     }
+    /**
+     * Check for any errors we can find in the question
+     */
     public validateQuestion(): void {
         let msg = '';
         let sampleLink: JQuery<HTMLElement> = undefined;

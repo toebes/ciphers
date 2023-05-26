@@ -21,10 +21,10 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
     public guidanceURL = 'TestGuidance.html#Morbit';
     public validTests: ITestType[] = [
         ITestType.None,
-        ITestType.cregional,
-        ITestType.cstate,
-        ITestType.bregional,
-        ITestType.bstate,
+        // ITestType.cregional,
+        // ITestType.cstate,
+        // ITestType.bregional,
+        // ITestType.bstate,
     ];
     public defaultstate: IEncoderState = {
         cipherString: '',
@@ -93,6 +93,46 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
             $("input[data-char='" + i + "']").val(this.state.replacement[morbitmap[i]]);
         }
         super.updateOutput();
+    }
+    /**
+     * Check for any errors we can find in the question
+     */
+    public validateQuestion(): void {
+        super.validateQuestion();
+        let msg = '';
+
+        // Grab the question text without any HTML overhead
+        let questionText = this.state.question.toUpperCase().replace(/<[^>]*>/g, '');
+        questionText = questionText.replace(/&#9679;/g, 'O').replace(/●/g, 'O')
+        questionText = questionText.replace(/&ndash;/g, '-').replace(/–/g, '-')
+        questionText = questionText.replace(/&times;/g, 'X').replace(/×/g, 'X')
+
+        console.log(questionText)
+        const hintchars = this.state.hint ?? '';
+
+        if (this.state.operation === 'decode' && hintchars !== '') {
+            // Look to see if the Hint Digits appear in the Question Text
+            const morseletmap = this.buildMorseletMap();
+            let extra = '';
+            let notfound = '';
+            for (const e of hintchars) {
+                const hint = `${e}=${morseletmap[e]}`
+                console.log(hint)
+                if (questionText.indexOf(hint) < 0) {
+                    notfound += extra + hint;
+                    extra = ', '
+                }
+            }
+            if (notfound !== '') {
+                msg =
+                    'The Hint Digits ' +
+                    notfound +
+                    " don't appear to be mentioned in the Question Text.";
+            }
+        }
+        if (msg !== '') {
+            this.setErrorMsg(msg, 'vqm', null);
+        }
     }
     public genSampleHint(): string {
         let hint = '';

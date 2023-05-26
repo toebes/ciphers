@@ -13,8 +13,8 @@ import { CipherEncoder } from './cipherencoder';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTTable } from '../common/jttable';
 
-interface IRailFenceState extends IState {
-    /** Railfence railss value */
+interface ICompleteColumnarState extends IState {
+    /** CompleteColumnar railss value */
     rails: number;
     isRailRange: boolean;
     railOffset: number;     // Offset for the zigzag
@@ -22,7 +22,7 @@ interface IRailFenceState extends IState {
 /**
  * This class creates a Rail Fence solver.
  */
-class RailFenceSolver {
+class CompleteColumnarSolver {
     // Array to hold the rail fence encoding
     private readonly solution: string[][];
     // The number of rails in the rail fence
@@ -111,7 +111,7 @@ class RailFenceSolver {
         const swizzledCharsPerZigzag = 2 * (rails - 1);
         const swizzledCharsLeftover = this.textLength % swizzledCharsPerZigzag;
 
-        // const cipherText = this.getRailFenceEncoding();
+        // const cipherText = this.getCompleteColumnarEncoding();
 
         let nextCharIndex = 0;
         for (let railIndex = 1; railIndex <= rails; railIndex++) {
@@ -122,7 +122,7 @@ class RailFenceSolver {
                 if (placeCharacter(railIndex, colArrayIndex, 0, rails, swizzledCharsPerZigzag)) {
                     this.swizzledSolution[railArrayIndex][
                         colArrayIndex
-                    ] = this.getRailFenceEncoding().charAt(nextCharIndex);
+                    ] = this.getCompleteColumnarEncoding().charAt(nextCharIndex);
                     nextCharIndex++;
                 } else {
                     this.swizzledSolution[railArrayIndex][colArrayIndex] = '';
@@ -237,7 +237,7 @@ class RailFenceSolver {
 
         return returnValue;
     }
-    public getRailFenceEncoding(): string {
+    public getCompleteColumnarEncoding(): string {
         let returnValue = '';
 
         // Loop over each column, rail after rail and build a string of the non-blank characters.
@@ -254,7 +254,7 @@ class RailFenceSolver {
     /**
      * Create a formatted div which shows the Rail Fence solution.
      */
-    public getRailFenceAnswer(): JQuery<HTMLElement> {
+    public getCompleteColumnarAnswer(): JQuery<HTMLElement> {
         const returnValue = $('<div/>', { class: 'TOSOLVE' });
 
         // TODO: These font sizes are hard-coded, but there should/could probably
@@ -294,7 +294,7 @@ class RailFenceSolver {
         return returnValue;
     }
 
-    public getRailFenceSolution(): JQuery<HTMLElement> {
+    public getCompleteColumnarSolution(): JQuery<HTMLElement> {
         let tableClass = 'railfence-lg';
         if (this.textLength > 90) {
             tableClass = 'railfence-sm';
@@ -431,26 +431,26 @@ function placeCharacter(
 }
 
 /**
- * CipherRailFenceEncoder - This class handles all of the actions associated with encoding
- * a RailFence cipher.
+ * CipherCompleteColumnarEncoder - This class handles all of the actions associated with encoding
+ * a CompleteColumnar cipher.
  */
-export class CipherRailFenceEncoder extends CipherEncoder {
+export class CipherCompleteColumnarEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public cipherName = 'Rail Fence';
 
-    public guidanceURL = 'TestGuidance.html#RailFence';
+    public guidanceURL = 'TestGuidance.html#CompleteColumnar';
 
     public validTests: ITestType[] = [ITestType.None, ITestType.bstate, ITestType.bregional, ITestType.cregional, ITestType.cstate];
 
-    public defaultstate: IRailFenceState = {
+    public defaultstate: ICompleteColumnarState = {
         cipherString: '',
-        cipherType: ICipherType.Railfence,
+        cipherType: ICipherType.CompleteColumnar,
         rails: 2,
         railOffset: 0,
         isRailRange: false,
         replacement: {},
     };
-    public state: IRailFenceState = cloneObject(this.defaultstate) as IRailFenceState;
+    public state: ICompleteColumnarState = cloneObject(this.defaultstate) as ICompleteColumnarState;
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
         this.undocmdButton,
@@ -465,9 +465,9 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * @returns Template of question fields to be filled in at runtime.
      */
     public getInteractiveTemplate(): ITestQuestionFields {
-        const rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.railOffset, this.state.cipherString);
+        const ccs: CompleteColumnarSolver = new CompleteColumnarSolver(this.state.rails, this.state.railOffset, this.state.cipherString);
         const strings: string[][] = this.makeReplacement(
-            rfs.getRailFenceEncoding(),
+            ccs.getCompleteColumnarEncoding(),
             this.state.cipherString.length
         );
         const cipherString = strings[0];
@@ -799,19 +799,19 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>' /*, { class: 'grid-x' }*/);
 
-        const rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.railOffset, this.state.cipherString);
+        const ccs: CompleteColumnarSolver = new CompleteColumnarSolver(this.state.rails, this.state.railOffset, this.state.cipherString);
 
         // Get the text characters from each rail, concatenated together
-        //result.append($('<p/>').text(rfs.getRailFenceEncoding()));
+        //result.append($('<p/>').text(ccs.getCompleteColumnarEncoding()));
 
         const encodedText = $('<div/>', { class: 'TOSOLVE' });
-        const strings: string[][] = this.makeReplacement(rfs.getRailFenceEncoding(), 45);
+        const strings: string[][] = this.makeReplacement(ccs.getCompleteColumnarEncoding(), 45);
         for (const strset of strings) {
             encodedText.append($('<p/>').text(strset[0]));
         }
         result.append(encodedText);
 
-        result.append(rfs.getRailFenceAnswer());
+        result.append(ccs.getCompleteColumnarAnswer());
 
         const answer = $('<div/>', { class: 'grid-x' });
 
@@ -842,9 +842,9 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * @param testType Type of test
      */
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
-        const rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.railOffset, this.state.cipherString);
+        const ccs: CompleteColumnarSolver = new CompleteColumnarSolver(this.state.rails, this.state.railOffset, this.state.cipherString);
         const strings: string[][] = this.makeReplacement(
-            rfs.getRailFenceEncoding(),
+            ccs.getCompleteColumnarEncoding(),
             this.state.cipherString.length
         );
         const qnumdisp = String(qnum + 1);
@@ -916,12 +916,12 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'TOSOLVE' });
 
-        const rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, this.state.railOffset, this.state.cipherString);
+        const ccs: CompleteColumnarSolver = new CompleteColumnarSolver(this.state.rails, this.state.railOffset, this.state.cipherString);
 
         // Get the text characters from each rail, concatenated together
-        //result.append($('<p/>').text(rfs.getRailFenceEncoding()));
+        //result.append($('<p/>').text(ccs.getCompleteColumnarEncoding()));
 
-        const strings: string[][] = this.makeReplacement(rfs.getRailFenceEncoding(), 45);
+        const strings: string[][] = this.makeReplacement(ccs.getCompleteColumnarEncoding(), 45);
         for (const strset of strings) {
             result.append($('<p/>').text(strset[0]));
         }
@@ -965,7 +965,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
         const rails = this.state.rails;
 
-        const rfs: RailFenceSolver = new RailFenceSolver(rails, this.state.railOffset, this.state.cipherString);
+        const ccs: CompleteColumnarSolver = new CompleteColumnarSolver(rails, this.state.railOffset, this.state.cipherString);
 
         if (this.state.isRailRange) {
             const solutionText =
@@ -979,9 +979,9 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             const trials = $('<div/>');
             for (let rail = startRail; rail <= endRail; rail++) {
                 trials.append($('<h5/>').text('Try ' + rail.toString() + ' rails...'));
-                // const testRfs = new RailFenceSolver(rail, rfs.getRailFenceEncoding());
-                trials.append(rfs.swizzle(rail));
-                //                trials.append(testRfs.getRailFenceT2(rfs.getRailFenceEncoding(), rail));
+                // const testRfs = new CompleteColumnarSolver(rail, ccs.getCompleteColumnarEncoding());
+                trials.append(ccs.swizzle(rail));
+                //                trials.append(testRfs.getCompleteColumnarT2(ccs.getCompleteColumnarEncoding(), rail));
                 if (rail === rails) {
                     break;
                 }
@@ -1009,15 +1009,15 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             $('<code/>').append(rails.toString()),
             ' rails in this problem.  Therefore, each zig-zag will have ',
             $('<code/>').append('(2 * #rails) - 2 = (2 * ' + rails.toString() + ') - 2 = '),
-            $('<code/>').append(rfs.getCharsPerZigzag().toString()),
+            $('<code/>').append(ccs.getCharsPerZigzag().toString()),
             ' characters (A single zig-zag starts with the character from the top row, goes ' +
             'down each row and back up ending one character before the top row.).  ' +
             'The encrypted text is ',
-            $('<code/>').append(rfs.getTextLength().toString()),
+            $('<code/>').append(ccs.getTextLength().toString()),
             'characters long, so there are ',
-            $('<code/>').append(rfs.getCountZigzag().toString()),
+            $('<code/>').append(ccs.getCountZigzag().toString()),
             'complete zig-zags in the solution, with ',
-            $('<code/>').append(rfs.getCharsLeftover().toString()),
+            $('<code/>').append(ccs.getCharsLeftover().toString()),
             ' characters left over in an incomplete zig-zag.'
         );
         solutionIntro.append(
@@ -1035,7 +1035,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         const spacesBetween = 2 * rails - 3;
         // First rail
         solutionIntro.append($('<h5/>').text('Rail 1'));
-        let charsInRail = rfs.getCharactersInRail(1);
+        let charsInRail = ccs.getCharactersInRail(1);
         let guidance = ' with';
         if (this.state.railOffset > 0) {
             guidance = ' starting at position ';
@@ -1043,8 +1043,8 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         let startLocation = undefined;
 
         // loop over columns
-        for (let i = 0; i < rfs.getCharsPerZigzag(); i++) {
-            if (placeCharacter(1, i, this.state.railOffset, this.state.rails, rfs.getCharsPerZigzag())) {
+        for (let i = 0; i < ccs.getCharsPerZigzag(); i++) {
+            if (placeCharacter(1, i, this.state.railOffset, this.state.rails, ccs.getCharsPerZigzag())) {
                 startLocation = i + 1;
                 break;
             }
@@ -1058,7 +1058,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             ((this.state.railOffset > 0) ? $('<code/>').append(startLocation.toString()) : ''),
             ((this.state.railOffset > 0) ? '.  Put ' : ''),
             $('<code/>').append(spacesBetween.toString()),
-            CipherRailFenceEncoder.getPluralityString(spacesBetween, [
+            CipherCompleteColumnarEncoder.getPluralityString(spacesBetween, [
                 ' space between each character',
                 ' spaces between each character.',
             ]),
@@ -1067,13 +1067,13 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         // middle rails
         for (r = 2; r < rails; r++) {
             // needs to be switched for offset > half of CharsPerzigzag
-            let firstSpacesCount = rfs.spacesToNext(r);
-            let secondSpacesCount = rfs.getCharsPerZigzag() - 2 - firstSpacesCount;
+            let firstSpacesCount = ccs.spacesToNext(r);
+            let secondSpacesCount = ccs.getCharsPerZigzag() - 2 - firstSpacesCount;
 
 
             // loop over columns
-            for (let i = 0; i < rfs.getCharsPerZigzag(); i++) {
-                if (placeCharacter(r, i, this.state.railOffset, this.state.rails, rfs.getCharsPerZigzag())) {
+            for (let i = 0; i < ccs.getCharsPerZigzag(); i++) {
+                if (placeCharacter(r, i, this.state.railOffset, this.state.rails, ccs.getCharsPerZigzag())) {
                     startLocation = i + 1;
                     break;
                 }
@@ -1082,7 +1082,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             solutionIntro.append($('<h5/>').text('Rail '.concat(r.toString())));
             solutionIntro.append(
                 'Copy the next ',
-                $('<code/>').append(rfs.getCharactersInRail(r).toString()),
+                $('<code/>').append(ccs.getCharactersInRail(r).toString()),
                 ' characters of the cipher string along rail ',
                 $('<code/>').append(r.toString()),
                 ', starting at position ',
@@ -1093,7 +1093,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
                 solutionIntro.append(
                     'Put ',
                     $('<code/>').append(firstSpacesCount.toString()),
-                    CipherRailFenceEncoder.getPluralityString(firstSpacesCount, [
+                    CipherCompleteColumnarEncoder.getPluralityString(firstSpacesCount, [
                         ' space between each character along this rail.',
                         ' spaces between each character along this rail.',
                     ])
@@ -1106,7 +1106,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
                     $('<code/>').append(secondSpacesCount.toString()),
                     ' spaces between characters, starting with ',
                     $('<code/>').append(firstSpacesCount.toString()),
-                    CipherRailFenceEncoder.getPluralityString(firstSpacesCount, [
+                    CipherCompleteColumnarEncoder.getPluralityString(firstSpacesCount, [
                         ' space.',
                         ' spaces.',
                     ])
@@ -1116,10 +1116,10 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
         // Last rail
         solutionIntro.append($('<h5/>').text('Rail '.concat(r.toString())));
-        charsInRail = rfs.getCharactersInRail(rails);
+        charsInRail = ccs.getCharactersInRail(rails);
         // loop over columns
-        for (let i = 0; i < rfs.getCharsPerZigzag(); i++) {
-            if (placeCharacter(rails, i, this.state.railOffset, this.state.rails, rfs.getCharsPerZigzag())) {
+        for (let i = 0; i < ccs.getCharsPerZigzag(); i++) {
+            if (placeCharacter(rails, i, this.state.railOffset, this.state.rails, ccs.getCharsPerZigzag())) {
                 startLocation = i + 1;
                 break;
             }
@@ -1132,18 +1132,18 @@ export class CipherRailFenceEncoder extends CipherEncoder {
             $('<code/>').append(startLocation.toString()),
             ' with ',
             $('<code/>').append(spacesBetween.toString()),
-            CipherRailFenceEncoder.getPluralityString(spacesBetween, [
+            CipherCompleteColumnarEncoder.getPluralityString(spacesBetween, [
                 ' space between each character.',
                 ' spaces between each character.',
             ])
         );
 
         solutionIntro.append($('<p/>').append('Read the decrypted message along the diagonals!'));
-        result.append(solutionIntro, rfs.getRailFenceSolution());
+        result.append(solutionIntro, ccs.getCompleteColumnarSolution());
 
-        // let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
+        // let ccs: CompleteColumnarSolver = new CompleteColumnarSolver(this.state.rails, sanitizeString(this.state.cipherString));
         // // Get the 'W' solution
-        // result.append(rfs.getRailFenceSolution());
+        // result.append(ccs.getCompleteColumnarSolution());
 
         return result;
     }

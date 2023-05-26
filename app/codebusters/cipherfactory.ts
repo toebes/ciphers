@@ -1,6 +1,7 @@
 import { ICipherType } from '../common/ciphertypes';
 import { CipherAffineEncoder } from './cipheraffineencoder';
 import { CipherBaconianEncoder } from './cipherbaconianencoder';
+import { CipherCompleteColumnarEncoder } from './ciphercompletecolumnarencoder';
 import { CipherCryptarithmEncoder } from './ciphercryptarithmencoder';
 import { CipherDancingMenEncoder } from './cipherdancingmenencoder';
 import { CipherEncoder } from './cipherencoder';
@@ -11,6 +12,7 @@ import { CipherHillEncoder } from './cipherhillencoder';
 import { CipherLogin } from './cipherlogin';
 import { CipherMaintenance } from './ciphermaintenance'
 import { CipherMorbitEncoder } from './ciphermorbitencoder';
+import { CipherNihilistSubstitutionEncoder } from './CipherNihilistSubstitutionEncoder';
 import { CipherPigPenEncoder } from './cipherpigpenencoder';
 import { CipherPolluxEncoder } from './cipherpolluxencoder';
 import { CipherQuoteAnalyze } from './cipherquoteanalyze';
@@ -81,6 +83,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         interactiveClass: InteractiveTableEncoder,
         canPrint: true,
     },
+    CompleteColumnar: {
+        cipherType: ICipherType.CompleteColumnar,
+        cipherClass: CipherCompleteColumnarEncoder,
+        interactiveClass: InteractiveEncoder,
+        canPrint: true,
+    },
     Cryptarithm: {
         cipherType: ICipherType.Cryptarithm,
         cipherClass: CipherCryptarithmEncoder,
@@ -133,6 +141,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherType: ICipherType.Morbit,
         cipherClass: CipherMorbitEncoder,
         interactiveClass: InteractiveMorseEncoder,
+        canPrint: true,
+    },
+    NihilistSubstitution: {
+        cipherType: ICipherType.NihilistSubstitution,
+        cipherClass: CipherNihilistSubstitutionEncoder,
+        interactiveClass: InteractiveEncoder,
         canPrint: true,
     },
     Patristocrat: {

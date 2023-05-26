@@ -323,6 +323,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'CompleteColumnarEncrypt.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
+            cipher: 'CompleteColumnar',
+            title: 'Complete Columnar Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'CryptarithmEncrypt.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
             cipher: 'Cryptarithm',
@@ -581,6 +588,13 @@ config = {
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
             cipher: 'Vigenere',
             title: 'Vigen&egrave;re/Porta Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'NihilistSubstitutionEncrypt.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
+            cipher: 'NihilistSubstitution',
+            title: 'Nihilist Substitution Encoder',
         }),
         new HtmlWebpackPlugin({
             inject: false,

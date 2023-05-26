@@ -234,6 +234,7 @@ export class CipherTest extends CipherHandler {
         { cipherType: ICipherType.DancingMen },
         { cipherType: ICipherType.Atbash },
         { cipherType: ICipherType.Aristocrat },
+        { cipherType: ICipherType.CompleteColumnar },
         { cipherType: ICipherType.Cryptarithm },
         {
             cipherType: ICipherType.Aristocrat,

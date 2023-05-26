@@ -323,6 +323,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'CompleteColumnarEncrypt.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
+            cipher: 'CompleteColumnar',
+            title: 'Complete Columnar Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'CryptarithmEncrypt.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
             cipher: 'Cryptarithm',

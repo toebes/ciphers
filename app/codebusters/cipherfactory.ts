@@ -1,6 +1,7 @@
 import { ICipherType } from '../common/ciphertypes';
 import { CipherAffineEncoder } from './cipheraffineencoder';
 import { CipherBaconianEncoder } from './cipherbaconianencoder';
+import { CipherCompleteColumnarEncoder } from './ciphercompletecolumnarencoder';
 import { CipherCryptarithmEncoder } from './ciphercryptarithmencoder';
 import { CipherDancingMenEncoder } from './cipherdancingmenencoder';
 import { CipherEncoder } from './cipherencoder';
@@ -80,6 +81,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherType: ICipherType.Caesar,
         cipherClass: CipherTableEncoder,
         interactiveClass: InteractiveTableEncoder,
+        canPrint: true,
+    },
+    CompleteColumnar: {
+        cipherType: ICipherType.CompleteColumnar,
+        cipherClass: CipherCompleteColumnarEncoder,
+        interactiveClass: InteractiveEncoder,
         canPrint: true,
     },
     Cryptarithm: {

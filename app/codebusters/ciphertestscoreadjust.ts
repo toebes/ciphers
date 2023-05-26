@@ -48,12 +48,14 @@ export class CipherTestScoreAdjust extends CipherTest {
         [ICipherType.Baconian, 'Baconian'],
         [ICipherType.Porta, 'Table '],
         [ICipherType.Hill, 'Math'],
+        [ICipherType.NihilistSubstitution, 'Math'],
         [ICipherType.Patristocrat, 'Patristocrat'],
         [ICipherType.Cryptarithm, 'Math'],
         [ICipherType.FractionatedMorse, 'Morse'],
         [ICipherType.Pollux, 'Morse'],
         [ICipherType.Morbit, 'Morse'],
-        [ICipherType.Railfence, 'Transposition'],]
+        [ICipherType.Railfence, 'Transposition'],
+        [ICipherType.CompleteColumnar, 'Transposition'],]
     )
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [

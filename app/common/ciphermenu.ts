@@ -70,6 +70,12 @@ export const CipherMenu: menuItem[] = [
                 classname: 'chkmod menua menub menuc',
             },
             {
+                title: 'Complete Columnar',
+                href: 'CompleteColumnarEncrypt.html',
+                cipherType: ICipherType.CompleteColumnar,
+                classname: 'chkmod menub menuc',
+            },
+            {
                 title: 'Cryptarithm',
                 href: 'CryptarithmEncrypt.html',
                 cipherType: ICipherType.Cryptarithm,

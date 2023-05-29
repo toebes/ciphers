@@ -20,7 +20,7 @@ interface INihilistState extends IEncoderState {
     /** The type of operation */
     operation: IOperationType;
     /** The size of the chunking blocks for output - 0 means respect the spaces */
-    blocksize: number;
+    //blocksize: number;
     /** The polybius key string */
     polybiusKey: string;
 }
@@ -59,7 +59,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         /** The current string we are looking for */
         findString: '',
         operation: 'decode',
-        blocksize: 0,
         polybiusKey: '',
     };
     public state: INihilistState = cloneObject(this.defaultstate) as INihilistState;
@@ -105,10 +104,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @returns Template of question fields to be filled in at runtime.
      */
     public getInteractiveTemplate(): ITestQuestionFields {
-        let encoded = this.state.cipherString
-        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
-            encoded = this.chunk(encoded, this.state.blocksize);
-        }
+        let encoded = this.state.cipherString;
 
         const result: ITestQuestionFields = {
             version: 2,
@@ -323,7 +319,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public setUIDefaults(): void {
         this.setOperation(this.state.operation);
         this.setCipherType(this.state.cipherType);
-        this.setBlocksize(this.state.blocksize);
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -339,7 +334,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         JTRadioButtonSet('ciphertype', this.state.cipherType);
         JTRadioButtonSet('operation', this.state.operation);
-        $('#blocksize').val(this.state.blocksize);
         $('#crib').val(this.state.crib);
         super.updateOutput();
     }
@@ -391,20 +385,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             )
         );
 
-        const inputbox = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
-        inputbox.append(JTFIncButton('Block Size', 'blocksize', this.state.blocksize, ''));
-        result.append(inputbox);
-
         return result;
     }
-    public setBlocksize(blocksize: number): boolean {
-        let changed = false;
-        if (this.state.blocksize !== blocksize) {
-            this.state.blocksize = blocksize;
-            changed = true;
-        }
-        return changed;
-    }
+
     public encodePolybius(c1: string, c2: string): string {
         return `c1/c2`
     }
@@ -417,9 +400,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let key = keystring;
         if (key === '') {
             key = 'A';
-        }
-        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth && maxEncodeWidth !== 9999) {
-            encoded = this.chunk(encoded, this.state.blocksize);
         }
         const result: string[][] = [];
         const charset = this.getCharset();
@@ -434,11 +414,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const factor = msgLength / keyLength;
         keyString = this.repeatStr(key.toUpperCase(), factor + 1);
         for (let i = 0; i < msgLength; i++) {
+            //messagechar is the current character in the encoded string
             const messageChar = encoded.substring(i, i + 1).toUpperCase();
             const m = charset.indexOf(messageChar);
             if (m >= 0) {
+                //keychar is the current character in the key string
                 let keyChar = keyString.substr(keyIndex, 1).toUpperCase();
                 let k = charset.indexOf(keyChar);
+
+                //loop to ignore characters not found in charset, such as punctuation
                 while (k < 0) {
                     keyIndex++;
                     keyChar = keyString.substr(keyIndex, 1).toUpperCase();
@@ -448,9 +432,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 message += messageChar;
                 // The substr() basically does modulus with the negative offset
                 // in the decode case.  Thanks JavaScript!
+
+                //cipher is the 
                 cipher += this.encodePolybius(messageChar, keyChar);
                 keyIndex++;
+
             } else {
+                //if the current character in encoded message is not found in charset, then don't modify it (such as w/ punctuation)
                 message += messageChar;
                 cipher += messageChar;
                 lastSplit = cipher.length;
@@ -517,10 +505,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      */
     public load(): void {
         let encoded = this.cleanString(this.state.cipherString);
-        /* If they want different sizes, rebuild the string in the chunk size */
-        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
-            encoded = this.chunk(encoded, this.state.blocksize);
-        }
 
         const key = this.minimizeString(this.state.keyword);
         this.clearErrors();
@@ -536,17 +520,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
-        $('#blocksize')
-            .off('input')
-            .on('input', (e) => {
-                const blocksize = Number($(e.target).val());
-                if (blocksize !== this.state.blocksize) {
-                    this.markUndo(null);
-                    if (this.setBlocksize(blocksize)) {
-                        this.updateOutput();
-                    }
-                }
-            });
         $('#keyword')
             .off('input')
             .on('input', (e) => {

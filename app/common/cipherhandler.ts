@@ -54,7 +54,7 @@ export type IEncodeType = 'random' | 'k1' | 'k2' | 'k3' | 'k4';
 export interface IState {
     /** The current cipher type we are working on */
     cipherType: ICipherType;
-    /** The current cipher we are working on */
+    /** The current cipher we are working on - the plaintext*/
     cipherString: string;
     /** The current string we are looking for */
     findString?: string;

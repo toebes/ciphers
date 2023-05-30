@@ -401,7 +401,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         const pattern = '[^a-zA-Z]';
         const re = new RegExp(pattern, 'g');
-        preSequence.replace(re, '');
+        preSequence = preSequence.replace(re, '');
 
         let seen = '';
         let sequence = '';

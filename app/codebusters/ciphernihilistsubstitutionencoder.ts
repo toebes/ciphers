@@ -334,6 +334,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         JTRadioButtonSet('ciphertype', this.state.cipherType);
         JTRadioButtonSet('operation', this.state.operation);
+        $('#polybiuskey').val(this.state.polybiusKey)
         $('#crib').val(this.state.crib);
         super.updateOutput();
     }
@@ -359,7 +360,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             JTFLabeledInput(
                 'Polybius Key',
                 'text',
-                'polybiusKey',
+                'polybiuskey',
                 this.state.polybiusKey,
                 'small-12 medium-12 large-12'
             )
@@ -388,9 +389,52 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result;
     }
 
+
+
     public encodePolybius(c1: string, c2: string): string {
         return `c1/c2`
     }
+
+    public buildPolybiusSquare(): string {
+
+        let preSequence = this.cleanString(this.state.polybiusKey).toUpperCase();
+
+        const pattern = '[^a-zA-Z]';
+        const re = new RegExp(pattern, 'g');
+        preSequence.replace(re, '');
+
+        let seen = '';
+        let sequence = '';
+        for (const ch of preSequence) {
+            if (seen.indexOf(ch) < 0) {
+                seen += ch;
+                sequence += ch;
+            }
+        }
+
+        for (const ch of this.charset) {
+            if (sequence.indexOf(ch) < 0) {
+                sequence += ch;
+            }
+        }
+
+        console.log(sequence);
+        console.log(this.state.keyword)
+        console.log(this.state.polybiusKey);
+
+        return sequence;
+
+    }
+
+    public setPolybiusKey(polybiusKey: string): boolean {
+        let changed = false;
+        if (this.state.polybiusKey !== polybiusKey) {
+            this.state.polybiusKey = polybiusKey;
+            changed = true;
+        }
+        return changed;
+    }
+
     public buildReplacementNihilist(
         msg: string,
         keystring: string,
@@ -433,7 +477,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 // The substr() basically does modulus with the negative offset
                 // in the decode case.  Thanks JavaScript!
 
-                //cipher is the 
+                //cipher is the text we are decoding/encoding into
                 cipher += this.encodePolybius(messageChar, keyChar);
                 keyIndex++;
 
@@ -466,6 +510,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
     public buildNihilist(msg: string, key: string): JQuery<HTMLElement> {
+
+        this.buildPolybiusSquare();
+
         const result = $('<div/>');
         let source = 1;
         let dest = 0;
@@ -495,9 +542,42 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         const strings = this.buildReplacementNihilist(msg, key, this.maxEncodeWidth);
         for (const stringset of strings) {
+            console.log(stringset);
             result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
             result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
         }
+
+        const worktable = new JTTable({
+            class: 'polybius square',
+        });
+        const top = worktable.addHeaderRow()
+        top.add('')
+        for (let i = 1; i <= 5; i++) {
+            top.add(String(i))
+        }
+        let mainIndex = 0;
+        for (let i = 1; i <= 5; i++) {
+            const row = worktable.addBodyRow()
+            row.add({
+                celltype: 'th',
+                content: i
+            })
+            for (let i = 1; i <= 5; i++) {
+                row.add(this.buildPolybiusSquare().charAt(mainIndex))
+                mainIndex++;
+            }
+        }
+
+        result.append($('<div/>', { class: 'cipherwork' }));
+        result.append($('<div/>', { class: 'grid-x' })
+            .append($('<div/>', { class: 'cell' })
+                .append($('<p/>', { class: "h5" }).text('Values to decode for solution'))))
+        result.append('<hr/>')
+        result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
+            .append($('<div/>', { class: 'cell small-6 shrink' })
+                .append($('<p/>', { class: "h5" }).text('Cryptarithm formula')))
+            .append($('<div/>', { class: 'cell shrink' }).append(worktable.generate())))
+
         return result;
     }
     /**
@@ -527,6 +607,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 if (newkeyword !== this.state.keyword) {
                     this.markUndo('keyword');
                     if (this.setKeyword(newkeyword)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+
+        $('#polybiuskey')
+            .off('input')
+            .on('input', (e) => {
+                const newPolybiusKey = $(e.target).val() as string;
+                if (newPolybiusKey !== this.state.polybiusKey) {
+                    this.markUndo('polybiuskey');
+                    if (this.setPolybiusKey(newPolybiusKey)) {
                         this.updateOutput();
                     }
                 }

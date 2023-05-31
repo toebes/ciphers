@@ -40,6 +40,7 @@ interface ICribInfo {
 export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Nihilist';
+    public maxEncodeWidth = 20;
     public validTests: ITestType[] = [
         ITestType.None,
         ITestType.cregional,
@@ -399,10 +400,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         let preSequence = this.cleanString(this.state.polybiusKey).toUpperCase();
 
-        const pattern = '[^a-zA-Z]';
-        const re = new RegExp(pattern, 'g');
-        preSequence = preSequence.replace(re, '');
+        preSequence = this.minimizeString(preSequence);
 
+        // const pattern = '[^a-zA-Z]';
+        // const re = new RegExp(pattern, 'g');
+        // preSequence = preSequence.replace(re, '');
+
+        //get rid of duplicates
         let seen = '';
         let sequence = '';
         for (const ch of preSequence) {
@@ -412,6 +416,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
         }
 
+        //add remaining chars in alphabet to the polybius sequence
         for (const ch of this.charset) {
             if (sequence.indexOf(ch) < 0) {
                 sequence += ch;
@@ -450,6 +455,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let message = '';
         let keyIndex = 0;
         let keyString = '';
+        let keyString2 = '';
         let cipher = '';
         const msgLength = encoded.length;
         const keyLength = key.length;
@@ -473,6 +479,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     k = charset.indexOf(keyChar);
                 }
 
+                keyString2 += keyChar;
+
                 message += messageChar;
                 // The substr() basically does modulus with the negative offset
                 // in the decode case.  Thanks JavaScript!
@@ -490,24 +498,28 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
             if (message.length >= maxEncodeWidth) {
                 if (lastSplit === -1) {
-                    result.push([cipher, message]);
+                    result.push([cipher, message, keyString2]);
                     message = '';
                     cipher = '';
+                    keyString2 = '';
                     lastSplit = -1;
                 } else {
                     const messagePart = message.substr(0, lastSplit);
                     const cipherPart = cipher.substr(0, lastSplit);
+                    const keyPart = keyString2.substring(0, lastSplit);
                     message = message.substr(lastSplit);
                     cipher = cipher.substr(lastSplit);
-                    result.push([cipherPart, messagePart]);
+                    keyString2 = keyString2.substring(lastSplit);
+                    result.push([cipherPart, messagePart, keyPart]);
                 }
             }
         }
         if (message.length > 0) {
-            result.push([cipher, message]);
+            result.push([cipher, message, keyString2]);
         }
         return result;
     }
+
 
     public buildNihilist(msg: string, key: string): JQuery<HTMLElement> {
 
@@ -545,6 +557,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             console.log(stringset);
             result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
             result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
+            result.append($('<div/>').text(stringset[2]));
         }
 
         const worktable = new JTTable({
@@ -568,14 +581,17 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
         }
 
-        result.append($('<div/>', { class: 'cipherwork' }));
-        result.append($('<div/>', { class: 'grid-x' })
-            .append($('<div/>', { class: 'cell' })
-                .append($('<p/>', { class: "h5" }).text('Values to decode for solution'))))
-        result.append('<hr/>')
         result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
             .append($('<div/>', { class: 'cell small-6 shrink' })
-                .append($('<p/>', { class: "h5" }).text('Cryptarithm formula')))
+                .append($('<p/>', { class: "h5" }).text('Solution'))
+
+                //for stringset in strings
+                //make a new table
+                //fill the first row with whatever
+
+                .append($('<div/>', { class: 'KEY' }).text("something"))
+                .append($('<div/>', { class: 'TOSOLVE' }).text("nothing"))
+                .append($('<div/>', { class: 'TOANSWER' }).text(this.state.keyword)))
             .append($('<div/>', { class: 'cell shrink' }).append(worktable.generate())))
 
         return result;

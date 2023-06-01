@@ -396,7 +396,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return `c1/c2`
     }
 
-    public buildPolybiusSquare(): string {
+    public buildPolybiusMap() {
+
+        const polybiusMap = new Map();
 
         let preSequence = this.cleanString(this.state.polybiusKey).toUpperCase();
 
@@ -423,11 +425,17 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
         }
 
+        for (let i = 0; i < sequence.length; i++) {
+            let row = Math.floor(i / 5) + 1;
+            let col = i % 5 + 1;
+            polybiusMap.set(sequence.substring(i, i + 1), "" + row + col);
+        }
+
         console.log(sequence);
         console.log(this.state.keyword)
         console.log(this.state.polybiusKey);
 
-        return sequence;
+        return polybiusMap;
 
     }
 
@@ -452,6 +460,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         const result: string[][] = [];
         const charset = this.getCharset();
+        const polybiusMap = this.buildPolybiusMap();
         let message = '';
         let keyIndex = 0;
         let keyString = '';
@@ -507,10 +516,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     const messagePart = message.substr(0, lastSplit);
                     const cipherPart = cipher.substr(0, lastSplit);
                     const keyPart = keyString2.substring(0, lastSplit);
+
+                    let mappedKey = "";
+                    for (const ch of keyPart) {
+                        mappedKey += polybiusMap.get(ch);
+                    }
+
                     message = message.substr(lastSplit);
                     cipher = cipher.substr(lastSplit);
                     keyString2 = keyString2.substring(lastSplit);
-                    result.push([cipherPart, messagePart, keyPart]);
+                    result.push([cipherPart, messagePart, mappedKey]);
                 }
             }
         }
@@ -522,8 +537,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
 
     public buildNihilist(msg: string, key: string): JQuery<HTMLElement> {
-
-        this.buildPolybiusSquare();
 
         const result = $('<div/>');
         let source = 1;
@@ -555,8 +568,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const strings = this.buildReplacementNihilist(msg, key, this.maxEncodeWidth);
         for (const stringset of strings) {
             console.log(stringset);
-            result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
-            result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
+            //result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
+            //result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
+            result.append($('<div/>').text(stringset[source]));
+            result.append($('<div/>').text(stringset[dest]));
             result.append($('<div/>').text(stringset[2]));
         }
 
@@ -575,8 +590,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 celltype: 'th',
                 content: i
             })
+
+            //get an array of the keys of the polybius map
+            let polybiusSequence = Array.from(this.buildPolybiusMap().keys());
             for (let i = 1; i <= 5; i++) {
-                row.add(this.buildPolybiusSquare().charAt(mainIndex))
+                row.add(polybiusSequence[mainIndex])
                 mainIndex++;
             }
         }

@@ -496,7 +496,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             const m = charset.indexOf(messageChar);
             if (m >= 0) {
                 //keychar is the current character in the key string
-                let keyChar = key.substring(keyIndex, 1).toUpperCase();
+                let keyChar = key.substring(keyIndex, keyIndex + 1).toUpperCase();
+
+                console.log(keyChar);
 
                 mappedKey.push(polybiusMap.get(keyChar));
                 message.push(messageChar);
@@ -589,8 +591,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             //result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
             //result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
 
-            let first = this.convertMap(stringset[2]);
-            let second = this.convertMap(stringset[dest]);
+            let first = stringset[2];
+            let second = stringset[3];
             let third = stringset[source];
             let fourth = stringset[dest];
 

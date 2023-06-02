@@ -393,7 +393,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
 
     public encodePolybius(c1: string, c2: string): string {
-        return ' ';
+        let polybiusMap = this.buildPolybiusMap();
+        let num1 = Number(polybiusMap.get(c1));
+        let num2 = Number(polybiusMap.get(c2));
+
+        let result = (num1 + num2).toString();
+
+        return result;
     }
 
     public convertMap(array) {
@@ -537,9 +543,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 }
             }
         }
+        //push the remaining left messages onto a new line
         if (message.length > 0) {
             result.push([cipher, message, mappedKey, mappedMessage]);
         }
+
+        /* the result is an array of arrays of arrays - the large array contains all the lines (arrays) that the entire text is
+            separated into. each line contains 4 arrays, each a char array of the info to appear on each subline*/
         return result;
     }
 

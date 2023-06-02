@@ -475,12 +475,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const result: string[][][] = [];
         const charset = this.getCharset();
         const polybiusMap = this.buildPolybiusMap();
-        let message = [];
-        let keyIndex = 0;
-        let keyString = [];
         let cipher = [];
+        let message = [];
+        let mappedKey = [];
+        let mappedMessage = [];
         const msgLength = encoded.length;
         const keyLength = key.length;
+        let keyIndex = 0;
         let lastSplit = -1;
 
         for (let i = 0; i < msgLength; i++) {
@@ -491,52 +492,53 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 //keychar is the current character in the key string
                 let keyChar = key.substring(keyIndex, 1).toUpperCase();
 
-                keyString.push(keyChar);
-
+                mappedKey.push(polybiusMap.get(keyChar));
                 message.push(messageChar);
-                // The substr() basically does modulus with the negative offset
-                // in the decode case.  Thanks JavaScript!
-
+                mappedMessage.push(polybiusMap.get(messageChar));
                 //cipher is the text we are decoding/encoding into
                 cipher.push(this.encodePolybius(messageChar, keyChar));
+
                 keyIndex = (keyIndex + 1) % keyLength;
 
             } else {
                 //if the current character in encoded message is not found in charset, then don't modify it (such as w/ punctuation)
                 message.push(messageChar);
                 cipher.push(messageChar);
-                keyString.push(messageChar);
+                mappedKey.push(messageChar);
+                mappedMessage.push(messageChar);
                 lastSplit = cipher.length;
                 continue;
             }
             if (message.length >= maxEncodeWidth) {
+                /*
+                    last split refers to the last index in which a non-charset key appeared in the message. 
+                    this creates a 'split' in the text, a place where we want to separate lines at
+                */
                 if (lastSplit === -1) {
-                    let mappedKey = this.convertMap(keyString);
-                    let mappedPlain = this.convertMap(message);
-                    result.push([cipher, message, keyString]);
+                    //if no last split exists, we'll push the entire line and start over on the next line
+                    result.push([cipher, message, mappedKey, mappedMessage]);
                     message = [];
                     cipher = [];
-                    keyString = [];
+                    mappedKey = [];
                     lastSplit = -1;
                 } else {
+                    //if there is a last split, we want to separate the new lines at this point
                     const messagePart = message.slice(0, lastSplit);
                     const cipherPart = cipher.slice(0, lastSplit);
-                    const keyPart = keyString.slice(0, lastSplit);
+                    const mappedKeyPart = mappedKey.slice(0, lastSplit);
+                    const mappedMessagePart = mappedMessage.slice(0, lastSplit);
 
-                    let mappedKey = this.convertMap(keyPart);
-                    let mappedPlain = this.convertMap(messagePart);
-
+                    //this next line will continue, having the remaining text after the split
                     message = message.slice(lastSplit);
                     cipher = cipher.slice(lastSplit);
-                    keyString = keyString.slice(lastSplit);
-                    result.push([cipherPart, messagePart, keyPart]);
+                    mappedKey = mappedKey.slice(lastSplit);
+                    mappedMessage = mappedMessage.slice(lastSplit);
+                    result.push([cipherPart, messagePart, mappedKeyPart, mappedMessagePart]);
                 }
             }
         }
         if (message.length > 0) {
-            let mappedKey = this.convertMap(keyString);
-            let mappedPlain = this.convertMap(message);
-            result.push([cipher, message, keyString]);
+            result.push([cipher, message, mappedKey, mappedMessage]);
         }
         return result;
     }

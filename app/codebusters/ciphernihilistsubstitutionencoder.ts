@@ -232,8 +232,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             return undefined;
         }
         return {
-            plaintext: strings[0][1].substr(cribpos, crib.length),
-            ciphertext: strings[0][0].substr(cribpos, crib.length),
+            plaintext: strings[0][1].join('').substring(cribpos, crib.length),
+            ciphertext: strings[0][0].join('').substring(cribpos, crib.length),
             position: cribpos,
             criblen: crib.length,
             cipherlen: strings[0][0].length,
@@ -396,12 +396,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return ' ';
     }
 
-    public convertMap(string: string) {
+    public convertMap(array) {
         let polybiusMap = this.buildPolybiusMap()
         let mappedKey = [];
-        for (const ch of string) {
-            if (this.charset.indexOf(ch) >= 0) {
-                mappedKey.push(polybiusMap.get(ch));
+        for (const el of array) {
+            if (this.charset.indexOf(el) >= 0) {
+                mappedKey.push(polybiusMap.get(el));
             } else {
                 //mappedKey.push("0");
             }
@@ -478,7 +478,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let message = [];
         let keyIndex = 0;
         let keyString = [];
-        let keyString2 = [];
         let cipher = [];
         const msgLength = encoded.length;
         const keyLength = key.length;
@@ -504,9 +503,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
             } else {
                 //if the current character in encoded message is not found in charset, then don't modify it (such as w/ punctuation)
-                message += messageChar;
-                cipher += messageChar;
-                keyString += messageChar;
+                message.push(messageChar);
+                cipher.push(messageChar);
+                keyString.push(messageChar);
                 lastSplit = cipher.length;
                 continue;
             }
@@ -514,22 +513,22 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 if (lastSplit === -1) {
                     let mappedKey = this.convertMap(keyString);
                     let mappedPlain = this.convertMap(message);
-                    result.push([cipher, message, keyString2]);
+                    result.push([cipher, message, keyString]);
                     message = [];
                     cipher = [];
                     keyString = [];
                     lastSplit = -1;
                 } else {
-                    const messagePart = message.substr(0, lastSplit);
-                    const cipherPart = cipher.substr(0, lastSplit);
-                    const keyPart = keyString.substring(0, lastSplit);
+                    const messagePart = message.slice(0, lastSplit);
+                    const cipherPart = cipher.slice(0, lastSplit);
+                    const keyPart = keyString.slice(0, lastSplit);
 
                     let mappedKey = this.convertMap(keyPart);
                     let mappedPlain = this.convertMap(messagePart);
 
-                    message = message.substr(lastSplit);
-                    cipher = cipher.substr(lastSplit);
-                    keyString = keyString.substring(lastSplit);
+                    message = message.slice(lastSplit);
+                    cipher = cipher.slice(lastSplit);
+                    keyString = keyString.slice(lastSplit);
                     result.push([cipherPart, messagePart, keyPart]);
                 }
             }
@@ -705,7 +704,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             if (solution === undefined) {
                 solution = []
             }
-            solution.push(...strset[dest].split(''));
+            solution.push(...strset[dest]);
         }
         return this.calculateScore(solution, answer, this.state.points);
     }
@@ -752,7 +751,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 source = 1;
                 dest = 0;
             }
-            this.addCipherTableRows(table, keystring, strset[source], strset[dest], true);
+            this.addCipherTableRows(table, keystring, strset[source].join(''), strset[dest].join(''), true);
         }
         result.append(table.generate());
         return result;
@@ -780,7 +779,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             source = 1;
         }
         for (const strset of strings) {
-            this.addCipherTableRows(table, '', strset[source], undefined, true);
+            this.addCipherTableRows(table, '', strset[source].join(''), undefined, true);
         }
         result.append(table.generate());
         return result;
@@ -808,8 +807,20 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         if (this.state.operation === 'encode') {
             source = 1;
         }
+
+        let newStrings = [];
+        for (const strset of strings) {
+            let newSet = [];
+            for (let i = 0; i < 2; i++) {
+                let strarray = strset[i];
+                let joined = strarray.join('');
+                newSet.push(joined);
+            }
+            newStrings.push(newSet);
+        }
         result.append(
-            this.genInteractiveCipherTable(strings, source, qnum, 'cipherint' + extraclass, true)
+
+            this.genInteractiveCipherTable(newStrings, source, qnum, 'cipherint' + extraclass, true)
         );
 
         result.append($('<textarea/>', { id: 'in' + qnumdisp, class: 'intnote' }));

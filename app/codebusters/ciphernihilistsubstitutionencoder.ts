@@ -393,7 +393,22 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
 
     public encodePolybius(c1: string, c2: string): string {
-        return `c1/c2`
+        return ' ';
+    }
+
+    public convertMap(string: string) {
+        let polybiusMap = this.buildPolybiusMap()
+        let mappedKey = [];
+        for (const ch of string) {
+            if (this.charset.indexOf(ch) >= 0) {
+                mappedKey.push(polybiusMap.get(ch));
+            } else {
+                mappedKey.push("0");
+            }
+
+        }
+
+        return mappedKey;
     }
 
     public buildPolybiusMap() {
@@ -502,11 +517,14 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 //if the current character in encoded message is not found in charset, then don't modify it (such as w/ punctuation)
                 message += messageChar;
                 cipher += messageChar;
+                keyString2 += messageChar;
                 lastSplit = cipher.length;
                 continue;
             }
             if (message.length >= maxEncodeWidth) {
                 if (lastSplit === -1) {
+                    let mappedKey = this.convertMap(keyString2);
+                    let mappedPlain = this.convertMap(message);
                     result.push([cipher, message, keyString2]);
                     message = '';
                     cipher = '';
@@ -517,19 +535,19 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     const cipherPart = cipher.substr(0, lastSplit);
                     const keyPart = keyString2.substring(0, lastSplit);
 
-                    let mappedKey = "";
-                    for (const ch of keyPart) {
-                        mappedKey += polybiusMap.get(ch);
-                    }
+                    let mappedKey = this.convertMap(keyPart);
+                    let mappedPlain = this.convertMap(messagePart);
 
                     message = message.substr(lastSplit);
                     cipher = cipher.substr(lastSplit);
                     keyString2 = keyString2.substring(lastSplit);
-                    result.push([cipherPart, messagePart, mappedKey]);
+                    result.push([cipherPart, messagePart, keyPart]);
                 }
             }
         }
         if (message.length > 0) {
+            let mappedKey = this.convertMap(keyString2);
+            let mappedPlain = this.convertMap(message);
             result.push([cipher, message, keyString2]);
         }
         return result;
@@ -570,9 +588,28 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             console.log(stringset);
             //result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
             //result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
-            result.append($('<div/>').text(stringset[source]));
-            result.append($('<div/>').text(stringset[dest]));
-            result.append($('<div/>').text(stringset[2]));
+
+            let first = this.convertMap(stringset[2]);
+            let second = this.convertMap(stringset[dest]);
+            let third = stringset[source];
+            let fourth = stringset[dest];
+
+            let rows = [first, second, third, fourth];
+
+
+            const table = $('<table/>');
+            for (const row of rows) {
+                const inner = $('<tr/>');
+                for (const ch of row) {
+                    inner.append($('<td/>').text(ch));
+                }
+                table.append(inner);
+            }
+
+            result.append(table)
+            //result.append($('<div/>').text(stringset[source]));
+            //result.append($('<div/>').text(stringset[dest]));
+            //result.append($('<div/>').text(stringset[2]));
         }
 
         const worktable = new JTTable({

@@ -403,7 +403,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             if (this.charset.indexOf(ch) >= 0) {
                 mappedKey.push(polybiusMap.get(ch));
             } else {
-                mappedKey.push("0");
+                //mappedKey.push("0");
             }
 
         }
@@ -465,90 +465,79 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     public buildReplacementNihilist(
         msg: string,
-        keystring: string,
+        key: string,
         maxEncodeWidth: number
-    ): string[][] {
+    ): string[][][] {
         let encoded = msg;
-        let key = keystring;
         if (key === '') {
             key = 'A';
         }
-        const result: string[][] = [];
+        const result: string[][][] = [];
         const charset = this.getCharset();
         const polybiusMap = this.buildPolybiusMap();
-        let message = '';
+        let message = [];
         let keyIndex = 0;
-        let keyString = '';
-        let keyString2 = '';
-        let cipher = '';
+        let keyString = [];
+        let keyString2 = [];
+        let cipher = [];
         const msgLength = encoded.length;
         const keyLength = key.length;
         let lastSplit = -1;
 
-        const factor = msgLength / keyLength;
-        keyString = this.repeatStr(key.toUpperCase(), factor + 1);
         for (let i = 0; i < msgLength; i++) {
             //messagechar is the current character in the encoded string
             const messageChar = encoded.substring(i, i + 1).toUpperCase();
             const m = charset.indexOf(messageChar);
             if (m >= 0) {
                 //keychar is the current character in the key string
-                let keyChar = keyString.substr(keyIndex, 1).toUpperCase();
-                let k = charset.indexOf(keyChar);
+                let keyChar = key.substring(keyIndex, 1).toUpperCase();
 
-                //loop to ignore characters not found in charset, such as punctuation
-                while (k < 0) {
-                    keyIndex++;
-                    keyChar = keyString.substr(keyIndex, 1).toUpperCase();
-                    k = charset.indexOf(keyChar);
-                }
+                keyString.push(keyChar);
 
-                keyString2 += keyChar;
-
-                message += messageChar;
+                message.push(messageChar);
                 // The substr() basically does modulus with the negative offset
                 // in the decode case.  Thanks JavaScript!
 
                 //cipher is the text we are decoding/encoding into
-                cipher += this.encodePolybius(messageChar, keyChar);
-                keyIndex++;
+                cipher.push(this.encodePolybius(messageChar, keyChar));
+                keyIndex = (keyIndex + 1) % keyLength;
 
             } else {
                 //if the current character in encoded message is not found in charset, then don't modify it (such as w/ punctuation)
                 message += messageChar;
                 cipher += messageChar;
-                keyString2 += messageChar;
+                keyString += messageChar;
                 lastSplit = cipher.length;
                 continue;
             }
             if (message.length >= maxEncodeWidth) {
                 if (lastSplit === -1) {
-                    let mappedKey = this.convertMap(keyString2);
+                    let mappedKey = this.convertMap(keyString);
                     let mappedPlain = this.convertMap(message);
                     result.push([cipher, message, keyString2]);
-                    message = '';
-                    cipher = '';
-                    keyString2 = '';
+                    message = [];
+                    cipher = [];
+                    keyString = [];
                     lastSplit = -1;
                 } else {
                     const messagePart = message.substr(0, lastSplit);
                     const cipherPart = cipher.substr(0, lastSplit);
-                    const keyPart = keyString2.substring(0, lastSplit);
+                    const keyPart = keyString.substring(0, lastSplit);
 
                     let mappedKey = this.convertMap(keyPart);
                     let mappedPlain = this.convertMap(messagePart);
 
                     message = message.substr(lastSplit);
                     cipher = cipher.substr(lastSplit);
-                    keyString2 = keyString2.substring(lastSplit);
+                    keyString = keyString.substring(lastSplit);
                     result.push([cipherPart, messagePart, keyPart]);
                 }
             }
         }
         if (message.length > 0) {
-            let mappedKey = this.convertMap(keyString2);
+            let mappedKey = this.convertMap(keyString);
             let mappedPlain = this.convertMap(message);
-            result.push([cipher, message, keyString2]);
+            result.push([cipher, message, keyString]);
         }
         return result;
     }

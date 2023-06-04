@@ -587,7 +587,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         const strings = this.buildReplacementNihilist(msg, key, this.maxEncodeWidth);
 
-        const table = new JTTable({ class: "ansblock" });
+        const answerTable = new JTTable({ class: "ansblock" });
 
         for (const stringset of strings) {
             console.log(stringset);
@@ -596,10 +596,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
             let order = [2, 3, source, dest];
 
-            const first = table.addBodyRow();
-            const second = table.addBodyRow();
-            const third = table.addBodyRow();
-            const fourth = table.addBodyRow();
+            const first = answerTable.addBodyRow();
+            const second = answerTable.addBodyRow();
+            const third = answerTable.addBodyRow();
+            const fourth = answerTable.addBodyRow();
 
             for (let i = 0; i < stringset[0].length; i++) {
                 first.add(stringset[order[0]][i]);
@@ -618,15 +618,14 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             //     table.append(inner);
             // }
 
-            result.append(table.generate())
-            //result.append($('<div/>').text(stringset[source]));
-            //result.append($('<div/>').text(stringset[dest]));
-            //result.append($('<div/>').text(stringset[2]));
+            //result.append(table.generate())
+
         }
 
         const worktable = new JTTable({
             class: 'polybius square',
         });
+
         const top = worktable.addHeaderRow()
         top.add('')
         for (let i = 1; i <= 5; i++) {
@@ -649,16 +648,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
 
         result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
-            .append($('<div/>', { class: 'cell small-6 shrink' })
-                .append($('<p/>', { class: "h5" }).text('Solution'))
 
-                //for stringset in strings
-                //make a new table
-                //fill the first row with whatever
+            //.append($('<div/>', { class: 'cell small-6 shrink' })
+            .append($('<div/>', { class: 'cell shrink' }).append(answerTable.generate()))
+            //.append($('<p/>', { class: "h5" }).text('Solution'))
 
-                .append($('<div/>', { class: 'KEY' }).text("something"))
-                .append($('<div/>', { class: 'TOSOLVE' }).text("nothing"))
-                .append($('<div/>', { class: 'TOANSWER' }).text(this.state.keyword)))
+            //for stringset in strings
+            //make a new table
+            //fill the first row with whatever
+
+            //.append($('<div/>', { class: 'KEY' }).text("something"))
+            //.append($('<div/>', { class: 'TOSOLVE' }).text("nothing"))
+            //.append($('<div/>', { class: 'TOANSWER' }).text(this.state.keyword)))
             .append($('<div/>', { class: 'cell shrink' }).append(worktable.generate())))
 
         return result;

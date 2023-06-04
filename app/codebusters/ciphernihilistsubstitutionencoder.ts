@@ -586,29 +586,39 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.setErrorMsg(emsg, 'vcrib');
 
         const strings = this.buildReplacementNihilist(msg, key, this.maxEncodeWidth);
+
+        const table = new JTTable({ class: "ansblock" });
+
         for (const stringset of strings) {
             console.log(stringset);
             //result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
             //result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
 
-            let first = stringset[2];
-            let second = stringset[3];
-            let third = stringset[source];
-            let fourth = stringset[dest];
+            let order = [2, 3, source, dest];
 
-            let rows = [first, second, third, fourth];
+            const first = table.addBodyRow();
+            const second = table.addBodyRow();
+            const third = table.addBodyRow();
+            const fourth = table.addBodyRow();
 
-
-            const table = $('<table/>');
-            for (const row of rows) {
-                const inner = $('<tr/>');
-                for (const ch of row) {
-                    inner.append($('<td/>').text(ch));
-                }
-                table.append(inner);
+            for (let i = 0; i < stringset[0].length; i++) {
+                first.add(stringset[order[0]][i]);
+                second.add(stringset[order[1]][i]);
+                third.add(stringset[order[2]][i]);
+                fourth.add(stringset[order[3]][i]);
             }
 
-            result.append(table)
+
+            //const table = $('<table/>');
+            // for (const row of rows) {
+            //     const inner = $('<tr/>');
+            //     for (const ch of row) {
+            //         inner.append($('<td/>').text(ch));
+            //     }
+            //     table.append(inner);
+            // }
+
+            result.append(table.generate())
             //result.append($('<div/>').text(stringset[source]));
             //result.append($('<div/>').text(stringset[dest]));
             //result.append($('<div/>').text(stringset[2]));

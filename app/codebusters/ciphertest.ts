@@ -203,6 +203,11 @@ export class CipherTest extends CipherHandler {
 
     public testTypeMap: ITestTypeInfo[] = [
         {
+            title: 'None',
+            type: ITestType.None,
+            id: 'none',
+        },
+        {
             title: 'C (High School) - Invitational/Regional',
             type: ITestType.cregional,
             id: 'cregional',

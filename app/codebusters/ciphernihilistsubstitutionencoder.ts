@@ -594,7 +594,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         for (const sequenceset of strings) {
             for (const pair of order) {
                 const sequence = sequenceset[pair[0]];
-                const row = $('<tr ' + 'class=' + pair[1] + '/>');
+                const row = $('<tr ' + 'class="' + pair[1] + '"/>');
                 for (const char of sequence) {
                     row.append($('<td width="33px"/>').text(char));
                 }

@@ -587,19 +587,21 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         const strings = this.buildReplacementNihilist(msg, key, this.maxEncodeWidth);
 
-        const table = $('<table class="nihilist" style="text-align:center;"/>');
+        const table = $('<table/>', { class: 'nihilist' });
 
-        let order = [[2, "minor"], [3, "minor"], [source, "solve bar"], [dest, "ans"]];
+        let order = [[2, "minor"], [3, "minor"], [source, "bar"], [dest, "ans"]];
 
         for (const sequenceset of strings) {
             for (const pair of order) {
                 const sequence = sequenceset[pair[0]];
-                const row = $('<tr ' + 'class="' + pair[1] + '"/>');
+                const row = $('<tr/>', { class: pair[1] });
                 for (const char of sequence) {
                     row.append($('<td width="33px"/>').text(char));
                 }
                 table.append(row);
             }
+            const blank = $('<tr/>').append($('<td/>').append($('<br>')));
+            table.append(blank)
         }
 
 

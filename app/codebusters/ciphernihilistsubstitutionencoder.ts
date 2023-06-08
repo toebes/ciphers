@@ -821,8 +821,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         if (this.state.operation === 'encode') {
             source = 1;
         }
-        for (const strset of strings) {
-            this.addCipherTableRows(table, '', strset[source].join(''), undefined, true);
+        for (const sequenceset of strings) {
+            const rowcipher = table.addBodyRow();
+            for (const token of sequenceset[source]) {
+                rowcipher.add(token);
+            }
+            //this.addCipherTableRows(table, '', sequenceset[source].join(''), undefined, true);
         }
         result.append(table.generate());
         return result;

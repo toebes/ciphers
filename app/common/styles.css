@@ -871,6 +871,24 @@ textarea.intnote {
     text-decoration: underline;
 }
 
+table.polybius-square th, table.polybius-square td {
+    border: 1px solid black;
+}
+
+table.polybius-square {
+    width: 10%;
+    float: right;
+    position: relative;
+    padding: 20px;
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+td .square {
+    aspect-ratio: 1 / 1;
+}
+
 table.nihilist {
     text-align: center;
 }

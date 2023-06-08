@@ -421,18 +421,14 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         const polybiusMap = new Map();
 
-        let preSequence = this.cleanString(this.state.polybiusKey).toUpperCase();
+        let preKey = this.cleanString(this.state.polybiusKey).toUpperCase();
 
-        preSequence = this.minimizeString(preSequence);
-
-        // const pattern = '[^a-zA-Z]';
-        // const re = new RegExp(pattern, 'g');
-        // preSequence = preSequence.replace(re, '');
+        preKey = this.minimizeString(preKey);
 
         //get rid of duplicates
         let seen = '';
         let sequence = '';
-        for (const ch of preSequence) {
+        for (const ch of preKey) {
             if (seen.indexOf(ch) < 0) {
                 seen += ch;
                 sequence += ch;
@@ -440,7 +436,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
 
         //add remaining chars in alphabet to the polybius sequence
-        for (const ch of this.charset) {
+        let polybiusCharset = this.charset.replace("J", "");
+        for (const ch of polybiusCharset) {
             if (sequence.indexOf(ch) < 0) {
                 sequence += ch;
             }

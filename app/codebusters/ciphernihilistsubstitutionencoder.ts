@@ -559,9 +559,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let source = 1;
         let dest = 0;
         let emsg = '';
+        let order = [];
         if (this.state.operation !== 'encode') {
             source = 0;
             dest = 1;
+            order = [[2, "minor"], [3, "minor"], [source, "solve bar"], [dest, "ans"]];
+        } else {
+            order = [[source, "solve"], [2, "minor"], [3, "minor"], [dest, "ans bar"]];
         }
 
         // Check to make sure that they provided a Key
@@ -586,8 +590,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         const table = $('<table/>', { class: 'nihilist' });
 
-        let order = [[2, "minor"], [3, "minor"], [source, "bar"], [dest, "ans"]];
-
         for (const sequenceset of strings) {
             for (const pair of order) {
                 const sequence = sequenceset[pair[0]];
@@ -597,6 +599,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 }
                 table.append(row);
             }
+            //add a blank row between each line of rows 
             const blank = $('<tr/>').append($('<td/>').append($('<br>')));
             table.append(blank)
         }

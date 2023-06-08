@@ -587,43 +587,59 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         const strings = this.buildReplacementNihilist(msg, key, this.maxEncodeWidth);
 
-        const answerTable = new JTTable({ class: "ansblock" });
+        const table = $('<table class="nihilist" style="text-align:center;"/>');
 
-        for (const stringset of strings) {
-            console.log(stringset);
-            //result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
-            //result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
+        let order = [[2, "minor"], [3, "minor"], [source, "solve bar"], [dest, "ans"]];
 
-            let order = [2, 3, source, dest];
-
-            const first = answerTable.addBodyRow();
-            const second = answerTable.addBodyRow();
-            const third = answerTable.addBodyRow();
-            const fourth = answerTable.addBodyRow();
-
-            for (let i = 0; i < stringset[0].length; i++) {
-                first.add(stringset[order[0]][i]);
-                second.add(stringset[order[1]][i]);
-                third.add(stringset[order[2]][i]);
-                fourth.add(stringset[order[3]][i]);
+        for (const sequenceset of strings) {
+            for (const pair of order) {
+                const sequence = sequenceset[pair[0]];
+                const row = $('<tr ' + 'class=' + pair[1] + '/>');
+                for (const char of sequence) {
+                    row.append($('<td width="33px"/>').text(char));
+                }
+                table.append(row);
             }
-
-
-            //const table = $('<table/>');
-            // for (const row of rows) {
-            //     const inner = $('<tr/>');
-            //     for (const ch of row) {
-            //         inner.append($('<td/>').text(ch));
-            //     }
-            //     table.append(inner);
-            // }
-
-            //result.append(table.generate())
-
         }
 
+
+        //const answerTable = new JTTable({ class: "ansblock" });
+
+        // for (const stringset of strings) {
+        //     console.log(stringset);
+        //     //result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
+        //     //result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
+
+        //     let order = [2, 3, source, dest];
+
+        //     const first = answerTable.addBodyRow();
+        //     const second = answerTable.addBodyRow();
+        //     const third = answerTable.addBodyRow();
+        //     const fourth = answerTable.addBodyRow();
+
+        //     for (let i = 0; i < stringset[0].length; i++) {
+        //         first.add(stringset[order[0]][i]);
+        //         second.add(stringset[order[1]][i]);
+        //         third.add(stringset[order[2]][i]);
+        //         fourth.add(stringset[order[3]][i]);
+        //     }
+
+
+        //     //const table = $('<table/>');
+        //     // for (const row of rows) {
+        //     //     const inner = $('<tr/>');
+        //     //     for (const ch of row) {
+        //     //         inner.append($('<td/>').text(ch));
+        //     //     }
+        //     //     table.append(inner);
+        //     // }
+
+        //     //result.append(table.generate())
+
+        // }
+
         const worktable = new JTTable({
-            class: 'polybius square',
+            class: 'polybius-square',
         });
 
         const top = worktable.addHeaderRow()
@@ -650,7 +666,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
 
             //.append($('<div/>', { class: 'cell small-6 shrink' })
-            .append($('<div/>', { class: 'cell shrink' }).append(answerTable.generate()))
+            .append($('<div/>', { class: 'cell shrink' }).append(table))
             //.append($('<p/>', { class: "h5" }).text('Solution'))
 
             //for stringset in strings

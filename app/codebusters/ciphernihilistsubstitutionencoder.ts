@@ -829,6 +829,22 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             //this.addCipherTableRows(table, '', sequenceset[source].join(''), undefined, true);
         }
         result.append(table.generate());
+
+        //generating empty 5x5 polybius square table for students
+
+        const polybiusSquare = $('<table/>', { class: 'polybius-square' });
+
+        for (let i = 0; i < 5; i++) {
+            const row = $('<tr/>');
+            for (let j = 0; j < 5; j++) {
+                const cell = $('<td/>').append($('<div/>', { class: 'square' }).text('s'));
+                row.append(cell);
+            }
+            polybiusSquare.append(row);
+        }
+
+        result.append(polybiusSquare);
+
         return result;
     }
     /**

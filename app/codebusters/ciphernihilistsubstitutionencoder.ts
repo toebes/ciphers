@@ -27,7 +27,7 @@ interface INihilistState extends IEncoderState {
 
 interface ICribInfo {
     plaintext: string;
-    ciphertext: string;
+    ciphertext: string[];
     position: number;
     criblen: number;
     cipherlen: number;
@@ -227,13 +227,19 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         if (strings.length !== 1) {
             return undefined;
         }
-        const cribpos = strings[0][1].indexOf(crib);
+        const cribpos = strings[0][1].join('').indexOf(crib);
         if (cribpos < 0) {
             return undefined;
         }
+        console.log("crib length: " + crib.length)
+        console.log("crib pos: " + cribpos)
+        console.log("pt join: " + strings[0][1].join(''))
+        console.log("pt: " + strings[0][1].join('').substring(cribpos, crib.length))
+        console.log("ct join: " + strings[0][0].join(''))
+        console.log("ct: " + strings[0][0].join('').substring(cribpos, crib.length))
         return {
-            plaintext: strings[0][1].join('').substring(cribpos, crib.length),
-            ciphertext: strings[0][0].join('').substring(cribpos, crib.length),
+            plaintext: strings[0][1].join('').substring(cribpos, cribpos + crib.length),
+            ciphertext: strings[0][0].slice(cribpos, cribpos + crib.length),
             position: cribpos,
             criblen: crib.length,
             cipherlen: strings[0][0].length,
@@ -288,8 +294,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     startpos +
                     ' through ' +
                     endpos +
-                    ' cipher characters (' +
-                    this.genMonoText(cribpos.ciphertext) +
+                    ' cipher units (' +
+                    this.genMonoText(cribpos.ciphertext.join(' ')) +
                     ') decode to be ' +
                     this.genMonoText(cribpos.plaintext);
             }

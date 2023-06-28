@@ -793,20 +793,20 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         for (const sequenceset of strings) {
             const topRow = $('<tr/>');
-            for (const char of sequenceset[source]) {
-                if (this.charset.indexOf(char) < 0) {
-                    topRow.append($('<td/>').text(char));
+            for (const unit of sequenceset[source]) {
+                if (this.charset.indexOf(unit) < 0 && !(/^-?\d+$/.test(unit))) {
+                    topRow.append($('<td/>').text(unit));
                 } else {
-                    topRow.append($('<td class="q v"/>').text(char));
+                    topRow.append($('<td class="q v"/>').text(unit));
                 }
             }
             table.append(topRow);
             const botRow = $('<tr/>');
-            for (const char of sequenceset[dest]) {
-                if (this.charset.indexOf(char) < 0) {
-                    botRow.append($('<td/>').text(char));
+            for (const unit of sequenceset[dest]) {
+                if (this.charset.indexOf(unit) < 0 && !(/^-?\d+$/.test(unit))) {
+                    botRow.append($('<td/>').text(unit));
                 } else {
-                    botRow.append($('<td class="a v"/>').text(char));
+                    botRow.append($('<td class="a v"/>').text(unit));
                 }
             }
             table.append(botRow);

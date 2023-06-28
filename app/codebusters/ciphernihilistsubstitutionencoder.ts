@@ -185,6 +185,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     this.state.keyword +
                     "' doesn't appear to be mentioned in the Question Text.";
             }
+            const polybiusKey = this.minimizeString(this.state.polybiusKey);
+            if (polybiusKey !== '' && questionText.indexOf(polybiusKey) < 0) {
+                msg +=
+                    "The Polybius Key '" +
+                    this.state.polybiusKey +
+                    "' doesn't appear to be mentioned in the Question Text.";
+            }
             if (this.state.operation === 'encode') {
                 if (questionText.indexOf('ENCOD') < 0 && questionText.indexOf('ENCRY') < 0) {
                     msg +=
@@ -296,16 +303,17 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
         } else {
             const keyword = this.genMonoText(this.minimizeString(this.state.keyword));
+            const polybiusKey = this.genMonoText(this.minimizeString(this.state.polybiusKey));
             if (this.state.operation === 'encode') {
                 msg =
                     '<p>The following quote needs to be encoded ' +
                     ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
-                    keyword;
+                    keyword + ' and polybius key of ' + polybiusKey;
             } else {
                 msg =
                     '<p>The following quote needs to be decoded ' +
                     ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
-                    keyword;
+                    keyword + ' and polybius key of ' + polybiusKey;
             }
         }
         msg += '</p>';
@@ -771,33 +779,44 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             this.state.keyword,
             width
         );
-        let keyword = '';
-        for (const c of this.state.keyword.toUpperCase()) {
-            if (this.isValidChar(c)) {
-                keyword += c;
-            }
+
+        let source = 0;
+        let dest = 1;
+        if (this.state.operation === 'encode') {
+            source = 1;
+            dest = 0;
         }
 
-        const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
-        for (const strset of strings) {
-            let keystring = '';
-            for (const c of strset[0]) {
-                if (this.isValidChar(c)) {
-                    keystring += keyword.substr(keypos, 1);
-                    keypos = (keypos + 1) % keyword.length;
+        const table = $('<table/>', { class: 'ansblock shrink cell unstriped' });
+
+        table.append($('<tbody/>'));
+
+        for (const sequenceset of strings) {
+            const topRow = $('<tr/>');
+            for (const char of sequenceset[source]) {
+                if (this.charset.indexOf(char) < 0) {
+                    topRow.append($('<td/>').text(char));
                 } else {
-                    keystring += c;
+                    topRow.append($('<td class="q v"/>').text(char));
                 }
             }
-            let source = 0;
-            let dest = 1;
-            if (this.state.operation === 'encode') {
-                source = 1;
-                dest = 0;
+            table.append(topRow);
+            const botRow = $('<tr/>');
+            for (const char of sequenceset[dest]) {
+                if (this.charset.indexOf(char) < 0) {
+                    botRow.append($('<td/>').text(char));
+                } else {
+                    botRow.append($('<td class="a v"/>').text(char));
+                }
             }
-            this.addCipherTableRows(table, keystring, strset[source].join(''), strset[dest].join(''), true);
+            table.append(botRow);
+            //add a blank row between each line of rows 
+            const blank = $('<tr/>').append($('<td/>').append($('<br>')));
+            table.append(blank);
         }
-        result.append(table.generate());
+
+        result.append(table);
+
         return result;
     }
     /**
@@ -838,7 +857,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         for (let i = 0; i < 5; i++) {
             const row = $('<tr/>');
             for (let j = 0; j < 5; j++) {
-                const cell = $('<td/>').append($('<div/>', { class: 'square' }).text('s'));
+                const cell = $('<td/>').append($('<div/>', { class: 'square' }).html('&nbsp;'));
                 row.append(cell);
             }
             polybiusSquare.append(row);

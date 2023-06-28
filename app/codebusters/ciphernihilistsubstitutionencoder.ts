@@ -231,12 +231,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         if (cribpos < 0) {
             return undefined;
         }
-        console.log("crib length: " + crib.length)
-        console.log("crib pos: " + cribpos)
-        console.log("pt join: " + strings[0][1].join(''))
-        console.log("pt: " + strings[0][1].join('').substring(cribpos, crib.length))
-        console.log("ct join: " + strings[0][0].join(''))
-        console.log("ct: " + strings[0][0].join('').substring(cribpos, crib.length))
+
         return {
             plaintext: strings[0][1].join('').substring(cribpos, cribpos + crib.length),
             ciphertext: strings[0][0].slice(cribpos, cribpos + crib.length),

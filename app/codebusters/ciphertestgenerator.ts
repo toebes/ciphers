@@ -187,6 +187,7 @@ export class CipherTestGenerator extends CipherTest {
             content: dropdown,
         });
         const errors: string[] = [];
+        $('.testerrors').empty();
 
 
         /**

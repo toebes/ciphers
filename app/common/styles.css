@@ -871,6 +871,45 @@ textarea.intnote {
     text-decoration: underline;
 }
 
+table.polybius-square th, table.polybius-square td {
+    border: 1px solid black;
+}
+
+table.polybius-square {
+    width: 10%;
+    float: right;
+    position: relative;
+    padding: 20px;
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+td .square {
+    aspect-ratio: 1 / 1;
+}
+
+table.nihilist {
+    text-align: center;
+}
+
+table.nihilist td {
+    width: 33px;
+}
+
+table.nihilist tr.bar td {
+    border-top: thin solid;
+}
+
+table.nihilist tr.ans {
+    background-color: yellow !important;
+}
+
+table.nihilist tr.minor {
+    font-style: italic;
+    font-weight: normal;
+}
+
 table.bacon td {
     padding: 0;
     font-size: 24px;

@@ -24,10 +24,10 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
     public guidanceURL = 'TestGuidance.html#Pollux';
     public validTests: ITestType[] = [
         ITestType.None,
-        ITestType.cregional,
-        ITestType.cstate,
-        ITestType.bregional,
-        ITestType.bstate,
+        // ITestType.cregional,
+        // ITestType.cstate,
+        // ITestType.bregional,
+        // ITestType.bstate,
     ];
     public defaultstate: IPolluxState = {
         cipherString: '',

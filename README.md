@@ -10,7 +10,6 @@ You can see the current version of the application at https://toebes.com/Ciphers
 The application is built using a combination of:
 
 -   TypeScript (http://www.typescriptlang.org/) – All of the code for processing the page
--   Convergence (https://convergence.io) - For the realtime collaboration
 -   JQuery (https://jquery.com/) - For general HTML traversal
 -   ZURB Foundation 6 for Sites (https://foundation.zurb.com/sites/docs/) – Provides the CSS and reactive layout engine
 -   what-input - (https://github.com/ten1seven/what-input) Used by Foundation for tracking the current input method

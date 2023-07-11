@@ -11,9 +11,7 @@ import { InitStorage, JTStorage } from './jtstore';
 import { JTTable, JTRow } from './jttable';
 import { parseQueryString } from './parsequerystring';
 import { textStandard } from '../common/readability';
-import { RealTimeNumber, RealTimeObject } from '@convergence/convergence';
 import { TrueTime } from './truetime';
-import { API } from '../codebusters/api';
 import { JTFIncButton } from './jtfIncButton';
 // eslint-disable-next-line no-underscore-dangle
 declare let __DATE_BUILT__: string;
@@ -242,7 +240,7 @@ export interface ITestQuestionFields {
      */
     solvetime?: number;
     /**
-     * The version of the template.  Version 2 indicates that it can use the newer convergence features
+     * The version of the template.
      */
     version?: number;
 }
@@ -979,11 +977,6 @@ export class CipherHandler {
      */
     public encodedString = '';
 
-    /**
-     * Provides communication to our REST server.
-     */
-    protected readonly api: API;
-
     public Frequent: { [key: string]: { [key: string]: patelem[] } } = {};
     public freq: { [key: string]: number } = {};
     public savefileentry = -1;
@@ -991,7 +984,6 @@ export class CipherHandler {
 
     constructor() {
         this.storage = InitStorage();
-        this.api = new API(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
     }
 
     public initToolModeSettings(): void {
@@ -1083,11 +1075,6 @@ export class CipherHandler {
     }
 
     /**
-     * Key name used to store the convergence token in storage.
-     */
-    public static readonly KEY_CONVERGENCE_TOKEN: string = 'convergenceToken';
-
-    /**
      * Key name used to store the user's first name in storage.
      */
     public static readonly KEY_FIRST_NAME: string = 'fname';
@@ -1101,13 +1088,6 @@ export class CipherHandler {
      * Key name used to store the user's id in storage.
      */
     public static readonly KEY_USER_ID: string = 'userid';
-
-    /**
-     * Checks to see if a convergence token exists. If one does not exist returns false.
-     */
-    public isAuthenticated(): boolean {
-        return !(this.getConfigString(CipherHandler.KEY_CONVERGENCE_TOKEN, '').length === 0);
-    }
 
     /**
      * Retrieves the current user's full name from storage.
@@ -1998,19 +1978,6 @@ export class CipherHandler {
         $('.langsel').each((i: number, elem: HTMLElement) => {
             this.genLangDropdown($(elem));
         });
-        // NOTE: Disable Interactive tests
-        // if (this.isAuthenticated()) {
-        //     $('.login-button').hide();
-        //     $('#logged-in-user').text('Welcome ' + this.getUsersFullName());
-        // }
-        // Hide the realtime config menu if they didn't hit the control key
-        $('.menuhelp').on('mouseover', (e) => {
-            if (e.ctrlKey) {
-                $('.realtimeconfig').show();
-            } else {
-                $('.realtimeconfig').hide();
-            }
-        });
     }
     /**
      * Restore the state from either a saved file or a previous undo record
@@ -2788,14 +2755,6 @@ export class CipherHandler {
                 this.guidance();
                 break;
 
-            case 'register':
-                this.register();
-                break;
-
-            case 'realtimeconfig':
-                this.realtimeconfig();
-                break;
-
             case 'signout':
                 this.goToAuthenticationPage(true);
                 break;
@@ -3257,90 +3216,6 @@ export class CipherHandler {
     /**
      * Creates the hidden dialog showing version/build information
      */
-    public createRealtimeConfigDlg(): JQuery<HTMLElement> {
-        const dlgContents = $('<div/>', {
-            id: 'realtimeconf',
-            class: 'callout secondary',
-        })
-            .append('<div/>')
-            .text(
-                'This is only for testing, do not change it unless you know what you are doing because you will break things.'
-            )
-            .append(JTFLabeledInput('Base URL:', 'text', 'baseUrl', '', ''))
-            .append(JTFLabeledInput('Authentication Base URL:', 'text', 'authUrl', '', ''))
-            .append(JTFLabeledInput('Admin Username:', 'text', 'convergenceAdminUsername', '', ''))
-            .append(JTFLabeledInput('Admin Password:', 'text', 'convergenceAdminPassword', '', ''))
-            .append(JTFLabeledInput('Realtime Name Space:', 'text', 'convergenceNamespace', '', ''))
-            .append(JTFLabeledInput('Realtime Domain:', 'text', 'convergenceDomain', '', ''))
-            .append(JTFLabeledInput('Proxy Username:', 'text', 'convergenceProxyUsername', '', ''))
-            .append(JTFLabeledInput('Proxy Testid:', 'text', 'convergenceProxyTestid', '', ''))
-            .append(JTFIncButton('Proxy Team:', 'convergenceProxyTeam', 0, ''))
-            .append(JTFIncButton('Proxy Student:', 'convergenceProxyStudent', 0, ''))
-            .append($("<div/>", { class: "grid-x" })
-                .append(JTFLabeledInput('Debug:', 'checkbox', 'convergenceDebug', '', 'large-6'))
-                .append(JTFLabeledInput('Admin:', 'checkbox', 'convergenceIsAdmin', '', 'large-6')))
-
-        const realtimeConfigDlg = JTFDialog(
-            'Realtimedlg',
-            '[ADMIN] Configuration',
-            dlgContents,
-            'okrealtime',
-            'RealtimeConfig'
-        );
-        return realtimeConfigDlg;
-    }
-    /**
-     * Creates the hidden dialog showing version/build information
-     */
-    public createRegisterDlg(): JQuery<HTMLElement> {
-        const dlgContents = $('<div/>', {
-            id: 'registercont',
-            class: 'callout secondary',
-        })
-            .append('<div/>')
-            .text(
-                'This is only for testing, you can select any userid/name and it is not validated.'
-            )
-            .append(
-                JTFLabeledInput(
-                    'Userid:',
-                    'text',
-                    'reguserid',
-                    this.getConfigString('userid', ''),
-                    ''
-                )
-            )
-            .append(
-                JTFLabeledInput(
-                    'First Name:',
-                    'text',
-                    'regfname',
-                    this.getConfigString('fname', ''),
-                    ''
-                )
-            )
-            .append(
-                JTFLabeledInput(
-                    'Last Name:',
-                    'text',
-                    'reglname',
-                    this.getConfigString('lname', ''),
-                    ''
-                )
-            );
-
-        const registerDlg = JTFDialog(
-            'Registerdlg',
-            '[Testing] Register',
-            dlgContents,
-            'okregister',
-            'Register'
-        );
-        return registerDlg;
-    }
-    /**
-     * Creates the hidden dialog showing version/build information
-     */
     public createAboutDlg(): JQuery<HTMLElement> {
         const dlgContents = $('<table class="version-table"/>');
         dlgContents.append(
@@ -3388,8 +3263,7 @@ export class CipherHandler {
             .append(this.createOpenFileDlg())
             .append(this.createImportFileDlg())
             .append(this.createAboutDlg())
-            // .append(this.createRegisterDlg())
-            .append(this.createRealtimeConfigDlg());
+        // .append(this.createRegisterDlg())
         return result;
     }
     /**
@@ -3430,119 +3304,6 @@ export class CipherHandler {
 
         $('#About').foundation('open');
     }
-
-    /**
-     * Show the testing register dialog.
-     */
-    public register(): void {
-        $('#reguserid').val(this.getConfigString('userid', ''));
-        $('#regfname').val(this.getConfigString('fname', ''));
-        $('#reglname').val(this.getConfigString('lname', ''));
-        $('#okregister')
-            .removeAttr('disabled')
-            .off('click')
-            .on('click', (e) => {
-                this.setConfigString('userid', $('#reguserid').val() as string);
-                this.setConfigString('fname', $('#regfname').val() as string);
-                this.setConfigString('lname', $('#reglname').val() as string);
-                $('#Registerdlg').foundation('close');
-                location.reload();
-            });
-        $('#Registerdlg').foundation('open');
-    }
-    /**
-     * getConvergenceDomain determines which database to connect to on the server based
-     * on the subdomain of the reference.
-     * Basically it prefixes the subdomain of the URI to the database.
-     * @returns String of the convergence domain to connect to
-     */
-    public getConvergenceDomain(): string {
-        const host = window.location.hostname
-        const parts = host.split('.')
-        let domain = this.getConfigString('convergenceDomain', 'scienceolympiad')
-        // See if we have a subdomain
-        if (parts.length > 2) {
-            let extra = parts[0].toLowerCase();
-            if (extra !== 'www') {
-                domain = extra + domain
-            }
-        }
-
-        return domain
-    }
-
-    public realtimeconfig(): void {
-        $('#baseUrl').val(this.getConfigString('domain', 'https://cosso.oit.ncsu.edu'));
-        $('#authUrl').val(this.getConfigString('authUrl', 'https://cosso.oit.ncsu.edu'));
-
-        $('#convergenceAdminUsername').val(this.getConfigString('convergenceAdminUsername', 'admin'));
-        $('#convergenceAdminPassword').val(this.getConfigString('convergenceAdminPassword', 'password'));
-        $('#convergenceProxyUsername').val(this.getConfigString('convergenceProxyUsername', ''));
-
-        $('#convergenceNamespace').val(this.getConfigString('convergenceNamespace', 'convergence'));
-        $('#convergenceDomain').val(this.getConfigString('convergenceDomain', 'scienceolympiad'));
-        $('#convergenceDebug').prop('checked', this.getConfigString('convergenceDebug', '') !== '');
-        $('#convergenceIsAdmin').prop('checked', this.getConfigString('convergenceIsAdmin', '') !== '');
-
-        $('#convergenceProxyTestid').val(this.getConfigString('convergenceProxyTestid', ''));
-        $('#convergenceProxyTeam').val(Number(this.getConfigString('convergenceProxyTeam', '')));
-        $('#convergenceProxyStudent').val(Number(this.getConfigString('convergenceProxyStudent', '')));
-
-        $('#okrealtime')
-            .removeAttr('disabled')
-            .off('click')
-            .on('click', (e) => {
-                this.setConfigString('domain', $('#baseUrl').val() as string);
-                this.setConfigString('authUrl', $('#authUrl').val() as string);
-
-                this.setConfigString(
-                    'convergenceAdminUsername',
-                    $('#convergenceAdminUsername').val() as string
-                );
-
-                this.setConfigString(
-                    'convergenceAdminPassword',
-                    $('#convergenceAdminPassword').val() as string
-                );
-
-                this.setConfigString(
-                    'convergenceProxyTestid',
-                    $('#convergenceProxyTestid').val() as string
-                );
-                this.setConfigString(
-                    'convergenceProxyUsername',
-                    $('#convergenceProxyUsername').val() as string
-                );
-                this.setConfigString(
-                    'convergenceProxyTeam',
-                    $('#convergenceProxyTeam').val() as string
-                );
-                this.setConfigString(
-                    'convergenceProxyStudent',
-                    $('#convergenceProxyStudent').val() as string
-                );
-
-                this.setConfigString(
-                    'convergenceNamespace',
-                    $('#convergenceNamespace').val() as string
-                );
-                this.setConfigString('convergenceDomain', $('#convergenceDomain').val() as string);
-
-                let convergenceDebug = ''
-                let convergenceISAdmin = ''
-                if ($('#convergenceDebug').prop("checked") == true) {
-                    convergenceDebug = "Y"
-                }
-                if ($('#convergenceIsAdmin').prop("checked") == true) {
-                    convergenceISAdmin = "Y"
-                }
-                this.setConfigString('convergenceDebug', convergenceDebug);
-                this.setConfigString('convergenceIsAdmin', convergenceISAdmin);
-                $('#Realtimedlg').foundation('close');
-            });
-        $('#Realtimedlg').foundation('open');
-    }
-
     /**
      * Download the zip file is the 'download' button is not disabled
      */
@@ -3847,16 +3608,6 @@ export class CipherHandler {
             .on('click', () => {
                 this.guidance();
             });
-        $('#register')
-            .off('click')
-            .on('click', () => {
-                this.register();
-            });
-        $('#realtimeconfig')
-            .off('click')
-            .on('click', () => {
-                this.realtimeconfig();
-            });
         $('#save')
             .off('click')
             .on('click', () => {
@@ -3911,20 +3662,6 @@ export class CipherHandler {
                 $('.moreprev').hide();
             });
     }
-    /**
-     * attachInteractiveHandlers attaches the realtime updates to all of the fields
-     * @param qnum Question number to set handler for
-     * @param realTimeElement RealTimeObject for synchronizing the contents
-     * @param testTimeInfo Timing information for the current test.
-     * @param realtimeConidence RealtimeNumber for the confidence value associated with the question for this user
-     */
-    public attachInteractiveHandlers(
-        qnum: number,
-        realTimeElement: RealTimeObject,
-        testTimeInfo: ITestTimeInfo,
-        realtimeConfidence: RealTimeNumber
-    ): void { }
-
     /**
      * Calculate the score for the answer from an interactive test.  We calculate the solution
      * on the fly based on how genAnswer() does it.

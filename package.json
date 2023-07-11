@@ -8,6 +8,9 @@
         "type": "git",
         "url": "https://github.com/toebes/ciphers"
     },
+    "resolutions": {
+        "word-wrap": "npm:@aashutoshrathi/word-wrap@1.2.5"
+    },
     "scripts": {
         "serve": "webpack serve --mode=development",
         "build": "webpack --mode=production --env=zip=y",
@@ -53,7 +56,7 @@
         "svg-inline-loader": "^0.8.2",
         "ts-loader": "^9.2.3",
         "tslint-config-prettier": "^1.18.0",
-        "typescript": "^3.9.9",
+        "typescript": "^5.1.6",
         "uglify-js": "^3.13.9",
         "url-loader": "^4.1.1",
         "webpack": "^5.39.1",
@@ -79,8 +82,6 @@
         "@ckeditor/ckeditor5-remove-format": "^34.0.0",
         "@ckeditor/ckeditor5-theme-lark": "^34.0.0",
         "@ckeditor/ckeditor5-typing": "^34.0.0",
-        "@convergence/convergence": "*",
-        "@convergence/input-element-bindings": "^0.4.0",
         "@shopify/draggable": "*",
         "@types/es6-shim": "^0.31.41",
         "@types/jquery": "^3.5.5",
@@ -94,7 +95,6 @@
         "es6-shim": "^0.35.6",
         "flatpickr": "^4.6.9",
         "foundation-sites": "^6.6.3",
-        "fs": "*",
         "jquery": "^3.6.0",
         "js-cookie": "^2.2.1",
         "jwt-decode": "^3.1.2",

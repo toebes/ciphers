@@ -9,10 +9,8 @@ import { CipherFractionatedMorseEncoder } from './cipherfractionatedmorseencoder
 import { CipherGenerateHomophone } from './cipherhomophones';
 import { CipherHandler } from '../common/cipherhandler';
 import { CipherHillEncoder } from './cipherhillencoder';
-import { CipherLogin } from './cipherlogin';
-import { CipherMaintenance } from './ciphermaintenance'
 import { CipherMorbitEncoder } from './ciphermorbitencoder';
-import { CipherNihilistSubstitutionEncoder } from './CipherNihilistSubstitutionEncoder';
+import { CipherNihilistSubstitutionEncoder } from './ciphernihilistsubstitutionencoder';
 import { CipherPigPenEncoder } from './cipherpigpenencoder';
 import { CipherPolluxEncoder } from './cipherpolluxencoder';
 import { CipherQuoteAnalyze } from './cipherquoteanalyze';
@@ -20,37 +18,19 @@ import { CipherRailFenceEncoder } from './cipherrailfenceencoder';
 import { CipherRSAEncoder } from './cipherrsaencoder';
 import { CipherRunningKeyEdit } from './cipherrunningkeyedit';
 import { CipherRunningKeyEncoder } from './cipherrunningkeyencoder';
-import { CipherScilympiad } from './cipherscilympiad';
 import { CipherTableEncoder } from './ciphertableencoder';
-import { CipherTakeTest } from './ciphertaketest';
 import { CipherTapCodeEncoder } from './ciphertapcodeencoder';
 import { CipherTestAnswers } from './ciphertestanswers';
-import { CipherTestAttach } from './ciphertestattach';
 import { CipherTestGenerator } from './ciphertestgenerator';
-import { CipherTestInteractive } from './ciphertestinteractive';
 import { CipherTestManage } from './ciphertestmanage';
-import { CipherTestPlayback } from './ciphertestplayback';
 import { CipherTestPrint } from './ciphertestprint';
-import { CipherTestPublished } from './ciphertestpublished';
 import { CipherTestQuestions } from './ciphertestquestions';
-import { CipherTestPermissions } from './ciphertestpermissions';
-import { CipherTestResults } from './ciphertestresults';
-import { CipherTestSchedule } from './ciphertestschedule';
 import { CipherTestScoreAdjust } from './ciphertestscoreadjust';
-import { CipherTestTimed } from './ciphertesttimed';
 import { CipherVigenereEncoder } from './ciphervigenereencoder';
-import { InteractiveAffineEncoder } from './interactiveaffineencoder';
-import { InteractiveEncoder } from './interactiveencoder';
-import { InteractiveHillEncoder } from './interactivehillencoder';
-import { InteractiveMorseEncoder } from './interactivemorseencoder';
-import { InteractiveRailFenceEncoder } from './interactiverailfenceencoder';
-import { InteractiveRSAEncoder } from "./interactiversaencoder";
-import { InteractiveTableEncoder } from './interactivetableencoder';
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
     cipherClass: typeof CipherHandler;
-    interactiveClass: typeof CipherHandler;
     canPrint: boolean;
 }
 
@@ -62,253 +42,151 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Affine: {
         cipherType: ICipherType.Affine,
         cipherClass: CipherAffineEncoder,
-        interactiveClass: InteractiveAffineEncoder,
         canPrint: true,
     },
     Atbash: {
         cipherType: ICipherType.Atbash,
         cipherClass: CipherTableEncoder,
-        interactiveClass: InteractiveTableEncoder,
         canPrint: true,
     },
     Baconian: {
         cipherType: ICipherType.Baconian,
         cipherClass: CipherBaconianEncoder,
-        interactiveClass: InteractiveEncoder,
         canPrint: true,
     },
     Caesar: {
         cipherType: ICipherType.Caesar,
         cipherClass: CipherTableEncoder,
-        interactiveClass: InteractiveTableEncoder,
         canPrint: true,
     },
     CompleteColumnar: {
         cipherType: ICipherType.CompleteColumnar,
         cipherClass: CipherCompleteColumnarEncoder,
-        interactiveClass: InteractiveEncoder,
         canPrint: true,
     },
     Cryptarithm: {
         cipherType: ICipherType.Cryptarithm,
         cipherClass: CipherCryptarithmEncoder,
-        interactiveClass: InteractiveEncoder, // TODO: Implement the interactive encoder for it
         canPrint: true,
     },
     DancingMen: {
         cipherType: ICipherType.DancingMen,
         cipherClass: CipherDancingMenEncoder,
-        interactiveClass: InteractiveTableEncoder,
         canPrint: true,
     },
     Encoder: {
         cipherType: ICipherType.Aristocrat,
         cipherClass: CipherEncoder,
-        interactiveClass: InteractiveEncoder,
         canPrint: true,
     },
     FractionatedMorse: {
         cipherType: ICipherType.FractionatedMorse,
         cipherClass: CipherFractionatedMorseEncoder,
-        interactiveClass: InteractiveMorseEncoder,   // TODO: Implement the interactive encoder for it
         canPrint: true,
     },
     GenerateHomophone: {
         cipherType: ICipherType.None,
         cipherClass: CipherGenerateHomophone,
-        interactiveClass: CipherHandler,
         canPrint: false,
     },
     Hill: {
         cipherType: ICipherType.Hill,
         cipherClass: CipherHillEncoder,
-        interactiveClass: InteractiveHillEncoder,
         canPrint: true,
-    },
-    Login: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherLogin,
-        interactiveClass: CipherHandler,
-        canPrint: false,
-    },
-    Maintenance: {
-        cipherType: ICipherType.None,
-        cipherClass: CipherMaintenance,
-        interactiveClass: CipherHandler,
-        canPrint: false,
     },
     Morbit: {
         cipherType: ICipherType.Morbit,
         cipherClass: CipherMorbitEncoder,
-        interactiveClass: InteractiveMorseEncoder,
         canPrint: true,
     },
     NihilistSubstitution: {
         cipherType: ICipherType.NihilistSubstitution,
         cipherClass: CipherNihilistSubstitutionEncoder,
-        interactiveClass: InteractiveEncoder,
         canPrint: true,
     },
     Patristocrat: {
         cipherType: ICipherType.Patristocrat,
         cipherClass: CipherEncoder,
-        interactiveClass: InteractiveEncoder,
         canPrint: true,
     },
     PigPen: {
         cipherType: ICipherType.PigPen,
         cipherClass: CipherPigPenEncoder,
-        interactiveClass: InteractiveTableEncoder,
         canPrint: true,
     },
     Pollux: {
         cipherType: ICipherType.Pollux,
         cipherClass: CipherPolluxEncoder,
-        interactiveClass: InteractiveMorseEncoder,
         canPrint: true,
     },
     Porta: {
         cipherType: ICipherType.Porta,
         cipherClass: CipherVigenereEncoder,
-        interactiveClass: InteractiveEncoder,
         canPrint: true,
     },
     QuoteAnalyze: {
         cipherType: ICipherType.None,
         cipherClass: CipherQuoteAnalyze,
-        interactiveClass: CipherHandler,
         canPrint: false,
     },
     RailFence: {
         cipherType: ICipherType.Railfence,
         cipherClass: CipherRailFenceEncoder,
-        interactiveClass: InteractiveRailFenceEncoder,
         canPrint: true,
     },
     RunningKeyEdit: {
         cipherType: ICipherType.None,
         cipherClass: CipherRunningKeyEdit,
-        interactiveClass: CipherHandler,
         canPrint: false,
     },
     RunningKey: {
         cipherType: ICipherType.RunningKey,
         cipherClass: CipherRunningKeyEncoder,
-        interactiveClass: CipherHandler,
         canPrint: true,
     },
     RSA: {
         cipherType: ICipherType.RSA,
         cipherClass: CipherRSAEncoder,
-        interactiveClass: InteractiveRSAEncoder,
         canPrint: true,
-    },
-    Scilympiad: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherScilympiad,
-        interactiveClass: CipherHandler,
-        canPrint: false,
-    },
-    TakeTest: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherTakeTest,
-        interactiveClass: CipherHandler,
-        canPrint: false,
     },
     TapCode: {
         cipherType: ICipherType.TapCode,
         cipherClass: CipherTapCodeEncoder,
-        interactiveClass: InteractiveEncoder,
         canPrint: true,
     },
     TestAnswers: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestAnswers,
-        interactiveClass: CipherHandler,
         canPrint: false,
     },
     TestGenerator: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestGenerator,
-        interactiveClass: CipherHandler,
-        canPrint: false,
-    },
-    TestInteractive: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherTestInteractive,
-        interactiveClass: CipherHandler,
-        canPrint: false,
-    },
-    TestAttach: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherTestAttach,
-        interactiveClass: CipherHandler,
         canPrint: false,
     },
     TestManage: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestManage,
-        interactiveClass: CipherHandler,
-        canPrint: false,
-    },
-    TestPermissions: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherTestPermissions,
-        interactiveClass: CipherHandler,
-        canPrint: false,
-    },
-    TestPlayback: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherTestPlayback,
-        interactiveClass: CipherHandler,
         canPrint: false,
     },
     TestPrint: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestPrint,
-        interactiveClass: CipherHandler,
-        canPrint: false,
-    },
-    TestPublished: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherTestPublished,
-        interactiveClass: CipherHandler,
         canPrint: false,
     },
     TestQuestions: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestQuestions,
-        interactiveClass: CipherHandler,
-        canPrint: false,
-    },
-    TestResults: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherTestResults,
-        interactiveClass: CipherHandler,
-        canPrint: false,
-    },
-    TestSchedule: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherTestSchedule,
-        interactiveClass: CipherHandler,
         canPrint: false,
     },
     TestScoreAdjust: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestScoreAdjust,
-        interactiveClass: CipherHandler,
-        canPrint: false,
-    },
-    TestTimed: {
-        cipherType: ICipherType.Test,
-        cipherClass: CipherTestTimed,
-        interactiveClass: CipherHandler,
         canPrint: false,
     },
     Vigenere: {
         cipherType: ICipherType.Vigenere,
         cipherClass: CipherVigenereEncoder,
-        interactiveClass: InteractiveEncoder,
         canPrint: true,
     },
 };
@@ -322,7 +200,6 @@ export function CipherFactory(ciphertypestr: string, reqlang: string): CipherHan
     }
     let entry: ICipherFactoryEntry = {
         cipherType: ICipherType.None,
-        interactiveClass: CipherHandler,
         cipherClass: CipherEncoder,
         canPrint: false,
     };
@@ -331,29 +208,6 @@ export function CipherFactory(ciphertypestr: string, reqlang: string): CipherHan
     }
     const cipherTool: CipherHandler = new entry.cipherClass();
     cipherTool.setDefaultCipherType(entry.cipherType);
-    cipherTool.init(lang);
-    return cipherTool;
-}
-
-// CipherInteractiveFactory returns a handler for a particular cipher type string and language
-export function CipherInteractiveFactory(ciphertypestr: string, reqlang: string): CipherHandler {
-    let lang = 'en';
-    const ciphertype = ciphertypestr as ICipherType;
-    // console.log('Selecting:' + ciphertypestr + ' lang=' + lang);
-    let cipherTool: CipherHandler;
-    if (typeof reqlang !== 'undefined') {
-        lang = reqlang.toLowerCase();
-    }
-    for (const entry of Object.keys(cipherFactoryMap)) {
-        if (cipherFactoryMap[entry].canPrint && cipherFactoryMap[entry].cipherType === ciphertype) {
-            cipherTool = new cipherFactoryMap[entry].interactiveClass();
-            cipherTool.setDefaultCipherType(ciphertype);
-            cipherTool.init(lang);
-            return cipherTool;
-        }
-    }
-    cipherTool = new CipherEncoder();
-    cipherTool.setDefaultCipherType(ciphertype);
     cipherTool.init(lang);
     return cipherTool;
 }

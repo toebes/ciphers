@@ -75,9 +75,9 @@ export const modInverse26 = {
  */
 export function mod26InverseMatrix(matrix: number[][]): number[][] {
     if (matrix[0].length === 2) {
-        return this.mod26Inverse2x2(matrix);
+        return mod26Inverse2x2(matrix);
     } else if (matrix[0].length === 3) {
-        return this.mod26Inverse3x3(matrix);
+        return mod26Inverse3x3(matrix);
     } else {
         return undefined;
     }

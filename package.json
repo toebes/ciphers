@@ -8,8 +8,8 @@
         "type": "git",
         "url": "https://github.com/toebes/ciphers"
     },
-    "resolutions": {
-        "word-wrap": "npm:@aashutoshrathi/word-wrap@1.2.5"
+    "overrides": {
+        "word-wrap": "@aashutoshrathi/word-wrap"
     },
     "scripts": {
         "serve": "webpack serve --mode=development",

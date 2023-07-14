@@ -353,21 +353,6 @@ export class CipherTest extends CipherHandler {
         }
         return changed;
     }
-    /**
-     * Record a checkPaper checkbox change
-     * @param checkPaper We want to check for any copy of a worked problem from paper
-     * @returns 
-     */
-    public setCheckPaper(checkPaper: boolean): boolean {
-        let changed = false;
-        const test = this.getTestEntry(this.state.test);
-        if (checkPaper !== test.checkPaper) {
-            changed = true;
-            test.checkPaper = checkPaper;
-            this.setTestEntry(this.state.test, test);
-        }
-        return changed;
-    }
     public checkXMLImport(): void {
         if (this.state.importURL !== undefined) {
             if (this.state.importURL !== '') {

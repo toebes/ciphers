@@ -1375,7 +1375,7 @@ export class CipherEncoder extends CipherHandler {
     }
     public genSampleQuestionText(): string {
         let enctype = ''
-        if (this.state.encodeType !== 'random') {
+        if (this.state.encodeType !== undefined && this.state.encodeType !== 'random') {
             enctype += this.state.encodeType.toUpperCase();
         }
         return (

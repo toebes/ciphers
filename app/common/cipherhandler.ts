@@ -1908,6 +1908,35 @@ export class CipherHandler {
         }
     }
     /**
+     * Get the list of all different test types
+     * If this question is not on any tests, return []
+     * If it is on one test on all tests of the same type it returns a single
+     * entry array with that type
+     * Otherwise if returns a list of all the different types of tests that the
+     * question is on (eliminating duplicate test types)
+     * @returns Array of all the different types of tests that this question is on
+     */
+    public getTestUsage(): ITestType[] {
+        let result: ITestType[] = []
+        if (this.savefileentry !== -1) {
+            // Find out what tests this is a part of
+            const testCount = this.getTestCount();
+            for (let entry = 0; entry < testCount; entry++) {
+                const test = this.getTestEntry(entry);
+                // Check to see if this question is on the test either as
+                // the timed question or one of the questions.
+                if (test.timed === this.savefileentry ||
+                    test.questions.indexOf(this.savefileentry) !== -1) {
+                    // Record this test type if we haven't seen it before in the list
+                    if (result.indexOf(test.testtype) === -1) {
+                        result.push(test.testtype)
+                    }
+                }
+            }
+        }
+        return result
+    }
+    /**
      * Loads new data into a solver, preserving all solving matches made
      */
     public load(): void { }

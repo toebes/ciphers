@@ -1,15 +1,15 @@
 {
     "name": "ciphers",
     "description": "Cipher Tools",
-    "version": "8.1.0",
+    "version": "8.1.1",
     "homepage": "http://toebes.com/Ciphers/index.html",
     "license": "BSD-3-Clause",
     "repository": {
         "type": "git",
         "url": "https://github.com/toebes/ciphers"
     },
-    "resolutions": {
-        "word-wrap": "npm:@aashutoshrathi/word-wrap@1.2.5"
+    "overrides": {
+        "word-wrap": "@aashutoshrathi/word-wrap"
     },
     "scripts": {
         "serve": "webpack serve --mode=development",

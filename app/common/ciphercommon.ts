@@ -1,3 +1,5 @@
+import {getConfigParseResult} from "ts-loader/dist/config";
+
 export interface StringMap {
     [index: string]: string;
 }
@@ -417,4 +419,49 @@ export function makeCallout(
         callout.append(content);
     }
     return callout;
+}
+
+/**
+ * Determines if a sequence contains all digits.  If naturalNumbers is true, determines if numbers
+ * "1 - sequence.length" are contained in sequence (order does not matter).
+ *
+ * @param sequence sequence to test
+ * @param naturalNumbers true if sequence test should include unique number from 1 - sequence.length
+ */
+export function isAllDigits(sequence: string, naturalNumbers: boolean = false) {
+    let result: boolean = true;
+    if (naturalNumbers) {
+        const sequenceLength = sequence.length;
+        for (let i = 0; i < sequenceLength; i++) {
+            if (sequence.indexOf(''+(i+1)) === -1) {
+                result = false;
+                break;
+            }
+        }
+    }
+    else {
+        for (const c of sequence) {
+            if (isNaN(Number(c))) {
+                result = false;
+                break;
+            }
+        }
+    }
+    return result;
+}
+
+/**
+ * Determins if a sequence contains all letters.
+ *
+ * @param sequence sequence to test
+ */
+export function isAllLetters(sequence: string) {
+    let result: boolean = true;
+    for (const c of sequence) {
+        if (c < 'A' || c > 'Z') {
+            result = false;
+            break;
+        }
+    }
+    return result;
 }

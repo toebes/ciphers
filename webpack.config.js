@@ -469,6 +469,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'TestBuild.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'TestGenerator.html'),
+            cipher: 'TestBuild',
+            title: 'Test Builder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'TestScoreAdjust.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'TestGenerator.html'),
             cipher: 'TestScoreAdjust',

@@ -42,15 +42,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public usesPortaTable = false;
     public usesVigenereTable = true;
     public ciphermap: Mapper;
-    public validTests: ITestType[] = [
-        ITestType.None,
-        // Remove Vigenere from Division B/C for the 2022-2023 season
-        // ITestType.cregional,
-        // ITestType.cstate,
-        // ITestType.bregional,
-        // ITestType.bstate,
-        ITestType.aregional,
-    ];
 
     public validVigenereTests: ITestType[] = [
         ITestType.None,
@@ -68,6 +59,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
         ITestType.cregional,
         ITestType.cstate,
     ];
+    // Default the valid tests to the Vigenere which is the default cipher
+    public validTests = this.validVigenereTests
 
     public defaultstate: IVigenereState = {
         /** The current cipher type we are working on */

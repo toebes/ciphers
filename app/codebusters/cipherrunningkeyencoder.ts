@@ -1,4 +1,5 @@
 import { ITestType, toolMode } from '../common/cipherhandler';
+import { ICipherType } from '../common/ciphertypes';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTRadioButton } from '../common/jtradiobutton';
 import { CipherVigenereEncoder } from './ciphervigenereencoder';
@@ -23,6 +24,9 @@ export class CipherRunningKeyEncoder extends CipherVigenereEncoder {
             }
         }
         return -1;
+    }
+    public setCipherType(cipherType: ICipherType): boolean {
+        return false;
     }
     /**
      * Update the output based on current state settings.  This propagates

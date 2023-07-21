@@ -27,6 +27,7 @@ import { CipherTestPrint } from './ciphertestprint';
 import { CipherTestQuestions } from './ciphertestquestions';
 import { CipherTestScoreAdjust } from './ciphertestscoreadjust';
 import { CipherVigenereEncoder } from './ciphervigenereencoder';
+import { CipherTestBuild } from './ciphertestbuild';
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -157,6 +158,11 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     TestAnswers: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestAnswers,
+        canPrint: false,
+    },
+    TestBuild: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestBuild,
         canPrint: false,
     },
     TestGenerator: {

@@ -26,6 +26,37 @@ div.attachline {
     display: inline-block;
 }
 
+.qlist .sb {
+    width: 1%;
+    text-align: center;
+}
+.qlist .sb input {
+    height: 25px;
+    width: 25px;
+    margin: 0;
+}
+.qlist .qr {
+    width: 1%;
+    text-align: right;
+}
+
+.qlist .typ {
+    width: 30%;
+}
+.qlist .txt {
+    width: 100%;
+}
+
+.qlist .txt input,
+.qlist .aut input {
+    width: 100%;
+    margin: 0;
+}
+
+.qlist .aut {
+    width: 20%;
+}
+
 .attachline .btext {
     vertical-align: middle;
     display: inline-block;
@@ -871,7 +902,8 @@ textarea.intnote {
     text-decoration: underline;
 }
 
-table.polybius-square th, table.polybius-square td {
+table.polybius-square th,
+table.polybius-square td {
     border: 1px solid black;
 }
 

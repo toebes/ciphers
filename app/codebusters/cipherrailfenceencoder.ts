@@ -14,7 +14,7 @@ import { JTFIncButton } from '../common/jtfIncButton';
 import { JTTable } from '../common/jttable';
 
 interface IRailFenceState extends IState {
-    /** Railfence railss value */
+    /** Railfence rails value */
     rails: number;
     isRailRange: boolean;
     railOffset: number;     // Offset for the zigzag
@@ -440,7 +440,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
     public guidanceURL = 'TestGuidance.html#RailFence';
 
-    public validTests: ITestType[] = [ITestType.None, ITestType.bstate, ITestType.bregional, ITestType.cregional, ITestType.cstate];
+    public validTests: ITestType[] = [ITestType.None];
 
     public defaultstate: IRailFenceState = {
         cipherString: '',

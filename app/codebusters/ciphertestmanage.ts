@@ -1,7 +1,6 @@
 import { cloneObject } from '../common/ciphercommon';
-import { IState, ITestType, menuMode, toolMode } from '../common/cipherhandler';
+import { IState, menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
-import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
 import { CipherTest, ITestState } from './ciphertest';
 
@@ -21,18 +20,6 @@ export class CipherTestManage extends CipherTest {
         cipherType: ICipherType.Test,
     };
     public state: ITestState = cloneObject(this.defaultstate) as IState;
-    public cmdButtons: JTButtonItem[] = [
-        { title: 'New Test', color: 'primary', id: 'newtest' },
-        {
-            title: 'Export Tests',
-            color: 'primary',
-            id: 'export',
-            download: true,
-        },
-        { title: 'Import Tests from File', color: 'primary', id: 'import' },
-        { title: 'Import Tests from URL', color: 'primary', id: 'importurl' },
-    ];
-
     /* Boolean indicating that this is an active Scilympiad test */
     public isScilympiad: boolean = false;
 
@@ -146,50 +133,7 @@ export class CipherTestManage extends CipherTest {
         result.append(table.generate());
         return result;
     }
-    public newTest(): void {
-        const test = this.setTestEntry(-1, {
-            timed: -1,
-            count: 0,
-            questions: [],
-            title: 'New Test',
-            useCustomHeader: false,
-            customHeader: '',
-            testtype: ITestType.None,
-        });
-        this.gotoEditTest(test);
-    }
-    public exportAllTests(link: JQuery<HTMLElement>): void {
-        const result = {};
-        // Go through all of the questions and build a structure holding them
-        const ciphercount = this.getCipherCount();
-        for (let entry = 0; entry < ciphercount; entry++) {
-            result['CIPHER.' + String(entry)] = this.getFileEntry(entry);
-        }
-        // Go through all the tests and build a structure holding them that we will convert to JSON
-        const testcount = this.getTestCount();
-        for (let testnum = 0; testnum < testcount; testnum++) {
-            result['TEST.' + String(testnum)] = this.getTestEntry(testnum);
-        }
-        const blob = new Blob([JSON.stringify(result)], { type: 'text/json' });
-        const url = URL.createObjectURL(blob);
 
-        link.attr('download', 'cipher_tests.json');
-        link.attr('href', url);
-    }
-    /**
-     * Process imported XML
-     */
-    public importXML(data: any): void {
-        this.processTestXML(data);
-        this.updateOutput();
-    }
-    public importTests(useLocalData: boolean): void {
-        this.openXMLImport(useLocalData);
-    }
-    public deleteTest(test: number): void {
-        this.deleteTestEntry(test);
-        this.updateOutput();
-    }
     /**
      * Check an email address to see if it is legitimate
      * @param emailAddress Email address to check
@@ -204,26 +148,6 @@ export class CipherTestManage extends CipherTest {
     }
     public attachHandlers(): void {
         super.attachHandlers();
-        $('#newtest')
-            .off('click')
-            .on('click', (e) => {
-                this.newTest();
-            });
-        $('#export')
-            .off('click')
-            .on('click', (e) => {
-                this.exportAllTests($(e.target));
-            });
-        $('#import')
-            .off('click')
-            .on('click', (e) => {
-                this.importTests(true);
-            });
-        $('#importurl')
-            .off('click')
-            .on('click', (e) => {
-                this.importTests(false);
-            });
         $('.testedit')
             .off('click')
             .on('click', (e) => {

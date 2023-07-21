@@ -1,4 +1,4 @@
-import { cloneObject, makeCallout, NumberMap, StringMap, timestampFromSeconds } from '../common/ciphercommon';
+import { cloneObject, NumberMap, StringMap } from '../common/ciphercommon';
 import {
     CipherHandler,
     IRunningKey,
@@ -8,14 +8,12 @@ import {
     toolMode,
     IQuestionData,
     ITestQuestionFields,
-    IInteractiveTest,
 } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
-import { makeSVGQR } from '../common/makesvgqr';
 
 export interface buttonInfo {
     title: string;
@@ -118,7 +116,7 @@ interface INewCipherEntry {
     title?: string;
 }
 
-interface ITestTypeInfo {
+export interface ITestTypeInfo {
     title: string;
     type: ITestType;
     id: string;
@@ -158,6 +156,45 @@ export type ITestManage = 'local' | 'published';
  * Base support for all the test generation handlers
  */
 export class CipherTest extends CipherHandler {
+
+    public readonly cipherSubTypes = [
+        'Aristocrat',
+        'Patristocrat',
+        'Xenocrypt',
+        'Baconian',
+        'Table ',
+        'Math',
+        'Morse',
+        'Transposition',
+        'DancingMen',
+        'PigPen',
+        'TapCode',
+        'Other'
+    ];
+    public mapCipherSubType = new Map<ICipherType, string>([
+        [ICipherType.Aristocrat, 'Aristocrat'],
+        [ICipherType.Baconian, 'Baconian'],
+        [ICipherType.Porta, 'Table '],
+        [ICipherType.Hill, 'Math'],
+        [ICipherType.NihilistSubstitution, 'Math'],
+        [ICipherType.Patristocrat, 'Patristocrat'],
+        [ICipherType.Cryptarithm, 'Math'],
+        [ICipherType.FractionatedMorse, 'Morse'],
+        [ICipherType.Pollux, 'Morse'],
+        [ICipherType.Morbit, 'Morse'],
+        [ICipherType.Railfence, 'Transposition'],
+        [ICipherType.CompleteColumnar, 'Transposition'],
+        [ICipherType.Affine, 'Math',],
+        [ICipherType.Caesar, 'Table',],
+        [ICipherType.DancingMen, 'DancingMen',],
+        [ICipherType.Atbash, 'Table',],
+        [ICipherType.Vigenere, 'Table',],
+        [ICipherType.RunningKey, 'Other',],
+        [ICipherType.RSA, 'Other',],
+        [ICipherType.PigPen, 'PigPen',],
+        [ICipherType.TapCode, 'TapCode',],
+    ])
+
     public activeToolMode: toolMode = toolMode.codebusters;
     public defaultstate: ITestState = {
         cipherString: '',
@@ -166,16 +203,18 @@ export class CipherTest extends CipherHandler {
     };
     public state: ITestState = cloneObject(this.defaultstate) as IState;
     public cmdButtons: JTButtonItem[] = [
-        { title: 'New Test', color: 'primary', id: 'newtest' },
+        { title: 'Create Empty Test', color: 'primary', id: 'newtest' },
+        { title: 'Build A Test', color: 'primary', id: 'buildtest' },
         {
             title: 'Export Tests',
             color: 'primary',
             id: 'export',
-            disabled: true,
+            download: true,
         },
         { title: 'Import Tests from File', color: 'primary', id: 'import' },
         { title: 'Import Tests from URL', color: 'primary', id: 'importurl' },
     ];
+
     /** Track the last time the domain was actually connected.  undefined means that
      * the model was not connected.  Once we are live, the value will be set and it is used
      * for reporing to the user how long the model has been disconnected from the server.
@@ -214,7 +253,7 @@ export class CipherTest extends CipherHandler {
             id: 'aregional',
         },
     ];
-    public cipherChoices: INewCipherEntry[] = [
+    public questionChoices: INewCipherEntry[] = [
         { cipherType: ICipherType.Affine },
         { cipherType: ICipherType.Caesar },
         { cipherType: ICipherType.DancingMen },
@@ -275,8 +314,8 @@ export class CipherTest extends CipherHandler {
             { title: 'Test Packet', value: 'testprint' },
             { title: 'Answer Key', value: 'testans' },
             { title: 'Answers and Solutions', value: 'testsols' },
+            // { title: 'Interactive Test', value: 'testint' },  // NOTE: Disable interactive tests
         ];
-        // { title: 'Interactive Test', value: 'testint' },  // NOTE: Disable interactive tests
         return JTRadioButton(8, 'testdisp', radiobuttons, testdisp);
     }
     /**
@@ -316,6 +355,19 @@ export class CipherTest extends CipherHandler {
         JTRadioButtonSet('testdisp', testdisp);
     }
     /**
+     * Map all cipher types to the common subtypes for purposes of spreading out scores
+     * to prevent ties
+     * @param cipherType Cipher type to map
+     * @returns cipherSubType (or "Other")
+     */
+    public getCipherSubType(cipherType: ICipherType): string {
+        let cipherSubType = 'Other';
+        if (this.mapCipherSubType.has(cipherType)) {
+            cipherSubType = this.mapCipherSubType.get(cipherType);
+        }
+        return cipherSubType;
+    }
+    /**
      * Maps a string to the corresponding test type ID
      * @param ID string representation of the id
      */
@@ -343,16 +395,23 @@ export class CipherTest extends CipherHandler {
         }
         return result;
     }
+    /**
+     * Set the type of the test for the current test
+     * @param testtype Type for the test
+     * @returns Boolean indicating that the type actually changed
+     */
     public setTestType(testtype: ITestType): boolean {
         let changed = false;
         const test = this.getTestEntry(this.state.test);
         if (testtype !== test.testtype) {
             changed = true;
             test.testtype = testtype;
-            this.setTestEntry(this.state.test, test);
         }
         return changed;
     }
+    /**
+     * Import XML from a URL
+     */
     public checkXMLImport(): void {
         if (this.state.importURL !== undefined) {
             if (this.state.importURL !== '') {
@@ -365,8 +424,11 @@ export class CipherTest extends CipherHandler {
             }
         }
     }
+    /**
+     * Create a new blank test
+     */
     public newTest(): void {
-        this.setTestEntry(-1, {
+        const test = this.setTestEntry(-1, {
             timed: -1,
             count: 0,
             questions: [],
@@ -375,20 +437,37 @@ export class CipherTest extends CipherHandler {
             customHeader: '',
             testtype: ITestType.None,
         });
-        location.reload();
+        this.gotoEditTest(test);
     }
-    public exportTests(): void { }
+    /**
+     * Import tests from a location or a localcontent (cookie, etc)
+     * @param useLocalData Indicates that we should pull the data locally instead 
+     */
     public importTests(useLocalData: boolean): void {
         this.openXMLImport(useLocalData);
     }
+    /**
+     * Start the process of building a new test
+     */
+    public gotoBuildTest(): void {
+        location.assign(`TestBuild.html`);
+    }
+    /**
+     * Edit an existing test
+     * @param test Test number to edit
+     */
     public gotoEditTest(test: number): void {
         location.assign(`TestGenerator.html?test=${test}`);
     }
+    /**
+     * Adjust the scores on an existing test
+     * @param test Test number to adjust scores for
+     */
     public gotoAdjustScores(test: number): void {
         location.assign(`TestScoreAdjust.html?test=${test}`)
     }
     /**
-     * generateTestData converts the current test information to a map which can be saved/restored later
+     * Convert the current test information to a map which can be saved/restored later
      * @param test Test to generate data for
      * @returns string form of the JSON for the test
      */
@@ -405,7 +484,7 @@ export class CipherTest extends CipherHandler {
         return result;
     }
     /**
-     * generateTestJSON converts the current test information to a JSON string
+     * Convert the current test information to a JSON string
      * @param test Test to generate data for
      * @returns string form of the JSON for the test
      */
@@ -432,22 +511,45 @@ export class CipherTest extends CipherHandler {
         const newtest = this.setTestEntry(-1, testdata);
         location.assign(`TestGenerator.html?test=${newtest}`);
     }
+    /**
+     * Delete a local test
+     * @param test Test number to delete
+     */
     public deleteTest(test: number): void {
         this.deleteTestEntry(test);
-        location.reload();
+        this.updateOutput();
     }
+    /**
+     * Print out the test
+     * @param test Test number to print
+     */
     public gotoPrintTest(test: number): void {
         location.assign(`TestPrint.html?test=${test}`);
     }
+    /**
+     * Print out the answers for a test
+     * @param test Test number to print
+     */
     public gotoPrintTestAnswers(test: number): void {
         location.assign(`TestAnswers.html?test=${test}`);
     }
+    /**
+     * Print out the answers and solutions for a test
+     * @param test Test number to print
+     */
     public gotoPrintTestSols(test: number): void {
         location.assign(`TestAnswers.html?test=${test}` + '&sols=y');
     }
+    /**
+     * Show all the locally stored tests
+     */
     public gotoTestLocal(): void {
         location.assign('TestManage.html');
     }
+    /**
+     * Take action on a test (generally in response to the choice bar at the top of the page)
+     * @param testdisp Action to take
+     */
     public gotoTestDisplay(testdisp: ITestDisp): void {
         switch (testdisp) {
             case 'testans':
@@ -465,9 +567,17 @@ export class CipherTest extends CipherHandler {
                 break;
         }
     }
+    /**
+     * Jump to the list of all the tests of a given type
+     * @param testmanage Type of test (local/published) (Currently ignored)
+     */
     public gotoTestManage(testmanage: ITestManage): void {
         this.gotoTestLocal();
     }
+    /**
+     * Jump to the page to edit a cipher
+     * @param entry Cipher entry to edit
+     */
     public gotoEditCipher(entry: number): void {
         const entryURL = this.getEntryURL(entry);
         if (entryURL !== '') {
@@ -476,6 +586,12 @@ export class CipherTest extends CipherHandler {
             alert('No editor found');
         }
     }
+    /**
+     * Generate a table showing all the questions with action buttons
+     * @param filter Items not to be displayed (doesn't currently work)
+     * @param buttons Buttons to associate with each entry
+     * @returns DOM elements for the table
+     */
     public genQuestionTable(filter: number, buttons: buttonInfo[]): JQuery<HTMLElement> {
         // Figure out what items we will not display if they gave us a filter
         const useditems: { [index: string]: boolean } = {};
@@ -623,7 +739,7 @@ export class CipherTest extends CipherHandler {
                 selected: 'selected',
             }).text('--Select a Cipher Type to add--')
         );
-        for (const entry of this.cipherChoices) {
+        for (const entry of this.questionChoices) {
             // Make sure that this type of cipher is legal for this type of test
             const cipherhandler = CipherPrintFactory(entry.cipherType, entry.lang);
             if (cipherhandler.CheckAppropriate(testtype, true) === '') {
@@ -777,6 +893,11 @@ export class CipherTest extends CipherHandler {
         }
         return state;
     }
+    /**
+     * Add a named error to the list of errors associated with a test.
+     * @param qnum Which error to add
+     * @param message Message to associate with the error
+     */
     public AddTestError(qnum: number, message: string): void {
         if (message !== '') {
             let qtxt = 'Timed Question: ';
@@ -789,6 +910,11 @@ export class CipherTest extends CipherHandler {
             $('.testerrors').append(callout);
         }
     }
+    /**
+     * Get a CipherHandler for printing a cipher
+     * @param question Question number to get factory for
+     * @returns CipherHandler for the given question
+     */
     public GetPrintFactory(question: number): CipherHandler {
         const state = this.getFileEntry(question);
         const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
@@ -798,6 +924,12 @@ export class CipherTest extends CipherHandler {
     /**
      * Generate a printable answer for a test entry.
      * An entry value of -1 is for the timed question
+     * @param testType 
+     * @param qnum 
+     * @param handler 
+     * @param extraclass 
+     * @param printSolution 
+     * @returns 
      */
     public printTestAnswer(
         testType: ITestType,
@@ -927,6 +1059,9 @@ export class CipherTest extends CipherHandler {
     }
     /**
      * Compare two arbitrary objects to see if they are equivalent
+     * @param a First object
+     * @param b Second object
+     * @returns Boolean indicating that they are the same
      */
     public isEquivalent(a: any, b: any): boolean {
         // If the left side is blank or undefined then we assume that the
@@ -955,6 +1090,9 @@ export class CipherTest extends CipherHandler {
     }
     /**
      * Compare two saved cipher states to see if they are indeed identical
+     * @param state1 Cipher one restored state
+     * @param state2 Cipher two restored state
+     * @returns Boolean indicating if they are identical
      */
     public isSameCipher(state1: IState, state2: IState): boolean {
         // Make sure every element in state1 that is non empty is also in state 2
@@ -971,6 +1109,11 @@ export class CipherTest extends CipherHandler {
         }
         return true;
     }
+    /**
+     * See if this test already exists. This prevents duplication of the same test locally
+     * @param newTest Test to check
+     * @returns Test number of existing test which matches or -1 if this test is new
+     */
     public findTest(newTest: ITest): number {
         // Go through all the tests and build a structure holding them that we will convert to JSON
         const testcount = this.getTestCount();
@@ -996,7 +1139,36 @@ export class CipherTest extends CipherHandler {
 
         return -1;
     }
+    /**
+     * Create a link that downloads all the tests
+     * @param link HTML DOM Element to put link under
+     */
+    public exportAllTests(link: JQuery<HTMLElement>): void {
+        const result = {};
+        // Go through all of the questions and build a structure holding them
+        const ciphercount = this.getCipherCount();
+        for (let entry = 0; entry < ciphercount; entry++) {
+            result['CIPHER.' + String(entry)] = this.getFileEntry(entry);
+        }
+        // Go through all the tests and build a structure holding them that we will convert to JSON
+        const testcount = this.getTestCount();
+        for (let testnum = 0; testnum < testcount; testnum++) {
+            result['TEST.' + String(testnum)] = this.getTestEntry(testnum);
+        }
+        const blob = new Blob([JSON.stringify(result)], { type: 'text/json' });
+        const url = URL.createObjectURL(blob);
 
+        link.attr('download', 'cipher_tests.json');
+        link.attr('href', url);
+    }
+    /**
+     * Process imported XML
+     * @param data XML for the test to import
+     */
+    public importXML(data: any): void {
+        this.processTestXML(data);
+        this.updateOutput();
+    }
     // tslint:disable-next-line:cyclomatic-complexity
     public processTestXML(data: any): void {
         // Load in all the ciphers we know of so that we don't end up doing a duplicate
@@ -1143,9 +1315,36 @@ export class CipherTest extends CipherHandler {
             }
         }
     }
-
+    /**
+     * Set up all the HTML DOM elements so that they invoke the right functions
+     */
     public attachHandlers(): void {
         super.attachHandlers();
+        $('#newtest')
+            .off('click')
+            .on('click', (e) => {
+                this.newTest();
+            });
+        $('#buildtest')
+            .off('click')
+            .on('click', (e) => {
+                this.gotoBuildTest();
+            });
+        $('#export')
+            .off('click')
+            .on('click', (e) => {
+                this.exportAllTests($(e.target));
+            });
+        $('#import')
+            .off('click')
+            .on('click', (e) => {
+                this.importTests(true);
+            });
+        $('#importurl')
+            .off('click')
+            .on('click', (e) => {
+                this.importTests(false);
+            });
         $('#printtest')
             .off('click')
             .on('click', () => {

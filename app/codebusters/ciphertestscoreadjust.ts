@@ -1,7 +1,7 @@
 import 'foundation-sites';
-import { cloneObject, makeFilledArray } from '../common/ciphercommon';
+import { cloneObject } from '../common/ciphercommon';
 import { IState, ITest, ITestType, menuMode, toolMode } from '../common/cipherhandler';
-import { getCipherTitle, ICipherType } from '../common/ciphertypes';
+import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
@@ -32,31 +32,7 @@ export class CipherTestScoreAdjust extends CipherTest {
         cipherType: ICipherType.None,
         test: 0,
     };
-    public readonly cipherSubTypes = [
-        'Aristocrat',
-        'Patristocrat',
-        'Xenocrypt',
-        'Baconian',
-        'Table ',
-        'Math',
-        'Morse',
-        'Transposition',
-        'Other'
-    ];
-    public mapCipherSubType = new Map<ICipherType, string>([
-        [ICipherType.Aristocrat, 'Aristocrat'],
-        [ICipherType.Baconian, 'Baconian'],
-        [ICipherType.Porta, 'Table '],
-        [ICipherType.Hill, 'Math'],
-        [ICipherType.NihilistSubstitution, 'Math'],
-        [ICipherType.Patristocrat, 'Patristocrat'],
-        [ICipherType.Cryptarithm, 'Math'],
-        [ICipherType.FractionatedMorse, 'Morse'],
-        [ICipherType.Pollux, 'Morse'],
-        [ICipherType.Morbit, 'Morse'],
-        [ICipherType.Railfence, 'Transposition'],
-        [ICipherType.CompleteColumnar, 'Transposition'],]
-    )
+
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [
         { title: 'Finish Adjusting', color: 'primary', id: 'endadjust' },
@@ -73,19 +49,6 @@ export class CipherTestScoreAdjust extends CipherTest {
             this.setUIDefaults();
             this.updateOutput();
         }
-    }
-    /**
-     * Map all cipher types to the common subtypes for purposes of spreading out scores
-     * to prevent ties
-     * @param cipherType Cipher type to map
-     * @returns cipherSubType (or "Other")
-     */
-    public getCipherSubType(cipherType: ICipherType) {
-        let cipherSubType = 'Other';
-        if (this.mapCipherSubType.has(cipherType)) {
-            cipherSubType = this.mapCipherSubType.get(cipherType);
-        }
-        return cipherSubType;
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar

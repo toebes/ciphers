@@ -22,16 +22,6 @@ export class CipherTableEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Baconian';
 
-    /** Which tests allow these ciphers on them */
-    public validTests: ITestType[] = [
-        ITestType.None,
-        ITestType.cregional,
-        ITestType.cstate,
-        ITestType.bregional,
-        ITestType.bstate,
-        ITestType.aregional,
-    ];
-
     public validAtBashTests: ITestType[] = [
         ITestType.None,
         ITestType.bregional,
@@ -53,6 +43,10 @@ export class CipherTableEncoder extends CipherEncoder {
         ITestType.bstate,
         ITestType.aregional,
     ];
+    /** Which tests allow these ciphers on them */
+    // We default to the caesar since that is the default cipher type
+    public validTests = this.validCaesarTests;
+
     public defaultstate: IEncoderState = {
         cipherString: '',
         cipherType: ICipherType.Caesar,

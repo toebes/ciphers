@@ -28,6 +28,7 @@ import { CipherTestQuestions } from './ciphertestquestions';
 import { CipherTestScoreAdjust } from './ciphertestscoreadjust';
 import { CipherVigenereEncoder } from './ciphervigenereencoder';
 import { CipherTestBuild } from './ciphertestbuild';
+import { CipherQuoteManager } from './cipherquotemanager';
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -128,6 +129,11 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     QuoteAnalyze: {
         cipherType: ICipherType.None,
         cipherClass: CipherQuoteAnalyze,
+        canPrint: false,
+    },
+    QuoteManager: {
+        cipherType: ICipherType.None,
+        cipherClass: CipherQuoteManager,
         canPrint: false,
     },
     RailFence: {

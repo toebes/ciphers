@@ -302,6 +302,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'QuoteManager.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
+            cipher: 'QuoteManager',
+            title: 'Quote Manager',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'GenerateHomophones.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
             cipher: 'GenerateHomophone',

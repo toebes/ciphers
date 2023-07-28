@@ -162,7 +162,7 @@ export class CipherTest extends CipherHandler {
         'Patristocrat',
         'Xenocrypt',
         'Baconian',
-        'Table ',
+        'Table',
         'Math',
         'Morse',
         'Transposition',
@@ -406,6 +406,7 @@ export class CipherTest extends CipherHandler {
         if (testtype !== test.testtype) {
             changed = true;
             test.testtype = testtype;
+            this.setTestEntry(this.state.test, test);
         }
         return changed;
     }

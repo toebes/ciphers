@@ -508,9 +508,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
                 mappedKey.push(polybiusMap.get(keyChar));
                 message.push(messageChar);
-                mappedMessage.push(polybiusMap.get(messageChar));
-                //cipher is the text we are decoding/encoding into
-                cipher.push(this.encodePolybius(messageChar, keyChar));
+                if (messageChar == "J") {
+                    mappedMessage.push("N/A");
+                    cipher.push("J");
+                } else {
+                    mappedMessage.push(polybiusMap.get(messageChar));
+                    //cipher is the text we are decoding/encoding into
+                    cipher.push(this.encodePolybius(messageChar, keyChar));
+                }
+
+
 
                 keyIndex = (keyIndex + 1) % keyLength;
 

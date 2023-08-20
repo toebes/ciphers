@@ -223,6 +223,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
 
         this.setErrorMsg(msg, 'vq', sampleLink);
+
     }
     public placeCrib(): ICribInfo {
         const crib = this.minimizeString(this.state.crib);
@@ -707,10 +708,20 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const key = this.minimizeString(this.state.keyword);
         this.clearErrors();
         this.validateQuestion();
-        const res = this.buildNihilist(encoded, key);
+        let res = this.buildNihilist(encoded, key);
         $('#answer')
             .empty()
             .append(res);
+
+        if (this.cleanString(this.state.cipherString).length > 0) {
+            res = this.genSolution(ITestType.None)
+        }
+
+        $('#sol')
+            .empty()
+            .append('<hr/>')
+            .append(res);
+
         this.attachHandlers();
     }
     /**
@@ -826,6 +837,56 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         return result;
     }
+
+
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
+        if (this.state.operation === 'crypt') {
+            return this.genCryptanalysisSolution();
+        }
+        if (this.state.operation === 'decode') {
+            return this.genDecodeSolution();
+        }
+        return this.genEncodeSolution();
+    }
+
+
+    public genDecodeSolution(): JQuery<HTMLElement> {
+
+        const result = $('<div/>', { id: 'solution' });
+        result.append($('<h3/>').text('How to solve'));
+
+        //Step 1: Fill out the polybius table
+        //given the polybius key [POLYBIUSKEY], we can fill in the first
+        //[#POLYBIUSKEY] spaces in the polybius table.
+        //show the filled in polybius table
+        //The reamining spaces are filled in alphabetical order,
+        //skipping any letters already filled in from the polybius key, and letter J
+        //next, we take the given base key [BASEKEY], and repeatedly line the word across the entire
+        //ciphertext until we reach the end, making sure each ciphertext number corresponds to a 
+        //single letter from our base key.
+        //next, using our completed polybius table, we can convert the repeating base key string into a 2 digit number,
+        //by finding the row and column of each key letter on the table. 
+        //for example, the first letter of our key "F" lives on the 1st row and 2nd column, thus converting to 12
+        //finally, we subtract the given cipher string of numbers by the key strnig of numbers we just converted, one at at a time,
+        //the resulting string of numbers represents our answer, which must be converted back into letters through the polybius table.
+        //giving us the answer _______
+        //since we are given the polybius key in Decode problems, 
+        //we can fill in 
+        //step 2 Given the polybius key and normal key
+
+
+        return result;
+
+    }
+
+    public genEncodeSolution(): JQuery<HTMLElement> {
+        return
+    }
+
+    public genCryptanalysisSolution(): JQuery<HTMLElement> {
+        return
+    }
+
     /**
      * Generate the HTML to display the question for a cipher
      * @param testType Type of test

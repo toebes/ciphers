@@ -225,6 +225,23 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.setErrorMsg(msg, 'vq', sampleLink);
 
     }
+
+
+    public containsJ(): boolean {
+
+        // if (this.minimizeString(this.state.cipherString).length <= 0) {
+        //     return false
+        // }
+
+        let allStrings = (this.state.cipherString + this.state.keyword + this.state.polybiusKey).toUpperCase()
+        if (allStrings.indexOf('J') >= 0) {
+            return true
+        }
+
+        return false
+    }
+
+
     public placeCrib(): ICribInfo {
         const crib = this.minimizeString(this.state.crib);
         const strings = this.buildReplacementNihilist(
@@ -503,16 +520,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
                 mappedKey.push(polybiusMap.get(keyChar));
                 message.push(messageChar);
-                if (messageChar == "J") {
-                    mappedMessage.push("N/A");
-                    cipher.push("J");
-                } else {
-                    mappedMessage.push(polybiusMap.get(messageChar));
-                    //cipher is the text we are decoding/encoding into
-                    cipher.push(this.encodePolybius(messageChar, keyChar));
-                }
 
-
+                mappedMessage.push(polybiusMap.get(messageChar));
+                //cipher is the text we are decoding/encoding into
+                cipher.push(this.encodePolybius(messageChar, keyChar));
 
                 keyIndex = (keyIndex + 1) % keyLength;
 
@@ -609,6 +620,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
 
     public buildNihilist(msg: string, key: string): JQuery<HTMLElement> {
+
+        //make sure J isn't used anywhere in plaintext/polykey/basekey
+        if (this.containsJ()) {
+            return $('<div/>').text("The letter 'J' can not be used anywhere in the polybius key, base key, or plain text.");
+        }
 
         const result = $('<div/>');
         let source = 1;
@@ -758,7 +774,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .empty()
             .append('<hr/>')
             .append($('<h3/>').text('How to solve'));
-        if (this.cleanString(this.state.cipherString).length > 0) {
+        if (this.minimizeString(this.state.cipherString).length > 0 && !this.containsJ()) {
             $('#sol').append(this.genSolution(ITestType.None))
         } else {
             $('#sol').append("Enter a valid question to see the solution")
@@ -910,7 +926,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .append(', we can fill out the first ')
             .append(polyLenSpan)
             .append(` spaces of the polybius table, 
-        with each letter taking up a space. Skip any letters that have already been used in the table.`);
+        with each letter taking up a space. <b>Make sure to skip any duplicate letters.<b/>`);
 
         //true to center table, false to not fill rest of alphabet
         let onlyKeyPolyTable = this.buildPolybiusTable(true, false).generate()
@@ -918,7 +934,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //result.append($('<div/>').append(polybiusTable));
         result.append(onlyKeyPolyTable)
 
-        result.append('The remaining letters are filled in alphabetical order, again skipping any letters that have already been used in the table.')
+        result.append('The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table.')
 
         //true to center table, true to fill alphabet
         let fullPolyTable = this.buildPolybiusTable(true, true).generate()

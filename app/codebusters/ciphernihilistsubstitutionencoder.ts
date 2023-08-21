@@ -435,15 +435,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         preKey = this.minimizeString(preKey);
 
-        //get rid of duplicates
-        let seen = '';
         let sequence = '';
-        for (const ch of preKey) {
-            if (seen.indexOf(ch) < 0) {
-                seen += ch;
-                sequence += ch;
-            }
-        }
+        //get rid of duplicates
+        sequence += this.undupeString(preKey);
 
         //add remaining chars in alphabet to the polybius sequence
         let polybiusCharset = this.charset.replace("J", "");
@@ -569,6 +563,50 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result;
     }
 
+    public buildPolybiusTable(center: boolean, fillAlphabet: boolean): JTTable {
+
+        let polyClass = 'polybius-square'
+
+        //center solver table
+        if (center) {
+            polyClass += ' center'
+        }
+
+        const worktable = new JTTable({
+            class: polyClass,
+        });
+
+        const top = worktable.addHeaderRow()
+        top.add('')
+        for (let i = 1; i <= 5; i++) {
+            top.add(String(i))
+        }
+
+        let undupedPolybiusKey = this.undupeString(this.minimizeString(this.state.polybiusKey))
+
+        let mainIndex = 0;
+        for (let i = 1; i <= 5; i++) {
+            const row = worktable.addBodyRow()
+            row.add({
+                celltype: 'th',
+                content: i
+            })
+
+            //get an array of the keys of the polybius map
+            let polybiusSequence = Array.from(this.buildPolybiusMap().keys());
+            for (let i = 1; i <= 5; i++) {
+                if (!fillAlphabet && mainIndex >= undupedPolybiusKey.length) {
+                    row.add(" ")
+                } else {
+                    row.add(polybiusSequence[mainIndex])
+                }
+                mainIndex++;
+            }
+        }
+
+        return worktable
+    }
+
 
     public buildNihilist(msg: string, key: string): JQuery<HTMLElement> {
 
@@ -657,30 +695,33 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         // }
 
-        const worktable = new JTTable({
-            class: 'polybius-square',
-        });
+        // const worktable = new JTTable({
+        //     class: 'polybius-square',
+        // });
 
-        const top = worktable.addHeaderRow()
-        top.add('')
-        for (let i = 1; i <= 5; i++) {
-            top.add(String(i))
-        }
-        let mainIndex = 0;
-        for (let i = 1; i <= 5; i++) {
-            const row = worktable.addBodyRow()
-            row.add({
-                celltype: 'th',
-                content: i
-            })
+        // const top = worktable.addHeaderRow()
+        // top.add('')
+        // for (let i = 1; i <= 5; i++) {
+        //     top.add(String(i))
+        // }
+        // let mainIndex = 0;
+        // for (let i = 1; i <= 5; i++) {
+        //     const row = worktable.addBodyRow()
+        //     row.add({
+        //         celltype: 'th',
+        //         content: i
+        //     })
 
-            //get an array of the keys of the polybius map
-            let polybiusSequence = Array.from(this.buildPolybiusMap().keys());
-            for (let i = 1; i <= 5; i++) {
-                row.add(polybiusSequence[mainIndex])
-                mainIndex++;
-            }
-        }
+        //     //get an array of the keys of the polybius map
+        //     let polybiusSequence = Array.from(this.buildPolybiusMap().keys());
+        //     for (let i = 1; i <= 5; i++) {
+        //         row.add(polybiusSequence[mainIndex])
+        //         mainIndex++;
+        //     }
+        // }
+
+        //false to not center, true to fill alphabet (this is our normal poly table)
+        const worktable = this.buildPolybiusTable(false, true)
 
         result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
 
@@ -713,14 +754,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .empty()
             .append(res);
 
-        if (this.cleanString(this.state.cipherString).length > 0) {
-            res = this.genSolution(ITestType.None)
-        }
-
         $('#sol')
             .empty()
             .append('<hr/>')
-            .append(res);
+            .append($('<h3/>').text('How to solve'));
+        if (this.cleanString(this.state.cipherString).length > 0) {
+            $('#sol').append(this.genSolution(ITestType.None))
+        } else {
+            $('#sol').append("Enter a valid question to see the solution")
+        }
 
         this.attachHandlers();
     }
@@ -853,7 +895,36 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public genDecodeSolution(): JQuery<HTMLElement> {
 
         const result = $('<div/>', { id: 'solution' });
-        result.append($('<h3/>').text('How to solve'));
+        //result.append($('<h3/>').text('How to solve'));
+        this.cleanString
+        result.append($('<div/>', { class: 'callout secondary' }).text("Step 1: Fill out the Polybius Table"));
+
+        let cleanPolyKey = this.minimizeString(this.state.polybiusKey).toUpperCase()
+
+        let polyKeySpan = $('<span/>', { class: 'hl' }).text(cleanPolyKey)
+
+        let polyLenSpan = $('<span/>', { class: 'hl' }).text(this.undupeString(cleanPolyKey).length)
+
+        result.append('Given the Polybius Key ')
+            .append(polyKeySpan)
+            .append(', we can fill out the first ')
+            .append(polyLenSpan)
+            .append(` spaces of the polybius table, 
+        with each letter taking up a space. Skip any letters that have already been used in the table.`);
+
+        //true to center table, false to not fill rest of alphabet
+        let onlyKeyPolyTable = this.buildPolybiusTable(true, false).generate()
+
+        //result.append($('<div/>').append(polybiusTable));
+        result.append(onlyKeyPolyTable)
+
+        result.append('The remaining letters are filled in alphabetical order, again skipping any letters that have already been used in the table.')
+
+        //true to center table, true to fill alphabet
+        let fullPolyTable = this.buildPolybiusTable(true, true).generate()
+
+        result.append(fullPolyTable)
+
 
         //Step 1: Fill out the polybius table
         //given the polybius key [POLYBIUSKEY], we can fill in the first

@@ -2506,6 +2506,23 @@ export class CipherHandler {
         }
         return res;
     }
+
+    /**
+     * Removes duplicate letters from a string (ex. Hello World ---> Helo Wrd)
+     */
+    public undupeString(str: string): string {
+
+        let seen = '';
+        let noDupes = '';
+        for (const ch of str) {
+            if (seen.indexOf(ch) < 0) {
+                seen += ch;
+                noDupes += ch;
+            }
+        }
+
+        return noDupes
+    }
     /**
      * Convert the text to chunks of (chunkSize) characters separated
      * by a space.  Just keep characters that are in the character set and

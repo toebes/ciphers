@@ -641,7 +641,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         // Check to make sure that they provided a Key
         if (this.minimizeString(key) === '') {
-            emsg = 'No Key provided.';
+            emsg = 'No Key provided. ';
+        }
+        // Check to make sure that they provided a Polybius Key
+        if (this.minimizeString(this.state.polybiusKey) === '') {
+            emsg += 'No Polybius Key provided.';
         }
         this.setErrorMsg(emsg, 'vkey');
 
@@ -674,67 +678,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             const blank = $('<tr/>').append($('<td/>').append($('<br>')));
             table.append(blank)
         }
-
-
-        //const answerTable = new JTTable({ class: "ansblock" });
-
-        // for (const stringset of strings) {
-        //     console.log(stringset);
-        //     //result.append($('<div/>', { class: 'TOSOLVE' }).text(stringset[source]));
-        //     //result.append($('<div/>', { class: 'TOANSWER' }).text(stringset[dest]));
-
-        //     let order = [2, 3, source, dest];
-
-        //     const first = answerTable.addBodyRow();
-        //     const second = answerTable.addBodyRow();
-        //     const third = answerTable.addBodyRow();
-        //     const fourth = answerTable.addBodyRow();
-
-        //     for (let i = 0; i < stringset[0].length; i++) {
-        //         first.add(stringset[order[0]][i]);
-        //         second.add(stringset[order[1]][i]);
-        //         third.add(stringset[order[2]][i]);
-        //         fourth.add(stringset[order[3]][i]);
-        //     }
-
-
-        //     //const table = $('<table/>');
-        //     // for (const row of rows) {
-        //     //     const inner = $('<tr/>');
-        //     //     for (const ch of row) {
-        //     //         inner.append($('<td/>').text(ch));
-        //     //     }
-        //     //     table.append(inner);
-        //     // }
-
-        //     //result.append(table.generate())
-
-        // }
-
-        // const worktable = new JTTable({
-        //     class: 'polybius-square',
-        // });
-
-        // const top = worktable.addHeaderRow()
-        // top.add('')
-        // for (let i = 1; i <= 5; i++) {
-        //     top.add(String(i))
-        // }
-        // let mainIndex = 0;
-        // for (let i = 1; i <= 5; i++) {
-        //     const row = worktable.addBodyRow()
-        //     row.add({
-        //         celltype: 'th',
-        //         content: i
-        //     })
-
-        //     //get an array of the keys of the polybius map
-        //     let polybiusSequence = Array.from(this.buildPolybiusMap().keys());
-        //     for (let i = 1; i <= 5; i++) {
-        //         row.add(polybiusSequence[mainIndex])
-        //         mainIndex++;
-        //     }
-        // }
 
         //false to not center, true to fill alphabet (this is our normal poly table)
         const worktable = this.buildPolybiusTable(false, true)
@@ -777,7 +720,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         if (this.minimizeString(this.state.cipherString).length > 0 && !this.containsJ()) {
             $('#sol').append(this.genSolution(ITestType.None))
         } else {
-            $('#sol').append("Enter a valid question to see the solution")
+            $('#sol').append("Enter a valid question to see the solution process.")
         }
 
         this.attachHandlers();
@@ -911,8 +854,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public genDecodeSolution(): JQuery<HTMLElement> {
 
         const result = $('<div/>', { id: 'solution' });
-        //result.append($('<h3/>').text('How to solve'));
-        this.cleanString
+
         result.append($('<div/>', { class: 'callout secondary' }).text("Step 1: Fill out the Polybius Table"));
 
         let cleanPolyKey = this.minimizeString(this.state.polybiusKey).toUpperCase()
@@ -926,7 +868,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .append(', we can fill out the first ')
             .append(polyLenSpan)
             .append(` spaces of the polybius table, 
-        with each letter taking up a space. <b>Make sure to skip any duplicate letters.<b/>`);
+        with each letter taking up a space. <b>Make sure to skip any duplicate letters<b/>`);
 
         //true to center table, false to not fill rest of alphabet
         let onlyKeyPolyTable = this.buildPolybiusTable(true, false).generate()
@@ -934,13 +876,14 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //result.append($('<div/>').append(polybiusTable));
         result.append(onlyKeyPolyTable)
 
-        result.append('The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table.')
+        result.append("The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table, as well as the letter 'J'")
 
         //true to center table, true to fill alphabet
         let fullPolyTable = this.buildPolybiusTable(true, true).generate()
 
         result.append(fullPolyTable)
 
+        result.append($('<div/>', { class: 'callout secondary' }).text("Step 2: Construct the Key String"));
 
         //Step 1: Fill out the polybius table
         //given the polybius key [POLYBIUSKEY], we can fill in the first

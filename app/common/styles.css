@@ -915,6 +915,19 @@ table.polybius-square {
     border: 1px solid black;
     border-collapse: collapse;
     text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+table.center {
+    margin-left: auto;
+    margin-right: auto;
+    float:none;
+}
+
+.hl {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 800;
+    background-color: yellow !important;
 }
 
 td .square {

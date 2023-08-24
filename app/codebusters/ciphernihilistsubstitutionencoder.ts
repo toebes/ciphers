@@ -50,6 +50,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         // ITestType.aregional,
     ];
 
+    public cleanKeyword = '';
+    public cleanPolyKey = '';
+    public polybiusMap = ''
+    public sequencesets = [];
+
     public defaultstate: INihilistState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.NihilistSubstitution,
@@ -61,6 +66,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         findString: '',
         operation: 'decode',
         polybiusKey: '',
+
     };
     public state: INihilistState = cloneObject(this.defaultstate) as INihilistState;
     public cmdButtons: JTButtonItem[] = [
@@ -489,10 +495,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     public buildNihilistSequenceSets(
         msg: string,
-        key: string,
         maxEncodeWidth: number
     ): string[][][] {
         let encoded = msg;
+        let key = this.cleanKeyword
         if (key === '') {
             key = 'A';
         }
@@ -627,7 +633,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
 
-    public buildNihilist(msg: string, key: string, state: string): JQuery<HTMLElement> {
+    public buildNihilist(msg: string, state: string): JQuery<HTMLElement> {
 
         //make sure J isn't used anywhere in plaintext/polykey/basekey
         if (this.containsJ()) {
@@ -635,7 +641,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
 
         const result = $('<div/>');
-
+        let key = this.cleanKeyword
         let emsg = '';
         let order = [];
         //indices guide:
@@ -673,7 +679,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.setErrorMsg(emsg, 'vcrib');
 
 
-        const sequencesets = this.buildNihilistSequenceSets(msg, key, this.maxEncodeWidth);
+        //const sequencesets = this.buildNihilistSequenceSets(msg, key, this.maxEncodeWidth);
+
+        const sequencesets = this.sequencesets
 
         const table = $('<table/>', { class: 'nihilist' });
 
@@ -739,12 +747,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         let order = [];
         if (state === 'keystring') {
-            order = [[4, "ans"], [0, "solve"]];
-        } else if (state === 'mappedkeystring') {
-            order = [[2, "ans"], [0, "solve"]];
+            order = [[0, "solve"], [4, "ans"]];
+        } else if (state === 'keynumbers') {
+            order = [[0, "solve"], [2, "ans"]];
+        } else if (state === 'plaintextnumbers') {
+            order = [[0, "solve"], [2, "solve"], [3, "ans bar"]]
+        } else if (state === 'plaintext') {
+            order = [[0, "solve"], [2, "solve"], [1, "ans bar"]]
         }
 
-        const sequencesets = this.buildNihilistSequenceSets(msg, key, this.maxEncodeWidth);
+        const sequencesets = this.buildNihilistSequenceSets(msg, this.maxEncodeWidth);
 
         const table = $('<table/>', { class: 'nihilist center' });
 
@@ -778,10 +790,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public load(): void {
         let encoded = this.cleanString(this.state.cipherString);
 
-        const key = this.minimizeString(this.state.keyword);
+        this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword))
+        this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey))
+
         this.clearErrors();
         this.validateQuestion();
-        let res = this.buildNihilist(encoded, key, this.state.operation);
+
+        this.sequencesets = this.buildNihilistSequenceSets(msg, this.maxEncodeWidth);
+
+        let res = this.buildNihilist(encoded, this.state.operation);
         $('#answer')
             .empty()
             .append(res);
@@ -965,18 +982,19 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .append(` and repeatedly line it across the entire ciphertext, 
         making sure each number corresponds to a single letter from our base key`)
 
-        result.append('<br>')
+        result.append($('<p/>'))
 
         let encoded = this.cleanString(this.state.cipherString);
 
-        const key = this.minimizeString(this.state.keyword);
+        let key = this.minimizeString(this.state.keyword);
         result.append(this.buildSolverNihilist(encoded, key, 'keystring'))
 
         result.append(`Then, using our completed Polybius Table, convert 
         the repeating key word string into 2 digit numbers by finding the row and column of each letter on the table`)
 
-        result.append('<br>')
-        result.append()
+        if (key.length === 0) {
+            key = 'A'
+        }
 
         let firstLetter = key.substring(0, 1)
         let tMap = this.buildPolybiusMap().get(firstLetter)
@@ -991,7 +1009,26 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .append(tMap2Span)
         )
 
-        result.append(this.buildSolverNihilist(encoded, key, 'mappedkeystring'))
+        result.append(this.buildSolverNihilist(encoded, key, 'keynumbers'))
+
+        result.append($('<div/>', { class: 'callout secondary' }).text("Step 3: Determine the Plaintext"));
+
+        result.append(`Subtract the keyword numbers from the ciphertext numbers, giving us the plaintext numbers`)
+
+        result.append(this.buildSolverNihilist(encoded, key, 'plaintextnumbers'))
+
+        result.append(`This is our answer (plaintext), but it just needs to be converted back into letters through the polybius table`)
+
+        let fullPolyTable2 = this.buildPolybiusTable(true, true).generate()
+
+        result.append(fullPolyTable2)
+
+        result.append(this.buildSolverNihilist(encoded, key, 'plaintext'))
+
+        result.append($('<p/>'))
+
+        result.append(`Now we're done!`)
+
 
         //Step 1: Fill out the polybius table
         //given the polybius key [POLYBIUSKEY], we can fill in the first

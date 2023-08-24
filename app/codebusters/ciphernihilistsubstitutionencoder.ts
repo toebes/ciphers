@@ -184,18 +184,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
         } else {
             // For an encode or decode, they need to mention the key
-            const key = this.minimizeString(this.state.keyword);
+            const key = this.cleanKeyword;
             if (key !== '' && questionText.indexOf(key) < 0) {
                 msg +=
                     "The Key '" +
-                    this.state.keyword +
+                    this.cleanKeyword +
                     "' doesn't appear to be mentioned in the Question Text.";
             }
-            const polybiusKey = this.minimizeString(this.state.polybiusKey);
+            const polybiusKey = this.cleanPolyKey;
             if (polybiusKey !== '' && questionText.indexOf(polybiusKey) < 0) {
                 msg +=
                     "The Polybius Key '" +
-                    this.state.polybiusKey +
+                    polybiusKey +
                     "' doesn't appear to be mentioned in the Question Text.";
             }
             if (this.state.operation === 'encode') {
@@ -250,11 +250,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     public placeCrib(): ICribInfo {
         const crib = this.minimizeString(this.state.crib);
-        const strings = this.buildNihilistSequenceSets(
-            this.minimizeString(this.state.cipherString),
-            this.minimizeString(this.state.keyword),
-            9999
-        );
+        // const strings = this.buildNihilistSequenceSets(
+        //     this.minimizeString(this.state.cipherString),
+        //     9999
+        // );
+        const strings = this.sequencesets
         if (strings.length !== 1) {
             return undefined;
         }
@@ -326,8 +326,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     this.genMonoText(cribpos.plaintext);
             }
         } else {
-            const keyword = this.genMonoText(this.minimizeString(this.state.keyword));
-            const polybiusKey = this.genMonoText(this.minimizeString(this.state.polybiusKey));
+            const keyword = this.genMonoText(this.cleanKeyword);
+            const polybiusKey = this.genMonoText(this.cleanPolyKey);
             if (this.state.operation === 'encode') {
                 msg =
                     '<p>The following quote needs to be encoded ' +
@@ -454,7 +454,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         const polybiusMap = new Map<string, string>();
 
-        let preKey = this.cleanString(this.state.polybiusKey).toUpperCase();
+        let preKey = this.cleanPolyKey.toUpperCase();
 
         preKey = this.minimizeString(preKey);
 
@@ -475,10 +475,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             let col = i % 5 + 1;
             polybiusMap.set(sequence.substring(i, i + 1), "" + row + col);
         }
-
-        console.log(sequence);
-        console.log(this.state.keyword)
-        console.log(this.state.polybiusKey);
 
         return polybiusMap;
 
@@ -607,7 +603,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             top.add(String(i))
         }
 
-        let undupedPolybiusKey = this.undupeString(this.minimizeString(this.state.polybiusKey))
+        let undupedPolybiusKey = this.undupeString(this.cleanPolyKey)
 
         let mainIndex = 0;
         for (let i = 1; i <= 5; i++) {
@@ -633,7 +629,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
 
-    public buildNihilist(msg: string, state: string): JQuery<HTMLElement> {
+    public buildNihilist(state: string): JQuery<HTMLElement> {
 
         //make sure J isn't used anywhere in plaintext/polykey/basekey
         if (this.containsJ()) {
@@ -661,7 +657,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             emsg = 'No Key provided. ';
         }
         // Check to make sure that they provided a Polybius Key
-        if (this.minimizeString(this.state.polybiusKey) === '') {
+        if (this.cleanPolyKey === '') {
             emsg += 'No Polybius Key provided.';
         }
         this.setErrorMsg(emsg, 'vkey');
@@ -670,6 +666,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         emsg = '';
         if (this.state.operation === 'crypt') {
             const crib = this.minimizeString(this.state.crib);
+            let msg = this.cleanString(this.state.cipherString)
             if (crib === '') {
                 emsg = 'No Crib Text provided for Cryptanalysis.';
             } else if (this.minimizeString(msg).indexOf(crib) < 0) {
@@ -756,7 +753,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             order = [[0, "solve"], [2, "solve"], [1, "ans bar"]]
         }
 
-        const sequencesets = this.buildNihilistSequenceSets(msg, this.maxEncodeWidth);
+        const sequencesets = this.sequencesets//this.buildNihilistSequenceSets(msg, this.maxEncodeWidth);
 
         const table = $('<table/>', { class: 'nihilist center' });
 
@@ -792,13 +789,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword))
         this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey))
+        this.sequencesets = this.buildNihilistSequenceSets(encoded, this.maxEncodeWidth);
 
         this.clearErrors();
         this.validateQuestion();
 
-        this.sequencesets = this.buildNihilistSequenceSets(msg, this.maxEncodeWidth);
-
-        let res = this.buildNihilist(encoded, this.state.operation);
+        let res = this.buildNihilist(this.state.operation);
         $('#answer')
             .empty()
             .append(res);
@@ -807,7 +803,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .empty()
             .append('<hr/>')
             .append($('<h3/>').text('How to solve'));
-        if (this.minimizeString(this.state.cipherString).length > 0 && !this.containsJ()) {
+        if (encoded.length > 0 && !this.containsJ()) {
             $('#sol').append(this.genSolution(ITestType.None))
         } else {
             $('#sol').append("Enter a valid question to see the solution process.")
@@ -852,7 +848,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public genScore(answer: string[]): IScoreInformation {
         const strings = this.buildNihilistSequenceSets(
             this.state.cipherString,
-            this.state.keyword,
             40
         );
         let dest = 1;
@@ -885,7 +880,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         const strings = this.buildNihilistSequenceSets(
             this.state.cipherString,
-            this.state.keyword,
             width
         );
 
@@ -943,15 +937,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     public genDecodeSolution(): JQuery<HTMLElement> {
 
+        let cleanKey = this.cleanKeyword.toUpperCase()
+        let cleanPolybiusKey = this.cleanPolyKey.toUpperCase()
+
         const result = $('<div/>', { id: 'solution' });
 
         result.append($('<div/>', { class: 'callout secondary' }).text("Step 1: Fill out the Polybius Table"));
 
-        let cleanPolyKey = this.minimizeString(this.state.polybiusKey).toUpperCase()
+        let polyKeySpan = $('<span/>', { class: 'hl' }).text(cleanPolybiusKey)
 
-        let polyKeySpan = $('<span/>', { class: 'hl' }).text(cleanPolyKey)
-
-        let polyLenSpan = $('<span/>', { class: 'hl' }).text(this.undupeString(cleanPolyKey).length)
+        let polyLenSpan = $('<span/>', { class: 'hl' }).text(this.undupeString(cleanPolybiusKey).length)
 
         result.append('Given the Polybius Key ')
             .append(polyKeySpan)
@@ -975,7 +970,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         result.append($('<div/>', { class: 'callout secondary' }).text("Step 2: Construct the Keyword Numbers"));
 
-        let keywordSpan = $('<span/>', { class: 'hl' }).text(this.minimizeString(this.cleanString(this.state.keyword)))
+        let keywordSpan = $('<span/>', { class: 'hl' }).text(cleanKey)
 
         result.append('Take the given keyword ')
             .append(keywordSpan)
@@ -986,17 +981,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         let encoded = this.cleanString(this.state.cipherString);
 
-        let key = this.minimizeString(this.state.keyword);
-        result.append(this.buildSolverNihilist(encoded, key, 'keystring'))
+        result.append(this.buildSolverNihilist(encoded, cleanKey, 'keystring'))
 
         result.append(`Then, using our completed Polybius Table, convert 
         the repeating key word string into 2 digit numbers by finding the row and column of each letter on the table`)
 
-        if (key.length === 0) {
-            key = 'A'
+        if (cleanKey.length === 0) {
+            cleanKey = 'A'
         }
 
-        let firstLetter = key.substring(0, 1)
+        let firstLetter = cleanKey.substring(0, 1)
         let tMap = this.buildPolybiusMap().get(firstLetter)
         let tMapSpan = $('<span/>', { class: 'hl' }).text(tMap)
         let tMap1Span = $('<span/>', { class: 'hl' }).text(tMap.substring(0, 1))
@@ -1009,13 +1003,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .append(tMap2Span)
         )
 
-        result.append(this.buildSolverNihilist(encoded, key, 'keynumbers'))
+        result.append(this.buildSolverNihilist(encoded, cleanKey, 'keynumbers'))
 
         result.append($('<div/>', { class: 'callout secondary' }).text("Step 3: Determine the Plaintext"));
 
         result.append(`Subtract the keyword numbers from the ciphertext numbers, giving us the plaintext numbers`)
 
-        result.append(this.buildSolverNihilist(encoded, key, 'plaintextnumbers'))
+        result.append(this.buildSolverNihilist(encoded, cleanKey, 'plaintextnumbers'))
 
         result.append(`This is our answer (plaintext), but it just needs to be converted back into letters through the polybius table`)
 
@@ -1023,7 +1017,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         result.append(fullPolyTable2)
 
-        result.append(this.buildSolverNihilist(encoded, key, 'plaintext'))
+        result.append(this.buildSolverNihilist(encoded, cleanKey, 'plaintext'))
 
         result.append($('<p/>'))
 
@@ -1076,7 +1070,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         const strings = this.buildNihilistSequenceSets(
             this.state.cipherString,
-            this.state.keyword,
             width
         );
         const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
@@ -1126,7 +1119,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         const strings = this.buildNihilistSequenceSets(
             this.state.cipherString,
-            this.state.keyword,
             width
         );
         let source = 0;

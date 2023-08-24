@@ -52,7 +52,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     public cleanKeyword = '';
     public cleanPolyKey = '';
-    public polybiusMap = ''
+    public polybiusMap = new Map<string, string>();
     public sequencesets = [];
 
     public defaultstate: INihilistState = {
@@ -426,7 +426,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
 
     public encodePolybius(c1: string, c2: string): string {
-        let polybiusMap = this.buildPolybiusMap();
+        let polybiusMap = this.polybiusMap;
         let num1 = Number(polybiusMap.get(c1));
         let num2 = Number(polybiusMap.get(c2));
 
@@ -436,7 +436,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
     public convertMap(array) {
-        let polybiusMap = this.buildPolybiusMap()
+        let polybiusMap = this.polybiusMap
         let mappedKey = [];
         for (const el of array) {
             if (this.charset.indexOf(el) >= 0) {
@@ -500,7 +500,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         const result: string[][][] = [];
         const charset = this.getCharset();
-        const polybiusMap = this.buildPolybiusMap();
+        const polybiusMap = this.polybiusMap;
         let cipher = [];
         let message = [];
         let mappedKey = [];
@@ -614,7 +614,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             })
 
             //get an array of the keys of the polybius map
-            let polybiusSequence = Array.from(this.buildPolybiusMap().keys());
+            let polybiusSequence = Array.from(this.polybiusMap.keys());
             for (let i = 1; i <= 5; i++) {
                 if (!fillAlphabet && mainIndex >= undupedPolybiusKey.length) {
                     row.add(" ")
@@ -790,6 +790,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword))
         this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey))
         this.sequencesets = this.buildNihilistSequenceSets(encoded, this.maxEncodeWidth);
+        this.polybiusMap = this.buildPolybiusMap();
 
         this.clearErrors();
         this.validateQuestion();
@@ -991,7 +992,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
 
         let firstLetter = cleanKey.substring(0, 1)
-        let tMap = this.buildPolybiusMap().get(firstLetter)
+        let tMap = this.polybiusMap.get(firstLetter)
         let tMapSpan = $('<span/>', { class: 'hl' }).text(tMap)
         let tMap1Span = $('<span/>', { class: 'hl' }).text(tMap.substring(0, 1))
         let tMap2Span = $('<span/>', { class: 'hl' }).text(tMap.substring(1, 2))

@@ -20,7 +20,7 @@ interface INihilistState extends IEncoderState {
     /** The type of operation */
     operation: IOperationType;
     /** The size of the chunking blocks for output - 0 means respect the spaces */
-    //blocksize: number;
+    blocksize: number;
     /** The polybius key string */
     polybiusKey: string;
 }
@@ -65,6 +65,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         /** The current string we are looking for */
         findString: '',
         operation: 'decode',
+        blocksize: 0,
         polybiusKey: '',
 
     };
@@ -353,6 +354,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public setUIDefaults(): void {
         this.setOperation(this.state.operation);
         this.setCipherType(this.state.cipherType);
+        this.setBlocksize(this.state.blocksize);
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -368,6 +370,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         JTRadioButtonSet('ciphertype', this.state.cipherType);
         JTRadioButtonSet('operation', this.state.operation);
+        $('#blocksize').val(this.state.blocksize)
         $('#polybiuskey').val(this.state.polybiusKey)
         $('#crib').val(this.state.crib);
         super.updateOutput();
@@ -420,10 +423,21 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             )
         );
 
+        const inputbox = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
+        inputbox.append(JTFIncButton('Block Size', 'blocksize', this.state.blocksize, ''));
+        result.append(inputbox);
+
         return result;
     }
 
-
+    public setBlocksize(blocksize: number): boolean {
+        let changed = false;
+        if (this.state.blocksize !== blocksize) {
+            this.state.blocksize = blocksize;
+            changed = true;
+        }
+        return changed;
+    }
 
     public encodePolybius(c1: string, c2: string): string {
         let polybiusMap = this.polybiusMap;
@@ -497,6 +511,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let key = this.cleanKeyword
         if (key === '') {
             key = 'A';
+        }
+        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth && maxEncodeWidth !== 9999) {
+            encoded = this.chunk(encoded, this.state.blocksize);
         }
         const result: string[][][] = [];
         const charset = this.getCharset();
@@ -785,6 +802,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public load(): void {
         let encoded = this.cleanString(this.state.cipherString);
 
+        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
+            encoded = this.chunk(encoded, this.state.blocksize);
+        }
+
         this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword))
         this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey))
         this.sequencesets = this.buildNihilistSequenceSets(encoded, this.maxEncodeWidth);
@@ -815,6 +836,17 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
+        $('#blocksize')
+            .off('input')
+            .on('input', (e) => {
+                const blocksize = Number($(e.target).val());
+                if (blocksize !== this.state.blocksize) {
+                    this.markUndo(null);
+                    if (this.setBlocksize(blocksize)) {
+                        this.updateOutput();
+                    }
+                }
+            });
         $('#keyword')
             .off('input')
             .on('input', (e) => {

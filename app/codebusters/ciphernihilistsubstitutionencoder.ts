@@ -1052,7 +1052,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         result.append($('<p/>'))
 
-        result.append(`Now we're done!`)
+        let answer = $('<span/>', { class: 'hl' }).text(this.cleanString(this.state.cipherString.toUpperCase()))
+
+        result.append(`Here's our answer: `).append(answer)
 
 
         //Step 1: Fill out the polybius table

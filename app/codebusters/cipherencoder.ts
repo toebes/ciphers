@@ -731,6 +731,11 @@ export class CipherEncoder extends CipherHandler {
                 }
             }
         }
+
+        if (this.state.operation === 'encode' && this.state.cipherType === ICipherType.NihilistSubstitution) {
+            return 'Encode problems are not allowed on any tests'
+        }
+
         if (testType === undefined || this.validTests.indexOf(testType) >= 0) {
             return '';
         }

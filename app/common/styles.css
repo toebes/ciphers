@@ -930,7 +930,7 @@ table.center {
     background-color: yellow !important;
 }
 
-td .square {
+td th .square {
     aspect-ratio: 1 / 1;
 }
 

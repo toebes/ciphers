@@ -519,8 +519,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 //keychar is the current character in the key string
                 let keyChar = key.substring(keyIndex, keyIndex + 1).toUpperCase();
 
-                console.log(keyChar);
-
                 mappedKey.push(polybiusMap.get(keyChar));
                 message.push(messageChar);
 
@@ -1063,6 +1061,42 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
+
+
+        //generating empty 5x5 polybius square table for students
+
+        const polybiusSquare = $('<table/>', { class: 'polybius-square' });
+
+        const row = $('<tr/>');
+        for (let a = 0; a < 6; a++) {
+            if (a == 0) {
+                const cell = $('<th/>').append($('<div/>', { class: 'square' }).html('&nbsp;'));
+                row.append(cell);
+            } else {
+                const cell = $('<th/>').append($('<div/>', { class: 'square' }).html('' + a));
+                row.append(cell);
+            }
+        }
+
+        polybiusSquare.append(row);
+
+        for (let i = 1; i < 6; i++) {
+            const row = $('<tr/>');
+            for (let j = 0; j < 6; j++) {
+                if (j == 0) {
+                    const cell = $('<th/>').append($('<div/>', { class: 'square' }).html('' + i));
+                    row.append(cell);
+                } else {
+                    const cell = $('<td/>').append($('<div/>', { class: 'square' }).html('&nbsp;'));
+                    row.append(cell);
+                }
+            }
+            polybiusSquare.append(row);
+        }
+
+        result.append(polybiusSquare);
+
+
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {
@@ -1087,20 +1121,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         result.append(table.generate());
 
-        //generating empty 5x5 polybius square table for students
 
-        const polybiusSquare = $('<table/>', { class: 'polybius-square' });
-
-        for (let i = 0; i < 5; i++) {
-            const row = $('<tr/>');
-            for (let j = 0; j < 5; j++) {
-                const cell = $('<td/>').append($('<div/>', { class: 'square' }).html('&nbsp;'));
-                row.append(cell);
-            }
-            polybiusSquare.append(row);
-        }
-
-        result.append(polybiusSquare);
 
         return result;
     }

@@ -808,8 +808,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword))
         this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey))
-        this.sequencesets = this.buildNihilistSequenceSets(encoded, this.maxEncodeWidth);
         this.polybiusMap = this.buildPolybiusMap();
+        this.sequencesets = this.buildNihilistSequenceSets(encoded, this.maxEncodeWidth);
 
         this.clearErrors();
         this.validateQuestion();

@@ -332,12 +332,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 msg =
                     '<p>The following quote needs to be encoded ' +
                     ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
-                    keyword + ' and polybius key of ' + polybiusKey;
+                    keyword + ' and polybius key of ' + polybiusKey + '. ';
             } else {
                 msg =
                     '<p>The following quote needs to be decoded ' +
                     ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
-                    keyword + ' and polybius key of ' + polybiusKey;
+                    keyword + ' and polybius key of ' + polybiusKey + '. ';
             }
         }
         msg += '</p>';

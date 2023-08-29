@@ -248,6 +248,14 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return false
     }
 
+    public getNumFromPolybiusMap(s: string) {
+        let polyMap = this.polybiusMap;
+        if (s == 'J') {
+            s = 'I'
+        }
+        return polyMap.get(s);
+    }
+
 
     public placeCrib(): ICribInfo {
         const crib = this.minimizeString(this.state.crib);
@@ -440,9 +448,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
     public encodePolybius(c1: string, c2: string): string {
-        let polybiusMap = this.polybiusMap;
-        let num1 = Number(polybiusMap.get(c1));
-        let num2 = Number(polybiusMap.get(c2));
+
+        let num1 = Number(this.getNumFromPolybiusMap(c1));
+        let num2 = Number(this.getNumFromPolybiusMap(c2));
 
         let result = (num1 + num2).toString();
 
@@ -472,22 +480,34 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         preKey = this.minimizeString(preKey);
 
+        //in the behind the scenes, we treat the map/tables as if 'J' doesn't exist and there's only I.
+        //if J appears in any user input, we manually convert it to I
+        //later on we will deal with the I converting to I/J (namely in buildpolybius table method)
+        preKey = preKey.replace('J', 'I')
+        console.log(preKey)
         let sequence = '';
         //get rid of duplicates
+
+        //add the unduped key to the polybius sequnece
         sequence += this.undupeString(preKey);
 
+        //again pretending the J doesn't exist
+        let polybiusCharset = this.charset.replace('J', '');
+
         //add remaining chars in alphabet to the polybius sequence
-        let polybiusCharset = this.charset.replace("J", "");
         for (const ch of polybiusCharset) {
             if (sequence.indexOf(ch) < 0) {
                 sequence += ch;
             }
         }
 
+
         for (let i = 0; i < sequence.length; i++) {
             let row = Math.floor(i / 5) + 1;
             let col = i % 5 + 1;
-            polybiusMap.set(sequence.substring(i, i + 1), "" + row + col);
+
+            let key = sequence.substring(i, i + 1)
+            polybiusMap.set(key, "" + row + col);
         }
 
         return polybiusMap;
@@ -517,7 +537,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         const result: string[][][] = [];
         const charset = this.getCharset();
-        const polybiusMap = this.polybiusMap;
         let cipher = [];
         let message = [];
         let mappedKey = [];
@@ -531,15 +550,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         for (let i = 0; i < msgLength; i++) {
             //messagechar is the current character in the encoded string
             const messageChar = encoded.substring(i, i + 1).toUpperCase();
+            if (messageChar == 'J') {
+                messageChar
+            }
             const m = charset.indexOf(messageChar);
             if (m >= 0) {
                 //keychar is the current character in the key string
                 let keyChar = key.substring(keyIndex, keyIndex + 1).toUpperCase();
 
-                mappedKey.push(polybiusMap.get(keyChar));
+                mappedKey.push(this.getNumFromPolybiusMap(keyChar));
                 message.push(messageChar);
 
-                mappedMessage.push(polybiusMap.get(messageChar));
+                mappedMessage.push(this.getNumFromPolybiusMap(messageChar));
                 //cipher is the text we are decoding/encoding into
                 cipher.push(this.encodePolybius(messageChar, keyChar));
 
@@ -634,7 +656,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 if (!fillAlphabet && mainIndex >= undupedPolybiusKey.length) {
                     row.add(" ")
                 } else {
-                    row.add(polybiusSequence[mainIndex])
+                    //we want to show I/J in the table, not just I
+                    if (polybiusSequence[mainIndex] == 'I') {
+                        row.add('I/J')
+                    } else {
+                        row.add(polybiusSequence[mainIndex])
+                    }
                 }
                 mainIndex++;
             }
@@ -647,9 +674,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public buildNihilist(state: string): JQuery<HTMLElement> {
 
         //make sure J isn't used anywhere in plaintext/polykey/basekey
-        if (this.containsJ()) {
-            return $('<div/>').text("The letter 'J' can not be used anywhere in the polybius key, base key, or plain text.");
-        }
+        // if (this.containsJ()) {
+        //     return $('<div/>').text("The letter 'J' can not be used anywhere in the polybius key, base key, or plain text.");
+        // }
 
         const result = $('<div/>');
         let key = this.cleanKeyword
@@ -823,7 +850,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .empty()
             .append('<hr/>')
             .append($('<h3/>').text('How to solve'));
-        if (encoded.length > 0 && !this.containsJ()) {
+        if (encoded.length > 0) { //&& !this.containsJ()) {
             $('#sol').append(this.genSolution(ITestType.None))
         } else {
             $('#sol').append("Enter a valid question to see the solution process.")

@@ -233,21 +233,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     }
 
-
-    public containsJ(): boolean {
-
-        // if (this.minimizeString(this.state.cipherString).length <= 0) {
-        //     return false
-        // }
-
-        let allStrings = (this.state.cipherString + this.state.keyword + this.state.polybiusKey).toUpperCase()
-        if (allStrings.indexOf('J') >= 0) {
-            return true
-        }
-
-        return false
-    }
-
+    /*
+        This replaces the 'get()' method for a normal Map. Since J is not located in our polybius map, but it still needs
+        to be incorporated in our question, we have to treat any get('J') as a get('I'). This method acts as that filter.
+    */
     public getNumFromPolybiusMap(s: string) {
         let polyMap = this.polybiusMap;
         if (s == 'J') {
@@ -438,6 +427,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result;
     }
 
+
     public setBlocksize(blocksize: number): boolean {
         let changed = false;
         if (this.state.blocksize !== blocksize) {
@@ -447,6 +437,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return changed;
     }
 
+    /*
+        Given two characters, this method uses the polybius mapping to 
+        return the added mapped numbers together. It encodes into a ciphertext.
+    */
     public encodePolybius(c1: string, c2: string): string {
 
         let num1 = Number(this.getNumFromPolybiusMap(c1));
@@ -457,21 +451,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result;
     }
 
-    public convertMap(array) {
-        let polybiusMap = this.polybiusMap
-        let mappedKey = [];
-        for (const el of array) {
-            if (this.charset.indexOf(el) >= 0) {
-                mappedKey.push(polybiusMap.get(el));
-            } else {
-                //mappedKey.push("0");
-            }
-
-        }
-
-        return mappedKey;
-    }
-
+    /*
+        This method returns a Map object which maps a character (key) to 
+        its corresponding number, based on the polybius table row/column.
+    */
     public buildPolybiusMap(): Map<string, string> {
 
         const polybiusMap = new Map<string, string>();
@@ -484,7 +467,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //if J appears in any user input, we manually convert it to I
         //later on we will deal with the I converting to I/J (namely in buildpolybius table method)
         preKey = preKey.replace('J', 'I')
-        console.log(preKey)
         let sequence = '';
         //get rid of duplicates
 
@@ -523,6 +505,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return changed;
     }
 
+    /*
+        This method returns an array of 'sequencesets', which contains all the information of a nihilist problem,
+        such as the cipher string, mapped cipher string, mapped key, mapped answer, etc. These are all different arrays, or sequences,
+        containing either a character or a number. Such as ['35', '56', 78'] or ['K', 'E', 'Y']. These sequences should all be the
+        same length. If the sequence ever exceeds the maxencodewidth, then it will create another sequenceset for the next chunk of
+        sequences to display on a new line.
+    */
     public buildNihilistSequenceSets(
         msg: string,
         maxEncodeWidth: number
@@ -617,14 +606,14 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             result.push([cipher, message, mappedKey, mappedMessage, plainKey]);
         }
 
-        console.log(result)
-        console.log(plainKey)
-
         /* the result is an array of arrays of arrays - the large array contains all the lines (arrays) that the entire text is
             separated into. each line contains 4 arrays, each a char array of the info to appear on each subline*/
         return result;
     }
 
+    /*
+        This method builds the HTML for a polybius table
+    */
     public buildPolybiusTable(center: boolean, fillAlphabet: boolean): JTTable {
 
         let polyClass = 'polybius-square'
@@ -632,6 +621,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //center solver table
         if (center) {
             polyClass += ' center'
+        } else {
+
         }
 
         const worktable = new JTTable({
@@ -674,7 +665,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return worktable
     }
 
-
+    /*
+        This method builds the nihilist sequenceset tables as well as the polybius square.
+    */
     public buildNihilist(state: string): JQuery<HTMLElement> {
 
         //make sure J isn't used anywhere in plaintext/polykey/basekey
@@ -721,9 +714,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         this.setErrorMsg(emsg, 'vcrib');
 
-
-        //const sequencesets = this.buildNihilistSequenceSets(msg, key, this.maxEncodeWidth);
-
         const sequencesets = this.sequencesets
 
         const table = $('<table/>', { class: 'nihilist' });
@@ -763,6 +753,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result;
     }
 
+    /*
+        This method builds the HTML for nihilist sequenceset tables in the solver. 
+    */
     public buildSolverNihilist(msg: string, key: string, state: string): JQuery<HTMLElement> {
 
         //indices guide:
@@ -787,7 +780,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
 
         const sequencesets = this.sequencesets
-        console.log(sequencesets.length)
 
         const table = $('<table/>', { class: 'nihilist center' });
 
@@ -795,10 +787,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             for (const pair of order) {
                 const sequence = sequenceset[pair[0]];
                 const row = $('<tr/>', { class: pair[1] });
-                // console.log(state)
-                // console.log(sequenceset)
-                // console.log(pair[0])
-                // console.log(sequence)
                 for (const char of sequence) {
                     row.append($('<td width="33px"/>').text(char));
                 }

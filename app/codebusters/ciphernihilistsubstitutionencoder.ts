@@ -587,10 +587,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 */
                 if (lastSplit === -1) {
                     //if no last split exists, we'll push the entire line and start over on the next line
-                    result.push([cipher, message, mappedKey, mappedMessage]);
+                    result.push([cipher, message, mappedKey, mappedMessage, plainKey]);
                     message = [];
                     cipher = [];
                     mappedKey = [];
+                    mappedMessage = [];
                     plainKey = [];
                     lastSplit = -1;
                 } else {
@@ -615,6 +616,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         if (message.length > 0) {
             result.push([cipher, message, mappedKey, mappedMessage, plainKey]);
         }
+
+        console.log(result)
+        console.log(plainKey)
 
         /* the result is an array of arrays of arrays - the large array contains all the lines (arrays) that the entire text is
             separated into. each line contains 4 arrays, each a char array of the info to appear on each subline*/
@@ -759,19 +763,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result;
     }
 
-
-    public buildReplacementSolverNihilist(
-        msg: string,
-        key: string,
-        maxEncodeWidth: number
-    ): string[][][] {
-
-
-
-        return
-    }
-
-
     public buildSolverNihilist(msg: string, key: string, state: string): JQuery<HTMLElement> {
 
         //indices guide:
@@ -795,7 +786,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             order = [[0, "solve"], [2, "solve"], [1, "ans bar"]]
         }
 
-        const sequencesets = this.sequencesets//this.buildNihilistSequenceSets(msg, this.maxEncodeWidth);
+        const sequencesets = this.sequencesets
+        console.log(sequencesets.length)
 
         const table = $('<table/>', { class: 'nihilist center' });
 
@@ -803,6 +795,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             for (const pair of order) {
                 const sequence = sequenceset[pair[0]];
                 const row = $('<tr/>', { class: pair[1] });
+                // console.log(state)
+                // console.log(sequenceset)
+                // console.log(pair[0])
+                // console.log(sequence)
                 for (const char of sequence) {
                     row.append($('<td width="33px"/>').text(char));
                 }
@@ -983,6 +979,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
 
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
+
+        // if (document.readyState === 'loading') {
+        //     console.log('loading')
+        // }
+
         if (this.state.operation === 'crypt') {
             return this.genCryptanalysisSolution();
         }
@@ -1013,13 +1014,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .append(` spaces of the polybius table, 
         with each <b>unique</b> letter taking up a space. (Skip any duplicate letters)`);
 
+        result.append($('<div/>', { class: 'callout primary small' }).append("Note: Treat the letters <b>I</b> and <b>J</b> as one single letter <b>I/J</b>"))
+
         //true to center table, false to not fill rest of alphabet
         let onlyKeyPolyTable = this.buildPolybiusTable(true, false).generate()
 
         //result.append($('<div/>').append(polybiusTable));
         result.append(onlyKeyPolyTable)
 
-        result.append("The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table, as well as the letter 'J'")
+        result.append("The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table.")
 
         //true to center table, true to fill alphabet
         let fullPolyTable = this.buildPolybiusTable(true, true).generate()

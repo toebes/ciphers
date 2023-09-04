@@ -915,6 +915,19 @@ table.polybius-square {
     border: 1px solid black;
     border-collapse: collapse;
     text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+table.center {
+    margin-left: auto;
+    margin-right: auto;
+    float:none;
+}
+
+.hl {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 800;
+    background-color: yellow !important;
 }
 
 td .square {
@@ -940,6 +953,12 @@ table.nihilist tr.ans {
 table.nihilist tr.minor {
     font-style: italic;
     font-weight: normal;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+table.nihilist tr.solve {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
 }
 
 table.bacon td {

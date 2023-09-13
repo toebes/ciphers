@@ -174,7 +174,7 @@ export class CipherTest extends CipherHandler {
     public mapCipherSubType = new Map<ICipherType, string>([
         [ICipherType.Aristocrat, 'Aristocrat'],
         [ICipherType.Baconian, 'Baconian'],
-        [ICipherType.Porta, 'Table '],
+        [ICipherType.Porta, 'Table'],
         [ICipherType.Hill, 'Math'],
         [ICipherType.NihilistSubstitution, 'Math'],
         [ICipherType.Patristocrat, 'Patristocrat'],

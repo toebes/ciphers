@@ -462,7 +462,16 @@ class CompleteColumnarSolver {
 
         // Step 7 Iterate thru the MAP.  Iterate thru the order array and find the first entry with '1', and replace it, remove the '1' from every where else.
         // This makes a copy... we need this...
+
+        let combos = []
+
         const combinations = [].concat(ordering.slice(1));
+
+        this.suzzle(combinations, combos);
+
+
+
+/*
         for (let p in EE) {
             console.log('DDDUPP: '+ EE[p]);
             for (let i = 0; i < combinations.length; i++) {
@@ -471,7 +480,7 @@ class CompleteColumnarSolver {
                     // Replace the found value at i, remove this value in all other locations other than i.
                     const c = [].concat(combinations.slice(0));
                     c[i] = [EE[p]];
-                    for (let j = i+1; j < c.length; j++) {
+                    for (let j = i + 1; j < c.length; j++) {
                         const f = c[j].indexOf(EE[p]);
                         if (f > -1) {
                             c[j].splice(f, 1);
@@ -481,7 +490,7 @@ class CompleteColumnarSolver {
                 }
             }
         }
-
+*/
         // need recursive routine to do this elmination.
 
         // dump no more than 5 rows... first 2, 2 with crib, last.
@@ -526,6 +535,33 @@ class CompleteColumnarSolver {
         this.getOrderingCombinations(0, ordering);
 
         return rowOrder;
+    }
+    private suzzle(combinations: number[][], combos: number[][]) :void {
+        console.log('combos len = ' + combos.length);
+        for(let i = 0; i < combinations.length; i++) {
+            console.log('suzzle i = ' + i + ' combinations[i] len = ' + combinations[i].length);
+            if (combinations[i].length > 1) {
+                for (let j = 0; j < combinations[i].length; j++) {
+                    console.log('so j is: ' + j + ' and the think is: ' + combinations[i][j]);
+                    // set at i, and remove from everywhere else...
+                    combinations[i] = [combinations[i][j]];
+                    console.log('after setting...so j is: ' + j + ' and the think is: ' + combinations[i][j]);
+                    for (let k = i + 1; k < combinations.length; k++) {
+                        console.log('k is ' + k + ' so combinations[k].len is ' + combinations[k].length);
+                        const f = combinations[k].indexOf(combinations[i][0]);
+                        console.log('f ===> ' + f);
+                        if (f > -1) {
+                            combinations[k].splice(f, 1);
+                        }
+                    }
+                    const n = [].concat(combinations.splice(0));
+                    console.log('calling the suzzle...');
+                    this.suzzle(combos, n);
+                }
+            }
+        }
+        console.log('Pushing a combo:');
+        //combos.push(combinations[]);
     }
 
     private getOrderingCombinations(start: number, ordering: number[][]): void {
@@ -699,6 +735,18 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     }
 
     /**
+     * Set the order of the columns
+     */
+    public setColumnOrder(columnOrder: string): boolean {
+        let changed = false;
+        if (columnOrder !== this.state.keyword) {
+            changed = true;
+            this.state.keyword = columnOrder;
+        }
+        return changed;
+    }
+
+    /**
      * Set the number of rail fence rails.
      * @param columns The number of rails selected on the spinner.
      */
@@ -843,6 +891,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         super.attachHandlers();
 
         // Dont need this it is on the super().
+        /*
         $('#keyword')
             .off('input')
             .on('input', (e) => {
@@ -852,9 +901,9 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                     if (this.setKeyword(newkeyword)) {
                         this.updateOutput();
                     }
-                }
+                }351426
             });
-
+        */
         $('#columns')
             .off('input')
             .on('input', (e) => {
@@ -866,10 +915,15 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                     }
                 this.advancedir = 0;
             });
+
         $('#columnorder')
             .off('input')
             .on('input', (e) => {
                const columnOrder = $(e.target).val() as string;
+               if (this.setColumnOrder(/*columnOrder*/ '351426')) {
+                   this.generateCipherText('351426' /*columnOrder*/);
+                   this.updateOutput();
+               }
                if (columnOrder.length != this.state.columns) {
                    // error
                    console.log('Column width is ' + this.state.columns + ' order is set for ' + columnOrder);
@@ -969,7 +1023,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         // }
         // else {
             // Create an input for the column order in the cryptanalysis case.
-            inputbox.append(JTFLabeledInput('Ordering', 'text', 'columnorder', '', 'small-12 medium-4 large-4'));
+            inputbox.append(JTFLabeledInput('COrdering', 'text', 'columnorder', '', 'small-12 medium-4 large-4'));
         //    result.append(inputbox);
 
             inputbox.append(JTFLabeledInput('Crib', 'text', 'crib', '', 'small-12 medium-4 large-4'));
@@ -1047,6 +1101,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         } else {
             this.setErrorMsg('', 'cribl', null);
         }
+        this.state.keyword = '351426';
 
 
         if (this.state.columns != this.state.keyword.length) {

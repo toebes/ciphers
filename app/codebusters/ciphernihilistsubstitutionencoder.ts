@@ -20,7 +20,7 @@ interface INihilistState extends IEncoderState {
     /** The type of operation */
     operation: IOperationType;
     /** The size of the chunking blocks for output - 0 means respect the spaces */
-    //blocksize: number;
+    blocksize: number;
     /** The polybius key string */
     polybiusKey: string;
 }
@@ -65,6 +65,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         /** The current string we are looking for */
         findString: '',
         operation: 'decode',
+        blocksize: 0,
         polybiusKey: '',
 
     };
@@ -232,19 +233,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     }
 
-
-    public containsJ(): boolean {
-
-        // if (this.minimizeString(this.state.cipherString).length <= 0) {
-        //     return false
-        // }
-
-        let allStrings = (this.state.cipherString + this.state.keyword + this.state.polybiusKey).toUpperCase()
-        if (allStrings.indexOf('J') >= 0) {
-            return true
+    /*
+        This replaces the 'get()' method for a normal Map. Since J is not located in our polybius map, but it still needs
+        to be incorporated in our question, we have to treat any get('J') as a get('I'). This method acts as that filter.
+    */
+    public getNumFromPolybiusMap(s: string) {
+        let polyMap = this.polybiusMap;
+        if (s == 'J') {
+            s = 'I'
         }
-
-        return false
+        return polyMap.get(s);
     }
 
 
@@ -332,12 +330,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 msg =
                     '<p>The following quote needs to be encoded ' +
                     ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
-                    keyword + ' and polybius key of ' + polybiusKey;
+                    keyword + ' and polybius key of ' + polybiusKey + '. ';
             } else {
                 msg =
                     '<p>The following quote needs to be decoded ' +
                     ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
-                    keyword + ' and polybius key of ' + polybiusKey;
+                    keyword + ' and polybius key of ' + polybiusKey + '. ';
             }
         }
         msg += '</p>';
@@ -353,6 +351,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public setUIDefaults(): void {
         this.setOperation(this.state.operation);
         this.setCipherType(this.state.cipherType);
+        this.setBlocksize(this.state.blocksize);
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -368,6 +367,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         JTRadioButtonSet('ciphertype', this.state.cipherType);
         JTRadioButtonSet('operation', this.state.operation);
+        $('#blocksize').val(this.state.blocksize)
         $('#polybiuskey').val(this.state.polybiusKey)
         $('#crib').val(this.state.crib);
         super.updateOutput();
@@ -420,36 +420,41 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             )
         );
 
+        const inputbox = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
+        inputbox.append(JTFIncButton('Block Size', 'blocksize', this.state.blocksize, ''));
+        result.append(inputbox);
+
         return result;
     }
 
 
+    public setBlocksize(blocksize: number): boolean {
+        let changed = false;
+        if (this.state.blocksize !== blocksize) {
+            this.state.blocksize = blocksize;
+            changed = true;
+        }
+        return changed;
+    }
 
+    /*
+        Given two characters, this method uses the polybius mapping to 
+        return the added mapped numbers together. It encodes into a ciphertext.
+    */
     public encodePolybius(c1: string, c2: string): string {
-        let polybiusMap = this.polybiusMap;
-        let num1 = Number(polybiusMap.get(c1));
-        let num2 = Number(polybiusMap.get(c2));
+
+        let num1 = Number(this.getNumFromPolybiusMap(c1));
+        let num2 = Number(this.getNumFromPolybiusMap(c2));
 
         let result = (num1 + num2).toString();
 
         return result;
     }
 
-    public convertMap(array) {
-        let polybiusMap = this.polybiusMap
-        let mappedKey = [];
-        for (const el of array) {
-            if (this.charset.indexOf(el) >= 0) {
-                mappedKey.push(polybiusMap.get(el));
-            } else {
-                //mappedKey.push("0");
-            }
-
-        }
-
-        return mappedKey;
-    }
-
+    /*
+        This method returns a Map object which maps a character (key) to 
+        its corresponding number, based on the polybius table row/column.
+    */
     public buildPolybiusMap(): Map<string, string> {
 
         const polybiusMap = new Map<string, string>();
@@ -458,22 +463,33 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         preKey = this.minimizeString(preKey);
 
+        //in the behind the scenes, we treat the map/tables as if 'J' doesn't exist and there's only I.
+        //if J appears in any user input, we manually convert it to I
+        //later on we will deal with the I converting to I/J (namely in buildpolybius table method)
+        preKey = preKey.replace('J', 'I')
         let sequence = '';
         //get rid of duplicates
+
+        //add the unduped key to the polybius sequnece
         sequence += this.undupeString(preKey);
 
+        //again pretending the J doesn't exist
+        let polybiusCharset = this.charset.replace('J', '');
+
         //add remaining chars in alphabet to the polybius sequence
-        let polybiusCharset = this.charset.replace("J", "");
         for (const ch of polybiusCharset) {
             if (sequence.indexOf(ch) < 0) {
                 sequence += ch;
             }
         }
 
+
         for (let i = 0; i < sequence.length; i++) {
             let row = Math.floor(i / 5) + 1;
             let col = i % 5 + 1;
-            polybiusMap.set(sequence.substring(i, i + 1), "" + row + col);
+
+            let key = sequence.substring(i, i + 1)
+            polybiusMap.set(key, "" + row + col);
         }
 
         return polybiusMap;
@@ -489,6 +505,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return changed;
     }
 
+    /*
+        This method returns an array of 'sequencesets', which contains all the information of a nihilist problem,
+        such as the cipher string, mapped cipher string, mapped key, mapped answer, etc. These are all different arrays, or sequences,
+        containing either a character or a number. Such as ['35', '56', 78'] or ['K', 'E', 'Y']. These sequences should all be the
+        same length. If the sequence ever exceeds the maxencodewidth, then it will create another sequenceset for the next chunk of
+        sequences to display on a new line.
+    */
     public buildNihilistSequenceSets(
         msg: string,
         maxEncodeWidth: number
@@ -498,9 +521,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         if (key === '') {
             key = 'A';
         }
+        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth && maxEncodeWidth !== 9999) {
+            encoded = this.chunk(encoded, this.state.blocksize);
+        }
         const result: string[][][] = [];
         const charset = this.getCharset();
-        const polybiusMap = this.polybiusMap;
         let cipher = [];
         let message = [];
         let mappedKey = [];
@@ -514,17 +539,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         for (let i = 0; i < msgLength; i++) {
             //messagechar is the current character in the encoded string
             const messageChar = encoded.substring(i, i + 1).toUpperCase();
+            if (messageChar == 'J') {
+                messageChar
+            }
             const m = charset.indexOf(messageChar);
             if (m >= 0) {
                 //keychar is the current character in the key string
                 let keyChar = key.substring(keyIndex, keyIndex + 1).toUpperCase();
 
-                console.log(keyChar);
-
-                mappedKey.push(polybiusMap.get(keyChar));
+                mappedKey.push(this.getNumFromPolybiusMap(keyChar));
                 message.push(messageChar);
 
-                mappedMessage.push(polybiusMap.get(messageChar));
+                mappedMessage.push(this.getNumFromPolybiusMap(messageChar));
                 //cipher is the text we are decoding/encoding into
                 cipher.push(this.encodePolybius(messageChar, keyChar));
 
@@ -550,10 +576,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 */
                 if (lastSplit === -1) {
                     //if no last split exists, we'll push the entire line and start over on the next line
-                    result.push([cipher, message, mappedKey, mappedMessage]);
+                    result.push([cipher, message, mappedKey, mappedMessage, plainKey]);
                     message = [];
                     cipher = [];
                     mappedKey = [];
+                    mappedMessage = [];
                     plainKey = [];
                     lastSplit = -1;
                 } else {
@@ -584,6 +611,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result;
     }
 
+    /*
+        This method builds the HTML for a polybius table
+    */
     public buildPolybiusTable(center: boolean, fillAlphabet: boolean): JTTable {
 
         let polyClass = 'polybius-square'
@@ -591,6 +621,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //center solver table
         if (center) {
             polyClass += ' center'
+        } else {
+
         }
 
         const worktable = new JTTable({
@@ -619,7 +651,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 if (!fillAlphabet && mainIndex >= undupedPolybiusKey.length) {
                     row.add(" ")
                 } else {
-                    row.add(polybiusSequence[mainIndex])
+                    //we want to show I/J in the table, not just I
+                    if (polybiusSequence[mainIndex] == 'I') {
+                        row.add('I/J')
+                    } else {
+                        row.add(polybiusSequence[mainIndex])
+                    }
                 }
                 mainIndex++;
             }
@@ -628,13 +665,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return worktable
     }
 
-
+    /*
+        This method builds the nihilist sequenceset tables as well as the polybius square.
+    */
     public buildNihilist(state: string): JQuery<HTMLElement> {
 
         //make sure J isn't used anywhere in plaintext/polykey/basekey
-        if (this.containsJ()) {
-            return $('<div/>').text("The letter 'J' can not be used anywhere in the polybius key, base key, or plain text.");
-        }
+        // if (this.containsJ()) {
+        //     return $('<div/>').text("The letter 'J' can not be used anywhere in the polybius key, base key, or plain text.");
+        // }
 
         const result = $('<div/>');
         let key = this.cleanKeyword
@@ -675,9 +714,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         this.setErrorMsg(emsg, 'vcrib');
 
-
-        //const sequencesets = this.buildNihilistSequenceSets(msg, key, this.maxEncodeWidth);
-
         const sequencesets = this.sequencesets
 
         const table = $('<table/>', { class: 'nihilist' });
@@ -717,19 +753,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result;
     }
 
-
-    public buildReplacementSolverNihilist(
-        msg: string,
-        key: string,
-        maxEncodeWidth: number
-    ): string[][][] {
-
-
-
-        return
-    }
-
-
+    /*
+        This method builds the HTML for nihilist sequenceset tables in the solver. 
+    */
     public buildSolverNihilist(msg: string, key: string, state: string): JQuery<HTMLElement> {
 
         //indices guide:
@@ -753,7 +779,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             order = [[0, "solve"], [2, "solve"], [1, "ans bar"]]
         }
 
-        const sequencesets = this.sequencesets//this.buildNihilistSequenceSets(msg, this.maxEncodeWidth);
+        const sequencesets = this.sequencesets
 
         const table = $('<table/>', { class: 'nihilist center' });
 
@@ -787,10 +813,14 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public load(): void {
         let encoded = this.cleanString(this.state.cipherString);
 
+        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
+            encoded = this.chunk(encoded, this.state.blocksize);
+        }
+
         this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword))
         this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey))
-        this.sequencesets = this.buildNihilistSequenceSets(encoded, this.maxEncodeWidth);
         this.polybiusMap = this.buildPolybiusMap();
+        this.sequencesets = this.buildNihilistSequenceSets(encoded, this.maxEncodeWidth);
 
         this.clearErrors();
         this.validateQuestion();
@@ -804,7 +834,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .empty()
             .append('<hr/>')
             .append($('<h3/>').text('How to solve'));
-        if (encoded.length > 0 && !this.containsJ()) {
+        if (encoded.length > 0) { //&& !this.containsJ()) {
             $('#sol').append(this.genSolution(ITestType.None))
         } else {
             $('#sol').append("Enter a valid question to see the solution process.")
@@ -817,6 +847,17 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
+        $('#blocksize')
+            .off('input')
+            .on('input', (e) => {
+                const blocksize = Number($(e.target).val());
+                if (blocksize !== this.state.blocksize) {
+                    this.markUndo(null);
+                    if (this.setBlocksize(blocksize)) {
+                        this.updateOutput();
+                    }
+                }
+            });
         $('#keyword')
             .off('input')
             .on('input', (e) => {
@@ -926,6 +967,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
 
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
+
+        // if (document.readyState === 'loading') {
+        //     console.log('loading')
+        // }
+
         if (this.state.operation === 'crypt') {
             return this.genCryptanalysisSolution();
         }
@@ -956,13 +1002,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .append(` spaces of the polybius table, 
         with each <b>unique</b> letter taking up a space. (Skip any duplicate letters)`);
 
+        result.append($('<div/>', { class: 'callout primary small' }).append("Note: Treat the letters <b>I</b> and <b>J</b> as one single letter <b>I/J</b>"))
+
         //true to center table, false to not fill rest of alphabet
         let onlyKeyPolyTable = this.buildPolybiusTable(true, false).generate()
 
         //result.append($('<div/>').append(polybiusTable));
         result.append(onlyKeyPolyTable)
 
-        result.append("The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table, as well as the letter 'J'")
+        result.append("The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table.")
 
         //true to center table, true to fill alphabet
         let fullPolyTable = this.buildPolybiusTable(true, true).generate()
@@ -1022,7 +1070,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         result.append($('<p/>'))
 
-        result.append(`Now we're done!`)
+        let answer = $('<span/>', { class: 'hl' }).text(this.cleanString(this.state.cipherString.toUpperCase()))
+
+        result.append(`Here's our answer: `).append(answer)
 
 
         //Step 1: Fill out the polybius table
@@ -1063,6 +1113,42 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
+
+
+        //generating empty 5x5 polybius square table for students
+
+        const polybiusSquare = $('<table/>', { class: 'polybius-square' });
+
+        const row = $('<tr/>');
+        for (let a = 0; a < 6; a++) {
+            if (a == 0) {
+                const cell = $('<th/>').append($('<div/>', { class: 'square' }).html('&nbsp;'));
+                row.append(cell);
+            } else {
+                const cell = $('<th/>').append($('<div/>', { class: 'square' }).html('' + a));
+                row.append(cell);
+            }
+        }
+
+        polybiusSquare.append(row);
+
+        for (let i = 1; i < 6; i++) {
+            const row = $('<tr/>');
+            for (let j = 0; j < 6; j++) {
+                if (j == 0) {
+                    const cell = $('<th/>').append($('<div/>', { class: 'square' }).html('' + i));
+                    row.append(cell);
+                } else {
+                    const cell = $('<td/>').append($('<div/>', { class: 'square' }).html('&nbsp;'));
+                    row.append(cell);
+                }
+            }
+            polybiusSquare.append(row);
+        }
+
+        result.append(polybiusSquare);
+
+
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {
@@ -1087,20 +1173,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         result.append(table.generate());
 
-        //generating empty 5x5 polybius square table for students
 
-        const polybiusSquare = $('<table/>', { class: 'polybius-square' });
-
-        for (let i = 0; i < 5; i++) {
-            const row = $('<tr/>');
-            for (let j = 0; j < 5; j++) {
-                const cell = $('<td/>').append($('<div/>', { class: 'square' }).html('&nbsp;'));
-                row.append(cell);
-            }
-            polybiusSquare.append(row);
-        }
-
-        result.append(polybiusSquare);
 
         return result;
     }

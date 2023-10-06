@@ -15,6 +15,8 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
 
+const DATABASE_VERSION = 1
+
 export interface buttonInfo {
     title: string;
     btnClass: string;
@@ -152,6 +154,43 @@ export interface IAnswerAudit {
 
 export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols' | 'testint';
 export type ITestManage = 'local' | 'published';
+
+export interface QuoteRecord {
+    id?: number;
+    quote: string;
+    minquote?: string;
+    chi2?: number;
+    len?: number;
+    grade?: number;
+    unique?: number;
+    author?: string;
+    source?: string;
+    translation?: string;
+    testUsage?: string;
+    notes?: string;
+}
+
+export interface DBTable {
+    Table: IDBObjectStore
+    Transaction: IDBTransaction
+    // LengthIdx?: IDBIndex
+    // Chi2Idx?: IDBIndex
+    // GradeIdx?: IDBIndex
+    // UniqueIdx?: IDBIndex
+}
+
+export interface QueryParms {
+    len?: number[]
+    chi2?: number[]
+    grade?: number[]
+    unique?: number[]
+    testUsage?: boolean
+    start?: number
+    limit?: number
+}
+
+export type KeyRangeMap = Record<string, IDBKeyRange>;
+
 /**
  * Base support for all the test generation handlers
  */
@@ -289,6 +328,7 @@ export class CipherTest extends CipherHandler {
      * Any running keys used for the test
      */
     public runningKeys: IRunningKey[];
+    public LocalDB: IDBOpenDBRequest = undefined
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -586,6 +626,206 @@ export class CipherTest extends CipherHandler {
         } else {
             alert('No editor found');
         }
+    }
+    /**
+     * 
+     * @returns The language string for the database selection
+     */
+    public getLangString(): string {
+        if (this.state.curlang === 'es') {
+            return "spanish"
+        }
+        return "english"
+    }
+    /**
+     * 
+     * @param lang 
+     * @returns 
+     */
+    public openDatabase(mode: IDBTransactionMode = "readonly"): Promise<DBTable> {
+        const lang = this.getLangString();
+        return new Promise<DBTable>((resolve, reject) => {
+            let result: DBTable = undefined
+            this.LocalDB = window.indexedDB.open("cipher_quotes", DATABASE_VERSION);
+            this.LocalDB.onerror = (ev) => {
+                reject(`Unable to open database: ${(ev.target as IDBOpenDBRequest).error}`)
+            }
+            this.LocalDB.onsuccess = (ev) => {
+                const db = (ev.target as IDBOpenDBRequest).result;
+                const transaction = db.transaction(lang, mode)
+                resolve({ Table: transaction.objectStore(lang), Transaction: transaction })
+            }
+            this.LocalDB.onupgradeneeded = (ev) => {
+                console.log('Database needs to be upgraded')
+
+                const db = (ev.target as IDBOpenDBRequest).result;
+                db.onerror = (evt) => { console.log(`Database error: ${(evt.target as IDBOpenDBRequest).error}`) }
+                // Create an objectStore for this database
+                const Table = db.createObjectStore(lang, { keyPath: "id", autoIncrement: true });
+                Table.createIndex('minquote', 'minquote', { unique: true });
+                Table.createIndex('len', 'len')
+                Table.createIndex('chi2', 'chi2')
+                Table.createIndex('grade', 'grade')
+                Table.createIndex('unique', 'unique')
+            }
+        })
+    }
+
+    /**
+     * Make a range that can be passed to IndexDB openCursor routines
+     * From https://developer.mozilla.org/en-US/docs/Web/API/IDBKeyRange
+     *       All keys ≥ x         IDBKeyRange.lowerBound(x)
+     *       All keys > x         IDBKeyRange.lowerBound(x, true)
+     *       All keys ≤ y         IDBKeyRange.upperBound(y)
+     *       All keys < y         IDBKeyRange.upperBound(y, true)
+     *       All keys ≥ x && ≤ y  IDBKeyRange.bound(x, y)
+     *       All keys > x && < y  IDBKeyRange.bound(x, y, true, true)
+     *       All keys > x && ≤ y  IDBKeyRange.bound(x, y, true, false)
+     *       All keys ≥ x &&< y   IDBKeyRange.bound(x, y, false, true)
+     *       The key = z          IDBKeyRange.only(z)
+     * @param rangeVals Pair of range numbers.  Undefined for either is unlimited
+     * @returns IDBKeyRange object that can be passed to openCursor
+     */
+    public makeRange(rangeVals: number[]): IDBKeyRange {
+        let lower = rangeVals[0]
+        let upper = rangeVals[1]
+        // Do we have a lower bound?
+        if (lower === -Infinity) {
+            // No Lower bound, how about an upper bound?
+            if (upper === Infinity) {
+                // No bounds, so we just get everything
+                return undefined
+            }
+            // Just an upper bound
+            return IDBKeyRange.upperBound(upper)
+        }
+        // We have a lower bound, How about an upper bound too?
+        if (upper === Infinity) {
+            // No upper bound
+            return IDBKeyRange.lowerBound(lower)
+        }
+        // We have a special case where both values are the same
+        if (lower === upper) {
+            return IDBKeyRange.only(lower)
+        }
+        // Otherwise we have an inclusive range for the lower/upper bounds
+        return IDBKeyRange.bound(lower, upper)
+    }
+    public fixRange(range: number[]): number[] {
+        if (range === undefined) {
+            return [-Infinity, Infinity]
+        }
+        let lower = range[0] ?? -Infinity
+        let upper = range[1] ?? Infinity
+        if (lower <= upper) {
+            return [lower, upper]
+        }
+        return [upper, lower]
+    }
+    public cleanParms(parmsReq: QueryParms): QueryParms {
+        const result: QueryParms = {}
+        result.start = parmsReq.start ?? 0;
+        result.limit = parmsReq.limit ?? 50;
+        result.chi2 = this.fixRange(parmsReq.chi2)
+        result.len = this.fixRange(parmsReq.len)
+        result.grade = this.fixRange(parmsReq.grade)
+        result.unique = this.fixRange(parmsReq.unique)
+        result.testUsage = parmsReq.testUsage
+        return result
+    }
+    /**
+     * 
+     * @param lang 
+     * @param parms 
+     * @returns 
+     */
+    public async getEntriesWithRanges(lang: string, parmsReq: QueryParms): Promise<QuoteRecord[]> {
+        const parms = this.cleanParms(parmsReq)
+
+        return new Promise<QuoteRecord[]>((resolve, reject) => {
+            this.openDatabase().then((db) => {
+                const transaction = db.Transaction
+                const store = transaction.objectStore(lang);
+                // Figure out what type of cursor we will have for 
+                let cursorRequest: IDBRequest<IDBCursorWithValue>
+
+                // We only get to use one key for IndexDB, so let's
+                // pick the ones which are the most likely to filter down
+                let idxname = 'len'
+                let rangeType = this.makeRange(parms.len)
+                if (rangeType === undefined) {
+                    idxname = 'chi2'
+                    rangeType = this.makeRange(parms.chi2)
+                }
+                if (rangeType === undefined) {
+                    idxname = 'grade'
+                    rangeType = this.makeRange(parms.grade)
+                }
+                if (rangeType === undefined) {
+                    idxname = 'unique'
+                    const rangeType = this.makeRange(parms.unique)
+                }
+                // If one of those succeeded then we open the index on that field
+                if (rangeType !== undefined) {
+                    const idx = store.index(idxname)
+                    cursorRequest = idx.openCursor(rangeType)
+                } else {
+                    // Otherwise no filters, so just use the main cursor
+                    cursorRequest = store.openCursor()
+                }
+                const entries: QuoteRecord[] = [];
+                let current = -1;
+
+                cursorRequest.onsuccess = (event) => {
+                    const cursor = cursorRequest.result;
+                    if (cursor) {
+                        // See if this is a valid entry
+                        if (this.matchesRange(cursor.value, parms)) {
+                            // It matches, so see if we need to account for it
+                            current++
+                            // Are we past the ones we should skip? 
+                            if (current >= parms.start) {
+                                // Yes, so remember it
+                                entries.push(cursor.value);
+                                // See if we have gathered enough
+                                if (entries.length >= parms.limit) {
+                                    resolve(entries)
+                                }
+                            }
+
+                        }
+                        cursor.continue();
+                    } else {
+                        // No more records, resolve the Promise
+                        resolve(entries);
+                    }
+                };
+
+                cursorRequest.onerror = (event) => {
+                    reject(`Error reading records: ${(event.target as IDBRequest).error}`);
+                };
+            });
+        })
+    }
+    /**
+     * Determine if a record matches the filter requirements
+     * @param entry Entry to check
+     * @param parms Limits to check entry against
+     * @returns True if the record is a valid match
+     */
+    public matchesRange(entry: QuoteRecord, parms: QueryParms): boolean {
+        let result = (entry.chi2 >= parms.chi2[0] && entry.chi2 <= parms.chi2[1] &&
+            entry.len >= parms.len[0] && entry.len <= parms.len[1] &&
+            entry.grade >= parms.grade[0] && entry.grade <= parms.grade[1] &&
+            entry.unique >= parms.unique[0] && entry.unique <= parms.unique[1]
+        )
+        if (parms.testUsage !== undefined) {
+            let used = entry.testUsage !== undefined && entry.testUsage !== ""
+            if (parms.testUsage !== used) {
+                result = false
+            }
+        }
+        return result
     }
     /**
      * Generate a table showing all the questions with action buttons

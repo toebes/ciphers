@@ -905,10 +905,11 @@ textarea.intnote {
 table.polybius-square th,
 table.polybius-square td {
     border: 1px solid black;
+    text-align: center;
 }
 
 table.polybius-square {
-    width: 10%;
+    width: 20%;
     float: right;
     position: relative;
     padding: 20px;

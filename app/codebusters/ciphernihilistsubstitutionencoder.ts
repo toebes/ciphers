@@ -55,6 +55,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public polybiusMap = new Map<string, string>();
     public sequencesets = [];
 
+    public isLoading = false;
+
     public defaultstate: INihilistState = {
         /** The current cipher type we are working on */
         cipherType: ICipherType.NihilistSubstitution,
@@ -248,11 +250,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     public placeCrib(): ICribInfo {
         const crib = this.minimizeString(this.state.crib);
-        // const strings = this.buildNihilistSequenceSets(
-        //     this.minimizeString(this.state.cipherString),
-        //     9999
-        // );
-        const strings = this.sequencesets
+        const strings = this.buildNihilistSequenceSets(
+            this.minimizeString(this.state.cipherString),
+            9999
+        );
+        // const strings = this.sequencesets
         if (strings.length !== 1) {
             return undefined;
         }
@@ -811,6 +813,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * Loads up the values for Nihilist
      */
     public load(): void {
+        console.log('start')
+        console.log(this.state.cipherString)
         let encoded = this.cleanString(this.state.cipherString);
 
         if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
@@ -841,6 +845,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
 
         this.attachHandlers();
+
+        console.log('finish')
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
@@ -984,6 +990,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     public genDecodeSolution(): JQuery<HTMLElement> {
 
+        //console.log(this.isLoading)
+
+        // if (this.isLoading == true) {
+        //     console.log('loading!')
+        // }
+
+        this.isLoading = true
+
+        //console.log('started')
+
         let cleanKey = this.cleanKeyword.toUpperCase()
         let cleanPolybiusKey = this.cleanPolyKey.toUpperCase()
 
@@ -1094,6 +1110,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //we can fill in 
         //step 2 Given the polybius key and normal key
 
+        this.isLoading = false
+
+        //console.log('finished')
 
         return result;
 

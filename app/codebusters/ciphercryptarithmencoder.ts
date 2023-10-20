@@ -1140,11 +1140,12 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             class: 'tfreq crwork',
         });
         const top = worktable.addHeaderRow()
+        let mapping = this.getOutputMapping()
         top.add('')
         for (let i = 0; i < this.base; i++) {
             top.add(String(i))
         }
-        for (let c in this.state.mapping) {
+        for (let c of mapping) {
             const row = worktable.addBodyRow()
             row.add({
                 celltype: 'th',
@@ -1168,6 +1169,13 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             .append($('<div/>', { class: 'cell shrink' }).append(worktable.generate())))
         return result;
 
+    }
+    /**
+     * Sort the letter mappings so that the work array is not predictable
+     * @returns Alphabetized array of the letters used in the problem
+     */
+    public getOutputMapping(): string[] {
+        return Object.keys(this.state.mapping).sort()
     }
 
     /**

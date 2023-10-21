@@ -94,8 +94,6 @@ export interface ITestState extends IState {
     sols?: string;
     /** A URL to to import test date from on load */
     importURL?: string;
-    /** Which division they are doing the test for */
-    testtype?: ITestType;
     /** UID of the interactive test to run  */
     testID?: string;
     /** JWT for authenticating a user */

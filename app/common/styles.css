@@ -2379,3 +2379,16 @@ table.railfence-sm tbody {
         print-color-adjust: exact;
     }
 }
+
+table.completecolumnar th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
+    margin: 0;
+    padding: 0.1rem 0.15rem;
+    min-width: 30px;
+}
+
+table.completecolumnar td {
+    width: 33px;
+}

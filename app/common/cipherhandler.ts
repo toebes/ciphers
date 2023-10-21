@@ -100,6 +100,8 @@ export interface IState {
     solMap?: string;
     /** Encoded solution to match against */
     solCheck?: string;
+    /** Which division they are doing the test for */
+    testtype?: ITestType;
 }
 /**
  * The types of tests that can be generated

@@ -922,7 +922,7 @@ table.polybius-square {
 table.center {
     margin-left: auto;
     margin-right: auto;
-    float:none;
+    float: none;
 }
 
 .hl {
@@ -2380,7 +2380,8 @@ table.railfence-sm tbody {
     }
 }
 
-table.completecolumnar th, td {
+table.completecolumnar th,
+table.completecolumnar td {
     border: 1px solid black;
     border-collapse: collapse;
     text-align: center;

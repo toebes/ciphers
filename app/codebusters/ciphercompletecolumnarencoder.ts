@@ -242,7 +242,7 @@ class CompleteColumnarSolver {
      * Create a formatted div which shows the Rail Fence solution.
      */
     public getCompleteColumnarAnswer(): JQuery<HTMLElement> {
-        const returnValue = $('<div/>', {class: 'TOSOLVE'});
+        const returnValue = $('<div/>', { class: 'TOSOLVE' });
 
         // TODO: These font sizes are hard-coded, but there should/could probably
         // be some CSS magic here...???
@@ -312,7 +312,7 @@ class CompleteColumnarSolver {
             }
             // So we can arrange the letter in the following order and take a look...
             const solutionCombos = this.getPossibleColumnOrderings(this.columnsToAnalyze[columnToAnalyze], s);
-            if (solutionCombos.length > 6) {
+            if (solutionCombos === undefined || solutionCombos.length > 6) {
                 // bad crib
                 const errorMessage = `WARNING: The crib is bad, we are not going to bother looking at ${this.columnsToAnalyze[columnToAnalyze]} columns.`;
                 this.cipherCompleteColumnarEncoder.setErrorMsg(errorMessage, 'badcols', null);
@@ -403,6 +403,38 @@ class CompleteColumnarSolver {
             }
         }
         else {
+            // TODO implement crib in one row...
+            // determine how many orderings we need (columns - crib.length + 1)
+            // loop thru number of orderings (i)
+            //   take ordering and make a copy.
+            //   loop over columns (j)
+            //   make ordering with starting crib at offset i
+            //   fill in remaining with list of of j
+            //   make combinations for this ordering and add the combinations a list
+            //
+            // do whatever is next with those combinations.
+/*
+            const orderingCount = columnsInThisAnalysis - splitInfo.getCribLength() + 1;
+
+            for (let i = 0; i < orderingCount; i++) {
+                const o = this.cloneColumnOrder(ordering);
+                for (let j = 0; j < columnsInThisAnalysis; j++) {
+                    for (let z = 1; z <= splitInfo.getCribLength(); z++) {
+                        o[J + 1] = [z];
+                    }
+                    let b = this.crib[j];
+                    if (b === undefined) {
+
+                    } else {
+                        o[j + 1] = [b + 1];
+
+                    }
+                }
+            }
+*/
+
+
+
             let cribLetters = this.crib;
             // Get row letters from row that has the crib...
             let rowLetters = splitInfo.getRowLetters(splitInfo.getFirstRow() + 1);
@@ -499,10 +531,17 @@ class CompleteColumnarSolver {
         // build a list of multiple
         const multiplePossibilities = this.findChoosableColumns(ordering);
 
-
-
+        const combinations = this.countCombinations(ordering);
+        // The 20 is an arbitrary number... 
+        if (combinations > 100) {
+            console.log(`Too many combinations (${combinations}) to consider`);
+            return undefined;
+        }
 
         let combos = this.determineUniqueCombinations(ordering, multiplePossibilities);
+        if (combos.length > 20) {
+            return undefined;
+        }
 
         console.log('Pause here for combos');
 
@@ -583,6 +622,14 @@ class CompleteColumnarSolver {
         return result;
     }
 
+    public countCombinations(columnOrder: IColumnOrder): number {
+        let combinations = 1
+        for (let i = 1; i < columnOrder.length; i++) {
+            combinations *= columnOrder[i].length;
+        }
+        return combinations;
+    }
+
     private cloneColumnOrder(columnOrder: IColumnOrder): IColumnOrder {
         let result: IColumnOrder = [];
         for (let ent of columnOrder) {
@@ -606,6 +653,9 @@ class CompleteColumnarSolver {
                     this.removePositionFromOrdering(theNewClone, i, [possiblities[0]]);
                     let newCombos = this.determineUniqueCombinations(theNewClone, possiblities.slice(1));
                     for (let combo of newCombos) {
+                        if (combos.length > 20) {
+                            return combos;
+                        }
                         combos.push(combo);
                     }
 
@@ -660,7 +710,7 @@ class CompleteColumnarSolver {
                     let indexOfNumberToRemove = ordering[i].indexOf(foundAt[0]);
                     if (indexOfNumberToRemove !== -1) {
                         ordering[i].splice(indexOfNumberToRemove, 1);
-                        if (ordering[i].length === 1 && !ordering[0][i]) {
+                        if (ordering[i].length === 1/* && !ordering[0][i]*/) {
                             this.removePositionFromOrdering(ordering, i, ordering[i]);
                         }
                     }
@@ -684,6 +734,8 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     public validTests: ITestType[] = [ITestType.None, ITestType.bstate, ITestType.bregional, ITestType.cregional, ITestType.cstate];
 
     private thisTestType = undefined;
+public isLoading = false;
+    public stopGenerating = false;
 
     public defaultstate: ICompleteColumnarState = {
         operation: 'decode',
@@ -700,6 +752,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         this.redocmdButton,
         this.guidanceButton,
     ];
+
     /** Save and Restore are done on the CipherEncoder Class */
 
     /**
@@ -764,15 +817,18 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
      */
     public setCrib(crib: string): boolean {
         let changed = false;
-        // if (crib.length < 3) {
-        //     this.setErrorMsg('Crib too short', 'crible', null);
-        //     //$('#err').text('The crib should be at least 3 characters, this comes from setCrib()');
-        // }
+        if (this.state.columns - crib.length > 1) {
+            this.setErrorMsg('Crib too short', 'criblen', null);
+            //$('#err').text('The crib should be at least 3 characters, this comes from setCrib()');
+        }
+
         if (crib !== this.state.crib) {
             //$('#err').text('');
+            this.setErrorMsg('', 'criblen', null);
             changed = true;
             this.state.crib = crib.toUpperCase();
         }
+
         return changed
     }
 
@@ -834,11 +890,12 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             .empty()
             .append(res);
 
-        res = this.genSolution(ITestType.None);
-        $('#sol')
+        const target = $('#sol')
+        target
             .empty()
             .append('<hr/>')
-            .append(res);
+            
+        this.genCompleteColumnarSolution(ITestType.None, target);
 
         // Show the update frequency values
         this.displayFreq();
@@ -1325,12 +1382,34 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     /**
      * Generate the HTML that shows the 'W' rail fence solution.
      */
-    public genSolution(testType: ITestType): JQuery<HTMLElement> {
+    public async genCompleteColumnarSolution(testType: ITestType, target: JQuery<HTMLElement>) {
+// If we are already in the process of loading then we need to request that
+        // the loading process stop instead of starting it again.
+        // Note that when the stop is processed it will trigger starting the load
+        // once again to update the UI
+        if (this.isLoading) {
+            this.stopGenerating = true;
+            return;
+        }
+        this.stopGenerating = false;
+        this.isLoading = true;
+
         let r: number;
         const result = $('<div/>');
+target.append(result);
+
         if (this.state.cipherString.length === 0) {
-            return result;
+            this.isLoading = false;
+            return;
         }
+        result.append(CipherCompleteColumnarEncoder.paragraph('Note:  The Ordering string can be any ASCII string.  However, it is sorted and normalized to the natural numbers and those are used when displaying the solution.'))
+
+        if (this.state.columns - this.state.crib.length > 1) {
+            result.append(CipherCompleteColumnarEncoder.heading('Unable to compute solution, check crib...'));
+            // this.isLoading = false;
+            // return;
+        }
+
         result.append($('<h3/>').text('How to solve...'));
 
         const columns = this.state.columns;
@@ -1396,12 +1475,17 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             }
             row = table.addFooterRow();
             for (let i = 0; i < columnCount; i++) {
-                row.add($('<p/>').text('C').append($('<sub/>').text((i+10).toString(36))));
+                row.add($('<p/>').text('C').append($('<sub/>').text((i + 10).toString(36))));
             }
             result.append(ta.generate());
 
+            if (await this.restartCheck()) { return }
+
             result.append(CipherCompleteColumnarEncoder.paragraph('Since the letter \'X\' is used as padding, we can analyze this column configuration for a clue of how many columns the cipher uses.'));
             result.append(CipherCompleteColumnarEncoder.paragraph(this.summarizeXAnalysis(columnCount, rowXCount)));
+
+            if (await this.restartCheck()) { return }
+
             div = $('<div>')
             div.text('Now look for the crib: ').append($('<span>').addClass('allfocus').text(this.state.crib));
             result.append(div);
@@ -1418,7 +1502,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                     for (let i = 0; i < cribInfo.length; i++) {
                         div = $('<div>');
                         rowDetails['row1'] = cribInfo[i][o]
-                        // TODO fix formatting
+// TODO fix formatting
                         div.append('Row ' + cribInfo[i][0] + ' has ' + cribInfo[i][1] + ' of  the ' +
                             this.state.crib.length + ' crib letters in it (').append($('<span>').addClass('allfocus').text(this.state.crib.substring(offset, offset + cribInfo[i][1]))).append(').');
                         offset += cribInfo[i][1];
@@ -1441,7 +1525,31 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         result.append(CipherCompleteColumnarEncoder.paragraph('Since the crib is not split, we know that it is all on one row.  There are two possibilities.'))
         result.append(ccs.getCompleteColumnarSolution());
 
-        return result;
+        // See if they requested an abort to restart the operation before we finish
+        if (await this.restartCheck()) { return }
+
+        // All done, so mark that we are not in the process of updating
+        this.isLoading = false
+    }
+    /**
+     * Check to see if we need to restart the output operation all over
+     * This works by giving a UI break sot that we can check for any input and decide to 
+     * regenerate the output (because it might take a long time)
+     * 
+     * You need to call this whenever an operation has taken a long time to see
+     * if something needs to be updated:
+     *             if (await this.restartCheck()) { return }
+     * @returns A flag indicating that something has changed and we need to abort generating output
+     */
+    public async restartCheck(): Promise<boolean> {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if (this.stopGenerating) {
+            this.stopGenerating = false;
+            setTimeout(() => { this.load() }, 10);
+            this.isLoading = false;
+            return true;
+        }
+        return false
     }
 
     private rowsWithCribCharacters(crib: string, rowLetters: string[]): boolean {
@@ -1478,7 +1586,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             }
             cribMap[i] = [cribCharacters, indexList];
             if (i > 0) {
-                const part1 = cribMap[i-1][1]
+                const part1 = cribMap[i - 1][1]
                 cribMap[i - 1][1].push.apply(part1, indexList);
             }
         }
@@ -1521,7 +1629,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             const firstRowFoundIndexes = []
             const secondRowFoundIndexes = [];
             let combinedRows = ''
-            if (rowNumber < rowLetters.length -1) {
+            if (rowNumber < rowLetters.length - 1) {
                 // Combine the i row and the i+1 row...
                 combinedRows = rowLetters[rowNumber] + rowLetters[rowNumber + 1];
 
@@ -1619,22 +1727,6 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                             rowNumber += skipRowCount;
                         }
                     }
-
-                    // I think we should return an object.
-                    // { cribrows: [[3,4], [6]]
-                    // }
-                    // if it is empty, crib is not found.  the object will have the rows that the crib was found in,
-                    // if found in only 1 row, then the list just has 1 number.  we can tell this by checking the row counts
-                    // Note if you get a firstRowCount of 0 and a complete secondRowCount, then you can skip the step where
-                    // the second row becomes the first row....around between lines 1091-1092 in in the if after 1092.
-
-                    // {
-                    //     [
-                    //         {rows: [3, 3, 4, 1]},
-                    //         {rows: [6, 4]}
-                    //     ]
-                    // }
-
                 }
             }
             if (firstRowFoundIndexes.length > 0 || secondRowFoundIndexes.length > 0) {

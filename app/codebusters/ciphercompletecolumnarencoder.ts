@@ -24,8 +24,6 @@ type IColumnOrder = number[][];
  */
 
 // TODO: fix the YWLY bug of multiple Ys not detecting the crib is split
-// TODO: fix WAYT -- order gets messed up!
-// TODO: AYTOE -- garbage order with missing col 5
 
 interface ICompleteColumnarState extends IState {
     /** CompleteColumnar columns value */
@@ -133,31 +131,6 @@ class CompleteColumnarSolver {
             orderString[indexOfSortedLetter] = ' ';
         }
 
-        /*
-        if (isAllDigits(columnOrder, true)) {
-            // Assumed numbers, convert to indexes.
-            for (let i = 0; i < columnOrder.length; i++) {
-                // subtract 1 so it is a zero based array index...
-                this.columnOrder.push(Number(columnOrder.charAt(i)) - 1);
-            }
-        }
-        else if (isAllLetters(columnOrder)) {
-            // Assume keyword, so sort the letters and convert to numbers
-            const keyword = columnOrder.split('');
-
-            const keywordSorted = keyword.slice().sort();
-
-            for (const letter of keywordSorted) {
-                letter.match(/^[ -~]+$/);
-                const indexOfSortedLetter = keyword.indexOf(letter);
-                this.columnOrder.push(indexOfSortedLetter);
-                keyword[indexOfSortedLetter] = '#';
-            }
-        }
-        else {
-            $('#err').text('Column order can not be determined... ');
-        }
-*/
         const text = sanitizeString(inputText);
 
         const charsOver = (text.length % this.columnCount);
@@ -211,31 +184,16 @@ class CompleteColumnarSolver {
     }
 
     public getCompleteColumnarEncoding(): string {
-
-
-        // const c = this.state.cipherString
-        //
-        // const charsOver = (c.length % this.state.columns);
-        // const padLength = (charsOver > 0) ? this.state.columns - charsOver : charsOver;
-        // console.log('Pad length is: ' + padLength);
-        // const plainText = c + repeatStr('X', 1);
-        // console.log('So we encode: ' + plainText);
-        //
-        // let encoding = '';
-        // const columnOrderArray = columnOrder.split('');
-        // for (let i = 0; i < this.state.columns; i++) {
-        //     const index = Number(columnOrder.charAt(i));
-        //     for (let j = index; j < plainText.length; j += this.state.columns) {
-        //         encoding += plainText[j];
-        //     }
-        //
-        // }
-        // console.log('Encoded as: ' + encoding);
-        //
-        // return encoding;
-        //
-
         return this.solution;
+    }
+
+    public getSolutionColumnOrder(): string {
+        const oneBasedColumns = [];
+        this.columnOrder.forEach((element) => {
+           oneBasedColumns.push(element + 1);
+        });
+
+        return oneBasedColumns.join(',');
     }
 
     /**
@@ -270,51 +228,53 @@ class CompleteColumnarSolver {
         } else if (this.textLength > 45) {
             tableClass = 'railfence-md';
         }
+        let foundAnswer = false;
 
         const returnValue = $('<div/>');
-
-        const columnOrder: number[] = [this.columnCount];
+        // Not sure this is useful information.
+//        returnValue.append(CipherCompleteColumnarEncoder.paragraph('We can find the crib in ' + this.columnsToAnalyze.length + ' position(s) of the ' + this.columnsToAnalyze[columnToAnalyze] + ' column encoding.'));
 
         for (let columnToAnalyze = 0; columnToAnalyze < this.columnsToAnalyze.length; columnToAnalyze++) {
 
             console.log('Split Info: ' + this.cribSplitInformation[columnToAnalyze]);
 
             const s = this.cribSplitInformation[columnToAnalyze];
-            returnValue.append(CipherCompleteColumnarEncoder.paragraph('We can find the crib in ' + this.columnsToAnalyze.length + ' position(s) of the ' + this.columnsToAnalyze[columnToAnalyze] + ' column encoding.'));
             let details = $('<div>');
+
+            details.append($('<h5>').append(`${this.columnsToAnalyze[columnToAnalyze]} column possibilities`));
+
+            if (s.isSplitOverRows()) {
+                details.append($('<div>').append('Since the crib is found split, we know that ' + ' ends a row and ' + ' starts the subsequent row.'));
+            } else {
+                details.append(CipherCompleteColumnarEncoder.paragraph('Since the crib is not split, we know that it is contained all on one row.'))
+            }
+
 
             details.append(`Row ${s.getFirstRow()} has ${s.getLettersInFirstRow()} of the ${s.getCribLength()} crib letters in it (`);
             details.append($('<span>').addClass('allfocus').text(this.crib.substring(0, s.getLettersInFirstRow())))
-                .append(`).  So for row ${s.getFirstRow()}, the column order has to `)
+                .append(`).`);
+            if (s.isSplitOverRows()) {
+                details.append(`So for row ${s.getFirstRow()}, the column order has to `)
                 .append($('<span>').addClass('fq').text('end')).append(' with these letters.');
+            }
 
             returnValue.append(details);
-
-            let firstRowLetters = s.getRowLetters(s.getFirstRow());
-
-            for (let x = 0; x < this.crib.substring(0, s.getLettersInFirstRow()).length; x++) {
-                columnOrder[x - 6] = firstRowLetters.indexOf(this.crib.substring(0 + x, x + 1));
-            }
 
             if (s.getLettersInSecondRow() > 0) {
                 details = $('<div>');
                 details.append(`Row ${s.getFirstRow() + 1} has ${s.getLettersInSecondRow()} of the ${s.getCribLength()} crib letters in it (`);
                 details.append($('<span>').addClass('allfocus').text(this.crib.substring(s.getLettersInFirstRow())))
-                    .append(`).  So for row ${s.getFirstRow() + 1}, the column order has to `)
+                    .append(`).`);
+                if (s.isSplitOverRows()) {
+                    details.append(`So for row ${s.getFirstRow() + 1}, the column order has to `)
                     .append($('<span>').addClass('fq').text('start')).append(' with these letters.');
-
-                let secondRowLetters = s.getRowLetters(s.getFirstRow() + 1);
-
-                for (let x = 0; x < this.crib.substring(s.getLettersInFirstRow()).length; x++) {
-                    console.log('==========> ' + this.crib.substring(s.getLettersInFirstRow() + x, s.getLettersInFirstRow() + x + 1));
-                    columnOrder[x] = secondRowLetters.indexOf(this.crib.substring(s.getLettersInFirstRow() + x, s.getLettersInFirstRow() + x + 1)) + 1;
                 }
             }
             // So we can arrange the letter in the following order and take a look...
             const solutionCombos = this.getPossibleColumnOrderings(this.columnsToAnalyze[columnToAnalyze], s);
-            if (solutionCombos === undefined || solutionCombos.length > 6) {
+            if (solutionCombos === undefined || solutionCombos.length > 10) {
                 // bad crib
-                const errorMessage = `WARNING: The crib is bad, we are not going to bother looking at ${this.columnsToAnalyze[columnToAnalyze]} columns.`;
+                const errorMessage = `WARNING: The crib is not adequate to compute a solution for ${this.columnsToAnalyze[columnToAnalyze]} columns.`;
                 this.cipherCompleteColumnarEncoder.setErrorMsg(errorMessage, 'badcols', null);
                 continue;
             } else {
@@ -325,14 +285,32 @@ class CompleteColumnarSolver {
 
             returnValue.append(details).append($('<p>'));
 
-            let ta2 = undefined;
+            if (solutionCombos.length === 0) {
+                returnValue.append(`There are no valid column orderings for this crib placement.`).append($('<p>'));
+
+            }
+
+            const actualColumnOrder = this.getSolutionColumnOrder();
+            let potentialSolutionTable = undefined;
             let trial = undefined;
             for (let x = 0; x < solutionCombos.length; x++) {
+                const potentialColumnOrder = solutionCombos[x].join(',');
                 trial = $('<div>');
-                trial.append(CipherCompleteColumnarEncoder.paragraph('Column order: ').append($('<span>').addClass('allfocus').text(solutionCombos[x].join(','))));
+                trial.append(CipherCompleteColumnarEncoder.paragraph('Trying column order: ').append($('<span>').addClass('allfocus').text(potentialColumnOrder)));
                 returnValue.append(trial);
-                ta2 = CipherCompleteColumnarEncoder.makeCompleColumnarJTTable(this.columnsToAnalyze[columnToAnalyze], this.solution, this.getTextLength(), solutionCombos[x]);
-                returnValue.append(ta2.generate());
+                potentialSolutionTable = CipherCompleteColumnarEncoder.makeCompleColumnarJTTable(this.columnsToAnalyze[columnToAnalyze], this.solution, this.getTextLength(), solutionCombos[x]);
+                returnValue.append(potentialSolutionTable.generate());
+
+                if (actualColumnOrder === potentialColumnOrder) {
+                    returnValue.append($('<p>').append($('<span>').addClass('allfocus').text('This looks like the answer!  All done.')));
+                    foundAnswer = true;
+                    break;
+                } else {
+                    returnValue.append(CipherCompleteColumnarEncoder.paragraph('Text does not appear to make sense, keep trying other combinations...'));
+                }
+            }
+            if (foundAnswer) {
+                break;
             }
 
         }
@@ -342,15 +320,6 @@ class CompleteColumnarSolver {
 
     private getPossibleColumnOrderings(columnsInThisAnalysis: number, splitInfo: CribSplitInformation): number[][] {
 
-        // start with second row...find all occurrences of crib letters in second row
-        const secondRowLetters = splitInfo.getRowLetters(splitInfo.getFirstRow() + 1);
-        console.log('ROW 2 letters: ' + secondRowLetters);
-
-        // Get the part of the crib in the second row.  This fills the array from the FRONT
-        let cribInSecondRow = this.crib.substring(splitInfo.getLettersInFirstRow());
-
-        let cribLetters = cribInSecondRow.split('');
-        let index = 0, rowOrder = [];
         // > ??EVE<
         // >R  ? ?<
         // subrtact method
@@ -368,10 +337,21 @@ class CompleteColumnarSolver {
             }
             ordering.push(anOrder);
         }
+        const orderingCombinations = [];
 
-        // step 2 (R from 2nd row)
         // [[3], [1,2,4,5,6],[1,2,4,5,6],[1,2,4,5,6],[1,2,4,5,6],[1,2,4,5,6]]
         if (splitInfo.isSplitOverRows()) {
+            // start with second row...find all occurrences of crib letters in second row
+            const secondRowLetters = splitInfo.getRowLetters(splitInfo.getFirstRow() + 1);
+            console.log('ROW 2 letters: ' + secondRowLetters);
+
+            // Get the part of the crib in the second row.  This fills the array from the FRONT
+            let cribInSecondRow = this.crib.substring(splitInfo.getLettersInFirstRow());
+
+            let cribLetters = cribInSecondRow.split('');
+            let index = 0, rowOrder = [];
+
+            // step 2 (R from 2nd row)
             // cribLetters contains letters from the second row, so go in the first position.
             let orderIndex = 1;
             for (let l of cribLetters) {
@@ -401,116 +381,73 @@ class CompleteColumnarSolver {
                 this.removePositionFromOrdering(ordering, orderIndex, foundAt);
                 orderIndex++;
             }
+            // step 3 (last E from first row in 2 spots)
+            // [[3], [1,2,5], [1,2,5],[4,6], [1,2,5], [4,6]]
+            // Get the part of the crib in the first row.  This fill the array from the BACK
+
+            const firstRowLetters = splitInfo.getRowLetters(splitInfo.getFirstRow());
+
+            console.log('ROW 1 letters: ' + firstRowLetters);
+
+            let cribInFirstRow = this.crib.substring(0, splitInfo.getLettersInFirstRow());
+            cribLetters = cribInFirstRow.split('');
+
+
+            // TODO if crib is > # columns then :
+            //  1. the column is known we are done
+            //  2. or it at least eliminates an option if there are more than one possibility.
+            let outputColumn = firstRowLetters.length;
+            for (let i = cribLetters.length - 1; i >= 0; i--) {
+                let toFind = cribLetters[i];
+                console.log('i = ' + i + ' Check for the letter ' + toFind);
+                const foundAt = [];
+
+                for (let testColumn of ordering[outputColumn]) {
+                    if (firstRowLetters[testColumn - 1] === toFind) {
+                        foundAt.push(testColumn);
+                        if (foundAt.length > 1) {
+                            console.log(`ROW 1 Found a duplicate for ${toFind} at ${(index + 1)}`);
+                        } else {
+                            console.log('ROW 1 Found occurrence of ' + toFind + ' at ' + (index + 1));
+                        }
+                    }
+                }
+
+                this.removePositionFromOrdering(ordering, outputColumn, foundAt);
+                outputColumn--;
+            }
+            orderingCombinations.push(ordering);
         }
         else {
-            // TODO implement crib in one row...
+            let cribLetters = this.crib;
+            // Entire crib is contained on one row.
             // determine how many orderings we need (columns - crib.length + 1)
             // loop thru number of orderings (i)
             //   take ordering and make a copy.
-            //   loop over columns (j)
-            //   make ordering with starting crib at offset i
-            //   fill in remaining with list of of j
-            //   make combinations for this ordering and add the combinations a list
-            //
+            //   loop over crib (j)
+            //     set crib position and remove from everywhere else
+            //     make combinations for this ordering and add the combinations to a list
             // do whatever is next with those combinations.
-/*
-            const orderingCount = columnsInThisAnalysis - splitInfo.getCribLength() + 1;
-
+            const rowWithCrib = splitInfo.getRowLetters(splitInfo.getFirstRow());
+            let cribLength = splitInfo.getCribLength();
+            const orderingCount = columnsInThisAnalysis - cribLength + 1;
             for (let i = 0; i < orderingCount; i++) {
-                const o = this.cloneColumnOrder(ordering);
-                for (let j = 0; j < columnsInThisAnalysis; j++) {
-                    for (let z = 1; z <= splitInfo.getCribLength(); z++) {
-                        o[J + 1] = [z];
-                    }
-                    let b = this.crib[j];
-                    if (b === undefined) {
-
-                    } else {
-                        o[j + 1] = [b + 1];
-
-                    }
+                let orderingClone = this.cloneColumnOrder(ordering);
+                for (let j = 1; j <= cribLength; j++) {
+                    let letterIndex = rowWithCrib.indexOf(cribLetters[j - 1]);
+                    this.removePositionFromOrdering(orderingClone, j + i, [letterIndex + 1]);
                 }
-            }
-*/
-
-
-
-            let cribLetters = this.crib;
-            // Get row letters from row that has the crib...
-            let rowLetters = splitInfo.getRowLetters(splitInfo.getFirstRow() + 1);
-            if (splitInfo.getLettersInFirstRow() > 0) {
-                rowLetters = splitInfo.getRowLetters(splitInfo.getFirstRow());
-            }
-
-            // Don't know where the crib starts in this row...for crib 4 and cols 6, here are possibilities...
-            //    ??????
-            //    ------
-            //    ccccxx
-            //    xccccx
-            //    xxcccc
-            //  TODO this is not working... too agressive with the removes...
-            for (let startCrib = 1; startCrib <= (rowLetters.length - cribLetters.length + 1); startCrib++) {
-                let orderIndex = startCrib;
-                for (let l of cribLetters) {
-                    const foundAt = [];
-                    let startIndex = 0, foundCount = 0;
-                    while ((index = rowLetters.indexOf(l, startIndex)) > -1) {
-                        foundAt.push(index + 1);
-                        if (foundCount > 0) {
-                            console.log(`Found duplicate of ${l} at ${index + 1}.`);
-                        } else {
-                            console.log(`Found occurrence of ${l} at ${index + 1}.`);
-                        }
-                        startIndex = index + 1;
-                        foundCount++;
-                    }
-                    this.removePositionFromOrdering(ordering, orderIndex, foundAt);
-                    orderIndex++;
-                }
+                orderingCombinations.push(orderingClone);
             }
         }
-        // step 3 (last E from first row in 2 spots)
-        // [[3], [1,2,5], [1,2,5],[4,6], [1,2,5], [4,6]]
-        // Get the part of the crib in the first row.  This fill the array from the BACK
 
-        const firstRowLetters = splitInfo.getRowLetters(splitInfo.getFirstRow());
-
-        console.log('ROW 1 letters: ' + firstRowLetters);
-
-        let cribInFirstRow = this.crib.substring(0, splitInfo.getLettersInFirstRow());
-        cribLetters = cribInFirstRow.split('');
-
-
-        // TODO if crib is > # columns then :
-        //  1. the column is known we are done
-        //  2. or it at least eliminates an option if there are more than one possibility.
-        let outputColumn = firstRowLetters.length;
-        for (let i = cribLetters.length - 1; i >= 0; i--) {
-            let toFind = cribLetters[i];
-            console.log('i = ' + i + ' Check for the letter ' + toFind);
-            const foundAt = [];
-            
-            for (let testColumn of ordering[outputColumn]) {
-                if (firstRowLetters[testColumn - 1] === toFind) {
-                    foundAt.push(testColumn);
-                    if (foundAt.length > 1) {
-                        console.log(`ROW 1 Found a duplicate for ${toFind} at ${(index + 1)}`);
-                    } else {
-                        console.log('ROW 1 Found occurrence of ' + toFind + ' at ' + (index + 1));
-                    }
-                }
-            }
-            
-            this.removePositionFromOrdering(ordering, outputColumn, foundAt);
-            outputColumn--;
-        }
 
         // step 4 V from 1st row
         // [[3], [1,5], [1,5], [4,6],[2],[4,6]]
 
         // Step 5
         // Check for X in 4 or 6 and we are cheating...Eliminate 4 or 6
-        // todo
+        // TODO - this is a shortcut for solving that can be implemented...
         // [[3], [1,5],[1,5],[4],[2],[6]]
 
         // Step 6 go thru array and collect entries that have LEN > 1 into SET.  (i.e [1,5]) It is possible to have the same number in different sets?? UNLIKELY
@@ -521,88 +458,32 @@ class CompleteColumnarSolver {
         // This makes a copy... we need this...
 
         //const combinations = [].concat(ordering.slice(1));
+        let combos = [];
+        for (const o of orderingCombinations) {
 
-        this.printOrderingPossibilities(ordering);
+            this.printOrderingPossibilities(o);
 
-        // Now I think the bug is in the combinator because it needs to be a bit more smart.  user everf and 6 columns.
-        // you get [3],[5],[1,4,6],[1,4,6],[2],[4,6] and that is totally valid but the combinator does not handle it...it
-        // would give these combinations: [3,5,1,4,2,6],[3,5,1,6,2,4],[3,5,4,1,2,6],[3,5,6,1,2,4]
+            // Now I think the bug is in the combinator because it needs to be a bit more smart.  user everf and 6 columns.
+            // you get [3],[5],[1,4,6],[1,4,6],[2],[4,6] and that is totally valid but the combinator does not handle it...it
+            // would give these combinations: [3,5,1,4,2,6],[3,5,1,6,2,4],[3,5,4,1,2,6],[3,5,6,1,2,4]
 
-        // build a list of multiple
-        const multiplePossibilities = this.findChoosableColumns(ordering);
+            // build a list of multiple
+            const multiplePossibilities = this.findChoosableColumns(o);
 
-        const combinations = this.countCombinations(ordering);
-        // The 20 is an arbitrary number... 
-        if (combinations > 100) {
-            console.log(`Too many combinations (${combinations}) to consider`);
-            return undefined;
+            const combinations = this.countCombinations(o);
+            // The 20 is an arbitrary number...
+            if (combinations > 100) {
+                console.log(`Too many combinations (${combinations}) to consider`);
+                return undefined;
+            }
+
+            let c = this.determineUniqueCombinations(o, multiplePossibilities);
+            if (c.length > 20) {
+                return undefined;
+            } else {
+                combos = combos.concat(c);
+            }
         }
-
-        let combos = this.determineUniqueCombinations(ordering, multiplePossibilities);
-        if (combos.length > 20) {
-            return undefined;
-        }
-
-        console.log('Pause here for combos');
-
-        /*
-                for (let p in EE) {
-                    console.log('DDDUPP: '+ EE[p]);
-                    for (let i = 0; i < combinations.length; i++) {
-                        if (combinations[i].indexOf(EE[p]) > -1) {
-                            console.log('need to split it...');
-                            // Replace the found value at i, remove this value in all other locations other than i.
-                            const c = [].concat(combinations.slice(0));
-                            c[i] = [EE[p]];
-                            for (let j = i + 1; j < c.length; j++) {
-                                const f = c[j].indexOf(EE[p]);
-                                if (f > -1) {
-                                    c[j].splice(f, 1);
-                                }
-                            }
-                            // recurse here
-                        }
-                    }
-                }
-        */
-        // need recursive routine to do this elmination.
-
-        // dump no more than 5 rows... first 2, 2 with crib, last.
-        //
-        // copy array.
-        // [[3], [1,5],[1,5],[4],[2],[6]]
-
-        // [[3], [1,5], [1,5], [4,6], [2], [4,6]]
-
-        /*
-        3, 1, 5, 4, 2, 6
-        3, 1, 5, 6, 2, 4
-        3, 5, 1, 4, 2, 6
-        3, 5, 1, 6, 2, 4
-
-        2! * 2! = 4
-
-        // [[3], [1,5], [1,5], [2,4,6], [2,4,6], [2,4,6]]
-        3, 1, 5, 2, 4, 6
-        3, 1, 5, 2, 6, 4
-        3, 1, 5, 4, 2, 6
-        3, 1, 5, 4, 6, 2
-        3, 1, 5, 6, 2, 4
-        3, 1, 5, 6, 4, 2
-        3, 5, 1, 2, 4, 6
-        3, 5, 1, 2, 6, 4
-        3, 5, 1, 4, 2, 6
-        3, 5, 1, 4, 6, 2
-        3, 5, 1, 6, 2, 4
-        3, 5, 1, 6, 4, 2
-
-        2! * 3! = 12
-        -----------------------------
-
-        (6 - 4)! *
-
-
-         */
 
         return combos;
     }
@@ -643,7 +524,6 @@ class CompleteColumnarSolver {
 
         let combos: number[][] = [];
         let didSplit = false;
-//        let theClone = [].concat(combinations.slice(0));
         let theClone = this.cloneColumnOrder(combinations)
         for (let i = 1; i < theClone.length; i++) {
             if (theClone[i].length > 1) {
@@ -817,13 +697,7 @@ public isLoading = false;
      */
     public setCrib(crib: string): boolean {
         let changed = false;
-        if (this.state.columns - crib.length > 1) {
-            this.setErrorMsg('Crib too short', 'criblen', null);
-            //$('#err').text('The crib should be at least 3 characters, this comes from setCrib()');
-        }
-
         if (crib !== this.state.crib) {
-            //$('#err').text('');
             this.setErrorMsg('', 'criblen', null);
             changed = true;
             this.state.crib = crib.toUpperCase();
@@ -851,11 +725,13 @@ public isLoading = false;
     public setColumns(columns: number): boolean {
         let changed = false;
 
+        let maxColumns = this.thisTestType === ITestType.cstate ? 11 : 9;
+
         if (columns < 3) {
             columns = 3
             changed = true;
         }
-        else if (columns > 11) {
+        else if (columns > maxColumns) {
             columns = 11;
             changed = true;
         }
@@ -863,17 +739,13 @@ public isLoading = false;
         if (columns !== this.state.columns) {
             // TODO: the min and max should probably be made to CONSTANTS.
 
-            let maxColumns = this.thisTestType === ITestType.cstate ? 11 : 9;
-            // if (this.state.testtype === ITestType.cregional || this.state.testtype === ITestType.bregional) {
-            //     maxColumns = 9;
-            // }
-
-            if (columns >= 4 && columns <= maxColumns) {
+            if (columns >= 3 && columns <= maxColumns) {
                 this.state.columns = columns;
+                this.setErrorMsg('', 'colcount', null);
                 $('#err').text('');
                 changed = true;
             } else {
-                $('#err').text('For a ' + this.getTestTypeName(this.thisTestType) + ', the number of columns must be between 4 and ' + maxColumns + '.');
+                this.setErrorMsg(`For a ${this.getTestTypeName(this.thisTestType)}, the number of columns must be between 3 and ${maxColumns}`, 'colcount', null);
             }
         }
 
@@ -917,40 +789,6 @@ public isLoading = false;
         let sampleLink: JQuery<HTMLElement> = undefined;
         const questionText = this.state.question.toUpperCase();
 
-        // if (this.state.crib.length < 3) {
-        //     msg = 'The crib should be at least 3 characters in length.';
-        // }
-        // if (this.state.rails === 'decode') {
-        //     // Look to see if the Hint Digits appear in the Question Text
-        //     let notfound = '';
-        //     if (this.state.hint === undefined || this.state.hint === '') {
-        //         msg = "No Hint Digits provided";
-        //     } else {
-        //         for (let c of this.state.hint) {
-        //             if (questionText.indexOf(c) < 0) {
-        //                 notfound += c;
-        //             }
-        //         }
-        //         if (notfound !== '') {
-        //             if (notfound.length === 1) {
-        //                 msg = "The Hint Digit " + notfound +
-        //                     " doesn't appear to be mentioned in the Question Text.";
-        //             } else {
-        //                 msg = "The Hint Digits " + notfound +
-        //                     " don't appear to be mentioned in the Question Text.";
-        //             }
-        //             showsample = true;
-        //         }
-        //     }
-        // } else {
-        //     // Look to see if the crib appears in the quesiton text
-        //     let crib = this.minimizeString(this.state.crib);
-        //     if (questionText.indexOf(crib) < 0) {
-        //         msg = "The Crib Text " + this.state.crib +
-        //             " doesn't appear to be mentioned in the Question Text.";
-        //         showsample = true;
-        //     }
-        // }
         if (showsample) {
             sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
         }
@@ -989,20 +827,6 @@ public isLoading = false;
     public attachHandlers(): void {
         super.attachHandlers();
 
-        // Dont need this it is on the super().
-        /*
-        $('#keyword')
-            .off('input')
-            .on('input', (e) => {
-                const newkeyword = $(e.target).val() as string;
-                if (newkeyword !== this.state.keyword) {
-                    this.markUndo('keyword');
-                    if (this.setKeyword(newkeyword)) {
-                        this.updateOutput();
-                    }
-                }351426
-            });
-        */
         $('#columns')
             .off('input')
             .on('input', (e) => {
@@ -1044,25 +868,6 @@ public isLoading = false;
                 this.state.operation = 'decode'
 
             });
-        // $('#railOffset')
-        //     .off('inout')
-        //     .on('input', (e) => {
-        //         const newRailOffset = Number($(e.target).val());
-        //         if (newRailOffset !== this.state.railOffset) {
-        //             this.markUndo(null);
-        //             if (this.setRailOffset(newRailOffset)) {
-        //                 this.updateOutput();
-        //             }
-        //         }
-        //         this.advancedir = 0;
-        //     });
-        // $('#isRailRange')
-        //     .off('click')
-        //     .on('click', (e) => {
-        //         //let isRailRange: boolean = Boolean($(e.target).val());
-        //         this.toggleRailRange();
-        //         this.updateOutput();
-        //     });
     }
 
     public setUIDefaults(): void {
@@ -1089,12 +894,6 @@ public isLoading = false;
         const result = $('<div/>');
         this.genTestUsage(result);
 
-        // let operationButtons = [
-        //     {id: 'mrow', value: 'decode', title: 'Decode'},
-        //     {id: 'crow', value: 'crypt', title: 'Cryptanalysis'},
-        // ];
-        // result.append(JTRadioButton(6, 'operation', operationButtons, this.state.operation));
-        //
         result.append(this.createQuestionTextDlg());
 
         this.genQuestionFields(result);
@@ -1107,23 +906,11 @@ public isLoading = false;
         inputbox.append(
             JTFIncButton('Columns', 'columns', this.state.columns, 'small-12 medium-4 large-4')
         );
-        //result.append(inputbox);
+        // Create an input for the column order in the cryptanalysis case.
+        inputbox.append(JTFLabeledInput('Ordering', 'text', 'columnorder', '', 'small-12 medium-4 large-4'));
 
-        // if (this.state.operation === 'decode') {
-        //     // Either one or the other of these two input boxes will be shown...
-        //     // Create an input for the keyword in the decode case.
-        //     inputbox.append(JTFLabeledInput('Keyword', 'text', 'keyword', '', 'small-12 medium-4 large-4')
-        //     );
-        //     result.append(inputbox);
-        // }
-        // else {
-            // Create an input for the column order in the cryptanalysis case.
-            inputbox.append(JTFLabeledInput('Ordering', 'text', 'columnorder', '', 'small-12 medium-4 large-4'));
-        //    result.append(inputbox);
-
-            inputbox.append(JTFLabeledInput('Crib', 'text', 'crib', '', 'small-12 medium-4 large-4'));
-            result.append(inputbox);
-        // }
+        inputbox.append(JTFLabeledInput('Crib', 'text', 'crib', '', 'small-12 medium-4 large-4'));
+        result.append(inputbox);
 
         return result;
     }
@@ -1208,28 +995,12 @@ public isLoading = false;
 
         const ccs: CompleteColumnarSolver = new CompleteColumnarSolver(this, this.state.columns, this.state.keyword, this.state.cipherString, this.state.crib);
 
-        // if (!ccs.isEncoded()) {
-        //     this.setErrorMsg('ERROR Column count is ' + this.state.columns +
-        //         ', but column ordering string contains ' + this.state.keyword.length +
-        //         ' characters/digits.', 'ttt', null);
-        //     const messageText = $('<div/>', {class: 'TOSOLVE'});
-        //     messageText.append($('<p/>').text('Unable to generate answer, check Column count and ordering vaiables.'));
-        //     result.append(messageText);
-        //     return result;
-        // }
-
         if (ccs.getRowCount() > 15) {
             errorMessage = 'WARNING: Based on the cipher text length and number of columns, the number of rows needed for solving exceeds 15.';
             this.setErrorMsg(errorMessage, 'rowe', null);
         } else {
             this.setErrorMsg('', 'rowe', null);
         }
-        // else {
-        //     this.setErrorMsg('', 'ttt', null);
-        // }
-
-        // Get the text characters from each rail, concatenated together
-        //result.append($('<p/>').text(ccs.getCompleteColumnarEncoding()));
 
         const encodedText = $('<div/>', { class: 'TOSOLVE' });
         const strings: string[][] = this.makeReplacement(ccs.getCompleteColumnarEncoding(), 48);
@@ -1255,9 +1026,6 @@ public isLoading = false;
         ap3.append('_');
         ap1.append(ap2, ap3);
         answer.append(ap1);
-
-        // let answer = $('<div/>', { class: 'TOANSWER'});
-        // answer.append(this.state.cipherString);
 
         result.append(answer, '<p/>');
 
@@ -1345,9 +1113,6 @@ public isLoading = false;
 
         const ccs: CompleteColumnarSolver = new CompleteColumnarSolver(this, this.state.columns, this.state.keyword, this.state.cipherString, this.state.crib);
 
-        // Get the text characters from each rail, concatenated together
-        //result.append($('<p/>').text(ccs.getCompleteColumnarEncoding()));
-
         const strings: string[][] = this.makeReplacement(ccs.getCompleteColumnarEncoding(), 48);
         for (const strset of strings) {
             result.append($('<p/>').text(strset[0]));
@@ -1383,7 +1148,7 @@ public isLoading = false;
      * Generate the HTML that shows the 'W' rail fence solution.
      */
     public async genCompleteColumnarSolution(testType: ITestType, target: JQuery<HTMLElement>) {
-// If we are already in the process of loading then we need to request that
+        // If we are already in the process of loading then we need to request that
         // the loading process stop instead of starting it again.
         // Note that when the stop is processed it will trigger starting the load
         // once again to update the UI
@@ -1396,19 +1161,23 @@ public isLoading = false;
 
         let r: number;
         const result = $('<div/>');
-target.append(result);
+        target.append(result);
 
         if (this.state.cipherString.length === 0) {
             this.isLoading = false;
             return;
         }
-        result.append(CipherCompleteColumnarEncoder.paragraph('Note:  The Ordering string can be any ASCII string.  However, it is sorted and normalized to the natural numbers and those are used when displaying the solution.'))
 
-        if (this.state.columns - this.state.crib.length > 1) {
-            result.append(CipherCompleteColumnarEncoder.heading('Unable to compute solution, check crib...'));
-            // this.isLoading = false;
-            // return;
+        const sanitizedCipherString = sanitizeString(this.state.cipherString);
+        if (sanitizedCipherString.indexOf(this.state.crib) === -1) {
+            this.setErrorMsg(`The crib '${this.state.crib}' was not found in the plain text.`, 'nocrib', null);
+            this.isLoading = false;
+            return;
+        } else {
+            this.setErrorMsg('', 'nocrib', null);
         }
+
+        result.append(CipherCompleteColumnarEncoder.paragraph('Note:  The Ordering string can be any ASCII string.  However, it is sorted (using ASCII values) and normalized to the natural numbers and those are used when displaying the solution.'))
 
         result.append($('<h3/>').text('How to solve...'));
 
@@ -1419,7 +1188,7 @@ target.append(result);
         const cipherTextLength = ccs.getTextLength();
         const possibleColumns = [];
         const columnsToAnalyze = {};
-        for (let i = 4; i < 12; i++) {
+        for (let i = 3; i < 12; i++) {
             if (cipherTextLength % i === 0) {
                 possibleColumns.push(i);
             }
@@ -1481,8 +1250,8 @@ target.append(result);
 
             if (await this.restartCheck()) { return }
 
-            result.append(CipherCompleteColumnarEncoder.paragraph('Since the letter \'X\' is used as padding, we can analyze this column configuration for a clue of how many columns the cipher uses.'));
-            result.append(CipherCompleteColumnarEncoder.paragraph(this.summarizeXAnalysis(columnCount, rowXCount)));
+            //result.append(CipherCompleteColumnarEncoder.paragraph('Since the letter \'X\' is used as padding, we can analyze this column configuration for a clue of how many columns the cipher uses.'));
+            //result.append(CipherCompleteColumnarEncoder.paragraph(this.summarizeXAnalysis(columnCount, rowXCount)));
 
             if (await this.restartCheck()) { return }
 
@@ -1495,25 +1264,30 @@ target.append(result);
             let cribLocation = this.checkConsecutiveRowsForCrib(ccs, this.state.crib, rowLetters);
             if (cribLocation.length > 0) {
                 const rowDetails = {};
-                result.append(CipherCompleteColumnarEncoder.paragraph('We can find the crib in ' + cribLocation.length + ' positions of the ' + columnCount + ' column encoding.'));
+                result.append(CipherCompleteColumnarEncoder.paragraph('We can find the crib in ' + cribLocation.length + ' positions of the ' + columnCount + ' column encoding:'));
                 for (const o of cribLocation) {
                     const cribInfo = o['rows'];
                     let offset = 0;
+                    // Create some space...
+                    result.append($('<p>'));
                     for (let i = 0; i < cribInfo.length; i++) {
                         div = $('<div>');
                         rowDetails['row1'] = cribInfo[i][o]
-// TODO fix formatting
-                        div.append('Row ' + cribInfo[i][0] + ' has ' + cribInfo[i][1] + ' of  the ' +
-                            this.state.crib.length + ' crib letters in it (').append($('<span>').addClass('allfocus').text(this.state.crib.substring(offset, offset + cribInfo[i][1]))).append(').');
+
+                        let ccc = `has ${cribInfo[i][1]} of the ${this.state.crib.length}`;
+                        if (cribInfo[i][1] === 0) {
+                            continue;
+                        } else if (cribInfo[i][1] === this.state.crib.length) {
+                            ccc = `has all ${cribInfo[i][1]}`;
+                        }
+
+                        div.append(`Row ${cribInfo[i][0]} ${ccc} crib letters in it (`)
+                            .append($('<span>').addClass('allfocus').text(this.state.crib.substring(offset, offset + cribInfo[i][1]))).append(').');
                         offset += cribInfo[i][1];
                         result.append(div);
                     }
+                    result.append($('<p>'));
                 }
-                // const ta2 = CipherCompleteColumnarEncoder.makeCompleColumnarJTTable(columnCount, cipherText, cipherTextLength, [3,5,1,4,2,6]);
-                // result.append(ta2.generate());
-
-
-
             } else {
                 result.append(CipherCompleteColumnarEncoder.paragraph('Crib not found, rule out an encoding of ' + columnCount + ' columns.'))
             }
@@ -1521,8 +1295,6 @@ target.append(result);
 
         result.append(CipherCompleteColumnarEncoder.heading('Analyze possibilities...'));
 
-        result.append(CipherCompleteColumnarEncoder.paragraph('Since the crib is found split, we know that ' + ' ends a row and ' + ' starts the subsequent row.'));
-        result.append(CipherCompleteColumnarEncoder.paragraph('Since the crib is not split, we know that it is all on one row.  There are two possibilities.'))
         result.append(ccs.getCompleteColumnarSolution());
 
         // See if they requested an abort to restart the operation before we finish
@@ -1600,17 +1372,6 @@ target.append(result);
         let columnsFitEncoding = [];
 
         const cribLetters = crib.split('');
-        // let cribSignature = new Map([
-        //     [' ', 0]
-        // ]);
-        // for (const letter of cribLetters) {
-        //     if (cribSignature.get(letter) === undefined) {
-        //         cribSignature.set(letter, 1);
-        //     } else {
-        //         cribSignature.set(letter, cribSignature.get(letter) + 1);
-        //     }
-        // }
-        // cribSignature.delete(' ');
 
         // Create a object that contains the counts of letters that make up the crib.  It will allow us to
         // determine if the crib letters exist over 2 rows.
@@ -1681,14 +1442,21 @@ target.append(result);
                             break;
                         }
                     }
+                    // If no part of the crib was found in the first row, go to the next row (it will become the first row)
+                    if (firstRowCount === 0) {
+                        continue;
+                    }
                     // Now search the second row for the remaining crib letters.  This ensures a crib that is split
                     // does not have a letter 'behind' it.  This does not prevent a bad crib choice, but we should
                     // be able to point it out later.
-                    for (let letterIndex = 0; letterIndex < cribLetters.length; letterIndex++) {
+                    // check crib again, starting from the back.
+                    for (let letterIndex = cribLetters.length - 1; letterIndex >= 0; letterIndex--) {
                         let foundCribLetterIndex = rowLetters[rowNumber + 1].indexOf(cribLetters[letterIndex]);
                         if (foundCribLetterIndex !== -1) {
                             secondRowFoundIndexes.push(foundCribLetterIndex);
                             secondRowCount++;
+                        } else {
+                            break;
                         }
                     }
 
@@ -1714,11 +1482,6 @@ target.append(result);
                             columnsFitEncoding.push(o);
                             const cribSplitInformation = new CribSplitInformation(cribLetters.length, rowLetters);
                             completeColumnarSolver.addColumnsToAnalyze(rowLetters[rowNumber].length, cribSplitInformation);
-                            // if (completeColumnarSolver.getCribSplitInformation().length === 0) {
-                            //     completeColumnarSolver.addColumnsToAnalyze(rowLetters[rowNumber].length, cribSplitInformation);
-                            // } else {
-                            //     completeColumnarSolver.setBadCribChoice();
-                            // }
 
                             cribSplitInformation.setSplitInformation(rowNumber, firstRowCount - (overlap - x), secondRowCount - x);
 

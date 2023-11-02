@@ -3,7 +3,7 @@ import { CipherAffineEncoder } from './cipheraffineencoder';
 import { CipherBaconianEncoder } from './cipherbaconianencoder';
 import { CipherCompleteColumnarEncoder } from './ciphercompletecolumnarencoder';
 import { CipherCryptarithmEncoder } from './ciphercryptarithmencoder';
-import { CipherDancingMenEncoder } from './cipherdancingmenencoder';
+import { CipherRunningMenEncoder } from './cipherrunningmenencoder';
 import { CipherEncoder } from './cipherencoder';
 import { CipherFractionatedMorseEncoder } from './cipherfractionatedmorseencoder';
 import { CipherGenerateHomophone } from './cipherhomophones';
@@ -71,11 +71,11 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherClass: CipherCryptarithmEncoder,
         canPrint: true,
     },
-    DancingMen: {
-        cipherType: ICipherType.DancingMen,
-        cipherClass: CipherDancingMenEncoder,
-        canPrint: true,
-    },
+    // DancingMen: {
+    //     cipherType: ICipherType.RunningMen,
+    //     cipherClass: CipherRunningMenEncoder,
+    //     canPrint: true,
+    // },
     Encoder: {
         cipherType: ICipherType.Aristocrat,
         cipherClass: CipherEncoder,
@@ -149,6 +149,11 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     RunningKey: {
         cipherType: ICipherType.RunningKey,
         cipherClass: CipherRunningKeyEncoder,
+        canPrint: true,
+    },
+    RunningMen: {
+        cipherType: ICipherType.RunningMen,
+        cipherClass: CipherRunningMenEncoder,
         canPrint: true,
     },
     RSA: {

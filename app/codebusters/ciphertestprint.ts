@@ -83,7 +83,7 @@ export class CipherTestPrint extends CipherTest {
         let usesMorseTable = false;
         let usesPortaTable = false;
         let usesVigenereTable = false;
-        let usesDancingMenTable = false;
+        let usesRunningMenTable = false;
         let SpanishCount = 0;
         let SpecialBonusCount = 0;
         elem.empty();
@@ -219,8 +219,8 @@ export class CipherTestPrint extends CipherTest {
             if (cipherhandler.usesVigenereTable) {
                 usesVigenereTable = true;
             }
-            if (cipherhandler.usesDancingMenTable) {
-                usesDancingMenTable = true;
+            if (cipherhandler.usesRunningMenTable) {
+                usesRunningMenTable = true;
             }
             page.append(thisquestion);
             const thisheight = thisquestion.outerHeight();
@@ -341,12 +341,12 @@ export class CipherTestPrint extends CipherTest {
             $('.vigeneretable').hide();
         }
         /**
-         * See if we need to show/hide the Dancing Men Table
+         * See if we need to show/hide the Running Men Table
          */
-        if (usesDancingMenTable) {
-            $('.dancingmentable').show();
+        if (usesRunningMenTable) {
+            $('.runningmentable').show();
         } else {
-            $('.dancingmentable').hide();
+            $('.runningmentable').hide();
         }
         /**
          * Lastly we need to print out the score table

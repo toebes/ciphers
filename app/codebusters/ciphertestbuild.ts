@@ -224,9 +224,9 @@ export class CipherTestBuild extends CipherTest {
             testtype: allButARegional, operation: 'decode'
         },
         {
-            title: "Dancing Men",
+            title: "Running Men",
             guidance: '[20-30 Characters]',
-            group: 3, weight: 0.5, cipherType: ICipherType.DancingMen,
+            group: 3, weight: 0.5, cipherType: ICipherType.RunningMen,
         },
         {
             title: 'Atbash',

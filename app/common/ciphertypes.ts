@@ -13,6 +13,7 @@ export const enum ICipherType {
     Beaufort = 'beaufort',
     Bifid = 'bifid',
     DancingMen = 'dancingmen',
+    RunningMen = 'runningmen',
     Cadenus = 'cadenus',
     Caesar = 'caesar',
     Checkerboard = 'checkerboard',
@@ -214,11 +215,11 @@ const cipherTypeConfig = new Map(<[ICipherType, any][]>[
         },
     ],
     [
-        ICipherType.DancingMen,
+        ICipherType.RunningMen,
         {
-            title: 'Dancing Men',
-            id: 'dancingmen',
-            equiv: [ICipherType.DancingMen],
+            title: 'Running Men',
+            id: 'runningmen',
+            equiv: [ICipherType.RunningMen],
         },
     ],
     [

@@ -203,7 +203,7 @@ export class CipherTest extends CipherHandler {
         'Math',
         'Morse',
         'Transposition',
-        'DancingMen',
+        'RunningMen',
         'PigPen',
         'TapCode',
         'Other'
@@ -223,7 +223,7 @@ export class CipherTest extends CipherHandler {
         [ICipherType.CompleteColumnar, 'Transposition'],
         [ICipherType.Affine, 'Math',],
         [ICipherType.Caesar, 'Table',],
-        [ICipherType.DancingMen, 'DancingMen',],
+        [ICipherType.RunningMen, 'RunningMen',],
         [ICipherType.Atbash, 'Table',],
         [ICipherType.Vigenere, 'Table',],
         [ICipherType.RunningKey, 'Other',],
@@ -293,7 +293,7 @@ export class CipherTest extends CipherHandler {
     public questionChoices: INewCipherEntry[] = [
         { cipherType: ICipherType.Affine },
         { cipherType: ICipherType.Caesar },
-        { cipherType: ICipherType.DancingMen },
+        { cipherType: ICipherType.RunningMen },
         { cipherType: ICipherType.Atbash },
         { cipherType: ICipherType.Aristocrat },
         { cipherType: ICipherType.CompleteColumnar },

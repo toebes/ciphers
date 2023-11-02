@@ -284,7 +284,7 @@ config = {
             filename: 'Rule-Summary-2024.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'Rule-Summary-2024.html'),
             cipher: 'TestManage',
-            title: 'Proposed 2023-2024 Season Science Olympiad Rules Summary',
+            title: '2023-2024 Season Science Olympiad Rules Summary',
         }),
         new HtmlWebpackPlugin({
             inject: false,
@@ -346,8 +346,15 @@ config = {
             inject: false,
             filename: 'DancingMenEncrypt.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
-            cipher: 'DancingMen',
-            title: 'Dancing Men Encoder',
+            cipher: 'RunningMen',
+            title: 'Running Men Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'RunningMenEncrypt.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
+            cipher: 'RunningMen',
+            title: 'Running Men Encoder',
         }),
         new HtmlWebpackPlugin({
             inject: false,

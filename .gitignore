@@ -33,3 +33,4 @@ app/codebusters/all.out
 __pycache__/*
 onelinefun.py
 quotes.py
+.ftpdeploy.js

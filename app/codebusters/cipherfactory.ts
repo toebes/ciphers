@@ -233,6 +233,12 @@ export function CipherFactory(ciphertypestr: string, reqlang: string): CipherHan
 export function CipherPrintFactory(ciphertype: ICipherType, reqlang: string): CipherHandler {
     let lang = 'en';
     let cipherTool: CipherHandler;
+    // Map any DancingMen to use RunningMen
+    // We can't put it in the table, otherwise we would
+    // allow them to see DancingMen for inserting into a test
+    if (ciphertype === ICipherType.DancingMen) {
+        ciphertype = ICipherType.RunningMen
+    }
     if (typeof reqlang !== 'undefined') {
         lang = reqlang.toLowerCase();
     }

@@ -77,7 +77,7 @@ class CribSplitInformation {
 class CompleteColumnarSolver {
     private readonly cipherCompleteColumnarEncoder: CipherCompleteColumnarEncoder;
     // The encoding
-    private readonly solution: string;
+    private readonly cipherText: string;
     private readonly crib: string;
     // Length of padding...
     private readonly padLength: number;
@@ -103,7 +103,7 @@ class CompleteColumnarSolver {
      */
     constructor(compColEnc: CipherCompleteColumnarEncoder, columns: number, columnOrder: string, inputText: string, crib: string) {
         this.cipherCompleteColumnarEncoder = compColEnc;
-        this.solution = '';
+        this.cipherText = '';
         this.columnCount = columns;
         this.columnOrder = [];
         this.crib = crib;
@@ -143,12 +143,12 @@ class CompleteColumnarSolver {
         for (let i = 0; i < this.columnCount; i++) {
             const index = this.columnOrder[i];
             for (let j = index; j < plainText.length; j += this.columnCount) {
-                this.solution += plainText[j];
+                this.cipherText += plainText[j];
             }
 
         }
         this.rowCount = plainText.length / this.columnCount;
-        console.log('---->>>Encoded as: ' + this.solution);
+        console.log('---->>>Encoded as: ' + this.cipherText);
     }
 
     public setBadCribChoice(): void {
@@ -168,7 +168,7 @@ class CompleteColumnarSolver {
     }
 
     public isEncoded(): boolean {
-        return this.solution.length > 0;
+        return this.cipherText.length > 0;
     }
 
     public getTextLength(): number {
@@ -184,7 +184,16 @@ class CompleteColumnarSolver {
     }
 
     public getCompleteColumnarEncoding(): string {
-        return this.solution;
+        return this.cipherText;
+    }
+
+    public getColumnEncodingOrder(): string {
+        const columnEncodingOrder = [];
+        for (let i = 0; i < this.columnCount; i++) {
+            let col = this.columnOrder.indexOf(i);
+            columnEncodingOrder.push(col + 1);
+        }
+        return columnEncodingOrder.join(',');
     }
 
     public getSolutionColumnOrder(): string {
@@ -254,7 +263,7 @@ class CompleteColumnarSolver {
             details.append($('<span>').addClass('allfocus').text(this.crib.substring(0, s.getLettersInFirstRow())))
                 .append(`).`);
             if (s.isSplitOverRows()) {
-                details.append(`So for row ${s.getFirstRow()}, the column order has to `)
+                details.append(`  So for row ${s.getFirstRow()}, the column order has to `)
                 .append($('<span>').addClass('fq').text('end')).append(' with these letters.');
             }
 
@@ -266,7 +275,7 @@ class CompleteColumnarSolver {
                 details.append($('<span>').addClass('allfocus').text(this.crib.substring(s.getLettersInFirstRow())))
                     .append(`).`);
                 if (s.isSplitOverRows()) {
-                    details.append(`So for row ${s.getFirstRow() + 1}, the column order has to `)
+                    details.append(`  So for row ${s.getFirstRow() + 1}, the column order has to `)
                     .append($('<span>').addClass('fq').text('start')).append(' with these letters.');
                 }
             }
@@ -287,10 +296,27 @@ class CompleteColumnarSolver {
 
             if (solutionCombos.length === 0) {
                 returnValue.append(`There are no valid column orderings for this crib placement.`).append($('<p>'));
+            } else {
+                returnValue.append(CipherCompleteColumnarEncoder.paragraph('With this information, we can derive different combinations for column ordering.'));
 
+                let combosToTry = '';
+                let trials = $('<div>');
+                let paragraph = $('<p>');
+                let firstPass = true;
+                for (let x = 0; x < solutionCombos.length; x++) {
+                    if (firstPass) {
+                        paragraph.append('Check these column orders: ');
+                        firstPass = false;
+                    } else {
+                        paragraph.append('; ');
+                    }
+                    const potentialColumnOrder = solutionCombos[x].join(',');
+                    paragraph.append($('<span>').addClass('allfocus').text(potentialColumnOrder));
+                }
+                returnValue.append(trials.append(paragraph));
             }
 
-            const actualColumnOrder = this.getSolutionColumnOrder();
+            const actualColumnOrder = this.getColumnEncodingOrder();
             let potentialSolutionTable = undefined;
             let trial = undefined;
             for (let x = 0; x < solutionCombos.length; x++) {
@@ -298,7 +324,7 @@ class CompleteColumnarSolver {
                 trial = $('<div>');
                 trial.append(CipherCompleteColumnarEncoder.paragraph('Trying column order: ').append($('<span>').addClass('allfocus').text(potentialColumnOrder)));
                 returnValue.append(trial);
-                potentialSolutionTable = CipherCompleteColumnarEncoder.makeCompleColumnarJTTable(this.columnsToAnalyze[columnToAnalyze], this.solution, this.getTextLength(), solutionCombos[x]);
+                potentialSolutionTable = CipherCompleteColumnarEncoder.makeCompleColumnarJTTable(this.columnsToAnalyze[columnToAnalyze], this.cipherText, this.getTextLength(), solutionCombos[x]);
                 returnValue.append(potentialSolutionTable.generate());
 
                 if (actualColumnOrder === potentialColumnOrder) {

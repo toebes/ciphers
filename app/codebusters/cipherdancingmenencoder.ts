@@ -11,18 +11,18 @@ import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState } from './cipherencoder';
 
 /**
- * CipherRunningMenEncoder - This class handles all of the actions associated with encoding
- * a RunningMen cipher.
+ * CipherDancingMenEncoder - This class handles all of the actions associated with encoding
+ * a DancingMen cipher.
  */
-export class CipherRunningMenEncoder extends CipherEncoder {
+export class CipherDancingMenEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL = 'TestGuidance.html#RunningMen';
-    public usesRunningMenTable = true;
+    public guidanceURL = 'TestGuidance.html#DancingMen';
+    public usesDancingMenTable = true;
 
     public validTests: ITestType[] = [ITestType.None, ITestType.aregional];
     public defaultstate: IEncoderState = {
         cipherString: '',
-        cipherType: ICipherType.RunningMen,
+        cipherType: ICipherType.DancingMen,
         replacement: {},
     };
     public state: IEncoderState = cloneObject(this.defaultstate) as IEncoderState;
@@ -98,7 +98,7 @@ export class CipherRunningMenEncoder extends CipherEncoder {
         }
         const strings = this.makeReplacement(this.state.cipherString, width);
         const table = new JTTable({
-            class: 'ansblock shrink cell unstriped runningmen' + extraclass,
+            class: 'ansblock shrink cell unstriped dancingmen' + extraclass,
         });
         const tosolve = 0;
         const toanswer = 1;
@@ -203,7 +203,7 @@ export class CipherRunningMenEncoder extends CipherEncoder {
         }
         const strings = this.makeReplacement(this.state.cipherString, width);
         const table = new JTTable({
-            class: 'ansblock shrink cell unstriped runningmen' + extraclass,
+            class: 'ansblock shrink cell unstriped dancingmen' + extraclass,
         });
         let tosolve = 0;
         if (this.state.operation === 'encode') {
@@ -220,17 +220,17 @@ export class CipherRunningMenEncoder extends CipherEncoder {
         result.append($('<h3/>').text('How to Solve'));
         result.append(
             $('<p/>').text(
-                'First you want to find the table of the Running Men characters in the resources for the test. ' +
+                'First you want to find the table of the Dancing Men characters in the resources for the test. ' +
                 'It should look like:'
             )
         );
         result.append(
-            $('<p/>', { class: 'runningmen center' }).text(
+            $('<p/>', { class: 'dancingmen center' }).text(
                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
             )
         )
         result.append(
-            $('<p/>', { class: 'runningmen center' }).text(
+            $('<p/>', { class: 'dancingmen center' }).text(
                 '0123456789'
             )
         )

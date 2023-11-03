@@ -131,9 +131,9 @@ export function JTGetURL(menu: menuItem[], ciphertype: ICipherType, lang: string
     if (ciphertype === ICipherType.Xenocrypt) {
         ciphertype = ICipherType.Aristocrat;
     }
-    // Handle rename of DancingMen to RunningMen
-    if (ciphertype === ICipherType.DancingMen) {
-        ciphertype = ICipherType.RunningMen;
+    // Handle temporary rename of DancingMen to RunningMen
+    if (ciphertype === ICipherType.RunningMen) {
+        ciphertype = ICipherType.DancingMen;
     }
     for (const item of menu) {
         if (item.cipherType !== undefined && item.cipherType === ciphertype && item.lang === lang) {

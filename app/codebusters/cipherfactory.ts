@@ -3,7 +3,7 @@ import { CipherAffineEncoder } from './cipheraffineencoder';
 import { CipherBaconianEncoder } from './cipherbaconianencoder';
 import { CipherCompleteColumnarEncoder } from './ciphercompletecolumnarencoder';
 import { CipherCryptarithmEncoder } from './ciphercryptarithmencoder';
-import { CipherRunningMenEncoder } from './cipherrunningmenencoder';
+import { CipherDancingMenEncoder } from './cipherdancingmenencoder';
 import { CipherEncoder } from './cipherencoder';
 import { CipherFractionatedMorseEncoder } from './cipherfractionatedmorseencoder';
 import { CipherGenerateHomophone } from './cipherhomophones';
@@ -71,11 +71,11 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherClass: CipherCryptarithmEncoder,
         canPrint: true,
     },
-    // DancingMen: {
-    //     cipherType: ICipherType.RunningMen,
-    //     cipherClass: CipherRunningMenEncoder,
-    //     canPrint: true,
-    // },
+    DancingMen: {
+        cipherType: ICipherType.DancingMen,
+        cipherClass: CipherDancingMenEncoder,
+        canPrint: true,
+    },
     Encoder: {
         cipherType: ICipherType.Aristocrat,
         cipherClass: CipherEncoder,
@@ -149,11 +149,6 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     RunningKey: {
         cipherType: ICipherType.RunningKey,
         cipherClass: CipherRunningKeyEncoder,
-        canPrint: true,
-    },
-    RunningMen: {
-        cipherType: ICipherType.RunningMen,
-        cipherClass: CipherRunningMenEncoder,
         canPrint: true,
     },
     RSA: {
@@ -236,8 +231,8 @@ export function CipherPrintFactory(ciphertype: ICipherType, reqlang: string): Ci
     // Map any DancingMen to use RunningMen
     // We can't put it in the table, otherwise we would
     // allow them to see DancingMen for inserting into a test
-    if (ciphertype === ICipherType.DancingMen) {
-        ciphertype = ICipherType.RunningMen
+    if (ciphertype === ICipherType.RunningMen) {
+        ciphertype = ICipherType.DancingMen
     }
     if (typeof reqlang !== 'undefined') {
         lang = reqlang.toLowerCase();

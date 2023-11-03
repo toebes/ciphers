@@ -346,15 +346,8 @@ config = {
             inject: false,
             filename: 'DancingMenEncrypt.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
-            cipher: 'RunningMen',
-            title: 'Running Men Encoder',
-        }),
-        new HtmlWebpackPlugin({
-            inject: false,
-            filename: 'RunningMenEncrypt.html',
-            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
-            cipher: 'RunningMen',
-            title: 'Running Men Encoder',
+            cipher: 'DancingMen',
+            title: 'Dancing Men Encoder',
         }),
         new HtmlWebpackPlugin({
             inject: false,

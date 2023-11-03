@@ -1627,21 +1627,21 @@ div.vsolv {
 }
 
 @font-face {
-    font-family: runningmen;
+    font-family: dancingmen;
     src: url(fonts/DancingMenSO.woff);
 }
 
-.runningmen.ansblock .q.v {
+.dancingmen.ansblock .q.v {
     border: none;
     font-size: 24pt;
-    font-family: runningmen;
+    font-family: dancingmen;
 }
 
-.runningmen.ansblock td.a {
+.dancingmen.ansblock td.a {
     border: 1px solid block;
 }
-p.runningmen {
-    font-family: runningmen;
+p.dancingmen {
+    font-family: dancingmen;
     font-size: 24pt;
 }
 

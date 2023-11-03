@@ -215,11 +215,11 @@ const cipherTypeConfig = new Map(<[ICipherType, any][]>[
         },
     ],
     [
-        ICipherType.RunningMen,
+        ICipherType.DancingMen,
         {
-            title: 'Running Men',
-            id: 'runningmen',
-            equiv: [ICipherType.RunningMen],
+            title: 'Dancing Men',
+            id: 'dancingmen',
+            equiv: [ICipherType.DancingMen],
         },
     ],
     [

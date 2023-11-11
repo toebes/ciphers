@@ -56,6 +56,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public sequencesets = [];
 
     public isLoading = false;
+    public stopGenerating = false;
 
     public defaultstate: INihilistState = {
         /** The current cipher type we are working on */
@@ -834,14 +835,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .empty()
             .append(res);
 
-        $('#sol')
+        let target = $('#sol')
+        target
             .empty()
             .append('<hr/>')
             .append($('<h3/>').text('How to solve'));
         if (encoded.length > 0) { //&& !this.containsJ()) {
-            $('#sol').append(this.genSolution(ITestType.None))
+            this.genNihilistSolution(ITestType.None, target)
         } else {
-            $('#sol').append("Enter a valid question to see the solution process.")
+            target.append("Enter a valid question to see the solution process.")
         }
 
         this.attachHandlers();
@@ -970,40 +972,67 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         return result;
     }
-
-
-    public genSolution(testType: ITestType): JQuery<HTMLElement> {
-
-        // if (document.readyState === 'loading') {
-        //     console.log('loading')
-        // }
-
-        if (this.state.operation === 'crypt') {
-            return this.genCryptanalysisSolution();
+    /**
+     * Generate a solution for the Nihilist cipher
+     * @param _testType Type of test we are generating the output for
+     * @param target DOM element to put the output into
+     */
+    public async genNihilistSolution(_testType: ITestType, target: JQuery<HTMLElement>) {
+        // If we are already in the process of loading then we need to request that
+        // the loading process stop instead of starting it again.
+        // Note that when the stop is processed it will trigger starting the load
+        // once again to update the UI
+        if (this.isLoading) {
+            this.stopGenerating = true;
+            return;
         }
-        if (this.state.operation === 'decode') {
-            return this.genDecodeSolution();
-        }
-        return this.genEncodeSolution();
-    }
 
-
-    public genDecodeSolution(): JQuery<HTMLElement> {
-
-        //console.log(this.isLoading)
-
-        // if (this.isLoading == true) {
-        //     console.log('loading!')
-        // }
-
+        this.stopGenerating = false;
         this.isLoading = true
+        if (this.state.operation === 'crypt') {
+            this.genCryptanalysisSolution(target);
+        } else if (this.state.operation === 'decode') {
+            this.genDecodeSolution(target);
+        } else {
+            this.genEncodeSolution(target);
+        }
 
-        //console.log('started')
+        // See if they requested an abort to restart the operation before we finish
+        if (await this.restartCheck()) { return }
 
+        // All done, so mark that we are not in the process of updating
+        this.isLoading = false
+    }
+    /**
+     * Check to see if we need to restart the output operation all over
+     * This works by giving a UI break sot that we can check for any input and decide to 
+     * regenerate the output (because it might take a long time)
+     * 
+     * You need to call this whenever an operation has taken a long time to see
+     * if something needs to be updated:
+     *             if (await this.restartCheck()) { return }
+     * @returns A flag indicating that something has changed and we need to abort generating output
+     */
+    public async restartCheck(): Promise<boolean> {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if (this.stopGenerating) {
+            this.stopGenerating = false;
+            setTimeout(() => { this.load() }, 10);
+            this.isLoading = false;
+            return true;
+        }
+        return false
+    }
+    /**
+     * 
+     * @param target DOM element to put output into
+     */
+    public async genDecodeSolution(target: JQuery<HTMLElement>) {
         let cleanKey = this.cleanKeyword.toUpperCase()
         let cleanPolybiusKey = this.cleanPolyKey.toUpperCase()
 
         const result = $('<div/>', { id: 'solution' });
+        target.append(result);
 
         result.append($('<div/>', { class: 'callout secondary' }).text("Step 1: Fill out the Polybius Table"));
 
@@ -1023,6 +1052,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //true to center table, false to not fill rest of alphabet
         let onlyKeyPolyTable = this.buildPolybiusTable(true, false).generate()
 
+        if (await this.restartCheck()) { return }
+
         //result.append($('<div/>').append(polybiusTable));
         result.append(onlyKeyPolyTable)
 
@@ -1030,6 +1061,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         //true to center table, true to fill alphabet
         let fullPolyTable = this.buildPolybiusTable(true, true).generate()
+
+        if (await this.restartCheck()) { return }
 
         result.append(fullPolyTable)
 
@@ -1047,6 +1080,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let encoded = this.cleanString(this.state.cipherString);
 
         result.append(this.buildSolverNihilist(encoded, cleanKey, 'keystring'))
+
+        if (await this.restartCheck()) { return }
 
         result.append(`Then, using our completed Polybius Table, convert 
         the repeating key word string into 2 digit numbers by finding the row and column of each letter on the table`)
@@ -1070,6 +1105,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         result.append(this.buildSolverNihilist(encoded, cleanKey, 'keynumbers'))
 
+        if (await this.restartCheck()) { return }
+
         result.append($('<div/>', { class: 'callout secondary' }).text("Step 3: Determine the Plaintext"));
 
         result.append(`Subtract the keyword numbers from the ciphertext numbers, giving us the plaintext numbers`)
@@ -1081,6 +1118,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let fullPolyTable2 = this.buildPolybiusTable(true, true).generate()
 
         result.append(fullPolyTable2)
+
+        if (await this.restartCheck()) { return }
 
         result.append(this.buildSolverNihilist(encoded, cleanKey, 'plaintext'))
 
@@ -1109,20 +1148,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //since we are given the polybius key in Decode problems, 
         //we can fill in 
         //step 2 Given the polybius key and normal key
-
-        this.isLoading = false
-
-        //console.log('finished')
-
-        return result;
-
     }
 
-    public genEncodeSolution(): JQuery<HTMLElement> {
+    public async genEncodeSolution(target: JQuery<HTMLElement>) {
         return
     }
 
-    public genCryptanalysisSolution(): JQuery<HTMLElement> {
+    public async genCryptanalysisSolution(target: JQuery<HTMLElement>) {
         return
     }
 
@@ -1179,12 +1211,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             width
         );
         const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
+        // const blankrow = table.addBodyRow();
+        // blankrow.add("\u00A0");
         let source = 0;
         if (this.state.operation === 'encode') {
             source = 1;
         }
         for (const sequenceset of strings) {
             const rowcipher = table.addBodyRow();
+            const blankrow1 = table.addBodyRow();
+            const blankrow2 = table.addBodyRow();
+            blankrow1.add("\u00A0");
+            blankrow2.add("\u00A0");
             for (const token of sequenceset[source]) {
                 rowcipher.add(token);
             }

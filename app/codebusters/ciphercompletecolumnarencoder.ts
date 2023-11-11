@@ -454,14 +454,27 @@ class CompleteColumnarSolver {
             //     set crib position and remove from everywhere else
             //     make combinations for this ordering and add the combinations to a list
             // do whatever is next with those combinations.
-            const rowWithCrib = splitInfo.getRowLetters(splitInfo.getFirstRow());
+            const rowWithCrib = splitInfo.getRowLetters(splitInfo.getLettersInFirstRow() > 0 ? splitInfo.getFirstRow() : splitInfo.getFirstRow() + 1);
             let cribLength = splitInfo.getCribLength();
             const orderingCount = columnsInThisAnalysis - cribLength + 1;
             for (let i = 0; i < orderingCount; i++) {
                 let orderingClone = this.cloneColumnOrder(ordering);
+                let index = 0;
                 for (let j = 1; j <= cribLength; j++) {
-                    let letterIndex = rowWithCrib.indexOf(cribLetters[j - 1]);
-                    this.removePositionFromOrdering(orderingClone, j + i, [letterIndex + 1]);
+                    const foundAt = [];
+                    let startIndex = 0, foundCount = 0;
+                    while ((index = rowWithCrib.indexOf(cribLetters[j - 1], startIndex)) > -1) {
+                        foundAt.push(index + 1);
+                        if (foundCount > 0) {
+                            console.log(`Found a duplicate for ${cribLetters[j - 1]} at index ${(index + 1)}`);
+
+                        } else {
+                            console.log(`Found occurance of ${cribLetters[j - 1]} at index ${(index + 1)}`);
+                        }
+                        startIndex = index + 1;
+                        foundCount++;
+                    }
+                    this.removePositionFromOrdering(orderingClone, j + i, foundAt);
                 }
                 orderingCombinations.push(orderingClone);
             }
@@ -526,7 +539,7 @@ class CompleteColumnarSolver {
                 }
             }
         }
-        return result;
+        return result.sort();
     }
 
     public countCombinations(columnOrder: IColumnOrder): number {
@@ -1276,11 +1289,6 @@ public isLoading = false;
 
             if (await this.restartCheck()) { return }
 
-            //result.append(CipherCompleteColumnarEncoder.paragraph('Since the letter \'X\' is used as padding, we can analyze this column configuration for a clue of how many columns the cipher uses.'));
-            //result.append(CipherCompleteColumnarEncoder.paragraph(this.summarizeXAnalysis(columnCount, rowXCount)));
-
-            if (await this.restartCheck()) { return }
-
             div = $('<div>')
             div.text('Now look for the crib: ').append($('<span>').addClass('allfocus').text(this.state.crib));
             result.append(div);
@@ -1460,8 +1468,12 @@ public isLoading = false;
 
                     // Search first row in order of crib letters until a crib letter is not found and avoid duplicates
                     for (let letterIndex = 0; letterIndex < cribLetters.length; letterIndex++) {
-                        let foundCribLetterIndex = rowLetters[rowNumber].indexOf(cribLetters[letterIndex]);
-                        if (foundCribLetterIndex !== -1 && firstRowFoundIndexes.indexOf(foundCribLetterIndex) === -1) {
+                        let foundCribLetterIndex = rowLetters[rowNumber].indexOf(cribLetters[letterIndex]); ;
+                        while (firstRowFoundIndexes.includes(foundCribLetterIndex) && foundCribLetterIndex !== -1) {
+                            foundCribLetterIndex = rowLetters[rowNumber].indexOf(cribLetters[letterIndex], foundCribLetterIndex + 1);
+                        }
+
+                        if (foundCribLetterIndex !== -1/* && firstRowFoundIndexes.indexOf(foundCribLetterIndex) === -1*/) {
                             firstRowFoundIndexes.push(foundCribLetterIndex);
                             firstRowCount++;
                         } else {

@@ -1211,12 +1211,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             width
         );
         const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
+        // const blankrow = table.addBodyRow();
+        // blankrow.add("\u00A0");
         let source = 0;
         if (this.state.operation === 'encode') {
             source = 1;
         }
         for (const sequenceset of strings) {
             const rowcipher = table.addBodyRow();
+            const blankrow1 = table.addBodyRow();
+            const blankrow2 = table.addBodyRow();
+            blankrow1.add("\u00A0");
+            blankrow2.add("\u00A0");
             for (const token of sequenceset[source]) {
                 rowcipher.add(token);
             }

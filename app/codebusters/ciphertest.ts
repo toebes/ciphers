@@ -709,6 +709,11 @@ export class CipherTest extends CipherHandler {
         // Otherwise we have an inclusive range for the lower/upper bounds
         return IDBKeyRange.bound(lower, upper)
     }
+    /**
+     * Convert all undefined values in a range to the appropriate Infinity range
+     * @param range Range to fix
+     * @returns Updated range
+     */
     public fixRange(range: number[]): number[] {
         if (range === undefined) {
             return [-Infinity, Infinity]
@@ -720,6 +725,11 @@ export class CipherTest extends CipherHandler {
         }
         return [upper, lower]
     }
+    /**
+     * Normalize all the parameters, setting ranges for any undefined values
+     * @param parmsReq Parameters structure of limits on query
+     * @returns Cleaned up set of parameters
+     */
     public cleanParms(parmsReq: QueryParms): QueryParms {
         const result: QueryParms = {}
         result.start = parmsReq.start ?? 0;
@@ -732,15 +742,16 @@ export class CipherTest extends CipherHandler {
         return result
     }
     /**
-     * 
-     * @param lang 
-     * @param parms 
-     * @returns 
+     * Search all entries which match a given set of criteria and call a processing routine for each matched entry
+     * @param lang Language to search
+     * @param parmsReq Filters to apply the the search
+     * @param process Routine to process any matched records.  If this routine returns true, the search is ended early.
+     * @returns Success/failure boolean.
      */
-    public async getEntriesWithRanges(lang: string, parmsReq: QueryParms): Promise<QuoteRecord[]> {
+    public async SearchEntriesWithRanges(lang: string, parmsReq: QueryParms, process: (rec: QuoteRecord) => boolean): Promise<boolean> {
         const parms = this.cleanParms(parmsReq)
 
-        return new Promise<QuoteRecord[]>((resolve, reject) => {
+        return new Promise<boolean>((resolve, reject) => {
             this.openDatabase().then((db) => {
                 const transaction = db.Transaction
                 const store = transaction.objectStore(lang);
@@ -784,18 +795,14 @@ export class CipherTest extends CipherHandler {
                             // Are we past the ones we should skip? 
                             if (current >= parms.start) {
                                 // Yes, so remember it
-                                entries.push(cursor.value);
-                                // See if we have gathered enough
-                                if (entries.length >= parms.limit) {
-                                    resolve(entries)
-                                }
+                                if (process(cursor.value))
+                                    resolve(true)
                             }
-
                         }
                         cursor.continue();
                     } else {
                         // No more records, resolve the Promise
-                        resolve(entries);
+                        resolve(true);
                     }
                 };
 
@@ -803,6 +810,78 @@ export class CipherTest extends CipherHandler {
                     reject(`Error reading records: ${(event.target as IDBRequest).error}`);
                 };
             });
+        })
+    }
+    /**
+     * Get all the entries which match a given range.
+     * @param lang Language database to search
+     * @param parmsReq Ranges of entries to filter against
+     * @param limit Maximum number of entries to return
+     * @returns Promise to array of QuoteRecords
+     */
+    public async getEntriesWithRanges(lang: string, parmsReq: QueryParms, limit: number = 25): Promise<QuoteRecord[]> {
+        const parms = this.cleanParms(parmsReq)
+
+        return new Promise<QuoteRecord[]>((resolve, reject) => {
+
+            const entries: QuoteRecord[] = [];
+            this.SearchEntriesWithRanges(lang, parmsReq, (entry: QuoteRecord): boolean => {
+                entries.push(entry);
+                return (entries.length > limit);
+            }).then((res: boolean) => {
+                resolve(entries);
+            }).catch((reason) => { reject(reason) });
+        })
+    }
+    /**
+     * Get a random set of entries which match a given criteria.
+     * @param lang Language database to search
+     * @param parmsReq Ranges of entries to filter against
+     * @param limit Maximum number of entries to return
+     * @returns Promise to array of QuoteRecords
+     */
+    public async getRandomEntriesWithRanges(lang: string, parmsReq: QueryParms, limit: number = 3): Promise<QuoteRecord[]> {
+        const parms = this.cleanParms(parmsReq)
+
+        return new Promise<QuoteRecord[]>((resolve, reject) => {
+
+            const entries: QuoteRecord[] = [];
+            const weights: number[] = [];
+            let maxweight = -1;
+            this.SearchEntriesWithRanges(lang, parmsReq, (entry: QuoteRecord): boolean => {
+                if (entry.testUsage === undefined || entry.testUsage === "") {
+                    const weight = Math.random()
+                    if (entries.length < limit) {
+                        entries.push(entry);
+                        weights.push(weight);
+                        if (weight > maxweight) {
+                            maxweight = weight
+                        }
+                        return (false)
+                    }
+                    // We have more than the limit, so figure out which one to throw out (if any)
+                    if (weight < maxweight) {
+                        let toreplace = maxweight
+                        maxweight = weight;
+                        for (let i in entries) {
+                            if (weights[i] === toreplace) {
+                                // this is the one to replace
+                                weights[i] = weight
+                                entries[i] = entry
+                                // Since we replaced an entry, don't search for another to replace (on the off chance we get two random numbers of the same value)
+                                toreplace = -1;
+                            } else {
+                                if (weights[i] > maxweight) {
+                                    maxweight = weights[i]
+                                }
+                            }
+                        }
+                    }
+                }
+                return (false);
+            }).then((res: boolean) => {
+                resolve(entries);
+            }).catch((reason) => { reject(reason) });
         })
     }
     /**

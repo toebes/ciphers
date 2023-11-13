@@ -7,11 +7,17 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
 import { textStandardRaw } from '../common/readability';
 import { CipherTest, DBTable, QueryParms, QuoteRecord } from './ciphertest';
-
+import * as XLSX from "xlsx";
 export interface ITestState extends IState {
     /** A URL to to import test date from on load */
     importURL?: string;
 }
+
+
+export interface AnyMap {
+    [index: string]: any;
+}
+
 
 /**
  * Quote Analyzer
@@ -206,7 +212,7 @@ export class CipherQuoteManager extends CipherTest {
      * insert as a separate database operation.
      * @param data Array of records to add
      */
-    public processTestXML(data: any[]): void {
+    public processQuoteXML(data: AnyMap): void {
         const totalRecords = data.length;
         let currentIndex = 0;
         const processNextRecord = () => {
@@ -216,7 +222,7 @@ export class CipherQuoteManager extends CipherTest {
             }
             this.openDatabase("readwrite").then((db) => {
                 const ent = data[currentIndex]
-                const newRecord: QuoteRecord = this.generateRecord(ent.text, ent.author, ent.source, ent.notes, ent.translation);
+                const newRecord: QuoteRecord = this.generateRecord(ent.text, ent.author, ent.source, ent.notes, ent.test, ent.translation);
                 const request = db.Table.add(newRecord)
                 request.onsuccess = (event) => {
                     currentIndex++;
@@ -231,7 +237,16 @@ export class CipherQuoteManager extends CipherTest {
         }
         processNextRecord()
     }
-    public generateRecord(text: string, author: string, source: string, notes: string, translation: string) {
+    /**
+     * 
+     * @param text 
+     * @param author 
+     * @param source 
+     * @param notes 
+     * @param translation 
+     * @returns 
+     */
+    public generateRecord(text: string, author: string, source: string, notes: string, testUsage: string, translation: string) {
         let quote = this.cleanString(text);
         /* testStrings */
         const newRecord: QuoteRecord = {
@@ -256,16 +271,86 @@ export class CipherQuoteManager extends CipherTest {
         if (translation !== undefined) {
             newRecord.translation = translation;
         }
+        if (testUsage !== undefined) {
+            newRecord.testUsage = testUsage;
+        }
         return newRecord;
     }
 
+    public processXLSX(workbook: XLSX.WorkBook) {
+        // Make sure there was something to actually import
+        if (workbook.SheetNames.length >= 1) {
+            const sheetname = workbook.SheetNames[0];
+            console.log(`Using data from ${sheetname}`)
+            // console.log(workbook.Sheets[sheetname])
+
+            const jsondata = XLSX.utils.sheet_to_json<AnyMap>(workbook.Sheets[sheetname])
+            const entries: any[] = [];
+            for (let rec of jsondata) {
+                let outrec: any = {}
+                for (let key in rec) {
+                    const val = rec[key];
+                    const lckey = key.toLowerCase();
+                    if (lckey === 'text' || lckey === 'quote') {
+                        outrec.text = val
+                    } else if (lckey === 'author') {
+                        outrec.author = val
+                    } else if (lckey === 'test') {
+                        outrec.test = val
+                    } else if (lckey === 'source') {
+                        outrec.source = val
+                    } else if (lckey === 'notes') {
+                        outrec.notes = val
+                    }
+                }
+                entries.push(outrec)
+            }
+            this.processQuoteXML(entries);
+        }
+    }
+    /**
+     * Process the imported file
+     * @param reader File to process
+     */
+    public processImport(file: File): void {
+        const reader = new FileReader();
+        const name = file.name
+        const extension = name.split('.').pop().toLowerCase()
+        if (extension === 'json') {
+            reader.onload = (e): void => {
+                try {
+                    const data = JSON.parse(e.target.result as string);
+                    this.importXML(data);
+                    $('#ImportFile').foundation('close');
+                } catch (e) {
+                    $('#xmlerr').text(`Not a valid import file: ${e}`).show();
+                }
+            }
+            reader.readAsText(file);
+        } else {
+            reader.onload = (e): void => {
+                try {
+                    var data = e.target.result;
+
+                    var workbook = XLSX.read(data, { type: 'binary', cellFormula: false, cellHTML: false });
+                    this.processXLSX(workbook)
+                    console.log(workbook)
+                    //this.importXML(result);
+                    $('#ImportFile').foundation('close');
+                } catch (e) {
+                    $('#xmlerr').text(`Not a valid import file: ${e}`).show();
+                }
+            };
+            reader.readAsBinaryString(file);
+        }
+    }
     /**
      * Process imported XML
      */
     public importXML(data: any): void {
         console.log('Importing XML');
         console.log(data);
-        this.processTestXML(data);
+        this.processQuoteXML(data);
         this.updateOutput();
     }
     public editQuote(qn: number): void {

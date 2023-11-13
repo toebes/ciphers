@@ -12,91 +12,111 @@
     <% for (var index in htmlWebpackPlugin.files.js) { %>
         <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
         <% } %>
-    <!-- <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div> -->
-    <h3>
-        <%= htmlWebpackPlugin.options.title %>
-    </h3>
-    <div id="QuoteAnalyzeFormat">
-        <h2 class="ol">
-            Quote Analyze File Format
-        </h2>
-        <p>The <a href="QuoteAnalyze.html">Quote Analyzer</a> is used to process a bunch
-            of quotes at one time and analyze the lengh, difficulty and uniqueness of letters
-            in order to allow picking quotes which are ideal for a test question.</p>
-        <p>The process involves three steps</p>
-        <ol>
-            <li>Create an input file in <a href="https://en.wikipedia.org/wiki/JSON">JSON</a> format.</li>
-            <li>Launch the <a href="QuoteAnalyze.html">Quote Analyzer</a> and pick a language (typically
-                use the default English, but for a Xenocrypt, pick Spanish)</li>
-            <li>Click on <strong>Import Quotes from File</strong>> and choose the local JSON file</li>
-        </ol>
-        <p>The Analyzer will process all the quotes and generate a table like:</p>
-        <table>
-            <thead>
-                <tr>
-                    <th>Length</th>
-                    <th>Chi-Squared</th>
-                    <th>Unique</th>
-                    <th>Grade Level</th>
-                    <th>Likes</th>
-                    <th>Author</th>
-                    <th>Source</th>
-                    <th>Quote</th>
-                    <th>Notes</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>76</td>
-                    <td>50.307369620051276</td>
-                    <td>20</td>
-                    <td>6th and 7th grade</td>
-                    <td>Alcurtis Turner</td>
-                    <td>You shouldn't just give during Christmas and
-                        Thanksgiving you should be giving all the time.</td>
-                </tr>
-            </tbody>
-        </table>
-        <p>The columns are generated as:</p>
-        <dl>
-            <dt>Length</dt>
-            <dd>The number of processable characters (excluding quotes, punctuation, etc.) in the quote string</dd>
-            <dt>Chi-Squared</dt>
-            <dd>The <a
-                    href="http://practicalcryptography.com/cryptanalysis/text-characterisation/chi-squared-statistic/">Chi-squared</a>
-                comparison against the chosen language normal frequency.</dd>
-            <dt>Unique</dt>
-            <dd>The number of unique letters in the quote.</dd>
-            <dt>Grade Level</dt>
-            <dd>The nominal calculated grade level for the quote.</dd>
-            <dt>Likes</dt>
-            <dd>Whatever was in the <code>likes</code> input field for the quote.</dd>
-            <dt>Author</dt>
-            <dd>Whatever was in the <code>author</code> input field for the quote.</dd>
-            <dt>Source</dt>
-            <dd>Whatever was in the <code>source</code> input field for the quote.</dd>
-            <dt>Quote</dt>
-            <dd>The <code>text</code> input field for the quote with extra spaces and carriage returns
-                removed.</dd>
-            <dt>Notes</dt>
-            <dd>Whatever was in the <code>notes</code> input field for the quote.</dd>
-        </dl>
-        <span class="ht">Input File Format</span>
-        <p>The input file is in <a href="https://en.wikipedia.org/wiki/JSON">JSON</a> format,
-            but fortunately there are many online editors which can allow easy edit including:</p>
-        <ul>
-            <li><a href="https://jsoneditoronline.org/">jsoneditoronline.org</a></li>
-            <li><a href="https://jsonformatter.org/json-editor">jsonformatter.org/json-editor</a></li>
-            <li><a href="https://www.cleancss.com/json-editor/">cleancss.com/json-editor</a></li>
-        </ul>
-        <p>The file starts with a single <code>[</code>
-            and ends with a matching <code>]</code>.
-            Each quote is surrounded by a pair of curly braces (e.g. <code>{</code>
-            <i>quote data</i> <code>}</code>)
-            with a single comma between them (but not after the last one).
-            Here's a simple example with only two quotes in it.
-        </p>
-        <pre>
+            <!-- <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div> -->
+            <h3>
+                <%= htmlWebpackPlugin.options.title %>
+            </h3>
+            <div id="QuoteAnalyzeFormat">
+                <h2 class="ol">
+                    Quote File Format
+                </h2>
+                <p>The <a href="QuoteAnalyze.html">Quote Analyzer</a> is used to process a bunch
+                    of quotes at one time and analyze the lengh, difficulty and uniqueness of letters
+                    in order to allow picking quotes which are ideal for a test question.</p>
+                <div id="QuoteManagerFormat">
+                    <p>The <a href="QuoteManager.html">Quote Manager</a> uses the same information but stores the result
+                        locally in the browser for use when generating tests.</p>
+                </div>
+                <p>The process involves three steps</p>
+                <ol>
+                    <li>Create an input file in Excel or <a href="https://en.wikipedia.org/wiki/JSON">JSON</a>
+                        format.
+                    </li>
+                    <li>Launch the <a href="QuoteAnalyze.html">Quote Analyzer</a> and pick a language (typically
+                        use the default English, but for a Xenocrypt, pick Spanish)</li>
+                    <li>Click on <strong>Import Quotes from File</strong>> and choose the local JSON file</li>
+                </ol>
+                <p>The Analyzer will process all the quotes and generate a table like:</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Length</th>
+                            <th>Chi-Squared</th>
+                            <th>Unique</th>
+                            <th>Grade Level</th>
+                            <th>Likes</th>
+                            <th>Author</th>
+                            <th>Source</th>
+                            <th>Quote</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>76</td>
+                            <td>50.307369620051276</td>
+                            <td>20</td>
+                            <td>6th and 7th grade</td>
+                            <td>Alcurtis Turner</td>
+                            <td>You shouldn't just give during Christmas and
+                                Thanksgiving you should be giving all the time.</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>The columns are generated as:</p>
+                <dl>
+                    <dt>Length</dt>
+                    <dd>The number of processable characters (excluding quotes, punctuation, etc.) in the quote
+                        string
+                    </dd>
+                    <dt>Chi-Squared</dt>
+                    <dd>The <a
+                            href="http://practicalcryptography.com/cryptanalysis/text-characterisation/chi-squared-statistic/">Chi-squared</a>
+                        comparison against the chosen language normal frequency.</dd>
+                    <dt>Unique</dt>
+                    <dd>The number of unique letters in the quote.</dd>
+                    <dt>Grade Level</dt>
+                    <dd>The nominal calculated grade level for the quote.</dd>
+                    <dt>Likes</dt>
+                    <dd>Whatever was in the <code>likes</code> input field for the quote.</dd>
+                    <dt>Author</dt>
+                    <dd>Whatever was in the <code>author</code> input field for the quote.</dd>
+                    <dt>Source</dt>
+                    <dd>Whatever was in the <code>source</code> input field for the quote.</dd>
+                    <dt>Quote</dt>
+                    <dd>The <code>text</code> input field for the quote with extra spaces and carriage returns
+                        removed.</dd>
+                    <dt>Notes</dt>
+                    <dd>Whatever was in the <code>notes</code> input field for the quote.</dd>
+                </dl>
+
+                <h3>EXCEL Input File Format</h3>
+                <p>When the input file is in EXCEL or CSV format, only the first tab is used and the first row is
+                    the
+                    header indicating which
+                    column is used for which field. Only the header columns of <code>text</code> or
+                    <code>quote</code>,
+                    <code>source</code>,
+                    <code>author</code>, <code>test</code>, and <code>notes</code> will be used. All others will be
+                    ignored. Note that the
+                    header column is not case sensitive.
+                </p>
+                <h3>JSON Input File Format</h3>
+                <p>When the input file is in <a href="https://en.wikipedia.org/wiki/JSON">JSON</a> format,
+                    there are many online editors which can allow easy edit including:</p>
+                <ul>
+                    <li><a href="https://jsoneditoronline.org/">jsoneditoronline.org</a></li>
+                    <li><a href="https://jsonformatter.org/json-editor">jsonformatter.org/json-editor</a></li>
+                    <li><a href="https://www.cleancss.com/json-editor/">cleancss.com/json-editor</a></li>
+                </ul>
+                <p>The file starts with a single <code>[</code>
+                    and ends with a matching <code>]</code>.
+                    Each quote is surrounded by a pair of curly braces (e.g. <code>{</code>
+                    <i>quote data</i> <code>}</code>)
+                    with a single comma between them (but not after the last one).
+                    Here's a simple example with only two quotes in it.
+                </p>
+                <pre>
 [
     {
         "text": "You shouldn't just give during Christmas and Thanksgiving you should be giving all the time.",
@@ -110,25 +130,27 @@
     }
 ]
 </pre>
-        <p>Each entry can have as many pairs of input field strings in double quotes separated by a
-            colon but there are only 5 that the processor will read, all others will be
-            silently ignored. Of those 5, only the <code>text</code>field is actually processed,
-            the others are simply copied to the output.</p>
-        <dl>
-            <dt><code>text</code></dt>
-            <dd>The quote to be analyzed. This is the only field which is required.</dd>
-            <dt><code>source</code></dt>
-            <dd>The source of the quote. This field is simply copied to the output along with the quote.</dd>
-            <dt><code>author</code></dt>
-            <dd>The author of the quote. This field is simply copied to the output along with the quote.</dd>
-            <dt><code>notes</code></dt>
-            <dd>Any notes about the quote. This field is simply copied to the output along with the quote.</dd>
-            <dt><code>likes</code></dt>
-            <dd>Any count of the number of likes or other value associated with the quote. This field is simply copied
-                to the output along with the quote.</dd>
-        </dl>
-    </div>
-
+                <h3>Entry Field Definitions</h3>
+                <p>Each entry can have as many pairs of input field strings in double quotes separated by a
+                    colon but there are only 5 that the processor will read, all others will be
+                    silently ignored. Of those 5, only the <code>text</code>field is actually processed,
+                    the others are simply copied to the output.</p>
+                <dl>
+                    <dt><code>text</code> or <code>quote</code></dt>
+                    <dd>The quote to be analyzed. This is the only field which is required.</dd>
+                    <dt><code>source</code></dt>
+                    <dd>The source of the quote. This field is simply copied to the output along with the quote.
+                    </dd>
+                    <dt><code>author</code></dt>
+                    <dd>The author of the quote. This field is simply copied to the output along with the quote.
+                    </dd>
+                    <dt><code>test</code></dt>
+                    <dd>An indicator as to which test the quote may have been used on.</dd>
+                    <dt><code>notes</code></dt>
+                    <dd>Any notes about the quote. This field is simply copied to the output along with the quote.
+                    </dd>
+                </dl>
+            </div>
 </body>
 
 </html>

@@ -257,7 +257,7 @@ export class CipherACAProblems extends CipherTest {
                 this.processTestXML(data);
                 $('#ImportFile').foundation('close');
             } catch (e) {
-                $('#xmlerr').text('Not a valid import file');
+                $('#xmlerr').text(`Not a valid import file: ${e}`).show();
             }
         };
     }

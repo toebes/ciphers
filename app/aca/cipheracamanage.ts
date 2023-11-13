@@ -289,7 +289,7 @@ export class CipherACAManage extends CipherTest {
                 }
                 $('#ImportFile').foundation('close');
             } catch (e) {
-                $('#xmlerr').text('Not a valid import file');
+                $('#xmlerr').text(`Not a valid import file: ${e}`).show();
             }
         };
     }

@@ -1448,7 +1448,7 @@ export class CipherHandler {
                 this.importXML(result);
                 $('#ImportFile').foundation('close');
             } catch (e) {
-                $('#xmlerr').text('Not a valid import file');
+                $('#xmlerr').text(`Not a valid import file: ${e}`).show();
             }
         };
     }
@@ -3232,7 +3232,7 @@ export class CipherHandler {
                 $('<input/>', {
                     type: 'file',
                     id: 'xmlFile',
-                    accept: '.json',
+                    accept: '.json,.xlsx,.xls',
                     class: 'impfile show-for-sr',
                 })
             )

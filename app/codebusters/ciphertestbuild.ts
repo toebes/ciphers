@@ -1,6 +1,7 @@
 import { cloneObject, makeCallout } from '../common/ciphercommon';
 import { IEncodeType, IOperationType, IState, ITest, ITestType, menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
+import { htmlToElement } from '../common/htmldom';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
@@ -412,7 +413,7 @@ export class CipherTestBuild extends CipherTest {
 
             type: ITestType.cregional,
             id: 'cregional',
-            questionCount: 18,
+            questionCount: 20,
             xenoctyptCount: 1,
         },
         {
@@ -444,7 +445,7 @@ export class CipherTestBuild extends CipherTest {
 
             type: ITestType.bregional,
             id: 'bregional',
-            questionCount: 18,
+            questionCount: 20,
             xenoctyptCount: 0,
         },
         {
@@ -505,10 +506,15 @@ export class CipherTestBuild extends CipherTest {
             this.updateOutput();
         }
     }
-    public makeStepCallout(step: string, content: string): JQuery<HTMLElement> {
+    /**
+     * 
+     * @param step Step number to display
+     * @param body Content as DOM elements
+     * @returns 
+     */
+    public makeStepCallout(step: string, body: ChildNode): JQuery<HTMLElement> {
         const title = $('<h3>').text(step)
-        const body = $("<p/>").text(content)
-        return makeCallout($("<div/>").append(title).append(body), 'secondary')
+        return makeCallout($("<div/>").append(title).append(body as HTMLElement), 'secondary')
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
@@ -516,7 +522,10 @@ export class CipherTestBuild extends CipherTest {
      */
     public genPreCommands(): JQuery<HTMLElement> {
         const testdiv = $('<div/>', { class: 'callout primary' });
-        testdiv.append(this.makeStepCallout('Step 1', "Pick a title, test type and confirm the number of questions, then click the Generate Template button to generate the list of questions"))
+        testdiv.append(this.makeStepCallout('Step 1',
+            htmlToElement(
+                `<p>Pick a title, test type and confirm the number of questions, then click the Generate Template button to generate the list of questions</p>`
+            )))
 
         testdiv.append(
             JTFLabeledInput('Title', 'text', 'title', this.title, 'small-12 medium-12 large-12')
@@ -702,7 +711,8 @@ export class CipherTestBuild extends CipherTest {
         const template = this.getTemplateInfo(this.templateType);
         const testtype = template.type;
         $("#qlist").empty()
-            .append(this.makeStepCallout('Step 2', "Please review the generated choices and scroll to the bottom for the next step"))
+            .append(this.makeStepCallout('Step 2', htmlToElement(
+                `<p>Please review the generated choices and scroll to the bottom for the next step</p>`)))
 
         // First based on the number of questions, we determine how many will be in each group.
         // The four groups are:
@@ -859,13 +869,16 @@ export class CipherTestBuild extends CipherTest {
         })
         $("#qlist").append(table.generate())
         $("#qlist")
-            .append(this.makeStepCallout("Step 3", "Optionally Click on the Populate Plain Text to fill with samples"))
+            .append(this.makeStepCallout("Step 3", htmlToElement(
+                `<p>Optionally Click on the Populate Plain Text to fill with samples.
+                 Note that you need to have imported quotes using the <a href="QuoteManager.html" target="qm">Quote Manager</a></p>.
+                 If there are no imported quotes that meet the requirements, it won't update the Plain Text for the question.`)))
             .append($('<div/>', {
                 class: 'grid-x grid-margin-x',
             }).append($("<a>", { id: "populate", class: "button rounded cell shrink" }).text('Populate Plain Text'))
-                .append(JTFLabeledInput('Optional Supervisor Coupon', 'text', 'coupon', "", 'cell auto'))
+                // .append(JTFLabeledInput('Optional Supervisor Coupon', 'text', 'coupon', "", 'cell auto'))
             )
-            .append(this.makeStepCallout("Step 4", "Click on Save Test to create the test and edit it"))
+            .append(this.makeStepCallout("Step 4", htmlToElement(`<p>Click on Save Test to create the test and edit it</p>`)))
             .append($('<div/>', {
                 class: 'grid-x grid-margin-x',
             }).append($("<a>", { id: "save", class: "button rounded cell shrink" }).text('Save Test'))
@@ -1021,15 +1034,13 @@ export class CipherTestBuild extends CipherTest {
             row.add({ settings: { class: "qr" }, content: String(index + 1) + "." })
         }
         // See if we mark it as a special bonus
+        const checkBox = $('<input/>', { type: "checkbox", id: "sb" + idNum })
         if (isSpecial) {
-            let checkBox = $('<input/>', { type: "checkbox", checked: "checked" })
-            row.add({ settings: { class: 'sb', id: "sp" + idNum }, content: checkBox })
-        } else if (this.isGoodSpecialCipherType(entry.cipherType)) {
-            let checkBox = $('<input/>', { type: "checkbox" })
-            row.add({ settings: { class: 'sb' }, content: checkBox })
-        } else {
-            row.add('')
+            checkBox.attr('checked', 'checked')
+        } else if (!this.isGoodSpecialCipherType(entry.cipherType)) {
+            checkBox.attr('hidden', 'hidden')
         }
+        row.add({ settings: { class: 'sb' }, content: checkBox })
         const select = $('<select/>', {
             id: 'qt' + idNum,
             class: 'qt input-group-field',
@@ -1055,7 +1066,7 @@ export class CipherTestBuild extends CipherTest {
         })
         row.add({ settings: { class: 'typ' }, content: select })
         let cipherText = $('<input/>', { type: "text", id: 'ct' + idNum, value: `«${entry.guidance}»` })
-        row.add({ settings: { class: 'txt' }, content: cipherText })
+        row.add({ settings: { class: 'txt', id: 'ctc' + idNum }, content: cipherText })
         let authorText = $('<input/>', { type: "text", id: 'au' + idNum })
 
 
@@ -1128,9 +1139,42 @@ export class CipherTestBuild extends CipherTest {
             groupData.minWeight = newMinWeight;
         }
     }
+    /**
+     * Update the Plain Text guidance and the Special Bonus question when changing a Cipher Type
+     * @param elem Selected question element
+     * @returns 
+     */
+    public updateQuestionChoice(elem: HTMLElement) {
+        const idNum = elem.id.substring(2)
+        const qTitle = $('#qt' + idNum).val() as string;
+        const sbBox = $('#sb' + idNum)
 
+        const choice = this.questionChoices.findIndex((elem) => elem.title === qTitle)
+
+        if (choice === -1) {
+            // Somehow we didn't find the cipher they selected.. so we just have to skip it
+            return
+        }
+        // Let's create a cipher
+        const entry = this.questionChoices[choice];
+        if (this.isGoodSpecialCipherType(entry.cipherType)) {
+            sbBox.removeAttr('hidden').show();
+        } else {
+            sbBox.attr('hidden', 'hidden').hide()
+        }
+        $('#ct' + idNum).val(entry.guidance)
+    }
+    /**
+     * 
+     */
     public attachHandlers(): void {
         super.attachHandlers();
+        $('.qt')
+            .off('change')
+            .on('change', (e) => {
+                this.updateQuestionChoice(e.target);
+                //                console.log(`changing...${e.target.id}`)
+            })
         $("#genlist").off('click').on('click', (e) => {
             this.genTestTemplate()
         })

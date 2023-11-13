@@ -1,5 +1,5 @@
 import { cloneObject } from '../common/ciphercommon';
-import { IState, toolMode } from '../common/cipherhandler';
+import { IState, menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFDialog } from '../common/jtfdialog';
@@ -8,19 +8,18 @@ import { JTTable } from '../common/jttable';
 import { textStandardRaw } from '../common/readability';
 import { CipherTest, DBTable, QueryParms, QuoteRecord } from './ciphertest';
 import * as XLSX from "xlsx";
+
 export interface ITestState extends IState {
     /** A URL to to import test date from on load */
     importURL?: string;
 }
 
-
 export interface AnyMap {
     [index: string]: any;
 }
 
-
 /**
- * Quote Analyzer
+ * Quote Manager
  */
 export class CipherQuoteManager extends CipherTest {
     public activeToolMode: toolMode = toolMode.codebusters;
@@ -57,6 +56,7 @@ export class CipherQuoteManager extends CipherTest {
         this.state = cloneObject(this.defaultstate) as ITestState;
         this.state.curlang = curlang;
         this.copyState(this.state, data);
+        this.setMenuMode(menuMode.test);
         /** See if we have to import an XML file */
         this.checkXMLImport();
         if (!suppressOutput) {

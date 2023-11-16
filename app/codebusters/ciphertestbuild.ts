@@ -7,7 +7,7 @@ import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
-import { CipherTest, ITestState } from './ciphertest';
+import { CipherTest, ITestState, QueryParms, UsedIdMap } from './ciphertest';
 
 // Configuration for the range of questions on the test that can be Aristocrats
 const aristocratDivBCPCTMin = .35
@@ -24,6 +24,7 @@ export interface ITempleteInfo {
     questionCount: number;
     xenoctyptCount: number;
 }
+
 interface QuestionType {
     cipherType: ICipherType; // Type of cipher
     group: number; // Which group the question belongs to
@@ -38,6 +39,10 @@ interface QuestionType {
     difficulty?: DifficultyType; // General difficulty for the question
     keyword?: string; // Keyword to set hill length
     guidance: string;
+    len?: number[]
+    chi2?: number[]
+    unique?: number[]
+    msg?: string;
 }
 
 interface WeightedQuestion {
@@ -71,114 +76,133 @@ export class CipherTestBuild extends CipherTest {
         {
             title: 'Easy Aristocrat with a Hint',
             guidance: 'Easy Quote [75-90 non-blank characters, χ²<20] with Hint',
+            len: [75, 90], chi2: [-Infinity, 20],
             group: 1, weight: 0.75, cipherType: ICipherType.Aristocrat,
             operation: 'decode', encodeType: 'random', difficulty: 'easy',
         },
         {
             title: 'Easy Aristocrat without a Hint',
             guidance: 'Easy Quote [75-90 non-blank characters, χ²<20]',
+            len: [75, 90], chi2: [-Infinity, 20],
             group: 1, weight: 0.75, timed: true, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'random', difficulty: 'easy',
         },
         {
             title: 'Medium Aristocrat with a Hint',
             guidance: 'Medium Quote [75-90 non-blank characters, 20<χ²<25] with Hint',
+            len: [75, 90], chi2: [20, 25],
             group: 1, weight: 0.75, cipherType: ICipherType.Aristocrat,
             operation: 'decode', encodeType: 'random', difficulty: 'medium',
         },
         {
             title: 'Medium Aristocrat without a Hint',
             guidance: 'Medium Quote [75-90 non-blank characters, 20<χ²<25]',
+            len: [75, 90], chi2: [20, 25],
             group: 1, weight: 0.75, timed: true, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'random', difficulty: 'medium',
         },
         {
             title: 'Hard K1 Aristocrat with a Hint',
             guidance: 'Hard Quote [75-90 non-blank characters, χ²>25] with Hint',
+            len: [75, 90], chi2: [25, Infinity],
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k1', difficulty: 'hard',
         },
         {
             title: 'Hard K1 Aristocrat without a Hint',
             guidance: 'Hard Quote [75-90 non-blank characters, χ²>25]',
+            len: [75, 90], chi2: [25, Infinity],
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k1', difficulty: 'hard',
         },
         {
             title: 'Hard K2 Aristocrat with a Hint',
             guidance: 'Hard Quote [75-90 non-blank characters, χ²>25] with Hint',
+            len: [75, 90], chi2: [25, Infinity],
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k2', difficulty: 'hard',
         },
         {
             title: 'Hard K2 Aristocrat without a Hint',
             guidance: 'Hard Quote [75-90 non-blank characters, χ²>25]',
+            len: [75, 90], chi2: [25, Infinity],
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k2', difficulty: 'hard',
         },
         {
             title: 'Misspelled K1 Aristocrat with a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25] with Hint',
+            len: [75, 90], chi2: [-Infinity, 25],
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k1',
         },
         {
             title: 'Misspelled K1 Aristocrat without a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25]',
+            len: [75, 90], chi2: [-Infinity, 25],
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k1',
         },
         {
             title: 'Misspelled K2 Aristocrat with a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25] with Hint',
+            len: [75, 90], chi2: [-Infinity, 25],
             testtype: allButARegional, operation: 'decode', encodeType: 'k2',
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
         },
         {
             title: 'Misspelled K2 Aristocrat without a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25]',
+            len: [75, 90], chi2: [-Infinity, 25],
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k2',
         },
         {
             title: 'Keyword/Key Phrase K1 Aristocrat',
             guidance: 'Medium Quote [75-90 non-blank characters, 20<χ²<25]',
+            len: [75, 90], chi2: [20, 25],
             testtype: allButARegional, operation: 'decode', encodeType: 'k1', difficulty: 'medium',
             group: 1, weight: 0.75, cipherType: ICipherType.Aristocrat,
         },
         {
             title: 'Keyword/Key Phrase K2 Aristocrat',
             guidance: 'Easy Quote [75-90 non-blank characters, χ²<20]',
+            len: [75, 90], chi2: [-Infinity, 20],
             group: 1, weight: 0.75, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k2', difficulty: 'easy',
         },
         {
             title: 'Keyword/Key Phrase K3 Aristocrat',
             guidance: 'Easy Quote [75-90 non-blank characters, χ²<20]',
+            len: [75, 90], chi2: [-Infinity, 20],
             group: 1, weight: 0.75, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k3', difficulty: 'easy',
         },
         {
             title: 'Easy K1 Patristocrat',
             guidance: 'Easy Quote [95-110 non-blank characters, χ²<20]',
+            len: [95, 110], chi2: [-Infinity, 20],
             testtype: allButARegional, operation: 'decode', encodeType: 'k1', difficulty: 'easy',
             group: 1, weight: 0.25, cipherType: ICipherType.Patristocrat,
         },
         {
             title: 'Easy K2 Patristocrat',
             guidance: 'Easy Quote [95-110 non-blank characters, χ²<20]',
+            len: [95, 110], chi2: [-Infinity, 20],
             group: 1, weight: 0.25, cipherType: ICipherType.Patristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k2', difficulty: 'easy',
         },
         {
             title: 'Medium K1 Patristocrat',
             guidance: 'Medium Quote [95-110 non-blank characters, 20<χ²<25]',
+            len: [95, 110], chi2: [-Infinity, 20],
             group: 1, weight: 0.25, cipherType: ICipherType.Patristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k1', difficulty: 'medium',
         },
         {
             title: 'Medium K2 Patristocrat',
             guidance: 'Medium Quote [95-110 non-blank characters, 20<χ²<25]',
+            len: [95, 110], chi2: [-Infinity, 20],
             group: 1, weight: 0.25, cipherType: ICipherType.Patristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k2', difficulty: 'medium',
         },
@@ -188,12 +212,14 @@ export class CipherTestBuild extends CipherTest {
         {
             title: 'Medium K1 Spanish Xenocrypt',
             guidance: 'Medium Spanish Quote [75-90 non-blank characters, 20<χ²<25]',
+            len: [75, 90], chi2: [20, 25],
             group: 2, weight: 0.5, cipherType: ICipherType.Aristocrat, lang: 'es',
             encodeType: 'k1', difficulty: 'medium',
         },
         {
             title: 'Medium K2 Spanish Xenocrypt',
             guidance: 'Medium Spanish Quote [75-90 non-blank characters, 20<χ²<25]',
+            len: [75, 90], chi2: [20, 25],
             group: 2, weight: 0.5, cipherType: ICipherType.Aristocrat, lang: 'es',
             encodeType: 'k2', difficulty: 'medium',
         },
@@ -202,133 +228,156 @@ export class CipherTestBuild extends CipherTest {
         // ----------------------------------------------------------------------------------------------
         {
             title: "Affine Decode",
-            guidance: '[25-30 getLineAndCharacterOfPosition, 13 or more unique letters]',
+            guidance: '[25-30 non-blank characters, 13 or more unique letters]',
+            len: [25, 30], unique: [13, Infinity],
             group: 3, weight: 0.5, cipherType: ICipherType.Affine,
             operation: 'decode'
         },
         {
             title: "Affine Cryptanalysis",
-            guidance: '[25-30 getLineAndCharacterOfPosition, 13 or more unique letters]',
+            guidance: '[25-30 non-blank characters, 13 or more unique letters]',
+            len: [25, 30], unique: [13, Infinity],
             group: 3, weight: 0.5, cipherType: ICipherType.Affine,
             operation: 'crypt'
         },
         {
-            title: "Caesar",
+            title: "Easy Caesar",
             guidance: '[20-45 Characters.  Shift value +/- 3]',
+            len: [20, 45],
             group: 3, weight: 0.5, cipherType: ICipherType.Caesar,
             shift: [-3, 3], testtype: [ITestType.aregional], operation: 'decode'
         },
         {
             title: "Caesar",
             guidance: '[80-90 Characters. No single letter words]',
+            len: [80, 90],
             group: 3, weight: 0.5, cipherType: ICipherType.Caesar,
             testtype: allButARegional, operation: 'decode'
         },
         {
             title: "Dancing Men",
             guidance: '[20-30 Characters]',
+            len: [20, 30],
             group: 3, weight: 0.5, cipherType: ICipherType.DancingMen,
         },
         {
             title: 'Atbash',
             guidance: '[45-80 Characters]',
+            len: [45, 80],
             group: 3, weight: 0.5, cipherType: ICipherType.Atbash,
             operation: 'decode'
         },
         {
             title: "Complete Columnar",
             guidance: '[45-90 Characters]',
+            len: [45, 90],
             group: 3, weight: 0.5, cipherType: ICipherType.CompleteColumnar,
         },
         {
             title: "Complete Columnar",
             guidance: '[45-90 Characters]',
+            len: [45, 90],
             group: 3, weight: 0.5, cipherType: ICipherType.CompleteColumnar,
         },
         {
             title: "Cryptarithm",
             guidance: '[Addition formula with a carry to make 1 or 2 digits obvious]',
+            msg: "Use the Cryptarithm generator for formulas",
             group: 3, weight: 0.5, cipherType: ICipherType.Cryptarithm,
         },
         {
             title: "Cryptarithm",
             guidance: '[Addition formula with a carry to make 1 or 2 digits obvious]',
+            msg: "Use the Cryptarithm generator for formulas",
             group: 3, weight: 0.5, cipherType: ICipherType.Cryptarithm,
         },
         {
             title: "Hill 2x2",
             guidance: '[19-23 (Odd) characters]',
+            len: [19, 23],
             group: 3, weight: 0.5, cipherType: ICipherType.Hill,
             keyword: "TEST"
         },
         {
             title: "Hill 3x3",
             guidance: '[20-28 (not multiple of 3) characters]',
+            len: [20, 28],
             group: 3, weight: 0.5, cipherType: ICipherType.Hill,
             keyword: "TEMPORARY"
         },
         {
             title: "Porta Decode",
             guidance: '[55-62 characters]',
+            len: [55, 62],
             group: 3, weight: 0.5, cipherType: ICipherType.Porta,
             operation: 'decode'
         },
         {
             title: "Porta Cryptanalysis",
             guidance: '[55-62 characters]',
+            len: [55, 62],
             group: 3, weight: 0.5, cipherType: ICipherType.Porta,
             operation: 'crypt'
         },
         {
             title: "Nihilist Decode",
             guidance: '[55-75 characters]',
+            len: [55, 75],
             group: 3, weight: 0.5, cipherType: ICipherType.NihilistSubstitution,
             operation: 'decode'
         },
         {
             title: "Nihilist Decode",
             guidance: '[55-75 characters]',
+            len: [55, 75],
             group: 3, weight: 0.5, cipherType: ICipherType.NihilistSubstitution,
             operation: 'decode'
         },
         {
             title: "Nihilist Cryptanalysis",
             guidance: '[55-75 characters]',
+            len: [55, 75],
             group: 3, weight: 0.5, cipherType: ICipherType.NihilistSubstitution,
             operation: 'crypt'
         },
         {
             title: "Vigenère Decode",
             guidance: '[50-60 characters]',
+            len: [50, 60],
             group: 3, weight: 0.5, cipherType: ICipherType.Vigenere,
             operation: 'decode'
         },
         {
             title: "Vigenère Cryptanalysis",
             guidance: '[50-60 characters]',
+            len: [50, 60],
             group: 3, weight: 0.5, cipherType: ICipherType.Vigenere,
             operation: 'crypt'
         },
         {
             title: 'Running Key',
             guidance: '[50-60 characters]',
+            len: [50, 60],
             group: 3, weight: 0.5, cipherType: ICipherType.RunningKey,
         },
         {
-            group: 3, weight: 0.5, cipherType: ICipherType.Baconian,
             title: "Baconian Letter for Letter",
             guidance: '[35-50 characters]',
+            len: [35, 50],
+            group: 3, weight: 0.5, cipherType: ICipherType.Baconian,
             operation: 'let4let'
         },
         {
             title: "Baconian Sequence",
             guidance: '[35-50 characters]',
+            len: [35, 50],
             group: 3, weight: 0.5, cipherType: ICipherType.Baconian,
             operation: 'sequence',
         },
         {
             title: "Baconian Words",
             guidance: '[30-40 characters]',
+            len: [30, 40],
             group: 3, weight: 0.5, cipherType: ICipherType.Baconian,
             operation: 'words'
         },
@@ -340,55 +389,65 @@ export class CipherTestBuild extends CipherTest {
         {
             title: "Pig Pen",
             guidance: '[40-50 characters]',
+            len: [40, 50],
             group: 3, weight: 0.5, cipherType: ICipherType.PigPen,
         },
         {
             title: 'TapCode',
             guidance: '[18-30 characters]',
+            len: [18, 30],
             group: 3, weight: 0.5, cipherType: ICipherType.TapCode,
         },
         {
             title: "Morbit Decode",
             guidance: '[35-42 characters]',
+            len: [35, 42],
             group: 3, weight: 0.5, cipherType: ICipherType.Morbit,
             operation: 'decode',
         },
         {
             title: "Morbit Cryptanalysis",
             guidance: '[35-42 characters]',
+            len: [35, 42],
             group: 3, weight: 0.5, cipherType: ICipherType.Morbit,
             operation: 'crypt',
         },
         {
             group: 3, weight: 0.5, cipherType: ICipherType.Pollux,
             title: "Pollux Decode",
+            len: [35, 42],
             guidance: '[35-42 characters]',
             operation: 'decode'
         },
         {
             group: 3, weight: 0.5, cipherType: ICipherType.Pollux,
             title: "Pollux Cryptanalysis",
+            len: [35, 42],
             guidance: '[35-42 characters]',
             operation: 'crypt'
         },
         {
             title: "Fractionated Morse",
+            len: [38, 52],
             guidance: '[38-52 characters]',
             group: 3, weight: 0.5, cipherType: ICipherType.FractionatedMorse,
         },
         {
             title: "Railfence Variable Rails",
             guidance: '[55-62 characters]',
+            len: [55, 62],
             group: 3, weight: 0.5, cipherType: ICipherType.Railfence,
         },
         {
             title: "Railfence Fixed Rails",
             guidance: '[55-62 characters]',
+            len: [55, 62],
             group: 3, weight: 0.5, cipherType: ICipherType.Railfence,
         },
         {
             title: "Railfence Variable Rails and Offset",
             guidance: '[55-62 characters]',
+            len: [55, 62],
             group: 3, weight: 0.5, cipherType: ICipherType.Railfence,
         },
     ];
@@ -870,42 +929,147 @@ export class CipherTestBuild extends CipherTest {
         $("#qlist").append(table.generate())
         $("#qlist")
             .append(this.makeStepCallout("Step 3", htmlToElement(
-                `<p>Optionally Click on the Populate Plain Text to fill with samples.
-                 Note that you need to have imported quotes using the <a href="QuoteManager.html" target="qm">Quote Manager</a></p>.
-                 If there are no imported quotes that meet the requirements, it won't update the Plain Text for the question.`)))
+                `<div><p>Optionally Click on the Populate Plain Text to fill with samples.
+                 Note that you need to have imported quotes using the <a href="QuoteManager.html" target="qm">Quote Manager</a>.</p>
+                 <p><b>NOTE:</b> If there are no imported quotes that meet the requirements, it won't update the Plain Text for the question.</p>
+                 <p>The system will attempt to find three quotes to potentially use for each question.  Scroll up and select the USE button for the quote
+                 you want to use for each of questions before moving on to the next step.</p></div>
+                 `)))
             .append($('<div/>', {
                 class: 'grid-x grid-margin-x',
             }).append($("<a>", { id: "populate", class: "button rounded cell shrink" }).text('Populate Plain Text'))
                 // .append(JTFLabeledInput('Optional Supervisor Coupon', 'text', 'coupon', "", 'cell auto'))
             )
-            .append(this.makeStepCallout("Step 4", htmlToElement(`<p>Click on Save Test to create the test and edit it</p>`)))
+            .append(this.makeStepCallout("Step 4", htmlToElement(`<div><p>Click on <b>Save Test</b> to create the test and edit it.
+                If you want to create multiple tests of the same type, then click on <b>Save a Copy</b> 
+                to generate a test but stay on this page to generate another test of the same type</p><div id="saveres"></div></div>`)))
             .append($('<div/>', {
                 class: 'grid-x grid-margin-x',
             }).append($("<a>", { id: "save", class: "button rounded cell shrink" }).text('Save Test'))
+                .append($("<a>", { id: "savecopy", class: "button rounded cell shrink" }).text('Save a Copy'))
             )
         this.attachHandlers();
     }
     /**
      * 
+     * @param qnum Which question we are working on
+     * @param usedmap 
+     * @returns 
+     */
+    public populateQuestion(qnum: number, usedmap: UsedIdMap, doSingleOnly = false) {
+        let idNum = String(qnum);
+
+        const qtElem = $('#qt' + idNum)
+        if (qtElem.length < 1) {
+            this.updateOutput()
+            return;
+        }
+        const qTitle = qtElem.val() as string;
+        const entry = this.getChoiceEntry(qTitle)
+        const ctcDiv = $('#ctc' + idNum)
+        if (entry === undefined) {
+            // Somehow we didn't find it.. so we just have to skip it
+            ctcDiv.append(`Unable to find type '${qTitle}'`)
+        } else {
+            let lang = "english"
+            if (entry.lang === 'es') {
+                lang = "spanish"
+            }
+
+            if (entry.msg !== undefined) {
+                ctcDiv.append($("<b>").text(entry.msg))
+                if (!doSingleOnly) {
+                    setTimeout(() => { return this.populateQuestion(qnum + 1, usedmap) }, 1)
+                }
+                return;
+            }
+            let parms: QueryParms = {}
+            if (entry.chi2 !== undefined) {
+                parms.chi2 = entry.chi2
+            }
+            if (entry.unique !== undefined) {
+                parms.unique = entry.unique;
+            }
+            if (entry.len !== undefined) {
+                parms.len = entry.len
+            }
+            if (this.state.testtype === ITestType.aregional ||
+                this.state.testtype === ITestType.astate) {
+                parms.grade = [-Infinity, 5]
+            } else if (this.state.testtype === ITestType.bregional ||
+                this.state.testtype === ITestType.bstate) {
+                parms.grade = [-Infinity, 8]
+
+            } else if (this.state.testtype === ITestType.cregional ||
+                this.state.testtype === ITestType.cstate) {
+                parms.grade = [-Infinity, 12]
+            }
+            console.log(`Working on ${qnum}`)
+            console.log(usedmap)
+            this.getRandomEntriesWithRanges(lang, parms, usedmap, 3).then((res) => {
+                $("#cm" + idNum).show()
+                if (res.length === 0) {
+                    ctcDiv.empty().append($("<b>").text("Unable to find any quotes which meet the criteria"))
+                } else {
+                    const div = $("<div/>")
+                    for (let ent of res) {
+                        usedmap[ent.id] = true;
+                        let useButton = $("<button/>", {
+                            'data-val': idNum,
+                            'data-id': ent.id,
+                            'data-text': ent.quote,
+                            type: "button",
+                            class: "rounded button use",
+                        }).html("Use");
+                        const useDiv = $("<div/>", { class: "usetxt" })
+                            .append(useButton)
+                            .append($("<span>").text(ent.quote))
+                        if (ent.translation !== undefined) {
+                            useDiv.append($("<span>").append($("<i/>").text(ent.translation)))
+                        }
+                        div.append(useDiv)
+                    }
+                    ctcDiv.empty().append(div)
+                }
+                // We finished one, so go onto the next one
+                if (!doSingleOnly) {
+                    setTimeout(() => { return this.populateQuestion(qnum + 1, usedmap) }, 1)
+                }
+            })
+        }
+    }
+    /**
+     * 
      */
     public populateTemplate() {
-        const qCount = $('.qt').length
-        for (let qnum = 0; qnum < qCount; qnum++) {
-            let idNum = String(qnum);
-            const qTitle = $('#qt' + idNum).val() as string;
-            const choice = this.questionChoices.findIndex((elem) => elem.title === qTitle)
-            if (choice === -1) {
-                // Somehow we didn't find it.. so we just have to skip it
-                $('#ct' + idNum).val(`Unable to find type '${qTitle}'`)
-            } else {
-                //sb
-                $('#ct' + idNum).val(`Generating text for '${qTitle}'`)
-            }
-            //            ct
+        let idNum = 0
+        if ($('#qt0').length < 1) {
+            idNum = 1;
         }
-        //      alert(`populating template for ${qCount} questions`)
+        this.populateQuestion(idNum, {});
     }
-    public saveTest() {
+    public reloadQuotes(elem: HTMLElement) {
+        const idNum = elem.id.substring(2)
+        const jqelem = $(elem)
+        const usedIds: UsedIdMap = {}
+        $('[data-id]').each((idx, elem) => { usedIds[elem.getAttribute('data-id')] = true })
+        console.log(usedIds);
+        this.populateQuestion(Number(idNum), usedIds, true);
+    }
+    /**
+     * 
+     * @param qTitle 
+     * @returns 
+     */
+    public getChoiceEntry(qTitle: string): QuestionType {
+        const choice = this.questionChoices.findIndex((elem) => elem.title === qTitle)
+        if (choice === -1) {
+            return undefined
+        }
+        return this.questionChoices[choice];
+    }
+
+    public saveTest(editAfter: boolean) {
         // First we create the test entry
         const testEntry: ITest = {
             timed: -1,
@@ -928,14 +1092,12 @@ export class CipherTestBuild extends CipherTest {
             if (qnum === 0 && qTitle === "") {
                 continue;
             }
-            const choice = this.questionChoices.findIndex((elem) => elem.title === qTitle)
-            if (choice === -1) {
+            const entry = this.getChoiceEntry(qTitle)
+            if (entry === undefined) {
                 // Somehow we didn't find the cipher they selected.. so we just have to skip it
                 continue;
             }
             // Let's create a cipher
-            const entry = this.questionChoices[choice];
-
             let lang = entry.lang;
             if (lang === undefined || lang === '') {
                 lang = 'en';
@@ -968,8 +1130,14 @@ export class CipherTestBuild extends CipherTest {
             }
         }
         const test = this.setTestEntry(-1, testEntry);
-        this.gotoEditTest(test);
+        if (editAfter) {
+            this.gotoEditTest(test);
+        } else {
+            $("#saveres").empty().append(makeCallout($(htmlToElement(`<p>Test "${this.title}" saved.  Remember to change the Test Title in Step 1 before saving again.</p>`) as HTMLElement), 'success'))
+        }
+        // Let them know that 
     }
+
     /**
      * 
      * @param specialCandidates 
@@ -1064,9 +1232,10 @@ export class CipherTestBuild extends CipherTest {
             }
             select.append(option);
         })
-        row.add({ settings: { class: 'typ' }, content: select })
-        let cipherText = $('<input/>', { type: "text", id: 'ct' + idNum, value: `«${entry.guidance}»` })
-        row.add({ settings: { class: 'txt', id: 'ctc' + idNum }, content: cipherText })
+        const more = $("<button/>", { class: "qmore button rounded", id: 'cm' + idNum }).text('⟳').hide()
+        row.add({ settings: { class: 'typ' }, content: $('<div/>').append(select).append(more) })
+        let cipherText = $('<div/>').append($('<input/>', { type: "text", id: 'ct' + idNum, value: `«${entry.guidance}»` })).append($('<div/>', { id: 'ctc' + idNum }))
+        row.add({ settings: { class: 'txt' }, content: cipherText })
         let authorText = $('<input/>', { type: "text", id: 'au' + idNum })
 
 
@@ -1139,6 +1308,18 @@ export class CipherTestBuild extends CipherTest {
             groupData.minWeight = newMinWeight;
         }
     }
+    public useQuote(elem: HTMLElement) {
+        const jqelem = $(elem)
+        const idNum = jqelem.attr('data-val')
+        const dataId = jqelem.attr('data-id')
+        const text = jqelem.attr('data-text')
+
+        const target = $('#ct' + String(idNum))
+
+        target.val(text)
+        target.attr('data-id', dataId)
+
+    }
     /**
      * Update the Plain Text guidance and the Special Bonus question when changing a Cipher Type
      * @param elem Selected question element
@@ -1149,20 +1330,18 @@ export class CipherTestBuild extends CipherTest {
         const qTitle = $('#qt' + idNum).val() as string;
         const sbBox = $('#sb' + idNum)
 
-        const choice = this.questionChoices.findIndex((elem) => elem.title === qTitle)
+        const entry = this.getChoiceEntry(qTitle)
 
-        if (choice === -1) {
+        if (entry === undefined) {
             // Somehow we didn't find the cipher they selected.. so we just have to skip it
             return
         }
-        // Let's create a cipher
-        const entry = this.questionChoices[choice];
         if (this.isGoodSpecialCipherType(entry.cipherType)) {
             sbBox.removeAttr('hidden').show();
         } else {
             sbBox.attr('hidden', 'hidden').hide()
         }
-        $('#ct' + idNum).val(entry.guidance)
+        $('#ct' + idNum).val(`«${entry.guidance}»`)
     }
     /**
      * 
@@ -1182,7 +1361,16 @@ export class CipherTestBuild extends CipherTest {
             this.populateTemplate()
         })
         $("#save").off('click').on('click', (e) => {
-            this.saveTest()
+            this.saveTest(true)
+        })
+        $("#savecopy").off('click').on('click', (e) => {
+            this.saveTest(false)
+        })
+        $('.use').off('click').on('click', (e) => {
+            this.useQuote(e.target);
+        })
+        $('.qmore').off('click').on('click', (e) => {
+            this.reloadQuotes(e.target);
         })
 
         $('#testtype')

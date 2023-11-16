@@ -4,6 +4,7 @@ import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFDialog } from '../common/jtfdialog';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { textStandardRaw } from '../common/readability';
 import { CipherTest, DBTable, QueryParms, QuoteRecord } from './ciphertest';
@@ -92,7 +93,11 @@ export class CipherQuoteManager extends CipherTest {
      */
     public genPostCommands(): JQuery<HTMLElement> {
         const result = $('<div/>');
-        this.genLangDropdown(result);
+        const radiobuttons = [
+            { title: 'English', value: 'en' },
+            { title: 'Spanish', value: 'es' },
+        ];
+        result.append(JTRadioButton(8, 'qlang', radiobuttons, this.state.curlang));
         const filterDiv = $('<div/>', { class: 'callout secondary' })
         result.append(filterDiv)
         filterDiv.append($('<p>').text('Filters'))
@@ -130,6 +135,16 @@ export class CipherQuoteManager extends CipherTest {
         this.updateFilters()
         return result;
     }
+    /**
+     * Update the output based on current state settings.  This propagates
+     * All values to the UI
+     */
+    public updateOutput(): void {
+        super.updateOutput();
+        JTRadioButtonSet('qlang', this.state.curlang);
+        this.updateFilters();
+        this.attachHandlers();
+    }
     public getRanges(field: string): number[] {
         let result = [-Infinity, Infinity]
         let lower = $(`#${field}lower`).val() as string
@@ -141,6 +156,12 @@ export class CipherQuoteManager extends CipherTest {
             result[1] = parseInt(upper)
         }
         return result
+    }
+    public setLang(lang: string) {
+        if (this.state.curlang !== lang) {
+            this.state.curlang = lang;
+            this.updateOutput();
+        }
     }
 
     public updateFilters(): void {
@@ -220,7 +241,7 @@ export class CipherQuoteManager extends CipherTest {
                 this.updateFilters();
                 return;
             }
-            this.openDatabase("readwrite").then((db) => {
+            this.openDatabase(this.getLangString(), "readwrite").then((db) => {
                 const ent = data[currentIndex]
                 const newRecord: QuoteRecord = this.generateRecord(ent.text, ent.author, ent.source, ent.notes, ent.test, ent.translation);
                 const request = db.Table.add(newRecord)
@@ -301,6 +322,8 @@ export class CipherQuoteManager extends CipherTest {
                         outrec.source = val
                     } else if (lckey === 'notes') {
                         outrec.notes = val
+                    } else if (lckey === 'translation') {
+                        outrec.tranlation = val
                     }
                 }
                 entries.push(outrec)
@@ -359,7 +382,7 @@ export class CipherQuoteManager extends CipherTest {
 
 
     public deleteAllQuotes(): void {
-        this.openDatabase("readwrite").then((db) => {
+        this.openDatabase(this.getLangString(), "readwrite").then((db) => {
             db.Table.clear();
             db.Transaction.oncomplete = () => {
                 this.updateFilters()
@@ -368,7 +391,7 @@ export class CipherQuoteManager extends CipherTest {
     }
     public deleteQuote(qn: number): void {
         // TODO: Ask them if they really want to delete it.
-        this.openDatabase("readwrite").then((db) => {
+        this.openDatabase(this.getLangString(), "readwrite").then((db) => {
             db.Table.delete(qn)
             db.Transaction.oncomplete = () => {
                 this.updateFilters()
@@ -451,6 +474,16 @@ export class CipherQuoteManager extends CipherTest {
             .on('click', (e) => {
                 this.gotoDeleteAllQuotes();
             });
+        $('[name="qlang"]')
+            .off('click')
+            .on('click', (e) => {
+                $(e.target)
+                    .siblings()
+                    .removeClass('is-active');
+                $(e.target).addClass('is-active');
+                this.setLang($(e.target).val() as string);
+            });
+
     }
 }
 

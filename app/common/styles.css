@@ -103,6 +103,23 @@ li.purge {
     border: 2px dashed red !important;
 }
 
+button.qmore {
+    padding: 4px 6px;
+    float: right;
+}
+
+button.use {
+    font-size: 0.8 rem;
+    padding: 4px 6px;
+    margin-bottom: 0;
+    margin-right: 5px;
+}
+
+.usetxt:not(:last-child) {
+    border-bottom: 1px solid grey;
+    margin-bottom: 4px;
+}
+
 .qrinst {
     display: inline-block;
     height: 400px;

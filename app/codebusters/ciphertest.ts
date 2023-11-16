@@ -15,12 +15,16 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
 
-const DATABASE_VERSION = 1
+const DATABASE_VERSION = 2
 
 export interface buttonInfo {
     title: string;
     btnClass: string;
     disabled?: boolean;
+}
+
+export interface UsedIdMap {
+    [index: number]: boolean;
 }
 
 export type modelID = string;
@@ -635,15 +639,23 @@ export class CipherTest extends CipherHandler {
         }
         return "english"
     }
+    public CreateTableIfNeeded(db: IDBDatabase, lang: string): void {
+        if (!db.objectStoreNames.contains(lang)) {
+            const Table = db.createObjectStore(lang, { keyPath: "id", autoIncrement: true });
+            Table.createIndex('minquote', 'minquote', { unique: true });
+            Table.createIndex('len', 'len')
+            Table.createIndex('chi2', 'chi2')
+            Table.createIndex('grade', 'grade')
+            Table.createIndex('unique', 'unique')
+        }
+    }
     /**
      * 
      * @param lang 
      * @returns 
      */
-    public openDatabase(mode: IDBTransactionMode = "readonly"): Promise<DBTable> {
-        const lang = this.getLangString();
+    public openDatabase(lang: string, mode: IDBTransactionMode = "readonly"): Promise<DBTable> {
         return new Promise<DBTable>((resolve, reject) => {
-            let result: DBTable = undefined
             this.LocalDB = window.indexedDB.open("cipher_quotes", DATABASE_VERSION);
             this.LocalDB.onerror = (ev) => {
                 reject(`Unable to open database: ${(ev.target as IDBOpenDBRequest).error}`)
@@ -651,7 +663,11 @@ export class CipherTest extends CipherHandler {
             this.LocalDB.onsuccess = (ev) => {
                 const db = (ev.target as IDBOpenDBRequest).result;
                 const transaction = db.transaction(lang, mode)
-                resolve({ Table: transaction.objectStore(lang), Transaction: transaction })
+                if (transaction === undefined) {
+                    reject(`Unable to open database: ${(ev.target as IDBOpenDBRequest).error}`)
+                } else {
+                    resolve({ Table: transaction.objectStore(lang), Transaction: transaction })
+                }
             }
             this.LocalDB.onupgradeneeded = (ev) => {
                 console.log('Database needs to be upgraded')
@@ -659,12 +675,8 @@ export class CipherTest extends CipherHandler {
                 const db = (ev.target as IDBOpenDBRequest).result;
                 db.onerror = (evt) => { console.log(`Database error: ${(evt.target as IDBOpenDBRequest).error}`) }
                 // Create an objectStore for this database
-                const Table = db.createObjectStore(lang, { keyPath: "id", autoIncrement: true });
-                Table.createIndex('minquote', 'minquote', { unique: true });
-                Table.createIndex('len', 'len')
-                Table.createIndex('chi2', 'chi2')
-                Table.createIndex('grade', 'grade')
-                Table.createIndex('unique', 'unique')
+                this.CreateTableIfNeeded(db, "english")
+                this.CreateTableIfNeeded(db, "spanish")
             }
         })
     }
@@ -725,6 +737,15 @@ export class CipherTest extends CipherHandler {
         }
         return [upper, lower]
     }
+    public MarkEntriesUsed(lang: string, toSet: StringMap): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.openDatabase(lang, 'readwrite').then((db) => {
+                db.Table.put({ id: "gid", value: "hello" })
+                //objectStore.put({ id: "GID", value: GID });
+
+            })
+        })
+    }
     /**
      * Normalize all the parameters, setting ranges for any undefined values
      * @param parmsReq Parameters structure of limits on query
@@ -752,64 +773,68 @@ export class CipherTest extends CipherHandler {
         const parms = this.cleanParms(parmsReq)
 
         return new Promise<boolean>((resolve, reject) => {
-            this.openDatabase().then((db) => {
-                const transaction = db.Transaction
-                const store = transaction.objectStore(lang);
-                // Figure out what type of cursor we will have for 
-                let cursorRequest: IDBRequest<IDBCursorWithValue>
+            this.openDatabase(lang).then((db) => {
+                try {
+                    const transaction = db.Transaction
+                    const store = transaction.objectStore(lang);
+                    // Figure out what type of cursor we will have for 
+                    let cursorRequest: IDBRequest<IDBCursorWithValue>
 
-                // We only get to use one key for IndexDB, so let's
-                // pick the ones which are the most likely to filter down
-                let idxname = 'len'
-                let rangeType = this.makeRange(parms.len)
-                if (rangeType === undefined) {
-                    idxname = 'chi2'
-                    rangeType = this.makeRange(parms.chi2)
-                }
-                if (rangeType === undefined) {
-                    idxname = 'grade'
-                    rangeType = this.makeRange(parms.grade)
-                }
-                if (rangeType === undefined) {
-                    idxname = 'unique'
-                    const rangeType = this.makeRange(parms.unique)
-                }
-                // If one of those succeeded then we open the index on that field
-                if (rangeType !== undefined) {
-                    const idx = store.index(idxname)
-                    cursorRequest = idx.openCursor(rangeType)
-                } else {
-                    // Otherwise no filters, so just use the main cursor
-                    cursorRequest = store.openCursor()
-                }
-                const entries: QuoteRecord[] = [];
-                let current = -1;
-
-                cursorRequest.onsuccess = (event) => {
-                    const cursor = cursorRequest.result;
-                    if (cursor) {
-                        // See if this is a valid entry
-                        if (this.matchesRange(cursor.value, parms)) {
-                            // It matches, so see if we need to account for it
-                            current++
-                            // Are we past the ones we should skip? 
-                            if (current >= parms.start) {
-                                // Yes, so remember it
-                                if (process(cursor.value))
-                                    resolve(true)
-                            }
-                        }
-                        cursor.continue();
-                    } else {
-                        // No more records, resolve the Promise
-                        resolve(true);
+                    // We only get to use one key for IndexDB, so let's
+                    // pick the ones which are the most likely to filter down
+                    let idxname = 'len'
+                    let rangeType = this.makeRange(parms.len)
+                    if (rangeType === undefined) {
+                        idxname = 'chi2'
+                        rangeType = this.makeRange(parms.chi2)
                     }
-                };
+                    if (rangeType === undefined) {
+                        idxname = 'grade'
+                        rangeType = this.makeRange(parms.grade)
+                    }
+                    if (rangeType === undefined) {
+                        idxname = 'unique'
+                        const rangeType = this.makeRange(parms.unique)
+                    }
+                    // If one of those succeeded then we open the index on that field
+                    if (rangeType !== undefined) {
+                        const idx = store.index(idxname)
+                        cursorRequest = idx.openCursor(rangeType)
+                    } else {
+                        // Otherwise no filters, so just use the main cursor
+                        cursorRequest = store.openCursor()
+                    }
+                    const entries: QuoteRecord[] = [];
+                    let current = -1;
 
-                cursorRequest.onerror = (event) => {
-                    reject(`Error reading records: ${(event.target as IDBRequest).error}`);
-                };
-            });
+                    cursorRequest.onsuccess = (event) => {
+                        const cursor = cursorRequest.result;
+                        if (cursor) {
+                            // See if this is a valid entry
+                            if (this.matchesRange(cursor.value, parms)) {
+                                // It matches, so see if we need to account for it
+                                current++
+                                // Are we past the ones we should skip? 
+                                if (current >= parms.start) {
+                                    // Yes, so remember it
+                                    if (process(cursor.value))
+                                        resolve(true)
+                                }
+                            }
+                            cursor.continue();
+                        } else {
+                            // No more records, resolve the Promise
+                            resolve(true);
+                        }
+                    };
+
+                    cursorRequest.onerror = (event) => {
+                        reject(`Error reading records: ${(event.target as IDBRequest).error}`);
+                    };
+                } catch (e) {
+                    return resolve(false);
+                }
+            }).catch((_e) => { return resolve(false) });
         })
     }
     /**
@@ -840,7 +865,7 @@ export class CipherTest extends CipherHandler {
      * @param limit Maximum number of entries to return
      * @returns Promise to array of QuoteRecords
      */
-    public async getRandomEntriesWithRanges(lang: string, parmsReq: QueryParms, limit: number = 3): Promise<QuoteRecord[]> {
+    public async getRandomEntriesWithRanges(lang: string, parmsReq: QueryParms, usedmap: UsedIdMap, limit: number = 3): Promise<QuoteRecord[]> {
         const parms = this.cleanParms(parmsReq)
 
         return new Promise<QuoteRecord[]>((resolve, reject) => {
@@ -849,7 +874,7 @@ export class CipherTest extends CipherHandler {
             const weights: number[] = [];
             let maxweight = -1;
             this.SearchEntriesWithRanges(lang, parmsReq, (entry: QuoteRecord): boolean => {
-                if (entry.testUsage === undefined || entry.testUsage === "") {
+                if ((entry.testUsage === undefined || entry.testUsage === "") && usedmap[entry.id] !== true) {
                     const weight = Math.random()
                     if (entries.length < limit) {
                         entries.push(entry);

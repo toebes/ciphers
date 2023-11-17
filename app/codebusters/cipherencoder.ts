@@ -1378,13 +1378,27 @@ export class CipherEncoder extends CipherHandler {
         //return 'the keyword is ' + this.state.keyword.toUpperCase();
         return 'nothing is known';
     }
+    /**
+     * Get the reference to the author for a quote
+     * @returns Reference to the author (if any) for the quote
+     */
+    public genAuthor(): string {
+        if (this.state.author !== undefined && this.state.author !== '') {
+            return ' by ' + this.state.author
+        }
+        return ''
+    }
+    /**
+     * Generates the sample question text for a cipher
+     * @returns HTML as a string
+     */
     public genSampleQuestionText(): string {
         let enctype = ''
         if (this.state.encodeType !== undefined && this.state.encodeType !== 'random') {
             enctype += this.state.encodeType.toUpperCase();
         }
         return (
-            '<p>A quote has been encoded using the ' +
+            '<p>A quote' + this.genAuthor() + ' has been encoded using the ' +
             enctype + ' ' + this.cipherName +
             ' Cipher for you to decode. ' +
             'You are told that ' +

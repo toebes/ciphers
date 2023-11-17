@@ -299,9 +299,9 @@ export class CipherHillEncoder extends CipherEncoder {
             hilltype = "3x3 Hill Cipher"
         }
         if (this.state.operation === 'encode') {
-            msg = `<p>Encrypt the following quote with a ${hilltype} using a keyword of ${this.genMonoText(key)}.</p>`
+            msg = `<p>Encrypt the following quote${this.genAuthor()} with a ${hilltype} using a keyword of ${this.genMonoText(key)}.</p>`
         } else if (this.state.operation === 'decode') {
-            msg = `<p>Decode the following quote which was encoded as a ${hilltype} using a keyword of ${this.genMonoText(key)}.</p>`
+            msg = `<p>Decode the following quote${this.genAuthor()} which was encoded as a ${hilltype} using a keyword of ${this.genMonoText(key)}.</p>`
         } else {
             msg = `<p>Compute the ${hilltype} decryption matrix for a keyword of ${this.genMonoText(key)}.</p>`
         }

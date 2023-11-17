@@ -384,7 +384,7 @@ export class CipherAffineEncoder extends CipherEncoder {
     public genSampleQuestionText(): string {
         let msg = '';
         if (this.state.operation === 'crypt') {
-            msg = '<p>The following quote has been encoded using the Affine Cipher. ';
+            msg = '<p>The following quote' + this.genAuthor() + ' has been encoded using the Affine Cipher. ';
             const cribpos = this.placeCrib();
             const ptstring = this.minimizeString(this.state.cipherString);
             if (cribpos === undefined) {
@@ -421,11 +421,11 @@ export class CipherAffineEncoder extends CipherEncoder {
         } else {
             if (this.state.operation === 'encode') {
                 msg =
-                    '<p>The following quote needs to be encoded ' +
+                    '<p>The following quote' + this.genAuthor() + ' needs to be encoded ' +
                     ' with the Affine Cipher using ';
             } else {
                 msg =
-                    '<p>The following quote needs to be decoded ' +
+                    '<p>The following quote' + this.genAuthor() + ' needs to be decoded ' +
                     ' with the Affine Cipher where ';
             }
             msg +=

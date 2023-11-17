@@ -522,9 +522,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public genSampleQuestionText(): string {
         let msg = '';
         if (this.state.operation !== 'words') {
-            msg = '<p>The following symbols encode a quote using a Baconian cipher</p>';
+            msg = '<p>The following symbols encode a quote' + this.genAuthor() + ' using a Baconian cipher</p>';
         } else {
-            msg = '<p>The following strange headlines encode a quote using a Baconian cipher. ';
+            msg = '<p>The following strange headlines encode a quote' + this.genAuthor() + ' using a Baconian cipher. ';
             const plaintext = this.minimizeString(this.getEncodingString());
             const criblook = this.minimizeString(this.state.crib);
             if (criblook.length > 0) {

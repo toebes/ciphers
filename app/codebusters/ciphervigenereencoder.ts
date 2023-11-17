@@ -301,7 +301,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         }
         if (this.state.operation === 'crypt') {
             msg =
-                '<p>The following quote has been encoded with the ' + ciphertypetext +
+                '<p>The following quote' + this.genAuthor() + ' has been encoded with the ' + ciphertypetext +
                 ' Cipher using a very common word for the key. ';
 
             const cribpos = this.placeCrib();
@@ -330,12 +330,12 @@ export class CipherVigenereEncoder extends CipherEncoder {
             const keyword = this.genMonoText(this.minimizeString(this.state.keyword));
             if (this.state.operation === 'encode') {
                 msg =
-                    '<p>The following quote needs to be encoded ' +
+                    '<p>The following quote' + this.genAuthor() + ' needs to be encoded ' +
                     ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
                     keyword;
             } else {
                 msg =
-                    '<p>The following quote needs to be decoded ' +
+                    '<p>The following quote' + this.genAuthor() + ' needs to be decoded ' +
                     ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
                     keyword;
             }

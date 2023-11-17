@@ -301,7 +301,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let ciphertypetext = 'Nihilist Substitition';
         if (this.state.operation === 'crypt') {
             msg =
-                '<p>The following quote has been encoded with the ' + ciphertypetext +
+                '<p>The following quote' + this.genAuthor() + ' has been encoded with the ' + ciphertypetext +
                 ' Cipher using a very common word for the key. ';
 
             const cribpos = this.placeCrib();
@@ -331,12 +331,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             const polybiusKey = this.genMonoText(this.cleanPolyKey);
             if (this.state.operation === 'encode') {
                 msg =
-                    '<p>The following quote needs to be encoded ' +
+                    '<p>The following quote' + this.genAuthor() + ' needs to be encoded ' +
                     ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
                     keyword + ' and polybius key of ' + polybiusKey + '. ';
             } else {
                 msg =
-                    '<p>The following quote needs to be decoded ' +
+                    '<p>The following quote' + this.genAuthor() + ' needs to be decoded ' +
                     ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
                     keyword + ' and polybius key of ' + polybiusKey + '. ';
             }

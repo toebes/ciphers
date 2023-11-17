@@ -159,7 +159,7 @@ export type ITestManage = 'local' | 'published';
 
 export interface QuoteRecord {
     id?: number;
-    quote: string;
+    quote?: string;
     minquote?: string;
     chi2?: number;
     len?: number;
@@ -170,6 +170,9 @@ export interface QuoteRecord {
     translation?: string;
     testUsage?: string;
     notes?: string;
+}
+export interface QuoteUpdates {
+    [id: number]: QuoteRecord
 }
 
 export interface DBTable {
@@ -737,15 +740,6 @@ export class CipherTest extends CipherHandler {
         }
         return [upper, lower]
     }
-    public MarkEntriesUsed(lang: string, toSet: StringMap): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            this.openDatabase(lang, 'readwrite').then((db) => {
-                db.Table.put({ id: "gid", value: "hello" })
-                //objectStore.put({ id: "GID", value: GID });
-
-            })
-        })
-    }
     /**
      * Normalize all the parameters, setting ranges for any undefined values
      * @param parmsReq Parameters structure of limits on query
@@ -908,6 +902,83 @@ export class CipherTest extends CipherHandler {
                 resolve(entries);
             }).catch((reason) => { reject(reason) });
         })
+    }
+    /**
+     * Update a single record in the database.  Note that due to the oddities of the
+     * indexeddb database, we have to find the record, make a copy of it, modify the copy, delete the
+     * original record, remove the id from the new record and then add it back to the database.
+     * @param objectStore Database to update the record
+     * @param id Id of record to update
+     * @param toUpdate New data to apply to the record
+     * @returns 
+     */
+    public updateDBRecord(objectStore: IDBObjectStore, id: number, toUpdate: QuoteRecord): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            // let cursorRequest: IDBRequest<IDBCursorWithValue>
+            const idKey = IDBKeyRange.only(id)
+            const cursorRequest = objectStore.openCursor(idKey)
+
+            cursorRequest.onsuccess = (event) => {
+                const cursor = cursorRequest.result;
+                if (cursor) {
+                    console.log(`Found Record at ${cursor.value.id}`)
+                    const updateData = cursor.value;
+                    for (let key in toUpdate) {
+                        updateData[key] = toUpdate[key]
+                    }
+                    delete updateData['id']
+
+                    const request = cursor.delete();
+                    request.onsuccess = () => {
+                        // Now we need to add it
+                        const request = objectStore.add(updateData)
+                        request.onsuccess = (event) => {
+                            resolve(true)
+                        }
+                        request.onerror = (event) => {
+                            reject(event);
+                        }
+                    };
+                    request.onerror = (ev) => {
+                        console.log(`Cursor delete failure`)
+                        console.log(ev)
+                        reject(ev)
+                    }
+                } else {
+                    // No more records, resolve the Promise
+                    resolve(true);
+                }
+            };
+
+            cursorRequest.onerror = (event) => {
+                reject(`Error reading records: ${(event.target as IDBRequest).error}`);
+            };
+        })
+    }
+    /**
+     * Update a series of entries in the database
+     * Primarily used to mark records as being used on a test
+     * @param lang Language database to update
+     * @param updatereq List of entries to be updated
+     * @returns 
+     */
+    public updateDBRecords(lang: string, updatereq: QuoteUpdates): Promise<boolean> {
+
+        return new Promise<boolean>((resolve, reject) => {
+            if (Object.keys(updatereq).length <= 0) {
+                resolve(true);
+                return;
+            }
+            this.openDatabase(lang, 'readwrite').then(async (db) => {
+                const objectStore = db.Table;
+                for (const id in updatereq) {
+                    await this.updateDBRecord(objectStore, Number(id), updatereq[id])
+                }
+                resolve(true);
+                return;
+            })
+        })
+
     }
     /**
      * Determine if a record matches the filter requirements

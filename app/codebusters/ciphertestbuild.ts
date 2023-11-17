@@ -7,7 +7,7 @@ import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
-import { CipherTest, ITestState, QueryParms, UsedIdMap } from './ciphertest';
+import { CipherTest, ITestState, QueryParms, QuoteUpdates, UsedIdMap } from './ciphertest';
 
 // Configuration for the range of questions on the test that can be Aristocrats
 const aristocratDivBCPCTMin = .35
@@ -978,7 +978,9 @@ export class CipherTestBuild extends CipherTest {
 
             if (entry.msg !== undefined) {
                 ctcDiv.append($("<b>").text(entry.msg))
-                if (!doSingleOnly) {
+                if (doSingleOnly) {
+                    this.updateOutput()
+                } else {
                     setTimeout(() => { return this.populateQuestion(qnum + 1, usedmap) }, 1)
                 }
                 return;
@@ -1018,6 +1020,7 @@ export class CipherTestBuild extends CipherTest {
                             'data-val': idNum,
                             'data-id': ent.id,
                             'data-text': ent.quote,
+                            'data-aut': ent.author,
                             type: "button",
                             class: "rounded button use",
                         }).html("Use");
@@ -1032,7 +1035,9 @@ export class CipherTestBuild extends CipherTest {
                     ctcDiv.empty().append(div)
                 }
                 // We finished one, so go onto the next one
-                if (!doSingleOnly) {
+                if (doSingleOnly) {
+                    this.updateOutput()
+                } else {
                     setTimeout(() => { return this.populateQuestion(qnum + 1, usedmap) }, 1)
                 }
             })
@@ -1069,7 +1074,7 @@ export class CipherTestBuild extends CipherTest {
         return this.questionChoices[choice];
     }
 
-    public saveTest(editAfter: boolean) {
+    public async saveTest(editAfter: boolean) {
         // First we create the test entry
         const testEntry: ITest = {
             timed: -1,
@@ -1082,11 +1087,16 @@ export class CipherTestBuild extends CipherTest {
         };
 
         const qCount = $('.qt').length
+        const englishUpdates: QuoteUpdates = {}
+        const spanishUpdates: QuoteUpdates = {}
+
         for (let qnum = 0; qnum < qCount; qnum++) {
             let idNum = String(qnum);
             const qTitle = $('#qt' + idNum).val() as string;
-            const plaintext = $('#ct' + idNum).val() as string;
+            const ptElem = $('#ct' + idNum)
+            const plaintext = ptElem.val() as string;
             const author = $('#au' + idNum).val() as string;
+            const dataId = ptElem.attr('data-id')
 
             // Division A won't have a timed question, so we can just skip it
             if (qnum === 0 && qTitle === "") {
@@ -1102,6 +1112,14 @@ export class CipherTestBuild extends CipherTest {
             if (lang === undefined || lang === '') {
                 lang = 'en';
             }
+            if (dataId !== undefined && dataId !== "") {
+                if (lang === 'es') {
+                    spanishUpdates[dataId] = { id: dataId, testUsage: this.title }
+                } else {
+                    englishUpdates[dataId] = { id: dataId, testUsage: this.title }
+                }
+            }
+
             const state: IState = {
                 cipherType: entry.cipherType,
                 points: 0,
@@ -1130,12 +1148,14 @@ export class CipherTestBuild extends CipherTest {
             }
         }
         const test = this.setTestEntry(-1, testEntry);
+        // We need to mark them in the database as used.
+        await this.updateDBRecords("english", englishUpdates)
+        await this.updateDBRecords("spanish", spanishUpdates)
         if (editAfter) {
             this.gotoEditTest(test);
         } else {
             $("#saveres").empty().append(makeCallout($(htmlToElement(`<p>Test "${this.title}" saved.  Remember to change the Test Title in Step 1 before saving again.</p>`) as HTMLElement), 'success'))
         }
-        // Let them know that 
     }
 
     /**
@@ -1313,11 +1333,13 @@ export class CipherTestBuild extends CipherTest {
         const idNum = jqelem.attr('data-val')
         const dataId = jqelem.attr('data-id')
         const text = jqelem.attr('data-text')
+        const author = jqelem.attr('data-aut')
 
         const target = $('#ct' + String(idNum))
 
         target.val(text)
         target.attr('data-id', dataId)
+        $('#au' + String(idNum)).val(author)
 
     }
     /**

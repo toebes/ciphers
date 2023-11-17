@@ -57,6 +57,12 @@ div.attachline {
     width: 20%;
 }
 
+.qlist td.aut,
+.qlist td.typ,
+.qlist td.txt {
+    vertical-align: top;
+}
+
 .attachline .btext {
     vertical-align: middle;
     display: inline-block;

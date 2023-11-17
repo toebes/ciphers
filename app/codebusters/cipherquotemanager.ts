@@ -173,7 +173,6 @@ export class CipherQuoteManager extends CipherTest {
         const lang = this.getLangString()
 
         const target = $('.sol')
-        target.empty()
 
         let table = new JTTable({ class: 'qmlist' })
         let header = table.addHeaderRow()
@@ -221,6 +220,7 @@ export class CipherQuoteManager extends CipherTest {
                 }
 
             })
+            target.empty()
             target.append(table.generate())
             this.attachHandlers();
         })

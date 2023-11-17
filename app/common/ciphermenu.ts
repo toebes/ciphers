@@ -37,6 +37,8 @@ export const CipherMenu: menuItem[] = [
         classname: 'menucb',
         menu: [
             { title: 'Test Manager', href: 'TestManage.html' },
+            { title: 'Test Builder', href: 'TestBuild.html' },
+            { title: 'Quote Manager', href: 'QuoteManager.html' },
             { title: 'Question Manager', href: 'TestQuestions.html' },
             { title: '', classname: 'divider' },
             {

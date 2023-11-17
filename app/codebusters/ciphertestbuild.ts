@@ -1138,6 +1138,10 @@ export class CipherTestBuild extends CipherTest {
             if (entry.keyword !== undefined) {
                 state.keyword = entry.keyword;
             }
+            if (author !== "") {
+                state.question += ` Quote Author: ${author}`
+            }
+
 
             const savefileentry = this.setFileEntry(-1, state);
             if (qnum === 0) {

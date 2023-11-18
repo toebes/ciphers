@@ -190,7 +190,6 @@ export class CipherQuoteManager extends CipherTest {
         }
         this.getEntriesWithRanges(lang, filter).then((res) => {
             res.forEach((val) => {
-                //console.log(val) 
                 let row = table.addBodyRow()
                 let btnGroup = $('<div/>', { class: 'button-group small round shrink' })
                 const buttonEdit = $('<button/>', {
@@ -233,30 +232,38 @@ export class CipherQuoteManager extends CipherTest {
      * insert as a separate database operation.
      * @param data Array of records to add
      */
-    public processQuoteXML(data: AnyMap): void {
-        const totalRecords = data.length;
-        let currentIndex = 0;
-        const processNextRecord = () => {
-            if (currentIndex >= totalRecords) {
-                this.updateFilters();
-                return;
+    public processQuoteXML(data: AnyMap): Promise<number> {
+        return new Promise<number>((resolve, reject) => {
+            const totalRecords = data.length;
+            let currentIndex = 0;
+            const statusDiv = $("#xmlerr")
+
+            const processNextRecord = () => {
+                if (currentIndex >= totalRecords) {
+                    this.updateFilters();
+                    return resolve(currentIndex);
+                }
+                // See if we need to update the UI
+                if ((currentIndex % 100) === 0) {
+                    const pct = Math.round((100 * currentIndex) / totalRecords)
+                    statusDiv.empty().show().text(`Importing quote ${currentIndex} of ${totalRecords} - ${pct}% Complete`)
+                }
+                this.openDatabase(this.getLangString(), "readwrite").then((db) => {
+                    const ent = data[currentIndex]
+                    const newRecord: QuoteRecord = this.generateRecord(ent.text, ent.author, ent.source, ent.notes, ent.test, ent.translation);
+                    const request = db.Table.add(newRecord)
+                    request.onsuccess = (event) => {
+                        currentIndex++;
+                        processNextRecord();
+                    }
+                    request.onerror = (event) => {
+                        currentIndex++
+                        processNextRecord()
+                    }
+                })
             }
-            this.openDatabase(this.getLangString(), "readwrite").then((db) => {
-                const ent = data[currentIndex]
-                const newRecord: QuoteRecord = this.generateRecord(ent.text, ent.author, ent.source, ent.notes, ent.test, ent.translation);
-                const request = db.Table.add(newRecord)
-                request.onsuccess = (event) => {
-                    currentIndex++;
-                    processNextRecord();
-                }
-                request.onerror = (event) => {
-                    console.log(`ERROR:`); console.log(event);
-                    currentIndex++
-                    processNextRecord()
-                }
-            })
-        }
-        processNextRecord()
+            processNextRecord()
+        })
     }
     /**
      * 
@@ -298,12 +305,10 @@ export class CipherQuoteManager extends CipherTest {
         return newRecord;
     }
 
-    public processXLSX(workbook: XLSX.WorkBook) {
+    public async processXLSX(workbook: XLSX.WorkBook) {
         // Make sure there was something to actually import
         if (workbook.SheetNames.length >= 1) {
             const sheetname = workbook.SheetNames[0];
-            console.log(`Using data from ${sheetname}`)
-            // console.log(workbook.Sheets[sheetname])
 
             const jsondata = XLSX.utils.sheet_to_json<AnyMap>(workbook.Sheets[sheetname])
             const entries: any[] = [];
@@ -328,7 +333,7 @@ export class CipherQuoteManager extends CipherTest {
                 }
                 entries.push(outrec)
             }
-            this.processQuoteXML(entries);
+            await this.processQuoteXML(entries);
         }
     }
     /**
@@ -351,13 +356,12 @@ export class CipherQuoteManager extends CipherTest {
             }
             reader.readAsText(file);
         } else {
-            reader.onload = (e): void => {
+            reader.onload = async (e): Promise<void> => {
                 try {
                     var data = e.target.result;
 
                     var workbook = XLSX.read(data, { type: 'binary', cellFormula: false, cellHTML: false });
-                    this.processXLSX(workbook)
-                    console.log(workbook)
+                    await this.processXLSX(workbook)
                     //this.importXML(result);
                     $('#ImportFile').foundation('close');
                 } catch (e) {
@@ -370,10 +374,8 @@ export class CipherQuoteManager extends CipherTest {
     /**
      * Process imported XML
      */
-    public importXML(data: any): void {
-        console.log('Importing XML');
-        console.log(data);
-        this.processQuoteXML(data);
+    public async importXML(data: any): Promise<void> {
+        await this.processQuoteXML(data);
         this.updateOutput();
     }
     public editQuote(qn: number): void {

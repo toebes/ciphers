@@ -1462,6 +1462,7 @@ export class CipherHandler {
      */
     public openXMLImport(useLocalData: boolean): void {
         $('#okimport').attr('disabled', 'disabled');
+        $("#xmlerr").empty().hide();
         $('#importstatus')
             .removeClass('success')
             .addClass('secondary');

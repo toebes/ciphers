@@ -184,11 +184,11 @@ export class CipherQuoteManager extends CipherTest {
         header.add('Unique')
         header.add('Author')
         header.add('Quote')
-        header.add('Test Usage')
-        header.add('notes')
         if (lang !== 'english') {
             header.add('Translation')
         }
+        header.add('Test Usage')
+        header.add('Notes')
         this.getEntriesWithRanges(lang, filter).then((res) => {
             res.forEach((val) => {
                 let row = table.addBodyRow()
@@ -211,13 +211,13 @@ export class CipherQuoteManager extends CipherTest {
                 row.add(String(val.len))
                 row.add(String(val.grade))
                 row.add(String(val.unique))
-                row.add(val.author)
-                row.add(val.quote)
-                row.add(val.testUsage)
-                row.add(val.notes)
+                row.add(val.author ? val.author : "")
+                row.add(val.quote ? val.quote : "")
                 if (lang !== 'english') {
-                    row.add(val.translation)
+                    row.add(val.translation ? val.translation : "")
                 }
+                row.add(val.testUsage ? val.testUsage : "")
+                row.add(val.notes ? val.notes : "")
 
             })
             target.empty()
@@ -337,7 +337,7 @@ export class CipherQuoteManager extends CipherTest {
                     } else if (lckey === 'notes') {
                         outrec.notes = val
                     } else if (lckey === 'translation') {
-                        outrec.tranlation = val
+                        outrec.translation = val
                     }
                 }
                 entries.push(outrec)

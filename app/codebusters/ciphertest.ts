@@ -15,7 +15,7 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherPrintFactory } from './cipherfactory';
 
-const DATABASE_VERSION = 2
+const DATABASE_VERSION = 4
 
 export interface buttonInfo {
     title: string;

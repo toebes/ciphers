@@ -34,6 +34,7 @@ export class CipherQuoteManager extends CipherTest {
     public cmdButtons: JTButtonItem[] = [
         { title: 'Import Quotes from File', color: 'primary', id: 'import' },
         { title: 'Import Quotes from URL', color: 'primary', id: 'importurl' },
+        { title: 'Export Quotes', color: 'primary', id: 'export' },
         { title: 'Delete all Quotes', color: 'alert', id: 'deleteall' }
     ];
     public checkXMLImport(): void {
@@ -236,6 +237,7 @@ export class CipherQuoteManager extends CipherTest {
         return new Promise<number>((resolve, reject) => {
             const totalRecords = data.length;
             let currentIndex = 0;
+            let skipped = 0;
             const statusDiv = $("#xmlerr")
 
             const processNextRecord = () => {
@@ -243,14 +245,16 @@ export class CipherQuoteManager extends CipherTest {
                     this.updateFilters();
                     return resolve(currentIndex);
                 }
-                // See if we need to update the UI
-                if ((currentIndex % 100) === 0) {
-                    const pct = Math.round((100 * currentIndex) / totalRecords)
-                    statusDiv.empty().show().text(`Importing quote ${currentIndex} of ${totalRecords} - ${pct}% Complete`)
+                // See if we need to update the UI.  Why 87?  So it looks like all the digits are advancing.
+                if ((currentIndex % 87) === 0) {
+                    const pct = (Math.round((1000 * currentIndex) / totalRecords) / 10).toFixed(1)
+                    const skipInfo = skipped ? ` (${skipped.toLocaleString()} duplicates skipped)` : ''
+                    statusDiv.empty().show().text(`Importing quote ${currentIndex.toLocaleString()} of ${totalRecords.toLocaleString()} - ${pct}% Complete${skipInfo}`)
                 }
                 this.openDatabase(this.getLangString(), "readwrite").then((db) => {
                     const ent = data[currentIndex]
-                    const newRecord: QuoteRecord = this.generateRecord(ent.text, ent.author, ent.source, ent.notes, ent.test, ent.translation);
+                    const quote = ent.quote ? ent.quote : ent.text;
+                    const newRecord: QuoteRecord = this.generateRecord(quote, ent.author, ent.source, ent.notes, ent.test, ent.translation);
                     const request = db.Table.add(newRecord)
                     request.onsuccess = (event) => {
                         currentIndex++;
@@ -258,6 +262,7 @@ export class CipherQuoteManager extends CipherTest {
                     }
                     request.onerror = (event) => {
                         currentIndex++
+                        skipped++;
                         processNextRecord()
                     }
                 })
@@ -304,10 +309,14 @@ export class CipherQuoteManager extends CipherTest {
         }
         return newRecord;
     }
-
+    /**
+     * Process imported spreadsheet
+     * @param workbook XLSX Workbook
+     */
     public async processXLSX(workbook: XLSX.WorkBook) {
         // Make sure there was something to actually import
         if (workbook.SheetNames.length >= 1) {
+            // We will only use the first named sheet
             const sheetname = workbook.SheetNames[0];
 
             const jsondata = XLSX.utils.sheet_to_json<AnyMap>(workbook.Sheets[sheetname])
@@ -337,6 +346,13 @@ export class CipherQuoteManager extends CipherTest {
         }
     }
     /**
+     * Process imported XML
+     */
+    public async importXML(data: any): Promise<void> {
+        await this.processQuoteXML(data);
+        this.updateOutput();
+    }
+    /**
      * Process the imported file
      * @param reader File to process
      */
@@ -345,10 +361,10 @@ export class CipherQuoteManager extends CipherTest {
         const name = file.name
         const extension = name.split('.').pop().toLowerCase()
         if (extension === 'json') {
-            reader.onload = (e): void => {
+            reader.onload = async (e): Promise<void> => {
                 try {
                     const data = JSON.parse(e.target.result as string);
-                    this.importXML(data);
+                    await this.importXML(data);
                     $('#ImportFile').foundation('close');
                 } catch (e) {
                     $('#xmlerr').text(`Not a valid import file: ${e}`).show();
@@ -362,7 +378,6 @@ export class CipherQuoteManager extends CipherTest {
 
                     var workbook = XLSX.read(data, { type: 'binary', cellFormula: false, cellHTML: false });
                     await this.processXLSX(workbook)
-                    //this.importXML(result);
                     $('#ImportFile').foundation('close');
                 } catch (e) {
                     $('#xmlerr').text(`Not a valid import file: ${e}`).show();
@@ -370,13 +385,6 @@ export class CipherQuoteManager extends CipherTest {
             };
             reader.readAsBinaryString(file);
         }
-    }
-    /**
-     * Process imported XML
-     */
-    public async importXML(data: any): Promise<void> {
-        await this.processQuoteXML(data);
-        this.updateOutput();
     }
     public editQuote(qn: number): void {
         alert(`Editing ${qn}`)
@@ -406,6 +414,18 @@ export class CipherQuoteManager extends CipherTest {
      */
     public importData(useLocalData: boolean): void {
         this.openXMLImport(useLocalData);
+    }
+    /**
+     * Create a link that downloads all the tests
+     * @param link HTML DOM Element to put link under
+     */
+    public async exportQuotes(link: JQuery<HTMLElement>): Promise<void> {
+        const result = await this.getEntriesWithRanges(this.getLangString(), {}, 50000)
+        const blob = new Blob([JSON.stringify(result)], { type: 'text/json' });
+        const url = URL.createObjectURL(blob);
+
+        link.attr('download', `${this.getLangString()}_quotes.json`);
+        link.attr('href', url);
     }
     /**
      * Create the hidden dialog for selecting a cipher to open
@@ -471,6 +491,11 @@ export class CipherQuoteManager extends CipherTest {
                 this.deleteQuote(Number($(e.target).attr('data-entry')));
 
             })
+        $('#export')
+            .off('click')
+            .on('click', (e) => {
+                this.exportQuotes($(e.target));
+            });
         $('#deleteall')
             .off('click')
             .on('click', (e) => {

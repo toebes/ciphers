@@ -130,8 +130,15 @@ export class CipherQuoteManager extends CipherTest {
                 $('<a/>', {
                     href: 'HowTo.html#QuoteManagerFormat',
                     target: 'new',
-                }).text('Quote File Documentation')
-            )
+                }).text('Quote File Documentation'))
+                .append(" | ")
+                .append(
+                    $('<a/>', { href: "Samples/English_Quotes.xlsx" }).text('Sample English Quotes')
+                        .append(" | ")
+                ).append(
+                    $('<a/>', { href: "Samples/Spanish_Quotes.xlsx" }).text('Sample Spanish Quotes')
+
+                )
         );
         this.updateFilters()
         return result;

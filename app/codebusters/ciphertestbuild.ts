@@ -1024,8 +1024,15 @@ export class CipherTestBuild extends CipherTest {
                             type: "button",
                             class: "rounded button use",
                         }).html("Use");
+                        let banButton = $("<button/>", {
+                            'data-id': ent.id,
+                            'data-lang': lang,
+                            type: "button",
+                            class: "rounded button ban",
+                        }).html("🚫");
                         const useDiv = $("<div/>", { class: "usetxt" })
                             .append(useButton)
+                            .append(banButton)
                             .append($("<span>").text(ent.quote))
                         if (ent.translation !== undefined) {
                             useDiv.append($("<span>").append($("<i/>").text(ent.translation)))
@@ -1332,6 +1339,10 @@ export class CipherTestBuild extends CipherTest {
             groupData.minWeight = newMinWeight;
         }
     }
+    /**
+     * Use a quote
+     * @param elem dom element of quote to use
+     */
     public useQuote(elem: HTMLElement) {
         const jqelem = $(elem)
         const idNum = jqelem.attr('data-val')
@@ -1344,7 +1355,22 @@ export class CipherTestBuild extends CipherTest {
         target.val(text)
         target.attr('data-id', dataId)
         $('#au' + String(idNum)).val(author)
+    }
+    /**
+     * Banish a quote so that it doesn't get selected again. We do this by
+     * marking it as a test of "BANNED" so that we can track them.
+     * @param elem dom element of quote to ban
+     */
+    public async banQuote(elem: HTMLElement) {
+        const jqelem = $(elem)
+        const lang = jqelem.attr('data-lang')
+        const dataId = jqelem.attr('data-id')
+        const Updates: QuoteUpdates = {}
 
+        Updates[dataId] = { id: dataId, testUsage: "BANNED" }
+        // We need to mark them in the database as banned.
+        await this.updateDBRecords(lang, Updates)
+        $(elem).parent().hide()
     }
     /**
      * Update the Plain Text guidance and the Special Bonus question when changing a Cipher Type
@@ -1394,6 +1420,9 @@ export class CipherTestBuild extends CipherTest {
         })
         $('.use').off('click').on('click', (e) => {
             this.useQuote(e.target);
+        })
+        $('.ban').off('click').on('click', (e) => {
+            this.banQuote(e.target);
         })
         $('.qmore').off('click').on('click', (e) => {
             this.reloadQuotes(e.target);

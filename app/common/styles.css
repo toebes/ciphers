@@ -114,7 +114,8 @@ button.qmore {
     float: right;
 }
 
-button.use {
+button.use,
+button.ban {
     font-size: 0.8 rem;
     padding: 4px 6px;
     margin-bottom: 0;

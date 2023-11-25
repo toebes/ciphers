@@ -1006,8 +1006,6 @@ export class CipherTestBuild extends CipherTest {
                 this.state.testtype === ITestType.cstate) {
                 parms.grade = [-Infinity, 12]
             }
-            console.log(`Working on ${qnum}`)
-            console.log(usedmap)
             this.getRandomEntriesWithRanges(lang, parms, usedmap, 3).then((res) => {
                 $("#cm" + idNum).show()
                 if (res.length === 0) {
@@ -1060,12 +1058,14 @@ export class CipherTestBuild extends CipherTest {
         }
         this.populateQuestion(idNum, {});
     }
+    /**
+     * Reload the qotes for a single element
+     * @param elem Element to reload quotes for
+     */
     public reloadQuotes(elem: HTMLElement) {
         const idNum = elem.id.substring(2)
-        const jqelem = $(elem)
         const usedIds: UsedIdMap = {}
-        $('[data-id]').each((idx, elem) => { usedIds[elem.getAttribute('data-id')] = true })
-        console.log(usedIds);
+        $('[data-id]').each((_idx, elem) => { usedIds[elem.getAttribute('data-id')] = true })
         this.populateQuestion(Number(idNum), usedIds, true);
     }
     /**
@@ -1400,12 +1400,9 @@ export class CipherTestBuild extends CipherTest {
      */
     public attachHandlers(): void {
         super.attachHandlers();
-        $('.qt')
-            .off('change')
-            .on('change', (e) => {
-                this.updateQuestionChoice(e.target);
-                //                console.log(`changing...${e.target.id}`)
-            })
+        $('.qt').off('change').on('change', (e) => {
+            this.updateQuestionChoice(e.target);
+        })
         $("#genlist").off('click').on('click', (e) => {
             this.genTestTemplate()
         })

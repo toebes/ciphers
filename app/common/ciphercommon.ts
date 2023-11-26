@@ -106,7 +106,12 @@ export function padToMatch(c: string, m: string): string {
  * @param keepCase Boolean indicating you want the string back without bein coverted to upper case
  */
 export function sanitizeString(text: string, keepCase = false): string {
-    let returnValue: string = text.replace(/[\s,.?'";:!$&-+=]/g, '');
+    /* Match a single character present in the list below [\s!-\/:-@]
+       \s matches any whitespace character (equivalent to [\r\n\t\f\v ])
+       !-\/ matches a single character in the range between ! (index 33) and / (index 47) (case sensitive)
+       :-@ matches a single character in the range between : (index 58) and @ (index 64) (case sensitive)
+     */
+    let returnValue: string = text.replace(/[\s!-\/:-@]/g, '');
     if (!keepCase) {
         returnValue = returnValue.toUpperCase();
     }

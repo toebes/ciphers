@@ -961,8 +961,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         if (wordline !== '') {
             result.lines.push({
                 plaintext: plaintextline.split(''),
-                baconian: baconline.split(''),
-                ciphertext: wordline.split('')
+                baconian: (baconline + prefix.trimEnd()).split(''),
+                ciphertext: (wordline + prefix.trimEnd()).split('')
             });
         }
         return result;

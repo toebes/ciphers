@@ -1026,8 +1026,8 @@ export class CipherTestBuild extends CipherTest {
                             'data-id': ent.id,
                             'data-lang': lang,
                             type: "button",
-                            class: "rounded button ban",
-                        }).html("🚫");
+                            class: "rounded alert button ban",
+                        }).html("🛇");  // 🚫
                         const useDiv = $("<div/>", { class: "usetxt" })
                             .append(useButton)
                             .append(banButton)

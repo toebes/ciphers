@@ -7,6 +7,12 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
 import { buttonInfo, CipherTest, ITestState } from './ciphertest';
 
+interface SortableEntry {
+    weight: number;
+    entry: number;
+    cipherType: string;
+}
+
 /**
  * TestGenerator.html?test=<n>
  *    This edits a specific test.  It requires a test number.  If none
@@ -33,7 +39,7 @@ export class CipherTestGenerator extends CipherTest {
     };
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [
-        { title: 'Randomize Order', color: 'primary', id: 'randomize' },
+        { title: 'Randomize Order', color: 'primary', id: 'randorder' },
         { title: 'Hide Custom Header', color: 'primary', id: 'hide-custom-header' },
         { title: 'Show Custom Header', color: 'primary', id: 'show-custom-header' },
         { title: 'Adjust Scores', color: 'primary', id: 'adjust' },
@@ -459,26 +465,78 @@ export class CipherTestGenerator extends CipherTest {
         this.setTestEntry(this.state.test, test);
         this.updateOutput();
     }
-    /** From https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array */
-    public shuffle(array: any[]): any[] {
-        let currentIndex = array.length;
-        // While there remain elements to shuffle...
-        while (currentIndex !== 0) {
-            // Pick a remaining element...
-            const randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex -= 1;
-
-            // And swap it with the current element.
-            const temporaryValue = array[currentIndex];
-            array[currentIndex] = array[randomIndex];
-            array[randomIndex] = temporaryValue;
+    /**
+     * Map the ciphertype to a general group
+     * @param cipherType Cipher type to map
+     * @returns String representing
+     */
+    public getCipherSubType(cipherType: ICipherType): string {
+        let thisType = super.getCipherSubType(cipherType);
+        // For our purposes, Patristocrats and Aristocrats should not be next to each other
+        if (thisType === 'Patristocrat') {
+            thisType = 'Aristocrat';
         }
-
-        return array;
+        return thisType;
     }
+    /**
+     * Reorder the questions on a test, attempting to keep similar ciphers separated away from one another
+     * @param questions Array of entries to shuffle
+     * @returns 
+     */
+    public shufleEntries(questions: number[]): number[] {
+        let testData: SortableEntry[] = []
+        let finalData: SortableEntry[] = []
+        let saveData: SortableEntry[] = []
+        // Gather all the questions together.  First we put them all in a list using a random number that we can sort on
+        for (let entry of questions) {
+            const fileEntry = this.getFileEntry(entry);
+            let sortEntry: SortableEntry = {
+                weight: Math.random(),
+                entry: entry,
+                cipherType: this.getCipherSubType(fileEntry.cipherType)
+            }
+            testData.push(sortEntry);
+        }
+        // Sort the list based on the random weights as an initial ordering
+        testData = testData.sort((a, b) => a.weight - b.weight)
+        // Next we need to make sure that no two cipher types are next to each other (if that is possible)
+        let lastType = 'Aristocrat';
+        testData.forEach((entry) => {
+            // What general type of cipher is this?
+            let thisType = entry.cipherType;
+
+            if (thisType === lastType) {
+                // We can't put this next to the current one, so push it onto the save stack
+                saveData.push(entry);
+            } else {
+                finalData.push(entry);
+                lastType = thisType;
+            }
+            // See if there is anything on the save stack that we can pull in
+            while (saveData.length > 0) {
+                const foundIndex = saveData.findIndex((entry) => entry.cipherType !== lastType)
+                if (foundIndex === -1) {
+                    break;
+                }
+                const entries = saveData.splice(foundIndex, 1)
+                entries.forEach((entry) => {
+                    finalData.push(entry);
+                    lastType = entry.cipherType
+                });
+
+            }
+        })
+        // We sorted the best we can, so give them the final list
+        const result: number[] = []
+        finalData.forEach((entry) => result.push(entry.entry))
+        saveData.forEach((entry) => result.push(entry.entry))
+        return result
+    }
+
+
     public gotoRandomizeTest(): void {
         const test = this.getTestEntry(this.state.test);
-        test.questions = this.shuffle(test.questions);
+        test.questions = this.shufleEntries(test.questions);
         this.setTestEntry(this.state.test, test);
         this.updateOutput();
     }
@@ -509,7 +567,7 @@ export class CipherTestGenerator extends CipherTest {
             .on('click', () => {
                 this.importQuestions(false);
             });
-        $('#randomize')
+        $('#randorder')
             .off('click')
             .on('click', () => {
                 this.gotoRandomizeTest();

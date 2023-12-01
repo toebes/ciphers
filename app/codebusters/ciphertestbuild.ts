@@ -1103,6 +1103,7 @@ export class CipherTestBuild extends CipherTest {
             const ptElem = $('#ct' + idNum)
             const plaintext = ptElem.val() as string;
             const author = $('#au' + idNum).val() as string;
+            const isSpecial = $('#sb').is(':checked')
             const dataId = ptElem.attr('data-id')
 
             // Division A won't have a timed question, so we can just skip it
@@ -1134,6 +1135,7 @@ export class CipherTestBuild extends CipherTest {
                 cipherString: plaintext,
                 author: author,
                 curlang: lang,
+                specialbonus: isSpecial,
             };
 
             if (entry.encodeType !== undefined) {

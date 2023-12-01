@@ -6,6 +6,7 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
+import { IEncoderState } from './cipherencoder';
 import { CipherPrintFactory } from './cipherfactory';
 import { CipherTest, ITestState, QueryParms, QuoteUpdates, UsedIdMap } from './ciphertest';
 
@@ -1034,6 +1035,7 @@ export class CipherTestBuild extends CipherTest {
                             .append($("<span>").text(ent.quote))
                         if (ent.translation !== undefined) {
                             useDiv.append($("<span>").append($("<i/>").text(ent.translation)))
+                            useButton.attr('data-trans', ent.translation);
                         }
                         div.append(useDiv)
                     }
@@ -1103,8 +1105,9 @@ export class CipherTestBuild extends CipherTest {
             const ptElem = $('#ct' + idNum)
             const plaintext = ptElem.val() as string;
             const author = $('#au' + idNum).val() as string;
-            const isSpecial = $('#sb').is(':checked')
+            const isSpecial = $('#sb' + idNum).is(':checked')
             const dataId = ptElem.attr('data-id')
+            const translation = ptElem.attr('data-trans')
 
             // Division A won't have a timed question, so we can just skip it
             if (qnum === 0 && qTitle === "") {
@@ -1128,7 +1131,7 @@ export class CipherTestBuild extends CipherTest {
                 }
             }
 
-            const state: IState = {
+            const state: IEncoderState = {
                 cipherType: entry.cipherType,
                 points: 0,
                 question: entry.title,
@@ -1136,6 +1139,7 @@ export class CipherTestBuild extends CipherTest {
                 author: author,
                 curlang: lang,
                 specialbonus: isSpecial,
+                translation: translation
             };
 
             if (entry.encodeType !== undefined) {
@@ -1351,11 +1355,16 @@ export class CipherTestBuild extends CipherTest {
         const dataId = jqelem.attr('data-id')
         const text = jqelem.attr('data-text')
         const author = jqelem.attr('data-aut')
+        const translation = jqelem.attr('data-trans')
 
         const target = $('#ct' + String(idNum))
 
         target.val(text)
         target.attr('data-id', dataId)
+        if (translation !== undefined && translation !== null && translation !== "") {
+            target.attr('data-trans', translation)
+        }
+
         $('#au' + String(idNum)).val(author)
     }
     /**

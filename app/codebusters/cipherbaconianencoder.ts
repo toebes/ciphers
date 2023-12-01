@@ -860,8 +860,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         if (this.state.crib !== "" && this.state.crib !== undefined) {
             this.checkHintCrib(result, encoded)
         }
-
-        const table = new JTTable({ class: 'bacon ansblock shrink cell unstriped' });
+        // This table only appears on the full answer key
+        const table = new JTTable({ class: 'bacon ansblock notiny shrink cell unstriped' });
 
         for (const line of encoded.lines) {
             const rowcipher = table.addBodyRow();

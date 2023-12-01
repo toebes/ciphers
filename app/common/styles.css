@@ -70,6 +70,46 @@ div.attachline {
     width: 200px;
 }
 
+/* Overrides for the tiny answer key */
+.tight {
+    margin-bottom: 0 !important;
+}
+/* Anything marked with span class is tightened in and borders removed */
+/* We need the !important because this is a very wide class and other css */
+/* classes are more specific and would override this */
+.span {
+    display: inline !important;
+    border: none !important;
+    margin-bottom: 0 !important;
+}
+
+/* Each question is on a new line with a border and spacing above and below */
+.question.tview {
+    clear: both;
+    margin: 5px 0;
+    border-top: 1px solid lightgrey;
+}
+/* The question number goes on the left and indents everything */
+.qtext.span {
+    float: left;
+    background-color: white;
+}
+/* We want some space to the right of the question number */
+.qtext.span .qnum {
+    margin-right: 10px;
+}
+
+/* But the timed question goes on a line by itself */
+.qtext.span .timed {
+    clear: both;
+    display: block;
+}
+
+/* Get rid of the gratuitous space at the bottom of tables on the tiny answerkey */
+table.tview {
+    margin-bottom: 0;
+}
+
 .attachline .qrinst {
     background: white;
     height: 400px;
@@ -336,6 +376,10 @@ tbody th {
 .question table.unstriped tbody tr {
     border: none;
     border-color: transparent;
+}
+/* Remove any pending floats at the start of each question */
+.question {
+    clear: both;
 }
 .note-editor {
     width: 100%;

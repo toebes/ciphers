@@ -963,8 +963,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 }
             }
             table.append(botRow);
-            //add a blank row between each line of rows 
-            const blank = $('<tr/>').append($('<td/>').append($('<br>')));
+            //add a blank row between each line of rows except on the tiny answer key
+            const blank = $('<tr/>', { class: "notiny" }).append($('<td/>').append($('<br>')));
             table.append(blank);
         }
 

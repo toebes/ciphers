@@ -1,4 +1,4 @@
-import {cloneObject, repeatStr, sanitizeString} from '../common/ciphercommon';
+import { cloneObject, repeatStr, sanitizeString } from '../common/ciphercommon';
 import {
     IScoreInformation,
     IState,
@@ -7,12 +7,12 @@ import {
     testTypeNames,
     toolMode,
 } from '../common/cipherhandler';
-import {ICipherType} from '../common/ciphertypes';
-import {JTButtonItem} from '../common/jtbuttongroup';
-import {JTFLabeledInput} from '../common/jtflabeledinput';
-import {CipherEncoder} from './cipherencoder';
-import {JTFIncButton} from '../common/jtfIncButton';
-import {JTTable} from '../common/jttable';
+import { ICipherType } from '../common/ciphertypes';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { CipherEncoder } from './cipherencoder';
+import { JTFIncButton } from '../common/jtfIncButton';
+import { JTTable } from '../common/jttable';
 
 type IColumnOrder = number[][];
 /*interface IColumnOrder {
@@ -199,7 +199,7 @@ class CompleteColumnarSolver {
     public getSolutionColumnOrder(): string {
         const oneBasedColumns = [];
         this.columnOrder.forEach((element) => {
-           oneBasedColumns.push(element + 1);
+            oneBasedColumns.push(element + 1);
         });
 
         return oneBasedColumns.join(',');
@@ -241,7 +241,7 @@ class CompleteColumnarSolver {
 
         const returnValue = $('<div/>');
         // Not sure this is useful information.
-//        returnValue.append(CipherCompleteColumnarEncoder.paragraph('We can find the crib in ' + this.columnsToAnalyze.length + ' position(s) of the ' + this.columnsToAnalyze[columnToAnalyze] + ' column encoding.'));
+        //        returnValue.append(CipherCompleteColumnarEncoder.paragraph('We can find the crib in ' + this.columnsToAnalyze.length + ' position(s) of the ' + this.columnsToAnalyze[columnToAnalyze] + ' column encoding.'));
 
         for (let columnToAnalyze = 0; columnToAnalyze < this.columnsToAnalyze.length; columnToAnalyze++) {
 
@@ -264,7 +264,7 @@ class CompleteColumnarSolver {
                 .append(`).`);
             if (s.isSplitOverRows()) {
                 details.append(`  So for row ${s.getFirstRow()}, the column order has to `)
-                .append($('<span>').addClass('fq').text('end')).append(' with these letters.');
+                    .append($('<span>').addClass('fq').text('end')).append(' with these letters.');
             }
 
             returnValue.append(details);
@@ -276,7 +276,7 @@ class CompleteColumnarSolver {
                     .append(`).`);
                 if (s.isSplitOverRows()) {
                     details.append(`  So for row ${s.getFirstRow() + 1}, the column order has to `)
-                    .append($('<span>').addClass('fq').text('start')).append(' with these letters.');
+                        .append($('<span>').addClass('fq').text('start')).append(' with these letters.');
                 }
             }
             // So we can arrange the letter in the following order and take a look...
@@ -653,7 +653,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     public validTests: ITestType[] = [ITestType.None, ITestType.bstate, ITestType.bregional, ITestType.cregional, ITestType.cstate];
 
     private thisTestType = undefined;
-public isLoading = false;
+    public isLoading = false;
     public stopGenerating = false;
 
     public defaultstate: ICompleteColumnarState = {
@@ -805,7 +805,7 @@ public isLoading = false;
         target
             .empty()
             .append('<hr/>')
-            
+
         this.genCompleteColumnarSolution(ITestType.None, target);
 
         // Show the update frequency values
@@ -871,25 +871,25 @@ public isLoading = false;
             .on('input', (e) => {
                 const newColumns = Number($(e.target).val());
                 console.log("New number of columns: " + newColumns);
-                    this.markUndo(null);
-                    if (this.setColumns(newColumns)) {
-                        this.updateOutput();
-                    }
+                this.markUndo(null);
+                if (this.setColumns(newColumns)) {
+                    this.updateOutput();
+                }
                 this.advancedir = 0;
             });
 
         $('#columnorder')
             .off('input')
             .on('input', (e) => {
-               const columnOrder = $(e.target).val() as string;
-               if (this.setColumnOrder(columnOrder)) {
-                   this.generateCipherText(columnOrder);
-                   this.updateOutput();
-               }
-               if (columnOrder.length != this.state.columns) {
-                   // error
-                   console.log('Column width is ' + this.state.columns + ' order is set for ' + columnOrder);
-               }
+                const columnOrder = $(e.target).val() as string;
+                if (this.setColumnOrder(columnOrder)) {
+                    this.generateCipherText(columnOrder);
+                    this.updateOutput();
+                }
+                if (columnOrder.length != this.state.columns) {
+                    // error
+                    console.log('Column width is ' + this.state.columns + ' order is set for ' + columnOrder);
+                }
             });
         $('#crib')
             .off('input')
@@ -901,7 +901,7 @@ public isLoading = false;
                 }
 
             });
-        $( '#mrow')
+        $('#mrow')
             .off('click')
             .on('click', (e) => {
                 this.state.operation = 'decode'
@@ -966,7 +966,7 @@ public isLoading = false;
 
         const textString = text.toUpperCase();
 
-        console.log('This is the TEXT string: '+ text);
+        console.log('This is the TEXT string: ' + text);
         // Chunk it
         text = this.chunk(text, 5);
 
@@ -1056,17 +1056,13 @@ public isLoading = false;
         if (this.state.cipherString.length === 0) {
             answerString = 'Answer: ______________________________________________';
         }
+        // Separate out the full answer pieces so we can generate the tiny answerkey
 
-        const ap1 = $('<span/>');
-        ap1.append(answerString);
-        const ap2 = $('<span/>', { class: 'TOANSWER' });
-        ap2.append(this.state.cipherString.toUpperCase());
-        const ap3 = $('<span/>', { class: 'TOSOLVE' });
-        ap3.append('_');
-        ap1.append(ap2, ap3);
-        answer.append(ap1);
+        answer.append($('<span/>', { class: 'TOSOLVE' }).text(answerString));
+        answer.append($('<span/>', { class: 'TOANSWER' }).text(this.state.cipherString.toUpperCase()));
+        answer.append($('<span/>', { class: 'TOSOLVE' }).text('_'));
 
-        result.append(answer, '<p/>');
+        result.append(answer, $('<p/>', { class: 'TOSOLVE' }));
 
         return result;
     }
@@ -1253,7 +1249,7 @@ public isLoading = false;
             const ta = CipherCompleteColumnarEncoder.makeCompleColumnarJTTable(columnCount, cipherText, cipherTextLength, undefined);
             const rowCount = cipherTextLength / columnCount;
 
-            const table = new JTTable({class: 'prfreq shrink cell'});
+            const table = new JTTable({ class: 'prfreq shrink cell' });
 
             const header = table.addHeaderRow();
             //header.add(columnCount + ' columns', {colspan: columnCount});
@@ -1468,7 +1464,7 @@ public isLoading = false;
 
                     // Search first row in order of crib letters until a crib letter is not found and avoid duplicates
                     for (let letterIndex = 0; letterIndex < cribLetters.length; letterIndex++) {
-                        let foundCribLetterIndex = rowLetters[rowNumber].indexOf(cribLetters[letterIndex]); ;
+                        let foundCribLetterIndex = rowLetters[rowNumber].indexOf(cribLetters[letterIndex]);;
                         while (firstRowFoundIndexes.includes(foundCribLetterIndex) && foundCribLetterIndex !== -1) {
                             foundCribLetterIndex = rowLetters[rowNumber].indexOf(cribLetters[letterIndex], foundCribLetterIndex + 1);
                         }
@@ -1546,7 +1542,7 @@ public isLoading = false;
             }
         }
         returnValue += 'The last row has ' + rowXCount[i] + (rowXCount[i] === 1 ? ' occurence ' : ' occurences ') +
-            ' of \'X\'' + (rowXCount[i]  > 1 ? ', so this is a strong clue that the cipher uses ' + columnCount + ' columns because \'X\' is the pad character.' : '.');
+            ' of \'X\'' + (rowXCount[i] > 1 ? ', so this is a strong clue that the cipher uses ' + columnCount + ' columns because \'X\' is the pad character.' : '.');
         return returnValue;
     }
 
@@ -1583,7 +1579,7 @@ public isLoading = false;
             columnOffsetTranslation.push(columnOrder[i] - 1);
         }
 
-        const table = new JTTable({class: 'prfreq shrink cell'});
+        const table = new JTTable({ class: 'prfreq shrink cell' });
         const header = table.addHeaderRow();
         header.add({
             settings: { colspan: columnCount, textalign: 'center' },
@@ -1614,7 +1610,7 @@ public isLoading = false;
         }
         row = table.addFooterRow();
         for (let i = 0; i < columnCount; i++) {
-            row.add($('<p/>').text('C').append($('<sub/>').text((columnOffsetTranslation[i]+10).toString(36))));
+            row.add($('<p/>').text('C').append($('<sub/>').text((columnOffsetTranslation[i] + 10).toString(36))));
         }
 
         return table;

@@ -2299,7 +2299,8 @@ export class CipherHandler {
         }
         const rowcipher = table.addBodyRow();
         const rowanswer = table.addBodyRow();
-        const rowblank = table.addBodyRow();
+        // Blank rows aren't on the tiny answer key
+        const rowblank = table.addBodyRow({ class: "notiny" });
 
         for (let i = 0; i < cipherline.length; i++) {
             const c = cipherline.substring(i, i + 1);

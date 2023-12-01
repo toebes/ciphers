@@ -16,6 +16,7 @@ export class CipherTestAnswers extends CipherTest {
         cipherType: ICipherType.Test,
         test: 0,
         sols: 'n',
+        tiny: 'n',
     };
     public state: ITestState = cloneObject(this.defaultstate) as ITestState;
     public cmdButtons: JTButtonItem[] = [];
@@ -42,7 +43,7 @@ export class CipherTestAnswers extends CipherTest {
     public setSols(sols: string): boolean {
         let changed = false;
         let newsols = 'n';
-        if (sols !== undefined && sols.toLowerCase().substr(0, 1) === 'y') {
+        if (sols !== undefined && sols.toLowerCase().substring(0, 1) === 'y') {
             newsols = 'y';
         }
         if (newsols !== this.state.sols) {
@@ -59,6 +60,9 @@ export class CipherTestAnswers extends CipherTest {
         if (this.state.sols === 'y') {
             return 'testsols';
         }
+        if (this.state.tiny === 'y') {
+            return 'testanstiny'
+        }
         return 'testans';
     }
     /**
@@ -73,6 +77,42 @@ export class CipherTestAnswers extends CipherTest {
         $('.testcontent').each((i, elem) => {
             $(elem).replaceWith(this.genTestAnswers());
         });
+        if (this.state.tiny === 'y') {
+            // For the tiny answer key, we let the system generate the normal answer key
+            // and then we go through and remove everything that we don't want and add some classes
+            // to what remains so that we can adjust the formatting
+
+            // Get rid of the question points and question text content
+            $(".qtext .points,.qtext .qbody").remove();
+            // Get rid of all solution blocks (this is the cipher text)
+            $(".TOSOLVE").remove();
+            // Get rid of the additional answer work blocks
+            $(".TOANSWERK").remove();
+            // Add the tight class to all the answer blocks so that we can get rid of extra spaces
+            $(".TOANSWER").addClass('tight')
+            // Add the span class to all of the question number texts so that they will float on the left
+            $(".qtext").addClass('span')
+            // Except for the timed question which we want on a line by itself
+            $(".qtext .timed").parent().removeClass("qtext")
+            // Remove all of the frequency tables
+            $(".prfreq").remove();
+            // As well as anything that the cipher marked as not visible on the tiny answer key
+            $(".notiny").remove();
+            // Get rid of all the rows which have q and o class field in them (these are not the answers)
+            $("td.q,td.o").parent().remove();
+            // All the match stuff goes because they aren't the answers
+            $(".katex").remove();
+            // Make the special bonus a little more concise
+            $(".spbonus").text("★★★(Special Bonus)")
+            // Add a class to all the questions so that we can tighten them up
+            $(".question").addClass("tview")
+            // As well as all of the tables in the questions
+            $(".question table").addClass("tview")
+            // The hill cipher has an extra block to remove
+            $(".hillblock").removeClass("hillblock")
+            // And also any spurious HR elements that weren't tagged
+            $(".question hr").remove()
+        }
         this.attachHandlers();
     }
     /*
@@ -101,6 +141,7 @@ export class CipherTestAnswers extends CipherTest {
             $('.instructions').empty();
         }
         $('.testerrors').empty();
+
         const testcount = this.getTestCount();
         if (testcount === 0) {
             return $('<h3/>').text('No Tests Created Yet');
@@ -179,7 +220,7 @@ export class CipherTestAnswers extends CipherTest {
         }
         for (let qnum = 0; qnum < test.count; qnum++) {
             let breakclass = '';
-            if (qnum % 2 === 0) {
+            if (qnum % 2 === 0 && this.state.tiny !== 'y') {
                 breakclass = 'pagebreak';
             }
             const cipherhandler = this.GetPrintFactory(test.questions[qnum]);

@@ -786,8 +786,9 @@ export class CipherEncoder extends CipherHandler {
             if (this.minimizeString(keyanswer).length !== keyanswer.length) {
                 keytype = "Key Phrase"
             }
+            // Don't put the answer text on the tiny answerkey
             result.append(
-                $('<h3/>').text(keytype + " Answer:")
+                $('<h3/>', { class: "notiny" }).text(keytype + " Answer:")
             );
             result.append(
                 $('<div/>', {
@@ -832,8 +833,9 @@ export class CipherEncoder extends CipherHandler {
             this.state.translation !== undefined &&
             this.state.translation !== ''
         ) {
+            // Don't put the translation on the tiny answer key
             result.append(
-                $('<div/>')
+                $('<div/>', { class: "notiny" })
                     .text('Translation: ')
                     .append($('<em/>').text(this.state.translation))
             );

@@ -1089,7 +1089,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             const anstable = new JTTable({
                 class: 'ansblock shrink cell unstriped',
             });
-            const toprow = anstable.addBodyRow();
+            // The top row is not needed for the tiny answer key
+            const toprow = anstable.addBodyRow({ class: "notiny" });
             const bottomrow = anstable.addBodyRow();
             for (let c of this.state.soltext.toUpperCase()) {
                 let v = this.state.mapping[c]
@@ -1159,10 +1160,10 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         let result = $('<div/>', { class: 'cipherwork' })
         result.append($('<div/>', { class: 'grid-x' })
             .append($('<div/>', { class: 'cell' })
-                .append($('<p/>', { class: "h5" }).text('Values to decode for solution'))
+                .append($('<p/>', { class: "h5 notiny" }).text('Values to decode for solution'))
                 .append(solution)))
-        result.append('<hr/>')
-        result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
+        result.append($('<hr/>', { class: "notiny" }))
+        result.append($('<div/>', { class: 'notiny grid-x grid-padding-x align-justify' })
             .append($('<div/>', { class: 'cell small-6 shrink' })
                 .append($('<p/>', { class: "h5" }).text('Cryptarithm formula'))
                 .append(formulaTable))

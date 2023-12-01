@@ -110,6 +110,8 @@ export interface ITestState extends IState {
     scilympiad?: string;
     /** token for uploading test images */
     imageUploadToken?: string;
+    /** Show Tiny answerkey */
+    tiny?: string;
 }
 
 interface INewCipherEntry {
@@ -154,7 +156,7 @@ export interface IAnswerAudit {
     answermodelid: string;
 }
 
-export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testsols' | 'testint';
+export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testanstiny' | 'testsols' | 'testint';
 export type ITestManage = 'local' | 'published';
 
 export interface QuoteRecord {
@@ -358,6 +360,7 @@ export class CipherTest extends CipherHandler {
             { title: 'Edit Test', value: 'testedit' },
             { title: 'Test Packet', value: 'testprint' },
             { title: 'Answer Key', value: 'testans' },
+            { title: 'Tiny Answer Key', value: 'testanstiny' },
             { title: 'Answers and Solutions', value: 'testsols' },
             // { title: 'Interactive Test', value: 'testint' },  // NOTE: Disable interactive tests
         ];
@@ -580,6 +583,13 @@ export class CipherTest extends CipherHandler {
         location.assign(`TestAnswers.html?test=${test}`);
     }
     /**
+     * Print out the answers for a test
+     * @param test Test number to print
+     */
+    public gotoPrintAnswersTiny(test: number): void {
+        location.assign(`TestAnswers.html?test=${test}&tiny=y`);
+    }
+    /**
      * Print out the answers and solutions for a test
      * @param test Test number to print
      */
@@ -600,6 +610,9 @@ export class CipherTest extends CipherHandler {
         switch (testdisp) {
             case 'testans':
                 this.gotoPrintTestAnswers(this.state.test);
+                break;
+            case 'testanstiny':
+                this.gotoPrintAnswersTiny(this.state.test);
                 break;
             case 'testedit':
                 this.gotoEditTest(this.state.test);

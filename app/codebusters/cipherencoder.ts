@@ -199,6 +199,7 @@ export class CipherEncoder extends CipherHandler {
         $('#keyword2').val(this.state.keyword2);
         $('#offset2').val(this.state.offset2);
         $('#translated').val(this.state.translation);
+        $("#qauthor").val(this.state.author)
         if (this.state.operation === 'keyword') {
             $('#encrand').attr('disabled', 'disabled');
         } else {
@@ -1174,7 +1175,7 @@ export class CipherEncoder extends CipherHandler {
      */
     public load(): void {
         // this.hideRevReplace = true
-        const encoded = this.cleanString(this.state.cipherString);
+        const encoded = this.minimizeString(this.state.cipherString);
         this.clearErrors();
         this.genAlphabet();
         const res = this.build();
@@ -1264,6 +1265,15 @@ export class CipherEncoder extends CipherHandler {
                 'richtext',
                 'qtext',
                 this.state.question,
+                'small-12 medium-12 large-12'
+            )
+        );
+        result.append(
+            JTFLabeledInput(
+                'Quote Author',
+                'text',
+                'qauthor',
+                this.state.author,
                 'small-12 medium-12 large-12'
             )
         );
@@ -1489,6 +1499,17 @@ export class CipherEncoder extends CipherHandler {
                 if (keyword2 !== this.state.keyword2) {
                     this.markUndo('keyword2');
                     if (this.setKeyword2(keyword2)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $('#qauthor')
+            .off('input')
+            .on('input', (e) => {
+                const author = $(e.target).val() as string;
+                if (author !== this.state.author) {
+                    this.markUndo('author');
+                    if (this.setAuthor(author)) {
                         this.updateOutput();
                     }
                 }

@@ -2883,6 +2883,18 @@ export class CipherHandler {
     }
     /**
      * Updates the stored state cipher string
+     * @param author Cipher string to set
+     */
+    public setAuthor(author: string): boolean {
+        let changed = false;
+        if (this.state.author !== author) {
+            this.state.author = author;
+            changed = true;
+        }
+        return changed;
+    }
+    /**
+     * Updates the stored state cipher string
      * @param cipherString Cipher string to set
      */
     public setCipherString(cipherString: string): boolean {

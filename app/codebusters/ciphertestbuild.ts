@@ -196,14 +196,14 @@ export class CipherTestBuild extends CipherTest {
         {
             title: 'Medium K1 Patristocrat',
             guidance: 'Medium Quote [95-110 non-blank characters, 20<χ²<25]',
-            len: [95, 110], chi2: [-Infinity, 20], unique: [19, Infinity],
+            len: [95, 110], chi2: [20, 30], unique: [19, Infinity],
             group: 1, weight: 0.25, cipherType: ICipherType.Patristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k1', difficulty: 'medium',
         },
         {
             title: 'Medium K2 Patristocrat',
             guidance: 'Medium Quote [95-110 non-blank characters, 20<χ²<25]',
-            len: [95, 110], chi2: [-Infinity, 20], unique: [19, Infinity],
+            len: [95, 110], chi2: [20, 30], unique: [19, Infinity],
             group: 1, weight: 0.25, cipherType: ICipherType.Patristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k2', difficulty: 'medium',
         },

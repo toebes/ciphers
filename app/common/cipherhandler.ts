@@ -11,8 +11,7 @@ import { InitStorage, JTStorage } from './jtstore';
 import { JTTable, JTRow } from './jttable';
 import { parseQueryString } from './parsequerystring';
 import { textStandard, textStandardRaw } from '../common/readability';
-import { TrueTime } from './truetime';
-import { JTFIncButton } from './jtfIncButton';
+
 // eslint-disable-next-line no-underscore-dangle
 declare let __DATE_BUILT__: string;
 
@@ -154,22 +153,6 @@ export interface ITest {
     checkPaper?: boolean;
 }
 
-export interface ITestTimeInfo {
-    /** Timer tracker */
-    truetime: TrueTime;
-    /** Start time for the test */
-    startTime: number;
-    /** Time that the timed question needs to be completed by */
-    endTimedQuestion: number;
-    /** Time that the test will end */
-    endTime: number;
-    /** The last question which was touched */
-    currentQuestion: string;
-    /** The time we last typed a character */
-    prevTime?: number;
-    /** The last field we ended up on  */
-    prevField?: string;
-}
 /**
  * ITestQuestionFields is the runtime data to track the answer to a particular question.
  */
@@ -900,7 +883,6 @@ export class CipherHandler {
         this.redocmdButton,
         { title: 'Reset', color: 'warning', id: 'reset' },
     ];
-    public testStrings: string[] = [];
     public defaultRunningKeys: IRunningKey[] = [
         {
             title: 'Gettysburg address',

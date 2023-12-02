@@ -1,13 +1,12 @@
 import { cloneObject } from '../common/ciphercommon';
-import { IState, menuMode, toolMode } from '../common/cipherhandler';
+import { IState, QuoteRecord, menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFDialog } from '../common/jtfdialog';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
-import { textStandardRaw } from '../common/readability';
-import { CipherTest, DBTable, QueryParms, QuoteRecord } from './ciphertest';
+import { CipherTest, DBTable, QueryParms } from './ciphertest';
 import * as XLSX from "xlsx";
 
 export interface ITestState extends IState {
@@ -286,19 +285,8 @@ export class CipherQuoteManager extends CipherTest {
      * @param translation 
      * @returns 
      */
-    public generateRecord(text: string, author: string, source: string, notes: string, testUsage: string, translation: string) {
-        let quote = this.cleanString(text);
-        /* testStrings */
-        const newRecord: QuoteRecord = {
-            quote: quote,
-            chi2: this.CalculateChiSquare(quote),
-            grade: textStandardRaw(quote),
-            minquote: this.minimizeString(quote),
-        };
-        let mina = newRecord.minquote.split('');
-        mina = mina.filter((x, i, a) => a.indexOf(x) === i);
-        newRecord.unique = mina.length;
-        newRecord.len = newRecord.minquote.length;
+    public generateRecord(text: string, author: string, source: string, notes: string, testUsage: string, translation: string): QuoteRecord {
+        const newRecord = this.analyzeQuote(text);
         if (author !== undefined) {
             newRecord.author = author;
         }

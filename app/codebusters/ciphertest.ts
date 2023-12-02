@@ -8,6 +8,7 @@ import {
     toolMode,
     IQuestionData,
     ITestQuestionFields,
+    QuoteRecord,
 } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -159,20 +160,6 @@ export interface IAnswerAudit {
 export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testanstiny' | 'testsols' | 'testint';
 export type ITestManage = 'local' | 'published';
 
-export interface QuoteRecord {
-    id?: number;
-    quote?: string;
-    minquote?: string;
-    chi2?: number;
-    len?: number;
-    grade?: number;
-    unique?: number;
-    author?: string;
-    source?: string;
-    translation?: string;
-    testUsage?: string;
-    notes?: string;
-}
 export interface QuoteUpdates {
     [id: number]: QuoteRecord
 }

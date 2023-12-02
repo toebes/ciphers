@@ -10,7 +10,7 @@ import { JTCreateMenu, JTGetSolveURL, JTGetURL } from './jtmenu';
 import { InitStorage, JTStorage } from './jtstore';
 import { JTTable, JTRow } from './jttable';
 import { parseQueryString } from './parsequerystring';
-import { textStandard } from '../common/readability';
+import { textStandard, textStandardRaw } from '../common/readability';
 import { TrueTime } from './truetime';
 import { JTFIncButton } from './jtfIncButton';
 // eslint-disable-next-line no-underscore-dangle
@@ -293,6 +293,23 @@ export interface IInteractiveTest {
     qdata: IQuestionData[];
     /** Track offline work */
     checkPaper?: boolean;
+}
+/**
+ * Everything we need to know about a quote
+ */
+export interface QuoteRecord {
+    id?: number;
+    quote?: string;
+    minquote?: string;
+    chi2?: number;
+    len?: number;
+    grade?: number;
+    unique?: number;
+    author?: string;
+    source?: string;
+    translation?: string;
+    testUsage?: string;
+    notes?: string;
 }
 
 /**
@@ -1654,6 +1671,25 @@ export class CipherHandler {
             }
         }
         return differences;
+    }
+    /**
+     * Analyzes a quote determining all the statistics we need about it
+     * @param quote 
+     * @returns QuoteRecord with the statistics filled in
+     */
+    public analyzeQuote(quote: string): QuoteRecord {
+        const cleanquote = this.cleanString(quote);
+        const minquote = this.minimizeString(cleanquote);
+        const mina = minquote.split('').filter((x, i, a) => a.indexOf(x) === i);
+
+        return {
+            quote: cleanquote,
+            chi2: this.CalculateChiSquare(cleanquote),
+            grade: textStandardRaw(cleanquote),
+            minquote: minquote,
+            len: minquote.length,
+            unique: mina.length
+        };
     }
     /**
      * Initializes the encoder/decoder.

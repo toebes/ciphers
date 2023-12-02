@@ -1174,8 +1174,7 @@ export class CipherEncoder extends CipherHandler {
      * Loads up the values for the encoder
      */
     public load(): void {
-        // this.hideRevReplace = true
-        const encoded = this.minimizeString(this.state.cipherString);
+        const quoteData = this.analyzeQuote(this.state.cipherString);
         this.clearErrors();
         this.genAlphabet();
         const res = this.build();
@@ -1183,43 +1182,41 @@ export class CipherEncoder extends CipherHandler {
             .empty()
             .append(res);
 
-        /* testStrings */
-        for (let teststr of this.testStrings) {
-            const chi1 = this.CalculateChiSquare(teststr);
-            teststr = this.cleanString(teststr);
-            const l = teststr.length;
-            console.log(l + '`' + chi1 + '`' + teststr);
-        }
 
-        const chi = this.CalculateChiSquare(encoded);
-
-        let chitext = '';
-        if (!isNaN(chi)) {
-            chitext = 'Chi-Square Value=' + chi.toFixed();
-            if (chi < 20) {
-                chitext += ' [Easy]';
-            } else if (chi < 30) {
-                chitext += ' [Medium]';
-            } else if (chi < 40) {
-                chitext += ' [Medium Hard]';
-            } else if (chi < 50) {
-                chitext += ' [Difficult]';
+        let statusText = '';
+        if (!isNaN(quoteData.chi2)) {
+            // Let them know the Chi-Square value and an indication of how hard it is
+            statusText = `Chi-Square=${quoteData.chi2.toFixed()}`;
+            if (quoteData.chi2 < 20) {
+                statusText += ' [Easy]';
+            } else if (quoteData.chi2 < 30) {
+                statusText += ' [Medium]';
+            } else if (quoteData.chi2 < 40) {
+                statusText += ' [Medium Hard]';
+            } else if (quoteData.chi2 < 50) {
+                statusText += ' [Difficult]';
             } else {
-                chitext += ' [Extremely Difficult]';
+                statusText += ' [Extremely Difficult]';
             }
-            chitext += ' Length=' + encoded.length;
-            if (encoded.length < 60) {
-                chitext += ' [Too Short]';
-            } else if (encoded.length < 80) {
-                chitext += ' [Short]';
-            } else if (encoded.length > 120) {
-                chitext += ' [Too Long]';
-            } else if (encoded.length > 100) {
-                chitext += ' [Long]';
+            // As well as an assessment of the length
+            statusText += ' Length=' + quoteData.len;
+            if (quoteData.len < 60) {
+                statusText += ' [Too Short]';
+            } else if (quoteData.len < 80) {
+                statusText += ' [Short]';
+            } else if (quoteData.len > 120) {
+                statusText += ' [Too Long]';
+            } else if (quoteData.len > 100) {
+                statusText += ' [Long]';
+            }
+            // And the numer of unique characters
+            statusText += ` Unique=${quoteData.unique}`
+            if (quoteData.unique < 19) {
+                statusText += ` [Recommend >18]`
             }
         }
 
-        $('#chi').text(chitext);
+        $('#chi').text(statusText);
         this.validateQuestion();
         // Show the update frequency values
         this.displayFreq();

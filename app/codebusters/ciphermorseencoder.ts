@@ -138,7 +138,8 @@ export class CipherMorseEncoder extends CipherEncoder {
         } else {
             // Look to see if the crib appears in the quesiton text
             const crib = this.minimizeString(this.state.crib);
-            if (questionText.indexOf(crib) < 0) {
+            const minQuestion = this.minimizeString(this.removeHtml(questionText))
+            if (minQuestion.indexOf(crib) < 0) {
                 msg =
                     'The Crib Text ' +
                     this.state.crib +

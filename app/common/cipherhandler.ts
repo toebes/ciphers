@@ -2526,6 +2526,14 @@ export class CipherHandler {
         }
         return res;
     }
+    /**
+     * Remove all HTML elements from a string
+     * @param str HTML String
+     * @returns String without any HTML elements
+     */
+    public removeHtml(str: string): string {
+        return str.replace(/<[^>]*>/g, '');
+    }
 
     /**
      * Removes duplicate letters from a string (ex. Hello World ---> Helo Wrd)

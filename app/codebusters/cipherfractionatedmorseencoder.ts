@@ -17,7 +17,7 @@ interface IFractionatedMorseState extends IEncoderState {
  */
 export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public cipherName = 'FractionatedMorse';
+    public cipherName = 'Fractionated Morse';
     public guidanceURL = 'TestGuidance.html#FractionatedMorse';
     public validTests: ITestType[] = [
         ITestType.None,
@@ -142,7 +142,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         this.state.encoded = '';
     }
     public updateOutput(): void {
-        this.guidanceURL = 'TestGuidance.html#' + this.cipherName + this.state.operation;
+        this.guidanceURL = 'TestGuidance.html#FractionatedMorse' + this.state.operation;
         super.updateOutput();
     }
     /**

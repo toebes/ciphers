@@ -34,8 +34,8 @@ export type IOperationType =
     | 'crypt' // Test question involves decrypting with a crib
     | 'keyword' // Test question involves determining keyword or keyphrase
     | 'compute' // Test question involves computing a math result
-    | 'let4let' // Baconian individual letter substitition
-    | 'sequence' // Baconian sequence substitition
+    | 'let4let' // Baconian individual letter substitution
+    | 'sequence' // Baconian sequence substitution
     | 'words' // Baconian word substitution
     | 'rsa1'
     | 'rsa2'

@@ -298,7 +298,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      */
     public genSampleQuestionText(): string {
         let msg = '';
-        let ciphertypetext = 'Nihilist Substitition';
+        let ciphertypetext = 'Nihilist Substitution';
         if (this.state.operation === 'crypt') {
             msg =
                 '<p>The following quote' + this.genAuthor() + ' has been encoded with the ' + ciphertypetext +

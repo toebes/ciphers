@@ -826,9 +826,10 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         let msg = '';
         let showsample = false;
         let sampleLink: JQuery<HTMLElement> = undefined;
-        const questionText = this.state.question.toUpperCase();
+        const questionText = this.getCleanQuestion();
+        const crib = this.minimizeString(this.state.crib);
 
-        if (questionText.indexOf(this.state.crib) < 0) {
+        if (questionText.indexOf(crib) < 0) {
             msg = 'The crib does not appear to be mentioned in the Question Text.';
             showsample = true;
         }

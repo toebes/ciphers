@@ -828,6 +828,11 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         let sampleLink: JQuery<HTMLElement> = undefined;
         const questionText = this.state.question.toUpperCase();
 
+        if (questionText.indexOf(this.state.crib) < 0) {
+            msg = 'The crib does not appear to be mentioned in the Question Text.';
+            showsample = true;
+        }
+
         if (showsample) {
             sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
         }
@@ -835,8 +840,14 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     }
 
     public genSampleHint(): string {
-        const rails: string = this.state.columns.toString();
-        return rails + ' rails were used to encode it.';
+
+        let hint = '';
+        const crib = this.minimizeString(this.state.crib);
+        const cribtext = this.genMonoText(crib);
+
+        hint = 'the quote has ' + cribtext + ' somewhere in it.';
+
+        return hint
     }
 
     private generateCipherText(columnOrder: string): string {
@@ -978,8 +989,8 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             lastsplit = encodeline.length;
             // See if we have to split the line now
             if (encodeline.length >= maxEncodeWidth) {
-                const encodepart = encodeline.substr(0, lastsplit);
-                encodeline = encodeline.substr(lastsplit);
+                const encodepart = encodeline.substring(0, lastsplit);
+                encodeline = encodeline.substring(lastsplit);
                 result.push([encodepart]);
             }
         }

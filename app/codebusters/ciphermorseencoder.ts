@@ -108,7 +108,7 @@ export class CipherMorseEncoder extends CipherEncoder {
         if (this.state.cipherType === ICipherType.FractionatedMorse) {
             hinttext = 'Crib';
         }
-        const questionText = this.state.question.toUpperCase();
+        const questionText = this.getCleanQuestion()
         if (this.state.operation === 'decode') {
             // Look to see if the Hint Digits appear in the Question Text
             let notfound = '';
@@ -138,8 +138,7 @@ export class CipherMorseEncoder extends CipherEncoder {
         } else {
             // Look to see if the crib appears in the quesiton text
             const crib = this.minimizeString(this.state.crib);
-            const minQuestion = this.minimizeString(this.removeHtml(questionText))
-            if (minQuestion.indexOf(crib) < 0) {
+            if (questionText.indexOf(crib) < 0) {
                 msg =
                     'The Crib Text ' +
                     this.state.crib +

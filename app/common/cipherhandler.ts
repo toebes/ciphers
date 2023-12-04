@@ -2534,7 +2534,13 @@ export class CipherHandler {
     public removeHtml(str: string): string {
         return str.replace(/<[^>]*>/g, '');
     }
-
+    /**
+     * Get the question without spaces and html
+     * @returns Version of the quesiton without HTML that can be used to search for the CRIB easily
+     */
+    public getCleanQuestion(): string {
+        return this.minimizeString(this.removeHtml(this.state.question).toUpperCase())
+    }
     /**
      * Removes duplicate letters from a string (ex. Hello World ---> Helo Wrd)
      */

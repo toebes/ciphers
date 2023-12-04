@@ -132,10 +132,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * @returns Template of question fields to be filled in at runtime.
      */
     public getInteractiveTemplate(): ITestQuestionFields {
-        let encoded = this.state.cipherString
-        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
-            encoded = this.chunk(encoded, this.state.blocksize);
-        }
+        const encoded = this.chunk(this.state.cipherString, this.state.blocksize);
 
         const result: ITestQuestionFields = {
             version: 2,
@@ -446,14 +443,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
         keystring: string,
         maxEncodeWidth: number
     ): string[][] {
-        let encoded = msg;
         let key = keystring;
         if (key === '') {
             key = 'A';
         }
-        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth && maxEncodeWidth !== 9999) {
-            encoded = this.chunk(encoded, this.state.blocksize);
-        }
+        const encoded = this.chunk(msg, this.state.blocksize);
         const result: string[][] = [];
         const charset = this.getCharset();
         let message = '';
@@ -550,11 +544,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Loads up the values for vigenere
      */
     public load(): void {
-        let encoded = this.cleanString(this.state.cipherString);
         /* If they want different sizes, rebuild the string in the chunk size */
-        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
-            encoded = this.chunk(encoded, this.state.blocksize);
-        }
+        const encoded = this.chunk(this.cleanString(this.state.cipherString), this.state.blocksize);
 
         const key = this.minimizeString(this.state.keyword);
         this.clearErrors();

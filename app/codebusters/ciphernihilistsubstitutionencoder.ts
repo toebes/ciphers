@@ -519,14 +519,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         msg: string,
         maxEncodeWidth: number
     ): string[][][] {
-        let encoded = msg;
         let key = this.cleanKeyword
         if (key === '') {
             key = 'A';
         }
-        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth && maxEncodeWidth !== 9999) {
-            encoded = this.chunk(encoded, this.state.blocksize);
-        }
+        const encoded = this.chunk(msg, this.state.blocksize);
         const result: string[][][] = [];
         const charset = this.getCharset();
         let cipher = [];
@@ -816,12 +813,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public load(): void {
         console.log('start')
         console.log(this.state.cipherString)
-        let encoded = this.cleanString(this.state.cipherString);
 
-        if (this.state.blocksize > 0 && this.state.blocksize < this.maxEncodeWidth) {
-            encoded = this.chunk(encoded, this.state.blocksize);
-        }
-
+        const encoded = this.chunk(this.cleanString(this.state.cipherString), this.state.blocksize);
         this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword))
         this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey))
         this.polybiusMap = this.buildPolybiusMap();
@@ -914,6 +907,20 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         return this.calculateScore(solution, answer, this.state.points);
     }
+    /**
+     * Determine how wide to output the table
+     * @param testType Type of test
+     * @returns width and any extra class to use
+     */
+    public getTestWidth(testType: ITestType) {
+        let width = 33;
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            width = 20;
+            extraclass = ' atest';
+        }
+        return { width, extraclass };
+    }
 
     /**
      * Generate the HTML to display the answer for a cipher
@@ -921,12 +928,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         let keypos = 0;
         const result = $('<div/>', { class: 'grid-x' });
-        let width = 40;
-        let extraclass = '';
-        if (testType === ITestType.aregional) {
-            width = 30;
-            extraclass = ' atest';
-        }
+        const { width, extraclass } = this.getTestWidth(testType);
 
         const strings = this.buildNihilistSequenceSets(
             this.state.cipherString,
@@ -1199,13 +1201,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         result.append(polybiusSquare);
 
-
-        let width = 40;
-        let extraclass = '';
-        if (testType === ITestType.aregional) {
-            width = 30;
-            extraclass = ' atest';
-        }
+        const { width, extraclass } = this.getTestWidth(testType);
         const strings = this.buildNihilistSequenceSets(
             this.state.cipherString,
             width
@@ -1242,12 +1238,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public genInteractive(qnum: number, testType: ITestType): JQuery<HTMLElement> {
         const qnumdisp = String(qnum + 1);
         const result = $('<div/>', { id: 'Q' + qnumdisp });
-        let width = 40;
-        let extraclass = '';
-        if (testType === ITestType.aregional) {
-            width = 30;
-            extraclass = ' atest';
-        }
+        const { width, extraclass } = this.getTestWidth(testType);
         const strings = this.buildNihilistSequenceSets(
             this.state.cipherString,
             width

@@ -2564,6 +2564,9 @@ export class CipherHandler {
      * Note: the string could be toUpperCase()'d here, but it is done later.
      */
     public chunk(inputString: string, chunkSize: number): string {
+        if (chunkSize <= 0) {
+            return inputString;
+        }
         let chunkIndex = 1;
         const charset = this.getCharset();
         let chunkedString = '';

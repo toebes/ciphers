@@ -40,6 +40,7 @@ interface QuestionType {
     difficulty?: DifficultyType; // General difficulty for the question
     keyword?: string; // Keyword to set hill length
     guidance: string;
+    default?: string;
     len?: number[]
     chi2?: number[]
     unique?: number[]
@@ -162,7 +163,7 @@ export class CipherTestBuild extends CipherTest {
             title: 'Keyword/Key Phrase K1 Aristocrat',
             guidance: 'Medium Quote [75-90 non-blank characters, 20<χ²<25]',
             len: [75, 90], chi2: [20, 25], unique: [19, Infinity],
-            testtype: allButARegional, operation: 'decode', encodeType: 'k1', difficulty: 'medium',
+            testtype: allButARegional, operation: 'keyword', encodeType: 'k1', difficulty: 'medium',
             group: 1, weight: 0.75, cipherType: ICipherType.Aristocrat,
         },
         {
@@ -170,14 +171,14 @@ export class CipherTestBuild extends CipherTest {
             guidance: 'Easy Quote [75-90 non-blank characters, χ²<20]',
             len: [75, 90], chi2: [-Infinity, 20], unique: [19, Infinity],
             group: 1, weight: 0.75, cipherType: ICipherType.Aristocrat,
-            testtype: allButARegional, operation: 'decode', encodeType: 'k2', difficulty: 'easy',
+            testtype: allButARegional, operation: 'keyword', encodeType: 'k2', difficulty: 'easy',
         },
         {
             title: 'Keyword/Key Phrase K3 Aristocrat',
             guidance: 'Easy Quote [75-90 non-blank characters, χ²<20]',
             len: [75, 90], chi2: [-Infinity, 20], unique: [19, Infinity],
             group: 1, weight: 0.75, cipherType: ICipherType.Aristocrat,
-            testtype: allButARegional, operation: 'decode', encodeType: 'k3', difficulty: 'easy',
+            testtype: allButARegional, operation: 'keyword', encodeType: 'k3', difficulty: 'easy',
         },
         {
             title: 'Easy K1 Patristocrat',
@@ -283,12 +284,14 @@ export class CipherTestBuild extends CipherTest {
         {
             title: "Cryptarithm",
             guidance: '[Addition formula with a carry to make 1 or 2 digits obvious]',
+            default: 'EFFORT+PROJECT=ATTEMPT',
             msg: "Use the Cryptarithm generator for formulas",
             group: 3, weight: 0.5, cipherType: ICipherType.Cryptarithm,
         },
         {
             title: "Cryptarithm",
             guidance: '[Addition formula with a carry to make 1 or 2 digits obvious]',
+            default: 'EFFORT+PROJECT=ATTEMPT',
             msg: "Use the Cryptarithm generator for formulas",
             group: 3, weight: 0.5, cipherType: ICipherType.Cryptarithm,
         },
@@ -296,14 +299,14 @@ export class CipherTestBuild extends CipherTest {
             title: "Hill 2x2",
             guidance: '[19-23 (Odd) characters]',
             len: [19, 23],
-            group: 3, weight: 0.5, cipherType: ICipherType.Hill,
+            group: 3, weight: 0.5, operation: 'decode', cipherType: ICipherType.Hill,
             keyword: "TEST"
         },
         {
             title: "Hill 3x3",
             guidance: '[20-28 (not multiple of 3) characters]',
             len: [20, 28],
-            group: 3, weight: 0.5, cipherType: ICipherType.Hill,
+            group: 3, weight: 0.5, operation: 'decode', cipherType: ICipherType.Hill,
             keyword: "TEMPORARY"
         },
         {
@@ -1103,7 +1106,7 @@ export class CipherTestBuild extends CipherTest {
             let idNum = String(qnum);
             const qTitle = $('#qt' + idNum).val() as string;
             const ptElem = $('#ct' + idNum)
-            const plaintext = ptElem.val() as string;
+            let plaintext = ptElem.val() as string;
             const author = $('#au' + idNum).val() as string;
             const isSpecial = $('#sb' + idNum).is(':checked')
             const dataId = ptElem.attr('data-id')
@@ -1118,6 +1121,8 @@ export class CipherTestBuild extends CipherTest {
                 // Somehow we didn't find the cipher they selected.. so we just have to skip it
                 continue;
             }
+            let question = entry.title
+
             // Let's create a cipher
             let lang = entry.lang;
             if (lang === undefined || lang === '') {
@@ -1130,11 +1135,17 @@ export class CipherTestBuild extends CipherTest {
                     englishUpdates[dataId] = { id: dataId, testUsage: this.title }
                 }
             }
+            if (entry.msg !== undefined) {
+                if (plaintext === this.quoteGuidance(entry.guidance) && entry.default !== undefined) {
+                    plaintext = entry.default
+                    question += " " + entry.guidance
+                }
+            }
 
             const state: IEncoderState = {
                 cipherType: entry.cipherType,
                 points: 0,
-                question: entry.title,
+                question: question,
                 cipherString: plaintext,
                 author: author,
                 curlang: lang,
@@ -1271,7 +1282,7 @@ export class CipherTestBuild extends CipherTest {
         })
         const more = $("<button/>", { class: "qmore button rounded", id: 'cm' + idNum }).text('⟳').hide()
         row.add({ settings: { class: 'typ' }, content: $('<div/>').append(select).append(more) })
-        let cipherText = $('<div/>').append($('<input/>', { type: "text", id: 'ct' + idNum, value: `«${entry.guidance}»` })).append($('<div/>', { id: 'ctc' + idNum }))
+        let cipherText = $('<div/>').append($('<input/>', { type: "text", id: 'ct' + idNum, value: this.quoteGuidance(entry.guidance) })).append($('<div/>', { id: 'ctc' + idNum }))
         row.add({ settings: { class: 'txt' }, content: cipherText })
         let authorText = $('<input/>', { type: "text", id: 'au' + idNum })
 
@@ -1279,6 +1290,10 @@ export class CipherTestBuild extends CipherTest {
 
         row.add({ settings: { class: 'aut' }, content: authorText })
     }
+    private quoteGuidance(guidance: string): string {
+        return `«${guidance}»`;
+    }
+
     /**
      * Map the ciphertype to a general group
      * @param cipherType Cipher type to map
@@ -1404,7 +1419,15 @@ export class CipherTestBuild extends CipherTest {
         } else {
             sbBox.attr('hidden', 'hidden').hide()
         }
-        $('#ct' + idNum).val(`«${entry.guidance}»`)
+        const ctcDiv = $('#ctc' + idNum)
+        ctcDiv.empty()
+        if (entry.msg !== undefined && entry.msg !== "") {
+            $("#cm" + idNum).hide()
+            ctcDiv.append($("<b>").text(entry.msg))
+        } else {
+            $("#cm" + idNum).show()
+        }
+        $('#ct' + idNum).val(this.quoteGuidance(entry.guidance))
     }
     /**
      * 

@@ -2436,6 +2436,9 @@ table.railfence-sm tbody {
     @page {
         margin: 0.5in 0.5in 0.25in 0.5in;
     }
+    .qtext.span {
+        background-color: white !important;
+    }
     .TOANSWER {
         background-color: yellow !important;
     }

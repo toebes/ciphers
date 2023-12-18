@@ -3,12 +3,13 @@ import {
     IScoreInformation,
     ITestQuestionFields,
     ITestType,
+    QuoteRecord,
     toolMode,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
-import { CipherEncoder, IEncoderState } from './cipherencoder';
+import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 const pigpen1 = require('../images/pigpen1.png');
 const pigpen2 = require('../images/pigpen2.png');
 
@@ -19,6 +20,8 @@ const pigpen2 = require('../images/pigpen2.png');
 export class CipherPigPenEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#PigPen';
+    public cipherName = 'Pig Pen'
+
 
     public validTests: ITestType[] = [ITestType.None, ITestType.aregional];
     public defaultstate: IEncoderState = {
@@ -31,6 +34,8 @@ export class CipherPigPenEncoder extends CipherEncoder {
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
     /** Save and Restore are done on the CipherEncoder Class */
@@ -86,8 +91,41 @@ export class CipherPigPenEncoder extends CipherEncoder {
         return revRepl;
     }
     /**
-     * Generate the HTML to display the answer for a cipher
-     */
+      * Generate the recommended score and score ranges for a cipher
+      * @returns Computed score ranges for the cipher
+      */
+    public genScoreRange(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+        let suggested = Math.round(qdata.unique * 1.5 + qdata.len)
+        const min = Math.max(suggested - 5, 0)
+        const max = suggested + 5
+        suggested += Math.round(10 * Math.random()) - 5;
+        return { suggested: suggested, min: min, max: max, private: qdata }
+    }
+    /**
+    * Determine what to tell the user about how the score has been computed
+    * @param suggesteddata Data calculated for the score range
+    * @returns HTML String to display in the suggested question dialog
+    */
+    public genSamplePointsText(suggesteddata: suggestedData): string {
+        const qdata = suggesteddata.private as QuoteRecord
+        let result = ''
+        let rangetext = ''
+        if (suggesteddata.max > suggesteddata.min) {
+            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
+        }
+        if (qdata.len < 15) {
+            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 20 characters for a good quote</em></p>`
+        }
+        if (qdata.len > 2) {
+            result += `<p>There are ${qdata.len} characters in the quote, ${qdata.unique} of which are unique.
+             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+        }
+        return result
+    }
+    /**
+ * Generate the HTML to display the answer for a cipher
+ */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();

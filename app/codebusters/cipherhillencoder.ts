@@ -5,6 +5,7 @@ import {
     toolMode,
     ITestQuestionFields,
     IScoreInformation,
+    QuoteRecord,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -23,7 +24,7 @@ import {
     multarray,
 } from '../common/mathsupport';
 import { renderMath } from '../common/renderMath';
-import { CipherEncoder } from './cipherencoder';
+import { CipherEncoder, suggestedData } from './cipherencoder';
 
 const kmathEquiv = '\\equiv';
 // Configure how we want the multiplication to appear - either as a * or a dot
@@ -35,6 +36,7 @@ const kmathMult = '*';
 export class CipherHillEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Hill_Matrix';
+    public cipherName = 'Hill Cipher'
 
     public validTests: ITestType[] = [ITestType.None, ITestType.cregional, ITestType.cstate];
     public defaultstate: IState = {
@@ -48,6 +50,8 @@ export class CipherHillEncoder extends CipherEncoder {
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
     public charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -110,6 +114,9 @@ export class CipherHillEncoder extends CipherEncoder {
                 result =
                     '3x3 Hill Cipher problems are not allowed on ' + this.getTestTypeName(testType);
             }
+        }
+        if (this.state.operation !== 'decode') {
+            result = 'Only decode problems are allowed on ' + this.getTestTypeName(testType);
         }
         return result;
     }
@@ -282,6 +289,64 @@ export class CipherHillEncoder extends CipherEncoder {
         }
 
         this.setErrorMsg(msg, 'vq', sampleLink);
+    }
+    /**
+      * Generate the recommended score and score ranges for a cipher
+      * @returns Computed score ranges for the cipher
+      */
+    public genScoreRange(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+        const key = this.state.keyword.toUpperCase();
+        let matsize = 0
+        let groupscore = 0
+        if (key.length === 4) {
+            matsize = 2
+            groupscore = 16.5
+        } else if (key.length === 9) {
+            matsize = 3
+            groupscore = 21
+        } else {
+            return { suggested: 0, min: 0, max: 0, private: qdata }
+        }
+        if (this.state.operation === 'compute') {
+            return { suggested: 100, min: 100, max: 100, private: qdata }
+        }
+        let suggested = Math.ceil(groupscore * qdata.len / matsize)
+        const min = Math.round(Math.max(suggested - groupscore, 0))
+        const max = Math.round(suggested + groupscore)
+        suggested += Math.round((groupscore * Math.random()) - (groupscore / 2));
+        return { suggested: suggested, min: min, max: max, private: qdata }
+    }
+    /**
+    * Determine what to tell the user about how the score has been computed
+    * @param suggesteddata Data calculated for the score range
+    * @returns HTML String to display in the suggested question dialog
+    */
+    public genSamplePointsText(suggesteddata: suggestedData): string {
+        const qdata = suggesteddata.private as QuoteRecord
+        const key = this.state.keyword.toUpperCase();
+        let matsize = 0
+        if (key.length === 4) {
+            matsize = 2
+        } else if (key.length === 9) {
+            matsize = 3
+        } else {
+            return `<p><b>WARNING:</b> <em>There is no valid keyword specified, unable to compute a score.
+                    Please pick either a 4 or 9 letter keyword.</em></p>`
+        }
+
+        let result = ''
+        let rangetext = ''
+        if (suggesteddata.max > suggesteddata.min) {
+            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
+        }
+        if (this.state.operation === 'compute') {
+            result = `<p>A compute operation is generally 100 points.</p>`
+        } else if (qdata.len > 2) {
+            result += `<p>There are ${Math.ceil(qdata.len / matsize)} groups of ${matsize} characters in the quote.
+             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+        }
+        return result
     }
     /**
      * Generates the sample question text for a cipher

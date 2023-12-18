@@ -40,6 +40,7 @@ import 'datatables.net-plugins/sorting/natural.js';
 
 import { CipherHandler } from '../common/cipherhandler';
 import { CipherFactory } from './cipherfactory';
+import { JTFDialogFixColors } from '../common/jtfdialog';
 
 let cipherTool: CipherHandler = new CipherHandler();
 declare let window: any;
@@ -60,4 +61,5 @@ $(function (): void {
     window.cipherTool = cipherTool = CipherFactory(data_cipher, data_lang);
     cipherTool.layout();
     $(document).foundation();
+    JTFDialogFixColors();
 });

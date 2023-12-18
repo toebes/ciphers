@@ -74,7 +74,9 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
     public init(lang: string): void {
         super.init(lang);
-        this.loadLanguageDictionary('en');
+        this.loadLanguageDictionary('en').then((res) => {
+            // We don't need to do anything, but we know it has been loaded now
+        });
     }
 
     public defaultstate: IFractionatedMorseState = {

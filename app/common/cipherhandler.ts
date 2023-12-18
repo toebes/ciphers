@@ -293,6 +293,16 @@ export interface QuoteRecord {
     translation?: string;
     testUsage?: string;
     notes?: string;
+    recommendedScore?: number;
+    minscore?: number;
+    maxscore?: number;
+    minlength?: number;
+    // Temporary used only for debugging the algorithm
+    // lnOrdinal?: number;
+    // avgFrequency?: number;
+    // avgIndexLen?: number;
+    // avgIndex?: number;
+    // range?: number;
 }
 
 /**
@@ -874,6 +884,18 @@ export class CipherHandler {
     public guidanceButton: JTButtonItem = {
         title: 'Guidance',
         id: 'guidance',
+        color: 'primary',
+    };
+    public questionButton: JTButtonItem = {
+        title: 'Suggest Question',
+        id: 'suggestq',
+        class: 'sampq',
+        color: 'primary',
+    };
+    public pointsButton: JTButtonItem = {
+        title: 'Suggest Points',
+        id: 'suggestp',
+        class: 'sampp',
         color: 'primary',
     };
 
@@ -1673,6 +1695,154 @@ export class CipherHandler {
             unique: mina.length
         };
     }
+    /**
+     * Compute detailed statistics about a plain text string
+     * @param lang Language to compute stats for
+     * @param str String to analyze
+     * @returns QuoteRecord fo statistics
+     */
+    public computeStats(lang: string, str: string): QuoteRecord {
+        const result = this.analyzeQuote(str);
+        let unknown = 0
+        let lnOrdinal = 0
+        let avgFrequency = 0
+        let avgIndexLen = 0
+        let avgIndex = 0
+        let words = str.toUpperCase().replace(/'/g, " '").split(/[^A-Z']+/)
+        if (
+            lang === "" ||
+            !this.Frequent.hasOwnProperty(lang)
+        ) {
+            return result;
+        }
+        let wordcount = 0
+        let minlen = 9999
+        let maxlen = 0
+        for (let word of words) {
+            if (word.length > 0 && word !== "'") {
+                // Get a template for the pattern of the word so that we can subset
+                // which words we will pull from the precompiled language
+                let pat = this.makeUniquePattern(word, 1);
+                // let repl = this.genReplPattern(str);
+                if (typeof this.Frequent[lang][pat] !== "undefined") {
+                    let matches = this.Frequent[lang][pat];
+                    let ordinal = 999999
+                    let frequency = 0
+                    let stratum = 10
+                    let idx = 9999
+                    let needed = false
+                    do {
+                        for (let i in matches) {
+                            if (word === matches[i][0]) {
+                                ordinal = matches[i][1]
+                                frequency = matches[i][2]
+                                stratum = matches[i][3]
+                                idx = Number(i)
+                                break;
+                            }
+                            // Matches[i]
+                            // [0] = String
+                            // [1] = Ordinal (i.e. the = 1, )
+                            // [2] = Frequency of occurance
+                            // [3] = Stratum (0 = top most common)
+                        }
+                        needed = word.includes("'")
+                        if (needed) {
+                            word = word.replace(/'/g, "")
+                            pat = this.makeUniquePattern(word, 1);
+                            if (typeof this.Frequent[lang][pat] !== "undefined") {
+                                matches = this.Frequent[lang][pat];
+                            } else {
+                                needed = false
+                            }
+                        }
+                    } while (needed)
+                    if (word.length < minlen) {
+                        minlen = word.length
+                    }
+                    if (word.length > maxlen) {
+                        maxlen = word.length
+                    }
+                    if (ordinal === 999999) {
+                        console.log(`Did not find ${word}`)
+                        const bar = this.makeUniquePattern(word, 1);
+                        unknown++
+                    } else {
+                        wordcount++
+
+                        avgFrequency += frequency
+                        avgIndexLen += idx / word.length
+                        avgIndex += idx
+
+                        const ln = 1.35 * Math.log(ordinal) - 6.5
+                        if (!Number.isNaN(ln) && ln > 0) {
+                            lnOrdinal += ln
+                        }
+                        if (stratum > 1) {
+                            stratum--
+                        }
+                    }
+                }
+            }
+        }
+        // unknown            // Number of unknown words
+        lnOrdinal /= wordcount  // avg(ln(ordinal))
+        avgFrequency /= wordcount  // avg(Frequency)
+        avgIndexLen /= wordcount  // Avg index relative to word length
+        avgIndex /= wordcount  // Avg Index
+        const range = maxlen - minlen  // Range of word lengths
+        const uniformLengths = (range < 2) ? 2 : 0;
+        // We have all of our data, so caculate the three values
+        const blendedVal = 2.8 *
+            ((0.25 * result.chi2) +
+                (0.50 * result.grade) +
+                (2.00 * unknown) +
+                (15.0 * lnOrdinal) +
+                (0.13 * avgIndex) +
+                minlen +
+                uniformLengths -
+                17.40);
+        const chiVal = 2.17 *
+            ((1.00 * result.chi2) +
+                (0.50 * result.grade) +
+                (2.00 * unknown) +
+                (10.0 * lnOrdinal) +
+                (0.10 * avgIndex) +
+                minlen +
+                uniformLengths -
+                23.36);
+        const altVal = 3.36 *
+            ((0.50 * result.chi2) +
+                (0.50 * result.grade) +
+                (2.00 * unknown) +
+                (12.0 * lnOrdinal) +
+                (0.05 * avgIndex) +
+                minlen +
+                uniformLengths -
+                18.68);
+        const min = Math.round(Math.min(blendedVal, chiVal, altVal))
+        const max = Math.round(Math.max(blendedVal, chiVal, altVal))
+        let mid = blendedVal + chiVal + altVal - min - max
+
+        // Provide some variability in the mid score.  Let's use a random amount 1/2 the way between the smallest distance to an edge
+        let middist = Math.min(mid - min, max - mid);
+        mid = Math.round(mid + (Math.random() * middist) - middist / 2);
+        // Chi squared *.25 + grade level *.5 + # unknown + ln(ordinal)*15 + avg(index)*.13 + len_range< 2
+        //             *1                                              10               .1
+        //             *.5                                             12               .05
+        result.recommendedScore = 200 + mid
+        result.minscore = 200 + min
+        result.maxscore = 200 + max
+        result.minlength = minlen;
+        // Temporary for debugging the stats
+        // result.lnOrdinal = lnOrdinal;
+        // result.avgFrequency = avgFrequency;
+        // result.avgIndexLen = avgIndexLen
+        // result.avgIndex = avgIndex
+        // result.range = range
+        return result;
+    }
+
     /**
      * Initializes the encoder/decoder.
      * Select the character sets based on the language and initialize the
@@ -2972,7 +3142,7 @@ export class CipherHandler {
         if (typeof str === 'undefined') {
             return "\"\"";
         }
-        return "'" + str.replace(/([""])/g, '\\$1') + "'";
+        return "'" + str.replace(/(["'])/g, '\\$1') + "'";
     }
     /**
      * Given a string with groupings of a size, this computes a pattern which matches the
@@ -3082,98 +3252,109 @@ export class CipherHandler {
         this.loadLanguageDictionary(lang);
     }
     /**
-     * Load a language table from the server.  We attempt to get a compiled one first (which should be really fast)
+     * Load a language table from the server.  
+     * We attempt to get a compiled one first (which should be really fast)
      * but will resort to a plain text file if it isn't found.
+     * Once the file has been loaded call updateMatchDropdowns and resolve
+     * the promise.
      * @param lang Language to load (2 character abbreviation)
      */
-    public loadLanguageDictionary(lang: string) {
-        const rootCipherTool = this.getRootCipherTool();
-        if (rootCipherTool.Frequent[lang] !== undefined) {
-            this.Frequent[lang] = rootCipherTool.Frequent[lang];
-            this.updateMatchDropdowns('');
-        } else {
-            $('#loadeng').hide();
-            this.showLangStatus('warning', 'Attempting to load ' + this.langmap[lang] + '...');
-            $.getScript('Languages/' + lang + '.js', (data, textStatus, jqxhr) => {
-                // The compiled languages set the global root and not necessarily this sub object 
-                this.Frequent[lang] = rootCipherTool.Frequent[lang]
+    public loadLanguageDictionary(lang: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            const rootCipherTool = this.getRootCipherTool();
+            if (rootCipherTool.Frequent[lang] !== undefined) {
+                this.Frequent[lang] = rootCipherTool.Frequent[lang];
+                this.updateMatchDropdowns('');
+                resolve(true)
+            } else {
+                $('#loadeng').hide();
+                this.showLangStatus('warning', 'Attempting to load ' + this.langmap[lang] + '...');
+                $.getScript('Languages/' + lang + '.js', (data, textStatus, jqxhr) => {
+                    // The compiled languages set the global root and not necessarily this sub object 
+                    this.Frequent[lang] = rootCipherTool.Frequent[lang]
+                    this.showLangStatus('secondary', '');
+                    this.updateMatchDropdowns('');
+                    resolve(true);
+                }).fail((jqxhr, settings, exception) => {
+                    console.log('Complied language file not found for ' + lang + '.js');
+                    this.loadRawDictionary(lang)
+                        .then((res) => { resolve(res) })
+                        .catch((res) => { reject(res) });
+                });
+            }
+        })
+    }
+    /**
+     * Loads a raw language from the server and resolve a Promise when done
+     * @param lang Language to load (2 character abbreviation)
+     */
+    public loadRawDictionary(lang: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.showLangStatus('warning', 'Loading ' + this.langmap[lang] + '...');
+            $.get('Languages/' + lang + '.txt', () => { }).done((data) => {
+                // empty out all the frequent words
+                this.showLangStatus('warning', 'Processing ' + this.langmap[lang] + '...');
+                this.Frequent[lang] = {};
+                this.state.curlang = lang;
+                let charset = this.langcharset[lang];
+                const langreplace = this.langreplace[lang];
+                this.setCharset(charset);
+                const lines = data.split('\n');
+                const len = lines.length;
+                charset = charset.toUpperCase() + "'";
+                for (let i = 0; i < len; i++) {
+                    const pieces = lines[i]
+                        .replace(/\r/g, ' ')
+                        .toUpperCase()
+                        .split(/ /);
+                    // make sure that all the characters in the pieces are valid
+                    // for this character set.  Otherwise we can throw it away
+                    let legal = true;
+                    for (const c of pieces[0]) {
+                        if (charset.indexOf(c) < 0) {
+                            if (typeof langreplace[c] === 'undefined') {
+                                console.log(
+                                    'skipping out on ' + pieces[0] + ' for ' + c + ' against ' + charset
+                                );
+                                legal = false;
+                                break;
+                            }
+                            pieces[0] = pieces[0].replace(c, langreplace[c]);
+                        }
+                    }
+                    if (legal) {
+                        const pat = this.makeUniquePattern(pieces[0], 1);
+                        const elem: patelem = [pieces[0].toUpperCase(), i, pieces[1], 0];
+                        if (i < 500) {
+                            elem[3] = 0;
+                        } else if (i < 1000) {
+                            elem[3] = 1;
+                        } else if (i < 2000) {
+                            elem[3] = 3;
+                        } else if (i < 5000) {
+                            elem[3] = 4;
+                        } else {
+                            elem[3] = 5;
+                        }
+                        if (typeof this.Frequent[lang][pat] === 'undefined') {
+                            this.Frequent[lang][pat] = [];
+                        }
+                        this.Frequent[lang][pat].push(elem);
+                    }
+                }
+                // console.log(this.Frequent)
+                $('.langout').each((i: number, elem: HTMLElement) => {
+                    this.showLangStatus('warning', 'Dumping ' + this.langmap[lang] + '...');
+                    $(elem).text(this.dumpLang(lang));
+                });
+                // We need to also save it on the root object
+                const rootCipherTool = this.getRootCipherTool();
+                rootCipherTool.Frequent[lang] = this.Frequent[lang];
                 this.showLangStatus('secondary', '');
                 this.updateMatchDropdowns('');
-            }).fail((jqxhr, settings, exception) => {
-                console.log('Complied language file not found for ' + lang + '.js');
-                this.loadRawDictionary(lang);
-            });
-        }
-    }
-
-    /**
-     * Loads a raw language from the server
-     * @param lang Language to load (2 character abbreviation)
-     */
-    public loadRawDictionary(lang: string): void {
-        this.showLangStatus('warning', 'Loading ' + this.langmap[lang] + '...');
-        $.get('Languages/' + lang + '.txt', () => { }).done((data) => {
-            // empty out all the frequent words
-            this.showLangStatus('warning', 'Processing ' + this.langmap[lang] + '...');
-            this.Frequent[lang] = {};
-            this.state.curlang = lang;
-            let charset = this.langcharset[lang];
-            const langreplace = this.langreplace[lang];
-            this.setCharset(charset);
-            const lines = data.split('\n');
-            const len = lines.length;
-            charset = charset.toUpperCase();
-            for (let i = 0; i < len; i++) {
-                const pieces = lines[i]
-                    .replace(/\r/g, ' ')
-                    .toUpperCase()
-                    .split(/ /);
-                // make sure that all the characters in the pieces are valid
-                // for this character set.  Otherwise we can throw it away
-                let legal = true;
-                for (const c of pieces[0]) {
-                    if (charset.indexOf(c) < 0) {
-                        if (typeof langreplace[c] === 'undefined') {
-                            console.log(
-                                'skipping out on ' + pieces[0] + ' for ' + c + ' against ' + charset
-                            );
-                            legal = false;
-                            break;
-                        }
-                        pieces[0] = pieces[0].replace(c, langreplace[c]);
-                    }
-                }
-                if (legal) {
-                    const pat = this.makeUniquePattern(pieces[0], 1);
-                    const elem: patelem = [pieces[0].toUpperCase(), i, pieces[1], 0];
-                    if (i < 500) {
-                        elem[3] = 0;
-                    } else if (i < 1000) {
-                        elem[3] = 1;
-                    } else if (i < 2000) {
-                        elem[3] = 3;
-                    } else if (i < 5000) {
-                        elem[3] = 4;
-                    } else {
-                        elem[3] = 5;
-                    }
-                    if (typeof this.Frequent[lang][pat] === 'undefined') {
-                        this.Frequent[lang][pat] = [];
-                    }
-                    this.Frequent[lang][pat].push(elem);
-                }
-            }
-            // console.log(this.Frequent)
-            $('.langout').each((i: number, elem: HTMLElement) => {
-                this.showLangStatus('warning', 'Dumping ' + this.langmap[lang] + '...');
-                $(elem).text(this.dumpLang(lang));
-            });
-            // We need to also save it on the root object
-            const rootCipherTool = this.getRootCipherTool();
-            rootCipherTool.Frequent[lang] = this.Frequent[lang];
-            this.showLangStatus('secondary', '');
-            this.updateMatchDropdowns('');
-        });
+                resolve(true);
+            }).fail((res) => reject(res));
+        })
     }
     /**
      * Updates the language status message box with a message (or clears it)

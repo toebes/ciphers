@@ -1471,6 +1471,7 @@ button.rounded {
 }
 .reveal {
     padding: 0rem;
+    border-radius: 10px;
 }
 
 .reveal-overlay.hideback {

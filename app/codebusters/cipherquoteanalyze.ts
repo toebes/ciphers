@@ -3,7 +3,8 @@ import { CipherHandler, IState, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
-import { textStandard } from '../common/readability';
+import * as XLSX from "xlsx";
+import { AnyMap } from './cipherquotemanager';
 
 export interface ITestState extends IState {
     /** A URL to to import test date from on load */
@@ -71,14 +72,20 @@ export class CipherQuoteAnalyze extends CipherHandler {
 
         return result;
     }
-    public processTestXML(data: any): void {
+    /**
+     * Compute the stats for all the quotes loaded and display them in a table
+     * @param data Quote data
+     */
+    public processQuoteXML(data: any): void {
         const table = new JTTable({ class: 'cell shrink qtable' });
         table.addHeaderRow([
             'Length',
             'Chi-Squared',
             'Unique',
             'Grade Level',
-            'Likes',
+            'RecommendedScore',
+            'Minscore',
+            'Maxscore',
             'Author',
             'Source',
             'Quote',
@@ -86,25 +93,12 @@ export class CipherQuoteAnalyze extends CipherHandler {
         ]);
         // First we get all the ciphers defined and add them to the list of ciphers
         for (const ent of data) {
-            console.log(ent);
-            let teststr = ent.text;
-            /* testStrings */
-            const chi = this.CalculateChiSquare(teststr);
-            teststr = this.cleanString(teststr);
-            const grade = textStandard(teststr);
-            const minstr = this.minimizeString(teststr);
-            let mina = minstr.split('');
-
-            mina = mina.filter((x, i, a) => a.indexOf(x) === i);
-            const unique = mina.length;
-            const l = minstr.length;
-            let likes = '';
             let author = '';
             let source = '';
-            const notes = '';
-            if (ent.likes !== undefined) {
-                likes = ent.likes;
-            }
+            let notes = '';
+            const qrecord = this.computeStats(this.state.curlang, ent.text);
+
+            // Now we compute the 
             if (ent.author !== undefined) {
                 author = ent.author;
             }
@@ -112,33 +106,103 @@ export class CipherQuoteAnalyze extends CipherHandler {
                 source = ent.source;
             }
             if (ent.notes !== undefined) {
-                source = ent.notes;
+                notes = ent.notes;
             }
             table
                 .addBodyRow()
-                .add(String(l)) /* Length */
-                .add(String(chi)) /* Chi-Squared */
-                .add(String(unique))
-                .add(grade) /* Grade level */
-                .add(likes) /* Likes */
+                .add(String(qrecord.len)) /* Length */
+                .add(String(qrecord.chi2)) /* Chi-Squared */
+                .add(String(qrecord.unique))
+                .add(String(qrecord.grade)) /* Grade level */
+                .add(String(qrecord.recommendedScore))
+                .add(String(qrecord.minscore))
+                .add(String(qrecord.maxscore))
                 .add(author) /* Author */
                 .add(source) /* Source */
-                .add(teststr) /* Quote */
-                .add(notes); /* Notes */
+                .add(ent.text) /* Quote */
+                .add(notes)
         }
         $('#quotes')
             .empty()
             .append(table.generate());
     }
-    /*    Length	Chi-Squared	Likes	Author	Source	Quote	Use	Test	Question	Count	Notes */
+    /**
+     * Process imported spreadsheet
+     * @param workbook XLSX Workbook
+     */
+    public processXLSX(workbook: XLSX.WorkBook) {
+        // Make sure there was something to actually import
+        if (workbook.SheetNames.length >= 1) {
+            // We will only use the first named sheet
+            const sheetname = workbook.SheetNames[0];
 
+            const jsondata = XLSX.utils.sheet_to_json<AnyMap>(workbook.Sheets[sheetname])
+            const entries: any[] = [];
+            for (let rec of jsondata) {
+                let outrec: any = {}
+                for (let key in rec) {
+                    const val = rec[key];
+                    const lckey = key.toLowerCase();
+                    if (lckey === 'text' || lckey === 'quote') {
+                        outrec.text = val
+                    } else if (lckey === 'author') {
+                        outrec.author = val
+                    } else if (lckey === 'test') {
+                        outrec.test = val
+                    } else if (lckey === 'source') {
+                        outrec.source = val
+                    } else if (lckey === 'notes') {
+                        outrec.notes = val
+                    } else if (lckey === 'translation') {
+                        outrec.translation = val
+                    }
+                }
+                entries.push(outrec)
+            }
+            this.processQuoteXML(entries);
+        }
+    }
+    /**
+     * Process the imported file
+     * @param reader File to process
+     */
+    public processImport(file: File): void {
+        this.loadLanguageDictionary(this.state.curlang).then((res) => {
+            const reader = new FileReader();
+            const name = file.name
+            const extension = name.split('.').pop().toLowerCase()
+            if (extension === 'json') {
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result as string);
+                        this.importXML(data);
+                        $('#ImportFile').foundation('close');
+                    } catch (e) {
+                        $('#xmlerr').text(`Not a valid import file: ${e}`).show();
+                    }
+                }
+                reader.readAsText(file);
+            } else {
+                reader.onload = (e) => {
+                    try {
+                        var data = e.target.result;
+
+                        var workbook = XLSX.read(data, { type: 'binary', cellFormula: false, cellHTML: false });
+                        this.processXLSX(workbook)
+                        $('#ImportFile').foundation('close');
+                    } catch (e) {
+                        $('#xmlerr').text(`Not a valid import file: ${e}`).show();
+                    }
+                };
+                reader.readAsBinaryString(file);
+            }
+        })
+    }
     /**
      * Process imported XML
      */
     public importXML(data: any): void {
-        console.log('Importing XML');
-        console.log(data);
-        this.processTestXML(data);
+        this.processQuoteXML(data);
         this.updateOutput();
     }
     /**

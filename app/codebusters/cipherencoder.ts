@@ -10,6 +10,7 @@ import {
     ITestQuestionFields,
     IScoreInformation,
     IOperationType,
+    QuoteRecord,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -36,6 +37,17 @@ export interface IEncoderState extends IState {
     hint?: string;
     /** Optional crib tracking string */
     crib?: string;
+}
+
+export interface suggestedData {
+    /* The suggested score to use */
+    suggested: number;
+    /* The minimum of the range for the suggested score */
+    min: number;
+    /* The maximum of the range for the suggested score */
+    max: number;
+    /* Any information private to the class for why the score was suggested */
+    private?: any;
 }
 
 /**
@@ -88,6 +100,8 @@ export class CipherEncoder extends CipherHandler {
         },
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
         { title: 'Reset', color: 'warning', id: 'reset' },
     ];
@@ -1313,6 +1327,7 @@ export class CipherEncoder extends CipherHandler {
             )
         );
         result.append(this.createQuestionTextDlg());
+        result.append(this.createPointsDlg());
         result.append(this.createAlphabetType());
         return result;
     }
@@ -1341,6 +1356,20 @@ export class CipherEncoder extends CipherHandler {
         );
         const questionTextDlg = JTFDialog('SampleQText', 'Sample Question Text', dlgContents);
         return questionTextDlg;
+    }
+    /**
+     * Generates a dialog showing the sample question points
+     */
+    public createPointsDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+        dlgContents.append($('<div/>', { id: 'sptext', class: '' }));
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'sqtpnts button', id: 'spval' }).text('Set Points'))
+                .append($('<a/>', { class: 'secondary button', 'data-close': '' }).text('Close'))
+        );
+        const pointsDlg = JTFDialog('SamplePoints', 'Suggested Points Value', dlgContents);
+        return pointsDlg;
     }
     /**
      * Generates a dialog showing the sample question text
@@ -1382,10 +1411,83 @@ export class CipherEncoder extends CipherHandler {
         }
         return false;
     }
-
+    /**
+     * Generate hint information about where a crib is located or other
+     * Attribute of a cipher.
+     * @returns Any hint information 
+     */
     public genSampleHint(): string {
-        //return 'the keyword is ' + this.state.keyword.toUpperCase();
-        return 'nothing is known';
+        return undefined;
+    }
+    /**
+     * Load any data necessary for computing the scoring.  Since this
+     * may take some time to pull a file from the server, this gets done
+     * before starting any scoring operations
+     * @returns Promise indicating that the language has been loaded
+     */
+    public prepGenScoring(): Promise<boolean> {
+        if (this.state.cipherType === ICipherType.Aristocrat ||
+            this.state.cipherType === ICipherType.Patristocrat ||
+            this.state.cipherType === ICipherType.Xenocrypt) {
+            return this.loadLanguageDictionary(this.state.curlang);
+        }
+        return new Promise<boolean>((resolve, reject) => { resolve(true) })
+    }
+    /**
+     * Compute the score ranges for an Aristocrat/Patristocrat/Xenocrypt
+     * @returns suggestedData containing score ranges
+     */
+    public genAristocratScoreRange(): suggestedData {
+        const qrecord = this.computeStats(this.state.curlang, this.state.cipherString);
+        // Make adjustments based on the current cipher
+        let adjust = 0
+        // Patristocrats automatically get 300 extra points
+        if (this.state.cipherType === ICipherType.Patristocrat) {
+            adjust += 250;
+        } else if (this.state.cipherType === ICipherType.Xenocrypt) {
+            adjust += 300;
+        }
+        if (this.state.operation === 'keyword') {
+            adjust += 100;
+        } else if (this.state.encodeType === 'k1') {
+            adjust -= 100;
+        } else if (this.state.encodeType === 'k2') {
+            adjust -= 75;
+        }
+        // If we have a single letter word and A maps to I or I maps to A, that give them an extra 25 poitns of hints
+        // if ( )
+        this.genAlphabet();
+        if (qrecord.minlength === 1 && (this.state.replacement['I'] === 'A' || this.state.replacement['A'] === 'I')) {
+            adjust -= 25
+        }
+        // Make sure we get within the range of 150 to 700 for the final score
+        if ((qrecord.minscore + adjust) < 150) {
+            adjust = qrecord.minscore - 150
+        }
+        if ((qrecord.maxscore + adjust) > 700) {
+            adjust = 700 - qrecord.maxscore
+        }
+
+        qrecord.recommendedScore += adjust;
+
+        qrecord.minscore += adjust;
+        qrecord.maxscore += adjust;
+
+
+        return { suggested: qrecord.recommendedScore, min: qrecord.minscore, max: qrecord.maxscore, private: qrecord }
+
+    }
+    /**
+     * Generate the recommended score and score ranges for a cipher
+     * @returns Computed score ranges for the cipher
+     */
+    public genScoreRange(): suggestedData {
+        if (this.state.cipherType === ICipherType.Aristocrat ||
+            this.state.cipherType === ICipherType.Patristocrat ||
+            this.state.cipherType === ICipherType.Xenocrypt) {
+            return this.genAristocratScoreRange();
+        }
+        return { suggested: 0, min: 0, max: 0 }
     }
     /**
      * Get the reference to the author for a quote
@@ -1393,7 +1495,7 @@ export class CipherEncoder extends CipherHandler {
      */
     public genAuthor(): string {
         if (this.state.author !== undefined && this.state.author !== '') {
-            return ' by ' + this.state.author
+            return ` by ${this.state.author}`
         }
         return ''
     }
@@ -1402,24 +1504,111 @@ export class CipherEncoder extends CipherHandler {
      * @returns HTML as a string
      */
     public genSampleQuestionText(): string {
+        const hint = this.genSampleHint();
+        let hinttext = hint !== undefined ? ` You are told that ${hint}` : '';
         let enctype = ''
         if (this.state.encodeType !== undefined && this.state.encodeType !== 'random') {
             enctype += this.state.encodeType.toUpperCase();
         }
         return (
-            '<p>A quote' + this.genAuthor() + ' has been encoded using the ' +
-            enctype + ' ' + this.cipherName +
-            ' Cipher for you to decode. ' +
-            'You are told that ' +
-            this.genSampleHint() +
-            '</p>'
+            `<p>A quote${this.genAuthor()} has been encoded using the${enctype}
+             ${this.cipherName} Cipher for you to decode.${hinttext}</p>`
         );
     }
+    /**
+     * Determine what to tell the user about how the score has been computed
+     * This is specific to Aristocrats/Patristocrats and Xenocrypts
+     * @param suggesteddata Data calculated for the score range
+     * @returns HTML String to display in the suggested question dialog
+     */
+    public genAristocratPointsText(suggesteddata: suggestedData): string {
+        let qrecord = suggesteddata.private as QuoteRecord
+        if (qrecord.len === 0) {
+            return "<b>You need to enter a quote in in the Plain Text order to get a recommendation for the score</b>"
+        }
+        if (qrecord.len < 65) {
+            return "<b>The Plain Text quote is too short to get a recomendation</b>";
+        }
+        if (qrecord.unique < 16) {
+            return `<b>The Plain Text only has ${qrecord.unique} unique characters.
+            It should have at least 19 unique character in order to get a good recommendation</b>`
+        }
+        let rangeText = ''
+        if (suggesteddata.max > suggesteddata.min) {
+            rangeText = ` out of a <em>suggested range of ${suggesteddata.min} to ${suggesteddata.max}</em>`
+        }
+        let result = `<p>Based on analysis of the cipher which includes examining the cipher text for 
+ the Chi-Square (χ2) distribution of letters,
+ grade level of the text,
+ number of unknown words,
+ commonality of words,
+ and commonness of pattern words`
+        if (this.state.cipherType === ICipherType.Patristocrat) {
+            result += ". Encoding as a Patristocrat adds 250 points";
+        } else if (this.state.cipherType === ICipherType.Xenocrypt) {
+            result += ". Because it is a Xenocrypt, it adds 300 points";
+        }
+        if (this.state.operation === 'keyword') {
+            result += ". Asking for a keyword or key phrase adds 100 points"
+        } else if (this.state.encodeType === 'k1') {
+            result += ". A K1 alphabet takes away 100 points"
+        } else if (this.state.encodeType === 'k2') {
+            result += ". A K2 alphabet takes away 75 points"
+        }
+        result += `, try a score of ${suggesteddata.suggested}${rangeText}.</p>
+<p>
+  <b>NOTE:</b><em>If you provide any hints in the question,
+        you will want to adjust the score down by approximately 20 points per letter hinted</em></p>`
+        return result;
+    }
+    /**
+     * Determine what to tell the user about how the score has been computed
+     * @param suggesteddata Data calculated for the score range
+     * @returns HTML String to display in the suggested question dialog
+     */
+    public genSamplePointsText(suggesteddata: suggestedData): string {
+        if (this.state.cipherType === ICipherType.Aristocrat ||
+            this.state.cipherType === ICipherType.Patristocrat ||
+            this.state.cipherType === ICipherType.Xenocrypt) {
+            return this.genAristocratPointsText(suggesteddata)
+        }
+        let rangeText = ''
+        if (suggesteddata.max > suggesteddata.min) {
+            rangeText = ` out of a <em>suggested range of ${suggesteddata.min} to ${suggesteddata.max}</em>`
+        }
+        return (`<p>Based on analysis of the cipher, try a score of ${suggesteddata.suggested}${rangeText}.</p>`)
+    }
+    /**
+     * Populate the Sample Question Text Dialog and show it
+     */
     public showSampleQuestionText(): void {
         $('#sqtext')
             .empty()
             .append($(this.genSampleQuestionText()));
         $('#SampleQText').foundation('open');
+    }
+    /**
+     * Populate the Sample Points dialog and show it
+     */
+    public async showSamplePoints() {
+        this.prepGenScoring().then(() => {
+            const suggestedScore = this.genScoreRange();
+            const suggested = suggestedScore.suggested
+            const minrange = suggestedScore.min
+            const maxrange = suggestedScore.max
+            // Remember the default score for when they set it
+            $('#spval').attr('data-points', suggested);
+            let title = `Suggested Points: ${suggested}`
+            // if (maxrange > minrange) {
+            //     title += ` (Range ${minrange} to ${maxrange})`
+            // }
+            $('#SamplePoints .dlgtitle').text(title);
+
+            $('#sptext')
+                .empty()
+                .append($(this.genSamplePointsText(suggestedScore)))
+            $("#SamplePoints").foundation('open');
+        })
     }
     public genMonoText(str: string): string {
         return (
@@ -1429,15 +1618,32 @@ export class CipherEncoder extends CipherHandler {
             '</strong></span>'
         );
     }
-
+    /**
+     * Copy the sample question to the clipboard
+     */
     public copySampleQuestionText(): void {
         this.copyToClip($('#sqtext').html());
         $('#SampleQText').foundation('close');
     }
+    /**
+     * Replace the question text with what was suggested
+     */
     public replaceQuestionText(): void {
         this.setQuestionText($('#sqtext').html());
         this.updateQuestionsOutput();
         $('#SampleQText').foundation('close');
+    }
+    /**
+     * Update the score value with what was suggested in the dialog
+     */
+    public replaceScoreValue(): void {
+        const points = Number($('#spval').attr('data-points'));
+        if (points !== this.state.points) {
+            this.markUndo('points');
+            this.state.points = points;
+            this.updateQuestionsOutput();
+        }
+        $('#SamplePoints').foundation('close')
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
@@ -1597,6 +1803,11 @@ export class CipherEncoder extends CipherHandler {
             .on('click', (e) => {
                 this.showSampleQuestionText();
             });
+        $('.sampp')
+            .off('click')
+            .on('click', (e) => {
+                this.showSamplePoints();
+            });
         $('.sqtcpy')
             .off('click')
             .on('click', (e) => {
@@ -1606,6 +1817,11 @@ export class CipherEncoder extends CipherHandler {
             .off('click')
             .on('click', (e) => {
                 this.replaceQuestionText();
+            });
+        $('.sqtpnts')
+            .off('click')
+            .on('click', (e) => {
+                this.replaceScoreValue();
             });
         $('#translated')
             .off('input')

@@ -50,3 +50,8 @@ export function JTFDialog(
     );
     return dlg;
 }
+
+export function JTFDialogFixColors(): void {
+    $('[role="dialog"] .top-bar').css('color', $('.button.primary').css('color'))
+    $('[role="dialog"] .top-bar').css('background-color', $('.button.primary').css('background-color'))
+}

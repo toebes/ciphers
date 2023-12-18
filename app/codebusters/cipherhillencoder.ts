@@ -36,7 +36,7 @@ const kmathMult = '*';
 export class CipherHillEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Hill_Matrix';
-    public cipherName = 'Hill Cipher'
+    public cipherName = 'Hill'
 
     public validTests: ITestType[] = [ITestType.None, ITestType.cregional, ITestType.cstate];
     public defaultstate: IState = {

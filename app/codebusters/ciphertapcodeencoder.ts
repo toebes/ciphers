@@ -3,12 +3,13 @@ import {
     IScoreInformation,
     ITestQuestionFields,
     ITestType,
+    QuoteRecord,
     toolMode,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
-import { CipherEncoder, IEncoderState } from './cipherencoder';
+import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 import tapcode = require('../images/tapcode.png');
 /**
  * CipherTapCodeEncoder - This class handles all of the actions associated with encoding
@@ -17,6 +18,7 @@ import tapcode = require('../images/tapcode.png');
 export class CipherTapCodeEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#TapCode';
+    public cipherName = 'Tap Code'
 
     public validTests: ITestType[] = [ITestType.None, ITestType.aregional];
 
@@ -68,6 +70,8 @@ export class CipherTapCodeEncoder extends CipherEncoder {
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
     /** Save and Restore are done on the CipherEncoder Class */
@@ -123,6 +127,60 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      * we don't have the frequency table, so this doesn't need to do anything
      */
     public displayFreq(): void { }
+    /**
+     * Generates the sample question text for a cipher
+     * @returns HTML as a string
+     */
+    public genSampleQuestionText(): string {
+        const hint = this.genSampleHint();
+        let hinttext = hint !== undefined ? ` You are told that ${hint}` : '';
+        return (
+            `<p>The following symbols represent a quote${this.genAuthor()} which has been encoded using the
+             ${this.cipherName} Cipher for you to decode.${hinttext}</p>`
+        );
+    }
+    /**
+     * Generate the recommended score and score ranges for a cipher
+     * @returns Computed score ranges for the cipher
+     */
+    public genScoreRange(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+        const strings = this.makeReplacement(this.state.cipherString, 999);
+        let taps = ""
+        if (strings.length > 0) {
+            taps = (strings[0][0]).replace(/ +/g, '')
+        }
+        const min = 10 + Math.round(0.25 * taps.length)
+        const max = 10 + Math.round(0.35 * taps.length)
+        const variability = (max - min) / 2
+        let suggest = 10 + Math.round(1.6 * qdata.len + (Math.random() * variability) - variability / 2)
+
+        suggest = Math.max(min, Math.min(suggest))
+        qdata.notes = taps
+        return { suggested: suggest, min: min, max: max, private: qdata }
+    }
+
+    /**
+     * Determine what to tell the user about how the score has been computed
+     * @param suggesteddata Data calculated for the score range
+     * @returns HTML String to display in the suggested question dialog
+     */
+    public genSamplePointsText(suggesteddata: suggestedData): string {
+        const qdata = suggesteddata.private as QuoteRecord
+        let result = ''
+        let rangetext = ''
+        if (suggesteddata.max > suggesteddata.min) {
+            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
+        }
+        if (qdata.len < 15) {
+            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 20 characters for a good quote</em></p>`
+        }
+        if (qdata.len > 2) {
+            result += `<p>There are ${qdata.len} characters in the quote, resulting in ${qdata.notes.length} taps in total.
+              We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+        }
+        return result
+    }
     /**
      * Generate the HTML to display the question for a cipher
      */

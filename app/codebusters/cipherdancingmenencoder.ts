@@ -3,12 +3,13 @@ import {
     IScoreInformation,
     ITestQuestionFields,
     ITestType,
+    QuoteRecord,
     toolMode,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTTable } from '../common/jttable';
-import { CipherEncoder, IEncoderState } from './cipherencoder';
+import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
 /**
  * CipherDancingMenEncoder - This class handles all of the actions associated with encoding
@@ -18,6 +19,7 @@ export class CipherDancingMenEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#DancingMen';
     public usesDancingMenTable = true;
+    public cipherName = 'Dancing Men'
 
     public validTests: ITestType[] = [ITestType.None, ITestType.aregional];
     public defaultstate: IEncoderState = {
@@ -30,6 +32,8 @@ export class CipherDancingMenEncoder extends CipherEncoder {
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
     /** Save and Restore are done on the CipherEncoder Class */
@@ -83,6 +87,34 @@ export class CipherDancingMenEncoder extends CipherEncoder {
             revRepl[c] = c;
         }
         return revRepl;
+    }
+    /**
+      * Generate the recommended score and score ranges for a cipher
+      * @returns Computed score ranges for the cipher
+      */
+    public genScoreRange(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+        let suggested = qdata.unique * 2 + qdata.len
+        const min = Math.max(suggested - 5, 0)
+        const max = suggested + 5
+        suggested += Math.round(8 * Math.random()) - 4;
+        return { suggested: suggested, min: min, max: max, private: qdata }
+    }
+    /**
+    * Determine what to tell the user about how the score has been computed
+    * @param suggesteddata Data calculated for the score range
+    * @returns HTML String to display in the suggested question dialog
+    */
+    public genSamplePointsText(suggesteddata: suggestedData): string {
+        const qdata = suggesteddata.private as QuoteRecord
+        let result = ''
+        if (qdata.len < 15) {
+            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 20 characters for a good quote</em></p>`
+        }
+        if (qdata.len > 2) {
+            result += `<p>There are ${qdata.len} characters in the quote, ${qdata.unique} of which are unique. We suggest you try a score of ${suggesteddata.suggested}</p>`
+        }
+        return result
     }
     /**
      * Generate the HTML to display the answer for a cipher

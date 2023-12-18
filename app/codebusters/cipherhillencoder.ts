@@ -233,7 +233,6 @@ export class CipherHillEncoder extends CipherEncoder {
 
         this.genQuestionFields(result);
         this.genEncodeField(result);
-        result.append(this.createQuestionTextDlg());
         result.append(JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, ''));
         return result;
     }

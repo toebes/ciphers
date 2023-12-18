@@ -655,7 +655,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         const cipherwork = $('<div/>', { class: 'cipherwork' });
         result.append(cipherwork);
         this.genTestUsage(cipherwork);
-        cipherwork.append(this.createQuestionTextDlg());
         this.genQuestionFields(cipherwork);
         cipherwork.append($('<div/>', { class: 'grid-x' })
             .append(JTFLabeledInput("Problem", "text", "toencode", this.state.cipherString, 'auto'))

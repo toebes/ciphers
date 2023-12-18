@@ -697,8 +697,6 @@ export class CipherRailFenceEncoder extends CipherEncoder {
     public genPreCommands(): JQuery<HTMLElement> {
         const result = $('<div/>');
         this.genTestUsage(result);
-        result.append(this.createQuestionTextDlg());
-
         this.genQuestionFields(result);
         this.genEncodeField(result);
 

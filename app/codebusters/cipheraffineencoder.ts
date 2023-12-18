@@ -1221,7 +1221,6 @@ export class CipherAffineEncoder extends CipherEncoder {
         ];
         result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
 
-        result.append(this.createQuestionTextDlg());
         this.genQuestionFields(result);
         this.genEncodeField(result);
         const inputbox = $('<div/>', {

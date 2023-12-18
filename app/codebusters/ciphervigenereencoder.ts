@@ -400,7 +400,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
             { id: 'crow', value: 'crypt', title: 'Cryptanalysis' },
         ];
         result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
-        result.append(this.createQuestionTextDlg());
         this.genQuestionFields(result);
         this.genEncodeField(result);
 

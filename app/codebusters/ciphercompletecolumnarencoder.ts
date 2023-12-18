@@ -945,8 +945,6 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         const result = $('<div/>');
         this.genTestUsage(result);
 
-        result.append(this.createQuestionTextDlg());
-
         this.genQuestionFields(result);
         this.genEncodeField(result);
 

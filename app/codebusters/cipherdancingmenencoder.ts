@@ -108,11 +108,16 @@ export class CipherDancingMenEncoder extends CipherEncoder {
     public genSamplePointsText(suggesteddata: suggestedData): string {
         const qdata = suggesteddata.private as QuoteRecord
         let result = ''
+        let rangetext = ''
+        if (suggesteddata.max > suggesteddata.min) {
+            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
+        }
         if (qdata.len < 15) {
             result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 20 characters for a good quote</em></p>`
         }
         if (qdata.len > 2) {
-            result += `<p>There are ${qdata.len} characters in the quote, ${qdata.unique} of which are unique. We suggest you try a score of ${suggesteddata.suggested}</p>`
+            result += `<p>There are ${qdata.len} characters in the quote, ${qdata.unique} of which are unique.
+             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
         }
         return result
     }

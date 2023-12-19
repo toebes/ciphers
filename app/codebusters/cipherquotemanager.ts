@@ -1,6 +1,7 @@
 import { cloneObject } from '../common/ciphercommon';
 import { IState, QuoteRecord, menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
+import { filter_words } from '../common/filterwords';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFDialog } from '../common/jtfdialog';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
@@ -242,7 +243,21 @@ export class CipherQuoteManager extends CipherTest {
             this.attachHandlers();
         })
     }
-
+    /**
+     * Filter inappropriate words from the input quotes
+     * @param quote Quote to check
+     * @returns boolean indicating whether it should be filtered out or not
+     */
+    public filterword(quote: string): boolean {
+        let ospace = this.obverse(' ')
+        const look = ospace + this.obverse(quote.toLowerCase()) + ospace
+        for (let w of filter_words) {
+            if (look.includes(ospace + w + ospace)) {
+                return true
+            }
+        }
+        return false;
+    }
     /**
      * Import the XML data into the database. 
      * Note that because a duplicate record may generate an error means that all of the
@@ -268,21 +283,27 @@ export class CipherQuoteManager extends CipherTest {
                     const skipInfo = skipped ? ` (${skipped.toLocaleString()} duplicates skipped)` : ''
                     statusDiv.empty().show().text(`Importing quote ${currentIndex.toLocaleString()} of ${totalRecords.toLocaleString()} - ${pct}% Complete${skipInfo}`)
                 }
-                this.openDatabase(this.getLangString(), "readwrite").then((db) => {
-                    const ent = data[currentIndex]
-                    const quote = ent.quote ? ent.quote : ent.text;
-                    const newRecord: QuoteRecord = this.generateRecord(quote, ent.author, ent.source, ent.notes, ent.test, ent.translation);
-                    const request = db.Table.add(newRecord)
-                    request.onsuccess = (event) => {
-                        currentIndex++;
-                        processNextRecord();
-                    }
-                    request.onerror = (event) => {
-                        currentIndex++
-                        skipped++;
-                        processNextRecord()
-                    }
-                })
+                const ent = data[currentIndex]
+                const quote = ent.quote ? ent.quote : ent.text;
+                if (this.filterword(quote)) {
+                    currentIndex++
+                    skipped++;
+                    processNextRecord()
+                } else {
+                    this.openDatabase(this.getLangString(), "readwrite").then((db) => {
+                        const newRecord: QuoteRecord = this.generateRecord(quote, ent.author, ent.source, ent.notes, ent.test, ent.translation);
+                        const request = db.Table.add(newRecord)
+                        request.onsuccess = (event) => {
+                            currentIndex++;
+                            processNextRecord();
+                        }
+                        request.onerror = (event) => {
+                            currentIndex++
+                            skipped++;
+                            processNextRecord()
+                        }
+                    })
+                }
             }
             processNextRecord()
         })

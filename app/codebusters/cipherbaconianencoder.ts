@@ -1,4 +1,5 @@
 import {
+    BoolMap,
     cloneObject,
     NumberMap,
     padToMatch,
@@ -11,6 +12,7 @@ import {
     toolMode,
     ITestQuestionFields,
     IScoreInformation,
+    QuoteRecord,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { fiveletterwords } from '../common/fiveletterwords';
@@ -19,7 +21,7 @@ import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
-import { CipherEncoder, IEncoderState } from './cipherencoder';
+import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 import { decodeHTML } from 'entities';
 
 const baconMap: StringMap = {
@@ -124,6 +126,7 @@ interface encodedLines {
 export class CipherBaconianEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Baconian';
+    public cipherName = 'Baconian'
 
     public validTests: ITestType[] = [
         ITestType.None,
@@ -148,6 +151,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
     /**
@@ -516,6 +521,68 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
     }
     /**
+      * Generate the recommended score and score ranges for a cipher
+      * @returns Computed score ranges for the cipher
+      */
+    public genScoreRange(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+        let suggested = 0
+        let max = 0
+        let min = 0
+        let range = 0
+        if (this.state.operation === 'words') {
+            const hints = this.countCribHints();
+            suggested = 20 + Math.round((qdata.len * 6) + ((13 - hints) * 3))
+            range = 20
+        } else {
+            let aSet = this.buildset(this.state.texta)
+            let bSet = this.buildset(this.state.textb)
+            if (this.state.operation === 'sequence') {
+                suggested = Math.round((qdata.len * 5.8))
+                range = 20
+                if (aSet.length !== bSet.length || aSet.length % 5 !== 0) {
+                    range += 20
+                    suggested += 30;
+                }
+            } else {
+                suggested = Math.round((qdata.len * 5.8) + (aSet.length + bSet.length) * 2)
+                range = (aSet.length + bSet.length) * 10
+            }
+            if (this.state.linewidth % 5 !== 0) {
+                suggested += 25;
+                range += 10;
+            }
+        }
+        min = suggested - range
+        max = suggested + range
+        suggested += Math.round(range * Math.random() - (range / 2))
+        return { suggested: suggested, min: min, max: max, private: qdata }
+    }
+    /**
+    * Determine what to tell the user about how the score has been computed
+    * @param suggesteddata Data calculated for the score range
+    * @returns HTML String to display in the suggested question dialog
+    */
+    public genSamplePointsText(suggesteddata: suggestedData): string {
+        const qdata = suggesteddata.private as QuoteRecord
+
+        let result = ''
+        let rangetext = ''
+        if (suggesteddata.max > suggesteddata.min) {
+            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
+        }
+        if (qdata.len > 2) {
+            result += `<p>There are ${qdata.len} characters in the quote.
+             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+        }
+        if (this.state.operation !== 'words') {
+            result += `<p><b>NOTE:</b><em>If the A Text/B Text Pattern is really obvious or really obscure,
+            you may want to adjust the score lower or higher as appropriate.</em></p>`
+        }
+
+        return result
+    }
+    /**
      * Generates the sample question text for a cipher
      * @returns HTML as a string
      */
@@ -577,15 +644,45 @@ export class CipherBaconianEncoder extends CipherEncoder {
         return pos;
     }
     /**
+     * Determine how many crib letters are hinted
+     * @param encoded The encoded content to check
+     */
+    public countCribHints(): number {
+        // The crib is only used for the words baconian
+        if (this.state.operation !== 'words') {
+            return 0;
+        }
+
+        if (this.state.crib === undefined) {
+            return 0
+        }
+
+        let hintcount = 0
+        // Make sure we can find the crib
+        const cribpos = this.placeCrib();
+        if (cribpos === undefined) {
+            return 0;
+        }
+        // Go through and figure out what letters we have mapped with the hint
+        const criblen = this.minimizeString(this.state.crib).length;
+        const found: BoolMap = {}
+        for (let i = cribpos; i < cribpos + criblen; i++) {
+            let ciphertext = this.minimizeString(this.getEncodingString());
+
+            for (const c of ciphertext)
+                if (!found[c]) {
+                    hintcount++;
+                    found[c] = true
+                }
+        }
+        return hintcount
+    }
+    /**
      * Check to see that the Crib can be laced in the cipher
      * @param result The place to put any error messages
      * @param encoded The encoded content to check
      */
     public checkHintCrib(result: JQuery<HTMLElement>, encoded: encodedLines): void {
-        let hint = this.state.hint;
-        if (hint === undefined) {
-            hint = '';
-        }
         let msg = '';
 
         // The crib is only used for the words baconian

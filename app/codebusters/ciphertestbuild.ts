@@ -942,6 +942,7 @@ export class CipherTestBuild extends CipherTest {
             .append($('<div/>', {
                 class: 'grid-x grid-margin-x',
             }).append($("<a>", { id: "populate", class: "button rounded cell shrink" }).text('Populate Plain Text'))
+                .append(JTFLabeledInput('Filter Keywords', 'text', 'keywords', "", 'cell auto'))
                 // .append(JTFLabeledInput('Optional Supervisor Coupon', 'text', 'coupon', "", 'cell auto'))
             )
             .append(this.makeStepCallout("Step 4", htmlToElement(`<div><p>Click on <b>Save Test</b> to create the test and edit it.
@@ -998,6 +999,10 @@ export class CipherTestBuild extends CipherTest {
             }
             if (entry.len !== undefined) {
                 parms.len = entry.len
+            }
+            const keywords = $("#keywords").val() as String
+            if (keywords !== undefined && keywords.trim() !== "") {
+                parms.keywords = keywords.toLowerCase().split(/\s+/)
             }
             if (this.state.testtype === ITestType.aregional ||
                 this.state.testtype === ITestType.astate) {

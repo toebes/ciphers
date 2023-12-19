@@ -121,6 +121,10 @@ export class CipherQuoteManager extends CipherTest {
         uniqueDiv.append(JTFLabeledInput('Unique >=', "number", "uniquelower", "", "filterval cell large-4 medium-6 small-12"))
         uniqueDiv.append(JTFLabeledInput('and <=', "number", "uniqueupper", "", "filterval cell large-4 medium-6 small-12"))
 
+        const keywordsDiv = $("<div/>", { class: 'grid-x' })
+        filterDiv.append(keywordsDiv)
+        keywordsDiv.append(JTFLabeledInput('Keywords', "text", "keywords", "", "filterval cell large-12 medium-12 small-12"))
+
         result.append($('<div/>', { class: 'analysis', id: 'quotes' }));
         result.append(
             $('<div/>', {
@@ -177,6 +181,13 @@ export class CipherQuoteManager extends CipherTest {
         filter.len = this.getRanges('len')
         filter.grade = this.getRanges('grade')
         filter.unique = this.getRanges('unique')
+        // Grab any keywords, splitting them into an array
+        let keywords = $('#keywords').val() as string;
+        if (keywords === undefined || keywords === "") {
+            filter.keywords = undefined
+        } else {
+            filter.keywords = keywords.toLowerCase().split(/\s+/g)
+        }
         const lang = this.getLangString()
 
         const target = $('.sol')

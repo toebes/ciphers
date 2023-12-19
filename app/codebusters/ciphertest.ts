@@ -177,6 +177,7 @@ export interface QueryParms {
     len?: number[]
     chi2?: number[]
     grade?: number[]
+    keywords?: string[]
     unique?: number[]
     testUsage?: boolean
     start?: number
@@ -754,6 +755,12 @@ export class CipherTest extends CipherHandler {
         result.grade = this.fixRange(parmsReq.grade)
         result.unique = this.fixRange(parmsReq.unique)
         result.testUsage = parmsReq.testUsage
+        // Copy over any keywords
+        if (parmsReq.keywords !== undefined && parmsReq.keywords.length > 0) {
+            result.keywords = parmsReq.keywords
+        } else {
+            result.keywords = undefined
+        }
         return result
     }
     /**
@@ -996,6 +1003,17 @@ export class CipherTest extends CipherHandler {
             let used = entry.testUsage !== undefined && entry.testUsage !== ""
             if (parms.testUsage !== used) {
                 result = false
+            }
+        }
+        // If we have a keyword filter, see if any of the words appear in the quote or the notes.
+        if (parms.keywords !== undefined) {
+            let look = `${entry.quote} ${entry.notes}`.toLowerCase()
+            result = false
+            for (const keyword of parms.keywords) {
+                if (look.includes(keyword)) {
+                    result = true;
+                    break;
+                }
             }
         }
         return result

@@ -206,9 +206,14 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         //let suggested = Math.round(qdata.unique * 1.5 + qdata.len)
         suggested = Math.round(3.2 * suggested)
-        const min = Math.max(suggested - 20, 0)
-        const max = suggested + 20
-        suggested += Math.round(20 * Math.random() - 10);
+        let range = 20
+        if (this.state.operation === 'crypt') {
+            suggested += 35;
+            range = 25
+        }
+        const min = Math.max(suggested - range, 0)
+        const max = suggested + range
+        suggested += Math.round(range * Math.random() - range / 2);
         return { suggested: suggested, min: min, max: max, private: qdata }
     }
     /**

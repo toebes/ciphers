@@ -1,10 +1,11 @@
-import { cloneObject, StringMap, makeFilledArray } from '../common/ciphercommon';
+import { cloneObject, StringMap, makeFilledArray, NumberMap } from '../common/ciphercommon';
 import {
     IState,
     ITestType,
     toolMode,
     ITestQuestionFields,
     IScoreInformation,
+    QuoteRecord,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -13,7 +14,7 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { isCoPrime } from '../common/mathsupport';
 import { renderMath } from '../common/renderMath';
-import { CipherEncoder } from './cipherencoder';
+import { CipherEncoder, suggestedData } from './cipherencoder';
 
 // Configure how we want the multiplication to appear - either as a * or a dot
 const kmathMult = '*';
@@ -35,12 +36,21 @@ interface ICribPos {
     ciphertext: string;
     position: number;
 }
+const scoreWeights: NumberMap = {
+    'E': 1, 'T': 1, 'A': 1, 'O': 1, 'I': 1, 'N': 1,
+    'S': 2, 'R': 2, 'H': 2, 'L': 2, 'D': 2,
+    'C': 3, 'U': 3, 'M': 3, 'F': 3, 'P': 3,
+    'G': 4, 'W': 4, 'Y': 4, 'B': 4, 'V': 4,
+    'K': 5, 'X': 5, 'J': 5, 'Q': 5, 'Z': 5
+}
 /**
  * CipherAffineEncoder implements the Affine methods
  */
 export class CipherAffineEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Affine';
+    public cipherName = 'Affine'
+
     public validTests: ITestType[] = [
         ITestType.None,
         // Affine gets dropped for Division C for the 2022-2023 season
@@ -66,6 +76,8 @@ export class CipherAffineEncoder extends CipherEncoder {
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
     /* We have identified a complete solution */
@@ -177,6 +189,48 @@ export class CipherAffineEncoder extends CipherEncoder {
         super.setQuestionText(question);
         this.validateQuestion();
         this.attachHandlers();
+    }
+    /**
+      * Generate the recommended score and score ranges for a cipher
+      * @returns Computed score ranges for the cipher
+      */
+    public genScoreRange(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+
+        const unique = qdata.minquote.split('').filter((x, i, a) => a.indexOf(x) === i);
+        let suggested = 0
+        for (let c of unique) {
+            if (scoreWeights[c] !== undefined)
+                suggested += scoreWeights[c]
+        }
+
+        //let suggested = Math.round(qdata.unique * 1.5 + qdata.len)
+        suggested = Math.round(3.2 * suggested)
+        const min = Math.max(suggested - 20, 0)
+        const max = suggested + 20
+        suggested += Math.round(20 * Math.random() - 10);
+        return { suggested: suggested, min: min, max: max, private: qdata }
+    }
+    /**
+    * Determine what to tell the user about how the score has been computed
+    * @param suggesteddata Data calculated for the score range
+    * @returns HTML String to display in the suggested question dialog
+    */
+    public genSamplePointsText(suggesteddata: suggestedData): string {
+        const qdata = suggesteddata.private as QuoteRecord
+        let result = ''
+        let rangetext = ''
+        if (suggesteddata.max > suggesteddata.min) {
+            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
+        }
+        if (qdata.len < 15) {
+            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 20 characters for a good quote</em></p>`
+        }
+        if (qdata.len > 2) {
+            result += `<p>There are ${qdata.len} characters in the quote, ${qdata.unique} of which are unique.
+             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+        }
+        return result
     }
     /**
      * Figure out where the crib characters are (and if they are together)

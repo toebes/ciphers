@@ -7,7 +7,7 @@ import {
     IScoreInformation,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
-import { buildLegal, cryptarithmForumlaItem, cryptarithmParsed, cryptarithmSumandSearch, legalMap, parseCryptarithm } from '../common/cryptarithm';
+import { buildLegal, cryptarithmForumlaItem, cryptarithmParsed, cryptarithmResult, cryptarithmSumandSearch, legalMap, parseCryptarithm } from '../common/cryptarithm';
 import { JTButtonItem, JTButtonGroup } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
@@ -1360,6 +1360,42 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         // on the problem we will have to abort the process. 
         // As a test we will arbitrarily set the mappings
         let parsed = parseCryptarithm(this.state.cipherString, this.base);
+        // See if we can shortcut this operation.  Everything except the last item should not have a forumla
+        let canShortcut = true
+        for (let i = 0; i < parsed.lineitems.length - 1; i++) {
+            if (parsed.lineitems[i].formula !== '') {
+                canShortcut = false;
+                break;
+            }
+        }
+        // If there were no formulas, we have everything on the last entry.  Promising
+        if (canShortcut) {
+            let solutions: cryptarithmResult = { count: 0, difficulty: 0, mapping: {} }
+            // See if we can shortcut this problem.  If they only have an addition or subtraction problem
+            // We can use the very fast search algorithm
+            let formItem = parsed.lineitems[parsed.lineitems.length - 1]
+            if (formItem.formula.match(/^[A-Z\+]*$/) !== null) {
+                // We know we can try the shortcut version for an addition problem
+                let sum = formItem.expected
+                let sumsearch = formItem.formula.split(/\+/g)
+                solutions = cryptarithmSumandSearch(sumsearch, sum, this.base, false, false)
+            } else if (formItem.formula.match(/^[A-Z\-]*$/) !== null) {
+                // Shortcut subtraction problems
+                let sumsearch = formItem.formula.split(/-/g)
+                let sum = sumsearch.shift()
+                sumsearch.push(formItem.expected)
+                // This is a subtraction one
+                solutions = cryptarithmSumandSearch(sumsearch, sum, this.base, false, false)
+            }
+            // See if we were successful
+            if (solutions.count === 1) {
+                // We were, so propagate the information about the solution
+                this.state.mapping = Object.assign({}, solutions.mapping);
+                this.state.validmapping = true;
+                this.doCipher();
+                return;
+            }
+        }
         let allletters: BoolMap = {}
         let letterOrder: string[] = [];
         let formulaSet: cryptarithmForumlaItem[] = []

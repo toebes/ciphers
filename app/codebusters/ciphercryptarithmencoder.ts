@@ -11,7 +11,7 @@ import { buildLegal, cryptarithmForumlaItem, cryptarithmParsed, cryptarithmResul
 import { JTButtonItem, JTButtonGroup } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
-import { CipherEncoder } from './cipherencoder';
+import { CipherEncoder, suggestedData } from './cipherencoder';
 
 interface ICryptarithmState extends IState {
     /** Problem */
@@ -22,6 +22,8 @@ interface ICryptarithmState extends IState {
     validmapping: boolean;
     /** The solution text */
     soltext: string;
+    /** Difficulty */
+    difficulty: number;
 }
 
 type ITemplateType = 'add' | 'mul' | 'div' | 'root';
@@ -73,6 +75,8 @@ interface searchState {
 export class CipherCryptarithmEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Cryptarithm';
+    public cipherName = 'Pig Pen'
+
     public lettermask: { [index: string]: number } = {
         'A': 1 << 0,
         'B': 1 << 1,
@@ -148,6 +152,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         replacement: {},
         mapping: {},
         validmapping: false,
+        difficulty: undefined,
     };
 
     /** Keywords for generating the problem */
@@ -169,6 +174,8 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         this.undocmdButton,
         this.redocmdButton,
         this.generateButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
 
@@ -250,6 +257,45 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         return result;
     }
     /**
+      * Generate the recommended score and score ranges for a cipher
+      * @returns Computed score ranges for the cipher
+      */
+    public genScoreRange(): suggestedData {
+
+        //const qdata = this.analyzeQuote(this.state.cipherString)
+
+        let suggested = 250;
+        if (this.state.difficulty !== undefined) {
+            suggested = 100 + (this.state.difficulty * 50)
+        }
+        const min = Math.max(suggested - 50, 0)
+        const max = suggested + 50
+        suggested += Math.round(50 * Math.random()) - 25;
+        return { suggested: suggested, min: min, max: max, private: undefined }
+    }
+    /**
+    * Determine what to tell the user about how the score has been computed
+    * @param suggesteddata Data calculated for the score range
+    * @returns HTML String to display in the suggested question dialog
+    */
+    public genSamplePointsText(suggesteddata: suggestedData): string {
+        let result = ''
+        let rangetext = ''
+        if (suggesteddata.max > suggesteddata.min) {
+            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
+        }
+        const soldata = this.analyzeQuote(this.state.soltext)
+        if (soldata.len < 6) {
+            result = `<p><b>WARNING:</b> <em>There are only ${soldata.len} characters in the solution, we recommend at least 6 characters</em></p>`
+        }
+        if (soldata.unique < 4) {
+            result = `<p><b>WARNING:</b> <em>There are only ${soldata.unique} unique characters in the solution, we recommend at least 4 unique characters</em></p>`
+        }
+        result += `<p>There are ${soldata.len} characters in the quote, ${soldata.unique} of which are unique.
+             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+        return result
+    }
+    /**
      * Updates the stored state cipher string
      * @param cipherString Cipher string to set
      */
@@ -257,6 +303,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         let changed = super.setCipherString(cipherString);
         if (changed) {
             this.state.validmapping = false;
+            this.state.difficulty = undefined;
         }
         return changed;
     }
@@ -315,8 +362,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         $('#soltext').val(this.state.soltext);
 
         this.showMapping(false);
-
-        this.guidanceURL = 'TestGuidance.html#Cryptarithm';
 
         this.validateQuestion();
         this.attachHandlers();
@@ -1257,7 +1302,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 // This pattern (such as A+B=C and C-A=B) so output them
                 for (let formula of template.formulas) {
                     let outset = this.formatTemplateProblem(solutions.mapping, formula, sumsearch, sum, template.replaces)
-                    const usebutton = $('<a/>', { class: 'rounded small button useprob', 'data-prob': outset[0], 'data-sol': replacements }).text('Use')
+                    const usebutton = $('<a/>', { class: 'rounded small button useprob', 'data-prob': outset[0], 'data-sol': replacements, 'data-dif': solutions.difficulty }).text('Use')
                     $("#findout").append($('<div/>').text(" " + outset[0] + " [" + outset[1] + "] Difficulty:" + String(solutions.difficulty))
                         .prepend(usebutton))
                     $(usebutton)
@@ -1392,6 +1437,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 // We were, so propagate the information about the solution
                 this.state.mapping = Object.assign({}, solutions.mapping);
                 this.state.validmapping = true;
+                this.state.difficulty = solutions.difficulty;
                 this.doCipher();
                 return;
             }
@@ -1771,7 +1817,9 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public setProblem(elem: HTMLElement) {
         const problem = $(elem).attr('data-prob')
         const replacement = $(elem).attr('data-sol')
+        const difficulty = parseInt($(elem).attr('data-dif'))
         this.setCipherString(problem)
+        this.state.difficulty = difficulty
         // We need to set the replacements
 
         this.state.validmapping = true;

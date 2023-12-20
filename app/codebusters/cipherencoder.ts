@@ -1288,6 +1288,8 @@ export class CipherEncoder extends CipherHandler {
                 'small-12 medium-12 large-12'
             )
         );
+        result.append(this.createQuestionTextDlg());
+        result.append(this.createPointsDlg());
     }
     public genEncodeField(result: JQuery<HTMLElement>): void {
         result.append(
@@ -1300,8 +1302,6 @@ export class CipherEncoder extends CipherHandler {
             )
         );
         result.append($('<div/>', { class: 'difficulty' }));
-        result.append(this.createQuestionTextDlg());
-        result.append(this.createPointsDlg());
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar

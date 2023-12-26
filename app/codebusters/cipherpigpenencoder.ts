@@ -124,8 +124,8 @@ export class CipherPigPenEncoder extends CipherEncoder {
         return result
     }
     /**
- * Generate the HTML to display the answer for a cipher
- */
+     * Generate the HTML to display the answer for a cipher
+     */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();

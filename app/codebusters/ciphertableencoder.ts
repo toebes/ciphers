@@ -4,6 +4,7 @@ import {
     ITestType,
     IScoreInformation,
     toolMode,
+    QuoteRecord,
 } from '../common/cipherhandler';
 import { CipherTypeButtonItem, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -12,7 +13,7 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { Mapper } from '../common/mapper';
 import { mapperFactory } from '../common/mapperfactory';
-import { CipherEncoder, IEncoderState } from './cipherencoder';
+import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
 /**
  * CipherTableEncoder - This class handles all of the actions associated with encoding
@@ -21,6 +22,7 @@ import { CipherEncoder, IEncoderState } from './cipherencoder';
 export class CipherTableEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Baconian';
+    public cipherName = 'Caesar'
 
     public validAtBashTests: ITestType[] = [
         ITestType.None,
@@ -60,6 +62,8 @@ export class CipherTableEncoder extends CipherEncoder {
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
     public ciphermap: Mapper;
@@ -104,10 +108,10 @@ export class CipherTableEncoder extends CipherEncoder {
     public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
         let result = super.CheckAppropriate(testType, anyOperation);
         if (!anyOperation && result === '' && testType !== undefined) {
-            if (testType === ITestType.aregional) {
-                if (this.state.operation !== 'decode') {
-                    result = 'Only decode is allowed for ' + this.getTestTypeName(testType);
-                } else if (
+            if (this.state.operation !== 'decode') {
+                result = 'Only decode is allowed for ' + this.getTestTypeName(testType);
+            } else if (testType === ITestType.aregional) {
+                if (
                     this.state.cipherType === ICipherType.Caesar &&
                     this.state.offset > 3 &&
                     this.state.offset < 23
@@ -123,8 +127,10 @@ export class CipherTableEncoder extends CipherEncoder {
         if (changed) {
             if (cipherType === ICipherType.Caesar) {
                 this.validTests = this.validCaesarTests;
+                this.cipherName = 'Caesar'
             } else {
                 this.validTests = this.validAtBashTests;
+                this.cipherName = 'AtBash'
             }
         }
         return changed;
@@ -274,7 +280,82 @@ export class CipherTableEncoder extends CipherEncoder {
 
         return this.calculateScore(solution, answer, this.state.points);
     }
+    public getMinLength(str: string): number {
+        let words = str.toUpperCase().replace(/[^A-Z]/g, " ").split(/ +/)
+        let minlen = 0
+        if (words.length > 0) {
+            minlen = 9999
+            for (const word of words) {
+                if (word.length > 0 && word.length < minlen) {
+                    minlen = word.length
+                }
+            }
+        }
+        return minlen
+    }
+    /**
+      * Generate the recommended score and score ranges for a cipher
+      * @returns Computed score ranges for the cipher
+      */
+    public genScoreRange(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+        // Find the min length word
+        qdata.minlength = this.getMinLength(qdata.quote)
 
+        let suggested = 0
+        let range = 5
+        if (this.state.cipherType === ICipherType.Atbash) {
+            range = 8
+            suggested = Math.round(qdata.unique + qdata.len)
+        } else {
+            range = 15
+            suggested = Math.round(qdata.unique * 2.5 + qdata.len)
+            if (Math.abs(this.state.offset) <= 3) {
+                suggested -= 20
+            }
+            if (qdata.minlength === 1) {
+                suggested -= 15
+            } else if (qdata.minlength === 2) {
+                suggested -= 10
+            }
+        }
+        const min = Math.max(suggested - range, 0)
+        const max = suggested + range
+        suggested += Math.round(range * Math.random() - range / 2);
+        return { suggested: suggested, min: min, max: max, private: qdata }
+    }
+    /**
+    * Determine what to tell the user about how the score has been computed
+    * @param suggesteddata Data calculated for the score range
+    * @returns HTML String to display in the suggested question dialog
+    */
+    public genSamplePointsText(suggesteddata: suggestedData): string {
+        const qdata = suggesteddata.private as QuoteRecord
+        let result = ''
+        let rangetext = ''
+        let extra = ''
+        if (suggesteddata.max > suggesteddata.min) {
+            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
+        }
+        if (this.state.cipherType === ICipherType.Caesar) {
+            if (Math.abs(this.state.offset) <= 3) {
+                extra += ` The short shift of ${Math.abs(this.state.offset)} reduces the score by 20 points.`
+            }
+            if (qdata.minlength === 1) {
+                extra += ` The single letter word reduces the score by 15 points.`
+            } else if (qdata.minlength === 2) {
+                extra += ` The double letter word reduces the score by 10 points.`
+            }
+        }
+        if (qdata.len < 40) {
+            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 50 characters for a good quote</em></p>`
+        }
+        if (qdata.len > 2) {
+            result += `<p>There are ${qdata.len} characters in the quote, ${qdata.unique} of which are unique.${extra}
+             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+        }
+        return result
+    }
     /**
      * Generate the HTML to display the answer for a cipher
      */

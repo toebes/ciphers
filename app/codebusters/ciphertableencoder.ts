@@ -299,17 +299,27 @@ export class CipherTableEncoder extends CipherEncoder {
       */
     public genScoreRange(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
+        let testUsage = this.getTestUsage();
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+
         // Find the min length word
         qdata.minlength = this.getMinLength(qdata.quote)
 
         let suggested = 0
         let range = 5
+        let scaleFactor = 1
         if (this.state.cipherType === ICipherType.Atbash) {
             range = 8
-            suggested = Math.round(qdata.unique + qdata.len)
+            if (usedOnA) {
+                scaleFactor = 1.2;
+            }
+            suggested = Math.round(scaleFactor * (qdata.unique + qdata.len))
         } else {
             range = 15
-            suggested = Math.round(qdata.unique * 2.5 + qdata.len)
+            if (usedOnA) {
+                scaleFactor = 1.5;
+            }
+            suggested = Math.round(scaleFactor * (qdata.unique * 2.5 + qdata.len))
             if (Math.abs(this.state.offset) <= 3) {
                 suggested -= 20
             }

@@ -6,6 +6,7 @@ import {
     toolMode,
     ITestQuestionFields,
     IScoreInformation,
+    QuoteRecord,
 } from '../common/cipherhandler';
 import { CipherTypeButtonItem, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -15,7 +16,7 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { Mapper } from '../common/mapper';
 import { mapperFactory } from '../common/mapperfactory';
-import { CipherEncoder, IEncoderState } from './cipherencoder';
+import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
 interface IVigenereState extends IEncoderState {
     /** The type of operation */
@@ -79,6 +80,8 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
 
@@ -340,7 +343,83 @@ export class CipherVigenereEncoder extends CipherEncoder {
         msg += '</p>';
         return msg;
     }
-
+    /**
+      * Generate the recommended score and score ranges for a cipher
+      * 100 for a Decode (approximately 2 points per letter), 120 for an Encode.
+      * If the Block Size is the same as the Key length subtract 20 points.
+      * If the Block Size is non-zero and different from the Key length, add 25 points.
+      * @returns Computed score ranges for the cipher
+      */
+    public genScoreRange(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+        let testUsage = this.getTestUsage();
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        let suggested = 0
+        let range = 5
+        let scaleFactor = 1
+        if (this.state.cipherType === ICipherType.Porta) {
+            range = 10
+            if (usedOnA) {
+                scaleFactor = 1.2
+            }
+            suggested = Math.round(scaleFactor * qdata.len * 2.25)
+            if (this.state.blocksize > 0) {
+                if (this.state.blocksize === this.state.keyword.length) {
+                    suggested -= 20;
+                } else {
+                    suggested += 25;
+                }
+            }
+        } else {
+            range = 15
+            if (usedOnA) {
+                scaleFactor = 1.1
+            }
+            suggested = Math.round(scaleFactor * (qdata.unique * 2.5 + qdata.len))
+            if (Math.abs(this.state.offset) <= 3) {
+                suggested -= 20
+            }
+            if (qdata.minlength === 1) {
+                suggested -= 15
+            } else if (qdata.minlength === 2) {
+                suggested -= 10
+            }
+        }
+        const min = Math.max(suggested - range, 0)
+        const max = suggested + range
+        suggested += Math.round(range * Math.random() - range / 2);
+        return { suggested: suggested, min: min, max: max, private: qdata }
+    }
+    /**
+    * Determine what to tell the user about how the score has been computed
+    * @param suggesteddata Data calculated for the score range
+    * @returns HTML String to display in the suggested question dialog
+    */
+    public genSamplePointsText(suggesteddata: suggestedData): string {
+        const qdata = suggesteddata.private as QuoteRecord
+        let result = ''
+        let rangetext = ''
+        let extra = ''
+        if (suggesteddata.max > suggesteddata.min) {
+            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
+        }
+        if (this.state.cipherType === ICipherType.Porta) {
+            if (this.state.blocksize > 0)
+                if (this.state.blocksize === this.state.keyword.length) {
+                    extra += ` Having a blocksize the same as the keyword length (${this.state.keyword.length}) makes it about 20 points easier.`
+                } else {
+                    extra += ` Having a blocksize ${this.state.blocksize} different than the keyword length ${this.state.keyword.length} makes it about 25 points harder.`
+                }
+        }
+        if (qdata.len < 30) {
+            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 40 characters for a good quote</em></p>`
+        }
+        if (qdata.len > 2) {
+            result += `<p>There are ${qdata.len} characters in the quote.${extra}
+             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+        }
+        return result
+    }
     /**
      * Cleans up any settings, range checking and normalizing any values.
      * This doesn't actually update the UI directly but ensures that all the

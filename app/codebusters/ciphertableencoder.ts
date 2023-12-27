@@ -320,8 +320,11 @@ export class CipherTableEncoder extends CipherEncoder {
                 scaleFactor = 1.5;
             }
             suggested = Math.round(scaleFactor * (qdata.unique * 2.5 + qdata.len))
-            if (Math.abs(this.state.offset) <= 3) {
-                suggested -= 20
+            if (this.state.offset <= 3 || this.state.offset >= 23) {
+                suggested -= 10
+                if (Math.abs(this.state.offset) === 1 || this.state.offset === 24) {
+                    suggested -= 10
+                }
             }
             if (qdata.minlength === 1) {
                 suggested -= 15
@@ -341,6 +344,8 @@ export class CipherTableEncoder extends CipherEncoder {
     */
     public genSamplePointsText(suggesteddata: suggestedData): string {
         const qdata = suggesteddata.private as QuoteRecord
+        let testUsage = this.getTestUsage();
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
         let result = ''
         let rangetext = ''
         let extra = ''
@@ -348,8 +353,13 @@ export class CipherTableEncoder extends CipherEncoder {
             rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
         }
         if (this.state.cipherType === ICipherType.Caesar) {
-            if (Math.abs(this.state.offset) <= 3) {
-                extra += ` The short shift of ${Math.abs(this.state.offset)} reduces the score by 20 points.`
+            if (this.state.offset <= 3 || this.state.offset >= 23) {
+                let reduce = 10
+                if (Math.abs(this.state.offset) === 1 || this.state.offset === 24) {
+                    reduce += 10
+                }
+
+                extra += ` The short shift of ${Math.abs(this.state.offset)} reduces the score by ${reduce} points.`
             }
             if (qdata.minlength === 1) {
                 extra += ` The single letter word reduces the score by 15 points.`
@@ -357,8 +367,9 @@ export class CipherTableEncoder extends CipherEncoder {
                 extra += ` The double letter word reduces the score by 10 points.`
             }
         }
-        if (qdata.len < 40) {
-            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 50 characters for a good quote</em></p>`
+        const minlen = usedOnA ? 30 : 50
+        if (qdata.len < (minlen - 10)) {
+            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least ${minlen} characters for a good quote</em></p>`
         }
         if (qdata.len > 2) {
             result += `<p>There are ${qdata.len} characters in the quote, ${qdata.unique} of which are unique.${extra}

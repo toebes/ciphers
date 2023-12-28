@@ -1,10 +1,9 @@
-import { cloneObject, repeatStr, sanitizeString } from '../common/ciphercommon';
+import { cloneObject, repeatStr } from '../common/ciphercommon';
 import {
     IScoreInformation,
     IState,
     ITestQuestionFields,
     ITestType,
-    testTypeNames,
     toolMode,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
@@ -74,7 +73,7 @@ class CribSplitInformation {
 /**
  * This class creates a Complete Columnar solver.
  */
-class CompleteColumnarSolver {
+class CompleteColumnarSolver extends CipherEncoder {
     private readonly cipherCompleteColumnarEncoder: CipherCompleteColumnarEncoder;
     // The encoding
     private readonly cipherText: string;
@@ -102,6 +101,7 @@ class CompleteColumnarSolver {
      * @param inputText The inputText to be encoded
      */
     constructor(compColEnc: CipherCompleteColumnarEncoder, columns: number, columnOrder: string, inputText: string, crib: string) {
+        super();
         this.cipherCompleteColumnarEncoder = compColEnc;
         this.cipherText = '';
         this.columnCount = columns;
@@ -131,7 +131,7 @@ class CompleteColumnarSolver {
             orderString[indexOfSortedLetter] = ' ';
         }
 
-        const text = sanitizeString(inputText);
+        const text = this.minimizeString(inputText)
 
         const charsOver = (text.length % this.columnCount);
         this.padLength = (charsOver > 0) ? this.columnCount - charsOver : charsOver;
@@ -1213,8 +1213,8 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             return;
         }
 
-        const sanitizedCipherString = sanitizeString(this.state.cipherString);
-        if (sanitizedCipherString.indexOf(this.state.crib) === -1) {
+        const minimizedCipherString = this.minimizeString(this.state.cipherString);
+        if (minimizedCipherString.indexOf(this.minimizeString(this.state.crib)) === -1) {
             this.setErrorMsg(`The crib '${this.state.crib}' was not found in the plain text.`, 'nocrib', null);
             this.isLoading = false;
             return;

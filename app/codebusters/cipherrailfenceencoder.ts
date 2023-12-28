@@ -1,4 +1,4 @@
-import { cloneObject, sanitizeString, makeFilledArray } from '../common/ciphercommon';
+import { cloneObject } from '../common/ciphercommon';
 import {
     IState,
     ITestQuestionFields,
@@ -22,7 +22,7 @@ interface IRailFenceState extends IState {
 /**
  * This class creates a Rail Fence solver.
  */
-class RailFenceSolver {
+class RailFenceSolver extends CipherEncoder {
     // Array to hold the rail fence encoding
     private readonly solution: string[][];
     // The number of rails in the rail fence
@@ -53,9 +53,10 @@ class RailFenceSolver {
      * @param inputText The inputText to be encoded
      */
     constructor(rails: number, offset: number, inputText: string) {
+        super();
         this.railCount = rails;
         this.offset = offset;
-        const text = sanitizeString(inputText);
+        const text = this.minimizeString(inputText);
         this.textLength = text.length;
 
         this.charsPerZigzag = 2 * (this.railCount - 1);
@@ -1138,10 +1139,6 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
         solutionIntro.append($('<p/>').append('Read the decrypted message along the diagonals!'));
         result.append(solutionIntro, rfs.getRailFenceSolution());
-
-        // let rfs: RailFenceSolver = new RailFenceSolver(this.state.rails, sanitizeString(this.state.cipherString));
-        // // Get the 'W' solution
-        // result.append(rfs.getRailFenceSolution());
 
         return result;
     }

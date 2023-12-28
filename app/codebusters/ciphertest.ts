@@ -11,6 +11,7 @@ import {
     QuoteRecord,
 } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
+import { homonymsEN } from '../common/homonyms';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
@@ -179,6 +180,7 @@ export interface QueryParms {
     grade?: number[]
     keywords?: string[]
     unique?: number[]
+    homonyms?: number[]
     testUsage?: boolean
     start?: number
     limit?: number
@@ -754,6 +756,7 @@ export class CipherTest extends CipherHandler {
         result.len = this.fixRange(parmsReq.len)
         result.grade = this.fixRange(parmsReq.grade)
         result.unique = this.fixRange(parmsReq.unique)
+        result.homonyms = this.fixRange(parmsReq.homonyms)
         result.testUsage = parmsReq.testUsage
         // Copy over any keywords
         if (parmsReq.keywords !== undefined && parmsReq.keywords.length > 0) {
@@ -1006,7 +1009,7 @@ export class CipherTest extends CipherHandler {
             }
         }
         // If we have a keyword filter, see if any of the words appear in the quote or the notes.
-        if (parms.keywords !== undefined) {
+        if (result && (parms.keywords !== undefined)) {
             let look = `${entry.quote} ${entry.notes}`.toLowerCase()
             result = false
             for (const keyword of parms.keywords) {
@@ -1014,6 +1017,27 @@ export class CipherTest extends CipherHandler {
                     result = true;
                     break;
                 }
+            }
+        }
+        // If we are also looking for homonyms, 
+        if (result && (parms.homonyms !== undefined)) {
+            let homonymcount = 0
+            const re = new RegExp(/[^a-z']+/, 'g');
+            let words = entry.quote.toLowerCase().replace(re, ' ').split(' ')
+            for (let i = 0; i < words.length; i++) {
+                // Look for single word Homonyms
+                if (homonymsEN[words[i]] !== undefined) {
+                    homonymcount++
+                } else if (i < (words.length - 1)) {
+                    // Not a single word, how about a double word one (like 'all ways')
+                    if (homonymsEN[words[i] + ' ' + words[i + 1]] !== undefined) {
+                        homonymcount++
+                    }
+                }
+            }
+            // If there were enough homonyms in the phrase we can keep it
+            if (homonymcount < parms.homonyms[0]) {
+                result = false;
             }
         }
         return result

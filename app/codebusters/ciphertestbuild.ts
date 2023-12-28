@@ -44,6 +44,7 @@ interface QuestionType {
     len?: number[]
     chi2?: number[]
     unique?: number[]
+    homonyms?: number[]
     msg?: string;
 }
 
@@ -134,28 +135,28 @@ export class CipherTestBuild extends CipherTest {
         {
             title: 'Misspelled K1 Aristocrat with a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25] with Hint',
-            len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity],
+            len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity],
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k1',
         },
         {
             title: 'Misspelled K1 Aristocrat without a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25]',
-            len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity],
+            len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity],
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k1',
         },
         {
             title: 'Misspelled K2 Aristocrat with a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25] with Hint',
-            len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity],
+            len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity],
             testtype: allButARegional, operation: 'decode', encodeType: 'k2',
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
         },
         {
             title: 'Misspelled K2 Aristocrat without a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25]',
-            len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity],
+            len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity],
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k2',
         },

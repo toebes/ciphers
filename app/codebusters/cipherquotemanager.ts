@@ -126,6 +126,10 @@ export class CipherQuoteManager extends CipherTest {
         filterDiv.append(keywordsDiv)
         keywordsDiv.append(JTFLabeledInput('Keywords', "text", "keywords", "", "filterval cell large-12 medium-12 small-12"))
 
+        const homonymsDiv = $("<div/>", { class: 'grid-x' })
+        filterDiv.append(homonymsDiv)
+        homonymsDiv.append(JTFLabeledInput('Homonyms >=', "number", "homonymslower", "", "filterval cell large-4 medium-6 small-12"))
+
         result.append($('<div/>', { class: 'analysis', id: 'quotes' }));
         result.append(
             $('<div/>', {
@@ -182,6 +186,7 @@ export class CipherQuoteManager extends CipherTest {
         filter.len = this.getRanges('len')
         filter.grade = this.getRanges('grade')
         filter.unique = this.getRanges('unique')
+        filter.homonyms = this.getRanges('homonyms')
         // Grab any keywords, splitting them into an array
         let keywords = $('#keywords').val() as string;
         if (keywords === undefined || keywords === "") {

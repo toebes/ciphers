@@ -3217,6 +3217,7 @@ export class CipherHandler {
         );
         const select = $('<select/>', {
             class: 'lang input-group-field',
+            id: 'lang_select'
         });
         select.append(
             $('<option />', {

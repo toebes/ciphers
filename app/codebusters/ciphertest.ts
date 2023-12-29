@@ -11,7 +11,7 @@ import {
     QuoteRecord,
 } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
-import { homonymsEN } from '../common/homonyms';
+import { countHomonyms } from '../common/homonyms';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
@@ -1021,20 +1021,7 @@ export class CipherTest extends CipherHandler {
         }
         // If we are also looking for homonyms, 
         if (result && (parms.homonyms !== undefined)) {
-            let homonymcount = 0
-            const re = new RegExp(/[^a-z']+/, 'g');
-            let words = entry.quote.toLowerCase().replace(re, ' ').split(' ')
-            for (let i = 0; i < words.length; i++) {
-                // Look for single word Homonyms
-                if (homonymsEN[words[i]] !== undefined) {
-                    homonymcount++
-                } else if (i < (words.length - 1)) {
-                    // Not a single word, how about a double word one (like 'all ways')
-                    if (homonymsEN[words[i] + ' ' + words[i + 1]] !== undefined) {
-                        homonymcount++
-                    }
-                }
-            }
+            const homonymcount = countHomonyms(entry.quote)
             // If there were enough homonyms in the phrase we can keep it
             if (homonymcount < parms.homonyms[0]) {
                 result = false;

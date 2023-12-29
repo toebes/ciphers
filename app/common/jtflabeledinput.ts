@@ -1,12 +1,25 @@
 /**
  * Creates a Foundation labeled text box
  */
+/**
+ * Generate a nice UI element which has a label and the corresponding input element 
+ * @param title Title of the input area
+ * @param type Type of input area
+ * @param id Id of the input area for retrieving/setting data
+ * @param value Initial value
+ * @param sizeClass Any classes to apply to the base div for the area
+ * @param parm1 Optional parameter for the field (slider left side text)
+ * @param parm2 Optional parameter for the field (slider right side text)
+ * @returns A DOM element of the labeled string
+ */
 export function JTFLabeledInput(
     title: string,
-    type: 'text' | 'number' | 'file' | 'textarea' | 'richtext' | 'checkbox' | 'checkboxr' | 'password' | 'readonly',
+    type: 'text' | 'number' | 'file' | 'textarea' | 'richtext' | 'checkbox' | 'checkboxr' | 'password' | 'readonly' | 'slider',
     id: string,
     value: number | string | boolean,
-    sizeClass: string
+    sizeClass: string,
+    parm1?: string, // Used for slider left side
+    parm2?: string, // Used for slider right side
 ): JQuery<HTMLElement> {
     const inputgroup = $('<div/>', { class: 'input-group' });
     const label = $('<span/>', { class: 'input-group-label' }).text(title)
@@ -45,6 +58,16 @@ export function JTFLabeledInput(
             id: id,
             class: 'input-group-field readonly',
         }).text(value)
+            .appendTo(inputgroup);
+    } else if (type === 'slider') {
+        $('<div/>', { class: "grid-x input-group-field" })
+            .append($('<div/>', { class: "cell shrink stext" }).text(parm1))
+            .append(
+                $('<div/>', { class: "cell auto slider", id: id + '_base', 'data-slider': "", 'data-initial-start': value, 'data-end': "100" })
+                    .append($('<span/>', { class: "slider-handle", 'data-slider-handle': "", 'role': "slider", 'tabindex': "1" }))
+                    .append($('<span/>', { class: "slider-fill", 'data-slider-fill': "" }))
+                    .append($('<input/>', { type: "hidden", id: id })))
+            .append($('<div/>', { class: "cell shrink stext" }).text(parm2))
             .appendTo(inputgroup);
     } else {
         $('<input/>', {

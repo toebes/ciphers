@@ -7,6 +7,11 @@
     margin-bottom: 10px;
     width: 600px;
 }
+
+#misspellopts em {
+    color: #1779ba; /* $anchor-color; */
+}
+
 :target {
     background-color: #ffffcc !important;
 }
@@ -68,6 +73,15 @@ div.attachline {
     display: inline-block;
     text-align: center;
     width: 200px;
+}
+
+.stext {
+    margin: auto 10px;
+    font-style: italic;
+}
+
+.reveal .slider {
+    margin: 15px 0;
 }
 
 /* Overrides for the tiny answer key */

@@ -1,3 +1,78 @@
+export interface replacePos {
+    word: number;
+    pos: number;
+    len: number;
+    slots: number;
+    replacements: string[];
+}
+
+export interface wordInfo {
+    base: string;
+    full: string;
+    punct: string;
+}
+
+export interface replaceInfo {
+    replaceables: replacePos[]
+    words: wordInfo[]
+}
+/**
+ * Find all possible homonym replacement spots
+ * @param str String to check
+ * @returns array of replaceInfo corresponding to the number of homonyms
+ */
+export function findHomonyms(str: string): replaceInfo {
+    let result: replaceInfo = { replaceables: [], words: [] }
+    const re = new RegExp(/[^a-z']/, 'g');
+    let words = str.toLowerCase().replace(re, ' ').split(/([a-z']*\s+)/).filter((str) => str.trim() !== '');
+    let pos = 0
+    for (let i = 0; i < words.length; i++) {
+        // Look for single word Homonyms
+        const word0 = words[i].trim()
+        let len = words[i].length
+        result.words.push({ base: word0, full: str.substring(pos, pos + len), punct: str.substring(pos + word0.length, pos + len) })
+        if (homonymsEN[word0] !== undefined) {
+            result.replaceables.push({ word: i, pos: pos, len: len, slots: 1, replacements: homonymsEN[word0] })
+        } else if (i < (words.length - 1)) {
+            const wordcombo = word0 + ' ' + words[i + 1].trim()
+            // Not a single word, how about a double word one (like 'all ways')
+            if (homonymsEN[wordcombo] !== undefined) {
+                result.replaceables.push({ word: i, pos: pos, len: len + words[i + 1].length, slots: 2, replacements: homonymsEN[wordcombo] })
+            }
+        }
+        pos += len
+    }
+    return result;
+}
+/**
+ * Fast version that just counts the number of homonymns without caring about 
+ * remembering where they were.
+ * @param str String to check for homonyms
+ * @returns Number of homonymns found in the string
+ */
+export function countHomonyms(str: string): number {
+    let result = 0
+    const re = new RegExp(/[^a-z']+/, 'g');
+    let words = str.toLowerCase().replace(re, ' ').split(' ')
+    for (let i = 0; i < words.length; i++) {
+        // Look for single word Homonyms
+        if (homonymsEN[words[i]] !== undefined) {
+            result++
+        } else if (i < (words.length - 1)) {
+            // Not a single word, how about a double word one (like 'all ways')
+            if (homonymsEN[words[i] + ' ' + words[i + 1]] !== undefined) {
+                result++
+            }
+        }
+    }
+    return result
+}
+/**
+ * These homonyms come from a number of sources.  Note that you need
+ * to have the reverse of a homonym in addition to the normal one.
+ * i.e. 'abel': ['able'] and 'able': ['abel']
+ * You can also have one way entries such as double words or words to split
+ */
 export const homonymsEN: { [index: string]: string[] } = {
     'abel': ['able'],
     'able': ['abel'],

@@ -1,5 +1,5 @@
 import { CKInlineEditor } from '../common/ckeditor.js';
-import { cloneObject } from '../common/ciphercommon';
+import { BoolMap, cloneObject } from '../common/ciphercommon';
 import {
     CipherHandler,
     IEncodeType,
@@ -19,6 +19,7 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTFDialog } from '../common/jtfdialog';
 import { JTTable } from '../common/jttable';
+import { findHomonyms, replaceInfo } from '../common/homonyms';
 
 export interface IEncoderState extends IState {
     /** K1/K2/K3/K4 Keyword */
@@ -98,12 +99,17 @@ export class CipherEncoder extends CipherHandler {
             id: 'randomize',
             disabled: true,
         },
+        {
+            title: 'Misspell',
+            color: 'primary',
+            id: 'misspell',
+            disabled: true,
+        },
         this.undocmdButton,
         this.redocmdButton,
         this.questionButton,
         this.pointsButton,
         this.guidanceButton,
-        { title: 'Reset', color: 'warning', id: 'reset' },
     ];
     /**
      * Make a copy of the current state
@@ -214,11 +220,20 @@ export class CipherEncoder extends CipherHandler {
         $('#offset2').val(this.state.offset2);
         $('#translated').val(this.state.translation);
         $("#qauthor").val(this.state.author)
+        // Hide the random option if this is a keyword operation since
+        // they must have a K1/K2/K3 alphabet to be able to have a keyword
         if (this.state.operation === 'keyword') {
-            $('#encrand').attr('disabled', 'disabled');
+            $('#encrand').attr('disabled', 'disabled').hide();
         } else {
-            $('#encrand').removeAttr('disabled');
+            $('#encrand').removeAttr('disabled').show();
         }
+        // Show the misspell option if they are doing an English Aristocrat
+        if ((this.state.cipherType === ICipherType.Aristocrat) && (this.state.curlang === 'en')) {
+            $('#misspell').removeAttr('disabled').show();
+        } else {
+            $('#misspell').attr('disabled', 'disabled').hide();
+        }
+
         if (this.state.curlang === 'en') {
             $('#translated')
                 .parent()
@@ -325,11 +340,12 @@ export class CipherEncoder extends CipherHandler {
      */
     public setkvalinputs(): void {
         const val = this.state.encodeType;
+        // Show/hide the randomize button if they are doing a K1/K2/... alphabet
         if (val === 'random') {
-            $('#randomize').removeAttr('disabled');
+            $('#randomize').removeAttr('disabled').show();
             $('.kval').hide();
         } else {
-            $('#randomize').attr('disabled', 'disabled');
+            $('#randomize').attr('disabled', 'disabled').hide();
             $('.kval').show();
         }
         if (val === 'k4') {
@@ -1315,7 +1331,7 @@ export class CipherEncoder extends CipherHandler {
             { id: 'crow', value: 'keyword', title: 'Keyword/Key Phrase' },
         ];
         result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
-
+        result.append(this.createMisspellDlg())
         this.genQuestionFields(result);
         this.genLangDropdown(result);
         this.genEncodeField(result);
@@ -1395,6 +1411,27 @@ export class CipherEncoder extends CipherHandler {
                 )
         );
         const questionTextDlg = JTFDialog('modifiedDLG', 'You have made changes!', dlgContents);
+        return questionTextDlg;
+    }
+    /**
+     * Generates a dialog showing the sample question text
+     */
+    public createMisspellDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+
+        dlgContents.append(JTFLabeledInput('Word Replacement', 'slider', 'wordrepl', 0, 'small-12 medium-12 large-12', "None", "All"));
+        dlgContents.append(JTFLabeledInput('Typos', 'slider', 'typos', 0, 'small-12 medium-12 large-12', "None", "Extreme"));
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'misspellopts' }))
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'mgen button', id: 'genbtn' }).text('Generate'))
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Cancel'
+                    )
+                )
+        );
+        const questionTextDlg = JTFDialog('MisspellDLG', 'Create Misspelled Quote', dlgContents);
         return questionTextDlg;
     }
     /**
@@ -1646,6 +1683,242 @@ export class CipherEncoder extends CipherHandler {
         $('#SamplePoints').foundation('close')
     }
     /**
+     * Start the process of generating the misspelled words
+     */
+    public genMisspell(): void {
+        this.checkRepl();
+        // Start out the dialog with some hints and ready to populate.
+        $('#misspellopts').empty().append($('<p/>').text(`First select the level of Word Replacements and typos and then click generate`))
+        $('#genbtn').text('Generate')
+        $('#MisspellDLG').foundation('open');
+    }
+    /**
+     * See if they have the sliders off the zero spot so that we can actually generate something
+     */
+    public checkRepl(): void {
+        const wordrepl = parseInt($('#wordrepl').val() as string)
+        const typos = parseInt($('#typos').val() as string)
+        if (wordrepl > 0 || typos > 0) {
+            $(".mgen").removeAttr('disabled')
+        } else {
+            $(".mgen").attr('disabled', 'disabled')
+        }
+    }
+    /**
+     * Generate a single misspelled/typo quote
+     * @param replace Homonym replacement information
+     * @param wordrepl Range of number of words to replace (0-100%)
+     * @param typos Range of number of typos to introduce (0-100%)
+     * @returns HTML String (<em></em> around changes) of a generate string
+     */
+    public makeOneMisspell(replace: replaceInfo, wordrepl: number, typos: number): string {
+        // Limit how many words we will attack at the extreme range
+        const typoMaxPct = 0.85
+
+        let result: string[] = []
+        let typoChoices: number[] = []
+        // Figure out where we will allow typos.  Initially it is everywhere, but we will drop out any of the
+        // word replacements (unless we are on the extreme typo range > 90%) and of course single letter words don't
+        // get typos.  At the same time we need to build the default final output
+        const doTypoReplacements = typos > 90
+        for (let i = 0; i < replace.words.length; i++) {
+            const ent = replace.words[i]
+            result.push(ent.full)
+            if (ent.base.length > 1) {
+                typoChoices.push(i)
+            }
+        }
+
+        // Do we have any word replacements we want to do?
+        if (wordrepl > 0) {
+            // The number we do is approximately the percentage of total potential replacements (with a little randomness tossed in)
+            let toReplace = Math.min(Math.round((replace.replaceables.length * wordrepl / 100) + Math.random() - 0.5), replace.replaceables.length)
+            // Make sure that we will at least attempt to replace something if they gave us a non-zero typos choice
+            if (toReplace === 0 && typos === 0) {
+                toReplace = 1;
+            }
+            // We know how many we are going to replace.  Let's build a list of candidates
+            // This is a list of 0 to <n> of typo choices which is an index into the array of replacables
+            // For as many replacements that we picked, we will be picking a random slot in this
+            // array and then removing it.  Note that we don't bother to optimize the case where
+            // we do them all since the algorithm will just end up picking them out in random order
+            // but still go through them all
+            const replChoices = Array.from({ length: replace.replaceables.length }, (_, index) => index);
+
+            for (let i = 0; i < toReplace; i++) {
+                // Pick a random slot 
+                let randSlot = Math.trunc(Math.random() * replChoices.length)
+                // Take the slot out of the running for the next round
+                replChoices.splice(randSlot, 1);
+                // Get the entry that we are going to replace
+                const replChoice = replace.replaceables[randSlot]
+                // Now we have to pick out of the entries
+                let randSlotChoice = Math.trunc(Math.random() * replChoice.replacements.length)
+                let newText = '<em>' + replChoice.replacements[randSlotChoice] + '</em>'
+                // Carry over any punctuation from the string
+                newText += replace.words[replChoice.word].punct
+                // Also, if the first character of the original was uppercase, we want
+                // to uppercase the first letter of the newText
+                let firstc = replace.words[replChoice.word].full.substring(0, 1)
+                if (firstc === firstc.toUpperCase()) {
+                    newText = newText.charAt(0).toUpperCase() + newText.slice(1)
+                }
+                // We have what we want to generate, so put it in the output slot
+                result[replChoice.word] = newText
+                // And remove the slot from being a typo if we aren't going to the extreme on typos
+                if (!doTypoReplacements) {
+                    typoChoices[replChoice.word] = undefined
+                }
+                // Do the same for any double word replacements
+                if (replChoice.slots === 2) {
+                    result[replChoice.word + 1] = ''
+                    if (!doTypoReplacements) {
+                        typoChoices[replChoice.word + 1] = undefined
+                    }
+                }
+            }
+        }
+        if (typos > 0) {
+            // We need to figure out how many words we are replacing.
+            // Even in the extreme case, we really don't want to touch more than 85% of the words in the phrase
+            // We also need to eliminate all of the undefined entries which we already replaced
+            typoChoices = typoChoices.filter((value): value is number => value !== undefined);
+
+            let toTypo = Math.min(Math.round((typoChoices.length * typos * typoMaxPct / 100) + Math.random() - 0.5), Math.min(typoMaxPct * typoChoices.length))
+            for (let i = 0; i < toTypo; i++) {
+                // Pick a random slot 
+                let randSlot = Math.trunc(Math.random() * typoChoices.length)
+                // Take the slot out of the running for the next round
+                typoChoices.splice(randSlot, 1);
+                // Get the word that we are going to play with
+                let word = replace.words[randSlot].base
+                if (word.length < 2) {
+                    continue;
+                }
+                // We have a choice of what to do with it.
+                //  1) Swap the last two letters       i.e. the => teh, that => thta  70%
+                let swapLastTwo = Math.random() > 0.70
+                //  2) Remove duplicate letters        i.e. common => comon           50%
+                const dupRegex = /([a-z])\1/
+                let removeDup = dupRegex.test(word) && Math.random() > 0.50
+                //  3) Duplicate L or M in the middle  i.e. melon => mellon           20%
+                const lmRegex = /(..)([lm])(.)/
+                let removeLM = lmRegex.test(word) && Math.random() > 0.20
+                //  4) swap ie                         i.e. piece => peice            40%
+                const ieRegex = /ie/
+                let swapIE = ieRegex.test(word) && Math.random() > 0.40
+                //  5) Swap the first two letters      i.e. the => hte                20%
+                let swapFirstTwo = Math.random() > 0.20
+                // TODO: Consider other options like
+                //     join two words eliminating any spaces
+                //     split a long word in half
+
+                // If we have nothing then we want to at least do the first one
+                if (!swapLastTwo && !removeDup && !removeLM && !swapIE && !swapFirstTwo) {
+                    if (Math.random() > 0.80) {
+                        swapLastTwo = true
+                    } else {
+                        swapFirstTwo = true
+                    }
+                }
+                // Ok we have our options to choose from.  We need to pick at least one, but if we 
+                // are at the extreme we may pick a second one 20% of the time
+                let needed = (typos > 85) ? 2 : 1
+                if (swapLastTwo) {
+                    needed--
+                    const last = word.length - 1;
+                    // Swapped last two letters
+                    word = word.substring(0, last - 1) + word.charAt(last) + word.charAt(last - 1);
+                }
+                if (needed && removeDup) {
+                    needed--
+                    word = word.replace(dupRegex, '$1')
+                }
+                if (needed && removeLM) {
+                    needed--
+                    word = word.replace(lmRegex, '$1$2$2$3')
+                }
+                if (needed && swapIE) {
+                    needed--
+                    word = word.replace(ieRegex, 'ei')
+                }
+                if (needed && swapFirstTwo) {
+                    needed--
+                    word = word.charAt(1) + word.charAt(0) + word.slice(2)
+                }
+                // Also, if the first character of the original was uppercase, we want
+                // to uppercase the first letter of the newText
+                let firstc = replace.words[randSlot].full.substring(0, 1)
+                if (firstc === firstc.toUpperCase()) {
+                    word = word.charAt(0).toUpperCase() + word.slice(1)
+                }
+
+                result[randSlot] = '<em>' + word + '</em>' + replace.words[randSlot].punct
+            }
+        }
+        return result.join('');
+    }
+    /**
+     * Generate all the potential misspellings and typos for a quote
+     * @returns Nothing
+     */
+    public generateMisspell(): void {
+        const wordrepl = parseInt($('#wordrepl').val() as string)
+        const typos = parseInt($('#typos').val() as string)
+        const used: BoolMap = {}
+        let result = $('#misspellopts')
+
+        if (wordrepl === 0 && typos === 0) {
+            result.empty().append($('<p/>').text(`Both sliders are set to none, no alternate quotes can be generated`))
+            return;
+
+        }
+        let hom = findHomonyms(this.state.cipherString)
+        used[this.state.cipherString] = true;
+        let toReplace = 0
+        if (wordrepl > 0) {
+            toReplace = Math.min(Math.round((hom.replaceables.length * wordrepl / 100) + Math.random() - 0.5), hom.replaceables.length)
+        }
+        result.empty()
+        if (hom.replaceables.length === 0) {
+            result.append($('<h4/>').text("Warning, no homonyms found in the quote text"))
+        }
+        let total = 0
+        for (let i = 0; i < 25; i++) {
+            const nextOut = this.makeOneMisspell(hom, wordrepl, typos);
+            const cleanOut = nextOut.replace(/<\/?em>/g, "")
+            if (used[nextOut] !== true) {
+                used[nextOut] = true
+                let useButton = $("<button/>", {
+                    'data-text': cleanOut,
+                    type: "button",
+                    class: "rounded button use",
+                }).html("Use");
+                result.append($('<div/>').append(useButton).append($('<span/>').html(nextOut)))
+                total++
+                if (total >= 10) {
+                    break;
+                }
+            }
+        }
+        this.attachHandlers();
+        // Since they already did it once, make the Generate button say Regenerate instead
+        $('#genbtn').text('Regenerate')
+    }
+    /**
+     * Select a generated misspelled quote to replace the current quote
+     * @param elem Element clicked on with string to use
+     */
+    public useQuote(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const text = jqelem.attr('data-text')
+        // Give an undo state s
+        this.markUndo(null)
+        this.setCipherString(text)
+        $('#MisspellDLG').foundation('close')
+        this.updateOutput()
+    }
+    /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     public attachHandlers(): void {
@@ -1848,6 +2121,26 @@ export class CipherEncoder extends CipherHandler {
                     e.preventDefault();
                 }
             });
+        $('#misspell')
+            .off('click')
+            .on('click', (e) => {
+                this.genMisspell()
+            })
+        $('#wordrepl_base,#typos_base')
+            .off('changed.zf.slider moved.zf.slider')
+            .on('changed.zf.slider moved.zf.slider', (e) => {
+                this.checkRepl();
+            });
+        $('.mgen')
+            .off('click')
+            .on('click', (e) => {
+                this.generateMisspell();
+            });
+        $('.use')
+            .off('click')
+            .on('click', (e) => {
+                this.useQuote(e.target);
+            })
         $('.msave')
             .off('click')
             .on('click', (e) => {

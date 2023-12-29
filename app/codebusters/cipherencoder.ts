@@ -1474,8 +1474,8 @@ export class CipherEncoder extends CipherHandler {
      * Compute the score ranges for an Aristocrat/Patristocrat/Xenocrypt
      * @returns suggestedData containing score ranges
      */
-    public genAristocratScoreRange(): suggestedData {
-        const qrecord = this.computeStats(this.state.curlang, this.state.cipherString);
+    public genAristocratScoreRange(str: string): suggestedData {
+        const qrecord = this.computeStats(this.state.curlang, str);
         // Make adjustments based on the current cipher
         let adjust = 0
         // Patristocrats automatically get 300 extra points
@@ -1522,7 +1522,7 @@ export class CipherEncoder extends CipherHandler {
         if (this.state.cipherType === ICipherType.Aristocrat ||
             this.state.cipherType === ICipherType.Patristocrat ||
             this.state.cipherType === ICipherType.Xenocrypt) {
-            return this.genAristocratScoreRange();
+            return this.genAristocratScoreRange(this.state.cipherString);
         }
         return { suggested: 0, min: 0, max: 0 }
     }
@@ -1690,7 +1690,9 @@ export class CipherEncoder extends CipherHandler {
         // Start out the dialog with some hints and ready to populate.
         $('#misspellopts').empty().append($('<p/>').text(`First select the level of Word Replacements and typos and then click generate`))
         $('#genbtn').text('Generate')
-        $('#MisspellDLG').foundation('open');
+        this.prepGenScoring().then(() => {
+            $('#MisspellDLG').foundation('open')
+        })
     }
     /**
      * See if they have the sliders off the zero spot so that we can actually generate something
@@ -1730,7 +1732,7 @@ export class CipherEncoder extends CipherHandler {
         }
 
         // Do we have any word replacements we want to do?
-        if (wordrepl > 0) {
+        if ((replace.replaceables.length) > 0 && (wordrepl > 0)) {
             // The number we do is approximately the percentage of total potential replacements (with a little randomness tossed in)
             let toReplace = Math.min(Math.round((replace.replaceables.length * wordrepl / 100) + Math.random() - 0.5), replace.replaceables.length)
             // Make sure that we will at least attempt to replace something if they gave us a non-zero typos choice
@@ -1887,6 +1889,8 @@ export class CipherEncoder extends CipherHandler {
         for (let i = 0; i < 25; i++) {
             const nextOut = this.makeOneMisspell(hom, wordrepl, typos);
             const cleanOut = nextOut.replace(/<\/?em>/g, "")
+
+            let score = this.genAristocratScoreRange(cleanOut);
             if (used[nextOut] !== true) {
                 used[nextOut] = true
                 let useButton = $("<button/>", {
@@ -1894,7 +1898,11 @@ export class CipherEncoder extends CipherHandler {
                     type: "button",
                     class: "rounded button use",
                 }).html("Use");
-                result.append($('<div/>').append(useButton).append($('<span/>').html(nextOut)))
+                result.append($('<div/>')
+                    .append(useButton)
+                    .append($('<span/>', { class: "sscore" }).text(`Score: ${score.suggested} [${score.min}-${score.max}]`))
+                    .append($('<span/>').html(nextOut))
+                )
                 total++
                 if (total >= 10) {
                     break;

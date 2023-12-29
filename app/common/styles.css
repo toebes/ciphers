@@ -12,6 +12,12 @@
     color: #1779ba; /* $anchor-color; */
 }
 
+span.sscore {
+    margin-left: 10px;
+    color: darkgreen;
+    float: right;
+    font-size: smaller;
+}
 :target {
     background-color: #ffffcc !important;
 }

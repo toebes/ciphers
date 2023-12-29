@@ -8,6 +8,12 @@
     width: 600px;
 }
 
+.abbuttons {
+    margin: auto 10px;
+}
+.abset {
+    margin: 2px;
+}
 #misspellopts em {
     color: #1779ba; /* $anchor-color; */
 }

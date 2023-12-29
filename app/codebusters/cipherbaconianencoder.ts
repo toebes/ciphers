@@ -243,6 +243,39 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
     }
     /**
+     * Update the pattern table to a sequence defined
+     * @param s The id of the button pressed
+     */
+    public updateABTable(s: string): void {
+        let f = s.slice(1)
+        let newMap = this.state.abMapping
+        if (f === "t") {
+            // Toggle them all
+            newMap = ""
+            for (let i = 0; i < this.state.abMapping.length; i++) {
+                if (this.state.abMapping.charAt(i) === 'A') {
+                    newMap += 'B'
+                } else {
+                    newMap += 'A'
+                }
+            }
+        }
+        else {
+            // Figure out the pattern length
+            let patLen = parseInt(f)
+            if (isNaN(patLen) || patLen < 1) {
+                patLen = 1;
+            }
+            newMap = ""
+            while (newMap.length < this.state.abMapping.length) {
+                newMap += this.repeatStr("A", patLen) + this.repeatStr("B", patLen)
+            }
+            newMap = newMap.slice(0, this.state.abMapping.length)
+        }
+        this.state.abMapping = newMap;
+        this.updateOutput()
+    }
+    /**
      * Based on the current AB UI mapping, generate a quick lookup table to make
      * it easier to encode the baconian letters
      */
@@ -738,6 +771,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
             )
         );
 
+        const ABDiv = $("<div/>", { class: "grid-x" })
+        result.append(ABDiv)
+        const tableDiv = $("<div/>", { class: "cell shrink" })
+        ABDiv.append(tableDiv)
         // Build a table so that they can click on letters to make A or B
         const table = new JTTable({
             class: 'cell shrink tfreq opfield words',
@@ -754,7 +791,30 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 content: 'A',
             });
         }
-        result.append(table.generate());
+        tableDiv.append(table.generate());
+        // Give them buttons to set the pattern easily
+        const buttonDiv = $('<div/>', { class: "cell shrink abbuttons" })
+        ABDiv.append(buttonDiv)
+        buttonDiv.append(
+            $('<button/>', {
+                id: 'bt',
+                type: 'button',
+                class: 'button primary tiny rounded abset',
+            }).text("Toggle"))
+        for (let i = 1; i < 10; i++) {
+            buttonDiv.append(
+                $('<button/>', {
+                    id: 'b' + i,
+                    type: 'button',
+                    class: 'button primary tiny rounded abset',
+                }).text(String(i)))
+        }
+        buttonDiv.append(
+            $('<button/>', {
+                id: 'b13',
+                type: 'button',
+                class: 'button primary tiny rounded abset',
+            }).text("13"))
         const div = $('<div/>', { class: 'grid-x opfield words' });
         div.append(this.genShiftButtonGroup('left'));
         for (let slot = 0; slot < 5; slot++) {
@@ -1373,5 +1433,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     this.updateOutput();
                 }
             });
+        $('.abset')
+            .off('click')
+            .on('click', (e) => {
+                const act = $(e.target).attr('id') as string;
+                this.updateABTable(act)
+            })
     }
 }

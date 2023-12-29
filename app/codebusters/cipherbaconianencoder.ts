@@ -771,13 +771,13 @@ export class CipherBaconianEncoder extends CipherEncoder {
             )
         );
 
-        const ABDiv = $("<div/>", { class: "grid-x" })
+        const ABDiv = $("<div/>", { class: "grid-x opfield words" })
         result.append(ABDiv)
         const tableDiv = $("<div/>", { class: "cell shrink" })
         ABDiv.append(tableDiv)
         // Build a table so that they can click on letters to make A or B
         const table = new JTTable({
-            class: 'cell shrink tfreq opfield words',
+            class: 'cell shrink tfreq',
         });
         const hrow = table.addHeaderRow();
         const brow = table.addBodyRow();

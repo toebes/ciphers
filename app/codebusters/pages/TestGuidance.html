@@ -785,19 +785,26 @@
                     <div class="qusec"></div>Complete Columnar {3.e.vii}
                 </h2>
                 <span class="ht">Setting Difficulty:</span>
-                <p class="in">If the crib only contains letters that are multiple in the cipher text, it is harder. It
-                    is harder if the crib text appears in more than one row</p>
+                <p class="in">Difficulty is increased when the crib is split over two rows; when the crib appears in more
+                    than one location in the column block; when there are
+                    duplicate letters in the crib; when there are more possible columns (i.e. more factors of the
+                    cipher text length) that must be analyzed; when there are no pad characters (i.e. cipher text is a multiple of the
+                    number of encode columns).</p>
                 <span class="ht">Points:</span>
-                <p class="in">150-600</p>
+                <p class="in">150-275  The point value should be higher when more columns are used in the encoding;
+                    when the crib is split over two rows; when there is more than one instance of the crib;
+                    when there are duplicate letters in the crib;
+                    when there are more possible columns that could have been used to encode the cipher text;
+                    when no pad characters are used in the cipher text to make it fit in the grid.
+                    Also, the longer the cipher text, the more difficult because it just takes more time to analyze.</p>
                 <span class="ht">Question Text:</span>
                 <p class="in"> The question should indicate that they are to
                     use the crib text (given in the question text) to help determine the number of columns and the order
                     of the columns to decode the cipher text. For example:</p>
-                <p class="ex callout small secondary ">After solving the cryptarithm <span
-                        class="fq">SEND+MORE=MONEY</span>
-                    decode the phrase <span class="fq">9015 10992</span>.</p>
+                <p class="ex callout small secondary ">Decode a quote by Baden-Powell which has been encoded using the
+                    Complete Columnar Cipher. You are told that the quote has <span class="fq">BADGE</span> somewhere in it.</p>
                 <span class="ht">Choosing a Crib</span>
-                <p>A crib should contain unique letters from the cipher text.</p>
+                <p>The crib should contain a sequence of plain text characters which is no shorter than one less than the number of columns used to encode.</p>
             </div>
             <div id="Hill_Matrix">
                 <h2 class="ol">

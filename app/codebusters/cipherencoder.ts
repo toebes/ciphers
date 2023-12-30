@@ -49,6 +49,8 @@ export interface suggestedData {
     max: number;
     /* Any information private to the class for why the score was suggested */
     private?: any;
+    /* Text for the dialog showing suggested points */
+    text?: string;
 }
 
 /**
@@ -1526,6 +1528,10 @@ export class CipherEncoder extends CipherHandler {
         }
         return { suggested: 0, min: 0, max: 0 }
     }
+    public genScoreRangeAndText(): suggestedData {
+        return {suggested: 0, min: 0, max: 0, text: ''};
+    }
+
     /**
      * Get the reference to the author for a quote
      * @returns Reference to the author (if any) for the quote
@@ -1629,7 +1635,12 @@ export class CipherEncoder extends CipherHandler {
      */
     public async showSamplePoints() {
         this.prepGenScoring().then(() => {
-            const suggestedScore = this.genScoreRange();
+            let suggestedScore = this.genScoreRangeAndText();
+            let suggestedScoreText = suggestedScore.text;
+            if (suggestedScoreText === undefined || suggestedScoreText === '') {
+                suggestedScore = this.genScoreRange();
+                suggestedScoreText = this.genSamplePointsText(suggestedScore);
+            }
             const suggested = suggestedScore.suggested
             const minrange = suggestedScore.min
             const maxrange = suggestedScore.max
@@ -1643,7 +1654,7 @@ export class CipherEncoder extends CipherHandler {
 
             $('#sptext')
                 .empty()
-                .append($(this.genSamplePointsText(suggestedScore)))
+                .append(suggestedScoreText)
             $("#SamplePoints").foundation('open');
         })
     }

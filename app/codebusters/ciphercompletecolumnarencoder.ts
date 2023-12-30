@@ -3,13 +3,13 @@ import {
     IScoreInformation,
     IState,
     ITestQuestionFields,
-    ITestType,
+    ITestType, QuoteRecord,
     toolMode,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import { CipherEncoder } from './cipherencoder';
+import {CipherEncoder, suggestedData} from './cipherencoder';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTTable } from '../common/jttable';
 
@@ -21,6 +21,10 @@ type IColumnOrder = number[][];
     // }
 //}
  */
+
+const MIN_COLUMNS = 4;
+const MAX_COLUMNS_B = 9;
+const MAX_COLUMNS_C = 11;
 
 // TODO: fix the YWLY bug of multiple Ys not detecting the crib is split
 
@@ -655,6 +659,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     private thisTestType = undefined;
     public isLoading = false;
     public stopGenerating = false;
+    private currentSolverSolution: CompleteColumnarSolver = undefined;
 
     public defaultstate: ICompleteColumnarState = {
         operation: 'decode',
@@ -669,6 +674,8 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
 
@@ -764,27 +771,27 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     public setColumns(columns: number): boolean {
         let changed = false;
 
-        let maxColumns = this.thisTestType === ITestType.cstate ? 11 : 9;
+        let maxColumns = this.thisTestType === ITestType.cstate ? MAX_COLUMNS_C : MAX_COLUMNS_B;
 
-        if (columns < 3) {
-            columns = 3
+        if (columns < MIN_COLUMNS) {
+            columns = MIN_COLUMNS;
             changed = true;
         }
         else if (columns > maxColumns) {
-            columns = 11;
+            columns = maxColumns;
             changed = true;
         }
 
         if (columns !== this.state.columns) {
             // TODO: the min and max should probably be made to CONSTANTS.
 
-            if (columns >= 3 && columns <= maxColumns) {
+            if (columns >= MIN_COLUMNS && columns <= maxColumns) {
                 this.state.columns = columns;
                 this.setErrorMsg('', 'colcount', null);
                 $('#err').text('');
                 changed = true;
             } else {
-                this.setErrorMsg(`For a ${this.getTestTypeName(this.thisTestType)}, the number of columns must be between 3 and ${maxColumns}`, 'colcount', null);
+                this.setErrorMsg(`For a ${this.getTestTypeName(this.thisTestType)}, the number of columns must be between ${MIN_COLUMNS} and ${maxColumns}`, 'colcount', null);
             }
         }
 
@@ -819,6 +826,111 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         this.validateQuestion();
         this.attachHandlers();
     }
+
+    /**
+     * Generate the recommended score and score ranges for a cipher along with text explaining some of the parameters.
+     * @returns Computed score ranges for the cipher
+     */
+    public genScoreRangeAndText(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+
+        let suggested = 0;
+        let result = ''
+        let cribNotSplit = ' The crib is not split. ';
+        let cribDuplicates = '';
+        let analyzeMultipleColumns = '';
+        let paddingText = '';
+
+        // Indicate no padding
+        if (qdata.minquote.length % this.state.columns === 0) {
+            paddingText = ' There are no padding characters. ';
+        }
+
+        // Number of columns plus length of cipher sets suggested
+        suggested = Math.round((15 * this.state.columns) + (1.5 * qdata.minquote.length));
+
+        // Get the current solution information.
+        // const completeColumnarSolver: CompleteColumnarSolver = new CompleteColumnarSolver(this, this.state.columns, this.state.keyword, this.state.cipherString, this.state.crib);
+        // const cribSplitInformations = completeColumnarSolver.getCribSplitInformation();
+
+        const completeColumnarSolver = this.currentSolverSolution;
+        let cribSplitInformations = [];
+        if (completeColumnarSolver !== undefined) {
+            cribSplitInformations = completeColumnarSolver.getCribSplitInformation();
+        }
+
+        // Analyze the crib
+        if (cribSplitInformations.length > 0) {
+            // Harder if multiple crib possibilities are found
+            let numberOfSplitCribs = cribSplitInformations.length;
+            if (numberOfSplitCribs > 3) {
+                numberOfSplitCribs = 3;
+            }
+            suggested += (15 * (numberOfSplitCribs - 1));
+
+            // placement of crib in multiple rows makes it more difficult
+            let splitCount = 0;
+            for (let i = 0; i < cribSplitInformations.length; i++) {
+                if (cribSplitInformations[i].isSplitOverRows()) {
+                    splitCount +=1;
+                    suggested += 15;
+                    cribNotSplit = ' The crib is split. ';
+                }
+                if (splitCount > 3) {
+                    break;
+                }
+            }
+        }
+
+        // duplicate letters in crib row(s) makes is more difficult + 15 for each duplicate
+        const cribUnique = this.state.crib.split('').filter((x, i, a) => a.indexOf(x) === i);
+        const cribUniqueDifference = this.state.crib.length - cribUnique.length;
+        if (cribUniqueDifference > 0) {
+            suggested += (15 * (cribUniqueDifference));
+            cribDuplicates = ' The crib has duplicate letters, which makes finding the column order more difficult. ';
+        }
+
+        // if number of columns is a multiple of the length of the cipher (no pad characters), then add points.
+        if (qdata.minquote.length % this.state.columns === 0) {
+            suggested += 15;
+        }
+
+        // Add points for the number of factors in the ciphertext length.
+        const possibleColumns = [];
+
+        const maxColumns = this.thisTestType === ITestType.cstate ? MAX_COLUMNS_C : MAX_COLUMNS_B;
+        for (let i = MIN_COLUMNS; i <= maxColumns; i++) {
+            if (qdata.minquote.length % i === 0) {
+                possibleColumns.push(i);
+            }
+        }
+        if (possibleColumns.length > 1) {
+            analyzeMultipleColumns = ' There are multiple column that must be analyzed. ';
+        }
+
+        suggested += ((possibleColumns.length - 1) * 15);
+
+        let range = 20;
+        const min = Math.max(suggested - range, 0)
+        const max =  suggested + range
+        suggested += Math.round(range * Math.random() - range / 2);
+
+        let rangetext = ''
+        if (max > min) {
+            rangetext = `, from a range of ${min} to ${max}`
+        }
+        if (qdata.len < 15) {
+            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 32 characters for a good quote</em></p>`
+        }
+        if (qdata.len > 2) {
+            result += `<p>There are ${qdata.len} characters in the quote and ${this.state.columns} columns.
+                ${cribNotSplit}${cribDuplicates}${analyzeMultipleColumns}${paddingText}
+                We suggest you try a score of ${suggested}${rangetext}.</p>`
+        }
+
+        return { suggested: suggested, min: min, max: max, private: qdata, text: result }
+    }
+
     /**
      * Check for any errors we can find in the question
      */
@@ -1232,20 +1344,21 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
 
         const cipherTextLength = ccs.getTextLength();
         const possibleColumns = [];
-        const columnsToAnalyze = {};
-        for (let i = 3; i < 12; i++) {
+
+        let maxColumns = this.thisTestType === ITestType.cstate ? MAX_COLUMNS_C : MAX_COLUMNS_B;
+        for (let i = MIN_COLUMNS; i <= maxColumns; i++) {
             if (cipherTextLength % i === 0) {
                 possibleColumns.push(i);
             }
         }
 
-        let columsString = $('<span>');
+        let columnsString = $('<span>');
         for (let i = 0; i < possibleColumns.length; i++) {
-            columsString.append($('<span>').addClass('allfocus').text(possibleColumns[i])).append((i < possibleColumns.length - 1 ? ', ' : '.'));
+            columnsString.append($('<span>').addClass('allfocus').text(possibleColumns[i])).append((i < possibleColumns.length - 1 ? ', ' : '.'));
         }
         let div = $('<div>');
         div.append($('<p/>').text('The cipher text length is ').append($('<span>').addClass('allfocus')
-            .text(cipherTextLength)).append(' so the possible columns used to encode the ciphertext could be: ').append(columsString));
+            .text(cipherTextLength)).append(' so the possible columns used to encode the ciphertext could be: ').append(columnsString));
         result.append(div);
 
         result.append(CipherCompleteColumnarEncoder.paragraph(`Therefore, to form a Complete Columnar table, we'll analyze each of the ${possibleColumns.length} possible column configurations:`));
@@ -1336,6 +1449,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         result.append(CipherCompleteColumnarEncoder.heading('Analyze possibilities...'));
 
         result.append(ccs.getCompleteColumnarSolution());
+        this.currentSolverSolution = ccs;
 
         // See if they requested an abort to restart the operation before we finish
         if (await this.restartCheck()) { return }

@@ -1796,7 +1796,7 @@ export class CipherHandler {
         const blendedVal = 2.8 *
             ((0.25 * result.chi2) +
                 (0.50 * result.grade) +
-                (2.00 * unknown) +
+                (15.00 * unknown) +
                 (15.0 * lnOrdinal) +
                 (0.13 * avgIndex) +
                 minlen +
@@ -1805,7 +1805,7 @@ export class CipherHandler {
         const chiVal = 2.17 *
             ((1.00 * result.chi2) +
                 (0.50 * result.grade) +
-                (2.00 * unknown) +
+                (15.00 * unknown) +
                 (10.0 * lnOrdinal) +
                 (0.10 * avgIndex) +
                 minlen +
@@ -1814,7 +1814,7 @@ export class CipherHandler {
         const altVal = 3.36 *
             ((0.50 * result.chi2) +
                 (0.50 * result.grade) +
-                (2.00 * unknown) +
+                (15.00 * unknown) +
                 (12.0 * lnOrdinal) +
                 (0.05 * avgIndex) +
                 minlen +

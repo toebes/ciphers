@@ -143,9 +143,10 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      * Generate the recommended score and score ranges for a cipher
      * @returns Computed score ranges for the cipher
      */
-    public genScoreRange(): suggestedData {
+    public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
         const strings = this.makeReplacement(this.state.cipherString, 999);
+        let text = ''
         let taps = ""
         if (strings.length > 0) {
             taps = (strings[0][0]).replace(/ +/g, '')
@@ -153,33 +154,22 @@ export class CipherTapCodeEncoder extends CipherEncoder {
         const min = 10 + Math.round(0.25 * taps.length)
         const max = 10 + Math.round(0.35 * taps.length)
         const variability = (max - min) / 2
-        let suggest = 10 + Math.round(1.6 * qdata.len + (Math.random() * variability) - variability / 2)
+        let suggested = 10 + Math.round(1.6 * qdata.len + (Math.random() * variability) - variability / 2)
 
-        suggest = Math.max(min, Math.min(suggest))
-        qdata.notes = taps
-        return { suggested: suggest, min: min, max: max, private: qdata }
-    }
-
-    /**
-     * Determine what to tell the user about how the score has been computed
-     * @param suggesteddata Data calculated for the score range
-     * @returns HTML String to display in the suggested question dialog
-     */
-    public genSamplePointsText(suggesteddata: suggestedData): string {
-        const qdata = suggesteddata.private as QuoteRecord
-        let result = ''
+        suggested = Math.max(min, Math.min(suggested))
         let rangetext = ''
-        if (suggesteddata.max > suggesteddata.min) {
-            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
+        if (max > min) {
+            rangetext = ` (From a range of ${min} to ${max})`
         }
         if (qdata.len < 15) {
-            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 20 characters for a good quote</em></p>`
+            text = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 20 characters for a good quote</em></p>`
         }
         if (qdata.len > 2) {
-            result += `<p>There are ${qdata.len} characters in the quote, resulting in ${qdata.notes.length} taps in total.
-              We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+            text += `<p>There are ${qdata.len} characters in the quote, resulting in ${qdata.notes.length} taps in total.
+              We suggest you try a score of ${suggested}${rangetext}</p>`
         }
-        return result
+
+        return { suggested: suggested, min: min, max: max, text: text }
     }
     /**
      * Generate the HTML to display the question for a cipher

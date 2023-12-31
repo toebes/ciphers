@@ -555,14 +555,15 @@ export class CipherBaconianEncoder extends CipherEncoder {
     }
     /**
       * Generate the recommended score and score ranges for a cipher
-      * @returns Computed score ranges for the cipher
+      * @returns Computed score ranges for the cipher and text description
       */
-    public genScoreRange(): suggestedData {
+    public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
         let suggested = 0
         let max = 0
         let min = 0
         let range = 0
+        let text = ''
         if (this.state.operation === 'words') {
             const hints = this.countCribHints();
             suggested = 20 + Math.round((qdata.len * 6) + ((13 - hints) * 3))
@@ -589,31 +590,21 @@ export class CipherBaconianEncoder extends CipherEncoder {
         min = suggested - range
         max = suggested + range
         suggested += Math.round(range * Math.random() - (range / 2))
-        return { suggested: suggested, min: min, max: max, private: qdata }
-    }
-    /**
-    * Determine what to tell the user about how the score has been computed
-    * @param suggesteddata Data calculated for the score range
-    * @returns HTML String to display in the suggested question dialog
-    */
-    public genSamplePointsText(suggesteddata: suggestedData): string {
-        const qdata = suggesteddata.private as QuoteRecord
 
-        let result = ''
         let rangetext = ''
-        if (suggesteddata.max > suggesteddata.min) {
-            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
+        if (max > min) {
+            rangetext = ` (From a range of ${min} to ${max})`
         }
         if (qdata.len > 2) {
-            result += `<p>There are ${qdata.len} characters in the quote.
-             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+            text += `<p>There are ${qdata.len} characters in the quote.
+             We suggest you try a score of ${suggested}${rangetext}</p>`
         }
         if (this.state.operation !== 'words') {
-            result += `<p><b>NOTE:</b><em>If the A Text/B Text Pattern is really obvious or really obscure,
+            text += `<p><b>NOTE:</b><em>If the A Text/B Text Pattern is really obvious or really obscure,
             you may want to adjust the score lower or higher as appropriate.</em></p>`
         }
 
-        return result
+        return { suggested: suggested, min: min, max: max, text: text }
     }
     /**
      * Generates the sample question text for a cipher

@@ -260,7 +260,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
       * Generate the recommended score and score ranges for a cipher
       * @returns Computed score ranges for the cipher and text description
       */
-    public genScoreRange(): suggestedData {
+    public genScoreRangeAndText(): suggestedData {
         let text = ''
         let suggested = 250;
 

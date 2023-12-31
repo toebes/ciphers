@@ -297,10 +297,14 @@ export class CipherTableEncoder extends CipherEncoder {
       * Generate the recommended score and score ranges for a cipher
       * @returns Computed score ranges for the cipher
       */
-    public genScoreRange(): suggestedData {
+    public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
         let testUsage = this.getTestUsage();
         const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+
+        let text = ''
+        let rangetext = ''
+        let extra = ''
 
         // Find the min length word
         qdata.minlength = this.getMinLength(qdata.quote)
@@ -315,6 +319,7 @@ export class CipherTableEncoder extends CipherEncoder {
             }
             suggested = Math.round(scaleFactor * (qdata.unique + qdata.len))
         } else {
+            // Caesar Cipher
             range = 15
             if (usedOnA) {
                 scaleFactor = 1.5;
@@ -322,8 +327,16 @@ export class CipherTableEncoder extends CipherEncoder {
             suggested = Math.round(scaleFactor * (qdata.unique * 2.5 + qdata.len))
             if (this.state.offset <= 3 || this.state.offset >= 23) {
                 suggested -= 10
+                let reduce = 10
                 if (Math.abs(this.state.offset) === 1 || this.state.offset === 24) {
                     suggested -= 10
+                    reduce += 10
+                }
+                extra += ` The short shift of ${Math.abs(this.state.offset)} reduces the score by ${reduce} points.`
+                if (qdata.minlength === 1) {
+                    extra += ` The single letter word reduces the score by 15 points.`
+                } else if (qdata.minlength === 2) {
+                    extra += ` The double letter word reduces the score by 10 points.`
                 }
             }
             if (qdata.minlength === 1) {
@@ -335,47 +348,19 @@ export class CipherTableEncoder extends CipherEncoder {
         const min = Math.max(suggested - range, 0)
         const max = suggested + range
         suggested += Math.round(range * Math.random() - range / 2);
-        return { suggested: suggested, min: min, max: max, private: qdata }
-    }
-    /**
-    * Determine what to tell the user about how the score has been computed
-    * @param suggesteddata Data calculated for the score range
-    * @returns HTML String to display in the suggested question dialog
-    */
-    public genSamplePointsText(suggesteddata: suggestedData): string {
-        const qdata = suggesteddata.private as QuoteRecord
-        let testUsage = this.getTestUsage();
-        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
-        let result = ''
-        let rangetext = ''
-        let extra = ''
-        if (suggesteddata.max > suggesteddata.min) {
-            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
-        }
-        if (this.state.cipherType === ICipherType.Caesar) {
-            if (this.state.offset <= 3 || this.state.offset >= 23) {
-                let reduce = 10
-                if (Math.abs(this.state.offset) === 1 || this.state.offset === 24) {
-                    reduce += 10
-                }
 
-                extra += ` The short shift of ${Math.abs(this.state.offset)} reduces the score by ${reduce} points.`
-            }
-            if (qdata.minlength === 1) {
-                extra += ` The single letter word reduces the score by 15 points.`
-            } else if (qdata.minlength === 2) {
-                extra += ` The double letter word reduces the score by 10 points.`
-            }
+        if (max > min) {
+            rangetext = ` (From a range of ${min} to ${max})`
         }
         const minlen = usedOnA ? 30 : 50
         if (qdata.len < (minlen - 10)) {
-            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least ${minlen} characters for a good quote</em></p>`
+            text = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least ${minlen} characters for a good quote</em></p>`
         }
         if (qdata.len > 2) {
-            result += `<p>There are ${qdata.len} characters in the quote, ${qdata.unique} of which are unique.${extra}
-             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+            text += `<p>There are ${qdata.len} characters in the quote, ${qdata.unique} of which are unique.${extra}
+             We suggest you try a score of ${suggested}${rangetext}</p>`
         }
-        return result
+        return { suggested: suggested, min: min, max: max, text: text }
     }
     /**
      * Generate the HTML to display the answer for a cipher

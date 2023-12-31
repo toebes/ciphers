@@ -137,11 +137,10 @@ export class CipherAffineEncoder extends CipherEncoder {
         let result = super.CheckAppropriate(testType, anyOperation);
         if (!anyOperation && result === '' && testType !== undefined) {
             if (
-                testType !== '' &&
-                testType !== ITestType.cregional &&
-                testType !== ITestType.cstate &&
-                testType !== ITestType.bregional &&
-                testType !== ITestType.bstate &&
+                (testType === ITestType.cregional ||
+                    testType === ITestType.cstate ||
+                    testType === ITestType.bregional ||
+                    testType === ITestType.bstate) &&
                 this.state.operation === 'encode'
             ) {
                 result = 'Encode problems are not allowed on ' + this.getTestTypeName(testType);
@@ -192,9 +191,12 @@ export class CipherAffineEncoder extends CipherEncoder {
     }
     /**
       * Generate the recommended score and score ranges for a cipher
-      * @returns Computed score ranges for the cipher
+      * @returns Computed score ranges for the cipher and text to display with it
       */
-    public genScoreRange(): suggestedData {
+    public genScoreRangeAndText(): suggestedData {
+        let text = ''
+        let rangetext = ''
+
         const qdata = this.analyzeQuote(this.state.cipherString)
 
         const unique = qdata.minquote.split('').filter((x, i, a) => a.indexOf(x) === i);
@@ -214,28 +216,17 @@ export class CipherAffineEncoder extends CipherEncoder {
         const min = Math.max(suggested - range, 0)
         const max = suggested + range
         suggested += Math.round(range * Math.random() - range / 2);
-        return { suggested: suggested, min: min, max: max, private: qdata }
-    }
-    /**
-    * Determine what to tell the user about how the score has been computed
-    * @param suggesteddata Data calculated for the score range
-    * @returns HTML String to display in the suggested question dialog
-    */
-    public genSamplePointsText(suggesteddata: suggestedData): string {
-        const qdata = suggesteddata.private as QuoteRecord
-        let result = ''
-        let rangetext = ''
-        if (suggesteddata.max > suggesteddata.min) {
-            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
-        }
+
         if (qdata.len < 15) {
-            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 20 characters for a good quote</em></p>`
+            text += `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 20 characters for a good quote</em></p>`
         }
+
         if (qdata.len > 2) {
-            result += `<p>There are ${qdata.len} characters in the quote, ${qdata.unique} of which are unique.
-             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+            text += `<p>There are ${qdata.len} characters in the quote, ${qdata.unique} of which are unique.
+             We suggest you try a score of ${suggested} (From a range of ${min} to ${max})</p>`
         }
-        return result
+
+        return { suggested: suggested, min: min, max: max, text: text }
     }
     /**
      * Figure out where the crib characters are (and if they are together)

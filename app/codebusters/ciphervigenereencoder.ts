@@ -348,12 +348,15 @@ export class CipherVigenereEncoder extends CipherEncoder {
       * 100 for a Decode (approximately 2 points per letter), 120 for an Encode.
       * If the Block Size is the same as the Key length subtract 20 points.
       * If the Block Size is non-zero and different from the Key length, add 25 points.
-      * @returns Computed score ranges for the cipher
+      * @returns Computed score ranges for the cipher and text description
       */
-    public genScoreRange(): suggestedData {
+    public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
         let testUsage = this.getTestUsage();
         const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        let text = ''
+        let rangetext = ''
+        let extra = ''
         let suggested = 0
         let range = 5
         let scaleFactor = 1
@@ -366,8 +369,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
             if (this.state.blocksize > 0) {
                 if (this.state.blocksize === this.state.keyword.length) {
                     suggested -= 20;
+                    extra += ` Having a blocksize the same as the keyword length (${this.state.keyword.length}) makes it about 20 points easier.`
                 } else {
                     suggested += 25;
+                    extra += ` Having a blocksize ${this.state.blocksize} different than the keyword length ${this.state.keyword.length} makes it about 25 points harder.`
                 }
             }
         } else {
@@ -388,37 +393,17 @@ export class CipherVigenereEncoder extends CipherEncoder {
         const min = Math.max(suggested - range, 0)
         const max = suggested + range
         suggested += Math.round(range * Math.random() - range / 2);
-        return { suggested: suggested, min: min, max: max, private: qdata }
-    }
-    /**
-    * Determine what to tell the user about how the score has been computed
-    * @param suggesteddata Data calculated for the score range
-    * @returns HTML String to display in the suggested question dialog
-    */
-    public genSamplePointsText(suggesteddata: suggestedData): string {
-        const qdata = suggesteddata.private as QuoteRecord
-        let result = ''
-        let rangetext = ''
-        let extra = ''
-        if (suggesteddata.max > suggesteddata.min) {
-            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
-        }
-        if (this.state.cipherType === ICipherType.Porta) {
-            if (this.state.blocksize > 0)
-                if (this.state.blocksize === this.state.keyword.length) {
-                    extra += ` Having a blocksize the same as the keyword length (${this.state.keyword.length}) makes it about 20 points easier.`
-                } else {
-                    extra += ` Having a blocksize ${this.state.blocksize} different than the keyword length ${this.state.keyword.length} makes it about 25 points harder.`
-                }
+        if (max > min) {
+            rangetext = ` (From a range of ${min} to ${max})`
         }
         if (qdata.len < 30) {
-            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 40 characters for a good quote</em></p>`
+            text = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 40 characters for a good quote</em></p>`
         }
         if (qdata.len > 2) {
-            result += `<p>There are ${qdata.len} characters in the quote.${extra}
-             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+            text += `<p>There are ${qdata.len} characters in the quote.${extra}
+             We suggest you try a score of ${suggested}${rangetext}</p>`
         }
-        return result
+        return { suggested: suggested, min: min, max: max, text: text }
     }
     /**
      * Cleans up any settings, range checking and normalizing any values.

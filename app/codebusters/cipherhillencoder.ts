@@ -294,10 +294,11 @@ export class CipherHillEncoder extends CipherEncoder {
       * Generate the recommended score and score ranges for a cipher
       * @returns Computed score ranges for the cipher
       */
-    public genScoreRange(): suggestedData {
+    public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
         const key = this.state.keyword.toUpperCase();
         let matsize = 0
+        let text = ''
         let groupscore = 0
         if (key.length === 4) {
             matsize = 2
@@ -306,47 +307,29 @@ export class CipherHillEncoder extends CipherEncoder {
             matsize = 3
             groupscore = 21
         } else {
-            return { suggested: 0, min: 0, max: 0, private: qdata }
+            text = `<p><b>WARNING:</b> <em>There is no valid keyword specified, unable to compute a score.
+            Please pick either a 4 or 9 letter keyword.</em></p>`
+
+            return { suggested: 0, min: 0, max: 0, text: text }
         }
         if (this.state.operation === 'compute') {
-            return { suggested: 100, min: 100, max: 100, private: qdata }
+            text = `<p>A compute operation is generally 100 points.</p>`
+            return { suggested: 100, min: 100, max: 100, text: text }
         }
         let suggested = Math.ceil(groupscore * qdata.len / matsize)
         const min = Math.round(Math.max(suggested - groupscore, 0))
         const max = Math.round(suggested + groupscore)
         suggested += Math.round((groupscore * Math.random()) - (groupscore / 2));
-        return { suggested: suggested, min: min, max: max, private: qdata }
-    }
-    /**
-    * Determine what to tell the user about how the score has been computed
-    * @param suggesteddata Data calculated for the score range
-    * @returns HTML String to display in the suggested question dialog
-    */
-    public genSamplePointsText(suggesteddata: suggestedData): string {
-        const qdata = suggesteddata.private as QuoteRecord
-        const key = this.state.keyword.toUpperCase();
-        let matsize = 0
-        if (key.length === 4) {
-            matsize = 2
-        } else if (key.length === 9) {
-            matsize = 3
-        } else {
-            return `<p><b>WARNING:</b> <em>There is no valid keyword specified, unable to compute a score.
-                    Please pick either a 4 or 9 letter keyword.</em></p>`
-        }
 
-        let result = ''
         let rangetext = ''
-        if (suggesteddata.max > suggesteddata.min) {
-            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
+        if (max > min) {
+            rangetext = ` (From a range of ${min} to ${max})`
         }
-        if (this.state.operation === 'compute') {
-            result = `<p>A compute operation is generally 100 points.</p>`
-        } else if (qdata.len > 2) {
-            result += `<p>There are ${Math.ceil(qdata.len / matsize)} groups of ${matsize} characters in the quote.
-             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
+        if (qdata.len > 2) {
+            text += `<p>There are ${Math.ceil(qdata.len / matsize)} groups of ${matsize} characters in the quote.
+             We suggest you try a score of ${suggested}${rangetext}</p>`
         }
-        return result
+        return { suggested: suggested, min: min, max: max, text: text }
     }
     /**
      * Generates the sample question text for a cipher

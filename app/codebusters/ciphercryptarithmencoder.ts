@@ -258,42 +258,31 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     }
     /**
       * Generate the recommended score and score ranges for a cipher
-      * @returns Computed score ranges for the cipher
+      * @returns Computed score ranges for the cipher and text description
       */
     public genScoreRange(): suggestedData {
-
-        //const qdata = this.analyzeQuote(this.state.cipherString)
-
+        let text = ''
         let suggested = 250;
+
+        const soldata = this.analyzeQuote(this.state.soltext)
+
         if (this.state.difficulty !== undefined) {
             suggested = 100 + (this.state.difficulty * 50)
         }
         const min = Math.max(suggested - 50, 0)
         const max = suggested + 50
         suggested += Math.round(50 * Math.random()) - 25;
-        return { suggested: suggested, min: min, max: max, private: undefined }
-    }
-    /**
-    * Determine what to tell the user about how the score has been computed
-    * @param suggesteddata Data calculated for the score range
-    * @returns HTML String to display in the suggested question dialog
-    */
-    public genSamplePointsText(suggesteddata: suggestedData): string {
-        let result = ''
-        let rangetext = ''
-        if (suggesteddata.max > suggesteddata.min) {
-            rangetext = ` (From a range of ${suggesteddata.min} to ${suggesteddata.max})`
-        }
-        const soldata = this.analyzeQuote(this.state.soltext)
+
         if (soldata.len < 6) {
-            result = `<p><b>WARNING:</b> <em>There are only ${soldata.len} characters in the solution, we recommend at least 6 characters</em></p>`
+            text = `<p><b>WARNING:</b> <em>There are only ${soldata.len} characters in the solution, we recommend at least 6 characters</em></p>`
         }
         if (soldata.unique < 4) {
-            result = `<p><b>WARNING:</b> <em>There are only ${soldata.unique} unique characters in the solution, we recommend at least 4 unique characters</em></p>`
+            text = `<p><b>WARNING:</b> <em>There are only ${soldata.unique} unique characters in the solution, we recommend at least 4 unique characters</em></p>`
         }
-        result += `<p>There are ${soldata.len} characters in the quote, ${soldata.unique} of which are unique.
-             We suggest you try a score of ${suggesteddata.suggested}${rangetext}</p>`
-        return result
+        text += `<p>There are ${soldata.len} characters in the solution, ${soldata.unique} of which are unique.
+             We suggest you try a score of ${suggested} (From a range of ${min} to ${max})</p>`
+
+        return { suggested: suggested, min: min, max: max, text: text }
     }
     /**
      * Updates the stored state cipher string

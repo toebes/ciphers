@@ -2,10 +2,11 @@ import { cloneObject, StringMap, BoolMap } from '../common/ciphercommon';
 import { ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import { IEncoderState } from './cipherencoder';
+import { IEncoderState, suggestedData } from './cipherencoder';
 import { tomorse, frommorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, morseindex, ptindex } from './ciphermorseencoder';
+import { JTButtonItem } from "../common/jtbuttongroup";
 
 interface IFractionatedMorseState extends IEncoderState {
     encoded: string;
@@ -72,6 +73,9 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
     private mentionedLetters = new Set();
 
+    private solutionLoops = -1;
+    private solutionUnknowns = -1;
+
     public init(lang: string): void {
         super.init(lang);
         this.loadLanguageDictionary('en').then((res) => {
@@ -89,6 +93,14 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     };
     public needsRefresh = false;
     public state: IFractionatedMorseState = cloneObject(this.defaultstate) as IFractionatedMorseState;
+    public cmdButtons: JTButtonItem[] = [
+        this.saveButton,
+        this.undocmdButton,
+        this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
+        this.guidanceButton,
+    ];
     public encodecharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     public sourcecharset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
@@ -103,6 +115,56 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         this.setCharset('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789');
         this.setOperation(this.state.operation);
     }
+
+    public genScoreRangeAndText(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+
+        let suggested = 55 + qdata.len;
+        let scoringText = ''
+        let autoSolverLoops = ` The auto-solver ran through ${this.solutionLoops} iterations, `;
+        let remainingUnknowns = ` There are ${this.solutionUnknowns} unknown cipher characters left to be determined, `;
+        let analyzeMultipleColumns = '';
+        let paddingText = '';
+        suggested += Math.round(1.5 * this.solutionLoops);
+        suggested += Math.round(3 * this.solutionUnknowns);
+
+        // More loops means more logic could be done...
+        if (this.solutionLoops < 11) {
+            autoSolverLoops += 'it could not make a lot of progress mapping characters built upon previous logic. ';
+            suggested += 15;
+        } else {
+            autoSolverLoops += 'this means it was able to build upon previously derived character mappings. ';
+        }
+
+        // More unknowns means we could not deduce as much as we would like.
+        if (this.solutionUnknowns < 5) {
+           remainingUnknowns += 'that should be enough to get to a solution fairly easily. ';
+        } else {
+            remainingUnknowns += 'this makes getting to a solution a bit more difficult. ';
+            suggested += 15;
+        }
+
+        let range = 20;
+        const min = Math.max(suggested - range, 0)
+        const max =  suggested + range
+        suggested += Math.round(range * Math.random() - range / 2);
+
+        let rangetext = ''
+        if (max > min) {
+            rangetext = `, from a range of ${min} to ${max}`
+        }
+        if (qdata.len < 26) {
+            scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend around 40 characters for a good quote</em></p>`
+        }
+        if (qdata.len > 2) {
+            scoringText += `<p>There are ${qdata.len} characters in the quote.
+                ${autoSolverLoops}${remainingUnknowns}
+                We suggest you try a score of ${suggested}${rangetext}.</p>`
+        }
+
+        return { suggested: suggested, min: min, max: max, private: qdata, text: scoringText }
+    }
+
     public genSampleHint(): string {
         let hint = '';
         if (this.state.operation === 'crypt') {
@@ -671,15 +733,13 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     }
 
     /**
-     * Determines if the entire cipher mapping is known
-     * @param knownmap Map of current cipher strings
-     * @returns Boolean indicating that there are unknowns
+     * Counts the number of unkown chipher mappings, uncoupling it from UI objects.
+     * @param knownMap Map of current cipher strings
+     * @param working Array of current working cipher strings
+     * @returns Number of unknown cipher mappings
+     * @private
      */
-    public hasUnknowns(
-        result: JQuery<HTMLElement>,
-        knownmap: StringMap,
-        working: string[][]
-    ): boolean {
+    private getUnkownsCount(knownMap: StringMap, working: string[][]): number {
         // Figure out what letters were actually used
         const used: BoolMap = {};
         let unknowns = 0;
@@ -691,11 +751,25 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             }
         }
         // If one of the used letters doesn't have a mapping then we aren't done
-        for (const e in knownmap) {
-            if (knownmap[e] === 'XXX' && used[e] === true) {
+        for (const e in knownMap) {
+            if (knownMap[e] === 'XXX' && used[e] === true) {
                 unknowns++;
             }
         }
+        return unknowns;
+    }
+
+    /**
+     * Determines if the entire cipher mapping is known
+     * @param knownmap Map of current cipher strings
+     * @returns Boolean indicating that there are unknowns
+     */
+    public hasUnknowns(
+        result: JQuery<HTMLElement>,
+        knownmap: StringMap,
+        working: string[][]
+    ): boolean {
+        const unknowns = this.getUnkownsCount(knownmap, working);
         if (unknowns > 0) {
             result.append(
                 'At this point in time, ' +
@@ -2445,6 +2519,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
                 if (this.hasUnknowns(result, knownmap, working)) {
                     limit--;
+                    this.solutionLoops = limit;
+                    this.solutionUnknowns = this.getUnkownsCount(knownmap, working);
                 } else {
                     let answer = '';
                     for (const strset of working) {

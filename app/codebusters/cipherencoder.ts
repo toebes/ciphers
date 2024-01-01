@@ -345,9 +345,12 @@ export class CipherEncoder extends CipherHandler {
         // Show/hide the randomize button if they are doing a K1/K2/... alphabet
         if (val === 'random') {
             $('#randomize').removeAttr('disabled').show();
+            $('#kwbutton').attr('disabled', 'disabled').hide();
             $('.kval').hide();
         } else {
             $('#randomize').attr('disabled', 'disabled').hide();
+            $('#kwbutton').attr('disabled', 'disabled').hide();
+            // TODO ENABLE THE BUTTON            $('#kwbutton').removeAttr('disabled').show();
             $('.kval').show();
         }
         if (val === 'k4') {
@@ -1131,8 +1134,15 @@ export class CipherEncoder extends CipherHandler {
                 class: 'cell',
             }).text('Alphabet Type')
         );
-        result.append(JTRadioButton(12, 'enctype', radiobuttons, this.state.encodeType));
-
+        let kwButton = $('<div/>', { class: 'cell shrink' }).append($("<button/>", {
+            type: "button",
+            id: "kwbutton",
+            class: "rounded button",
+        }).html("Suggest Keyword"));
+        let knButtons = JTRadioButton(-1, 'enctype', radiobuttons, this.state.encodeType);
+        knButtons.addClass("grid-margin-x")
+        knButtons.append(kwButton);
+        result.append(knButtons);
         result.append(JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, 'kval'));
         result.append(
             JTFIncButton('Offset', 'offset', this.state.offset, 'kval small-12 medium-6 large-6')
@@ -1334,6 +1344,7 @@ export class CipherEncoder extends CipherHandler {
         ];
         result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
         result.append(this.createMisspellDlg())
+        result.append(this.createKeywordDlg())
         this.genQuestionFields(result);
         this.genLangDropdown(result);
         this.genEncodeField(result);
@@ -1437,6 +1448,26 @@ export class CipherEncoder extends CipherHandler {
         return questionTextDlg;
     }
     /**
+     * Generates a dialog showing the sample question text
+     */
+    public createKeywordDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'keywordss' }))
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'mgen button', id: 'genbtn' }).text('Regenerate'))
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Cancel'
+                    )
+                )
+        );
+        const questionTextDlg = JTFDialog('keywordDLG', 'Suggest Keywords', dlgContents);
+        return questionTextDlg;
+    }
+
+    /**
      * Check to see if the current cipher has been modified and give them
      * an opportunity to save if it has.
      * @param targetURL URL to jump to if not modified
@@ -1476,62 +1507,88 @@ export class CipherEncoder extends CipherHandler {
      * Compute the score ranges for an Aristocrat/Patristocrat/Xenocrypt
      * @returns suggestedData containing score ranges
      */
-    public genAristocratScoreRange(str: string): suggestedData {
+    public genAristocratScoreRangeAndText(str: string): suggestedData {
         const qrecord = this.computeStats(this.state.curlang, str);
-        // Make adjustments based on the current cipher
-        let adjust = 0
-        // Patristocrats automatically get 300 extra points
-        if (this.state.cipherType === ICipherType.Patristocrat) {
-            adjust += 250;
-        } else if (this.state.cipherType === ICipherType.Xenocrypt) {
-            adjust += 300;
-        }
-        if (this.state.operation === 'keyword') {
-            adjust += 100;
-        } else if (this.state.encodeType === 'k1') {
-            adjust -= 100;
-        } else if (this.state.encodeType === 'k2') {
-            adjust -= 75;
-        }
-        // If we have a single letter word and A maps to I or I maps to A, that give them an extra 25 poitns of hints
-        // if ( )
-        this.genAlphabet();
-        if (qrecord.minlength === 1 && (this.state.replacement['I'] === 'A' || this.state.replacement['A'] === 'I')) {
-            adjust -= 25
-        }
-        // Make sure we get within the range of 150 to 700 for the final score
-        if ((qrecord.minscore + adjust) < 150) {
-            adjust = qrecord.minscore - 150
-        }
-        if ((qrecord.maxscore + adjust) > 700) {
-            adjust = 700 - qrecord.maxscore
-        }
+        let result: suggestedData = { suggested: qrecord.recommendedScore, min: qrecord.minscore, max: qrecord.maxscore, text: '' }
 
-        qrecord.recommendedScore += adjust;
+        if (qrecord.len === 0) {
+            result.text = '<b>You need to enter a quote in in the Plain Text order to get a recommendation for the score</b>';
+        } else if (qrecord.len < 65) {
+            result.text = "<b>The Plain Text quote is too short to get a recomendation</b>";
+        } else {
+            if (qrecord.unique < 16) {
+                result.text += `<b>The Plain Text only has ${qrecord.unique} unique characters.
+            It should have at least 19 unique character in order to get a good recommendation</b>`
+            }
+            result.text += `<p>Based on analysis of the cipher which includes examining the cipher text for 
+ the Chi-Square (χ2) distribution of letters,
+ grade level of the text,
+ number of unknown words,
+ commonality of words,
+ and commonness of pattern words`
+            //==========================
+            // Make adjustments based on the current cipher
+            let adjust = 0
+            // Patristocrats automatically get 300 extra points
+            if (this.state.cipherType === ICipherType.Patristocrat) {
+                adjust += 250;
+                result.text += ". Encoding as a Patristocrat adds 250 points";
+            } else if (this.state.cipherType === ICipherType.Xenocrypt) {
+                adjust += 300;
+                result.text += ". Because it is a Xenocrypt, it adds 300 points";
+            }
+            if (this.state.operation === 'keyword') {
+                adjust += 100;
+                result.text += ". Asking for a keyword or key phrase adds 100 points"
+            } else if (this.state.encodeType === 'k1') {
+                adjust -= 100;
+                result.text += ". A K1 alphabet takes away 100 points"
+            } else if (this.state.encodeType === 'k2') {
+                adjust -= 75;
+                result.text += ". A K2 alphabet takes away 75 points"
+            }
+            // If we have a single letter word and A maps to I or I maps to A, that give them an extra 25 points of hints
+            this.genAlphabet();
+            if (qrecord.minlength === 1 && (this.state.replacement['I'] === 'A' || this.state.replacement['A'] === 'I')) {
+                adjust -= 25
+                result.text += `. A single letter A/I which maps to A/I makes it 25 points easier`
+            }
+            // Make sure we get within the range of 150 to 700 for the final score
+            if ((qrecord.minscore + adjust) < 150) {
+                adjust = qrecord.minscore - 150
+            }
+            if ((qrecord.maxscore + adjust) > 700) {
+                adjust = 700 - qrecord.maxscore
+            }
+            result.suggested += adjust
+            result.max += adjust
+            result.min += adjust
+            let rangeText = ''
+            if (result.max > result.min) {
+                rangeText = ` out of a <em>suggested range of ${result.min} to ${result.max}</em>`
+            }
+            result.text += `, try a score of ${result.suggested}${rangeText}.</p>
+<p>
+  <b>NOTE:</b><em>If you provide any hints in the question,
+        you will want to adjust the score down by approximately 20 points per letter hinted</em></p>`
 
-        qrecord.minscore += adjust;
-        qrecord.maxscore += adjust;
-
-
-        return { suggested: qrecord.recommendedScore, min: qrecord.minscore, max: qrecord.maxscore, private: qrecord }
-
+        }
+        return result;
     }
     /**
      * Generate the recommended score and score ranges for a cipher
-     * @returns Computed score ranges for the cipher
+     * @returns Computed score ranges for the cipher and text description
      */
-    public genScoreRange(): suggestedData {
+    public genScoreRangeAndText(): suggestedData {
         if (this.state.cipherType === ICipherType.Aristocrat ||
             this.state.cipherType === ICipherType.Patristocrat ||
             this.state.cipherType === ICipherType.Xenocrypt) {
-            return this.genAristocratScoreRange(this.state.cipherString);
+            return this.genAristocratScoreRangeAndText(this.state.cipherString);
         }
-        return { suggested: 0, min: 0, max: 0 }
-    }
-    public genScoreRangeAndText(): suggestedData {
-        return {suggested: 0, min: 0, max: 0, text: ''};
-    }
 
+        let text = `<p><b>Unable to make a recommended score at this time.</b></p>`
+        return { suggested: 0, min: 0, max: 0, text: text }
+    }
     /**
      * Get the reference to the author for a quote
      * @returns Reference to the author (if any) for the quote
@@ -1636,25 +1693,14 @@ export class CipherEncoder extends CipherHandler {
     public async showSamplePoints() {
         this.prepGenScoring().then(() => {
             let suggestedScore = this.genScoreRangeAndText();
-            let suggestedScoreText = suggestedScore.text;
-            if (suggestedScoreText === undefined || suggestedScoreText === '') {
-                suggestedScore = this.genScoreRange();
-                suggestedScoreText = this.genSamplePointsText(suggestedScore);
-            }
-            const suggested = suggestedScore.suggested
-            const minrange = suggestedScore.min
-            const maxrange = suggestedScore.max
             // Remember the default score for when they set it
-            $('#spval').attr('data-points', suggested);
-            let title = `Suggested Points: ${suggested}`
-            // if (maxrange > minrange) {
-            //     title += ` (Range ${minrange} to ${maxrange})`
-            // }
+            $('#spval').attr('data-points', suggestedScore.suggested);
+            let title = `Suggested Points: ${suggestedScore.suggested}`
             $('#SamplePoints .dlgtitle').text(title);
 
             $('#sptext')
                 .empty()
-                .append(suggestedScoreText)
+                .append(suggestedScore.text)
             $("#SamplePoints").foundation('open');
         })
     }
@@ -1901,7 +1947,7 @@ export class CipherEncoder extends CipherHandler {
             const nextOut = this.makeOneMisspell(hom, wordrepl, typos);
             const cleanOut = nextOut.replace(/<\/?em>/g, "")
 
-            let score = this.genAristocratScoreRange(cleanOut);
+            let score = this.genAristocratScoreRangeAndText(cleanOut);
             if (used[nextOut] !== true) {
                 used[nextOut] = true
                 let useButton = $("<button/>", {
@@ -1936,6 +1982,17 @@ export class CipherEncoder extends CipherHandler {
         this.setCipherString(text)
         $('#MisspellDLG').foundation('close')
         this.updateOutput()
+    }
+    public suggestKeyword(): void {
+        this.prepGenScoring().then(() => {
+            let lang = 'en';
+            $('#keywordDLG').foundation('open')
+
+            let pat9 = this.makeUniquePattern("ABCDEFGHI", 1);
+            let pat10 = this.makeUniquePattern("ABCDEFGHIJ", 1);
+            let pat11 = this.makeUniquePattern("ABCDEFGHIJK", 1);
+            console.log(`9: ${this.Frequent[lang][pat9].length}, 10: ${this.Frequent[lang][pat10].length}, 11: ${this.Frequent[lang][pat11].length}, `)
+        })
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
@@ -2132,6 +2189,11 @@ export class CipherEncoder extends CipherHandler {
                 this.markUndo(null);
                 this.resetAlphabet();
                 this.updateOutput();
+            });
+        $('#genkeyword')
+            .off('click')
+            .on('click', () => {
+                this.suggestKeyword()
             });
         $('.chkmod')
             .off('click')

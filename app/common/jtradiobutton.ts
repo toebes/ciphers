@@ -26,6 +26,8 @@ export function JTRadioButton(
     let cellclass = 'cell medium-' + width + ' medium-offset-2';
     if (width === 0) {
         cellclass = 'cell';
+    } else if (width < 0) {
+        cellclass = 'cell shrink'
     }
     const cell = $('<div/>', { class: 'noprint ' + cellclass });
     const appmenu = $('<div/>', {

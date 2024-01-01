@@ -345,13 +345,19 @@ export class CipherEncoder extends CipherHandler {
         // Show/hide the randomize button if they are doing a K1/K2/... alphabet
         if (val === 'random') {
             $('#randomize').removeAttr('disabled').show();
-            $('#genkeyword').attr('disabled', 'disabled').hide();
             $('.kval').hide();
         } else {
             $('#randomize').attr('disabled', 'disabled').hide();
-            $('#genkeyword').removeAttr('disabled').show();
             $('.kval').show();
         }
+
+        if (val === 'k1' || val === 'k2' || val === 'k3') {
+            $('#genkeyword').removeAttr('disabled').show();
+
+        } else {
+            $('#genkeyword').attr('disabled', 'disabled').hide();
+        }
+
         if (val === 'k4') {
             $('.k4val').show();
         } else {

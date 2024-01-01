@@ -345,12 +345,11 @@ export class CipherEncoder extends CipherHandler {
         // Show/hide the randomize button if they are doing a K1/K2/... alphabet
         if (val === 'random') {
             $('#randomize').removeAttr('disabled').show();
-            $('#kwbutton').attr('disabled', 'disabled').hide();
+            $('#genkeyword').attr('disabled', 'disabled').hide();
             $('.kval').hide();
         } else {
             $('#randomize').attr('disabled', 'disabled').hide();
-            $('#kwbutton').attr('disabled', 'disabled').hide();
-            // TODO ENABLE THE BUTTON            $('#kwbutton').removeAttr('disabled').show();
+            $('#genkeyword').removeAttr('disabled').show();
             $('.kval').show();
         }
         if (val === 'k4') {
@@ -546,8 +545,8 @@ export class CipherEncoder extends CipherHandler {
         // the input chracterset alphabet may not be in the same order as the
         // actual alphabet.
         for (let i = 0, len = repl.length; i < len; i++) {
-            const repc = repl.substring(i, i + 1);
-            const orig = cset.substring(i, i + 1);
+            const repc = repl.charAt(i);
+            const orig = cset.charAt(i);
             // Remember that we are backwards because this an encoder
             this.setChar(orig, repc);
             // Just make sure that we don't happen to have the same character
@@ -634,7 +633,7 @@ export class CipherEncoder extends CipherHandler {
         // it, then remove it from the list of legal characters and add it
         // to the output string
         for (let i = 0, len = keyword.length; i < len; i++) {
-            const c = keyword.substring(i, i + 1).toUpperCase();
+            const c = keyword.charAt(i).toUpperCase();
             // Is it one of the characters we haven't used?
             const pos = unassigned.indexOf(c);
             if (pos >= 0) {
@@ -905,7 +904,7 @@ export class CipherEncoder extends CipherHandler {
             const rowanswer = table.addBodyRow();
 
             for (let i = 0; i < keyanswer.length; i++) {
-                const c = keyanswer.substring(i, i + 1);
+                const c = keyanswer.charAt(i);
                 if (this.isValidChar(c)) {
                     rowanswer.add({
                         settings: { class: 'e v' },
@@ -971,7 +970,7 @@ export class CipherEncoder extends CipherHandler {
             const rowanswer = table.addBodyRow();
 
             for (let i = 0; i < keyanswer.length; i++) {
-                const c = keyanswer.substring(i, i + 1);
+                const c = keyanswer.charAt(i);
                 const spos = String(i);
                 if (this.isValidChar(c)) {
                     rowanswer.add({
@@ -1136,7 +1135,7 @@ export class CipherEncoder extends CipherHandler {
         );
         let kwButton = $('<div/>', { class: 'cell shrink' }).append($("<button/>", {
             type: "button",
-            id: "kwbutton",
+            id: "genkeyword",
             class: "rounded button",
         }).html("Suggest Keyword"));
         let knButtons = JTRadioButton(-1, 'enctype', radiobuttons, this.state.encodeType);
@@ -1456,7 +1455,7 @@ export class CipherEncoder extends CipherHandler {
         dlgContents.append($('<div/>', { class: 'callout primary', id: 'keywordss' }))
         dlgContents.append(
             $('<div/>', { class: 'expanded button-group' })
-                .append($('<a/>', { class: 'mgen button', id: 'genbtn' }).text('Regenerate'))
+                .append($('<a/>', { class: 'button', id: 'keygenbtn' }).text('Regenerate'))
                 .append(
                     $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
                         'Cancel'
@@ -1818,7 +1817,7 @@ export class CipherEncoder extends CipherHandler {
                 newText += replace.words[replChoice.word].punct
                 // Also, if the first character of the original was uppercase, we want
                 // to uppercase the first letter of the newText
-                let firstc = replace.words[replChoice.word].full.substring(0, 1)
+                let firstc = replace.words[replChoice.word].full.charAt(0)
                 if (firstc === firstc.toUpperCase()) {
                     newText = newText.charAt(0).toUpperCase() + newText.slice(1)
                 }
@@ -1907,7 +1906,7 @@ export class CipherEncoder extends CipherHandler {
                 }
                 // Also, if the first character of the original was uppercase, we want
                 // to uppercase the first letter of the newText
-                let firstc = replace.words[randSlot].full.substring(0, 1)
+                let firstc = replace.words[randSlot].full.charAt(0)
                 if (firstc === firstc.toUpperCase()) {
                     word = word.charAt(0).toUpperCase() + word.slice(1)
                 }
@@ -1983,16 +1982,307 @@ export class CipherEncoder extends CipherHandler {
         $('#MisspellDLG').foundation('close')
         this.updateOutput()
     }
+    /**
+     * Set a keyword and offset from the recommended set
+     * @param elem Keyword button to be used
+     */
+    public useKeyword(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const text = jqelem.attr('data-text')
+        const offset = Number(jqelem.attr('data-offset'))
+        // Give an undo state s
+        this.markUndo(null)
+        this.setKeyword(text)
+        this.setOffset(offset)
+        $('#keywordDLG').foundation('close')
+        this.updateOutput()
+
+    }
+    /**
+     * Start the process to suggest keywords and offsets to the user
+     */
     public suggestKeyword(): void {
         this.prepGenScoring().then(() => {
-            let lang = 'en';
-            $('#keywordDLG').foundation('open')
-
-            let pat9 = this.makeUniquePattern("ABCDEFGHI", 1);
-            let pat10 = this.makeUniquePattern("ABCDEFGHIJ", 1);
-            let pat11 = this.makeUniquePattern("ABCDEFGHIJK", 1);
-            console.log(`9: ${this.Frequent[lang][pat9].length}, 10: ${this.Frequent[lang][pat10].length}, 11: ${this.Frequent[lang][pat11].length}, `)
+            $('#keywordDLG').foundation('open');
+            this.genKeywordSuggestions();
         })
+    }
+    /**
+     * Find out what letters are used in the cipher string
+     * @param str String to find usage for
+     * @returns BoolMap indicating which letters are used.
+     */
+    public findUsage(str: string): BoolMap {
+        const charset = this.getCharset();
+        const langreplace = this.langreplace[this.state.curlang];
+        const result: BoolMap = {}
+
+        // Now go through the string to encode and compute the character
+        // to map and mark it as being used
+        for (let t of str.toUpperCase()) {
+            // See if the character needs to be mapped.
+            if (typeof langreplace[t] !== 'undefined') {
+                t = langreplace[t];
+            }
+            // Make sure that this is a valid character to map from
+            const pos = charset.indexOf(t);
+            if (pos >= 0) {
+                result[t] = true
+            }
+        }
+        return result;
+    }
+    /**
+     * Check the replacement set for the the characters on an encryption
+     * Note that we actually have to reverse them because the ciphers class
+     * is mostly built around decrypting
+     */
+    public checkReplacement(cset: string, repl: string, keyword: string, usage: BoolMap): number {
+        // Figure out what letters map to the destination letters.  Note that
+        // the input chracterset alphabet will not be in the same order as the
+        // actual alphabet.
+        const revUsage: BoolMap = {}
+        for (let i = 0, len = repl.length; i < len; i++) {
+            const repc = repl.charAt(i);
+            const orig = cset.charAt(i);
+            // Just make sure that we don't happen to have the same character
+            // at this position
+            if (repc === orig) {
+                return 0
+            }
+            // if (keyword !== undefined && keyword.includes(orig) && usage[repc] === false) {
+            //     return false;
+            // }
+            if (usage[repc] === true) {
+                revUsage[orig] = true
+            }
+        }
+        if (keyword !== undefined) {
+            let misscount = 0
+            let misddistance = keyword.length
+            for (let i = 0; i < keyword.length; i++) {
+                const c = keyword.charAt(i)
+                if (revUsage[c] !== true) {
+                    misscount++
+                    misddistance = Math.min(misddistance, i, keyword.length - i)
+                }
+            }
+            if (misscount > 1 || misddistance < 3) {
+                return 0;
+            }
+            if (misscount === 1) {
+                return -1
+            }
+        }
+        return 1
+    }
+    /**
+     * Pick a random set of entries
+     * @param set Set of numbers to choose from
+     * @param picks The number of entries to pick
+     * @returns Array with up to <picks> entries chosen at random from the set
+     */
+    public chooseRandom(set: number[], picks: number): number[] {
+        const result: number[] = []
+        const work = [...set]
+        for (let i = 0; work.length > 0 && i < picks; i++) {
+            const pick = Math.floor(Math.random() * work.length)
+            result.push(work[pick])
+            work.splice(pick, 1);
+        }
+        return result
+    }
+    /**
+     * Find useful offsets where a keyword could be placed for the current cipher
+     * @param keyword Keyword to check.  It should be in uppercase
+     * @returns An array of up to three offsets.  Note that a negative offset indicated one letter isn't mapped
+     */
+    public findKeywordOffsets(keyword: string): number[] {
+        // k3 is simple.  We only want a short offset to keep it simple
+        if (this.state.encodeType === 'k3') {
+            return [1, 2, 3]
+        }
+        // K4 and Random aren't handled here since we really don't make a single keyword recommendation for them
+        if (this.state.encodeType !== 'k1' && this.state.encodeType !== 'k2') {
+            return undefined
+        }
+        const usage = this.findUsage(this.state.cipherString)
+        const destAlphabet = this.getCharset()
+        const sourceAlphabet = this.getSourceCharset()
+        let wraps: number[] = []
+        let nonwraps: number[] = []
+        let perfectwraps: number[] = []
+        let prefectnonwraps: number[] = []
+        // For a K1 we just need to make sure that that all the letters in the keyword exist
+        // in the plain text and that the mapping doesn't generate any letterr that map to themselves
+        if (this.state.encodeType === 'k1') {
+            // See if all the letters in the keyword are in the string
+            for (let c of keyword) {
+                if (usage[c] !== true) {
+                    return undefined
+                }
+            }
+            // Find a spot where this works.
+            for (let i = 0; i < 26; i++) {
+                let offset = (26 - keyword.length + i) % 26
+
+                if (offset > 0) {
+                    const repl = this.genKstring(keyword, offset, destAlphabet);
+                    const check = this.checkReplacement(sourceAlphabet, repl, undefined, usage)
+                    if (check !== 0) {
+                        if (i < keyword.length) {
+                            perfectwraps.push(offset)
+                        } else {
+                            prefectnonwraps.push(offset)
+                        }
+                    }
+                }
+            }
+        } else { // if (this.state.encodeType === 'k2') 
+            // K2 is the complicated case 
+            for (let i = 0; i < 26; i++) {
+                let offset = (26 - keyword.length + i) % 26
+
+                if (offset > 0) {
+                    const repl = this.genKstring(keyword, offset, sourceAlphabet);
+                    const check = this.checkReplacement(repl, destAlphabet, keyword, usage)
+                    if (check !== 0) {
+                        if (i < keyword.length) {
+                            if (check > 0) {
+                                perfectwraps.push(offset)
+                            } else {
+                                wraps.push(-offset)
+                            }
+                        } else {
+                            if (check > 0) {
+                                prefectnonwraps.push(offset)
+                            } else {
+                                nonwraps.push(-offset)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // We have a set of options (possibly)
+        if (perfectwraps.length + prefectnonwraps.length + wraps.length + nonwraps.length === 0) {
+            return undefined
+        }
+        // We need to eliminate some of the entries
+        // We prefer to have two of the wrap ones if possible.
+        const result = this.chooseRandom(perfectwraps, 2)
+        result.push(... this.chooseRandom(prefectnonwraps, 3 - result.length))
+        if (result.length < 3) {
+            result.push(... this.chooseRandom(wraps, 2))
+            if (result.length < 3) {
+                result.push(... this.chooseRandom(nonwraps, 3 - result.length))
+            }
+        }
+        return result
+    }
+    /**
+     * Update the GUI with a list of suggestions
+     */
+    public genKeywordSuggestions() {
+        let lang = 'en';
+
+        let testUsage = this.getTestUsage();
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+
+        // We use the 8, 9, 10 and 11 unique character strings as our potential keyword choices
+        let limit8 = 200
+        let limit9 = 50
+        let limit10 = 40
+        let limit11 = 33
+        let scaleb9 = 10
+        let scalec9 = 10
+        if (usedOnA) {
+            limit8 = 300
+            limit9 = 50
+            limit10 = 40
+            limit11 = 33
+        } else if (usedOnB) {
+            limit8 = 800 / scaleb9
+            limit9 = 125
+            limit10 = 100
+            limit11 = 66
+        } else {
+            limit8 = 1200 / scalec9
+            limit9 = 400
+            limit10 = 250
+            limit11 = 88
+        }
+
+        let pat8 = this.makeUniquePattern("ABCDEFGH", 1);
+        let pat9 = this.makeUniquePattern("ABCDEFGHI", 1);
+        let pat10 = this.makeUniquePattern("ABCDEFGHIJ", 1);
+        let pat11 = this.makeUniquePattern("ABCDEFGHIJK", 1);
+        let output = $("#keywordss");
+        output.empty();
+
+        if (this.state.encodeType === 'k2') {
+            output.append($(`<p/><b>NOTE:</b> For K2 alphabets, not all of the letters of the keyword will be mapped.
+            Those with a single letter not mapped are shown as yellow buttons instead of blue.</p>`))
+        }
+        // Keep track of how many entries we find to present so that we don't put more than 10 on the dialog
+        let found = 0
+
+        for (let tval = 0; found < 10 && tval < 25; tval++) {
+            // Pick a random number from the set of choices
+            let slot = Math.round(Math.random() * (limit8 + limit9 + limit10 + limit11));
+            // And figure out which slot it is in as well as the pattern that gets us to the slot
+            let pat = pat8;
+            if (slot <= limit8) {
+                // For the 8 character slots, we want to make them less frequent for Division B/C so we need to scale
+                // it back up by the right amount and pick a number in that slot range
+                if (!usedOnA) {
+                    if (usedOnB) {
+                        slot = Math.trunc((slot * scaleb9) + (Math.random() * scaleb9))
+                    } else {
+                        slot = Math.trunc((slot * scalec9) + (Math.random() * scalec9))
+                    }
+                }
+            } else {
+                pat = pat9
+                slot -= limit8
+                if (slot > limit9) {
+                    slot -= limit9;
+                    pat = pat10;
+                    if (slot > limit10) {
+                        slot -= limit10;
+                        pat = pat11;
+                    }
+                }
+            }
+            let keyword = this.Frequent[lang][pat][slot][0];
+
+            // We have the keyword, let's see if this work
+            let offsets = this.findKeywordOffsets(keyword)
+            if (offsets !== undefined) {
+                let div = $('<div/>', { class: "kwchoice" });
+                div.append($('<span/>').text(keyword));
+                for (let offset of offsets) {
+                    let warnclass = ""
+                    if (offset < 0) {
+                        offset = -offset
+                        warnclass = " warning"
+                    }
+                    let useButton = $("<button/>", {
+                        'data-text': keyword,
+                        'data-offset': offset,
+                        type: "button",
+                        class: "rounded button keyset abbuttons" + warnclass,
+                    }).html(`Use Offset +${offset}`);
+                    div.append(useButton)
+
+                }
+
+                output.append(div);
+                found++
+            }
+        }
+        this.attachHandlers()
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
@@ -2195,6 +2485,17 @@ export class CipherEncoder extends CipherHandler {
             .on('click', () => {
                 this.suggestKeyword()
             });
+        $('#keygenbtn')
+            .off('click')
+            .on('click', () => {
+                this.genKeywordSuggestions()
+            });
+
+        $('.keyset')
+            .off('click')
+            .on('click', (e) => {
+                this.useKeyword(e.target)
+            })
         $('.chkmod')
             .off('click')
             .on('click', (e) => {

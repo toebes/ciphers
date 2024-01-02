@@ -69,9 +69,7 @@ export class CipherTestPrint extends CipherTest {
     public genPage(title: string): JQuery<HTMLElement> {
         const page = $('<div/>', { class: 'page' });
         page.append($('<div/>', { class: 'head' }).text(title));
-        if (this.pageNumber % 2 === 1) {
-            page.append($('<div/>', { class: 'headright' }).text('School:__________'));
-        }
+        page.append($('<div/>', { class: 'headright' }).text('Team #:_______________'));
         page.append($('<div/>', { class: 'foot' }).text('Page ' + String(this.pageNumber)));
         this.pageNumber++;
         return page;

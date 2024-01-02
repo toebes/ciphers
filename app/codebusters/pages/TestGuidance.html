@@ -604,6 +604,41 @@
                 <p class="ex callout small secondary">Using a keyword of <span class="fq">HORSE</span>, encode this
                     famous quote by <em>&lt;person&gt;</em> using the Porta cipher.</p>
             </div>
+            <div id="Nihilist">
+                <h2 class="ol">
+                    <div class="qusec"></div>
+                    <div class="quseb"></div><div>Nihilist cipher {3.e.viii}</div>
+                </h2>
+                <p>The Nihilist cipher is a substitution cipher.  It uses two keywords to encode the plaintext.
+                    The first is used to construction a Polybius Square which is used to map all of the
+                    letters to numbers. The second keyword is used to encode the plaintext, applying each
+                    letter in the keyword in sequence in just the same way that the Vigenère cipher
+                    works.</p>
+                <span class="ht">Setting Difficulty:</span>
+                <p class="in">In general, more room for error makes it more difficult to get the right
+                    answer.  There is more room for error when the key length and the block size are different.  A block
+                    size of 0 may provide clues to the encoded words, so reduces difficulty.
+                    A longer polybius key makes it more difficult because there is increased chance of
+                    creating the polybius square incorrectly.  A longer encoding key also means there is more work to do.
+                    needed.  Putting 'Z' in the polybius key means it will not have a numeric value of 55, which is
+                    a common assumption.</p>
+                <span class="ht">Points:</span>
+                <p class="in"> 125-150.  Longer plain text should be worth more because there is simply more work to do,
+                    in addition to the considerations above.</p>
+                <span class="ht">Question Text:</span>
+                <p class="in">For decryption, the question text should include the polybius key and key used to
+                    encrypt the plain text.</p>
+                <p class="ex callout small secondary">A phrase by <em>&lt;person&gt;</em> was encoded
+                    using a Nihilist Substitution Cipher with a Polybius Key of <span class="fq">SCIENCE OLYMPIAD</span>
+                    and a key of <span class="fq">CODE</span>.  What does it say? </p>
+                <p class="in">For cryptanalysis, the question text should include a hint of plaintext and the
+                    location of that plaintext.</p>
+                <p class="ex callout small secondary">
+                    The following quote by <em>&lt;person&gt;</em> has been encoded with the Nihilist Substitution
+                    Cipher using a very common word for the key. The 35th through 39th cipher units
+                    (<span class="fq">58 93 66 54 45</span>) decode to be <span class="fq">HAPPY</span>.
+                </p>
+            </div>
             <div id="Baconian">
                 <h2 class="ol">
                     <div class="qusec"></div>

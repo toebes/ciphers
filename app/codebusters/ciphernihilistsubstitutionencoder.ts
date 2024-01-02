@@ -14,7 +14,7 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { mapperFactory } from '../common/mapperfactory';
-import { CipherEncoder, IEncoderState } from './cipherencoder';
+import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
 interface INihilistState extends IEncoderState {
     /** The type of operation */
@@ -77,6 +77,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
 
@@ -135,7 +137,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
         let result = super.CheckAppropriate(testType, anyOperation);
         if (!anyOperation && result === '' && testType !== undefined) {
-            if (
+if (
                 testType !== ITestType.cregional &&
                 testType !== ITestType.cstate &&
                 testType !== ITestType.bregional &&
@@ -253,9 +255,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const crib = this.minimizeString(this.state.crib);
         const strings = this.buildNihilistSequenceSets(
             this.minimizeString(this.state.cipherString),
-            9999
+            9999,
+            true
         );
-        // const strings = this.sequencesets
         if (strings.length !== 1) {
             return undefined;
         }
@@ -300,50 +302,93 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let msg = '';
         let ciphertypetext = 'Nihilist Substitution';
         if (this.state.operation === 'crypt') {
-            msg =
-                '<p>The following quote' + this.genAuthor() + ' has been encoded with the ' + ciphertypetext +
-                ' Cipher using a very common word for the key. ';
+            msg = `<p>The following quote by ${this.genAuthor()} has been encoded with the ${ciphertypetext}
+                Cipher using a very common word for the key. `;
 
             const cribpos = this.placeCrib();
             if (cribpos === undefined) {
                 msg += 'But <strong>the crib can not be found in the Plain Text</strong>. ';
             } else if (cribpos.position === 0) {
-                msg +=
-                    'The deciphered text starts with ' + this.genMonoText(cribpos.plaintext) + '. ';
+                msg += `The deciphered text starts with ${this.genMonoText(cribpos.plaintext)}. `;
             } else if (cribpos.position === cribpos.cipherlen - cribpos.criblen) {
-                msg +=
-                    'The deciphered text ends with ' + this.genMonoText(cribpos.plaintext) + '. ';
+                msg += `The deciphered text ends with ${this.genMonoText(cribpos.plaintext)}. `;
             } else {
                 const startpos = this.getPositionText(cribpos.position + 1);
                 const endpos = this.getPositionText(cribpos.position + cribpos.criblen);
-                msg +=
-                    'The ' +
-                    startpos +
-                    ' through ' +
-                    endpos +
-                    ' cipher units (' +
-                    this.genMonoText(cribpos.ciphertext.join(' ')) +
-                    ') decode to be ' +
-                    this.genMonoText(cribpos.plaintext);
+                msg += `The ${startpos} through ${endpos} cipher units (${this.genMonoText(cribpos.ciphertext.join(' '))})
+                    decode to be ${this.genMonoText(cribpos.plaintext)}. `
             }
         } else {
             const keyword = this.genMonoText(this.cleanKeyword);
             const polybiusKey = this.genMonoText(this.cleanPolyKey);
             if (this.state.operation === 'encode') {
-                msg =
-                    '<p>The following quote' + this.genAuthor() + ' needs to be encoded ' +
-                    ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
-                    keyword + ' and polybius key of ' + polybiusKey + '. ';
+                msg = `<p>The following quote by ${this.genAuthor()} needs to be encoded with the
+                    ${ciphertypetext} Cipher with a keyword of ${keyword} and polybius key of ${polybiusKey}. `;
             } else {
-                msg =
-                    '<p>The following quote' + this.genAuthor() + ' needs to be decoded ' +
-                    ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
-                    keyword + ' and polybius key of ' + polybiusKey + '. ';
+                msg = `<p>The following quote by ${this.genAuthor()} needs to be decoded with the 
+                    ${ciphertypetext} Cipher with a keyword of ${keyword} and polybius key of ${polybiusKey}. `;
             }
         }
         msg += '</p>';
         return msg;
     }
+
+    public genScoreRangeAndText(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+
+        let suggested = 55 + qdata.len;
+        let operationText = '';
+        let zeroBlockSizeText = '';
+        let keywordLengthText = '';
+        let blockSizeMatchesText = ' The block size matches the keyword length. ';
+        let zNotLastText = '';
+        let scoringText = '';
+
+        if (this.state.operation === 'crypt') {
+            operationText = ' This problem requires cryptanalysis. ';
+            suggested += 20;
+        }
+
+        if (this.state.blocksize != this.cleanKeyword.length) {
+            blockSizeMatchesText = ' The block size does not match the keyword length. ';
+            suggested += 15;
+        }
+
+        zeroBlockSizeText = ` The block size is ${this.state.blocksize}. `
+        if (this.state.blocksize === 0) {
+            suggested -= 10;
+        }
+
+        keywordLengthText = ` The key has length ${this.cleanKeyword.length}. `;
+        // Add more  points for larger keywords...
+        suggested += Math.round((10 * (this.cleanKeyword.length / 3)));
+
+        if (this.cleanPolyKey.indexOf('Z') !== -1) {
+            zNotLastText = ` The letter 'Z' is not the last letter in the polybius square. `;
+            suggested += 10;
+        }
+
+        let range = 20;
+        const min = Math.max(suggested - range, 0)
+        const max =  suggested + range
+        suggested += Math.round(range * Math.random() - range / 2);
+
+        let rangetext = ''
+        if (max > min) {
+            rangetext = `, from a range of ${min} to ${max}`
+        }
+        if (qdata.len < 26) {
+            scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend around 50 characters for a good quote</em></p>`
+        }
+        if (qdata.len > 2) {
+            scoringText += `<p>There are ${qdata.len} characters in the quote.  
+                ${operationText}${zeroBlockSizeText}${keywordLengthText}${blockSizeMatchesText}${zNotLastText}
+                We suggest you try a score of ${suggested}${rangetext}.</p>`
+        }
+
+        return { suggested: suggested, min: min, max: max, private: qdata, text: scoringText }
+    }
+
 
     /**
      * Cleans up any settings, range checking and normalizing any values.
@@ -516,13 +561,14 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     */
     public buildNihilistSequenceSets(
         msg: string,
-        maxEncodeWidth: number
+        maxEncodeWidth: number,
+        findCrib: boolean = false
     ): string[][][] {
         let key = this.cleanKeyword
         if (key === '') {
             key = 'A';
         }
-        const encoded = this.chunk(msg, this.state.blocksize);
+        const encoded = findCrib ? msg: this.chunk(msg, this.state.blocksize);
         const result: string[][][] = [];
         const charset = this.getCharset();
         let cipher = [];

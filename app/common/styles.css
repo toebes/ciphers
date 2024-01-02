@@ -1967,7 +1967,7 @@ table.nameline td {
 }
 table.nameline td.u {
     border-bottom: 1px solid black;
-    width: 100%;
+    width: 80%;
     height: 2rem;
 }
 .runtitle {

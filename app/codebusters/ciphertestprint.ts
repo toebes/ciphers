@@ -45,6 +45,7 @@ export class CipherTestPrint extends CipherTest {
         $('.testcontent').each((i, elem) => {
             this.genTestQuestions($(elem));
         });
+        this.setTeamNumberPrefix();
         this.attachHandlers();
     }
     /**
@@ -427,5 +428,26 @@ export class CipherTestPrint extends CipherTest {
             .add('Final Score')
             .add({ settings: { colspan: 4 }, content: '' });
         $('#scoretable').append(table.generate());
+    }
+
+    /**
+     * Pre-set the Division letter in the Team Number field on the score sheet so kids just ahve to write their number.
+     */
+    public setTeamNumberPrefix(): void {
+        const test = this.getTestEntry(this.state.test);
+
+        let teamPrefix = '';
+
+        if (test.testtype === ITestType.aregional) {
+            teamPrefix = 'A';
+        } 
+        else if (test.testtype === ITestType.bregional || test.testtype === ITestType.bstate) {
+            teamPrefix = 'B';
+        }
+        else if (test.testtype === ITestType.cregional || test.testtype === ITestType.cstate) {
+            teamPrefix = 'C';
+        }
+
+        $("#testDivision").append($('<strong/>').text(teamPrefix));
     }
 }

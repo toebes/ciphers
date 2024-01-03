@@ -452,7 +452,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         result.append(
             JTFLabeledInput(
-                'Key',
+                'Keyword',
                 'text',
                 'keyword',
                 this.state.keyword,

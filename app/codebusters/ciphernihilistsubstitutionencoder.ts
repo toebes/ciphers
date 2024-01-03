@@ -346,7 +346,7 @@ if (
 
         if (this.state.operation === 'crypt') {
             operationText = ' This problem requires cryptanalysis. ';
-            suggested += 20;
+            suggested += 100;
         }
 
         if (this.state.blocksize != this.cleanKeyword.length) {
@@ -410,7 +410,7 @@ if (
             this.guidanceURL = 'TestGuidance.html#Nihilist';
             $('.crib').hide();
         } else {
-            this.guidanceURL = 'TestGuidance.html#Nihilist_Decrypt';
+            this.guidanceURL = 'TestGuidance.html#Nihilist_Cryptanalysis';
             $('.crib').show();
         }
         JTRadioButtonSet('ciphertype', this.state.cipherType);

@@ -1643,6 +1643,10 @@ div.tn {
     width: auto;
 }
 
+.ansblock.combchar {
+    font-family: juliamono, 'Consolas', 'Monaco', 'Courier New', Courier, monospace;
+}
+
 div.vsolv {
     font-family: Arial, Helvetica, sans-serif;
 }
@@ -1737,6 +1741,12 @@ div.vsolv {
 @font-face {
     font-family: dancingmen;
     src: url(fonts/DancingMenSO.woff);
+}
+
+@font-face {
+    font-family: juliamono;
+    src: url(fonts/JuliaMono-Regular.woff2) format('woff2')
+        url(fonts/JuliaMono-Regular.woff) format('woff');
 }
 
 .dancingmen.ansblock .q.v {

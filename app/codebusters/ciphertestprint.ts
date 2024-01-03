@@ -70,7 +70,7 @@ export class CipherTestPrint extends CipherTest {
     public genPage(title: string): JQuery<HTMLElement> {
         const page = $('<div/>', { class: 'page' });
         page.append($('<div/>', { class: 'head' }).text(title));
-        page.append($('<div/>', { class: 'headright' }).text('Team #:_______________'));
+        page.append($('<div/>', { class: 'headright' }).text(`Team Number:_${this.getTeamNumberPrefix()}_________`));
         page.append($('<div/>', { class: 'foot' }).text('Page ' + String(this.pageNumber)));
         this.pageNumber++;
         return page;
@@ -431,23 +431,29 @@ export class CipherTestPrint extends CipherTest {
     }
 
     /**
-     * Pre-set the Division letter in the Team Number field on the score sheet so kids just ahve to write their number.
+     * Returns the 'division' letter for pre-populating the team number field in the printed test.
      */
-    public setTeamNumberPrefix(): void {
+    public getTeamNumberPrefix(): string {
         const test = this.getTestEntry(this.state.test);
 
         let teamPrefix = '';
 
         if (test.testtype === ITestType.aregional) {
             teamPrefix = 'A';
-        } 
+        }
         else if (test.testtype === ITestType.bregional || test.testtype === ITestType.bstate) {
             teamPrefix = 'B';
         }
         else if (test.testtype === ITestType.cregional || test.testtype === ITestType.cstate) {
             teamPrefix = 'C';
         }
+        return teamPrefix;
+    }
 
-        $("#testDivision").append($('<strong/>').text(teamPrefix));
+    /**
+     * Pre-set the Division letter in the Team Number field on the score sheet so kids just have to write their number.
+     */
+    public setTeamNumberPrefix(): void {
+        $("#testDivision").append($('<strong/>').text(this.getTeamNumberPrefix()));
     }
 }

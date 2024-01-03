@@ -137,7 +137,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
         let result = super.CheckAppropriate(testType, anyOperation);
         if (!anyOperation && result === '' && testType !== undefined) {
-if (
+            if (
                 testType !== ITestType.cregional &&
                 testType !== ITestType.cstate &&
                 testType !== ITestType.bregional &&
@@ -354,8 +354,8 @@ if (
             suggested += 15;
         }
 
-        zeroBlockSizeText = ` The block size is ${this.state.blocksize}. `
         if (this.state.blocksize === 0) {
+            zeroBlockSizeText = ` The block size is 0. `
             suggested -= 10;
         }
 
@@ -363,14 +363,14 @@ if (
         // Add more  points for larger keywords...
         suggested += Math.round((10 * (this.cleanKeyword.length / 3)));
 
-        if (this.cleanPolyKey.indexOf('Z') !== -1) {
-            zNotLastText = ` The letter 'Z' is not the last letter in the polybius square. `;
-            suggested += 10;
-        }
+        // if (this.cleanPolyKey.indexOf('Z') !== -1) {
+        //     zNotLastText = ` The letter 'Z' is not the last letter in the polybius square. `;
+        //     suggested += 10;
+        // }
 
         let range = 20;
         const min = Math.max(suggested - range, 0)
-        const max =  suggested + range
+        const max = suggested + range
         suggested += Math.round(range * Math.random() - range / 2);
 
         let rangetext = ''
@@ -378,7 +378,10 @@ if (
             rangetext = `, from a range of ${min} to ${max}`
         }
         if (qdata.len < 26) {
-            scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend around 50 characters for a good quote</em></p>`
+            scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in this quote, we recommend around 50 characters for a good quote</em></p>`
+        }
+        if (qdata.len > 75) {
+            scoringText = `<p><b>WARNING:</b> <em>There are ${qdata.len} characters in this quote, which is a significant amount more than the recommended 50 characters.</em></p>`
         }
         if (qdata.len > 2) {
             scoringText += `<p>There are ${qdata.len} characters in the quote.  
@@ -568,7 +571,7 @@ if (
         if (key === '') {
             key = 'A';
         }
-        const encoded = findCrib ? msg: this.chunk(msg, this.state.blocksize);
+        const encoded = findCrib ? msg : this.chunk(msg, this.state.blocksize);
         const result: string[][][] = [];
         const charset = this.getCharset();
         let cipher = [];

@@ -607,48 +607,54 @@
             <div id="Nihilist">
                 <h2 class="ol">
                     <div class="qusec"></div>
-                    <div class="quseb"></div><div>Nihilist cipher {3.e.viii}</div>
+                    <div class="quseb"></div>
+                    <div>Nihilist cipher {3.e.ix}</div>
                 </h2>
-                <p>The Nihilist cipher is a substitution cipher.  It uses two keywords to encode the plaintext.
-                    The first is used to construction a Polybius Square which is used to map all of the
-                    letters to numbers. The second keyword is used to encode the plaintext, applying each
+                <p>The Nihilist cipher is a substitution cipher. It uses two keywords, the polybius key and normal
+                    keyword, to encode the plaintext.
+                    The polybius key is used to generate a Polybius Square, which is a 5x5 table that maps every letter
+                    to a number based on its row and column.
+                    The normal keyword is used to encode the plaintext, applying each
                     letter in the keyword in sequence in just the same way that the Vigenère cipher
-                    works.</p>
+                    works. There should be no more than 2 Nihilist decryption problems on a test.</p>
                 <span class="ht">Setting Difficulty:</span>
                 <p class="in">In general, more room for error makes it more difficult to get the right
-                    answer.  There is more room for error when the key length and the block size are different.  A block
+                    answer. There is more room for error when the key length and the block size are different. A block
                     size of 0 may provide clues to the encoded words, so reduces difficulty.
                     A longer polybius key makes it more difficult because there is increased chance of
-                    creating the polybius square incorrectly.  A longer encoding key also means there is more work to do.
-                    needed.  Putting 'Z' in the polybius key means it will not have a numeric value of 55, which is
+                    creating the polybius square incorrectly. A longer encoding key also means there is more work to do.
+                    needed. Putting 'Z' in the polybius key means it will not have a numeric value of 55, which is
                     a common assumption.</p>
                 <span class="ht">Points:</span>
-                <p class="in"> 125-150.  Longer plain text should be worth more because there is simply more work to do,
+                <p class="in"> 125-150. Longer plain text should be worth more because there is simply more work to do,
                     in addition to the considerations above.</p>
                 <span class="ht">Question Text:</span>
-                <p class="in">For decryption, the question text should include the polybius key and key used to
-                    encrypt the plain text.</p>
+                <p class="in">For decryption, the question text should include the polybius key and normal keyword used
+                    to
+                    encrypt the plain text. Quote length should be at most around 50 characters.</p>
                 <p class="ex callout small secondary">A phrase by <em>&lt;person&gt;</em> was encoded
                     using a Nihilist Substitution Cipher with a Polybius Key of <span class="fq">SCIENCE OLYMPIAD</span>
-                    and a key of <span class="fq">CODE</span>.  What does it say? </p>
+                    and a key of <span class="fq">CODE</span>. What does it say? </p>
             </div>
             <div id="Nihilist_Cryptanalysis">
                 <h2 class="ol">
                     <div class="qusec"></div>
-                    <div class="quseb"></div><div>Nihilist cipher (cryptanalysis) {3.f.v}</div>
+                    <div class="quseb"></div>
+                    <div>Nihilist cipher (cryptanalysis) {3.f.v}</div>
                 </h2>
-                <p>The Nihilist cipher is a substitution cipher.  It uses two keywords to encode the plaintext.
+                <p>The Nihilist cipher is a substitution cipher. It uses two keywords to encode the plaintext.
                     The first is used to construction a Polybius Square which is used to map all of the
                     letters to numbers. The second keyword is used to encode the plaintext, applying each
                     letter in the keyword in sequence in just the same way that the Vigenère cipher
-                    works.  Doing cryptanalysis, some of the mapping of plain text to cipher text is given and the
-                    polybius square and keyword need to be derived from that mapping.  This is an iterative process an
+                    works. Doing cryptanalysis, some of the mapping of plain text to cipher text is given and the
+                    polybius square and keyword need to be derived from that mapping. This is an iterative process an
                     increases the difficulty quite a bit.</p>
                 <span class="ht">Setting Difficulty:</span>
                 <p class="in">In addition to the <a href="#Nihilist">notes above</a>, cryptanalysis makes
-                    Nihilist ciphers significantly more difficult due to the iteration and deduction required to solve it.</p>
+                    Nihilist ciphers significantly more difficult due to the iteration and deduction required to solve
+                    it.</p>
                 <span class="ht">Points:</span>
-                <p class="in"> 225-275.  Cryptanalysis adds 100 points or more, depending on the length of the crib.</p>
+                <p class="in"> 225-275. Cryptanalysis adds 100 points or more, depending on the length of the crib.</p>
                 <span class="ht">Question Text:</span>
                 <p class="in">For cryptanalysis, the question text should include a hint of plaintext and the
                     location of that plaintext.</p>
@@ -839,13 +845,15 @@
                     <div class="qusec"></div>Complete Columnar {3.e.vii}
                 </h2>
                 <span class="ht">Setting Difficulty:</span>
-                <p class="in">Difficulty is increased when the crib is split over two rows; when the crib appears in more
+                <p class="in">Difficulty is increased when the crib is split over two rows; when the crib appears in
+                    more
                     than one location in the column block; when there are
                     duplicate letters in the crib; when there are more possible columns (i.e. more factors of the
-                    cipher text length) that must be analyzed; when there are no pad characters (i.e. cipher text is a multiple of the
+                    cipher text length) that must be analyzed; when there are no pad characters (i.e. cipher text is a
+                    multiple of the
                     number of encode columns).</p>
                 <span class="ht">Points:</span>
-                <p class="in">150-275  The point value should be higher when more columns are used in the encoding;
+                <p class="in">150-275 The point value should be higher when more columns are used in the encoding;
                     when the crib is split over two rows; when there is more than one instance of the crib;
                     when there are duplicate letters in the crib;
                     when there are more possible columns that could have been used to encode the cipher text;
@@ -856,9 +864,11 @@
                     use the crib text (given in the question text) to help determine the number of columns and the order
                     of the columns to decode the cipher text. For example:</p>
                 <p class="ex callout small secondary ">Decode a quote by Baden-Powell which has been encoded using the
-                    Complete Columnar Cipher. You are told that the quote has <span class="fq">BADGE</span> somewhere in it.</p>
+                    Complete Columnar Cipher. You are told that the quote has <span class="fq">BADGE</span> somewhere in
+                    it.</p>
                 <span class="ht">Choosing a Crib</span>
-                <p>The crib should contain a sequence of plain text characters which is no shorter than one less than the number of columns used to encode.</p>
+                <p>The crib should contain a sequence of plain text characters which is no shorter than one less than
+                    the number of columns used to encode.</p>
             </div>
             <div id="Hill_Matrix">
                 <h2 class="ol">

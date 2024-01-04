@@ -1,3 +1,4 @@
+import { number } from 'yargs';
 import { cloneObject } from '../common/ciphercommon';
 import {
     IOperationType,
@@ -15,6 +16,7 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { mapperFactory } from '../common/mapperfactory';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
+import { RuleTester } from 'eslint';
 
 interface INihilistState extends IEncoderState {
     /** The type of operation */
@@ -23,6 +25,8 @@ interface INihilistState extends IEncoderState {
     blocksize: number;
     /** The polybius key string */
     polybiusKey: string;
+    /** The current keyword length example to show in the solver */
+    solverKeyLength: number;
 }
 
 interface ICribInfo {
@@ -70,6 +74,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         operation: 'decode',
         blocksize: 0,
         polybiusKey: '',
+        solverKeyLength: 4,
+
 
     };
     public state: INihilistState = cloneObject(this.defaultstate) as INihilistState;
@@ -403,6 +409,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.setOperation(this.state.operation);
         this.setCipherType(this.state.cipherType);
         this.setBlocksize(this.state.blocksize);
+        this.setSolverKeyLength(this.state.solverKeyLength);
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -421,6 +428,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         $('#blocksize').val(this.state.blocksize)
         $('#polybiuskey').val(this.state.polybiusKey)
         $('#crib').val(this.state.crib);
+        $('#solverkeylength').val(this.state.solverKeyLength);
         super.updateOutput();
     }
     /**
@@ -470,9 +478,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             )
         );
 
-        const inputbox = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
-        inputbox.append(JTFIncButton('Block Size', 'blocksize', this.state.blocksize, ''));
-        result.append(inputbox);
+        const inputbox1 = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
+        inputbox1.append(JTFIncButton('Block Size', 'blocksize', this.state.blocksize, ''));
+        result.append(inputbox1);
+
+
 
         return result;
     }
@@ -482,6 +492,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let changed = false;
         if (this.state.blocksize !== blocksize) {
             this.state.blocksize = blocksize;
+            changed = true;
+        }
+        return changed;
+    }
+
+    public setSolverKeyLength(solverKeyLength: number): boolean {
+        let changed = false;
+        if (this.state.solverKeyLength !== solverKeyLength) {
+            this.state.solverKeyLength = solverKeyLength;
             changed = true;
         }
         return changed;
@@ -741,7 +760,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         // Check to make sure that they provided a Key
         if (this.minimizeString(key) === '') {
-            emsg = 'No Key provided. ';
+            emsg = 'No Keyword provided. ';
         }
         // Check to make sure that they provided a Polybius Key
         if (this.cleanPolyKey === '') {
@@ -804,7 +823,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     /*
         This method builds the HTML for nihilist sequenceset tables in the solver. 
     */
-    public buildSolverNihilist(msg: string, key: string, state: string): JQuery<HTMLElement> {
+    public buildSolverNihilist(msg: string, unknownkeylength: string, state: string): JQuery<HTMLElement> {
 
         //indices guide:
         // 0 = ciphertext numbers
@@ -812,6 +831,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         // 2 = mapped key numbers
         // 3 = mapped plaintext numbers
         // 4 = non-mapped key letters
+
+        // string = unknown key (used for cryptanalysis solver)
+        //ex. "3" would mean iterate a K1 K2 K3 keyword
 
         const result = $('<div/>');
         let emsg = '';
@@ -825,6 +847,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             order = [[0, "solve"], [2, "solve"], [3, "ans bar"]]
         } else if (state === 'plaintext') {
             order = [[0, "solve"], [2, "solve"], [1, "ans bar"]]
+        } else if (state === 'unknownkey') {
+            order = [[unknownkeylength, "ans"], [0, "solve"]];
         }
 
         const sequencesets = this.sequencesets
@@ -833,10 +857,39 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         for (const sequenceset of sequencesets) {
             for (const pair of order) {
-                const sequence = sequenceset[pair[0]];
+
+                //by default have the sequence be set to the plaintext map. only change it to the correct if unknownkey isn't called
+                let sequence = sequenceset[1];;
+
+                //do some checking for if the first element of pair is string
+                let mod = 0;
+
+                if (typeof pair[0] === 'string') {
+                    mod = parseInt(pair[0]);
+                } else {
+                    //if not a string, then continue with normal build using pair integer element
+                    sequence = sequenceset[pair[0]];
+                }
+
+                let index = 1;
                 const row = $('<tr/>', { class: pair[1] });
                 for (const char of sequence) {
-                    row.append($('<td width="33px"/>').text(char));
+                    //here, if mod is not 0, then we had a string as our first pair element. in this case, do the K1, K2, K3... iterate up to the mod number
+                    if (mod !== 0) {
+
+                        if (this.getCharset().indexOf(char) === -1) {
+                            row.append($('<td width="33px"/>').text(char));
+                        } else {
+                            row.append($('<td width="33px"/>').text('K' + index));
+                            index = (index) % mod + 1;
+                        }
+
+
+                    } else {
+                        //otherwise, just append the normal sequence characters
+                        row.append($('<td width="33px"/>').text(char));
+                    }
+
                 }
                 table.append(row);
             }
@@ -853,6 +906,72 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         return result
     }
+
+
+    public buildSolverCiphertextCount(keywordLength: number, onesDigit: boolean): JQuery<HTMLElement> {
+
+        let keywordArray = [];
+
+        const sequencesets = this.sequencesets;
+
+        for (let i = 0; i < keywordLength; i++) {
+
+            let row = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            let spacing = -i;
+
+            for (const sequenceset of sequencesets) {
+                const sequence = sequenceset[0];
+                for (let j = 0; j < sequence.length; j++) {
+
+                    if (!isNaN(parseInt(sequence[j]))) {
+                        if (spacing === 0) {
+
+                            let targetDigit;
+
+                            if (onesDigit) {
+                                targetDigit = parseInt(sequence[j]) % 10
+                            } else {
+                                targetDigit = Math.floor(parseInt(sequence[j]) / 10) % 10
+                            }
+
+                            row[targetDigit] = 1;
+                        }
+
+                        spacing++;
+                        if (spacing == keywordLength) {
+                            spacing = 0;
+                        }
+                    }
+                }
+            }
+
+            keywordArray.push(row);
+
+        }
+
+
+        const table = $('<table/>', { class: 'nihilist center' });
+
+        for (let j = 0; j < keywordArray.length; j++) {
+
+            let letterRow = keywordArray[j];
+
+            const row = $('<tr/>', { class: 'solve' });
+
+            row.append($('<td/>').text('K' + (j + 1)));
+
+            for (let i = 0; i < letterRow.length; i++) {
+                row.append($('<td/>').text(letterRow[i]));
+            }
+
+            table.append(row);
+
+        }
+
+        return table;
+
+    }
+
 
 
     /**
@@ -926,6 +1045,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 if (newPolybiusKey !== this.state.polybiusKey) {
                     this.markUndo('polybiuskey');
                     if (this.setPolybiusKey(newPolybiusKey)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+
+        $('#solverkeylength')
+            .off('input')
+            .on('input', (e) => {
+                const solverKeyLength = Number($(e.target).val());
+                if (solverKeyLength !== this.state.solverKeyLength) {
+                    this.markUndo(null);
+                    if (this.setSolverKeyLength(solverKeyLength)) {
                         this.updateOutput();
                     }
                 }
@@ -1205,7 +1336,59 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
     public async genCryptanalysisSolution(target: JQuery<HTMLElement>) {
-        return
+        const result = $('<div/>', { id: 'solution' });
+        target.append(result);
+
+        result.append($('<div/>', { class: 'callout secondary' }).text("Step 1: Determine keyword length"));
+
+        let encoded = this.cleanString(this.state.cipherString);
+
+        result.append(this.buildSolverNihilist(encoded, this.state.solverKeyLength.toString(), 'unknownkey'))
+
+        // The keyword is repeated across the entire plaintext, so we can. Since . If we are right in our guess of the keyword length, 
+        // then every 3rd plaintext number has the same corresponding keyword number associated with it. This means that every 3rd ciphertext number
+        // can only have maximum 5 different values. If we find that there is more than 5 diffferent values, then we can rule out that keyword length.
+        // A good range to test keyword lengths is keyword lengths 3 4 5 6. Let's try keyword length 3. 
+
+
+
+
+        result.append($('<div/>', { class: 'callout secondary' }).text("Step 2: Find keyword letter mappings"));
+
+
+        result.append($('<div/>', { class: 'callout secondary' }).text("Step 3: Utilize crib to fill in polybius square"));
+
+        const inputbox2 = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
+        inputbox2.append(JTFIncButton('Keyword Length', 'solverkeylength', this.state.solverKeyLength, ''));
+        result.append(inputbox2);
+
+        let dynamicTable = this.buildSolverCiphertextCount(this.state.solverKeyLength, true);
+
+        result.append(dynamicTable);
+
+        //we can see from the above tables of different guessed keyword length, 
+        //though there might be multiple tables that work (WARNING, as test writer you should try to avoid multiple keyword possibilities)
+        //we will pick X length to continue with.
+
+        let continueTable = this.buildSolverCiphertextCount(this.minimizeString(this.cleanString(this.state.keyword)).length, true);
+
+        result.append(continueTable);
+
+        //looking at the table, we can see that rows with 5 tell us that 
+        //for example, if K2 had 5, 6, 7, 8, 9 all appearing, then K2 must end in 4, since 4 + 1, 2, 3, 4, 5 = 5, 6, 7, 8, 9
+        //we can also do this with the first digit to see what the first digit of K2 must be. 
+
+        let firstDigitTable = this.buildSolverCiphertextCount(this.minimizeString(this.cleanString(this.state.keyword)).length, false);
+
+        result.append(firstDigitTable);
+
+        //for some rows, we do not have 5 X's, meaning that we don't know for sure the keyword
+
+        //here is our resulting keyword mapped numbers
+        //
+
+
+        return result;
     }
 
     /**

@@ -907,8 +907,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result
     }
 
-
-    public buildSolverCiphertextCount(keywordLength: number, onesDigit: boolean): JQuery<HTMLElement> {
+    public buildCountArray(keywordLength: number, onesDigit: boolean): number[][] {
 
         let keywordArray = [];
 
@@ -949,12 +948,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         }
 
+        return keywordArray;
 
+    }
+
+    public buildCountTable(countArray: number[][]): JQuery<HTMLElement> {
         const table = $('<table/>', { class: 'nihilist center' });
 
-        for (let j = 0; j < keywordArray.length; j++) {
+        for (let j = 0; j < countArray.length; j++) {
 
-            let letterRow = keywordArray[j];
+            let letterRow = countArray[j];
 
             const row = $('<tr/>', { class: 'solve' });
 
@@ -969,10 +972,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
 
         return table;
-
     }
-
-
 
     /**
      * Loads up the values for Nihilist
@@ -1362,24 +1362,24 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         inputbox2.append(JTFIncButton('Keyword Length', 'solverkeylength', this.state.solverKeyLength, ''));
         result.append(inputbox2);
 
-        let dynamicTable = this.buildSolverCiphertextCount(this.state.solverKeyLength, true);
-
+        let dynamicArray = this.buildCountArray(this.state.solverKeyLength, true);
+        let dynamicTable = this.buildCountTable(dynamicArray);
         result.append(dynamicTable);
 
         //we can see from the above tables of different guessed keyword length, 
         //though there might be multiple tables that work (WARNING, as test writer you should try to avoid multiple keyword possibilities)
         //we will pick X length to continue with.
 
-        let continueTable = this.buildSolverCiphertextCount(this.minimizeString(this.cleanString(this.state.keyword)).length, true);
-
+        let continueArray = this.buildCountArray(this.minimizeString(this.cleanString(this.state.keyword)).length, true);
+        let continueTable = this.buildCountTable(continueArray);
         result.append(continueTable);
 
         //looking at the table, we can see that rows with 5 tell us that 
         //for example, if K2 had 5, 6, 7, 8, 9 all appearing, then K2 must end in 4, since 4 + 1, 2, 3, 4, 5 = 5, 6, 7, 8, 9
         //we can also do this with the first digit to see what the first digit of K2 must be. 
 
-        let firstDigitTable = this.buildSolverCiphertextCount(this.minimizeString(this.cleanString(this.state.keyword)).length, false);
-
+        let firstDigitArray = this.buildCountArray(this.minimizeString(this.cleanString(this.state.keyword)).length, false);
+        let firstDigitTable = this.buildCountTable(firstDigitArray);
         result.append(firstDigitTable);
 
         //for some rows, we do not have 5 X's, meaning that we don't know for sure the keyword

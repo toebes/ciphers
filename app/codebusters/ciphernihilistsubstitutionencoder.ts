@@ -974,6 +974,39 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return table;
     }
 
+    public findKeywordMappings(countArray: number[][]): number[][] {
+
+        let array = [];
+
+        for (let i = 0; i < countArray.length; i++) {
+
+            let lowest = 11;
+            let highest = -1;
+
+            for (let j of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+
+                if (j < lowest && countArray[i][j % 10] === 1) {
+                    lowest = j;
+                }
+
+                if (j > highest && countArray[i][j % 10] === 1) {
+                    highest = j;
+                }
+            }
+
+            let possibilities = [];
+            for (let j = highest - 5; j < lowest; j++) {
+                possibilities.push(j);
+            }
+
+            array.push(possibilities);
+
+        }
+
+        return array;
+
+    }
+
     /**
      * Loads up the values for Nihilist
      */
@@ -1373,6 +1406,24 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let continueArray = this.buildCountArray(this.minimizeString(this.cleanString(this.state.keyword)).length, true);
         let continueTable = this.buildCountTable(continueArray);
         result.append(continueTable);
+
+        const arr = this.findKeywordMappings(continueArray);
+
+        let str = "";
+
+        for (let i = 0; i < arr.length; i++) {
+
+            str += "----K" + (i + 1) + ": "
+
+            for (let j = 0; j < arr[i].length; j++) {
+
+                str += arr[i][j] + " "
+
+            }
+
+        }
+
+        result.append($('<div/>', { class: 'callout secondary' }).text(str));
 
         //looking at the table, we can see that rows with 5 tell us that 
         //for example, if K2 had 5, 6, 7, 8, 9 all appearing, then K2 must end in 4, since 4 + 1, 2, 3, 4, 5 = 5, 6, 7, 8, 9

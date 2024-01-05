@@ -69,6 +69,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         keyword: '',
         /** The current cipher we are working on */
         cipherString: '',
+        crib: '',
         /** The current string we are looking for */
         findString: '',
         operation: 'decode',
@@ -907,6 +908,154 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result
     }
 
+    public buildSolverCrib(keywordMappingsTens: number[][], keywordMappingsOnes: number[][]): JQuery<HTMLElement> {
+
+        const result = $('<div/>');
+
+        const keywordLength = this.cleanKeyword.length
+        const cleanCrib = this.minimizeString(this.cleanString(this.state.crib));
+
+        const bigTable = $('<table/>', { class: 'nihilist center' });
+
+        const sequencesets = this.sequencesets
+
+        //j is just serving as a running count of valid characters. this is used for lining up the keyword. for example D O N ' T would map to K1 K2 K3 _ K4
+        let j = 0;
+        //k is a running count of every single character across all sequencesets. this is used to keep track of the precise location of the crib
+        let k = 0;
+
+        //i is the internal sequenceset index for every character, including invalid ones.
+
+        for (const sequenceset of sequencesets) {
+
+            const row1 = $('<tr/>', { class: 'solve' });
+            const row2 = $('<tr/>', { class: 'solve' });
+            const row3 = $('<tr/>', { class: 'solve' });
+            const row4 = $('<tr/>', { class: 'solve' });
+
+            let ciphertextNumbers = sequenceset[0];
+            let mappedKeyNumbers = sequenceset[2];
+            let mappedPlaintextNumbers = sequenceset[3];
+            let plaintext = sequenceset[1];
+
+            let index = this.state.cipherString.toLowerCase().indexOf(this.state.crib.toLowerCase());
+
+            console.log(ciphertextNumbers);
+
+            for (let i = 0; i < ciphertextNumbers.length; i++) {
+
+                let ct = ciphertextNumbers[i]
+                if (isNaN(parseInt(ct))) {
+                    row1.append($('<td width="33px"/>').text(ct));
+                    row2.append($('<td width="33px"/>').text(ct));
+                    row3.append($('<td width="33px"/>').text(ct));
+                    row4.append($('<td width="33px"/>').text(' '));
+                } else {
+                    //for first row, just append the unaltered ciphertext number
+                    row1.append($('<td width="33px"/>').text(ct));
+
+                    //for second row, we need to add question marks if necessary
+                    let display1 = '';
+                    let display2 = '';
+
+                    if (keywordMappingsTens[j % keywordLength].length === 1) {
+                        display1 += Math.floor(parseInt(mappedKeyNumbers[i]) / 10)
+                        display2 += Math.floor(parseInt(mappedPlaintextNumbers[i]) / 10)
+                    } else {
+                        display1 += '?'
+                        display2 += '?'
+                    }
+
+                    //for third row, just append the unaltered ciphertext number
+                    if (keywordMappingsOnes[j % keywordLength].length === 1) {
+                        display1 += parseInt(mappedKeyNumbers[i]) % 10
+                        display2 += parseInt(mappedPlaintextNumbers[i]) % 10
+                    } else {
+                        display1 += '?'
+                        display2 += '?'
+                    }
+
+                    row2.append($('<td width="33px"/>').text(display1));
+                    row3.append($('<td width="33px"/>').text(display2));
+
+                    console.log(index);
+                    console.log(index + cleanCrib.length);
+                    if (k >= index && index >= 0 && k < (index + this.state.crib.length)) {
+                        row4.append($('<td width="33px"/>').text(plaintext[i]));
+                    } else {
+                        row4.append($('<td width="33px"/>').text(' '));
+                    }
+
+                    j++;
+                }
+
+                k++;
+
+            }
+
+            bigTable.append(row1);
+            bigTable.append(row2);
+            bigTable.append(row3);
+            bigTable.append(row4);
+
+            const blank = $('<tr/>').append($('<td/>').append($('<br>')));
+            bigTable.append(blank)
+
+        }
+
+        result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
+
+            .append($('<div/>', { class: 'cell shrink' })
+
+                .append(bigTable)))
+
+        return result
+
+    }
+
+
+    // public buildSolverCrib(keywordMappingsTens: number[][], keywordMappingsOnes: number[][]): JQuery<HTMLElement> {
+
+    //     console.log(keywordMappingsTens[0].length);
+
+    //     const keywordLength = this.cleanKeyword.length
+    //     const cleanCrib = this.minimizeString(this.cleanString(this.state.crib));
+
+    //     const bigTable = $('<table/>', { class: 'nihilist center' });
+
+    //     const sequencesets = this.sequencesets
+
+    //     let j = 0;
+
+    //     for (const sequenceset of sequencesets) {
+
+    //         const row1 = $('<tr/>', { class: 'solve' });
+
+    //         let ciphertextNumbers = sequenceset[0];
+
+    //         console.log(ciphertextNumbers);
+
+    //         for (let i = 0; i < ciphertextNumbers.length; i++) {
+
+    //             let ct = ciphertextNumbers[i]
+    //             if (isNaN(parseInt(ct))) {
+    //                 row1.append(ct);
+    //             } else {
+    //                 //for first row, just append the unaltered ciphertext number
+    //                 row1.append(ct);
+
+    //                 //for second row, we need to add question marks if necessar
+    //             }
+    //         }
+
+    //         bigTable.append(row1);
+
+    //     }
+
+    //     return bigTable;
+
+    // }
+
     public buildCountArray(keywordLength: number, onesDigit: boolean): number[][] {
 
         let keywordArray = [];
@@ -1403,21 +1552,22 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //though there might be multiple tables that work (WARNING, as test writer you should try to avoid multiple keyword possibilities)
         //we will pick X length to continue with.
 
-        let continueArray = this.buildCountArray(this.minimizeString(this.cleanString(this.state.keyword)).length, true);
+        let continueArray = this.buildCountArray(this.cleanKeyword.length, true);
         let continueTable = this.buildCountTable(continueArray);
         result.append(continueTable);
 
-        const arr = this.findKeywordMappings(continueArray);
+        const onesMappings = this.findKeywordMappings(continueArray);
+        console.log(onesMappings.length);
 
         let str = "";
 
-        for (let i = 0; i < arr.length; i++) {
+        for (let i = 0; i < onesMappings.length; i++) {
 
             str += "----K" + (i + 1) + ": "
 
-            for (let j = 0; j < arr[i].length; j++) {
+            for (let j = 0; j < onesMappings[i].length; j++) {
 
-                str += arr[i][j] + " "
+                str += onesMappings[i][j] + " "
 
             }
 
@@ -1429,9 +1579,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //for example, if K2 had 5, 6, 7, 8, 9 all appearing, then K2 must end in 4, since 4 + 1, 2, 3, 4, 5 = 5, 6, 7, 8, 9
         //we can also do this with the first digit to see what the first digit of K2 must be. 
 
-        let firstDigitArray = this.buildCountArray(this.minimizeString(this.cleanString(this.state.keyword)).length, false);
-        let firstDigitTable = this.buildCountTable(firstDigitArray);
-        result.append(firstDigitTable);
+        let tensArray = this.buildCountArray(this.cleanKeyword.length, false);
+        let tensTable = this.buildCountTable(tensArray);
+        result.append(tensTable);
+
+        const tensMappings = this.findKeywordMappings(tensArray);
+
+        console.log(onesMappings.length);
+        let bigTable = this.buildSolverCrib(tensMappings, onesMappings);
+
+        result.append(bigTable);
 
         //for some rows, we do not have 5 X's, meaning that we don't know for sure the keyword
 

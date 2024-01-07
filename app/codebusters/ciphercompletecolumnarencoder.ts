@@ -26,6 +26,8 @@ const MIN_COLUMNS = 4;
 const MAX_COLUMNS_B = 9;
 const MAX_COLUMNS_C = 11;
 
+const DEBUG: boolean = false;
+
 // TODO: fix the YWLY bug of multiple Ys not detecting the crib is split
 
 interface ICompleteColumnarState extends IState {
@@ -139,10 +141,14 @@ class CompleteColumnarSolver extends CipherEncoder {
 
         const charsOver = (text.length % this.columnCount);
         this.padLength = (charsOver > 0) ? this.columnCount - charsOver : charsOver;
-        console.log('Pad length is: ' + this.padLength);
+        if (DEBUG) {
+            console.log('Pad length is: ' + this.padLength);
+        }
         const plainText = text + repeatStr('X', this.padLength);
         this.textLength = plainText.length;
-        console.log('So we encode: ' + plainText);
+        if (DEBUG) {
+            console.log('So we encode: ' + plainText);
+        }
 
         for (let i = 0; i < this.columnCount; i++) {
             const index = this.columnOrder[i];
@@ -152,7 +158,9 @@ class CompleteColumnarSolver extends CipherEncoder {
 
         }
         this.rowCount = plainText.length / this.columnCount;
-        console.log('---->>>Encoded as: ' + this.cipherText);
+        if (DEBUG) {
+            console.log('---->>>Encoded as: ' + this.cipherText);
+        }
     }
 
     public setBadCribChoice(): void {
@@ -249,7 +257,9 @@ class CompleteColumnarSolver extends CipherEncoder {
 
         for (let columnToAnalyze = 0; columnToAnalyze < this.columnsToAnalyze.length; columnToAnalyze++) {
 
-            console.log('Split Info: ' + this.cribSplitInformation[columnToAnalyze]);
+            if (DEBUG) {
+                console.log('Split Info: ' + this.cribSplitInformation[columnToAnalyze]);
+            }
 
             const s = this.cribSplitInformation[columnToAnalyze];
             let details = $('<div>');
@@ -294,7 +304,9 @@ class CompleteColumnarSolver extends CipherEncoder {
                 this.cipherCompleteColumnarEncoder.setErrorMsg('', 'badcols', null);
             }
 
-            console.log(`Trying solutions combinations: ${solutionCombos.length}`);
+            if (DEBUG) {
+                console.log(`Trying solutions combinations: ${solutionCombos.length}`);
+            }
 
             returnValue.append(details).append($('<p>'));
 
@@ -373,7 +385,9 @@ class CompleteColumnarSolver extends CipherEncoder {
         if (splitInfo.isSplitOverRows()) {
             // start with second row...find all occurrences of crib letters in second row
             const secondRowLetters = splitInfo.getRowLetters(splitInfo.getFirstRow() + 1);
-            console.log('ROW 2 letters: ' + secondRowLetters);
+            if (DEBUG) {
+                console.log('ROW 2 letters: ' + secondRowLetters);
+            }
 
             // Get the part of the crib in the second row.  This fills the array from the FRONT
             let cribInSecondRow = this.crib.substring(splitInfo.getLettersInFirstRow());
@@ -385,7 +399,9 @@ class CompleteColumnarSolver extends CipherEncoder {
             // cribLetters contains letters from the second row, so go in the first position.
             let orderIndex = 1;
             for (let l of cribLetters) {
-                console.log('Check for ' + l);
+                if (DEBUG) {
+                    console.log('Check for ' + l);
+                }
                 const foundAt = [];
                 let startIndex = 0, foundCount = 0;
                 while ((index = secondRowLetters.indexOf(l, startIndex)) > -1) {
@@ -398,9 +414,13 @@ class CompleteColumnarSolver extends CipherEncoder {
                         //   V: [2]
                         //   E: [6,4]
                         // }
-                        console.log('ROW 2 Found a duplicate for ' + l + ' at ' + (index + 1));
+                        if (DEBUG) {
+                            console.log('ROW 2 Found a duplicate for ' + l + ' at ' + (index + 1));
+                        }
                     } else {
-                        console.log('ROW 2 Found occurrence of ' + l + ' at ' + (index + 1));
+                        if (DEBUG) {
+                            console.log('ROW 2 Found occurrence of ' + l + ' at ' + (index + 1));
+                        }
                     }
                     // removePositionFromOrdering()
 
@@ -417,7 +437,9 @@ class CompleteColumnarSolver extends CipherEncoder {
 
             const firstRowLetters = splitInfo.getRowLetters(splitInfo.getFirstRow());
 
-            console.log('ROW 1 letters: ' + firstRowLetters);
+            if (DEBUG) {
+                console.log('ROW 1 letters: ' + firstRowLetters);
+            }
 
             let cribInFirstRow = this.crib.substring(0, splitInfo.getLettersInFirstRow());
             cribLetters = cribInFirstRow.split('');
@@ -429,16 +451,20 @@ class CompleteColumnarSolver extends CipherEncoder {
             let outputColumn = firstRowLetters.length;
             for (let i = cribLetters.length - 1; i >= 0; i--) {
                 let toFind = cribLetters[i];
-                console.log('i = ' + i + ' Check for the letter ' + toFind);
+                if (DEBUG) {
+                    console.log('i = ' + i + ' Check for the letter ' + toFind);
+                }
                 const foundAt = [];
 
                 for (let testColumn of ordering[outputColumn]) {
                     if (firstRowLetters[testColumn - 1] === toFind) {
                         foundAt.push(testColumn);
-                        if (foundAt.length > 1) {
-                            console.log(`ROW 1 Found a duplicate for ${toFind} at ${(index + 1)}`);
-                        } else {
-                            console.log('ROW 1 Found occurrence of ' + toFind + ' at ' + (index + 1));
+                        if (DEBUG) {
+                            if (foundAt.length > 1) {
+                                console.log(`ROW 1 Found a duplicate for ${toFind} at ${(index + 1)}`);
+                            } else {
+                                console.log(`ROW 1 Found occurrence of ${toFind} at ${(index + 1)}`);
+                            }
                         }
                     }
                 }
@@ -469,11 +495,13 @@ class CompleteColumnarSolver extends CipherEncoder {
                     let startIndex = 0, foundCount = 0;
                     while ((index = rowWithCrib.indexOf(cribLetters[j - 1], startIndex)) > -1) {
                         foundAt.push(index + 1);
-                        if (foundCount > 0) {
-                            console.log(`Found a duplicate for ${cribLetters[j - 1]} at index ${(index + 1)}`);
+                        if (DEBUG) {
+                            if (foundCount > 0) {
+                                console.log(`Found a duplicate for ${cribLetters[j - 1]} at index ${(index + 1)}`);
 
-                        } else {
-                            console.log(`Found occurance of ${cribLetters[j - 1]} at index ${(index + 1)}`);
+                            } else {
+                                console.log(`Found occurrence of ${cribLetters[j - 1]} at index ${(index + 1)}`);
+                            }
                         }
                         startIndex = index + 1;
                         foundCount++;
@@ -516,7 +544,9 @@ class CompleteColumnarSolver extends CipherEncoder {
             const combinations = this.countCombinations(o);
             // The 20 is an arbitrary number...
             if (combinations > 100) {
-                console.log(`Too many combinations (${combinations}) to consider`);
+                if (DEBUG) {
+                    console.log(`Too many combinations (${combinations}) to consider`);
+                }
                 return undefined;
             }
 
@@ -597,7 +627,9 @@ class CompleteColumnarSolver extends CipherEncoder {
                 }
             }
             if (legal) {
-                console.log('RETURN: ' + theClone.toString());
+                if (DEBUG) {
+                    console.log('RETURN: ' + theClone.toString());
+                }
                 combos.push(combo);
             }
         }
@@ -614,7 +646,9 @@ class CompleteColumnarSolver extends CipherEncoder {
             msg += ((ordering.length - 1) > i ? '],\n' : ']\n');
         }
         msg += ']\n';
-        console.log(msg);
+        if (DEBUG) {
+            console.log(msg);
+        }
         return;
     }
 
@@ -669,11 +703,19 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         replacement: {},
         crib: '',
     };
+    public columnOrderButton: JTButtonItem = {
+        title: 'Randomize Columns',
+        id: 'randomColumnOrder',
+        class: 'randomizeColumns',
+        color: 'primary',
+    };
+
     public state: ICompleteColumnarState = cloneObject(this.defaultstate) as ICompleteColumnarState;
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
+        this.columnOrderButton,
         this.questionButton,
         this.pointsButton,
         this.guidanceButton,
@@ -963,30 +1005,6 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         return hint
     }
 
-    private generateCipherText(columnOrder: string): string {
-        const c = this.state.cipherString
-
-        const charsOver = (c.length % this.state.columns);
-        const padLength = (charsOver > 0) ? this.state.columns - charsOver : charsOver;
-        console.log('Pad length is: ' + padLength);
-        const plainText = c + repeatStr('X', 1);
-        console.log('So we encode: ' + plainText);
-
-        let encoding = '';
-        const columnOrderArray = columnOrder.split('');
-        for (let i = 0; i < this.state.columns; i++) {
-            const index = Number(columnOrder.charAt(i));
-            for (let j = index; j < plainText.length; j += this.state.columns) {
-                encoding += plainText[j];
-            }
-
-        }
-        console.log('Encoded as: ' + encoding);
-
-        return encoding;
-
-    }
-
     public attachHandlers(): void {
         super.attachHandlers();
 
@@ -994,7 +1012,9 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             .off('input')
             .on('input', (e) => {
                 const newColumns = Number($(e.target).val());
-                console.log("New number of columns: " + newColumns);
+                if (DEBUG) {
+                    console.log("New number of columns: " + newColumns);
+                }
                 this.markUndo(null);
                 if (this.setColumns(newColumns)) {
                     this.updateOutput();
@@ -1007,19 +1027,22 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             .on('input', (e) => {
                 const columnOrder = $(e.target).val() as string;
                 if (this.setColumnOrder(columnOrder)) {
-                    this.generateCipherText(columnOrder);
                     this.updateOutput();
                 }
                 if (columnOrder.length != this.state.columns) {
                     // error
-                    console.log('Column width is ' + this.state.columns + ' order is set for ' + columnOrder);
+                    if (DEBUG) {
+                        console.log('Column width is ' + this.state.columns + ' order is set for ' + columnOrder);
+                    }
                 }
             });
         $('#crib')
             .off('input')
             .on('input', (e) => {
                 const crib = $(e.target).val() as string;
-                console.log('The crib text is ' + crib);
+                if (DEBUG) {
+                    console.log('The crib text is ' + crib);
+                }
                 if (this.setCrib(crib)) {
                     this.updateOutput();
                 }
@@ -1031,6 +1054,28 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                 this.state.operation = 'decode'
 
             });
+        $('.randomizeColumns')
+            .off('click')
+            .on('click', (e) => {
+                const columnOrder = this.generateRandomColumnOrder();
+                if (this.setColumnOrder(columnOrder)) {
+                    this.updateOutput();
+                }
+                if (DEBUG) {
+                    console.log(`Generated random column order: ${columnOrder}`);
+                }
+            });
+    }
+
+    private generateRandomColumnOrder(): string {
+        let randomString = '';
+        for (let i = 0; i < 20; i++) {
+            randomString += Math.round((Math.random() * 99 / 10)).toString();
+        }
+        if (DEBUG) {
+            console.log(randomString);
+        }
+        return randomString.substring(0, this.state.columns);
     }
 
     public setUIDefaults(): void {
@@ -1068,7 +1113,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             JTFIncButton('Columns', 'columns', this.state.columns, 'small-12 medium-4 large-4')
         );
         // Create an input for the column order in the cryptanalysis case.
-        inputbox.append(JTFLabeledInput('Ordering', 'text', 'columnorder', '', 'small-12 medium-4 large-4'));
+        inputbox.append(JTFLabeledInput('Column Ordering', 'text', 'columnorder', '', 'small-12 medium-4 large-4'));
 
         inputbox.append(JTFLabeledInput('Crib', 'text', 'crib', '', 'small-12 medium-4 large-4'));
         result.append(inputbox);
@@ -1088,7 +1133,9 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
 
         const textString = text.toUpperCase();
 
-        console.log('This is the TEXT string: ' + text);
+        if (DEBUG) {
+            console.log('This is the TEXT string: ' + text);
+        }
         // Chunk it
         text = this.chunk(text, 5);
 
@@ -1139,16 +1186,22 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
 
         let errorMessage = '';
         if (this.state.crib.length < this.state.columns - 1) {
-            errorMessage = 'The length of the crib must be no shorter than ' + (this.state.columns - 1) + ' (i.e. one less the number of columns used).';
+            errorMessage = `The length of the crib must be no shorter than ${(this.state.columns - 1)} 
+                (i.e. one less the number of columns used).`;
             this.setErrorMsg(errorMessage, 'cribl', null);
         } else {
             this.setErrorMsg('', 'cribl', null);
         }
 
-        if (this.state.keyword !== undefined && this.state.columns != this.state.keyword.length) {
-            errorMessage = 'Column count is ' + this.state.columns +
-                ', but column ordering string contains ' + this.state.keyword.length +
-                ' characters/digits.';
+        if (this.state.keyword === undefined || this.state.keyword === '') {
+            errorMessage = `The column ordering string is not set.  Therefore, the column order
+                will be the original, natural order.`
+            this.setErrorMsg(errorMessage, 'colord', null);
+        }
+        else if (this.state.keyword !== undefined && this.state.columns != this.state.keyword.length) {
+            errorMessage = `Column count is ${this.state.columns}
+                but column ordering string contains ${this.state.keyword.length}
+                characters/digits.`;
             this.setErrorMsg(errorMessage, 'colord', null);
         } else {
             this.setErrorMsg('', 'colord', null);
@@ -1412,7 +1465,9 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             div.text('Now look for the crib: ').append($('<span>').addClass('allfocus').text(this.state.crib));
             result.append(div);
 
-            console.log('Now processing =====>  Columns: ' + columnCount);
+            if (DEBUG) {
+                console.log('Now processing =====>  Columns: ' + columnCount);
+            }
 
             let cribLocation = this.checkConsecutiveRowsForCrib(ccs, this.state.crib, rowLetters);
             if (cribLocation.length > 0) {
@@ -1516,7 +1571,9 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                 cribMap[i - 1][1].push.apply(part1, indexList);
             }
         }
-        console.log('Found in row: ');
+        if (DEBUG) {
+            console.log('Found in row: ');
+        }
 
         return false;
     }
@@ -1561,18 +1618,24 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
 
                 // Compare the crib signature to the combined rows signature to see if the crib is in these rows.
                 for (const key in cribSignature) {
-                    console.log('Checking key: ' + key);
+                    if (DEBUG) {
+                        console.log('Checking key: ' + key);
+                    }
                     if (rowSignature[key] !== undefined) {
                         cribCharacters++;
                         if (rowSignature[key] === cribSignature[key]) {
                             // This is a absolutely known crib letter position.
-                            console.log('Matched: ' + rowSignature[key] + ' and ' + cribSignature[key]);
-                            console.log('Got a single match!');
+                            if (DEBUG) {
+                                console.log('Matched: ' + rowSignature[key] + ' and ' + cribSignature[key]);
+                                console.log('Got a single match!');
+                            }
                             sigMatch++;
                         }
                         else if (rowSignature[key] >= cribSignature[key]) {
                             // potentially a couple places for the crib letter.
-                            console.log(`Letter ${key} is found in ${rowSignature[key]} places.`);
+                            if (DEBUG) {
+                                console.log(`Letter ${key} is found in ${rowSignature[key]} places.`);
+                            }
                             sigMatch++;
                         }
 
@@ -1581,7 +1644,9 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                 // Check if a match was found for all letters in the crib...
                 if (sigMatch === Object.keys(cribSignature).length) {
                     // Yes this might be one, return true.
-                    console.log('!!!!!!!!!!!!!!!!!!!!!!!!!');
+                    if (DEBUG) {
+                        console.log('!!!!!!!!!!!!!!!!!!!!!!!!! Maybe a match...');
+                    }
                     // Find where the crib letters are split between the rows if at all...
                     let firstRowCount = 0;
                     let secondRowCount = 0;
@@ -1643,7 +1708,9 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
 
                             cribSplitInformation.setSplitInformation(rowNumber, firstRowCount - (overlap - x), secondRowCount - x);
 
-                            console.log('This is it!!!');
+                            if (DEBUG) {
+                                console.log('This is it!!!');
+                            }
                             //columnsFitEncoding = true;
                             rowNumber += skipRowCount;
                         }
@@ -1651,7 +1718,11 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                 }
             }
             if (firstRowFoundIndexes.length > 0 || secondRowFoundIndexes.length > 0) {
-                console.log('In the two rows starting at ' + rowNumber + ', the number of crib characters found is: ' + cribCharacters + '.  >' + combinedRows + '- first row: ' + firstRowFoundIndexes.join(',') + '; second row: ' + secondRowFoundIndexes.join(','));
+                if (DEBUG) {
+                    console.log(`In the two rows starting at ${rowNumber}, the number of crib characters found is:
+                        ${cribCharacters}.  >${combinedRows}- first row: ${firstRowFoundIndexes.join(',')};
+                        second row: ${secondRowFoundIndexes.join(',')}`);
+                }
             }
         }
         return columnsFitEncoding;

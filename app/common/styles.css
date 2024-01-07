@@ -8,7 +8,8 @@
     width: 600px;
 }
 
-.kwchoice {
+.kwchoice,
+.abchoice {
     margin-bottom: 5px;
     border-bottom: 1px solid grey;
     padding-bottom: 5px;
@@ -17,6 +18,37 @@
     width: 150px;
     display: inline-block;
 }
+
+.abchoice .button-group {
+    margin-bottom: 0px;
+}
+
+.achoice,
+.bchoice {
+    margin: auto 0;
+}
+
+.achoice::before,
+.bchoice::before {
+    font-weight: bold;
+    background-color: #e6e6e6;
+    padding: 16px 0 16px 5px;
+}
+.achoice::before {
+    content: 'A: ';
+}
+.achoice {
+    width: 120px;
+    display: inline-block;
+}
+.bchoice {
+    width: 120px;
+    display: inline-block;
+}
+.bchoice::before {
+    content: 'B: ';
+}
+
 .kwchoice .button {
     margin: auto 5px;
 }
@@ -1643,6 +1675,7 @@ div.tn {
     width: auto;
 }
 
+.BACON.combchar,
 .ansblock.combchar {
     font-family: juliamono, 'Consolas', 'Monaco', 'Courier New', Courier, monospace;
 }
@@ -2268,6 +2301,12 @@ table.nameline td.u {
 .sizeset .BACON.TOSOLVEQ,
 .sizeset .BACON.TOANSWER {
     font-size: 15px;
+}
+.sizeset .BACON.combchar.TOSOLVE,
+.sizeset .BACON.combchar.TOSOLVE2,
+.sizeset .BACON.combchar.TOSOLVEQ,
+.sizeset .BACON.combchar.TOANSWER {
+    font-size: 17px;
 }
 .sizeset .BACON.TOSOLVEQ {
     margin-bottom: 3rem;

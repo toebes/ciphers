@@ -773,7 +773,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        console.log("genPreCommands")
         const result = $('<div/>');
         // Show them what tests the question is used on
         this.genTestUsage(result);

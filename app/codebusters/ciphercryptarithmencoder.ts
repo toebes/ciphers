@@ -197,10 +197,18 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         id: 'docipher',
         color: 'primary',
     };
+    public relatedWordsButton: JTButtonItem = {
+        title: 'Related Words',
+        id: 'related',
+        color: 'primary',
+        target: 'related',
+        href: 'https://relatedwords.org/'
+    };
 
     public problemButtons: JTButtonItem[] = [
         this.searchButton,
         this.stopSearchButton,
+        this.relatedWordsButton,
         this.doCipherButton,
         // this.guidanceButton,
     ];
@@ -1394,6 +1402,10 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         // on the problem we will have to abort the process. 
         // As a test we will arbitrarily set the mappings
         let parsed = parseCryptarithm(this.state.cipherString, this.base);
+        // Catch when they didn't give us anything to actually do
+        if (parsed.lineitems.length === 0) {
+            return this.showSearchResult(0, 100)
+        }
         // See if we can shortcut this operation.  Everything except the last item should not have a forumla
         let canShortcut = true
         for (let i = 0; i < parsed.lineitems.length - 1; i++) {

@@ -27,40 +27,72 @@
                             Test Generation Tools Version History</span>
                     </h2>
                 </div>
-                <div class="cell callout warning small">
-                    <h4>Important!</h4>
-                    <p>When solving a Morbit, Pollux or Baconian cipher, you must put the answer under the
-                        corresponding solution character. This means that on a Baconian answer, four out of five
-                        answer boxes in a row should be blank and Morbit/Pollux answers should only have one letter
-                        under the characters that make up the morse code. For example with the letter
-
-                        ●–×–●●●×–●–●×–●●×●
-                        A B C D E</p>
-                </div>
-                <div class="cell">
+                <div class="cell version">
                     <h4>Summary of what's new:</h4>
                     <ul>
+                        <li>Version 9.0.0 -- <em>MAJOR UPDATE!</em></li>
+                        <ul>
+                            <li> Combined with the <a href="TestBuild.html">Test
+                                    Builder</a>, all of the cipher types now provide
+                                suggested question text and score values
+                                based on the analyzed difficulty of the question.</li>
+                            <li>
+                                <b>Please note:</b> if you find that the recommended
+                                scores are
+                                too high/low for a given phrase, please enter an issue
+                                at <a
+                                    href="https://github.com/toebes/ciphers/issues">github.com/toebes/ciphers/issues</a>.
+                                In order to not put the quote in public, you
+                                can mail it to <a href="mailto:codebusters@toebes.com">codebusters@toebes.com</a>
+                                referencing the issue number.
+                            </li>
+                            <li>Ciphers now include a Quote Author field for the quote so
+                                that the recommended question text can include the
+                                source of the quote</li>
+                            <li>The <a href="Baconian.html?cipherType=baconian&operation=words">Baconian
+                                    words cipher</a> has buttons to automatically
+                                set the groupings of A/B values</li>
+                            <li>The <a href="Baconian.html?cipherType=baconian&operation=sequence">Baconian
+                                    sequence cipher</a> can suggest <a
+                                    href="https://en.wikipedia.org/wiki/Combining_character">unicode
+                                    combining overstrikes</a> for the A/B text</li>
+                            <li><a href="AristocratEncrypt.html?cipherType=aristocrat">Aristocrats</a>/<a
+                                    href="PatristocratEncrypt.html?cipherType=patristocrat">Patristocrats</a>/<a
+                                    href="XenocryptEncrypt.html?cipherType=aristocrat&curlang=es">Xenocrypts</a>
+                                have support for suggesting K1/K2/K3 keywords</li>
+                            <li><a href="AristocratEncrypt.html?cipherType=aristocrat">Aristocrats</a>
+                                have a new dialog for finding homonyms in phrases and
+                                introducing typographical
+                                errors when creating a Misspelled cipher.
+                            </li>
+                            <li>The <a href="CryptarithmEncrypt.html">Cryptorithm</a>
+                                generator has been sped up multiple orders of magnitude
+                                when checking addition/subtraction problems.</li>
+                            <l1>The <a href="TestBuild.html">Test Builder</a> phrase
+                                suggestion now allows for keywords to filter the quote
+                                search.</l1>
+                        </ul>
                         <li>Version 8.10.0</li>
                         <ul>
-                            We added a new tiny answerkey option to allow printing all of
-                            the answers in only a couple of pages to make it easier when
-                            grading.
-                            The new <a href="TestBuild.html">Test
-                                Builder</a> propagates special bonus and Xenocrypt
-                            translations.
+                            <li>We added a new tiny answerkey option to allow printing all of
+                                the answers in only a couple of pages to make it easier when
+                                grading.
+                                The new <a href="TestBuild.html">Test
+                                    Builder</a> propagates special bonus and Xenocrypt
+                                translations.</li>
                         </ul>
                         <li>Version 8.9.0</li>
                         <ul>
-                            The new <a href="TestBuild.html">Test
-                                Builder</a> is available along with the <a href="QuoteManager.html">Quote
-                                Manager</a>. Together you can
-                            upload quotes from a spreadsheet and generate a test and
-                            automatically suggest appropriate quotes to use on the test.
+                            <li>The new <a href="TestBuild.html">Test
+                                    Builder</a> is available along with the <a href="QuoteManager.html">Quote
+                                    Manager</a>. Together you can
+                                upload quotes from a spreadsheet and generate a test and
+                                automatically suggest appropriate quotes to use on the test.</li>
                         </ul>
                         <li>Version 8.7.0</li>
                         <ul>
-                            Many samples have been added.
-                            The summary of rules now includes Division A.
+                            <li>Many samples have been added.</li>
+                            <li>The summary of rules now includes Division A.</li>
                         </ul>
                         <li>Version 7.7.0</li>
                         <ul>
@@ -109,7 +141,6 @@
                                     href="https://github.com/toebes/ciphers/issues">github.com/toebes/ciphers/issues</a>.
                             </li>
                         </ul>
-                        <a href="versions.html">Previous Versions...</a>
                         <li>Version 5.6.0</li>
                         <ul>
                             <li>

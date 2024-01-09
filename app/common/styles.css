@@ -8,6 +8,18 @@
     width: 600px;
 }
 
+.version ul > li {
+    font-weight: bold;
+    border-top: 1px solid #cacaca;
+    list-style-type: none;
+}
+
+.version ul ul li {
+    list-style-type: circle;
+    font-weight: normal;
+    border-top: none;
+}
+
 .kwchoice,
 .abchoice {
     margin-bottom: 5px;

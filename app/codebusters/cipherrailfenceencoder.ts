@@ -9,7 +9,7 @@ import {
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import { CipherEncoder } from './cipherencoder';
+import { CipherEncoder, suggestedData } from './cipherencoder';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTTable } from '../common/jttable';
 
@@ -456,6 +456,8 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
     /** Save and Restore are done on the CipherEncoder Class */
@@ -636,9 +638,30 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
 
-    public genSampleHint(): string {
-        const rails: string = this.state.rails.toString();
-        return rails + ' rails were used to encode it.';
+     public genSampleHint(): string {
+        let hint = ` ${this.state.rails.toString()} were used to encode it.`;
+
+        // rails count is between 2 and 6.
+        const rand = Math.floor(Math.random() * 30 / 10);
+
+        let top = 6;
+        let bottom = 2;
+        if (this.state.rails + rand >= 6) {
+            top = 6;
+            bottom = 4;
+        } else if (this.state.rails + rand <= 4) {
+            top = 4;
+            bottom = 2;
+        } else {
+            top = this.state.rails + rand;
+            bottom = top - 2;
+        }
+
+        if (this.state.isRailRange) {
+            hint = ` between ${bottom} and ${top} rails were used to encode it.`;
+        }
+
+        return hint;
     }
 
     public attachHandlers(): void {
@@ -680,6 +703,55 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         this.setRails(this.state.rails);
         this.setRailOffset(this.state.railOffset);
     }
+
+    public genScoreRangeAndText(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+        let scoringText = ''
+        let railRangeText = '';
+        let railOffsetText = '';
+
+        // Baseline about 100.
+        let suggested = 25 + qdata.len;
+        if (suggested < 100) {
+            suggested = 100;
+        }
+
+        // Add 10 for any rails over 2
+        suggested += (this.state.rails - 2) * 10;
+
+        // Add 10 if given a range of rails.
+        if (this.state.isRailRange) {
+            suggested += (this.state.isRailRange ? 10 : 0);
+            railRangeText = ` They're told there is a range of rails, so add 10 more points. `;
+        }
+
+        // Add 25 if there is a rail offset.
+        if (this.state.railOffset > 0) {
+            suggested += 25;
+            railOffsetText = ` Since there is an offset to the rails, add 25 points. `;
+        }
+
+        let range = 10;
+        const min = Math.max(suggested - range, 0)
+        const max =  suggested + range
+        suggested += Math.round(range * Math.random() - range / 2);
+
+        let rangetext = ''
+        if (max > min) {
+            rangetext = `, from a range of ${min} to ${max}`
+        }
+        if (qdata.len < 35) {
+            scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 60 characters for a good quote</em></p>`
+        }
+        if (qdata.len > 2) {
+            scoringText += `<p>There are ${qdata.len} characters in the quote and ${this.state.rails} rails.
+                ${railRangeText} ${railOffsetText}
+                We suggest you try a score of ${suggested}${rangetext}.</p>`
+        }
+
+        return { suggested: suggested, min: min, max: max, private: qdata, text: scoringText }
+    }
+
     /**
      * Update the output based on current state settings.  This propagates
      * All values to the UI

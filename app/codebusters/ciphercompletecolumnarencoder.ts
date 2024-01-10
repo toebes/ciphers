@@ -877,7 +877,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         const qdata = this.analyzeQuote(this.state.cipherString)
 
         let suggested = 0;
-        let result = ''
+        let scoringText = ''
         let cribNotSplit = ' The crib is not split. ';
         let cribDuplicates = '';
         let analyzeMultipleColumns = '';
@@ -962,15 +962,15 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             rangetext = `, from a range of ${min} to ${max}`
         }
         if (qdata.len < 15) {
-            result = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 32 characters for a good quote</em></p>`
+            scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 32 characters for a good quote</em></p>`
         }
         if (qdata.len > 2) {
-            result += `<p>There are ${qdata.len} characters in the quote and ${this.state.columns} columns.
+            scoringText += `<p>There are ${qdata.len} characters in the quote and ${this.state.columns} columns.
                 ${cribNotSplit}${cribDuplicates}${analyzeMultipleColumns}${paddingText}
                 We suggest you try a score of ${suggested}${rangetext}.</p>`
         }
 
-        return { suggested: suggested, min: min, max: max, private: qdata, text: result }
+        return { suggested: suggested, min: min, max: max, private: qdata, text: scoringText }
     }
 
     /**

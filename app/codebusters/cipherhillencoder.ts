@@ -115,7 +115,7 @@ export class CipherHillEncoder extends CipherEncoder {
                     '3x3 Hill Cipher problems are not allowed on ' + this.getTestTypeName(testType);
             }
         }
-        if (this.state.operation !== 'decode') {
+        if (!anyOperation && this.state.operation !== 'decode') {
             result = 'Only decode problems are allowed on ' + this.getTestTypeName(testType);
         }
         return result;

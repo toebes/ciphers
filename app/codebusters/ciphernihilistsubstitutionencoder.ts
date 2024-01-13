@@ -682,7 +682,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     /*
         This method builds the HTML for a polybius table
     */
-    public buildPolybiusTable(center: boolean, fillAlphabet: boolean): JTTable {
+    public buildPolybiusTable(center: boolean, fillString: string): JTTable {
 
         let polyClass = 'polybius-square'
 
@@ -716,7 +716,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             //get an array of the keys of the polybius map
             let polybiusSequence = Array.from(this.polybiusMap.keys());
             for (let i = 1; i <= 5; i++) {
-                if (!fillAlphabet && mainIndex >= undupedPolybiusKey.length) {
+                if (fillString.toLowerCase().indexOf(polybiusSequence[mainIndex].toLowerCase()) < 0) {
                     row.add(" ")
                 } else {
                     //we want to show I/J in the table, not just I
@@ -801,7 +801,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
 
         //false to not center, true to fill alphabet (this is our normal poly table)
-        const worktable = this.buildPolybiusTable(false, true)
+        const worktable = this.buildPolybiusTable(false, "abcdefghijklmnopqrstuvwxyz")
 
         result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
 
@@ -908,7 +908,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result
     }
 
-    public buildSolverCrib(keywordMappingsTens: number[][], keywordMappingsOnes: number[][]): JQuery<HTMLElement> {
+    public buildSolverCrib(keywordMappingsTens: number[][], keywordMappingsOnes: number[][], concretes: string[]) {
 
         const result = $('<div/>');
 
@@ -958,7 +958,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     let display1 = '';
                     let display2 = '';
 
-                    if (keywordMappingsTens[j % keywordLength].length === 1) {
+                    if (keywordMappingsTens.length > 0 && keywordMappingsTens[j % keywordLength].length === 1) {
                         display1 += Math.floor(parseInt(mappedKeyNumbers[i]) / 10)
                         display2 += Math.floor(parseInt(mappedPlaintextNumbers[i]) / 10)
                     } else {
@@ -967,13 +967,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     }
 
                     //for third row, just append the unaltered ciphertext number
-                    if (keywordMappingsOnes[j % keywordLength].length === 1) {
+                    if (keywordMappingsOnes.length > 0 && keywordMappingsOnes[j % keywordLength].length === 1) {
                         display1 += parseInt(mappedKeyNumbers[i]) % 10
                         display2 += parseInt(mappedPlaintextNumbers[i]) % 10
                     } else {
                         display1 += '?'
                         display2 += '?'
                     }
+
+
 
                     row2.append($('<td width="33px"/>').text(display1));
                     row3.append($('<td width="33px"/>').text(display2));
@@ -982,6 +984,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     console.log(index + cleanCrib.length);
                     if (k >= index && index >= 0 && k < (index + this.state.crib.length)) {
                         row4.append($('<td width="33px"/>').text(plaintext[i]));
+                        if (display1.indexOf('?') < 0) {
+                            concretes.push(plaintext[i]);
+                        }
                     } else {
                         row4.append($('<td width="33px"/>').text(' '));
                     }
@@ -1413,7 +1418,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         result.append($('<div/>', { class: 'callout primary small' }).append("Note: Treat the letters <b>I</b> and <b>J</b> as one single letter <b>I/J</b>"))
 
         //true to center table, false to not fill rest of alphabet
-        let onlyKeyPolyTable = this.buildPolybiusTable(true, false).generate()
+        let onlyKeyPolyTable = this.buildPolybiusTable(true, cleanPolybiusKey).generate()
 
         if (await this.restartCheck()) { return }
 
@@ -1423,7 +1428,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         result.append("The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table.")
 
         //true to center table, true to fill alphabet
-        let fullPolyTable = this.buildPolybiusTable(true, true).generate()
+        let fullPolyTable = this.buildPolybiusTable(true, "abcdefghijklmnopqrstuvwxyz").generate()
 
         if (await this.restartCheck()) { return }
 
@@ -1478,7 +1483,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         result.append(`This is our answer (plaintext), but it just needs to be converted back into letters through the polybius table`)
 
-        let fullPolyTable2 = this.buildPolybiusTable(true, true).generate()
+        let fullPolyTable2 = this.buildPolybiusTable(true, "abcdefghijklmnopqrstuvwxyz").generate()
 
         result.append(fullPolyTable2)
 
@@ -1586,7 +1591,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const tensMappings = this.findKeywordMappings(tensArray);
 
         console.log(onesMappings.length);
-        let bigTable = this.buildSolverCrib(tensMappings, onesMappings);
+        let concretes = []
+        let bigTable = this.buildSolverCrib(tensMappings, onesMappings, concretes);
 
         result.append(bigTable);
 
@@ -1594,6 +1600,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         //here is our resulting keyword mapped numbers
         //
+
+
+        let barePolyTable = this.buildPolybiusTable(true, concretes.join("")).generate()
+
+        result.append(barePolyTable);
 
 
         return result;

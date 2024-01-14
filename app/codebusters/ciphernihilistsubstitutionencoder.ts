@@ -733,6 +733,170 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return worktable
     }
 
+    public createSolverNumToLettersMap(concretes) {
+
+        let map = new Map<string, string[]>();
+        let undupedKey = this.undupeString(this.cleanPolyKey);
+
+        let polySequence = Array.from(this.polybiusMap.keys());
+
+        for (let i = 0; i <= undupedKey.length; i++) {
+            let col = (i + 1) % 5;
+            let row = (i + 1) / 5;
+            let letter = polySequence[i]
+            if (concretes.indexOf(letter) >= 0) {
+                map.set(row + "" + col, [letter]);
+            }
+        }
+
+        let i = undupedKey.length;
+        while (i < 25) {
+
+            let col = (i + 1) % 5;
+            let row = (i + 1) / 5;
+
+            let letter = polySequence[i]
+
+            if (concretes.indexOf(letter) >= 0) {
+                map.set(row + "" + col, [letter]);
+
+                //do a for loop to find the last letter (if we reach end of array, then figure out somethign for Z+)
+
+                let initialLetter = letter;
+                let numSpaces = polySequence.indexOf(lastLetter) - polySequence.indexOf(initialLetter) - 1
+
+                let polybiusCharset = this.charset.replace('J', '');
+
+                let betweenArray = polybiusCharset.substring(polybiusCharset.indexOf(initialLetter) + 1, polybiusCharset.indexOf(lastLetter)).split("");
+
+                let usableLetters = betweenArray.filter(x => !concretes.includes(x));
+
+                let numSubs = usableLetters.length - numSpaces + 1;
+
+                for (let i = 0; i < numSpaces; i++) {
+
+                    let subs = []
+
+                    subs = usableLetters.slice(i, i + numSubs);
+
+                    map.set(row + "" + col, subs);
+
+                }
+
+            } else {
+
+
+
+                for () {
+
+                }
+
+                let letters = ""
+
+                let currentLetter = initiaLetter;
+
+                let polybiusCharset = this.charset.replace('J', '');
+
+                let betweenArray = polybiusCharset.substring(polybiusCharset.indexOf(initialLetter) + 1, polybiusCharset.indexOf(lastLetter)).split("");
+
+                let usableLetters = betweenArray.filter(x => !concretes.includes(x));
+
+                for (let i = 0; i < numSpaces; i++) {
+
+                    let subs = []
+
+                    subs = usableLetters.slice(i, numSubs);
+
+                    map.set(row + "" + col, subs);
+
+
+
+                }
+
+
+                i is how many spaces between 
+
+                then loop through the initial letter to the ending letter
+                count how many non exposed letters there are 
+
+                then do nonexposed letters - spaces to get how many subs per space 
+
+                start again with initial letter then loop until you hit the N number, those two 
+
+                start with initial letter
+
+                for () {
+
+                    //start at the initial letter. then go down the alphabet
+
+                }
+
+            }
+
+
+
+        }
+
+        this.undupeString(this.cleanPolyKey)
+
+    }
+
+
+    public getFillers(concretes) {
+
+        let exposedKey = ""
+
+        for (const letter in concretes) {
+
+            if (this.cleanPolyKey.toLowerCase().indexOf(letter) >= 0) {
+                exposedKey += letter;
+            }
+
+        }
+
+
+        for (let i = this.cleanPolyKey.length + 1; i <= 25; i++) {
+
+            let currentLetter = polystring[i];
+
+            if (currentLetter is in concretes) {
+
+                if streak TRUE then 
+
+
+                start streak TRUE
+
+            } else {
+
+            }
+
+
+        }
+
+        for (let i = 1; i <= 5; i++) {
+
+            for (let j = 1; j <= 5; j++) {
+
+            }
+
+        }
+
+        start at the letter after this.keyTarget.start at lettter 'a'.then check if current letter is in exposed key.if it is then skip count, keep counting 
+        
+        loop through 1 - 5 twice.check if mapping is a concrete letter. 
+
+
+        when you hit next concrete letter,
+
+
+            exposed key letters
+
+
+
+
+    }
+
+
     /*
         This method builds the nihilist sequenceset tables as well as the polybius square.
     */
@@ -1017,49 +1181,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result
 
     }
-
-
-    // public buildSolverCrib(keywordMappingsTens: number[][], keywordMappingsOnes: number[][]): JQuery<HTMLElement> {
-
-    //     console.log(keywordMappingsTens[0].length);
-
-    //     const keywordLength = this.cleanKeyword.length
-    //     const cleanCrib = this.minimizeString(this.cleanString(this.state.crib));
-
-    //     const bigTable = $('<table/>', { class: 'nihilist center' });
-
-    //     const sequencesets = this.sequencesets
-
-    //     let j = 0;
-
-    //     for (const sequenceset of sequencesets) {
-
-    //         const row1 = $('<tr/>', { class: 'solve' });
-
-    //         let ciphertextNumbers = sequenceset[0];
-
-    //         console.log(ciphertextNumbers);
-
-    //         for (let i = 0; i < ciphertextNumbers.length; i++) {
-
-    //             let ct = ciphertextNumbers[i]
-    //             if (isNaN(parseInt(ct))) {
-    //                 row1.append(ct);
-    //             } else {
-    //                 //for first row, just append the unaltered ciphertext number
-    //                 row1.append(ct);
-
-    //                 //for second row, we need to add question marks if necessar
-    //             }
-    //         }
-
-    //         bigTable.append(row1);
-
-    //     }
-
-    //     return bigTable;
-
-    // }
 
     public buildCountArray(keywordLength: number, onesDigit: boolean): number[][] {
 

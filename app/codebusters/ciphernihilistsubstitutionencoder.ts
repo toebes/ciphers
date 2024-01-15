@@ -742,7 +742,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         for (let i = 0; i < undupedKey.length; i++) {
             let col = (i % 5) + 1;
-            let row = (i / 5) + 1;
+            let row = Math.floor(i / 5) + 1;
             let letter = polySequence[i]
             if (concretes.indexOf(letter) >= 0) {
                 map.set(row + "" + col, [letter]);
@@ -776,7 +776,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
                 //also set the mapping in the map
                 let col = (index % 5) + 1;
-                let row = (index / 5) + 1;
+                let row = Math.floor(index / 5) + 1;
                 map.set(row + "" + col, [lastLetter]);
             }
 
@@ -801,7 +801,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 subs = usableLetters.slice(i, i + numSubs);
 
                 let col = ((index - numSpaces + i) % 5) + 1;
-                let row = ((index - numSpaces + i) / 5) + 1;
+                let row = Math.floor((index - numSpaces + i) / 5) + 1;
                 map.set(row + "" + col, subs);
 
             }
@@ -823,60 +823,51 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
 
-    // public getFillers(concretes) {
+    public buildPotentialKeyword(tensMapping: number[][], onesMapping: number[][], numToLettersMap: Map<string, string[]>) {
 
-    //     let exposedKey = ""
+        const table = $('<table/>', { class: 'nihilist' });
 
-    //     for (const letter in concretes) {
+        const row = $('<tr/>', { class: '' });
 
-    //         if (this.cleanPolyKey.toLowerCase().indexOf(letter) >= 0) {
-    //             exposedKey += letter;
-    //         }
+        for (let i = 0; i < tensMapping.length; i++) {
 
-    //     }
+            let possiblities = ""
 
+            for (let j = 0; j < tensMapping[i].length; j++) {
 
-    //     for (let i = this.cleanPolyKey.length + 1; i <= 25; i++) {
+                for (let k = 0; k < onesMapping[i].length; k++) {
 
-    //         let currentLetter = polystring[i];
+                    let currentTensPossibility = tensMapping[i][j];
+                    let currentOnesPossibility = onesMapping[i][k];
 
-    //         if (currentLetter is in concretes) {
+                    console.log(currentTensPossibility + "" + currentOnesPossibility)
 
-    //             if streak TRUE then 
+                    let mapValue = numToLettersMap.get(currentTensPossibility + "" + currentOnesPossibility)
 
+                    if (typeof mapValue === "undefined") {
+                        possiblities += "?"
+                    } else {
+                        let possibilitiesString = numToLettersMap.get(currentTensPossibility + "" + currentOnesPossibility).join("")
 
-    //             start streak TRUE
-
-    //         } else {
-
-    //         }
-
-
-    //     }
-
-    //     for (let i = 1; i <= 5; i++) {
-
-    //         for (let j = 1; j <= 5; j++) {
-
-    //         }
-
-    //     }
-
-    //     start at the letter after this.keyTarget.start at lettter 'a'.then check if current letter is in exposed key.if it is then skip count, keep counting 
-
-    //     loop through 1 - 5 twice.check if mapping is a concrete letter. 
-
-
-    //     when you hit next concrete letter,
-
-
-    //         exposed key letters
+                        possiblities += possibilitiesString
+                    }
 
 
 
+                }
 
-    // }
+            }
 
+            row.append($('<td/>').text(possiblities));
+
+        }
+
+        table.append(row)
+
+
+        return table;
+
+    }
 
     /*
         This method builds the nihilist sequenceset tables as well as the polybius square.
@@ -1252,7 +1243,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
             let possibilities = [];
             for (let j = highest - 5; j < lowest; j++) {
-                possibilities.push(j);
+
+                //we don't allow possibilities that are not feasible
+                if (j > 0 && j <= 5) {
+                    possibilities.push(j);
+                }
+
             }
 
             array.push(possibilities);
@@ -1693,6 +1689,24 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const tensMappings = this.findKeywordMappings(tensArray);
 
         console.log(onesMappings.length);
+
+
+        let str2 = "";
+
+        for (let i = 0; i < tensMappings.length; i++) {
+
+            str2 += "----K" + (i + 1) + ": "
+
+            for (let j = 0; j < tensMappings[i].length; j++) {
+
+                str2 += tensMappings[i][j] + " "
+
+            }
+
+        }
+
+        result.append($('<div/>', { class: 'callout secondary' }).text(str2));
+
         let concretes = []
         let bigTable = this.buildSolverCrib(tensMappings, onesMappings, concretes);
 
@@ -1727,6 +1741,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let moreFilledPolyTable = this.buildPolybiusTable(true, newConcretes.join("")).generate()
 
         result.append(moreFilledPolyTable);
+
+
+        let possibleKeywordTable = this.buildPotentialKeyword(tensMappings, onesMappings, map)
+
+        result.append(possibleKeywordTable);
+
+        //loop through all tens mapping. for each tens mapping loop through all respective ones mappings
+        //for each full mapping, we need to loop through all subs at that mapping point
+        //add that maping to a new square in a table
 
 
         return result;

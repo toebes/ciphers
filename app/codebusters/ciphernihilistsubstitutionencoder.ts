@@ -733,168 +733,149 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return worktable
     }
 
-    public createSolverNumToLettersMap(concretes) {
+    public createSolverNumToLettersMap(concretes: string[]) {
 
         let map = new Map<string, string[]>();
         let undupedKey = this.undupeString(this.cleanPolyKey);
 
         let polySequence = Array.from(this.polybiusMap.keys());
 
-        for (let i = 0; i <= undupedKey.length; i++) {
-            let col = (i + 1) % 5;
-            let row = (i + 1) / 5;
+        for (let i = 0; i < undupedKey.length; i++) {
+            let col = (i % 5) + 1;
+            let row = (i / 5) + 1;
             let letter = polySequence[i]
             if (concretes.indexOf(letter) >= 0) {
                 map.set(row + "" + col, [letter]);
             }
         }
 
-        let i = undupedKey.length;
-        while (i < 25) {
+        let index = undupedKey.length;
+        let initialLetter = "<"
 
-            let col = (i + 1) % 5;
-            let row = (i + 1) / 5;
+        while (index < 25) {
 
-            let letter = polySequence[i]
+            let currentLetter = polySequence[index];
+            let numSpaces = 0;
 
-            if (concretes.indexOf(letter) >= 0) {
-                map.set(row + "" + col, [letter]);
+            //this loops through the 'between' spaces of two concrete letters
+            while (index < 25 && concretes.indexOf(polySequence[index]) < 0) {
 
-                //do a for loop to find the last letter (if we reach end of array, then figure out somethign for Z+)
+                index++;
+                numSpaces++;
+            }
 
-                let initialLetter = letter;
-                let numSpaces = polySequence.indexOf(lastLetter) - polySequence.indexOf(initialLetter) - 1
+            //check if the loop exited because we reached the end. if end reached, we still have work to do with ">"
+            let lastLetter
+            if (index === 25) {
 
-                let polybiusCharset = this.charset.replace('J', '');
-
-                let betweenArray = polybiusCharset.substring(polybiusCharset.indexOf(initialLetter) + 1, polybiusCharset.indexOf(lastLetter)).split("");
-
-                let usableLetters = betweenArray.filter(x => !concretes.includes(x));
-
-                let numSubs = usableLetters.length - numSpaces + 1;
-
-                for (let i = 0; i < numSpaces; i++) {
-
-                    let subs = []
-
-                    subs = usableLetters.slice(i, i + numSubs);
-
-                    map.set(row + "" + col, subs);
-
-                }
+                lastLetter = ">"
 
             } else {
+                //the ending letter is the last letter in this subarray
+                lastLetter = polySequence[index]
+
+                //also set the mapping in the map
+                let col = (index % 5) + 1;
+                let row = (index / 5) + 1;
+                map.set(row + "" + col, [lastLetter]);
+            }
+
+            //the initial letter is whatever is left from previous run through, or if first them then "<"
 
 
 
-                for () {
+            //let numSpaces = polySequence.indexOf(lastLetter) - polySequence.indexOf(initialLetter) - 1
 
-                }
+            let polybiusCharset = "<" + this.charset.replace('J', '') + ">";
 
-                let letters = ""
+            let betweenArray = polybiusCharset.substring(polybiusCharset.indexOf(initialLetter) + 1, polybiusCharset.indexOf(lastLetter)).split("");
 
-                let currentLetter = initiaLetter;
+            let usableLetters = betweenArray.filter(x => !concretes.includes(x));
 
-                let polybiusCharset = this.charset.replace('J', '');
+            let numSubs = usableLetters.length - numSpaces + 1;
 
-                let betweenArray = polybiusCharset.substring(polybiusCharset.indexOf(initialLetter) + 1, polybiusCharset.indexOf(lastLetter)).split("");
+            for (let i = 0; i < numSpaces; i++) {
 
-                let usableLetters = betweenArray.filter(x => !concretes.includes(x));
+                let subs = []
 
-                for (let i = 0; i < numSpaces; i++) {
+                subs = usableLetters.slice(i, i + numSubs);
 
-                    let subs = []
-
-                    subs = usableLetters.slice(i, numSubs);
-
-                    map.set(row + "" + col, subs);
-
-
-
-                }
-
-
-                i is how many spaces between 
-
-                then loop through the initial letter to the ending letter
-                count how many non exposed letters there are 
-
-                then do nonexposed letters - spaces to get how many subs per space 
-
-                start again with initial letter then loop until you hit the N number, those two 
-
-                start with initial letter
-
-                for () {
-
-                    //start at the initial letter. then go down the alphabet
-
-                }
+                let col = ((index - numSpaces + i) % 5) + 1;
+                let row = ((index - numSpaces + i) / 5) + 1;
+                map.set(row + "" + col, subs);
 
             }
 
 
 
+            //at the end, we want to set the new initial letter to be this current last letter for next iteration
+            initialLetter = lastLetter;
+
+            index++;
+
+
+
         }
 
-        this.undupeString(this.cleanPolyKey)
+        return map;
+
 
     }
 
 
-    public getFillers(concretes) {
+    // public getFillers(concretes) {
 
-        let exposedKey = ""
+    //     let exposedKey = ""
 
-        for (const letter in concretes) {
+    //     for (const letter in concretes) {
 
-            if (this.cleanPolyKey.toLowerCase().indexOf(letter) >= 0) {
-                exposedKey += letter;
-            }
+    //         if (this.cleanPolyKey.toLowerCase().indexOf(letter) >= 0) {
+    //             exposedKey += letter;
+    //         }
 
-        }
-
-
-        for (let i = this.cleanPolyKey.length + 1; i <= 25; i++) {
-
-            let currentLetter = polystring[i];
-
-            if (currentLetter is in concretes) {
-
-                if streak TRUE then 
+    //     }
 
 
-                start streak TRUE
+    //     for (let i = this.cleanPolyKey.length + 1; i <= 25; i++) {
 
-            } else {
+    //         let currentLetter = polystring[i];
 
-            }
+    //         if (currentLetter is in concretes) {
 
-
-        }
-
-        for (let i = 1; i <= 5; i++) {
-
-            for (let j = 1; j <= 5; j++) {
-
-            }
-
-        }
-
-        start at the letter after this.keyTarget.start at lettter 'a'.then check if current letter is in exposed key.if it is then skip count, keep counting 
-        
-        loop through 1 - 5 twice.check if mapping is a concrete letter. 
+    //             if streak TRUE then 
 
 
-        when you hit next concrete letter,
+    //             start streak TRUE
+
+    //         } else {
+
+    //         }
 
 
-            exposed key letters
+    //     }
+
+    //     for (let i = 1; i <= 5; i++) {
+
+    //         for (let j = 1; j <= 5; j++) {
+
+    //         }
+
+    //     }
+
+    //     start at the letter after this.keyTarget.start at lettter 'a'.then check if current letter is in exposed key.if it is then skip count, keep counting 
+
+    //     loop through 1 - 5 twice.check if mapping is a concrete letter. 
+
+
+    //     when you hit next concrete letter,
+
+
+    //         exposed key letters
 
 
 
 
-    }
+    // }
 
 
     /*
@@ -1726,6 +1707,26 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let barePolyTable = this.buildPolybiusTable(true, concretes.join("")).generate()
 
         result.append(barePolyTable);
+
+
+        let map = this.createSolverNumToLettersMap(concretes);
+
+
+        let newConcretes = []
+
+        let keys = Array.from(map.keys());
+
+        for (let rowcol of keys) {
+            let subs = map.get(rowcol)
+            if (subs.length === 1) {
+                newConcretes.push(subs[0])
+            }
+        }
+
+
+        let moreFilledPolyTable = this.buildPolybiusTable(true, newConcretes.join("")).generate()
+
+        result.append(moreFilledPolyTable);
 
 
         return result;

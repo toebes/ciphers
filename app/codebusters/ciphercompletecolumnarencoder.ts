@@ -810,23 +810,29 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
      * Set the number of rail fence rails.
      * @param columns The number of rails selected on the spinner.
      */
-    public setColumns(columns: number): boolean {
+    public setColumns(columns: number, onRestore: boolean = true): boolean {
         let changed = false;
 
-        let maxColumns = this.thisTestType === ITestType.cstate ? MAX_COLUMNS_C : MAX_COLUMNS_B;
+        const testUsage = this.getTestUsage();
+        const usedOnC = testUsage.includes(ITestType.cstate) ||
+            testUsage.includes(ITestType.cregional) ||
+            testUsage.includes(ITestType.None);
 
-        if (columns < MIN_COLUMNS) {
-            columns = MIN_COLUMNS;
-            changed = true;
-        }
-        else if (columns > maxColumns) {
-            columns = maxColumns;
-            changed = true;
+        let maxColumns = usedOnC ? MAX_COLUMNS_C : MAX_COLUMNS_B;
+
+        //let maxColumns = this.thisTestType === ITestType.cstate ? MAX_COLUMNS_C : MAX_COLUMNS_B;
+
+        if (!onRestore) {
+            if (columns < MIN_COLUMNS) {
+                columns = MIN_COLUMNS;
+                changed = true;
+            } else if (columns > maxColumns) {
+                columns = maxColumns;
+                changed = true;
+            }
         }
 
         if (columns !== this.state.columns) {
-            // TODO: the min and max should probably be made to CONSTANTS.
-
             if (columns >= MIN_COLUMNS && columns <= maxColumns) {
                 this.state.columns = columns;
                 this.setErrorMsg('', 'colcount', null);
@@ -1016,7 +1022,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                     console.log("New number of columns: " + newColumns);
                 }
                 this.markUndo(null);
-                if (this.setColumns(newColumns)) {
+                if (this.setColumns(newColumns, false)) {
                     this.updateOutput();
                 }
                 this.advancedir = 0;
@@ -1079,7 +1085,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     }
 
     public setUIDefaults(): void {
-        this.setColumns(this.state.columns);
+        this.setColumns(this.state.columns, true);
         this.setCrib(this.state.crib);
     }
     /**

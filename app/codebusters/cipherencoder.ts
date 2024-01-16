@@ -1543,14 +1543,22 @@ export class CipherEncoder extends CipherHandler {
                 result.text += ". Because it is a Xenocrypt, it adds 300 points";
             }
             if (this.state.operation === 'keyword') {
-                adjust += 100;
-                result.text += ". Asking for a keyword or key phrase adds 100 points"
+                if (this.state.encodeType === 'k3') {
+                    adjust += 150;
+                    result.text += ". Asking for a K3 alphabet keyword or key phrase adds 150 points"
+                } else {
+                    adjust += 100;
+                    result.text += ". Asking for a keyword or key phrase adds 100 points"
+                }
             } else if (this.state.encodeType === 'k1') {
                 adjust -= 100;
                 result.text += ". A K1 alphabet takes away 100 points"
             } else if (this.state.encodeType === 'k2') {
                 adjust -= 75;
                 result.text += ". A K2 alphabet takes away 75 points"
+            } else if (this.state.encodeType === 'k3') {
+                adjust += 75;
+                result.text += ". A K3 alphabet adds 75 points"
             }
             // If we have a single letter word and A maps to I or I maps to A, that give them an extra 25 points of hints
             this.genAlphabet();

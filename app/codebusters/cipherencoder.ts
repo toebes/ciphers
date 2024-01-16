@@ -1560,7 +1560,7 @@ export class CipherEncoder extends CipherHandler {
             }
             // Make sure we get within the range of 150 to 700 for the final score
             if ((qrecord.minscore + adjust) < 150) {
-                adjust = qrecord.minscore - 150
+                adjust = 150 - qrecord.minscore
             }
             if ((qrecord.maxscore + adjust) > 700) {
                 adjust = 700 - qrecord.maxscore

@@ -1101,15 +1101,14 @@
             <div id="FractionatedMorse">
                 <h2 class="ol">
                     <div class="qusec"></div>
-                    <div class="quseb"></div>Fractionated Morse Cipher Decode {3.e.viii}
+                    <div class="quseb"></div>Fractionated Morse Cipher Cryptanalysis {3.e.viii}
                 </h2>
                 <p>The Fractionated Morse Cipher encodes text by first converting the plain text into morse
                     code with the space between characters represented by an <span class="fq">&times;</span> and the
                     space
                     between
                     words represented by two <span class="fq">&times;</span> characters. The resulting morse code is
-                    then
-                    randomly assigned to letters chosen to represent the morse characters:
+                    then assigned to letters using a K1-like replacement table to represent the morse characters:
                     (<span class="fq">&#9679;</span>,
                     <span class="fq">&ndash;</span>,
                     <span class="fq">&times;</span>)
@@ -1118,25 +1117,33 @@
                     the final cipher string. Decoding is done by reversing the process..
                 </p>
                 <span class="ht">Setting Difficulty:</span>
-                <p class="in">The dificulty is driven by the number of letters and the
-                    variety of morse code combined with which letters are chosen. Looking
-                    at the generated solving guide can help guide the question writing.
-                    Not telling them all the Hint Digits which correspond to
-                    <span class="fq">&times;</span>
-                    increases the difficulty. Assigning more characters for one morse digit,
-                    thereby reducing another, also increases the difficulty.
+
+                <p class="in">
+                The difficulty can depend on how long the crib is (longer is easier), where the crib
+                text is placed (it may reveal more morse mappings).  The difficulty is also related to the
+                    letters that are chosen for the keyword -- the difficulty
+                increases when the keyword draws letters from throughout the alphabet, and when it draws
+                from the end of the alphabet.
+                    Another factor for difficulty is how frequently the letters that the crib maps to are
+                used throughout the rest of the cipher.
                 </p>
+                <p class="in1">Looking at the
+                autosolver's first attempt will give an idea of what students have to start with,
+                looking at its final attempt will give an approximate idea of what students should
+                have to end with, and looking at its iterations in the middle will help show how
+                much trial and error students might have to do between those two points.
+                </p>
+
                 <span class="ht">Points:</span>
-                <p class="in">100-150.</p>
+                <p class="in">225-300.</p>
                 <span class="ht">Question Text:</span>
                 <p class="in">The question should be around 40 characters.</p>
-                <p class="ex callout small secondary ">Solve this quote from <em>&lt;person&gt;</em> which
-                    has been encoded using the Fractionated Morse Cipher and a keyword. You are told that <span
-                        class="fq">
-                        E=&#9679;&ndash;&#9679;;
-                        R=&times;&#9679;&#9679;;
-                        S=&times;&#9679;&ndash;;
-                        T=&#9679;&#9679;&times;.</span> </p>
+                <p class="ex callout small secondary">A quote has been encoded using the Fractionated
+                Morse Cipher for you to decode. You are told that the quote has <span class="fq">CHAN</span>
+                in it corresponding to the encoded text <span class="fq">V  J  T  B  P  D</span>,
+                meaning <span class="fq">B = &#9679;&times;&#9679;; D = &#9679;&times;&ndash;;
+                        J = &ndash;&#9679;&times;; P = &ndash;&times;&ndash;; T = &#9679;&#9679;&#9679;;
+                        V = &times;&ndash;&#9679;.</span></p>
             </div>
             <div id="Cryptarithmdecode">
                 <h2 class="ol">

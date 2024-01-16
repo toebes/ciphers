@@ -119,12 +119,11 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
 
-        let suggested = 55 + qdata.len;
+        let suggested = 155 + qdata.len;
         let scoringText = ''
         let autoSolverLoops = ` The auto-solver ran through ${this.solutionLoops} iterations, `;
         let remainingUnknowns = ` There are ${this.solutionUnknowns} unknown cipher characters left to be determined, `;
-        let analyzeMultipleColumns = '';
-        let paddingText = '';
+
         suggested += Math.round(1.5 * this.solutionLoops);
         suggested += Math.round(3 * this.solutionUnknowns);
 
@@ -175,21 +174,49 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
                 if (plaintext.substr(0, crib.length) === crib) {
                     hint = 'the quote starts with ' + cribtext + '.';
-                } else if (plaintext.substr(plaintext.length - crib.length) === crib) {
-                    hint = 'the quote ends with ' + cribtext + '.';
                 } else {
                     const strings = this.makeReplacement(
                         this.state.cipherString,
                         this.maxEncodeWidth
                     );
                     const ciphercrib = this.findCrib(strings, crib);
+
+                    let cribMappingText = '';
+
+                    const knownLetters: { [letter: string]: string} = {};
+                    for (const c of ciphercrib) {
+                        if (this.isValidChar(c)) {
+                            const i = this.keywordMap.indexOf(c);
+                            knownLetters[c] = this.morseReplaces[i]
+                        }
+                    }
+
+                    // Option 1: Found order
+                    // for (const [letter, morse] of Object.entries(knownLetters)) {
+                    //     console.log(morse);
+                    //     cribMappingText += `${this.genMonoText(letter)} = ${this.normalizeHTML(morse)}; `;
+                    // }
+
+                    // Option 2: Alphabetical order
+                    const knownCipherLetters = [];
+                    for (const c of this.encodecharset) {
+                        if (knownLetters[c] !== undefined) {
+                            knownCipherLetters.push(c);
+                        }
+                    }
+                    for (const c of  knownCipherLetters) {
+                        let i = this.keywordMap.indexOf(c);
+                        if (i > -1) {
+                            cribMappingText += `${this.genMonoText(c)} = ${this.normalizeHTML(this.morseReplaces[i])}; `;
+                        }
+                    }
+
+                    const lastSemicolon = cribMappingText.lastIndexOf('; ');
+                    cribMappingText = `${cribMappingText.substring(0, lastSemicolon)}.`;
+
                     if (ciphercrib !== '') {
-                        hint =
-                            'the quote has ' +
-                            cribtext +
-                            ' in it corresponding to the encoded text ' +
-                            this.genMonoText(ciphercrib) +
-                            '.';
+                        hint = `the quote has ${cribtext} in it corresponding to the encoded 
+                        text ${this.genMonoText(ciphercrib)}, meaning ${cribMappingText}`;
                     } else {
                         hint = 'the quote has ' + cribtext + ' somewhere in it.';
                     }
@@ -206,7 +233,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         this.state.encoded = '';
     }
     public updateOutput(): void {
-        this.guidanceURL = 'TestGuidance.html#FractionatedMorse' + this.state.operation;
         super.updateOutput();
     }
     /**
@@ -394,6 +420,18 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>');
         const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
+
+        let errorMessage = '';
+        const crib = this.minimizeString(this.state.crib);
+        const plaintext = this.minimizeString(this.state.cipherString);
+
+        if (plaintext.indexOf(crib) === -1) {
+            errorMessage = `The crib ${this.state.crib} is not found in the plaintext`;
+            this.setErrorMsg(errorMessage, 'cribmiss', null);
+        } else {
+            this.setErrorMsg('', 'cribmiss', null);
+        }
+
 
         for (const strset of strings) {
             result.append(
@@ -2235,7 +2273,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 //console.log('DELTA is ' + delta);
 
                 // check for match and the letter is not in the keyword at its natural location (kind of a cheat on the second part.)
-                if (delta === 0 && this.state.keyword.indexOf(theLetter) != -1) {
+                if (delta === 0 && this.state.keyword.indexOf(theLetter) === -1) {
                     if (!this.mentionedLetters.has(theLetter)) {
                         let msg = $('<p/>');
                         msg.append('The mapping of the letters between <code>' + theLetter + '</code> and <code>' +
@@ -2504,7 +2542,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                         ul += this.encodecharset[p];
                     }
                 }
-                let mappedLetters = this.updatePossibilitiesMapFromKnown(knownmap);
+                mappedLetters = this.updatePossibilitiesMapFromKnown(knownmap);
                 this.scanAndFillContinuous(result, mappedLetters[1], knownmap);
                 this.reconcileKnownMap(knownmap);
 

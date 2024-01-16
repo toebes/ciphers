@@ -490,24 +490,28 @@ export class CipherMorseEncoder extends CipherEncoder {
         let cribRegex = '';
         let plainText = '';
         let cipherText = '';
+        let morseText = '';
         let notLetters = '###';
 
         // Get cipher text and plain text all in one string
         for (const strset of strings) {
             plainText += strset[ptindex];
             cipherText += strset[ctindex];
+            morseText += strset[morseindex];
         }
 
         // Assuming our operation is cryptanalysis...
         if (this.state.cipherType === ICipherType.Pollux ||
             this.state.cipherType === ICipherType.FractionatedMorse) {
-            notLetters = '\\ {0,}';
+            // Look for zero or more spaces after a letter and zero or more slashses (word divider) after spaces.
+            notLetters = '\\ {0,}\\/{0,}';
         }
 
         // The regex is a sequence of letters, each letter followed by
-        // one or more spaces.
+        // one or more spaces, sometimes a '/' (word divider).
         for (let i = 0; i < crib.length; i++) {
-            cribRegex += crib.substring(i, i + 1) + notLetters;
+            // This is skip looking for spaces at the very beginning of the crib.
+            cribRegex += `${i === 0 ? '' : '\\ {0,}'}${crib.substring(i, i+1)}${notLetters}`;
         }
         const regex = new RegExp(cribRegex, 'g');
         const match = regex.exec(plainText);
@@ -515,15 +519,30 @@ export class CipherMorseEncoder extends CipherEncoder {
         if (match === null) {
             return ""
         }
-        let lengthAdjustment = 0;
+
+        let startCribPosition = match.index;
+        let lengthCribPosition = match[0].length;
+
         if (this.state.cipherType === ICipherType.FractionatedMorse) {
+            let lengthAdjustment = 0;
+            let startAdjustment = 0;
+
+            // For fractionated morse, adjust the start to get the entire morse triplet of the first crib letter.
+            while ((startCribPosition + startAdjustment) % 3 != 0) {
+                startAdjustment += 1;
+            }
+            // back up start
+            startCribPosition -= startAdjustment;
+
             // For fractionated morse, we need to have a multiple of 3 to pick up the last ciphertext character.
             while ((match[0].length + lengthAdjustment) % 3 != 0) {
                 lengthAdjustment += 1;
             }
+            // extend length
+            lengthCribPosition += (startAdjustment + lengthAdjustment);
         }
         // The indexes are directly corresponding between letter location and cipher text.
-        const cipherCrib = cipherText.substr(match.index, match[0].length + lengthAdjustment);
+        const cipherCrib = cipherText.substring(startCribPosition, startCribPosition + lengthCribPosition);
         return cipherCrib.trim();
     }
     /**

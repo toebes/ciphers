@@ -8,7 +8,9 @@ import {
     QuoteRecord,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
+import { hill4, hill9 } from '../common/hillkeys';
 import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFDialog } from '../common/jtfdialog';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
@@ -230,6 +232,7 @@ export class CipherHillEncoder extends CipherEncoder {
             )
         );
         this.genTestUsage(result);
+        result.append(this.createSuggestKeyDlg())
 
         const radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
@@ -240,7 +243,9 @@ export class CipherHillEncoder extends CipherEncoder {
 
         this.genQuestionFields(result);
         this.genEncodeField(result);
-        result.append(JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, ''));
+        const suggestButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestkey" }).text("Suggest Keyword")
+        const keywordInput = JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, '', suggestButton)
+        result.append(keywordInput);
         return result;
     }
     /**
@@ -1320,5 +1325,148 @@ export class CipherHillEncoder extends CipherEncoder {
         }
         result.append($('<textarea/>', { id: 'in' + String(qnum + 1), class: 'intnote' }));
         return result;
+    }
+    /**
+     * Generate a dialog showing the choices for potential keywords
+     */
+    public createSuggestKeyDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+
+        const xDiv = $('<div/>', { class: 'grid-x' })
+        dlgContents.append(xDiv);
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'suggestKeyopts' }))
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'button', id: 'genbtn' }).text('Generate'))
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Cancel'
+                    )
+                )
+        );
+        const suggestKeyDlg = JTFDialog('suggestKeyDLG', 'Suggest Hill Keyword', dlgContents);
+        return suggestKeyDlg;
+    }
+    /**
+     * Set the keyword from the suggested text
+     * @param elem Element clicked on to set the keyword from
+     */
+    public setSuggestedKey(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const key = jqelem.attr('data-key')
+        $('#suggestKeyDLG').foundation('close')
+        this.markUndo('')
+        this.setKeyword(key)
+        this.updateOutput()
+    }
+    /**
+     * Populate the dialog with a set of keyword suggestions. 
+     */
+    public populateKeySuggestions(): void {
+        // we want to pick up to 10 choices
+        let easy4: string[] = []
+        let hard4: string[] = []
+        let easy9: string[] = []
+        let hard9: string[] = []
+        let result = $('#suggestKeyopts')
+        result.empty()
+        // We want a total of 5 each easy and hard 4 and 9 keyword entries
+        for (let i = 0; i < 100 && (easy4.length + easy9.length + hard4.length + hard9.length) < 20; i++) {
+            let choice4 = hill4[Math.trunc(Math.random() * hill4.length)]
+            let choice9 = hill9[Math.trunc(Math.random() * hill9.length)]
+            if (choice4.includes('A')) {
+                // this is an easy one 
+                if (easy4.length < 5 && !easy4.includes(choice4)) {
+                    easy4.push(choice4)
+                }
+            } else {
+                if (hard4.length < 5 && !hard4.includes(choice4)) {
+                    hard4.push(choice4)
+                }
+            }
+            if (choice9.includes('A')) {
+                // this is an easy one 
+                if (easy9.length < 5 && !easy9.includes(choice9)) {
+                    easy9.push(choice9)
+                }
+            } else {
+                if (hard9.length < 5 && !hard9.includes(choice9)) {
+                    hard9.push(choice9)
+                }
+            }
+        }
+
+        // In theory we should have 5 each easy/hard 4 and 9
+        const divEasy = $("<div/>", { class: 'grid-x' })
+        const cellEasy4 = $('<div/>', { class: 'cell auto' })
+        const cellEasy9 = $('<div/>', { class: 'cell auto' })
+        divEasy.append(cellEasy4)
+            .append(cellEasy9)
+        const divHard = $("<div/>", { class: 'grid-x' })
+        const cellHard4 = $('<div/>', { class: 'cell auto' })
+        const cellHard9 = $('<div/>', { class: 'cell auto' })
+        divHard.append(cellHard4)
+            .append(cellHard9)
+        result.append($("<h4/>").text('Easier'))
+            .append(divEasy)
+            .append($("<h4/>").text('Harder'))
+            .append(divHard)
+
+        for (let i = 0; i < 5; i++) {
+            cellEasy4.append(this.genUseKey(easy4[i]))
+            cellEasy9.append(this.genUseKey(easy9[i]))
+            cellHard4.append(this.genUseKey(hard4[i]))
+            cellHard9.append(this.genUseKey(hard9[i]))
+        }
+        this.attachHandlers()
+    }
+    /**
+     * Generate the UI for choosing a keyword
+     * @param key Keyword to add
+     * @returns HTML containing a button to select the keyword and the keyword
+     */
+    public genUseKey(key: string): JQuery<HTMLElement> {
+        if (key === undefined) {
+            return $("<span/>")
+        }
+        let useButton = $("<a/>", {
+            'data-key': key,
+            type: "button",
+            class: "button rounded keyset abbuttons",
+        }).html('Use');
+        let div = $("<div/>", { class: "kwchoice" })
+        div.append(useButton)
+        div.append(key)
+        return div
+    }
+    /**
+     * Start the dialog for suggesting the keyword
+     */
+    public suggestKey(): void {
+        $('#genbtn').text('Generate')
+        this.populateKeySuggestions()
+        $('#suggestKeyDLG').foundation('open')
+    }
+    /**
+     * Sets up the HTML DOM so that all actions go to the right handler
+     */
+    public attachHandlers(): void {
+        super.attachHandlers()
+        $('#suggestkey')
+            .off('click')
+            .on('click', () => {
+                this.suggestKey()
+            })
+        $('#genbtn')
+            .off('click')
+            .on('click', () => {
+                this.populateKeySuggestions()
+            })
+
+        $('.keyset')
+            .off('click')
+            .on('click', (e) => {
+                this.setSuggestedKey(e.target)
+            })
     }
 }

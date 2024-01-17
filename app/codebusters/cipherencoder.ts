@@ -1432,6 +1432,27 @@ export class CipherEncoder extends CipherHandler {
         return questionTextDlg;
     }
     /**
+     * Generate a dialog showing the choices for potential keywords
+     */
+    public createSuggestKeyDlg(title: string): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+
+        const xDiv = $('<div/>', { class: 'grid-x' })
+        dlgContents.append(xDiv);
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'suggestKeyopts' }))
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'button', id: 'genbtn' }).text('Generate'))
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Cancel'
+                    )
+                )
+        );
+        const suggestKeyDlg = JTFDialog('suggestKeyDLG', title, dlgContents);
+        return suggestKeyDlg;
+    }
+    /**
      * Generates a dialog showing the sample question text
      */
     public createMisspellDlg(): JQuery<HTMLElement> {
@@ -2198,7 +2219,7 @@ export class CipherEncoder extends CipherHandler {
      * Update the GUI with a list of suggestions
      */
     public genKeywordSuggestions() {
-        let lang = 'en';
+        const lang = 'en';
 
         let testUsage = this.getTestUsage();
         const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
@@ -2297,6 +2318,48 @@ export class CipherEncoder extends CipherHandler {
             }
         }
         this.attachHandlers()
+    }
+    /**
+     * Populate the dialog with a set of keyword suggestions. 
+     */
+    public populateKeySuggestions(): void {
+        $('#genbtn').text('Regenerate')
+    }
+    /**
+     * Set the keyword from the suggested text
+     * @param elem Element clicked on to set the keyword from
+     */
+    public setSuggestedKey(elem: HTMLElement): void {
+        this.markUndo('')
+        $('#suggestKeyDLG').foundation('close')
+        this.updateOutput()
+    }
+    /**
+     * Start the dialog for suggesting the keyword
+     */
+    public suggestKey(): void {
+        $('#genbtn').text('Generate')
+        this.populateKeySuggestions()
+        $('#suggestKeyDLG').foundation('open')
+    }
+    /**
+     * Generate the UI for choosing a keyword
+     * @param key Keyword to add
+     * @returns HTML containing a button to select the keyword and the keyword
+     */
+    public genUseKey(key: string): JQuery<HTMLElement> {
+        if (key === undefined) {
+            return $("<span/>")
+        }
+        let useButton = $("<a/>", {
+            'data-key': key,
+            type: "button",
+            class: "button rounded keyset abbuttons",
+        }).html('Use');
+        let div = $("<div/>", { class: "kwchoice" })
+        div.append(useButton)
+        div.append(key)
+        return div
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
@@ -2547,5 +2610,21 @@ export class CipherEncoder extends CipherHandler {
             .on('click', (e) => {
                 this.abandonAndContinue($('#targeturl').val() as string);
             });
+        $('#suggestkey')
+            .off('click')
+            .on('click', () => {
+                this.suggestKey()
+            })
+        $('#genbtn')
+            .off('click')
+            .on('click', () => {
+                this.populateKeySuggestions()
+            })
+
+        $('.keyset')
+            .off('click')
+            .on('click', (e) => {
+                this.setSuggestedKey(e.target)
+            })
     }
 }

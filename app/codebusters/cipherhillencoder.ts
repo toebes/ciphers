@@ -5,7 +5,6 @@ import {
     toolMode,
     ITestQuestionFields,
     IScoreInformation,
-    QuoteRecord,
 } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { hill4, hill9 } from '../common/hillkeys';
@@ -232,7 +231,7 @@ export class CipherHillEncoder extends CipherEncoder {
             )
         );
         this.genTestUsage(result);
-        result.append(this.createSuggestKeyDlg())
+        result.append(this.createSuggestKeyDlg('Suggest Hill Keyword'))
 
         const radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
@@ -1327,27 +1326,6 @@ export class CipherHillEncoder extends CipherEncoder {
         return result;
     }
     /**
-     * Generate a dialog showing the choices for potential keywords
-     */
-    public createSuggestKeyDlg(): JQuery<HTMLElement> {
-        const dlgContents = $('<div/>');
-
-        const xDiv = $('<div/>', { class: 'grid-x' })
-        dlgContents.append(xDiv);
-        dlgContents.append($('<div/>', { class: 'callout primary', id: 'suggestKeyopts' }))
-        dlgContents.append(
-            $('<div/>', { class: 'expanded button-group' })
-                .append($('<a/>', { class: 'button', id: 'genbtn' }).text('Generate'))
-                .append(
-                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
-                        'Cancel'
-                    )
-                )
-        );
-        const suggestKeyDlg = JTFDialog('suggestKeyDLG', 'Suggest Hill Keyword', dlgContents);
-        return suggestKeyDlg;
-    }
-    /**
      * Set the keyword from the suggested text
      * @param elem Element clicked on to set the keyword from
      */
@@ -1419,54 +1397,5 @@ export class CipherHillEncoder extends CipherEncoder {
             cellHard9.append(this.genUseKey(hard9[i]))
         }
         this.attachHandlers()
-    }
-    /**
-     * Generate the UI for choosing a keyword
-     * @param key Keyword to add
-     * @returns HTML containing a button to select the keyword and the keyword
-     */
-    public genUseKey(key: string): JQuery<HTMLElement> {
-        if (key === undefined) {
-            return $("<span/>")
-        }
-        let useButton = $("<a/>", {
-            'data-key': key,
-            type: "button",
-            class: "button rounded keyset abbuttons",
-        }).html('Use');
-        let div = $("<div/>", { class: "kwchoice" })
-        div.append(useButton)
-        div.append(key)
-        return div
-    }
-    /**
-     * Start the dialog for suggesting the keyword
-     */
-    public suggestKey(): void {
-        $('#genbtn').text('Generate')
-        this.populateKeySuggestions()
-        $('#suggestKeyDLG').foundation('open')
-    }
-    /**
-     * Sets up the HTML DOM so that all actions go to the right handler
-     */
-    public attachHandlers(): void {
-        super.attachHandlers()
-        $('#suggestkey')
-            .off('click')
-            .on('click', () => {
-                this.suggestKey()
-            })
-        $('#genbtn')
-            .off('click')
-            .on('click', () => {
-                this.populateKeySuggestions()
-            })
-
-        $('.keyset')
-            .off('click')
-            .on('click', (e) => {
-                this.setSuggestedKey(e.target)
-            })
     }
 }

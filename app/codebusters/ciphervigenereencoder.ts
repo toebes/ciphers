@@ -1,4 +1,4 @@
-import { cloneObject } from '../common/ciphercommon';
+import { BoolMap, cloneObject } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
@@ -6,7 +6,6 @@ import {
     toolMode,
     ITestQuestionFields,
     IScoreInformation,
-    QuoteRecord,
 } from '../common/cipherhandler';
 import { CipherTypeButtonItem, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -85,6 +84,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.guidanceButton,
     ];
 
+    public uniquePatterns: { [index: number]: string } = {}
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -451,6 +451,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public genPreCommands(): JQuery<HTMLElement> {
         const result = $('<div/>');
         this.genTestUsage(result);
+        result.append(this.createSuggestKeyDlg('Suggest Key'))
 
         let radiobuttons = [
             CipherTypeButtonItem(ICipherType.Vigenere),
@@ -467,13 +468,16 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.genQuestionFields(result);
         this.genEncodeField(result);
 
+        const suggestButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestkey" }).text("Suggest Key")
+
         result.append(
             JTFLabeledInput(
                 'Key',
                 'text',
                 'keyword',
                 this.state.keyword,
-                'small-12 medium-12 large-12'
+                'small-12 medium-12 large-12',
+                suggestButton
             )
         );
 
@@ -777,5 +781,82 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
         result.append($('<textarea/>', { id: 'in' + qnumdisp, class: 'intnote' }));
         return result;
+    }
+    /**
+     * Start the dialog for suggesting the keyword
+     */
+    public suggestKey(): void {
+        // We need to load up the language dictionary before starting everything
+        this.loadLanguageDictionary('en').then((res) => {
+            for (let len = 3; len <= 7; len++) {
+                this.uniquePatterns[len] = this.makeUniquePattern("ABCDEFGHIJKLMNOP".substring(0, len), 1)
+            }
+            super.suggestKey()
+        });
+    }
+    /**
+     * Populate the dialog with a set of keyword suggestions. 
+     */
+    public populateKeySuggestions(): void {
+        $('#genbtn').text('Regenerate')
+        let result = $('#suggestKeyopts')
+        const lang = 'en'
+
+        let testUsage = this.getTestUsage();
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+        let range = 1.0
+        if (usedOnA) {
+            range *= .25
+        } else if (usedOnB) {
+            range *= .5
+        }
+        result.empty()
+
+        // Set some upper limits for the words we pick because a lot of them aren't very common
+        // These numbers are gotten by reading through the keywords in the english list
+        const maxSlots = [0, 0, 0, 600, 1400, 2000, 2800, 2400, 0]
+        const divAll = $("<div/>", { class: 'grid-x' })
+        const cellLeft = $('<div/>', { class: 'cell auto' })
+        const cellRight = $('<div/>', { class: 'cell auto' })
+        divAll.append(cellLeft).append(cellRight)
+        result.append(divAll)
+        for (let len = 3; len <= 7; len++) {
+            const pat = this.uniquePatterns[len]
+            const patSet = this.Frequent[lang][pat]
+            let limit = Math.min(maxSlots[len], patSet.length)
+            const maxWord = Math.trunc(limit * range)
+            const picked: BoolMap = {}
+
+            // We want to get at least 4 choices from each of the length ranges
+            for (let count = 0; count < 4;) {
+                const slot = Math.trunc(maxWord * Math.random())
+                const choice = patSet[slot][0]
+                // Make sure we didn't get this one before (i.e. same random number)
+                if (picked[choice] !== true) {
+                    picked[choice] = true
+                    const useDiv = this.genUseKey(choice)
+                    if (count % 2 === 0) {
+                        cellLeft.append(useDiv)
+                    } else {
+                        cellRight.append(useDiv)
+                    }
+                    count++
+                }
+            }
+        }
+        this.attachHandlers()
+    }
+    /**
+     * Set the keyword from the suggested text
+     * @param elem Element clicked on to set the keyword from
+     */
+    public setSuggestedKey(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const key = jqelem.attr('data-key')
+        $('#suggestKeyDLG').foundation('close')
+        this.markUndo('')
+        this.setKeyword(key)
+        this.updateOutput()
     }
 }

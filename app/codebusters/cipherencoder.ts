@@ -1642,7 +1642,7 @@ export class CipherEncoder extends CipherHandler {
         let hinttext = hint !== undefined ? ` You are told that ${hint}` : '';
         let enctype = ''
         if (this.state.encodeType !== undefined && this.state.encodeType !== 'random') {
-            enctype += this.state.encodeType.toUpperCase();
+            enctype += ' ' + this.state.encodeType.toUpperCase();
         }
         return (
             `<p>A quote${this.genAuthor()} has been encoded using the${enctype}

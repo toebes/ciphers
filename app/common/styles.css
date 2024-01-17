@@ -1053,6 +1053,14 @@ textarea.intnote {
     text-decoration: underline;
 }
 
+table.potential-keyword {
+    width: 30%;
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+}
+
 table.polybius-square th,
 table.polybius-square td {
     border: 1px solid black;

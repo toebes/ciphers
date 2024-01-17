@@ -1771,7 +1771,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
 
         let firstLetter = cleanKey.substring(0, 1)
-        let tMap = this.polybiusMap.get(firstLetter)
+        let tMap = this.getNumFromPolybiusMap(firstLetter)
         let tMapSpan = $('<span/>', { class: 'hl' }).text(tMap)
         let tMap1Span = $('<span/>', { class: 'hl' }).text(tMap.substring(0, 1))
         let tMap2Span = $('<span/>', { class: 'hl' }).text(tMap.substring(1, 2))

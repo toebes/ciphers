@@ -1,4 +1,4 @@
-import { number } from 'yargs';
+import { count, number } from 'yargs';
 import { cloneObject } from '../common/ciphercommon';
 import {
     IOperationType,
@@ -825,13 +825,22 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     public buildPotentialKeyword(tensMapping: number[][], onesMapping: number[][], numToLettersMap: Map<string, string[]>) {
 
-        const table = $('<table/>', { class: 'nihilist' });
 
-        const row = $('<tr/>', { class: '' });
+        const table = $('<table/>', { class: 'potential-keyword center' });
+
+        const headerRow = $('<tr style="border-bottom:1px solid #000;font-weight:bold"/>', { class: 'solve' });
+
+        const contentRow = $('<tr/>', { class: 'solve' });
+
+        for (let i = 0; i < this.cleanKeyword.length; i++) {
+
+            headerRow.append($('<td/>').text("K" + (i + 1)));
+
+        }
 
         for (let i = 0; i < tensMapping.length; i++) {
 
-            let possiblities = ""
+            let possibilities = []
 
             for (let j = 0; j < tensMapping[i].length; j++) {
 
@@ -840,16 +849,23 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     let currentTensPossibility = tensMapping[i][j];
                     let currentOnesPossibility = onesMapping[i][k];
 
-                    console.log(currentTensPossibility + "" + currentOnesPossibility)
-
                     let mapValue = numToLettersMap.get(currentTensPossibility + "" + currentOnesPossibility)
 
                     if (typeof mapValue === "undefined") {
-                        possiblities += "?"
+                        if (possibilities.indexOf("?") < 0) {
+                            possibilities.push("?")
+                        }
                     } else {
-                        let possibilitiesString = numToLettersMap.get(currentTensPossibility + "" + currentOnesPossibility).join("")
+                        //possibilities = possibilities.concat(mapValue)
+                        //possibilities = Array.from(new Set(mapValue));
 
-                        possiblities += possibilitiesString
+                        for (let i = 0; i < mapValue.length; i++) {
+                            const p = mapValue[i]
+                            if (possibilities.indexOf(p) < 0) {
+                                possibilities.push(p)
+                            }
+                        }
+
                     }
 
 
@@ -858,14 +874,68 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
             }
 
-            row.append($('<td/>').text(possiblities));
+            contentRow.append($('<td>').html(possibilities.join("<br>")));
 
         }
 
-        table.append(row)
-
+        table.append(headerRow);
+        table.append(contentRow);
 
         return table;
+
+
+
+
+
+
+        // for () {
+
+        // }
+
+
+
+
+        // const table = $('<table/>', { class: 'nihilist' });
+
+        // const row = $('<tr/>', { class: '' });
+
+        // for (let i = 0; i < tensMapping.length; i++) {
+
+        //     let possiblities = ""
+
+        //     for (let j = 0; j < tensMapping[i].length; j++) {
+
+        //         for (let k = 0; k < onesMapping[i].length; k++) {
+
+        //             let currentTensPossibility = tensMapping[i][j];
+        //             let currentOnesPossibility = onesMapping[i][k];
+
+        //             console.log(currentTensPossibility + "" + currentOnesPossibility)
+
+        //             let mapValue = numToLettersMap.get(currentTensPossibility + "" + currentOnesPossibility)
+
+        //             if (typeof mapValue === "undefined") {
+        //                 possiblities += "?"
+        //             } else {
+        //                 let possibilitiesString = numToLettersMap.get(currentTensPossibility + "" + currentOnesPossibility).join("")
+
+        //                 possiblities += possibilitiesString
+        //             }
+
+
+
+        //         }
+
+        //     }
+
+        //     row.append($('<td/>').text(possiblities));
+
+        // }
+
+        // table.append(row)
+
+
+        // return table;
 
     }
 
@@ -986,6 +1056,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             order = [[0, "solve"], [2, "solve"], [1, "ans bar"]]
         } else if (state === 'unknownkey') {
             order = [[unknownkeylength, "ans"], [0, "solve"]];
+        } else if (state === 'k1example') {
+            order = [[, "ans"], [0, "solve"]];
         }
 
         const sequencesets = this.sequencesets
@@ -1066,8 +1138,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
             const row1 = $('<tr/>', { class: 'solve' });
             const row2 = $('<tr/>', { class: 'solve' });
-            const row3 = $('<tr/>', { class: 'solve' });
-            const row4 = $('<tr/>', { class: 'solve' });
+            const row3 = $('<tr/>', { class: 'ans bar' });
+            const row4 = $('<tr/>', { class: 'ans' });
 
             let ciphertextNumbers = sequenceset[0];
             let mappedKeyNumbers = sequenceset[2];
@@ -1199,26 +1271,168 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     }
 
-    public buildCountTable(countArray: number[][]): JQuery<HTMLElement> {
-        const table = $('<table/>', { class: 'nihilist center' });
+
+    public buildCountTable(countArray: number[][]): JTTable {
+
+
+        const table = new JTTable({
+            class: 'polybius-square center',
+        });
+
+        const header = table.addHeaderRow()
+
+        header.add('')
+        header.add('1')
+        header.add('2')
+        header.add('3')
+        header.add('4')
+        header.add('5')
+        header.add('6')
+        header.add('7')
+        header.add('8')
+        header.add('9')
+        header.add('0')
+
 
         for (let j = 0; j < countArray.length; j++) {
 
             let letterRow = countArray[j];
 
-            const row = $('<tr/>', { class: 'solve' });
+            const row = table.addBodyRow()
 
-            row.append($('<td/>').text('K' + (j + 1)));
+            row.add({
+                celltype: 'th',
+                content: 'K' + (j + 1)
+            })
 
-            for (let i = 0; i < letterRow.length; i++) {
-                row.append($('<td/>').text(letterRow[i]));
+            for (let i = 1; i < letterRow.length; i++) {
+
+                if (letterRow[i] === 1) {
+                    row.add('X');
+                } else {
+                    row.add('');
+                }
             }
 
-            table.append(row);
+            if (letterRow[0] === 1) {
+                row.add('X');
+            } else {
+                row.add('');
+            }
+
+        }
+
+
+
+        return table;
+
+    }
+
+
+    // public buildCountTable(countArray: number[][]): JQuery<HTMLElement> {
+
+    //     // console.log(countArray)
+    //     // countArray.push(countArray.shift());
+    //     // console.log(countArray)
+
+    //     // if (typeof countArray !== 'undefined') {
+    //     //     if (typeof countArray[0] !== 'undefined') {
+    //     //         countArray.push(countArray.shift());
+    //     //     }
+    //     // }
+
+    //     const table = $('<table/>', { class: 'nihilist center' });
+
+    //     const headerRow = $('<tr style="border-bottom:1px solid #000"/>', { class: 'solve' });
+    //     headerRow.append($('<td style="border-right:1px solid #000"/>').text(' '));
+    //     headerRow.append($('<td/>').text('1'));
+    //     headerRow.append($('<td/>').text('2'));
+    //     headerRow.append($('<td/>').text('3'));
+    //     headerRow.append($('<td/>').text('4'));
+    //     headerRow.append($('<td/>').text('5'));
+    //     headerRow.append($('<td/>').text('6'));
+    //     headerRow.append($('<td/>').text('7'));
+    //     headerRow.append($('<td/>').text('8'));
+    //     headerRow.append($('<td/>').text('9'));
+    //     headerRow.append($('<td/>').text('0'));
+
+    //     table.append(headerRow)
+
+    //     for (let j = 0; j < countArray.length; j++) {
+
+    //         let letterRow = countArray[j];
+
+    //         const row = $('<tr/>', { class: 'solve' });
+
+    //         row.append($('<td style="border-right:1px solid #000"/>').text('K' + (j + 1)));
+
+    //         for (let i = 1; i < letterRow.length; i++) {
+
+    //             if (letterRow[i] === 1) {
+    //                 row.append($('<td/>').text("X"));
+    //             } else {
+    //                 row.append($('<td/>').text("-"));
+    //             }
+    //         }
+
+    //         if (letterRow[0] === 1) {
+    //             row.append($('<td/>').text("X"));
+    //         } else {
+    //             row.append($('<td/>').text("-"));
+    //         }
+
+    //         table.append(row);
+
+    //     }
+
+    //     return table;
+    // }
+
+    public buildPossibleKeywordMappings(tensMappings: number[][], onesMappings: number[][]) {
+
+        const table = $('<table/>', { class: 'potential-keyword center' });
+
+        const headerRow = $('<tr style="border-bottom:1px solid #000;font-weight:bold"/>', { class: 'solve' });
+
+        headerRow.append($('<td/>').text(" "));
+        headerRow.append($('<td/>').text("Tens"));
+        headerRow.append($('<td/>').text("Ones"));
+
+        table.append(headerRow)
+
+        for (let i = 0; i < this.cleanKeyword.length; i++) {
+
+            const row = $('<tr/>', { class: 'solve' });
+
+            row.append($('<td style="border-right:1px solid #000;font-weight:bold"/>').text("K" + (i + 1)));
+
+            let tensString = ""
+            let onesString = ""
+
+            for (let j = 0; j < tensMappings[i].length; j++) {
+
+                tensString += tensMappings[i][j] + ", "
+
+            }
+
+            for (let j = 0; j < onesMappings[i].length; j++) {
+
+                onesString += onesMappings[i][j] + ", "
+
+            }
+
+            tensString = tensString.substring(0, tensString.length - 2)
+            onesString = onesString.substring(0, onesString.length - 2)
+
+            row.append($('<td/>').text(tensString));
+            row.append($('<td/>').text(onesString));
+
+            table.append(row)
 
         }
 
         return table;
+
     }
 
     public findKeywordMappings(countArray: number[][]): number[][] {
@@ -1621,101 +1835,176 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
     public async genCryptanalysisSolution(target: JQuery<HTMLElement>) {
+
+
+        //determine keyword length
+
+        //first we need to determine the keyword length to help us break open the cipher
+        //since we don't know the keyword initially, we must guess what the keyword is, and then see if that guess makes sense
+        //with the resulting numbers
+
+
+        //use this increment button to choose our initial guess how many letters are in the keyword
+
+        //notice that each letter of our guess keyword is "K1, K2, etc."
+
+        //with our keyword length guess, we can follow each keyword letter through the entire ciphertext. 
+        //the respective numbers should only have a maximum of 5 
+
+        //for example, let's follow 'K1', the first letter in our potential keyword guess.
+
+        //we can see that there are _ times that K1 appears in the text. we can look at each of the respective 
+
+        //ciphertext numbers' ones digits
+
+        //if our guess of the keyword length was right, then the 'ones' digits should never be more than 5 different digits
+
+
+
+        //To think about it more,
+
+        //
+
+
+        //the following table shows the 
+
+        //if there are 6 or more X's in a row, then this keyword length cannot be right
+
+
+        //we can see that the keyword length of _X_ works best
+
+        //though if 
+
+
+
+
+
+
+
         const result = $('<div/>', { id: 'solution' });
         target.append(result);
 
         result.append($('<div/>', { class: 'callout secondary' }).text("Step 1: Determine keyword length"));
 
+        result.append("Finding the keyword length is the first step to cracking this cipher. Since we don't know any information")
+            .append(" about the keyword, we start by guessing how long the keyword is, and then checking if our guess was right.")
+            .append('Use the increment button to choose a guess to continue with.')
+
+        //with our keyword length guess, we can follow each keyword letter through the entire ciphertext, and the resulting numbers each letter produces.
+
+        //
+
+
+        //if our keyword length guess was right, we should see that there should not be more than 5 different ones digits for all 
+        //the numbers of a single keyword letter  
+
+        //lets follow "K1", the first letter, for example.
+
+        //if we look at all the respective numbers for K1, 5, 6, 7, 8 appear. Since no more than 5 letters appear, 
+        //we can construct a table to show the digits for each letter (K1, K2, K3)
+
+        //if we look through all the tables for different keyword lengths (using the increment button), we see that the keyword length of 
+        //_X_ does not have 6 X's in any of the rows
+
+        //to think about this more
+
+
+        //first we need to determine the keyword length to help us break open the cipher
+        //since we don't know the keyword initially, we must guess what the keyword is, and then see if that guess makes sense
+        //with the resulting numbers
+
+
+        //use this increment button to choose our initial guess how many letters are in the keyword
+
+        //notice that each letter of our guess keyword is "K1, K2, etc."
+
+
+        const inputbox2 = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
+        inputbox2.append(JTFIncButton('Keyword Length Guess', 'solverkeylength', this.state.solverKeyLength, ''));
+        result.append(inputbox2);
+
+
+        result.append($('<div/>', { class: 'callout primary small' }).append(
+            "Notice that we are not guessing the actual keyword yet, just the length, so each letter is unknown and represented with a 'K1, K2...'")
+        )
+
+
         let encoded = this.cleanString(this.state.cipherString);
 
         result.append(this.buildSolverNihilist(encoded, this.state.solverKeyLength.toString(), 'unknownkey'))
 
-        // The keyword is repeated across the entire plaintext, so we can. Since . If we are right in our guess of the keyword length, 
-        // then every 3rd plaintext number has the same corresponding keyword number associated with it. This means that every 3rd ciphertext number
-        // can only have maximum 5 different values. If we find that there is more than 5 diffferent values, then we can rule out that keyword length.
-        // A good range to test keyword lengths is keyword lengths 3 4 5 6. Let's try keyword length 3. 
+        result.append(
+            "With our length guess, we can follow each keyword letter through the entire ciphertext and track the numbers. Specifically, we are looking for the ones digit.")
+            .append("If our keyword length guess was right, we should not see more than 5 different ones digits for a single keyword letter. ")
+            .append("To demonstrate, let's follow K1, the first letter.")
+
+        let dynamicArray = this.buildCountArray(this.state.solverKeyLength, true);
+
+        result.append($('<div/>', { class: 'center' }).append(
+            "Ones Digit Count Table for Letter K1")
+        )
+
+        let k1Table = this.buildCountTable([dynamicArray[0]]).generate();
+        result.append(k1Table);
+
+        result.append("The X's show which ones digits were found at the K1 locations in the above text.");
+
+        result.append("We can construct a full count table to show the digits for every letter K1, K2, K3...")
+            .append(" If any of the rows have more than 5 X's, then we know this keyword length guess is wrong.")
 
 
+        let dynamicTable = this.buildCountTable(dynamicArray).generate();
+        result.append(dynamicTable);
+
+
+        result.append("If we look through all the tables for different keyword lengths (using the increment button), ")
+            .append("we see that the keyword length of " + this.cleanKeyword.length + " does not have more than 5 X's in any of the rows. This is likely our keyword length, so we'll continue with a length of " + this.cleanKeyword.length)
 
 
         result.append($('<div/>', { class: 'callout secondary' }).text("Step 2: Find keyword letter mappings"));
 
-
-        result.append($('<div/>', { class: 'callout secondary' }).text("Step 3: Utilize crib to fill in polybius square"));
-
-        const inputbox2 = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
-        inputbox2.append(JTFIncButton('Keyword Length', 'solverkeylength', this.state.solverKeyLength, ''));
-        result.append(inputbox2);
-
-        let dynamicArray = this.buildCountArray(this.state.solverKeyLength, true);
-        let dynamicTable = this.buildCountTable(dynamicArray);
-        result.append(dynamicTable);
-
-        //we can see from the above tables of different guessed keyword length, 
-        //though there might be multiple tables that work (WARNING, as test writer you should try to avoid multiple keyword possibilities)
-        //we will pick X length to continue with.
+        result.append("We have determined that the keyword has a length of " + this.cleanKeyword.length + " - here is its ones digit count table.")
 
         let continueArray = this.buildCountArray(this.cleanKeyword.length, true);
-        let continueTable = this.buildCountTable(continueArray);
+        let continueTable = this.buildCountTable(continueArray).generate();
         result.append(continueTable);
 
         const onesMappings = this.findKeywordMappings(continueArray);
-        console.log(onesMappings.length);
 
-        let str = "";
+        result.append("Since numbers generated from a polybius table can only end in the digits 1-5, we can analyze the count table to find specific mapping possibilities for each keyword letter.")
+            .append("To do this, look at each keyword letter (row), and think about what number, if added to numbers 1-5, could generate the resulting row.")
 
-        for (let i = 0; i < onesMappings.length; i++) {
+        result.append($('<div/>', { class: 'callout primary small' }).append(
+            "A more concrete 'formula' would be  <i>[Largest Seen Digit] - 5 <= Possible Mappings < [Smallest Seen Digit]</i>")
+        )
 
-            str += "----K" + (i + 1) + ": "
-
-            for (let j = 0; j < onesMappings[i].length; j++) {
-
-                str += onesMappings[i][j] + " "
-
-            }
-
-        }
-
-        result.append($('<div/>', { class: 'callout secondary' }).text(str));
-
-        //looking at the table, we can see that rows with 5 tell us that 
-        //for example, if K2 had 5, 6, 7, 8, 9 all appearing, then K2 must end in 4, since 4 + 1, 2, 3, 4, 5 = 5, 6, 7, 8, 9
-        //we can also do this with the first digit to see what the first digit of K2 must be. 
+        result.append("This gives us the possible ones digits for the keyword letters. Now we can do the same with the tens digit.")
 
         let tensArray = this.buildCountArray(this.cleanKeyword.length, false);
-        let tensTable = this.buildCountTable(tensArray);
+        let tensTable = this.buildCountTable(tensArray).generate();
         result.append(tensTable);
 
         const tensMappings = this.findKeywordMappings(tensArray);
 
-        console.log(onesMappings.length);
+        result.append("Putting the tens and ones digit possibilities together, we can determine the possible mappings for each keyword letter.")
 
 
-        let str2 = "";
+        let possibleKeywordMappings = this.buildPossibleKeywordMappings(tensMappings, onesMappings);
 
-        for (let i = 0; i < tensMappings.length; i++) {
+        result.append(possibleKeywordMappings)
 
-            str2 += "----K" + (i + 1) + ": "
+        result.append($('<div/>', { class: 'callout secondary' }).text("Step 3: Utilize crib to fill in polybius square"));
 
-            for (let j = 0; j < tensMappings[i].length; j++) {
+        result.append("Using the determined keyword mappings, fill in the keyword letters (K1, K2...) with the correct mappings, leaving a '?' if there is more than one possibility.")
 
-                str2 += tensMappings[i][j] + " "
-
-            }
-
-        }
-
-        result.append($('<div/>', { class: 'callout secondary' }).text(str2));
+        result.append(" Subtract the keyword mapping numbers from the original ciphertext numbers, giving us our answer (or plaintext) numbers.")
 
         let concretes = []
         let bigTable = this.buildSolverCrib(tensMappings, onesMappings, concretes);
 
         result.append(bigTable);
 
-        //for some rows, we do not have 5 X's, meaning that we don't know for sure the keyword
-
-        //here is our resulting keyword mapped numbers
-        //
+        result.append("Now we can align the crib with the answer numbers to fill in the polybius table. The below table shows all the locations we are certain about")
 
 
         let barePolyTable = this.buildPolybiusTable(true, concretes.join("")).generate()
@@ -1737,19 +2026,36 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
         }
 
+        result.append("Finally, knowing that the polybius table is alphabetical can help us uncover even more polybius cells. The auto-solver has filled in additional letters, if possible.")
 
         let moreFilledPolyTable = this.buildPolybiusTable(true, newConcretes.join("")).generate()
 
         result.append(moreFilledPolyTable);
 
+        result.append($('<div/>', { class: 'callout primary small' }).append(
+            "For example, if a sequence on the polybius table was T _ _ W, we know the middle two blanks must be U and V. If the sequence was T _ W, we know the middle blank must be U or V")
+        )
+
+        result.append("Using these techniques helps us narrow down the possibilities for our keyword letters. Below is all possible keyword letters determined")
 
         let possibleKeywordTable = this.buildPotentialKeyword(tensMappings, onesMappings, map)
 
         result.append(possibleKeywordTable);
 
-        //loop through all tens mapping. for each tens mapping loop through all respective ones mappings
-        //for each full mapping, we need to loop through all subs at that mapping point
-        //add that maping to a new square in a table
+        result.append("Hopefully, the problem is structured in a way where there is enough information to determine the exact keyword " + this.cleanKeyword.toUpperCase())
+
+
+
+        result.append("<br>With the keyword known, the entire plaintext numbers should be revealed, which should give you enough information to deduce the rest of the answer.")
+
+
+        //if we look through all the tables for different keyword lengths (using the increment button), we see that the keyword length of 
+        //_X_ does not have 6 X's in any of the rows
+
+        // The keyword is repeated across the entire plaintext, so we can. Since . If we are right in our guess of the keyword length, 
+        // then every 3rd plaintext number has the same corresponding keyword number associated with it. This means that every 3rd ciphertext number
+        // can only have maximum 5 different values. If we find that there is more than 5 diffferent values, then we can rule out that keyword length.
+        // A good range to test keyword lengths is keyword lengths 3 4 5 6. Let's try keyword length 3. 
 
 
         return result;

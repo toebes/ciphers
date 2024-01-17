@@ -1148,7 +1148,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
             let index = this.state.cipherString.toLowerCase().indexOf(this.state.crib.toLowerCase());
 
-            console.log(ciphertextNumbers);
+            // console.log(ciphertextNumbers);
 
             for (let i = 0; i < ciphertextNumbers.length; i++) {
 
@@ -1188,8 +1188,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     row2.append($('<td width="33px"/>').text(display1));
                     row3.append($('<td width="33px"/>').text(display2));
 
-                    console.log(index);
-                    console.log(index + cleanCrib.length);
+                    // console.log(index);
+                    // console.log(index + cleanCrib.length);
                     if (k >= index && index >= 0 && k < (index + this.state.crib.length)) {
                         row4.append($('<td width="33px"/>').text(plaintext[i]));
                         if (display1.indexOf('?') < 0) {
@@ -1477,8 +1477,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * Loads up the values for Nihilist
      */
     public load(): void {
-        console.log('start')
-        console.log(this.state.cipherString)
+        // console.log('start')
+        // console.log(this.state.cipherString)
 
         const encoded = this.chunk(this.cleanString(this.state.cipherString), this.state.blocksize);
         this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword))
@@ -1507,7 +1507,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         this.attachHandlers();
 
-        console.log('finish')
+        // console.log('finish')
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions

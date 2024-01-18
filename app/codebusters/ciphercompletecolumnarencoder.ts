@@ -9,7 +9,7 @@ import {
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import {CipherEncoder, suggestedData} from './cipherencoder';
+import { CipherEncoder, suggestedData } from './cipherencoder';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTTable } from '../common/jttable';
 
@@ -703,19 +703,12 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         replacement: {},
         crib: '',
     };
-    public columnOrderButton: JTButtonItem = {
-        title: 'Randomize Columns',
-        id: 'randomColumnOrder',
-        class: 'randomizeColumns',
-        color: 'primary',
-    };
 
     public state: ICompleteColumnarState = cloneObject(this.defaultstate) as ICompleteColumnarState;
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
         this.undocmdButton,
         this.redocmdButton,
-        this.columnOrderButton,
         this.questionButton,
         this.pointsButton,
         this.guidanceButton,
@@ -920,7 +913,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             let splitCount = 0;
             for (let i = 0; i < cribSplitInformations.length; i++) {
                 if (cribSplitInformations[i].isSplitOverRows()) {
-                    splitCount +=1;
+                    splitCount += 1;
                     suggested += 15;
                     cribNotSplit = ' The crib is split. ';
                 }
@@ -960,7 +953,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
 
         let range = 20;
         const min = Math.max(suggested - range, 0)
-        const max =  suggested + range
+        const max = suggested + range
         suggested += Math.round(range * Math.random() - range / 2);
 
         let rangetext = ''
@@ -1118,8 +1111,11 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         inputbox.append(
             JTFIncButton('Columns', 'columns', this.state.columns, 'small-12 medium-4 large-4')
         );
+
+        const randomizeButton = $('<a/>', { type: "button", class: "button primary tight randomizeColumns", id: "randomColumnOrder" }).text("Randomize")
+
         // Create an input for the column order in the cryptanalysis case.
-        inputbox.append(JTFLabeledInput('Column Ordering', 'text', 'columnorder', '', 'small-12 medium-4 large-4'));
+        inputbox.append(JTFLabeledInput('Column Ordering', 'text', 'columnorder', '', 'small-12 medium-4 large-4', randomizeButton));
 
         inputbox.append(JTFLabeledInput('Crib', 'text', 'crib', '', 'small-12 medium-4 large-4'));
         result.append(inputbox);

@@ -1591,7 +1591,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @returns width and any extra class to use
      */
     public getTestWidth(testType: ITestType) {
-        let width = 33;
+        let width = 28;
         let extraclass = '';
         if (testType === ITestType.aregional) {
             width = 20;
@@ -2070,7 +2070,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
 
         //generating empty 5x5 polybius square table for students
-
+        const polybiusDiv = $('<div/>', { class: 'cell shrink' })
         const polybiusSquare = $('<table/>', { class: 'polybius-square' });
 
         const row = $('<tr/>');
@@ -2100,14 +2100,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             polybiusSquare.append(row);
         }
 
-        result.append(polybiusSquare);
+        polybiusDiv.append(polybiusSquare)
 
         const { width, extraclass } = this.getTestWidth(testType);
         const strings = this.buildNihilistSequenceSets(
             this.state.cipherString,
             width
         );
-        const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
+        const tableDiv = $('<div/>', { class: 'cell auto' })
+        const table = new JTTable({ class: 'ansblock unstriped' + extraclass });
         // const blankrow = table.addBodyRow();
         // blankrow.add("\u00A0");
         let source = 0;
@@ -2125,7 +2126,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
             //this.addCipherTableRows(table, '', sequenceset[source].join(''), undefined, true);
         }
-        result.append(table.generate());
+        tableDiv.append(table.generate());
+        result.append(tableDiv)
+        result.append(polybiusDiv)
 
 
 

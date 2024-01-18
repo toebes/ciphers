@@ -1068,9 +1068,7 @@ table.polybius-square td {
 }
 
 table.polybius-square {
-    width: 20%;
-    float: right;
-    position: relative;
+    width: 10rem;
     padding: 20px;
     border: 1px solid black;
     border-collapse: collapse;

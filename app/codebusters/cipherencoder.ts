@@ -1463,7 +1463,7 @@ export class CipherEncoder extends CipherHandler {
         dlgContents.append($('<div/>', { class: 'callout primary', id: 'misspellopts' }))
         dlgContents.append(
             $('<div/>', { class: 'expanded button-group' })
-                .append($('<a/>', { class: 'mgen button', id: 'genbtn' }).text('Generate'))
+                .append($('<a/>', { class: 'mgen button', id: 'mispgenbtn' }).text('Generate'))
                 .append(
                     $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
                         'Cancel'
@@ -1780,7 +1780,7 @@ export class CipherEncoder extends CipherHandler {
         this.checkRepl();
         // Start out the dialog with some hints and ready to populate.
         $('#misspellopts').empty().append($('<p/>').text(`First select the level of Word Replacements and typos and then click generate`))
-        $('#genbtn').text('Generate')
+        $('#mispgenbtn').text('Generate')
         this.prepGenScoring().then(() => {
             $('#MisspellDLG').foundation('open')
         })
@@ -2002,7 +2002,7 @@ export class CipherEncoder extends CipherHandler {
         }
         this.attachHandlers();
         // Since they already did it once, make the Generate button say Regenerate instead
-        $('#genbtn').text('Regenerate')
+        $('#mispgenbtn').text('Regenerate')
     }
     /**
      * Select a generated misspelled quote to replace the current quote
@@ -2307,7 +2307,7 @@ export class CipherEncoder extends CipherHandler {
                         'data-text': keyword,
                         'data-offset': offset,
                         type: "button",
-                        class: "rounded button keyset abbuttons" + warnclass,
+                        class: "rounded button kwset abbuttons" + warnclass,
                     }).html(`Use Offset +${offset}`);
                     div.append(useButton)
 
@@ -2568,7 +2568,7 @@ export class CipherEncoder extends CipherHandler {
                 this.genKeywordSuggestions()
             });
 
-        $('.keyset')
+        $('.kwset')
             .off('click')
             .on('click', (e) => {
                 this.useKeyword(e.target)

@@ -137,7 +137,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
         // More unknowns means we could not deduce as much as we would like.
         if (this.solutionUnknowns < 5) {
-           remainingUnknowns += 'that should be enough to get to a solution fairly easily. ';
+            remainingUnknowns += 'that should be enough to get to a solution fairly easily. ';
         } else {
             remainingUnknowns += 'this makes getting to a solution a bit more difficult. ';
             suggested += 15;
@@ -145,7 +145,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
         let range = 20;
         const min = Math.max(suggested - range, 0)
-        const max =  suggested + range
+        const max = suggested + range
         suggested += Math.round(range * Math.random() - range / 2);
 
         let rangetext = ''
@@ -183,7 +183,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
                     let cribMappingText = '';
 
-                    const knownLetters: { [letter: string]: string} = {};
+                    const knownLetters: { [letter: string]: string } = {};
                     for (const c of ciphercrib) {
                         if (this.isValidChar(c)) {
                             const i = this.keywordMap.indexOf(c);
@@ -204,7 +204,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                             knownCipherLetters.push(c);
                         }
                     }
-                    for (const c of  knownCipherLetters) {
+                    for (const c of knownCipherLetters) {
                         let i = this.keywordMap.indexOf(c);
                         if (i > -1) {
                             cribMappingText += `${this.genMonoText(c)} = ${this.normalizeHTML(this.morseReplaces[i])}; `;
@@ -242,8 +242,12 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     public genPreCommands(): JQuery<HTMLElement> {
         const result = $('<div/>');
         this.genTestUsage(result);
+        result.append(this.createKeywordDlg('Suggest Keyword'))
+
         this.genQuestionFields(result);
         this.genEncodeField(result);
+
+        const suggestKeywordButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestpkey" }).text("Suggest Keyword")
 
         const inputbox = $('<div/>', {
             class: 'grid-x grid-margin-x',
@@ -254,7 +258,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 "text",
                 "keyword",
                 this.state.keyword,
-                "cell small-12 medium-6 large-6"
+                "cell small-12 medium-12 large-12",
+                suggestKeywordButton
             )
         );
         result.append(inputbox);
@@ -2581,10 +2586,33 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         this.setErrorMsg(msg, 'polgs');
         return result;
     }
+    public genKeywordSuggestions() {
+        this.genKeywordListSuggestions()
+    }
+    /**
+     * Set a keyword from the recommended set
+     * @param elem Keyword button to be used
+    */
+    public useKeyword(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const text = jqelem.attr('data-key')
+        // Give an undo state s
+        this.markUndo(null)
+        this.setKeyword(text)
+        $('#keywordDLG').foundation('close')
+        this.updateOutput()
+
+    }
+
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
      */
     public attachHandlers(): void {
         super.attachHandlers();
+        $('#suggestpkey')
+            .off('click')
+            .on('click', () => {
+                this.suggestKeyword()
+            });
     }
 }

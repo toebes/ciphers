@@ -1,5 +1,4 @@
-import { count, number } from 'yargs';
-import { cloneObject } from '../common/ciphercommon';
+import { BoolMap, cloneObject } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
@@ -14,9 +13,7 @@ import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
-import { mapperFactory } from '../common/mapperfactory';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
-import { RuleTester } from 'eslint';
 
 interface INihilistState extends IEncoderState {
     /** The type of operation */
@@ -439,6 +436,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public genPreCommands(): JQuery<HTMLElement> {
         const result = $('<div/>');
         this.genTestUsage(result);
+        result.append(this.createSuggestKeyDlg('Suggest Key'))
+        result.append(this.createKeywordDlg('Suggest Polybius Keyword'))
 
         let radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
@@ -449,23 +448,28 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.genQuestionFields(result);
         this.genEncodeField(result);
 
+        const suggestPolybiusButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestpkey" }).text("Suggest Polybius Key")
+
         result.append(
             JTFLabeledInput(
                 'Polybius Key',
                 'text',
                 'polybiuskey',
                 this.state.polybiusKey,
-                'small-12 medium-12 large-12'
+                'small-12 medium-12 large-12',
+                suggestPolybiusButton
             )
         );
 
+        const suggestButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestkey" }).text("Suggest Keyword")
         result.append(
             JTFLabeledInput(
                 'Keyword',
                 'text',
                 'keyword',
                 this.state.keyword,
-                'small-12 medium-12 large-12'
+                'small-12 medium-12 large-12',
+                suggestButton
             )
         );
 
@@ -1560,6 +1564,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     }
                 }
             });
+        $('#suggestpkey')
+            .off('click')
+            .on('click', () => {
+                this.suggestKeyword()
+            });
     }
 
     /**
@@ -2169,5 +2178,45 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         result.append($('<textarea/>', { id: 'in' + qnumdisp, class: 'intnote' }));
         return result;
+    }
+    /**
+     * Start the dialog for suggesting the keyword
+     */
+    public suggestKey(): void {
+        this.suggestLenKey(3, 7);
+    }
+    /**
+     * Populate the dialog with a set of keyword suggestions. 
+     */
+    public populateKeySuggestions(): void {
+        this.populateLenKeySuggestions('genbtn', 'suggestKeyopts', 3, 7)
+    }
+    /**
+     * Set the keyword from the suggested text
+     * @param elem Element clicked on to set the keyword from
+     */
+    public setSuggestedKey(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const key = jqelem.attr('data-key')
+        $('#suggestKeyDLG').foundation('close')
+        this.markUndo('')
+        this.setKeyword(key)
+        this.updateOutput()
+    }
+    public genKeywordSuggestions() {
+        this.genKeywordListSuggestions()
+    }
+    /**
+     * Set a keyword from the recommended set
+     * @param elem Keyword button to be used
+     */
+    public useKeyword(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const text = jqelem.attr('data-key')
+        // Give an undo state s
+        this.markUndo(null)
+        this.setPolybiusKey(text)
+        $('#keywordDLG').foundation('close')
+        this.updateOutput()
     }
 }

@@ -92,6 +92,7 @@ export class CipherEncoder extends CipherHandler {
      */
     public editor: { [key: string]: CKInlineEditor } = {};
     public cipherName = 'Aristocrat';
+    public uniquePatterns: { [index: number]: string } = {}
 
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
@@ -1349,7 +1350,7 @@ export class CipherEncoder extends CipherHandler {
         ];
         result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
         result.append(this.createMisspellDlg())
-        result.append(this.createKeywordDlg())
+        result.append(this.createKeywordDlg('Suggest Keyword'))
         this.genQuestionFields(result);
         this.genLangDropdown(result);
         this.genEncodeField(result);
@@ -1476,7 +1477,7 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Generates a dialog showing the sample question text
      */
-    public createKeywordDlg(): JQuery<HTMLElement> {
+    public createKeywordDlg(title: string = 'Suggest Keyword'): JQuery<HTMLElement> {
         const dlgContents = $('<div/>');
 
         dlgContents.append($('<div/>', { class: 'callout primary', id: 'keywordss' }))
@@ -1489,7 +1490,7 @@ export class CipherEncoder extends CipherHandler {
                     )
                 )
         );
-        const questionTextDlg = JTFDialog('keywordDLG', 'Suggest Keywords', dlgContents);
+        const questionTextDlg = JTFDialog('keywordDLG', title, dlgContents);
         return questionTextDlg;
     }
 
@@ -2037,10 +2038,201 @@ export class CipherEncoder extends CipherHandler {
      * Start the process to suggest keywords and offsets to the user
      */
     public suggestKeyword(): void {
-        this.prepGenScoring().then(() => {
+        this.loadLanguageDictionary(this.state.curlang).then(() => {
             $('#keywordDLG').foundation('open');
             this.genKeywordSuggestions();
         })
+    }
+    /**
+     * Start the dialog for suggesting the keyword
+     * @param lower shortest word to generate
+     * @param upper Longest word to generate
+     */
+    public suggestLenKey(lower: number = 3, upper: number = 7): void {
+        // We need to load up the language dictionary before starting everything
+        this.loadLanguageDictionary('en').then((res) => {
+            for (let len = lower; len <= upper; len++) {
+                this.uniquePatterns[len] = this.makeUniquePattern("ABCDEFGHIJKLMNOP".substring(0, len), 1)
+            }
+            this.suggestKeyBase()
+        });
+    }
+    /*
+     * Populate the dialog with a set of keyword suggestions. 
+     * @param genbtnid Id of the gen button
+     * @param resultid Id of the element to store the results
+     * @param lower Shortest word to generate
+     * @param upper Longest word to generate
+     */
+    public populateLenKeySuggestions(genbtnid: string = "genbtn", resultid: string = 'suggestKeyopts', lower: number = 3, upper: number = 7): void {
+        $(`#${genbtnid}`).text('Regenerate')
+        let result = $(`#${resultid}`)
+        const lang = 'en'
+
+        // For Division A and B we use even less of the words than for Division C
+        // in order to get language appropriate choices
+        let testUsage = this.getTestUsage();
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+        let range = 1.0
+        if (usedOnA) {
+            range *= .25
+        } else if (usedOnB) {
+            range *= .5
+        }
+        result.empty()
+
+        // Set some upper limits for the words we pick because a lot of them aren't very common
+        // These numbers are gotten by reading through the keywords in the English list
+        const maxSlots = [0, 0, 0, 600, 1400, 2000, 2800, 2400, 0]
+        // We will alternate putting words in the left/right spot of the grid
+        const divAll = $("<div/>", { class: 'grid-x' })
+        const cellLeft = $('<div/>', { class: 'cell auto' })
+        const cellRight = $('<div/>', { class: 'cell auto' })
+        divAll.append(cellLeft).append(cellRight)
+        result.append(divAll)
+        // Find words of all the lengths that they ask for
+        for (let len = lower; len <= upper; len++) {
+            const pat = this.uniquePatterns[len]
+            const patSet = this.Frequent[lang][pat]
+            let limit = Math.min(maxSlots[len], patSet.length)
+            const maxWord = Math.trunc(limit * range)
+            const picked: BoolMap = {}
+
+            // We want to get at least 4 choices from each of the length ranges
+            for (let count = 0; count < 4;) {
+                const slot = Math.trunc(maxWord * Math.random())
+                const choice = patSet[slot][0]
+                // Make sure we didn't get this one before (i.e. same random number)
+                if (picked[choice] !== true) {
+                    picked[choice] = true
+                    const useDiv = this.genUseKey(choice)
+                    if (count % 2 === 0) {
+                        cellLeft.append(useDiv)
+                    } else {
+                        cellRight.append(useDiv)
+                    }
+                    count++
+                }
+            }
+        }
+        this.attachHandlers()
+    }
+    /**
+     * Update the GUI with a list of suggestions
+     * @param kwcount Number of keywords to find
+     * @param action Callback function when a keyword is found
+     * @returns Total number of keywords found
+     */
+    public searchForKeywords(kwcount: number, action: (count: number, keyword: string) => boolean): number {
+        const lang = 'en';
+
+        const picked: BoolMap = {}
+        let testUsage = this.getTestUsage();
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+
+        // We use the 8, 9, 10 and 11 unique character strings as our potential keyword choices
+        let limit8 = 200
+        let limit9 = 50
+        let limit10 = 40
+        let limit11 = 33
+        let scaleb9 = 10
+        let scalec9 = 10
+        if (usedOnA) {
+            limit8 = 300
+            limit9 = 50
+            limit10 = 40
+            limit11 = 33
+        } else if (usedOnB) {
+            limit8 = 800 / scaleb9
+            limit9 = 125
+            limit10 = 100
+            limit11 = 66
+        } else {
+            limit8 = 1200 / scalec9
+            limit9 = 400
+            limit10 = 250
+            limit11 = 88
+        }
+
+        let pat8 = this.makeUniquePattern("ABCDEFGH", 1);
+        let pat9 = this.makeUniquePattern("ABCDEFGHI", 1);
+        let pat10 = this.makeUniquePattern("ABCDEFGHIJ", 1);
+        let pat11 = this.makeUniquePattern("ABCDEFGHIJK", 1);
+
+        // Keep track of how many entries we find to present so that we don't put more than 10 on the dialog
+        let found = 0
+
+        for (let tval = 0; found < kwcount && tval < 50; tval++) {
+            // Pick a random number from the set of choices
+            let slot = Math.round(Math.random() * (limit8 + limit9 + limit10 + limit11));
+            // And figure out which slot it is in as well as the pattern that gets us to the slot
+            let pat = pat8;
+            if (slot <= limit8) {
+                // For the 8 character slots, we want to make them less frequent for Division B/C so we need to scale
+                // it back up by the right amount and pick a number in that slot range
+                if (!usedOnA) {
+                    if (usedOnB) {
+                        slot = Math.trunc((slot * scaleb9) + (Math.random() * scaleb9))
+                    } else {
+                        slot = Math.trunc((slot * scalec9) + (Math.random() * scalec9))
+                    }
+                }
+            } else {
+                pat = pat9
+                slot -= limit8
+                if (slot > limit9) {
+                    slot -= limit9;
+                    pat = pat10;
+                    if (slot > limit10) {
+                        slot -= limit10;
+                        pat = pat11;
+                    }
+                }
+            }
+            let keyword = this.Frequent[lang][pat][slot][0];
+
+            if (picked[keyword] !== true) {
+                picked[keyword] = true;
+                // We have a keyword, so let them process it (if they can)
+                if (action(found, keyword)) {
+                    found++
+                }
+            }
+        }
+        this.attachHandlers()
+        return found
+    }
+    /**
+     * Update the GUI with a list of suggestions
+    */
+    public genKeywordListSuggestions() {
+        let output = $("#keywordss");
+        const divAll = $("<div/>", { class: 'grid-x' })
+        const cellLeft = $('<div/>', { class: 'cell auto' })
+        const cellRight = $('<div/>', { class: 'cell auto' })
+        divAll.append(cellLeft).append(cellRight)
+        output.empty().append(divAll)
+
+        const found = this.searchForKeywords(20, (found: number, keyword: string): boolean => {
+            let div = $('<div/>', { class: "kwchoice" });
+
+            let useButton = $("<a/>", {
+                'data-key': keyword,
+                type: "button",
+                class: "button rounded kwset abbuttons",
+            }).html('Use');
+            div.append(useButton)
+            div.append(keyword)
+            if (found % 2 === 0) {
+                cellLeft.append(div)
+            } else {
+                cellRight.append(div)
+            }
+            return true;
+        })
+        this.attachHandlers()
     }
     /**
      * Find out what letters are used in the cipher string
@@ -2219,40 +2411,6 @@ export class CipherEncoder extends CipherHandler {
      * Update the GUI with a list of suggestions
      */
     public genKeywordSuggestions() {
-        const lang = 'en';
-
-        let testUsage = this.getTestUsage();
-        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
-        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
-
-        // We use the 8, 9, 10 and 11 unique character strings as our potential keyword choices
-        let limit8 = 200
-        let limit9 = 50
-        let limit10 = 40
-        let limit11 = 33
-        let scaleb9 = 10
-        let scalec9 = 10
-        if (usedOnA) {
-            limit8 = 300
-            limit9 = 50
-            limit10 = 40
-            limit11 = 33
-        } else if (usedOnB) {
-            limit8 = 800 / scaleb9
-            limit9 = 125
-            limit10 = 100
-            limit11 = 66
-        } else {
-            limit8 = 1200 / scalec9
-            limit9 = 400
-            limit10 = 250
-            limit11 = 88
-        }
-
-        let pat8 = this.makeUniquePattern("ABCDEFGH", 1);
-        let pat9 = this.makeUniquePattern("ABCDEFGHI", 1);
-        let pat10 = this.makeUniquePattern("ABCDEFGHIJ", 1);
-        let pat11 = this.makeUniquePattern("ABCDEFGHIJK", 1);
         let output = $("#keywordss");
         output.empty();
 
@@ -2261,60 +2419,38 @@ export class CipherEncoder extends CipherHandler {
             Those with a single letter not mapped are shown as yellow buttons instead of blue.</p>`))
         }
         // Keep track of how many entries we find to present so that we don't put more than 10 on the dialog
-        let found = 0
-
-        for (let tval = 0; found < 10 && tval < 25; tval++) {
-            // Pick a random number from the set of choices
-            let slot = Math.round(Math.random() * (limit8 + limit9 + limit10 + limit11));
-            // And figure out which slot it is in as well as the pattern that gets us to the slot
-            let pat = pat8;
-            if (slot <= limit8) {
-                // For the 8 character slots, we want to make them less frequent for Division B/C so we need to scale
-                // it back up by the right amount and pick a number in that slot range
-                if (!usedOnA) {
-                    if (usedOnB) {
-                        slot = Math.trunc((slot * scaleb9) + (Math.random() * scaleb9))
-                    } else {
-                        slot = Math.trunc((slot * scalec9) + (Math.random() * scalec9))
-                    }
-                }
-            } else {
-                pat = pat9
-                slot -= limit8
-                if (slot > limit9) {
-                    slot -= limit9;
-                    pat = pat10;
-                    if (slot > limit10) {
-                        slot -= limit10;
-                        pat = pat11;
-                    }
-                }
-            }
-            let keyword = this.Frequent[lang][pat][slot][0];
+        const found = this.searchForKeywords(10, (found: number, keyword: string): boolean => {
 
             // We have the keyword, let's see if this work
             let offsets = this.findKeywordOffsets(keyword)
-            if (offsets !== undefined) {
-                let div = $('<div/>', { class: "kwchoice" });
-                div.append($('<span/>').text(keyword));
-                for (let offset of offsets) {
-                    let warnclass = ""
-                    if (offset < 0) {
-                        offset = -offset
-                        warnclass = " warning"
-                    }
-                    let useButton = $("<button/>", {
-                        'data-text': keyword,
-                        'data-offset': offset,
-                        type: "button",
-                        class: "rounded button kwset abbuttons" + warnclass,
-                    }).html(`Use Offset +${offset}`);
-                    div.append(useButton)
-
+            if (offsets === undefined) {
+                return false;
+            }
+            let div = $('<div/>', { class: "kwchoice" });
+            div.append($('<span/>').text(keyword));
+            for (let offset of offsets) {
+                let warnclass = ""
+                if (offset < 0) {
+                    offset = -offset
+                    warnclass = " warning"
                 }
+                let useButton = $("<button/>", {
+                    'data-text': keyword,
+                    'data-offset': offset,
+                    type: "button",
+                    class: "rounded button kwset abbuttons" + warnclass,
+                }).html(`Use Offset +${offset}`);
+                div.append(useButton)
 
-                output.append(div);
-                found++
+            }
+            output.append(div);
+            return true
+        });
+
+        if (found === 0) {
+            output.append($(`<p><b>WARNING:</b> Unable to find any keywords which work with the plain text of this cipher.</p>`))
+            if (this.state.cipherString === "") {
+                output.append($(`<p>Please enter something into the Plain Text to be able to generate keywords.</p>`))
             }
         }
         this.attachHandlers()
@@ -2337,10 +2473,16 @@ export class CipherEncoder extends CipherHandler {
     /**
      * Start the dialog for suggesting the keyword
      */
-    public suggestKey(): void {
+    public suggestKeyBase(): void {
         $('#genbtn').text('Generate')
         this.populateKeySuggestions()
         $('#suggestKeyDLG').foundation('open')
+    }
+    /**
+     * Start the dialog for suggesting the keyword
+     */
+    public suggestKey(): void {
+        this.suggestKeyBase()
     }
     /**
      * Generate the UI for choosing a keyword

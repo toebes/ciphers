@@ -97,12 +97,6 @@ export class CipherEncoder extends CipherHandler {
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
         {
-            title: 'Randomize',
-            color: 'primary',
-            id: 'randomize',
-            disabled: true,
-        },
-        {
             title: 'Misspell',
             color: 'primary',
             id: 'misspell',
@@ -1145,9 +1139,15 @@ export class CipherEncoder extends CipherHandler {
             id: "genkeyword",
             class: "rounded button",
         }).html("Suggest Keyword"));
+        let randButton = $('<div/>', { class: 'cell shrink' }).append($("<button/>", {
+            type: "button",
+            id: "randomize",
+            class: "rounded button",
+        }).html("Randomize"));
+
         let knButtons = JTRadioButton(-1, 'enctype', radiobuttons, this.state.encodeType);
         knButtons.addClass("grid-margin-x")
-        knButtons.append(kwButton);
+        knButtons.append(randButton).append(kwButton);
         result.append(knButtons);
         result.append(JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, 'kval'));
         result.append(
@@ -1560,7 +1560,7 @@ export class CipherEncoder extends CipherHandler {
             if (this.state.cipherType === ICipherType.Patristocrat) {
                 adjust += 250;
                 result.text += ". Encoding as a Patristocrat adds 250 points";
-            } else if (this.state.cipherType === ICipherType.Xenocrypt) {
+            } else if (this.state.cipherType === ICipherType.Xenocrypt || this.state.curlang !== 'en') {
                 adjust += 300;
                 result.text += ". Because it is a Xenocrypt, it adds 300 points";
             }
@@ -2038,7 +2038,7 @@ export class CipherEncoder extends CipherHandler {
      * Start the process to suggest keywords and offsets to the user
      */
     public suggestKeyword(): void {
-        this.loadLanguageDictionary(this.state.curlang).then(() => {
+        this.loadLanguageDictionary('en').then(() => {
             $('#keywordDLG').foundation('open');
             this.genKeywordSuggestions();
         })

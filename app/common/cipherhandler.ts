@@ -1513,11 +1513,9 @@ export class CipherHandler {
         $('#okimport')
             .off('click')
             .on('click', (e) => {
-                console.log(`okimport clicked uselocalData=${useLocalData}`)
                 if (useLocalData) {
                     const fileinput: HTMLInputElement = $('#xmlFile')[0] as HTMLInputElement;
                     const files = fileinput.files;
-                    console.log(`processing files.length=${files.length} typeof FileReader=${typeof FileReader}`)
                     if (files.length && typeof FileReader !== undefined) {
                         this.processImport(files[0]);
                     }
@@ -1708,7 +1706,8 @@ export class CipherHandler {
         let avgFrequency = 0
         let avgIndexLen = 0
         let avgIndex = 0
-        let words = str.toUpperCase().replace(/'/g, " '").split(/[^A-Z']+/)
+        let words = str.toUpperCase().replace(/'/g, " '").split(/[^A-ZÁÉÍÓÚÜÑ']+/)
+
         if (
             lang === "" ||
             !this.Frequent.hasOwnProperty(lang)
@@ -1764,7 +1763,7 @@ export class CipherHandler {
                         maxlen = word.length
                     }
                     if (ordinal === 999999) {
-                        console.log(`Did not find ${word}`)
+                        // console.log(`Did not find ${word}`)
                         const bar = this.makeUniquePattern(word, 1);
                         unknown++
                     } else {
@@ -3314,9 +3313,9 @@ export class CipherHandler {
                     for (const c of pieces[0]) {
                         if (charset.indexOf(c) < 0) {
                             if (typeof langreplace[c] === 'undefined') {
-                                console.log(
-                                    'skipping out on ' + pieces[0] + ' for ' + c + ' against ' + charset
-                                );
+                                // console.log(
+                                //     'skipping out on ' + pieces[0] + ' for ' + c + ' against ' + charset
+                                // );
                                 legal = false;
                                 break;
                             }
@@ -3611,7 +3610,7 @@ export class CipherHandler {
      *   // = else - do the download
      */
     public getWebVersion(local_version: string): void {
-        console.log('Handle request to get Web version....');
+        // console.log('Handle request to get Web version....');
         let remote_version = '0.0.0';
         // Phone home
         // test from: "http://192.168.109.10:10980/dist/siteVersion.txt"
@@ -3620,34 +3619,34 @@ export class CipherHandler {
             dataType: 'jsonp',
             jsonpCallback: 'getVersion',
             success: function (a: any, b: string, c: JQueryXHR): void {
-                console.log('A Success ' + JSON.stringify(a));
-                console.log('B Success ' + b);
-                console.log('C Success ' + c);
+                // console.log('A Success ' + JSON.stringify(a));
+                // console.log('B Success ' + b);
+                // console.log('C Success ' + c);
                 remote_version = a['version'];
-                console.log('Set remote version to: ' + remote_version);
+                // console.log('Set remote version to: ' + remote_version);
             },
             error: function (a: JQueryXHR, b: string, c: string): void {
-                console.log('A Error ' + JSON.stringify(a));
-                console.log('B Error ' + b);
-                console.log('C Error ' + c);
-                console.log('Disable the download button...');
+                // console.log('A Error ' + JSON.stringify(a));
+                // console.log('B Error ' + b);
+                // console.log('C Error ' + c);
+                // console.log('Disable the download button...');
                 $('#okdownload').attr('disabled', 'disabled');
             },
         }).done(function (a: any, b: string, c: JQueryXHR): void {
             $('.remote-version').html(remote_version);
             // enable the down load buttin if appropriate
-            console.log('Enable download button?');
+            // console.log('Enable download button?');
             if (remote_version > local_version) {
-                console.log('remove disable attrib, to enable download button');
+                // console.log('remove disable attrib, to enable download button');
                 $('#okdownload').removeAttr('disabled');
             } else {
-                console.log('Disable the download button...');
+                // console.log('Disable the download button...');
                 $('#okdownload').attr('disabled', 'disabled');
             }
         });
 
-        console.log('Remote version: ' + remote_version);
-        console.log('Local version: ' + local_version);
+        // console.log('Remote version: ' + remote_version);
+        // console.log('Local version: ' + local_version);
         this.download();
     }
     /**

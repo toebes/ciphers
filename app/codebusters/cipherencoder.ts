@@ -1645,6 +1645,15 @@ export class CipherEncoder extends CipherHandler {
         if (this.state.encodeType !== undefined && this.state.encodeType !== 'random') {
             enctype += ' ' + this.state.encodeType.toUpperCase();
         }
+        if (this.state.curlang === 'es') {
+            if (enctype !== '') {
+                hinttext += ` It has been encoded using a${enctype} alphabet using an English keyword.`
+            }
+            return (
+                `<p>A quote${this.genAuthor()} in Spanish has been encoded using the
+                 ${this.cipherName} Cipher for you to decode.${hinttext}</p>`
+            );
+        }
         return (
             `<p>A quote${this.genAuthor()} has been encoded using the${enctype}
              ${this.cipherName} Cipher for you to decode.${hinttext}</p>`

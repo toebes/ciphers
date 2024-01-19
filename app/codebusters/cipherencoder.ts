@@ -1659,8 +1659,8 @@ export class CipherEncoder extends CipherHandler {
                 hinttext += ` It has been encoded using a${enctype} alphabet using an English keyword.`
             }
             return (
-                `<p>A quote${this.genAuthor()} in Spanish has been encoded using the
-                 ${this.cipherName} Cipher for you to decode.${hinttext}</p>`
+                `<p>A quote${this.genAuthor()} in Spanish has been encoded using the ` +
+                `${this.cipherName} Cipher for you to decode.${hinttext}</p>`
             );
         }
         let cipherName = 'Aristocrat'
@@ -1668,8 +1668,8 @@ export class CipherEncoder extends CipherHandler {
             cipherName = 'Patristocrat'
         }
         return (
-            `<p>A quote${this.genAuthor()} has been encoded using the${enctype}
-             ${cipherName} Cipher for you to decode.${hinttext}</p>`
+            `<p>A quote${this.genAuthor()} has been encoded using the${enctype} ` +
+            `${cipherName} Cipher for you to decode.${hinttext}</p>`
         );
     }
     /**
@@ -1780,6 +1780,7 @@ export class CipherEncoder extends CipherHandler {
      * Replace the question text with what was suggested
      */
     public replaceQuestionText(): void {
+        this.markUndo(null)
         this.setQuestionText($('#sqtext').html());
         this.updateQuestionsOutput();
         $('#SampleQText').foundation('close');

@@ -1654,9 +1654,13 @@ export class CipherEncoder extends CipherHandler {
                  ${this.cipherName} Cipher for you to decode.${hinttext}</p>`
             );
         }
+        let cipherName = 'Aristocrat'
+        if (this.state.cipherType === ICipherType.Patristocrat) {
+            cipherName = 'Patristocrat'
+        }
         return (
             `<p>A quote${this.genAuthor()} has been encoded using the${enctype}
-             ${this.cipherName} Cipher for you to decode.${hinttext}</p>`
+             ${cipherName} Cipher for you to decode.${hinttext}</p>`
         );
     }
     /**

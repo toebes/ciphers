@@ -1663,13 +1663,22 @@ export class CipherEncoder extends CipherHandler {
                 `${this.cipherName} Cipher for you to decode.${hinttext}</p>`
             );
         }
-        let cipherName = 'Aristocrat'
+        let cipherName = this.cipherName
         if (this.state.cipherType === ICipherType.Patristocrat) {
             cipherName = 'Patristocrat'
         }
+        let keytype = "Keyword";
+        const keyanswer = this.state.keyword.toUpperCase();
+        if (this.minimizeString(keyanswer).length !== keyanswer.length) {
+            keytype = "Key Phrase"
+        }
+        let operationtext = ''
+        if (this.state.operation === 'keyword') {
+            operationtext = ` What was the${enctype} ${keytype} used to encode it?`
+        }
         return (
             `<p>A quote${this.genAuthor()} has been encoded using the${enctype} ` +
-            `${cipherName} Cipher for you to decode.${hinttext}</p>`
+            `${cipherName} Cipher for you to decode.${hinttext}${operationtext}</p>`
         );
     }
     /**

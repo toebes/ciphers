@@ -304,6 +304,15 @@ export class CipherEncoder extends CipherHandler {
             this.setEncType('k1');
             changed = true;
         }
+        if (this.state.cipherType === ICipherType.Aristocrat || this.state.cipherType === ICipherType.Patristocrat) {
+            if (this.state.curlang === 'es') {
+                this.guidanceURL = 'TestGuidance.html#Xenocrypt';
+            } else if (this.state.operation === 'keyword') {
+                this.guidanceURL = 'TestGuidance.html#Aristocrat_Keyword';
+            } else {
+                this.guidanceURL = 'TestGuidance.html#Aristocrat';
+            }
+        }
         return changed;
     }
     /**

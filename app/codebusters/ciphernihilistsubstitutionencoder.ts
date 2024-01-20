@@ -1064,8 +1064,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         const table = $('<table/>', { class: 'nihilist center' });
 
+        let validIndex = 1;
         for (const sequenceset of sequencesets) {
-            for (const pair of order) {
+            for (let i = 0; i < order.length; i++) {
+                console.log(validIndex)
+                let pair = order[i]
+                let localValidIndex = validIndex
 
                 //do some checking for if the first element of pair is string
                 let mod = 1;
@@ -1082,73 +1086,76 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 }
 
 
-
-                let index = 1;
                 const row = $('<tr/>', { class: pair[1] });
                 for (const char of sequence) {
 
-                    // if (this.getCharset().indexOf(char) === -1) {
-                    //     row.append($('<td width="33px"/>').text(char));
-                    // } else {
-                    //     console.log(pair[0])
-                    //     if (typeof pair[0] === 'string') {
-                    //         if (state === 'k1example' && index === 1) {
-                    //             row.append($('<td class="hl" width="33px"/>').text('K' + index));
-                    //         } else {
-                    //             row.append($('<td width="33px"/>').text('K' + index));
-                    //         }
-                    //     } else {
-                    //         console.log(state)
-                    //         console.log(index)
-                    //         if (state === 'k1example' && index === 1) {
-                    //             let tens = char.substring(0, char.length - 1)
-                    //             let ones = char.substring(char.length - 1)
-                    //             row.append($('<td width="33px"/>').html(tens + '<span class="ones">' + ones + '</span>'));
-                    //             console.log("BOOOOOOOOO");
-                    //         } else {
-                    //             row.append($('<td width="33px"/>').text(char));
-                    //         }
-                    //     }
-
-                    //     index = (index) % mod + 1;
-                    // }
-
-                    //here, if mod is not 0, then we had a string as our first pair element. in this case, do the K1, K2, K3... iterate up to the mod number
-                    if (typeof pair[0] === "string") {
-
-                        if (this.getCharset().indexOf(char) === -1) {
-                            row.append($('<td width="33px"/>').text(char));
-                        } else {
-                            if (state === 'k1example' && index === 1) {
-                                row.append($('<td class="hl" width="33px"/>').text('K' + index));
-
-                            } else {
-                                row.append($('<td width="33px"/>').text('K' + index));
-                            }
-
-                            index = (index) % mod + 1;
-                        }
-
-
+                    if (this.getCharset().indexOf(char) === -1 && char.length === 1) {
+                        row.append($('<td width="33px"/>').text(char));
                     } else {
-                        //otherwise, just append the normal sequence characters
 
-                        if (isNaN(parseInt(char))) {
-                            row.append($('<td width="33px"/>').text(char));
+                        if (typeof pair[0] === 'string') {
+                            if (state === 'k1example' && localValidIndex === 1) {
+                                row.append($('<td class="hl" width="33px"/>').text('K1'));
+                            } else {
+                                row.append($('<td width="33px"/>').text('K' + localValidIndex));
+                            }
                         } else {
-                            if (state === 'k1example' && index === 1) {
+                            if (state === 'k1example' && localValidIndex === 1) {
                                 let tens = char.substring(0, char.length - 1)
                                 let ones = char.substring(char.length - 1)
                                 row.append($('<td width="33px"/>').html(tens + '<span class="ones">' + ones + '</span>'));
                             } else {
                                 row.append($('<td width="33px"/>').text(char));
                             }
-                            index = (index) % mod + 1
                         }
 
+                        localValidIndex = (localValidIndex % mod) + 1
+                        console.log(localValidIndex)
 
                     }
 
+                    // //here, if mod is not 0, then we had a string as our first pair element. in this case, do the K1, K2, K3... iterate up to the mod number
+                    // if (typeof pair[0] === "string") {
+
+                    //     if (this.getCharset().indexOf(char) === -1) {
+                    //         row.append($('<td width="33px"/>').text(char));
+                    //     } else {
+                    //         if (state === 'k1example' && index === 1) {
+                    //             row.append($('<td class="hl" width="33px"/>').text('K' + index));
+
+                    //         } else {
+                    //             row.append($('<td width="33px"/>').text('K' + index));
+                    //         }
+
+                    //         index = (index) % mod + 1;
+                    //     }
+
+
+                    // } else {
+                    //     //otherwise, just append the normal sequence characters
+
+                    //     if (this.polybiusMap.has(char)) {
+                    //         row.append($('<td width="33px"/>').text(char));
+                    //     } else {
+                    //         if (state === 'k1example' && index === 1) {
+                    //             let tens = char.substring(0, char.length - 1)
+                    //             let ones = char.substring(char.length - 1)
+                    //             row.append($('<td width="33px"/>').html(tens + '<span class="ones">' + ones + '</span>'));
+                    //         } else {
+                    //             row.append($('<td width="33px"/>').text(char));
+                    //         }
+                    //         index = (index) % mod + 1
+                    //     }
+
+
+                    // }
+
+                }
+                console.log("bruh")
+                if (i === order.length - 1) {
+                    console.log(validIndex)
+                    console.log(localValidIndex)
+                    validIndex = localValidIndex
                 }
                 table.append(row);
             }
@@ -1203,7 +1210,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             for (let i = 0; i < ciphertextNumbers.length; i++) {
 
                 let ct = ciphertextNumbers[i]
-                if (isNaN(parseInt(ct))) {
+                if (isNaN(parseInt(ct)) || ct.length === 1) {
                     row1.append($('<td width="33px"/>').text(ct));
                     row2.append($('<td width="33px"/>').text(ct));
                     row3.append($('<td width="33px"/>').text(ct));
@@ -1291,7 +1298,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 const sequence = sequenceset[0];
                 for (let j = 0; j < sequence.length; j++) {
 
-                    if (!isNaN(parseInt(sequence[j]))) {
+                    if (!isNaN(parseInt(sequence[j])) && sequence[j].length > 1) {
                         if (spacing === 0) {
 
                             let targetDigit;
@@ -1322,7 +1329,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
 
-    public buildCountTable(countArray: number[][], showWrong: boolean): JTTable {
+    public buildCountTable(countArray: number[][], isK1Example: boolean): JTTable {
 
 
         const table = new JTTable({
@@ -1332,17 +1339,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const header = table.addHeaderRow()
 
         header.add('')
-        header.add('1')
-        header.add('2')
-        header.add('3')
-        header.add('4')
-        header.add('5')
-        header.add('6')
-        header.add('7')
-        header.add('8')
-        header.add('9')
-        header.add('0')
 
+        for (let i = 1; i <= 10; i++) {
+            let index = i % 10
+            if (isK1Example && countArray[0][index] === 1) {
+                header.add({
+                    content: '<span class="ones">' + index + '</span>'
+                })
+            } else {
+                header.add(index + '')
+            }
+
+        }
 
         for (let j = 0; j < countArray.length; j++) {
 
@@ -1364,7 +1372,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
 
             let row
-            if (largest - smallest >= 5 && showWrong) {
+            if (largest - smallest >= 5 && !isK1Example) {
                 row = table.addBodyRow({ class: 'wrong' })
             } else {
                 row = table.addBodyRow()
@@ -1992,7 +2000,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         //we can see that there are _X_ X's in the above table, showing the appearances of the ones digits for K1
 
-        let k1Table = this.buildCountTable([dynamicArray[0]], false).generate();
+        let k1Table = this.buildCountTable([dynamicArray[0]], true).generate();
         result.append(k1Table);
 
         result.append("The above table shows all the ones digits found at the K1 locations in the ciphertext.")
@@ -2007,7 +2015,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .append(" If any of the rows do not follow the 5-space rule, then we know the corresponding keyword length guess is wrong.")
 
 
-        let dynamicTable = this.buildCountTable(dynamicArray, true).generate();
+        let dynamicTable = this.buildCountTable(dynamicArray, false).generate();
         result.append(dynamicTable);
 
 

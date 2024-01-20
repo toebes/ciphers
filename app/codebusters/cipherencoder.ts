@@ -1303,15 +1303,20 @@ export class CipherEncoder extends CipherHandler {
             )
         );
 
-        inputbox.append(
-            JTFLabeledInput(
-                'Special Bonus',
-                'checkbox',
-                'spbonus',
-                /*this.state.points*/false,
-                'small-12 medium-9 large-9'
-            )
-        );
+        // We don't allow any of the Aristocrat types to be a special bonus question
+        if (this.state.cipherType !== ICipherType.Aristocrat &&
+            this.state.cipherType !== ICipherType.Patristocrat &&
+            this.state.cipherType !== ICipherType.Xenocrypt) {
+            inputbox.append(
+                JTFLabeledInput(
+                    'Special Bonus',
+                    'checkbox',
+                    'spbonus',
+                    this.state.specialbonus,
+                    'small-12 medium-9 large-9'
+                )
+            );
+        }
         result.append(inputbox);
         result.append(
             JTFLabeledInput(

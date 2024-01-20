@@ -1306,9 +1306,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             let count = 0;
 
             for (let i = 0; i < letterRow.length; i++) {
-                if (letterRow[i] === 1) {
-                    count++;
-                }
+                count += letterRow[i];
             }
 
             console.log((j + 1) + " " + count)

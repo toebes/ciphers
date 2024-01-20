@@ -1104,7 +1104,7 @@ export class CipherTestBuild extends CipherTest {
             testtype: this.testtype,
         };
 
-        const qCount = $('.qt').length
+        let qCount = $('.qt').length
         const englishUpdates: QuoteUpdates = {}
         const spanishUpdates: QuoteUpdates = {}
 
@@ -1119,7 +1119,9 @@ export class CipherTestBuild extends CipherTest {
             const translation = ptElem.attr('data-trans')
 
             // Division A won't have a timed question, so we can just skip it
-            if (qnum === 0 && qTitle === "") {
+            if (qnum === 0 && (qTitle === "" || qTitle === undefined)) {
+                // However it does mean that there is one more question to copy over
+                qCount++;
                 continue;
             }
             const entry = this.getChoiceEntry(qTitle)

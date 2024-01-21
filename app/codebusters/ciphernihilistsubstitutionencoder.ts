@@ -1061,48 +1061,105 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         } else if (state === 'unknownkey') {
             order = [[unknownkeylength, "ans"], [0, "solve"]];
         } else if (state === 'k1example') {
-            order = [[, "ans"], [0, "solve"]];
+            order = [[unknownkeylength, "solve"], [0, "solve"]];
         }
 
         const sequencesets = this.sequencesets
 
         const table = $('<table/>', { class: 'nihilist center' });
 
+        let validIndex = 1;
         for (const sequenceset of sequencesets) {
-            for (const pair of order) {
-
-                //by default have the sequence be set to the plaintext map. only change it to the correct if unknownkey isn't called
-                let sequence = sequenceset[1];;
+            for (let i = 0; i < order.length; i++) {
+                console.log(validIndex)
+                let pair = order[i]
+                let localValidIndex = validIndex
 
                 //do some checking for if the first element of pair is string
-                let mod = 0;
+                let mod = 1;
 
-                if (typeof pair[0] === 'string') {
-                    mod = parseInt(pair[0]);
-                } else {
-                    //if not a string, then continue with normal build using pair integer element
-                    sequence = sequenceset[pair[0]];
+                if (state === "unknownkey" || state === "k1example") {
+                    mod = parseInt(order[0][0]);
                 }
 
-                let index = 1;
+                let sequence
+                if (typeof pair[0] === 'string') {
+                    sequence = sequenceset[1];
+                } else {
+                    sequence = sequenceset[pair[0]]
+                }
+
+
                 const row = $('<tr/>', { class: pair[1] });
                 for (const char of sequence) {
-                    //here, if mod is not 0, then we had a string as our first pair element. in this case, do the K1, K2, K3... iterate up to the mod number
-                    if (mod !== 0) {
 
-                        if (this.getCharset().indexOf(char) === -1) {
-                            row.append($('<td width="33px"/>').text(char));
+                    if (this.getCharset().indexOf(char) === -1 && char.length === 1) {
+                        row.append($('<td width="33px"/>').text(char));
+                    } else {
+
+                        if (typeof pair[0] === 'string') {
+                            if (state === 'k1example' && localValidIndex === 1) {
+                                row.append($('<td class="hl" width="33px"/>').text('K1'));
+                            } else {
+                                row.append($('<td width="33px"/>').text('K' + localValidIndex));
+                            }
                         } else {
-                            row.append($('<td width="33px"/>').text('K' + index));
-                            index = (index) % mod + 1;
+                            if (state === 'k1example' && localValidIndex === 1) {
+                                let tens = char.substring(0, char.length - 1)
+                                let ones = char.substring(char.length - 1)
+                                row.append($('<td width="33px"/>').html(tens + '<span class="ones">' + ones + '</span>'));
+                            } else {
+                                row.append($('<td width="33px"/>').text(char));
+                            }
                         }
 
+                        localValidIndex = (localValidIndex % mod) + 1
+                        console.log(localValidIndex)
 
-                    } else {
-                        //otherwise, just append the normal sequence characters
-                        row.append($('<td width="33px"/>').text(char));
                     }
 
+                    // //here, if mod is not 0, then we had a string as our first pair element. in this case, do the K1, K2, K3... iterate up to the mod number
+                    // if (typeof pair[0] === "string") {
+
+                    //     if (this.getCharset().indexOf(char) === -1) {
+                    //         row.append($('<td width="33px"/>').text(char));
+                    //     } else {
+                    //         if (state === 'k1example' && index === 1) {
+                    //             row.append($('<td class="hl" width="33px"/>').text('K' + index));
+
+                    //         } else {
+                    //             row.append($('<td width="33px"/>').text('K' + index));
+                    //         }
+
+                    //         index = (index) % mod + 1;
+                    //     }
+
+
+                    // } else {
+                    //     //otherwise, just append the normal sequence characters
+
+                    //     if (this.polybiusMap.has(char)) {
+                    //         row.append($('<td width="33px"/>').text(char));
+                    //     } else {
+                    //         if (state === 'k1example' && index === 1) {
+                    //             let tens = char.substring(0, char.length - 1)
+                    //             let ones = char.substring(char.length - 1)
+                    //             row.append($('<td width="33px"/>').html(tens + '<span class="ones">' + ones + '</span>'));
+                    //         } else {
+                    //             row.append($('<td width="33px"/>').text(char));
+                    //         }
+                    //         index = (index) % mod + 1
+                    //     }
+
+
+                    // }
+
+                }
+                console.log("bruh")
+                if (i === order.length - 1) {
+                    console.log(validIndex)
+                    console.log(localValidIndex)
+                    validIndex = localValidIndex
                 }
                 table.append(row);
             }
@@ -1157,7 +1214,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             for (let i = 0; i < ciphertextNumbers.length; i++) {
 
                 let ct = ciphertextNumbers[i]
-                if (isNaN(parseInt(ct))) {
+                if (isNaN(parseInt(ct)) || ct.length === 1) {
                     row1.append($('<td width="33px"/>').text(ct));
                     row2.append($('<td width="33px"/>').text(ct));
                     row3.append($('<td width="33px"/>').text(ct));
@@ -1245,7 +1302,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 const sequence = sequenceset[0];
                 for (let j = 0; j < sequence.length; j++) {
 
-                    if (!isNaN(parseInt(sequence[j]))) {
+                    if (!isNaN(parseInt(sequence[j])) && sequence[j].length > 1) {
                         if (spacing === 0) {
 
                             let targetDigit;
@@ -1276,7 +1333,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
 
-    public buildCountTable(countArray: number[][]): JTTable {
+    public buildCountTable(countArray: number[][], isK1Example: boolean): JTTable {
 
 
         const table = new JTTable({
@@ -1286,23 +1343,45 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const header = table.addHeaderRow()
 
         header.add('')
-        header.add('1')
-        header.add('2')
-        header.add('3')
-        header.add('4')
-        header.add('5')
-        header.add('6')
-        header.add('7')
-        header.add('8')
-        header.add('9')
-        header.add('0')
 
+        for (let i = 1; i <= 10; i++) {
+            let index = i % 10
+            if (isK1Example && countArray[0][index] === 1) {
+                header.add({
+                    content: '<span class="ones">' + index + '</span>'
+                })
+            } else {
+                header.add(index + '')
+            }
+
+        }
 
         for (let j = 0; j < countArray.length; j++) {
 
             let letterRow = countArray[j];
+            let smallest = letterRow.length;
+            let largest = 1;
 
-            const row = table.addBodyRow()
+            for (let i = 1; i <= letterRow.length + 1; i++) {
+                let index = i % letterRow.length
+
+                if (letterRow[index] === 1) {
+                    if (i < smallest) {
+                        smallest = i;
+                    }
+                    if (i > largest) {
+                        largest = i;
+                    }
+                }
+            }
+
+            let row
+            if (largest - smallest >= 5 && !isK1Example) {
+                row = table.addBodyRow({ class: 'wrong' })
+            } else {
+                row = table.addBodyRow()
+            }
+
 
             row.add({
                 celltype: 'th',
@@ -1887,7 +1966,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
 
 
-
+        //we're given only the sequence of ciphertext numbers, and need to determine the plaintext.
 
 
         const result = $('<div/>', { id: 'solution' });
@@ -1899,53 +1978,28 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .append(" about the keyword, we start by guessing how long the keyword is, and then checking if our guess was right.")
             .append('Use the increment button to choose a guess to continue with.')
 
-        //with our keyword length guess, we can follow each keyword letter through the entire ciphertext, and the resulting numbers each letter produces.
-
-        //
-
-
-        //if our keyword length guess was right, we should see that there should not be more than 5 different ones digits for all 
-        //the numbers of a single keyword letter  
-
-        //lets follow "K1", the first letter, for example.
-
-        //if we look at all the respective numbers for K1, 5, 6, 7, 8 appear. Since no more than 5 letters appear, 
-        //we can construct a table to show the digits for each letter (K1, K2, K3)
-
-        //if we look through all the tables for different keyword lengths (using the increment button), we see that the keyword length of 
-        //_X_ does not have 6 X's in any of the rows
-
-        //to think about this more
-
-
-        //first we need to determine the keyword length to help us break open the cipher
-        //since we don't know the keyword initially, we must guess what the keyword is, and then see if that guess makes sense
-        //with the resulting numbers
-
-
-        //use this increment button to choose our initial guess how many letters are in the keyword
-
-        //notice that each letter of our guess keyword is "K1, K2, etc."
-
 
         const inputbox2 = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
         inputbox2.append(JTFIncButton('Keyword Length Guess', 'solverkeylength', this.state.solverKeyLength, ''));
         result.append(inputbox2);
 
-
-        result.append($('<div/>', { class: 'callout primary small' }).append(
-            "Notice that we are not guessing the actual keyword yet, just the length, so each letter is unknown and represented with a 'K1, K2...'")
-        )
-
+        result.append("Now we can line our unknown keyword across the ciphertext.")
 
         let encoded = this.cleanString(this.state.cipherString);
 
         result.append(this.buildSolverNihilist(encoded, this.state.solverKeyLength.toString(), 'unknownkey'))
 
+        result.append($('<div/>', { class: 'callout primary small' }).append(
+            "Notice that we are not guessing the actual keyword yet, just the length, so each letter is unknown and represented with K1, K2, K3...")
+        )
+
         result.append(
-            "With our length guess, we can follow each keyword letter through the entire ciphertext and track the numbers. Specifically, we are looking for the ones digit.")
-            .append("If our keyword length guess was right, we should not see more than 5 different ones digits for a single keyword letter. ")
-            .append("To demonstrate, let's follow K1, the first letter.")
+            "To continue, we can follow each keyword letter through the entire ciphertext and track the numbers associated with each. Specifically, we are looking for the ones digit.")
+
+            .append("Let's follow K1, the first letter, through the entire ciphertext.")
+
+        result.append(this.buildSolverNihilist(encoded, this.state.solverKeyLength.toString(), 'k1example'))
+
 
         let dynamicArray = this.buildCountArray(this.state.solverKeyLength, true);
 
@@ -1953,21 +2007,29 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             "Ones Digit Count Table for Letter K1")
         )
 
-        let k1Table = this.buildCountTable([dynamicArray[0]]).generate();
+        //we can see that there are _X_ X's in the above table, showing the appearances of the ones digits for K1
+
+        let k1Table = this.buildCountTable([dynamicArray[0]], true).generate();
         result.append(k1Table);
 
-        result.append("The X's show which ones digits were found at the K1 locations in the above text.");
+        result.append("The above table shows all the ones digits found at the K1 locations in the ciphertext.")
+            .append(" If we find that the smallest ones digit is more than 5 spaces away from the largest ones digit, then our keyword length guess must be wrong.")
+
+        result.append($('<div/>', { class: 'callout primary small' }).append(
+            "To think more about this, ")
+        )
+
 
         result.append("We can construct a full count table to show the digits for every letter K1, K2, K3...")
-            .append(" If any of the rows have more than 5 X's, then we know this keyword length guess is wrong.")
+            .append(" If any of the rows do not follow the 5-space rule, then we know the corresponding keyword length guess is wrong.")
 
 
-        let dynamicTable = this.buildCountTable(dynamicArray).generate();
+        let dynamicTable = this.buildCountTable(dynamicArray, false).generate();
         result.append(dynamicTable);
 
 
         result.append("If we look through all the tables for different keyword lengths (using the increment button), ")
-            .append("we see that the keyword length of " + this.cleanKeyword.length + " does not have more than 5 X's in any of the rows. This is likely our keyword length, so we'll continue with a length of " + this.cleanKeyword.length)
+            .append("we see that the keyword length of " + this.cleanKeyword.length + " does not break the 5-space rule. This is likely our keyword length, so we'll continue with a length of " + this.cleanKeyword.length)
 
 
         result.append($('<div/>', { class: 'callout secondary' }).text("Step 2: Find keyword letter mappings"));
@@ -1975,7 +2037,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         result.append("We have determined that the keyword has a length of " + this.cleanKeyword.length + " - here is its ones digit count table.")
 
         let continueArray = this.buildCountArray(this.cleanKeyword.length, true);
-        let continueTable = this.buildCountTable(continueArray).generate();
+        let continueTable = this.buildCountTable(continueArray, false).generate();
         result.append(continueTable);
 
         const onesMappings = this.findKeywordMappings(continueArray);
@@ -1987,10 +2049,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             "A more concrete 'formula' would be  <i>[Largest Seen Digit] - 5 <= Possible Mappings < [Smallest Seen Digit]</i>")
         )
 
-        result.append("This gives us the possible ones digits for the keyword letters. Now we can do the same with the tens digit.")
+        result.append("This gives us the possible ones digits for the keyword letters. Now we can do the same with the tens digit - here is the tens digit table.")
 
         let tensArray = this.buildCountArray(this.cleanKeyword.length, false);
-        let tensTable = this.buildCountTable(tensArray).generate();
+        let tensTable = this.buildCountTable(tensArray, false).generate();
         result.append(tensTable);
 
         const tensMappings = this.findKeywordMappings(tensArray);

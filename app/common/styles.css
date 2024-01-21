@@ -1119,6 +1119,14 @@ table.nihilist tr.solve {
     font-weight: bold;
 }
 
+tr.wrong {
+    background-color: lightcoral !important;
+}
+
+.ones {
+    background-color: rgb(155, 101, 255);
+}
+
 table.bacon td {
     padding: 0;
     font-size: 24px;

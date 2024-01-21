@@ -2004,7 +2004,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         result.append(k1Table);
 
         result.append("The above table shows all the ones digits found at the K1 locations in the ciphertext.")
-            .append("If we find that the smallest ones digit is more than 5 spaces away from the largest ones digit, then our keyword length guess must be wrong.")
+            .append(" If we find that the smallest ones digit is more than 5 spaces away from the largest ones digit, then our keyword length guess must be wrong.")
 
         result.append($('<div/>', { class: 'callout primary small' }).append(
             "To think more about this, ")
@@ -2040,7 +2040,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             "A more concrete 'formula' would be  <i>[Largest Seen Digit] - 5 <= Possible Mappings < [Smallest Seen Digit]</i>")
         )
 
-        result.append("This gives us the possible ones digits for the keyword letters. Now we can do the same with the tens digit.")
+        result.append("This gives us the possible ones digits for the keyword letters. Now we can do the same with the tens digit - here is the tens digit table.")
 
         let tensArray = this.buildCountArray(this.cleanKeyword.length, false);
         let tensTable = this.buildCountTable(tensArray, false).generate();

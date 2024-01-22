@@ -1672,13 +1672,13 @@ export class CipherEncoder extends CipherHandler {
         if (this.state.cipherType === ICipherType.Patristocrat) {
             cipherName = 'Patristocrat'
         }
-        let keytype = "Keyword";
-        const keyanswer = this.state.keyword.toUpperCase();
-        if (this.minimizeString(keyanswer).length !== keyanswer.length) {
-            keytype = "Key Phrase"
-        }
         let operationtext = ''
         if (this.state.operation === 'keyword') {
+            let keytype = "Keyword";
+            const keyanswer = this.state.keyword.toUpperCase();
+            if (this.minimizeString(keyanswer).length !== keyanswer.length) {
+                keytype = "Key Phrase"
+            }
             operationtext = ` What was the${enctype} ${keytype} used to encode it?`
         }
         return (

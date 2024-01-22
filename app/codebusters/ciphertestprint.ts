@@ -41,11 +41,21 @@ export class CipherTestPrint extends CipherTest {
      */
     public updateOutput(): void {
         super.updateOutput();
+        this.setTestEditState(this.state.ressheet === 'y' ? 'ressheet' : 'testprint');
         this.setMenuMode(menuMode.test);
-        $('.testcontent').each((i, elem) => {
-            this.genTestQuestions($(elem));
-        });
-        this.setTeamNumberPrefix();
+        if (this.state.ressheet === 'y') {
+            $(".testpacket").hide()
+            this.genTestQuestions($('<div/>'));
+            $(".instructions").show()
+        } else {
+            $(".resourcesheet").hide()
+            $('.testcontent').each((i, elem) => {
+                this.genTestQuestions($(elem));
+            });
+            this.setTeamNumberPrefix();
+        }
+        $(".testurl").attr('href', `TestPrint.html?test=${this.state.test}`)
+        $(".resurl").attr('href', `TestPrint.html?test=${this.state.test}&ressheet=y`)
         this.attachHandlers();
     }
     /**
@@ -53,7 +63,7 @@ export class CipherTestPrint extends CipherTest {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        return this.genTestEditState('testprint');
+        return this.genTestEditState(this.state.ressheet === 'y' ? 'ressheet' : 'testprint');
     }
     public ComputePageHeight(): number {
         const dpi = $('<div/>', {

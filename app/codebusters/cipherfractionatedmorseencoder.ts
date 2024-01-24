@@ -121,11 +121,18 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
 
         let suggested = 155 + qdata.len;
         let scoringText = ''
+        let cribAtBeginningText = '';
         let autoSolverLoops = ` The auto-solver ran through ${this.solutionLoops} iterations, `;
         let remainingUnknowns = ` There are ${this.solutionUnknowns} unknown cipher characters left to be determined, `;
 
         suggested += Math.round(1.5 * this.solutionLoops);
         suggested += Math.round(3 * this.solutionUnknowns);
+
+        // Check if crib starts at beginning to add some points.
+        if (qdata.minquote.indexOf(this.minimizeString(this.state.crib)) === 0) {
+            cribAtBeginningText = ' The crib is at the beginning of the plain text. ';
+            suggested += 17;
+        }
 
         // More loops means more logic could be done...
         if (this.solutionLoops < 11) {
@@ -157,7 +164,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         }
         if (qdata.len > 2) {
             scoringText += `<p>There are ${qdata.len} characters in the quote.
-                ${autoSolverLoops}${remainingUnknowns}
+                ${cribAtBeginningText}${autoSolverLoops}${remainingUnknowns}
                 We suggest you try a score of ${suggested}${rangetext}.</p>`
         }
 

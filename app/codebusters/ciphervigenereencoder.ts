@@ -257,13 +257,13 @@ export class CipherVigenereEncoder extends CipherEncoder {
         if (strings.length !== 1) {
             return undefined;
         }
-        const cribpos = strings[0][1].indexOf(crib);
+        const cribpos = this.minimizeString(strings[0][1]).indexOf(crib);
         if (cribpos < 0) {
             return undefined;
         }
         return {
-            plaintext: strings[0][1].substr(cribpos, crib.length),
-            ciphertext: strings[0][0].substr(cribpos, crib.length),
+            plaintext: this.minimizeString(strings[0][1]).substring(cribpos, cribpos + crib.length),
+            ciphertext: this.minimizeString(strings[0][0]).substring(cribpos, cribpos + crib.length),
             position: cribpos,
             criblen: crib.length,
             cipherlen: strings[0][0].length,
@@ -369,10 +369,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
             if (this.state.blocksize > 0) {
                 if (this.state.blocksize === this.state.keyword.length) {
                     suggested -= 20;
-                    extra += ` Having a blocksize the same as the keyword length (${this.state.keyword.length}) makes it about 20 points easier.`
+                    extra += ` Having a blocksize the same as the keyword length (${this.state.keyword.length}) makes it about 20 points easier.`;
                 } else {
                     suggested += 25;
-                    extra += ` Having a blocksize ${this.state.blocksize} different than the keyword length ${this.state.keyword.length} makes it about 25 points harder.`
+                    extra += ` Having a blocksize ${this.state.blocksize} different than the keyword length ${this.state.keyword.length} makes it about 25 points harder.`;
                 }
             }
         } else {
@@ -390,6 +390,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 suggested -= 10
             }
         }
+        if (this.state.operation === 'crypt') {
+            suggested += 15;
+            extra += ` A cryptanalysis problem adds extra work, which makes it about 15 points harder.`;
+        }
+
         const min = Math.max(suggested - range, 0)
         const max = suggested + range
         suggested += Math.round(range * Math.random() - range / 2);

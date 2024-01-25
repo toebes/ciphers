@@ -40,10 +40,14 @@ export function JTFLabeledInput(
             .appendTo(inputgroup);
     } else if (type === 'checkbox' || type === 'checkboxr') {
         // For a checkbox, the value is a boolean indicated that it should be checked
+        let checkclass = ''
+        if (parm1 !== undefined) {
+            checkclass = ' ' + (parm1 as string)
+        }
         const checkbox =
             $('<input/>', {
                 id: id,
-                class: 'input-group-button checkbox',
+                class: 'input-group-button checkbox' + checkclass,
                 type: 'checkbox'
             })
         if (value as boolean) {

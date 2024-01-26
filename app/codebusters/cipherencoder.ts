@@ -2156,6 +2156,66 @@ export class CipherEncoder extends CipherHandler {
         this.attachHandlers()
     }
     /**
+     * Update the GUI with a list of suggestions of words with repeating letters
+     * @param kwcount Number of keywords to find
+     * @param action Callback function when a keyword is found
+     * @returns Total number of keywords found
+     */
+    public searchForNonUniqueKeywords(kwcount: number, action: (count: number, keyword: string) => boolean): number {
+        const lang = 'en';
+
+        const picked: BoolMap = {}
+        let testUsage = this.getTestUsage();
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+
+        // We use everything from 8 to 14 characters except for the unique string ones as our potential keyword choices
+        let entries = Object.keys(this.Frequent['en']).filter((key) => key.length >= 8 && key.length <= 14)
+        let entriesCount = entries.length
+
+        // Filter down the words to nominally the grade level.
+        // This isn't a perfect match, but at least it reduces the chance of a word
+        // being out of grade level
+        let rangeScale = 0.5
+        if (usedOnA) {
+            rangeScale = 0.1
+        } else if (usedOnB) {
+            rangeScale = 0.25
+        }
+
+        let pat14 = this.makeUniquePattern("ABCDEFGHIJKLMN", 1);
+
+        // Keep track of how many entries we find to present so that we don't put more than requested on the dialog
+        let found = 0
+
+        for (let tval = 0; found < kwcount && tval < 50; tval++) {
+            // Pick a random number from the set of choices
+            let patSlot = Math.trunc(Math.random() * entriesCount);
+            let pat = entries[patSlot]
+
+            // Make sure it is not one of the unique character patterns.
+            // We do this check here instead of when we create the keys because it is pretty
+            // rare that we actually hit one of them and we don't want to incur the cost when
+            // generating the list in the first place.
+            if (pat !== pat14.substring(0, pat.length)) {
+                // Now that we have that, pick a random entry from the range of the slot
+                let slot = Math.trunc(Math.random() * this.Frequent[lang][pat].length * rangeScale)
+                let keyword = this.Frequent[lang][pat][slot][0];
+
+                // Make sure that the random number hadn't given us this sample before.
+                if (picked[keyword] !== true) {
+                    picked[keyword] = true;
+                    // We have a keyword, so let them process it (if they can)
+                    if (action(found, keyword)) {
+                        found++
+                    }
+                }
+            }
+        }
+        this.attachHandlers()
+        return found
+    }
+    /**
      * Update the GUI with a list of suggestions
      * @param kwcount Number of keywords to find
      * @param action Callback function when a keyword is found
@@ -2249,7 +2309,8 @@ export class CipherEncoder extends CipherHandler {
         const divAll = $("<div/>", { class: 'grid-x' })
         const cellLeft = $('<div/>', { class: 'cell auto' })
         const cellRight = $('<div/>', { class: 'cell auto' })
-        divAll.append(cellLeft).append(cellRight)
+        const cellMid = $('<div/>', { class: 'cell auto' })
+        divAll.append(cellLeft).append(cellMid).append(cellRight)
         output.empty().append(divAll)
 
         const found = this.searchForKeywords(20, (found: number, keyword: string): boolean => {
@@ -2265,8 +2326,21 @@ export class CipherEncoder extends CipherHandler {
             if (found % 2 === 0) {
                 cellLeft.append(div)
             } else {
-                cellRight.append(div)
+                cellMid.append(div)
             }
+            return true;
+        })
+        const found2 = this.searchForNonUniqueKeywords(10, (found: number, keyword: string): boolean => {
+            let div = $('<div/>', { class: "kwchoice" });
+
+            let useButton = $("<a/>", {
+                'data-key': keyword,
+                type: "button",
+                class: "button rounded kwset abbuttons warning",
+            }).html('Use');
+            div.append(useButton)
+            div.append(keyword)
+            cellRight.append(div)
             return true;
         })
         this.attachHandlers()

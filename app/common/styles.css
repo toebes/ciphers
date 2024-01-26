@@ -20,6 +20,11 @@
     border-top: none;
 }
 
+.reveal#keywordDLG {
+    max-width: 55rem;
+    width: 90%;
+}
+
 .kwchoice,
 .abchoice {
     margin-bottom: 5px;

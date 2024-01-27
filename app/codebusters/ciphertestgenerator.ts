@@ -87,6 +87,24 @@ export class CipherTestGenerator extends CipherTest {
         );
 
         if (test.useCustomHeader) {
+            const custom_image_div = $('<div/>').addClass('cell small-12 medium-12 large-12');
+            const loadHeaderImageButton = $('<a/>', { type: "button", class: "button primary tight randomizeColumns", id: "loadHeaderImage" }).text("Select Header Image");
+            custom_image_div.append(loadHeaderImageButton);
+
+            // Create button to remove custome
+            const clearHeaderImageButton = $('<a/>', { type: "button", class:"button alert tight", id:"clearHeaderImage"}).text('Clear Header Image');
+
+            // Build label and field for name of image file, include clear image button in here, too.
+            custom_image_div.append(
+                JTFLabeledInput('Image Filename',
+               'text',
+                 'custom-header-image-filename',
+                     test.customHeaderImageFilename,
+             'small-12 medium-12 large-12 readonly', clearHeaderImageButton)
+            );
+            // Put these new widgets in the custom header div
+            testdiv.append(custom_image_div);
+
             testdiv.append(
                 JTFLabeledInput(
                     'Custom Header',
@@ -483,7 +501,7 @@ export class CipherTestGenerator extends CipherTest {
      * @param questions Array of entries to shuffle
      * @returns 
      */
-    public shufleEntries(questions: number[]): number[] {
+    public shuffleEntries(questions: number[]): number[] {
         let testData: SortableEntry[] = []
         let finalData: SortableEntry[] = []
         let saveData: SortableEntry[] = []
@@ -536,7 +554,7 @@ export class CipherTestGenerator extends CipherTest {
 
     public gotoRandomizeTest(): void {
         const test = this.getTestEntry(this.state.test);
-        test.questions = this.shufleEntries(test.questions);
+        test.questions = this.shuffleEntries(test.questions);
         this.setTestEntry(this.state.test, test);
         this.updateOutput();
     }
@@ -550,6 +568,25 @@ export class CipherTestGenerator extends CipherTest {
         this.processTestXML(data);
         this.updateOutput();
     }
+    public importImage(filename: string, data: any): void {
+        let test = this.getTestEntry(this.state.test);
+        test.customHeaderImage = data;
+        test.customHeaderImageFilename = filename;
+        this.setTestEntry(this.state.test, test);
+        this.updateOutput();
+    }
+
+    public loadCustomHeaderImage(): void {
+        this.openImportImage();
+    };
+    public clearCustomHeaderImage(): void {
+        const test = this.getTestEntry(this.state.test);
+        test.customHeaderImage = '';
+        test.customHeaderImageFilename = '';
+        this.setTestEntry(this.state.test, test);
+        this.updateOutput();
+    }
+
     public attachHandlers(): void {
         super.attachHandlers();
         $('#export')
@@ -668,6 +705,16 @@ export class CipherTestGenerator extends CipherTest {
             .off('click')
             .on('click', (e) => {
                 this.manageCustomHeaderButtons('default');
+            });
+        $('#loadHeaderImage')
+            .off('click')
+            .on('click', () => {
+                this.loadCustomHeaderImage();
+            });
+        $('#clearHeaderImage')
+            .off('click')
+            .on('click', () => {
+                this.clearCustomHeaderImage();
             });
     }
 }

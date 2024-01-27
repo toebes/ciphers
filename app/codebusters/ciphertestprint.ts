@@ -116,19 +116,63 @@ export class CipherTestPrint extends CipherTest {
 
         // Print custom header or default header on tests
         if (test.useCustomHeader) {
-            $('.custom-header').html(test.customHeader);
-            if (!$('.default-header').hasClass('noprint')) {
-                $('.default-header').addClass('noprint');
-            }
-            if ($('.custom-header').hasClass('noprint')) {
-                $('.custom-header').removeClass('noprint');
+            if (test.customHeaderImage !== undefined && test.customHeaderImage !== '') {
+                if (test.customHeader !== undefined && test.customHeader !== '') {
+                    // Set the image source on the custom header (if it exists)
+                    $('.custom-header').append($('<div/>').html(test.customHeader));
+                    $('#custom-header-image').attr('src', test.customHeaderImage);
+                    if ($('.custom-header').hasClass('noprint')) {
+                        // Remove 'noprint' from custom header
+                        $('.custom-header').removeClass('noprint');
+                    }
+                    if (!$('.default-header-imaged').hasClass('noprint')) {
+                        // Set 'noprint' on default header with image space.
+                        $('.default-header-imaged').addClass('noprint');
+                    }
+                } else {
+                    // Set the image source on the default header with image
+                    $('#default-header-image').attr('src', test.customHeaderImage);
+                    if (!$('.custom-header').hasClass('noprint')) {
+                        // Set 'noprint' on custom header
+                        $('.custom-header').addClass('noprint');
+                    }
+                    if ($('.default-header-imaged').hasClass('noprint')) {
+                        // Remove 'noprint' on default header with image space
+                        $('.default-header-imaged').removeClass('noprint');
+                    }
+                }
+                if (!$('.default-header').hasClass('noprint')) {
+                    // Set 'noprint' on default header
+                    $('.default-header').addClass('noprint');
+                }
+            } else {
+                // Set custom header from user entered data
+                $('.custom-header').html(test.customHeader);
+                if ($('.custom-header').hasClass('noprint')) {
+                    // Remove 'noprint' from custom header
+                    $('.custom-header').removeClass('noprint');
+                }
+                if (!$('.default-header').hasClass('noprint')) {
+                    // Set 'noprint' on default header
+                    $('.default-header').addClass('noprint');
+                }
+                if (!$('.default-header-imaged').hasClass('noprint')) {
+                    // Set 'noprint' on default header with image space.
+                    $('.default-header-imaged').addClass('noprint');
+                }
             }
         } else {
             if (!$('.custom-header').hasClass('noprint')) {
+                // Set 'noprint' on custom-header
                 $('.custom-header').addClass('noprint');
             }
             if ($('default-header').hasClass('noprint')) {
+                // Remove 'noprint' on default header
                 $('.default-header').removeClass('noprint');
+            }
+            if (!$('.default-header-imaged').hasClass('noprint')) {
+                // Set 'noprint' on default header with image space.
+                $('.default-header-imaged').addClass('noprint');
             }
         }
 
@@ -464,6 +508,6 @@ export class CipherTestPrint extends CipherTest {
      * Pre-set the Division letter in the Team Number field on the score sheet so kids just have to write their number.
      */
     public setTeamNumberPrefix(): void {
-        $("#testDivision").append($('<strong/>').text(this.getTeamNumberPrefix()));
+        $(".test-division").append($('<strong/>').text(this.getTeamNumberPrefix()));
     }
 }

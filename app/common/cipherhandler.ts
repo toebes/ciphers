@@ -133,6 +133,10 @@ export interface ITest {
     useCustomHeader: boolean;
     /** User specified info for test header instead of tournament header */
     customHeader: string;
+    /** File name of custom header image */
+    customHeaderImageFilename?: string;
+    /** User specified image (base 64) loaded from filesystem. */
+    customHeaderImage?: string;
     /** Which Cipher-Data.n element corresponds to the timed question.
      * If the value is blank, there is no timed question.
      */
@@ -1076,6 +1080,7 @@ export class CipherHandler {
             title: 'Invalid Test',
             useCustomHeader: false,
             customHeader: '',
+            customHeaderImage: '',
             count: 0,
             questions: [],
             testtype: ITestType.None,
@@ -1538,6 +1543,68 @@ export class CipherHandler {
             $('.impfile').hide();
         }
         $('#ImportFile').foundation('open');
+    }
+
+    /**
+     * Process imported XML
+     */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    public importImage(_filename: string, _data: any): void { }
+
+    /**
+     * Process the imported file
+     * @param reader File to process
+     */
+    public processImportImage(file: File): void {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        let imageData64: string;
+        reader.onload = (e): void => {
+            try {
+                imageData64 = e.target.result as string;
+                this.importImage(file.name, imageData64);
+
+                $('#ImportImageFile').foundation('close');
+            } catch (e) {
+                $('#importimageerr').text(`Not a valid import file: ${e}`).show();
+            }
+        };
+    }
+
+    /**
+     * Put up a dialog to select an image file to use in the header
+     */
+    public openImportImage(): void {
+        $('#okimportimage').attr('disabled', 'disabled');
+        $("#importimageerr").empty().hide();
+        $('#importimagestatus')
+            .removeClass('success')
+            .addClass('secondary');
+        $('#imagetoimport').text('No File Selected');
+        $('#imageFile')
+            .off('change')
+            .on('change', (e) => {
+                $('#importimageerr').text('').hide();
+                $('#okimportimage').removeAttr('disabled');
+                $('#importimagestatus')
+                    .removeClass('secondary')
+                    .addClass('success');
+                const fileinput: HTMLInputElement = $('#imageFile')[0] as HTMLInputElement;
+                const files = fileinput.files;
+                $('#imagetoimport').text(files[0].name + ' selected');
+            });
+        $('#okimportimage')
+            .off('click')
+            .on('click', (e) => {
+                const fileinput: HTMLInputElement = $('#imageFile')[0] as HTMLInputElement;
+                const files = fileinput.files;
+                if (files.length && typeof FileReader !== undefined) {
+                    this.processImportImage(files[0]);
+                }
+            });
+        $('.impurl').hide();
+        $('.impfile').show();
+        $('#ImportImageFile').foundation('open');
     }
 
     /**
@@ -3511,6 +3578,57 @@ export class CipherHandler {
         );
         return aboutDlg;
     }
+
+    /**
+     * Create dialog to import an image for use on the score sheet in the header.
+     */
+    public createImportImageDialog(): JQuery<HTMLElement> {
+
+
+        const dialogContents = $('<div/>', {
+            id: 'importimagestatus',
+            class: 'callout secondary',
+        })
+            .append(
+                $('<label/>', {
+                    for: 'imageFile',
+                    class: 'impfile button',
+                }).text('Select Image File')
+            )
+            .append(
+                $('<input/>', {
+                    type: 'file',
+                    id: 'imageFile',
+                    accept: '.jpeg,.jpg,.png',
+                    class: 'impfile show-for-sr',
+                })
+            )
+            .append(
+                $('<span/>', {
+                    id: 'imagetoimport',
+                    class: 'impfile',
+                }).text('No File Selected')
+            )
+            .append(
+                $('<div/>', {
+                    id: 'importimageerr',
+                    class: 'callout alert',
+                }).hide());
+        const importDlg = JTFDialog(
+            'ImportImageFile',
+            'Import Image',
+            dialogContents,
+            'okimportimage',
+            'Import Image'
+        );
+        return importDlg;
+
+
+
+
+
+    }
+
     /**
      * Create the main menu at the top of the page.
      * This also creates the hidden dialogs used for opening and importing files
@@ -3539,6 +3657,7 @@ export class CipherHandler {
             .append(this.createOpenFileDlg())
             .append(this.createImportFileDlg())
             .append(this.createAboutDlg())
+            .append(this.createImportImageDialog());
         // .append(this.createRegisterDlg())
         return result;
     }

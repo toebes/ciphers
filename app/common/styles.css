@@ -2584,3 +2584,15 @@ table.completecolumnar td {
 table.completecolumnar td {
     width: 33px;
 }
+
+.default-header-imaged img {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    max-height: 25%;
+    width: 25%;
+}
+
+.default-header-imaged table {
+    width: 73%;
+}

@@ -477,6 +477,7 @@ export class CipherTest extends CipherHandler {
             title: 'New Test',
             useCustomHeader: false,
             customHeader: '',
+            customHeaderImage: '',
             testtype: ITestType.None,
         });
         this.gotoEditTest(test);
@@ -1617,6 +1618,12 @@ export class CipherTest extends CipherHandler {
         link.attr('download', 'cipher_tests.json');
         link.attr('href', url);
     }
+
+    public importImage(_filename: string, _data: any) {
+        super.importImage(_filename, _data);
+        this.updateOutput();
+    }
+
     /**
      * Process imported XML
      * @param data XML for the test to import

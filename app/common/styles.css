@@ -2366,6 +2366,14 @@ table.morsemap {
     border-collapse: collapse;
 }
 
+table.morsemap tr:nth-child(even) td[class] {
+    background-color: #d3d3d3 !important;
+}
+
+table.morsemap td:not([class]) {
+    background-color: white;
+}
+
 table.morsemap td {
     padding: 10px;
 }

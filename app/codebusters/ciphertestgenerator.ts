@@ -88,19 +88,20 @@ export class CipherTestGenerator extends CipherTest {
 
         if (test.useCustomHeader) {
             const custom_image_div = $('<div/>').addClass('cell small-12 medium-12 large-12');
-            const loadHeaderImageButton = $('<a/>', { type: "button", class: "button primary tight randomizeColumns", id: "loadHeaderImage" }).text("Select Header Image");
+            const loadHeaderImageButton = $('<a/>', { type: "button", class: "button primary tight", id: "load-header-image" }).text("Select Header Image");
             custom_image_div.append(loadHeaderImageButton);
 
             // Create button to remove custome
-            const clearHeaderImageButton = $('<a/>', { type: "button", class:"button alert tight", id:"clearHeaderImage"}).text('Clear Header Image');
+            const clearHeaderImageButton = $('<a/>', { type: "button", class:"button alert tight", id:"clear-header-image"}).text('Clear Header Image');
+            custom_image_div.append(clearHeaderImageButton);
 
             // Build label and field for name of image file, include clear image button in here, too.
             custom_image_div.append(
-                JTFLabeledInput('Image Filename',
+                JTFLabeledInput('Custom Image Filename',
                'text',
                  'custom-header-image-filename',
                      test.customHeaderImageFilename,
-             'small-12 medium-12 large-12 readonly', clearHeaderImageButton)
+             'small-12 medium-12 large-12 readonly')
             );
             // Put these new widgets in the custom header div
             testdiv.append(custom_image_div);
@@ -312,6 +313,13 @@ export class CipherTestGenerator extends CipherTest {
         $('.testdata').each((i, elem) => {
             $(elem).replaceWith(this.genTestQuestions(test));
         });
+        if (test.customHeaderImageFilename !== undefined && test.customHeaderImageFilename !== '') {
+            $('#load-header-image').hide();
+            $('#clear-header-image').show();
+        } else {
+            $('#load-header-image').show();
+            $('#clear-header-image').hide();
+        }
         this.attachHandlers();
     }
     public setTitle(title: string): boolean {
@@ -706,12 +714,12 @@ export class CipherTestGenerator extends CipherTest {
             .on('click', (e) => {
                 this.manageCustomHeaderButtons('default');
             });
-        $('#loadHeaderImage')
+        $('#load-header-image')
             .off('click')
             .on('click', () => {
                 this.loadCustomHeaderImage();
             });
-        $('#clearHeaderImage')
+        $('#clear-header-image')
             .off('click')
             .on('click', () => {
                 this.clearCustomHeaderImage();

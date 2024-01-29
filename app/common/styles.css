@@ -2476,6 +2476,7 @@ table.railfence-sm tbody {
     .page,
     .instructions {
         max-width: 8in;
+        /* overflow-x: hidden; */
     }
     div.instructions {
         display: block;

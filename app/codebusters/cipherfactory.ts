@@ -29,6 +29,7 @@ import { CipherTestScoreAdjust } from './ciphertestscoreadjust';
 import { CipherVigenereEncoder } from './ciphervigenereencoder';
 import { CipherTestBuild } from './ciphertestbuild';
 import { CipherQuoteManager } from './cipherquotemanager';
+import { CipherAristocratEncoder } from './cipheraristocratencoder';
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -78,7 +79,7 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     },
     Encoder: {
         cipherType: ICipherType.Aristocrat,
-        cipherClass: CipherEncoder,
+        cipherClass: CipherAristocratEncoder,
         canPrint: true,
     },
     FractionatedMorse: {
@@ -108,7 +109,7 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     },
     Patristocrat: {
         cipherType: ICipherType.Patristocrat,
-        cipherClass: CipherEncoder,
+        cipherClass: CipherAristocratEncoder,
         canPrint: true,
     },
     PigPen: {

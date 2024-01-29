@@ -638,7 +638,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
 
-     public genSampleHint(): string {
+    public genSampleHint(): string {
         let hint = ` ${this.state.rails.toString()} were used to encode it.`;
 
         // rails count is between 2 and 6.
@@ -733,7 +733,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
 
         let range = 10;
         const min = Math.max(suggested - range, 0)
-        const max =  suggested + range
+        const max = suggested + range
         suggested += Math.round(range * Math.random() - range / 2);
 
         let rangetext = ''
@@ -749,7 +749,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
                 We suggest you try a score of ${suggested}${rangetext}.</p>`
         }
 
-        return { suggested: suggested, min: min, max: max, private: qdata, text: scoringText }
+        return { suggested: suggested, min: min, max: max, text: scoringText }
     }
 
     /**

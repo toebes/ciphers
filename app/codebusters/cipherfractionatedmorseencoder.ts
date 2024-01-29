@@ -168,7 +168,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 We suggest you try a score of ${suggested}${rangetext}.</p>`
         }
 
-        return { suggested: suggested, min: min, max: max, private: qdata, text: scoringText }
+        return { suggested: suggested, min: min, max: max, text: scoringText }
     }
 
     public genSampleHint(): string {
@@ -2592,9 +2592,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         }
         this.setErrorMsg(msg, 'polgs');
         return result;
-    }
-    public genKeywordSuggestions() {
-        this.genKeywordListSuggestions()
     }
     /**
      * Set a keyword from the recommended set

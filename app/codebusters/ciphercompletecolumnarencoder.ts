@@ -969,7 +969,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                 We suggest you try a score of ${suggested}${rangetext}.</p>`
         }
 
-        return { suggested: suggested, min: min, max: max, private: qdata, text: scoringText }
+        return { suggested: suggested, min: min, max: max, text: scoringText }
     }
 
     /**

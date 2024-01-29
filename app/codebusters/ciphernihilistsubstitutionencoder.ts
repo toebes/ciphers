@@ -393,7 +393,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 We suggest you try a score of ${suggested}${rangetext}.</p>`
         }
 
-        return { suggested: suggested, min: min, max: max, private: qdata, text: scoringText }
+        return { suggested: suggested, min: min, max: max, text: scoringText }
     }
 
 
@@ -2264,9 +2264,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.markUndo('')
         this.setKeyword(key)
         this.updateOutput()
-    }
-    public genKeywordSuggestions() {
-        this.genKeywordListSuggestions()
     }
     /**
      * Set a keyword from the recommended set

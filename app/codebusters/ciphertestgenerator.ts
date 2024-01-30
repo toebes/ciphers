@@ -88,12 +88,14 @@ export class CipherTestGenerator extends CipherTest {
 
         if (test.useCustomHeader) {
             const custom_image_div = $('<div/>').addClass('cell small-12 medium-12 large-12');
+
+            const button_div = $( '<div/>').addClass('tight small-12 medium-12 large-12');
             const loadHeaderImageButton = $('<a/>', { type: "button", class: "button primary tight", id: "load-header-image" }).text("Select Header Image");
-            custom_image_div.append(loadHeaderImageButton);
+            button_div.append(loadHeaderImageButton);
 
             // Create button to remove custome
             const clearHeaderImageButton = $('<a/>', { type: "button", class:"button alert tight", id:"clear-header-image"}).text('Clear Header Image');
-            custom_image_div.append(clearHeaderImageButton);
+            button_div.append(clearHeaderImageButton);
 
             // Build label and field for name of image file, include clear image button in here, too.
             custom_image_div.append(
@@ -101,12 +103,13 @@ export class CipherTestGenerator extends CipherTest {
                'text',
                  'custom-header-image-filename',
                      test.customHeaderImageFilename,
-             'small-12 medium-12 large-12 readonly')
+             'small-12 medium-12 large-12 readonly', button_div)
             );
+
             // Put these new widgets in the custom header div
             testdiv.append(custom_image_div);
 
-            testdiv.append(
+            custom_image_div.append(
                 JTFLabeledInput(
                     'Custom Header',
                     'textarea',

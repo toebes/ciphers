@@ -1985,9 +1985,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         )
 
         result.append(
-            "To continue, we can follow each keyword letter through the entire ciphertext and track the numbers associated with each. Specifically, we are looking for the ones digit.")
+            "To continue, we can follow each keyword letter through the entire ciphertext and track the ones digit associated with each number.")
 
-            .append("Let's follow K1, the first letter, through the entire ciphertext.")
+            .append("Let's follow K1, the first letter, through the entire ciphertext, tracking its one digit in a table.")
 
         result.append(this.buildSolverNihilist(encoded, this.state.solverKeyLength.toString(), 'k1example'))
 

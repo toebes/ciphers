@@ -1197,8 +1197,9 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
 
         if (this.state.keyword === undefined || this.state.keyword === '') {
             errorMessage = `The column ordering string is not set.  Therefore, the column order
-                will be the original, natural order.`
-            this.setErrorMsg(errorMessage, 'colord', null);
+                will be the original, natural order. `
+            const randomizeLink = $('<a/>', { class: 'randomizeColumns' }).text('Randomize the Column Ordering');
+            this.setErrorMsg(errorMessage, 'colord', randomizeLink);
         }
         else if (this.state.keyword !== undefined && this.state.columns != this.state.keyword.length) {
             errorMessage = `Column count is ${this.state.columns}

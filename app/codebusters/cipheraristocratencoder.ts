@@ -210,10 +210,9 @@ export class CipherAristocratEncoder extends CipherEncoder {
                 if (this.state.encodeType !== 'k1' && this.state.encodeType !== 'k2' && this.state.encodeType !== 'k3') {
                     return 'Keyword/Key Phrase decoding not allowed with ' + this.state.encodeType.toUpperCase() + ' Alphabet for ' + this.getTestTypeName(testType);
                 }
-            } else {
-                if (this.state.encodeType === 'k4') {
-                    return this.state.encodeType.toUpperCase() + ' Alphabet not allowed for ' + this.getTestTypeName(testType);
-                }
+            } else if ((this.state.encodeType === 'k4') ||
+                (this.state.encodeType === 'k3' && testType !== ITestType.cregional && testType !== ITestType.cstate)) {
+                return this.state.encodeType.toUpperCase() + ' Alphabet not allowed for ' + this.getTestTypeName(testType);
             }
         }
         return super.CheckAppropriate(testType, anyOperation)

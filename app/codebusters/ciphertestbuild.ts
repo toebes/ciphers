@@ -1431,7 +1431,7 @@ export class CipherTestBuild extends CipherTest {
         if (this.isGoodSpecialCipherType(entry.cipherType)) {
             sbBox.removeAttr('hidden').show();
         } else {
-            sbBox.removeAttr('checked')
+            sbBox.prop('checked', false)
             sbBox.attr('hidden', 'hidden').hide()
         }
         const ctcDiv = $('#ctc' + idNum)

@@ -1075,6 +1075,18 @@ export class CipherEncoder extends CipherHandler {
         }
         return ''
     }
+    public genRandomQuestion(cipherName: string, extraStrings?: string[]): string {
+        let choices: string[] = [
+            "The following quote${author} has been encoded using the ${cipherName} Cipher.",
+            "The following quote${author} has been encoded using the ${cipherName} Cipher. What did they say?",
+            "The following ${cipherName} Cipher encodes a quote${author}",
+            "An observation${author} has been encoded as a ${cipherName} Cipher.",
+        ]
+        if (extraStrings !== undefined) {
+            choices = choices.concat(extraStrings)
+        }
+        return ""
+    }
     /**
      * Generates the sample question text for a cipher
      * @returns HTML as a string

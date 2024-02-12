@@ -1071,7 +1071,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let validIndex = 1;
         for (const sequenceset of sequencesets) {
             for (let i = 0; i < order.length; i++) {
-                console.log(validIndex)
+                // console.log(validIndex)
                 let pair = order[i]
                 let localValidIndex = validIndex
 
@@ -1114,7 +1114,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                         }
 
                         localValidIndex = (localValidIndex % mod) + 1
-                        console.log(localValidIndex)
+                        // console.log(localValidIndex)
 
                     }
 
@@ -1155,10 +1155,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     // }
 
                 }
-                console.log("bruh")
+                // console.log("bruh")
                 if (i === order.length - 1) {
-                    console.log(validIndex)
-                    console.log(localValidIndex)
+                    // console.log(validIndex)
+                    // console.log(localValidIndex)
                     validIndex = localValidIndex
                 }
                 table.append(row);

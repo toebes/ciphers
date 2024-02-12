@@ -25,6 +25,7 @@ import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 import { decodeHTML } from 'entities';
 import { alphaEquiv, alphaEquivType, fourWayEquiv, genDualEquivString, genEquivString, pairEquiv, pickRandomEquivSets, validEquivSet } from '../common/alphaequiv';
+import { createDocumentElement, getCSSRule, getElementSizeInInches } from '../common/htmldom';
 
 const baconMap: StringMap = {
     A: 'AAAAA',
@@ -97,6 +98,10 @@ interface IBaconianState extends IEncoderState {
     abMapping: string;
     /** How wide a line can be before wrapping */
     linewidth: number;
+    /** Zoom factor (100=normal size) for Baconian characters */
+    zoom?: number;
+    /** Generate the Baconian charactrs as images instead of fonts */
+    bitmap: boolean;
     /** List of words for the encoded string.
      * Note that any punctuation is included at the end of the string
      */
@@ -154,6 +159,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         textb: 'B',
         abMapping: 'ABABABABABABABABABABABABAB',
         linewidth: this.maxEncodeWidth,
+        zoom: 100,
+        bitmap: false,
         words: [],
     };
     public state: IBaconianState = cloneObject(this.defaultstate) as IBaconianState;
@@ -171,6 +178,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.pointsButton,
         this.guidanceButton,
     ];
+    /** Work canvas for generating images */
+    workCanvas: HTMLCanvasElement;
+    canvasContext: CanvasRenderingContext2D;
     /**
      * getInteractiveTemplate creates the answer template for synchronization of
      * the realtime answers when the test is being given.
@@ -199,6 +209,21 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.setTexta(this.state.texta);
         this.setTextb(this.state.textb);
         this.setOperation(this.state.operation);
+    }
+    /**
+     * Create a Canvas for setting up images
+     */
+    public setupCanvas(): void {
+        if (this.workCanvas === undefined) {
+            let canvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
+            if (!canvas) {
+                // Get us a canvas where we can play around with
+                canvas = createDocumentElement('canvas', { class: 'hidden', id: 'canvas' }) as HTMLCanvasElement
+            }
+            const context = canvas.getContext('2d')
+            this.workCanvas = canvas
+            this.canvasContext = context
+        }
     }
     /**
      * Changes the mapping characters for the A output letters
@@ -242,6 +267,33 @@ export class CipherBaconianEncoder extends CipherEncoder {
         return changed;
     }
     /**
+     * Changes the width of the maximum line output
+     * @param zoom New line width
+     */
+    public setZoom(zoom: number): boolean {
+        let changed = false;
+        if (zoom < 1) {
+            zoom = 1;
+        }
+        if (this.state.zoom !== zoom) {
+            this.state.zoom = zoom;
+            changed = true;
+        }
+        return changed;
+    }
+    /**
+     * Changes whether bitmap output is requested or not
+     * @param checked flag to indicate we want a bitmap
+     */
+    public setBitmap(checked: boolean): boolean {
+        let changed = false;
+        if (this.state.bitmap !== checked) {
+            this.state.bitmap = checked;
+            changed = true;
+        }
+        return changed;
+    }
+    /**
      * Switches the mapping character of a letter in the character set
      * @param c Which character in the character set to change the value of
      */
@@ -249,7 +301,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         const charset = this.getCharset();
         const idx = charset.indexOf(c);
         if (idx >= 0) {
-            let val = this.state.abMapping.substr(idx, 1);
+            let val = this.state.abMapping.charAt(idx);
             if (val !== 'A') {
                 val = 'A';
             } else {
@@ -358,6 +410,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.setRichText('textb', this.state.textb);
         $('#linewidth').val(this.state.linewidth);
         $('#crib').val(this.state.crib);
+        $('#zoom').val(this.state.zoom);
+        $('#bitmap').prop('checked', this.state.bitmap);
         const abmap = this.getABMap();
         for (const c in abmap) {
             $('#l' + c).text(abmap[c]);
@@ -372,11 +426,24 @@ export class CipherBaconianEncoder extends CipherEncoder {
             $("#suggestab").attr('disabled', 'disabled').hide()
 
         }
+        this.setOutputZoom();
+    }
+    /**
+     * Set the output zoom level
+     */
+    public setOutputZoom() {
+        let zoom = Math.max(50, this.state.zoom) / 100;
+        // $('table.bacon td').css('font-size', `${zoom}%`)
+        const rule = getCSSRule('table.bacon td');
+        if (rule) {
+            (rule.style as any)['font-size'] = `${zoom * 16}px`;
+        }
     }
     /**
      * Initializes the encoder.
      */
     public init(lang: string): void {
+        this.setupCanvas()
         super.init(lang);
     }
     /**
@@ -393,11 +460,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // First we need to get rid of all the HTML elements in the string
         // TODO: Remember BOLD/ITALIC and which characters they applied to and bring them back later on
         const remain = decodeHTML(text.replace(/<[^>]*>/g, '')).replace(/[\s\xa0]+/g, ' ')
-
         // All the entities need to be converted 
         let result: string[] = [];
         let lastc = undefined;
         let highsurrogate = false;
+        let useAltFont = false
         for (let c of remain) {
             if (highsurrogate) {
                 lastc += c;
@@ -418,6 +485,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 // U+035x	◌͐	◌͑	◌͒	◌͓	◌͔	◌͕	◌͖	◌͗	◌͘	◌͙	◌͚	◌͛	◌͜◌	◌͝◌	◌͞◌	◌͟◌
                 // U+036x  ◌͠◌	◌͡◌	◌͢◌	◌ͣ	◌ͤ	◌ͥ	◌ͦ	◌ͧ	◌ͨ	◌ͩ	◌ͪ	◌ͫ	◌ͬ	◌ͭ	◌ͮ	◌ͯ
                 lastc += c
+                useAltFont = true
             } else if (c === ' ') {
                 if (lastc === undefined) {
                     lastc = c
@@ -433,6 +501,47 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         if (lastc !== undefined) {
             result.push(lastc);
+        }
+        // See if we need to change it to bitmaps.
+        if (this.state.bitmap) {
+            // we need to go through result and convert everything to a bitmap
+            for (let i = 0; i < result.length; i++) {
+                const txt = result[i]
+
+                // Note that you have to work in px units when working with the canvar
+                // or it ends up scaling funny.
+                const defaultFontsize = 16 * this.state.zoom / 100
+                this.workCanvas.style.font = this.canvasContext.font
+                this.workCanvas.style.fontSize = `${defaultFontsize}px`
+                let font = 'Courier New'
+                if (useAltFont) {
+                    font = 'juliamono'
+                }
+
+                this.canvasContext.font = `${defaultFontsize}px ${font}`
+
+                const txtSize = this.canvasContext.measureText(txt)
+                let ascent = Math.max(txtSize.fontBoundingBoxAscent, txtSize.actualBoundingBoxAscent)
+                let descent = Math.max(txtSize.actualBoundingBoxDescent, txtSize.fontBoundingBoxDescent)
+                // Now we are going to *assume* that the DPI is 96 and we really want to get something that is 600 DPI.
+                // so that it prints cleanly without pixelization
+                const scaleFactor = 600 / 96
+                let height = Math.ceil((ascent + descent) * scaleFactor)
+                let width = Math.ceil(txtSize.width * scaleFactor)
+
+                // console.log(`${txt}  ${txtSize.actualBoundingBoxAscent + txtSize.actualBoundingBoxDescent} x ${txtSize.width} => ${height} x ${width}`)
+
+                this.workCanvas.width = width
+                this.workCanvas.height = height
+
+                const scaledFont = defaultFontsize * scaleFactor
+                this.canvasContext.font = `${scaledFont}px ${font}`
+                this.canvasContext.fillText(txt, 0, Math.ceil(ascent * scaleFactor))
+
+                // https://stackoverflow.com/questions/12328714/convert-text-to-image-using-javascript
+                const dataURL = this.workCanvas.toDataURL()
+                result[i] = `<img src="${dataURL}" width="${txtSize.width.toFixed(2)}">`
+            }
         }
         return result;
     }
@@ -505,12 +614,12 @@ export class CipherBaconianEncoder extends CipherEncoder {
             /**
              * See if we have to split out the line
              */
-            if (encodeline.length >= maxEncodeWidth) {
-                const sourcepart = sourceline.substr(0, maxEncodeWidth);
-                const baconpart = baconline.substr(0, maxEncodeWidth);
+            while (encodeline.length >= maxEncodeWidth) {
+                const sourcepart = sourceline.substring(0, maxEncodeWidth);
+                const baconpart = baconline.substring(0, maxEncodeWidth);
                 const encodepart = encodeline.slice(0, maxEncodeWidth);
-                sourceline = sourceline.substr(maxEncodeWidth);
-                baconline = baconline.substr(maxEncodeWidth);
+                sourceline = sourceline.substring(maxEncodeWidth);
+                baconline = baconline.substring(maxEncodeWidth);
                 encodeline = encodeline.slice(maxEncodeWidth);
                 result.lines.push({
                     plaintext: sourcepart.split(''),
@@ -558,8 +667,22 @@ export class CipherBaconianEncoder extends CipherEncoder {
         $('#answer')
             .empty()
             .append(res);
+
+        // Check the table to see if it is wider than we expect
+
+        let msg = ''
+        if (this.state.operation !== 'words') {
+            let table = document.querySelector(`.bacon.ansblock`) as HTMLElement
+            const size = getElementSizeInInches(table)
+            if (size.width >= 8) {
+                msg = `The Baconian Symbols are too wide to fit on the page (Currently ${size.width.toFixed(1)}").  Please either reduce the Line Width or the Scale % values.`
+            }
+        }
+        this.setErrorMsg(msg, 'tsz')
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
+
+
     }
     /**
      * Check for any errors we can find in the question
@@ -696,7 +819,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         // if we find the crib, just make sure there isn't a second copy at the end
         if (pos > 0 && pos < (plaintext.length - criblook.length)) {
-            if (!plaintext.substr(plaintext.length - criblook.length).localeCompare(criblook)) {
+            if (!plaintext.substring(plaintext.length - criblook.length).localeCompare(criblook)) {
                 pos = plaintext.length - criblook.length;
             }
         }
@@ -761,7 +884,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 //lB
                 let ciphertext = this.minimizeString(encoded.cipherword[i].toUpperCase());
                 for (let j = 0; j < ciphertext.length; j++) {
-                    let c = ciphertext.substr(j, 1);
+                    let c = ciphertext.charAt(j);
                     $("#l" + c).addClass("hinted");
                 }
             }
@@ -866,14 +989,25 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 'small-12 medium-6 large-6 opfield let4let sequence'
             )
         );
-        result.append(
+        const ldiv = $('<div/>', { class: "grid-x grid-margin-x" })
+        ldiv.append(
             JTFIncButton(
                 'Line Width',
                 'linewidth',
                 this.state.linewidth,
-                'small-12 medium-6 large-6 opfield let4let sequence'
+                'cell shrink opfield let4let sequence'
             )
         );
+        ldiv.append(JTFLabeledInput('Bitmap', 'checkbox', 'bitmap', false, 'cell shrink opfield let4let sequence'))
+        ldiv.append(
+            JTFIncButton(
+                'Scale %',
+                'zoom',
+                100,
+                'cell shrink opfield let4let sequence'
+            )
+        );
+        result.append(ldiv)
 
         return result;
     }
@@ -1020,11 +1154,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
             slotword = '';
         }
 
-        let punctuation = slotword.substr(slotword.length - 1);
+        let punctuation = slotword.substring(slotword.length - 1);
         if (this.isValidChar(punctuation.toUpperCase())) {
             punctuation = '';
         } else {
-            slotword = slotword.substr(0, slotword.length - 1);
+            slotword = slotword.substring(0, slotword.length - 1);
         }
         return [slotword, punctuation];
     }
@@ -1063,8 +1197,19 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
             for (let i in line.ciphertext) {
                 // Spaces need to become nonbreaking space
-                let ct = line.ciphertext[i].replace(/ /g, '\xa0');
-                rowcipher.add(ct);
+                if (this.state.bitmap) {
+                    let elem = $(line.ciphertext[i])
+                    rowcipher.add({
+                        settings: { class: "b" },
+                        content: elem
+                    })
+                } else {
+                    let ct = line.ciphertext[i].replace(/ /g, '\xa0');
+                    rowcipher.add({
+                        settings: { class: "b" },
+                        content: ct
+                    });
+                }
                 rowbaconian.add(line.baconian[i]);
                 rowanswer.add({
                     settings: { class: 'a' },
@@ -1166,13 +1311,40 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>');
         const encoded = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
-        for (const line of encoded.lines) {
-            result.append(
-                $('<div/>', {
-                    class: 'BACON TOSOLVEQ' + this.getFontClass(),
-                }).text(line.ciphertext.join(''))
-            );
+        if (this.state.operation === 'words') {
+            for (const line of encoded.lines) {
+                result.append(
+                    $('<div/>', {
+                        class: 'BACON TOSOLVEQ' + this.getFontClass(),
+                    }).text(line.ciphertext.join(''))
+                );
+            }
+        } else {
+            const table = new JTTable({ class: 'bacon ansblock notiny shrink cell unstriped' + this.getFontClass() });
+            for (const line of encoded.lines) {
+                const rowcipher = table.addBodyRow();
+                const rowblank = table.addBodyRow();
+                for (let i in line.ciphertext) {
+                    // Spaces need to become nonbreaking space
+                    if (this.state.bitmap) {
+                        let elem = $(line.ciphertext[i])
+                        rowcipher.add({
+                            settings: { class: "b" },
+                            content: elem
+                        })
+                    } else {
+                        let ct = line.ciphertext[i].replace(/ /g, '\xa0');
+                        rowcipher.add({
+                            settings: { class: "b" },
+                            content: ct
+                        });
+                    }
+                }
+                rowblank.add('\xa0');
+            }
+            result.append(table.generate())
         }
+        this.setOutputZoom();
         return result;
     }
     /**
@@ -1629,7 +1801,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             .off('click')
             .on('click', (e) => {
                 const id = $(e.target).attr('id') as string;
-                const c = id.substr(1, 1);
+                const c = id.charAt(1);
                 this.markUndo(null);
                 this.toggleAB(c);
                 this.updateOutput();
@@ -1643,18 +1815,36 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     this.updateOutput();
                 }
             });
+        $('#bitmap')
+            .off('change')
+            .on('change', (e) => {
+                const checked = $(e.target).prop("checked");
+                this.markUndo('bitmap');
+                if (this.setBitmap(checked)) {
+                    this.updateOutput()
+                }
+            });
+        $('#zoom')
+            .off('input')
+            .on('input', (e) => {
+                const zoom = $(e.target).val() as number;
+                this.markUndo(null);
+                if (this.setZoom(zoom)) {
+                    this.updateOutput();
+                }
+            });
         $('.wshift')
             .off('click')
             .on('click', (e) => {
                 const id = $(e.target).attr('id') as string;
-                const type = id.substr(id.length - 1);
+                const type = id.substring(id.length - 1);
                 let shift = 1;
                 if (type === '3') {
                     shift = 3;
                 } else if (type === 'e') {
                     shift = 999999;
                 }
-                if (id.substr(1, 1) === 'l') {
+                if (id.charAt(1) === 'l') {
                     shift = -shift;
                 }
                 this.wordpos += shift;
@@ -1685,7 +1875,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     if (punctuation === '') {
                         punctpos = 0;
                     }
-                    punctuation = punctuationChars.substr(punctpos, 1);
+                    punctuation = punctuationChars.charAt(punctpos);
                     this.state.words[wordslot] = slotword + punctuation;
                     this.updateOutput();
                 }

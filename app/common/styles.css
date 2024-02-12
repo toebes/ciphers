@@ -1134,10 +1134,16 @@ tr.wrong {
 
 table.bacon td {
     padding: 0;
-    font-size: 24px;
+    font-size: 18pt;
     line-height: 100%;
 }
 
+table.bacon td.b {
+    font-weight: normal;
+}
+table.bacon td.b img {
+    max-width: none;
+}
 table.bacon tbody,
 table.bacon tbody tr {
     border: none;
@@ -1147,7 +1153,7 @@ table.bacon tbody tr {
 .BACON.TOSOLVE2,
 .BACON.TOSOLVEQ,
 .BACON.TOANSWER {
-    font-size: 24px;
+    font-size: 18pt;
 }
 .BACON.TOSOLVEQ {
     margin-bottom: 4rem;
@@ -1793,7 +1799,7 @@ div.vsolv {
     padding: 0 !important;
 }
 .SOLVER.ansblock.atest .q.v {
-    font-size: 24px;
+    font-size: 18pt;
     width: 1.5rem;
 }
 

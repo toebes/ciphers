@@ -34,7 +34,7 @@ export function classListAdd(elem: HTMLElement, classlist: string) {
 export function createDocumentElement(
     tagName: string,
     attributes?: { [index: string]: string }
-) {
+): HTMLElement {
     const elem = document.createElement(tagName);
     if (attributes !== undefined && attributes !== null) {
         for (let attr in attributes) {
@@ -63,4 +63,67 @@ export function htmlToElement(html: string): ChildNode {
     html = html.trim(); // Never return a text node of whitespace as the result
     template.innerHTML = html;
     return template.content.firstChild;
+}
+
+export function getCSSRule(selector: string): CSSStyleRule | null {
+    // Get all style sheets on the page
+    const styleSheets = document.styleSheets;
+
+    // Iterate through each style sheet
+    for (let i = 0; i < styleSheets.length; i++) {
+        const styleSheet = styleSheets[i] as CSSStyleSheet;
+
+        // Iterate through each rule in the style sheet
+        for (let j = 0; j < styleSheet.cssRules.length; j++) {
+            const rule = styleSheet.cssRules[j];
+
+            // Check if the rule matches the target selector
+            if (rule instanceof CSSStyleRule && rule.selectorText === selector) {
+                // Return the matching CSSStyleRule
+                return rule;
+            }
+        }
+    }
+
+    // If no matching rule is found, return null
+    return null;
+}
+/**
+ * Determine the Screen Resolution
+ * @returns Pixels Per Inch on the screen
+ */
+export function getScreenDPI(): number {
+    // Create a temporary element to measure inches
+    const tempDiv = document.createElement('div');
+    tempDiv.style.width = '1in';
+    tempDiv.style.height = '1in';
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.visibility = 'hidden';
+    document.body.appendChild(tempDiv);
+
+    // Measure the width and height of the temporary element
+    const rect = tempDiv.getBoundingClientRect();
+
+    // Remove the temporary element
+    document.body.removeChild(tempDiv);
+
+    return rect.width; // Use either width or height, as they should be the same
+}
+/**
+ * Measure an element in the DOM
+ * @param element Element to measure
+ * @returns [width, height] of the element in inches
+ */
+export function getElementSizeInInches(element: HTMLElement): { width: number, height: number } {
+    if (!element) {
+        return { width: 0, height: 0 }
+    }
+    const rect = element.getBoundingClientRect();
+    const dpi = getScreenDPI(); // Get screen DPI
+    const widthInInches = rect.width / dpi;
+    const heightInInches = rect.height / dpi;
+    return {
+        width: widthInInches,
+        height: heightInInches
+    };
 }

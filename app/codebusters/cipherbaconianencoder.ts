@@ -433,6 +433,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public setOutputZoom() {
         let zoom = Math.max(50, this.state.zoom) / 100;
+        if (this.state.operation === 'words') {
+            zoom = 1
+        }
         const rule = getCSSRule('table.bacon td');
         if (rule) {
             (rule.style as any)['font-size'] = `${zoom * 16}px`;
@@ -1196,7 +1199,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
             for (let i in line.ciphertext) {
                 // Spaces need to become nonbreaking space
-                if (this.state.bitmap) {
+                if (this.state.bitmap && this.state.operation !== 'words') {
                     let elem = $(line.ciphertext[i])
                     rowcipher.add({
                         settings: { class: "b" },

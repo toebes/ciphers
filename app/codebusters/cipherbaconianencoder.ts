@@ -160,7 +160,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         abMapping: 'ABABABABABABABABABABABABAB',
         linewidth: this.maxEncodeWidth,
         zoom: 100,
-        bitmap: false,
+        bitmap: true,
         words: [],
     };
     public state: IBaconianState = cloneObject(this.defaultstate) as IBaconianState;
@@ -433,7 +433,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public setOutputZoom() {
         let zoom = Math.max(50, this.state.zoom) / 100;
-        // $('table.bacon td').css('font-size', `${zoom}%`)
         const rule = getCSSRule('table.bacon td');
         if (rule) {
             (rule.style as any)['font-size'] = `${zoom * 16}px`;

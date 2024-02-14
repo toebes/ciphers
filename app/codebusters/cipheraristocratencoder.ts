@@ -676,11 +676,11 @@ export class CipherAristocratEncoder extends CipherEncoder {
             let adjust = 0
             // Patristocrats automatically get 300 extra points
             if (this.state.cipherType === ICipherType.Patristocrat) {
-                adjust += 250;
-                result.text += ". Encoding as a Patristocrat adds 250 points";
+                adjust += 400;
+                result.text += ". Encoding as a Patristocrat adds 400 points";
             } else if (this.state.cipherType === ICipherType.Xenocrypt || this.state.curlang !== 'en') {
-                adjust += 300;
-                result.text += ". Because it is a Xenocrypt, it adds 300 points";
+                adjust += 375;
+                result.text += ". Because it is a Xenocrypt, it adds 450 points";
             }
             if (this.state.operation === 'keyword') {
                 if (this.state.encodeType === 'k3') {
@@ -702,7 +702,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
             }
             // If we have a single letter word and A maps to I or I maps to A, that give them an extra 25 points of hints
             this.genAlphabet();
-            if (qrecord.minlength === 1 && (this.state.replacement['I'] === 'A' || this.state.replacement['A'] === 'I')) {
+            if (this.state.cipherType === ICipherType.Aristocrat && qrecord.minlength === 1 && (this.state.replacement['I'] === 'A' || this.state.replacement['A'] === 'I')) {
                 adjust -= 25
                 result.text += `. A single letter A/I which maps to A/I makes it 25 points easier`
             }

@@ -961,8 +961,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         // 4 = non-mapped key letters
         if (state === 'decode') {
             order = [[2, "minor"], [3, "minor"], [0, "solve bar"], [1, "ans"]];
-        } else {//if (state === 'encode') {
+        } else if (state === 'encode') {
             order = [[1, "solve"], [2, "minor"], [3, "minor"], [0, "ans bar"]];
+        } else {
+            order = [[2, "minor"], [3, "minor"], [0, "solve bar"], [1, "ans"]];
         }
 
         // Check to make sure that they provided a Key

@@ -965,8 +965,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         // 4 = non-mapped key letters
         if (state === 'decode') {
             order = [[2, "minor"], [3, "minor"], [0, "solve bar"], [1, "ans"]];
-        } else {//if (state === 'encode') {
+        } else if (state === 'encode') {
             order = [[1, "solve"], [2, "minor"], [3, "minor"], [0, "ans bar"]];
+        } else {
+            order = [[2, "minor"], [3, "minor"], [0, "solve bar"], [1, "ans"]];
         }
 
         // Check to make sure that they provided a Key
@@ -1994,9 +1996,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         )
 
         result.append(
-            "To continue, we can follow each keyword letter through the entire ciphertext and track the numbers associated with each. Specifically, we are looking for the ones digit.")
+            "To continue, we can follow each keyword letter through the entire ciphertext and track the ones digit associated with each number.")
 
-            .append("Let's follow K1, the first letter, through the entire ciphertext.")
+            .append("Let's follow K1, the first letter, through the entire ciphertext, tracking its one digit in a table.")
 
         result.append(this.buildSolverNihilist(encoded, this.state.solverKeyLength.toString(), 'k1example'))
 

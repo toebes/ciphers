@@ -4,7 +4,6 @@ import {
     ITestType,
     IScoreInformation,
     toolMode,
-    QuoteRecord,
 } from '../common/cipherhandler';
 import { CipherTypeButtonItem, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -21,7 +20,7 @@ import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
  */
 export class CipherTableEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL = 'TestGuidance.html#Baconian';
+    public guidanceURL = 'TestGuidance.html#Caesar';
     public cipherName = 'Caesar'
 
     public validAtBashTests: ITestType[] = [
@@ -148,7 +147,6 @@ export class CipherTableEncoder extends CipherEncoder {
         }
         if (this.state.offset !== offset) {
             this.state.offset = offset;
-            this.resetAlphabet();
             changed = true;
         }
         return changed;
@@ -293,6 +291,19 @@ export class CipherTableEncoder extends CipherEncoder {
         }
         return minlen
     }
+
+    /**
+     * Generates the sample question text for table ciphers
+     * @returns HTML as a string
+     */
+    public genSampleQuestionText(): string {
+        const cipherName = this.state.cipherType === ICipherType.Caesar ? 'Caesar' : 'Atbash';
+        return (
+            `<p>Decode this quote${this.genAuthor()} which has been encoded using the
+             ${cipherName} Cipher.</p>`
+        );
+    }
+
     /**
       * Generate the recommended score and score ranges for a cipher
       * @returns Computed score ranges for the cipher

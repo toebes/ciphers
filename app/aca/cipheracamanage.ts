@@ -340,9 +340,10 @@ export class CipherACAManage extends CipherTest {
                         // C-<n>.
                         // C-Sp-<n>.
                         // AC-<n>.
+                        // **(one of the above)
                         let qnum = "";
                         let lang = 'en';
-                        const qnumdata = cipherInfo.match(/^([A-Z]+(-Sp-|-)[0-9]+\.)/g)
+                        const qnumdata = cipherInfo.match(/^(\**[A-Z]+(-Sp-|-)[0-9]+\.)/g)
                         if (qnumdata != null) {
                             qnum = qnumdata[0]
                             cipherInfo = cipherInfo.substring(qnum.length).trim()
@@ -353,9 +354,10 @@ export class CipherACAManage extends CipherTest {
                         // if it is P then the cipher type is Patristocrat
                         let cipherType = ICipherType.None
                         let needType = true;
-                        switch (qnum.substring(0, 1).toUpperCase()) {
+                        const qnumcheck = qnum.replace(/^\**/, '')
+                        switch (qnumcheck.substring(0, 1).toUpperCase()) {
                             case 'A':
-                                if (qnum.substring(0, 2).toUpperCase() !== 'AC') {
+                                if (qnumcheck.substring(0, 2).toUpperCase() !== 'AC') {
                                     cipherType = ICipherType.Aristocrat;
                                     needType = false;
                                 }

@@ -43,7 +43,6 @@ export class CipherDancingMenEncoder extends CipherEncoder {
      */
     public load(): void {
         this.clearErrors();
-        this.genAlphabet();
         $('#answer')
             .empty()
             .append(this.build())
@@ -114,7 +113,6 @@ export class CipherDancingMenEncoder extends CipherEncoder {
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
-        this.genAlphabet();
         let width = 40;
         let extraclass = '';
         if (testType === ITestType.aregional) {

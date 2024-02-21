@@ -10,6 +10,8 @@ export interface JTButtonItem {
     /** Optional additional class to add to the item */
     class?: string;
     download?: boolean;
+    href?: string;
+    target?: string;
 }
 
 /** Options passed when creating the button with JQuery */
@@ -20,6 +22,8 @@ interface JQbtnOptions {
     id?: string;
     disabled?: boolean;
     download?: string;
+    href?: string;
+    target?: string;
 }
 /**
  * Creates a submenu from a menuitem array
@@ -47,6 +51,12 @@ export function JTButtonGroup(submenu: JTButtonItem[]): JQuery<HTMLElement> {
         }
         if (item.download) {
             options.download = '';
+        }
+        if (item.href) {
+            options.href = item.href;
+        }
+        if (item.target) {
+            options.target = item.target;
         }
         buttons.append($('<a/>', options).text(item.title));
     }

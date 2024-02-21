@@ -50,15 +50,16 @@
                 <p class="in">The only factor for difficulty with this
                     question is in the number of characters in the phrase. The choice of letters/words/word length has
                     no
-                    impact on the difficulty. In general the question should be approximately 100 characters. It is only
+                    impact on the difficulty. In general the question should be between 45 and 80 characters. It is only
                     slightly harder to have the students <span class="ctl">Encode</span> because it
                     isn't obvious when they have the correct answer. An <span class="ctl">Encode</span> problem is
                     also slightly harder to grade as it requires carefully checking each letter
                     instead of simply reading the answer.</p>
                 <span class="ht">Points:</span>
                 <p class="in">An Atbash Cipher <span class="ctl">Decode</span> should
-                    be worth 100 points (approximately 1 point per character in the <span class="ctl">Plain
-                        Text</span>).
+                    be worth around 100 points
+                    (approximately 1.2 points per character plus
+                    2.5 points per unique character in the <span class="ctl">Plain Text</span>).
                     An Atbash Cipher <span class="ctl">Encode</span> could be worth 120-150 points
                     depending on the length of the encode string (approximately 1.2 points per character rounded to the
                     nearest
@@ -83,7 +84,7 @@
                     two Caesar Cipher questions on a test.</p>
                 <span class="ht">Setting Difficulty:</span>
                 <p class="in">There are two factors which affect the
-                    difficulty. First is the length of the cipher which in general should be approximately 100
+                    difficulty. First is the length of the cipher which in general should be approximately 80-90
                     characters. Having a single or two character word in the <span class="ctl">Plain Text</span> also
                     makes it easier to solve. Secondarily is the <span class="ctl">Shift</span> of the letters. Shifts
                     of 1,2,3
@@ -101,7 +102,7 @@
                 <span class="ht">Points:</span>
                 <p class="in">A Caesar Cipher <span class="ctl">Decode</span> should
                     be worth 100-120 points (approximately 1 point per character in the <span class="ctl">Plain
-                        Text</span>)
+                        Text</span> plus 2.5 points per unique character)
                     with the 120 point being associated with a Caesar with a larger shift and no short words. A
                     Caesar
                     Cipher <span class="ctl">Encode</span> should be worth 120-160 points with
@@ -378,6 +379,89 @@
                     OCRed before
                     converted to an Aristocrat using a K2 alphabet, there were quite a few mistakes. What was the final
                     result?</p>
+            </div>
+            <div id="Aristocrat_Keyword">
+                <h3 class="ol">
+                    <div class="qusec"></div>Aristocrat K1-K3 Keyword Recovery {3.e.iii.(7)}
+                </h3>
+
+                <p>Recovering a keyword/phrase from an Aristocrat first requires competitors to decode the Aristocrat,
+                    so all of the guidance in the
+
+                    <a href="#Aristocrat">General Aristocrat/Patristocrat guidance</a> applies. Recovering a K1 keyword
+                    (keyword in the plain text) is typically very straightforward. Recovering a K2 keyword (keyword in
+                    the cipher text) is also very doable once the concept is understood. Recovering a K3 keyword
+                    (keyword in both the cipher text and the plain text, with the alphabets shifted) requires a
+                    completely different process and merits special consideration (described below) to ensure that a
+                    plaintext phrase/quote is chosen which is a suitable candidate for this type of problem.
+                </p>
+                <p>For K1-K3 keyword/phrase recovery problems, it is helpful to be mindful of the fact that, as is
+                    typical with keywords, duplicate letters are removed when the word or phrase is used as a key, and
+                    competitors are provided with blanks corresponding to the length of each word in the key phrase to
+                    aid them in recovering it. For example, when they recover the characters TOHESAR and are provided
+                    with an appropriate number of blanks (2,3,5), they can work out that the key phrase here is TO THE
+                    STARS. Therefore, it is good to be especially mindful to avoid using a keyword that would result as
+                    indistinguishable from another when reconstructed: for example, the two different five-letter words
+                    DOSES and DOSED would both result in a key of DOSE, so either of these would be a poor keyword
+                    choice as competitors would not be able to reliably recover which one was used.</p>
+                <p>The Aristocrat encoder prefers that the plaintext be quotes or phrases that contain at least 19
+                    unique characters. For K1 and K2 keyword recovery, this is not strictly required. For K3 keyword
+                    recovery, 19 unique characters is an absolute minimum in selecting an appropriate phrase, as the
+                    less of the alphabet is used, the more difficult the problem becomes as it results in a higher
+                    number of unknown mappings. Letter frequencies in the plaintext still need to be distributed enough
+                    to make it solvable (i.e., if many letters are only used once, this creates its own difficulty
+                    factor for solving the Aristocrat before beginning the recovery process). A plaintext with 22 or 23
+                    unique characters is more reliably solvable than one with fewer and is the easiest way to make sure
+                    that the problem isn’t inadvertently too difficult without having to get into the nuts and bolts of
+                    solving these as described in the next paragraph. It is also recommended to keep the Offset at 1, 2,
+                    or 3.</p>
+                <p>The process of K3 keyword recovery is described in detail here:
+                <ul>
+                    <li><a target="_blank"
+                            href="https://theblackchamber552383191.wordpress.com/2020/11/18/recovering-k-1-to-k-4-keys/">The
+                            Black Chamber: Recovering K1 to K4 Keys</a></li>
+                    <li><a target="_blank"
+                            href="https://theblackchamber552383191.wordpress.com/2020/11/21/finding-k3-alphabets-again-the-nerd-version/">The
+                            Black Chamber: Finding K3 Alphabets Again: The Nerd Version</a></li>
+                    <li><a target="_blank"
+                            href="https://theblackchamber552383191.wordpress.com/2020/11/18/recovering-k-3-alphabets-a-paper-and-pencil-approach/">The
+                            Black Chamber: Recovering K3 Alphabets: A paper and pencil approach</a></li>
+                </ul>To put it simply, to recover a K3 keyword, competitors must first reconstruct a single,
+                26-character alphabet (which is the reason more unknown mappings make this more difficult). If that is
+                straightforward, the difficulty is reduced; if it requires them to interleave smaller chains, the
+                difficulty is increased. After that, they must perform the decimation step. If the decimation factor is
+                odd, the procedure should be somewhat straightforward; if the decimation factor is even, this requires
+                them to use alternating interleave spacing which makes the decimation more complicated.</p>
+
+                <span class="ht">Setting Difficulty:</span>
+                <p class="in">
+                    K1 and K2 keyword recovery are significantly easier than K3 keyword recovery. Difficulty for all
+                    types is somewhat increased when the keyword contains duplicate letters. For K3 keyword recovery,
+                    difficulty is also increased when fewer unique characters are used in the plaintext; when the
+                    keyword draws from low-frequency letters; when the reconstruction results in two or more short loops
+                    than in one long loop; and when the decimation step requires alternating interleave spacing.
+                </p>
+                <span class="ht">Points:</span>
+                <p class="in">
+                    See the <a href="#Aristocrat_Points">General
+                        Aristocrat/Patristocrat point guidance</a> for more details. Finding a K1 or K2 keyword/phrase
+                    should add 100 points to the total; finding a K3 keyword/phrase should add a minimum of 150 points
+                    to the total and could increase based on the factors for difficulty described above.
+                </p>
+                <span class="ht">Question Text:</span>
+                <p class="in"> The question should clearly indicate that they are to find the keyword/key phrase and
+                    provide the source of the phrase. For
+                    example:</p>
+                <p class="ex callout small secondary ">
+                    A famous phrase from <em>&lt;person&gt;</em> has been encoded as an Aristocrat using a K1 alphabet.
+                    What was the key phrase used to encode it?
+                </p>
+                <p class="ex callout small secondary ">
+
+                    <em>&lt;person&gt;</em> was often heard to say the following phrase which has been encoded as an
+                    Aristocrat using a K2 alphabet. Please provide the keyword used to encode it.
+
+                </p>
             </div>
             <div id="Patristocrat">
                 <h3 class="ol">
@@ -817,7 +901,9 @@
             </div>
             <div id="Cryptarithm">
                 <h2 class="ol">
-                    <div class="qusec"></div>Cryptarithm {3.e.vi}
+                    <div class="qusec">
+                        <div class="quseb"></div>
+                    </div>Cryptarithm {3.e.vi}
                 </h2>
                 <span class="ht">Setting Difficulty:</span>
                 <p class="in">.</p>
@@ -842,8 +928,50 @@
             </div>
             <div id="CompleteColumnar">
                 <h2 class="ol">
-                    <div class="qusec"></div>Complete Columnar {3.e.vii}
+                    <div class="qusec"></div>
+                    <div class="quseb"></div>Complete Columnar {3.e.vii}
                 </h2>
+                <p>The Complete Columnar Cipher is a transposition cipher. Plain text is written across a table with a
+                    pre-defined number of columns. The column order is mixed up by providing a
+                    <strong>column ordering</strong>
+                    string. For example, if the column count is 7 and the column order string is
+                    <span class="fq">SCIENCE</span>, the column order will rearranged to be in the order:
+                    <span class="fq">2</span>,
+                    <span class="fq">6</span>,
+                    <span class="fq">4</span>,
+                    <span class="fq">7</span>,
+                    <span class="fq">3</span>,
+                    <span class="fq">5</span>,
+                    <span class="fq">1</span>.
+                    The column order string gets sorted to <span class="fq">CCEEINS</span> and we find the first
+                    character <span class="fq">C</span> in position 2 of the column sorting string, the
+                    next <span class="fq">C</span> in
+                    position 6 of the column sorting string, the first <span class="fq">E</span> in position 4, etc.
+                    The columns of the plain text table are rearranged using this order and the cipher text is
+                    generated by reading down each column, starting with the first column on the left and working
+                    across.
+                </p>
+                <p class="ex callout small secondary"><span class="fq">Note</span>: Letter and/or number characters
+                    can be used in the column order string. The order is determined by sorting the characters using
+                    their ASCII value. Duplicate characters are taken in order, left to right.
+                </p>
+                <p>To put these columns back in the correct order (mentally renumbering them 1-7), take them in numeric
+                    order.
+                    I.e., the column labeled <span class="fq">1</span> is in the <strong>seventh</strong> position,
+                    the column labeled <span class="fq">2</span> is in the <strong>first</strong> position,
+                    the column labeled <span class="fq">3</span> is in the <strong>fifth</strong> position, etc.
+                    So the transposed table would be rewritten with column ordering:
+                    <span class="fq">7</span>,
+                    <span class="fq">1</span>,
+                    <span class="fq">5</span>,
+                    <span class="fq">3</span>,
+                    <span class="fq">6</span>,
+                    <span class="fq">2</span>,
+                    <span class="fq">4</span> to reveal the original plain text in a seven column table.
+                </p>
+                <p>A crib is given for cryptanalysis to provide a starting point for deducing the column order
+                    and decoding the ciphertext.
+                </p>
                 <span class="ht">Setting Difficulty:</span>
                 <p class="in">Difficulty is increased when the crib is split over two rows; when the crib appears in
                     more
@@ -1058,15 +1186,14 @@
             <div id="FractionatedMorse">
                 <h2 class="ol">
                     <div class="qusec"></div>
-                    <div class="quseb"></div>Fractionated Morse Cipher Decode {3.e.viii}
+                    <div class="quseb"></div>Fractionated Morse Cipher Cryptanalysis {3.e.viii}
                 </h2>
                 <p>The Fractionated Morse Cipher encodes text by first converting the plain text into morse
                     code with the space between characters represented by an <span class="fq">&times;</span> and the
                     space
                     between
                     words represented by two <span class="fq">&times;</span> characters. The resulting morse code is
-                    then
-                    randomly assigned to letters chosen to represent the morse characters:
+                    then assigned to letters using a K1-like replacement table to represent the morse characters:
                     (<span class="fq">&#9679;</span>,
                     <span class="fq">&ndash;</span>,
                     <span class="fq">&times;</span>)
@@ -1075,25 +1202,33 @@
                     the final cipher string. Decoding is done by reversing the process..
                 </p>
                 <span class="ht">Setting Difficulty:</span>
-                <p class="in">The dificulty is driven by the number of letters and the
-                    variety of morse code combined with which letters are chosen. Looking
-                    at the generated solving guide can help guide the question writing.
-                    Not telling them all the Hint Digits which correspond to
-                    <span class="fq">&times;</span>
-                    increases the difficulty. Assigning more characters for one morse digit,
-                    thereby reducing another, also increases the difficulty.
+
+                <p class="in">
+                    The difficulty can depend on how long the crib is (longer is easier), where the crib
+                    text is placed (it may reveal more morse mappings). The difficulty is also related to the
+                    letters that are chosen for the keyword -- the difficulty
+                    increases when the keyword draws letters from throughout the alphabet, and when it draws
+                    from the end of the alphabet.
+                    Another factor for difficulty is how frequently the letters that the crib maps to are
+                    used throughout the rest of the cipher.
                 </p>
+                <p class="in1">Looking at the
+                    autosolver's first attempt will give an idea of what students have to start with,
+                    looking at its final attempt will give an approximate idea of what students should
+                    have to end with, and looking at its iterations in the middle will help show how
+                    much trial and error students might have to do between those two points.
+                </p>
+
                 <span class="ht">Points:</span>
-                <p class="in">100-150.</p>
+                <p class="in">225-300.</p>
                 <span class="ht">Question Text:</span>
                 <p class="in">The question should be around 40 characters.</p>
-                <p class="ex callout small secondary ">Solve this quote from <em>&lt;person&gt;</em> which
-                    has been encoded using the Fractionated Morse Cipher and a keyword. You are told that <span
-                        class="fq">
-                        E=&#9679;&ndash;&#9679;;
-                        R=&times;&#9679;&#9679;;
-                        S=&times;&#9679;&ndash;;
-                        T=&#9679;&#9679;&times;.</span> </p>
+                <p class="ex callout small secondary">A quote has been encoded using the Fractionated
+                    Morse Cipher for you to decode. You are told that the quote has <span class="fq">CHAN</span>
+                    in it corresponding to the encoded text <span class="fq">V J T B P D</span>,
+                    meaning <span class="fq">B = &#9679;&times;&#9679;; D = &#9679;&times;&ndash;;
+                        J = &ndash;&#9679;&times;; P = &ndash;&times;&ndash;; T = &#9679;&#9679;&#9679;;
+                        V = &times;&ndash;&#9679;.</span></p>
             </div>
             <div id="Cryptarithmdecode">
                 <h2 class="ol">

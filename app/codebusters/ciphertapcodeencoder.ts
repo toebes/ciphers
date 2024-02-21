@@ -165,7 +165,7 @@ export class CipherTapCodeEncoder extends CipherEncoder {
             text = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend at least 20 characters for a good quote</em></p>`
         }
         if (qdata.len > 2) {
-            text += `<p>There are ${qdata.len} characters in the quote, resulting in ${qdata.notes.length} taps in total.
+            text += `<p>There are ${qdata.len} characters in the quote, resulting in ${taps.length} taps in total.
               We suggest you try a score of ${suggested}${rangetext}</p>`
         }
 

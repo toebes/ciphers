@@ -87,7 +87,29 @@ export class CipherTestGenerator extends CipherTest {
         );
 
         if (test.useCustomHeader) {
-            testdiv.append(
+            const custom_image_div = $('<div/>').addClass('cell small-12 medium-12 large-12');
+
+            const button_div = $( '<div/>').addClass('tight small-12 medium-12 large-12');
+            const loadHeaderImageButton = $('<a/>', { type: "button", class: "button primary tight", id: "load-header-image" }).text("Select Header Image");
+            button_div.append(loadHeaderImageButton);
+
+            // Create button to remove custome
+            const clearHeaderImageButton = $('<a/>', { type: "button", class:"button alert tight", id:"clear-header-image"}).text('Clear Header Image');
+            button_div.append(clearHeaderImageButton);
+
+            // Build label and field for name of image file, include clear image button in here, too.
+            custom_image_div.append(
+                JTFLabeledInput('Custom Image Filename',
+               'text',
+                 'custom-header-image-filename',
+                     test.customHeaderImageFilename,
+             'small-12 medium-12 large-12 readonly', button_div)
+            );
+
+            // Put these new widgets in the custom header div
+            testdiv.append(custom_image_div);
+
+            custom_image_div.append(
                 JTFLabeledInput(
                     'Custom Header',
                     'textarea',
@@ -294,6 +316,13 @@ export class CipherTestGenerator extends CipherTest {
         $('.testdata').each((i, elem) => {
             $(elem).replaceWith(this.genTestQuestions(test));
         });
+        if (test.customHeaderImageFilename !== undefined && test.customHeaderImageFilename !== '') {
+            $('#load-header-image').hide();
+            $('#clear-header-image').show();
+        } else {
+            $('#load-header-image').show();
+            $('#clear-header-image').hide();
+        }
         this.attachHandlers();
     }
     public setTitle(title: string): boolean {
@@ -483,7 +512,7 @@ export class CipherTestGenerator extends CipherTest {
      * @param questions Array of entries to shuffle
      * @returns 
      */
-    public shufleEntries(questions: number[]): number[] {
+    public shuffleEntries(questions: number[]): number[] {
         let testData: SortableEntry[] = []
         let finalData: SortableEntry[] = []
         let saveData: SortableEntry[] = []
@@ -536,7 +565,7 @@ export class CipherTestGenerator extends CipherTest {
 
     public gotoRandomizeTest(): void {
         const test = this.getTestEntry(this.state.test);
-        test.questions = this.shufleEntries(test.questions);
+        test.questions = this.shuffleEntries(test.questions);
         this.setTestEntry(this.state.test, test);
         this.updateOutput();
     }
@@ -550,6 +579,25 @@ export class CipherTestGenerator extends CipherTest {
         this.processTestXML(data);
         this.updateOutput();
     }
+    public importImage(filename: string, data: any): void {
+        let test = this.getTestEntry(this.state.test);
+        test.customHeaderImage = data;
+        test.customHeaderImageFilename = filename;
+        this.setTestEntry(this.state.test, test);
+        this.updateOutput();
+    }
+
+    public loadCustomHeaderImage(): void {
+        this.openImportImage();
+    };
+    public clearCustomHeaderImage(): void {
+        const test = this.getTestEntry(this.state.test);
+        test.customHeaderImage = '';
+        test.customHeaderImageFilename = '';
+        this.setTestEntry(this.state.test, test);
+        this.updateOutput();
+    }
+
     public attachHandlers(): void {
         super.attachHandlers();
         $('#export')
@@ -668,6 +716,16 @@ export class CipherTestGenerator extends CipherTest {
             .off('click')
             .on('click', (e) => {
                 this.manageCustomHeaderButtons('default');
+            });
+        $('#load-header-image')
+            .off('click')
+            .on('click', () => {
+                this.loadCustomHeaderImage();
+            });
+        $('#clear-header-image')
+            .off('click')
+            .on('click', () => {
+                this.clearCustomHeaderImage();
             });
     }
 }

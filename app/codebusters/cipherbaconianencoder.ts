@@ -18,11 +18,14 @@ import { ICipherType } from '../common/ciphertypes';
 import { fiveletterwords } from '../common/fiveletterwords';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
+import { JTFDialog } from '../common/jtfdialog';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 import { decodeHTML } from 'entities';
+import { alphaEquiv, alphaEquivType, fourWayEquiv, genDualEquivString, genEquivString, pairEquiv, pickRandomEquivSets, validEquivSet } from '../common/alphaequiv';
+import { createDocumentElement, getCSSRule, getElementSizeInInches } from '../common/htmldom';
 
 const baconMap: StringMap = {
     A: 'AAAAA',
@@ -78,6 +81,14 @@ const revBaconMap: StringMap = {
     BABBA: 'Y',
     BABBB: 'Z',
 };
+
+interface abSuggestion {
+    s1name: string
+    s1: string
+    s2name: string
+    s2: string
+}
+
 const punctuationChars = '.,;-!';
 interface IBaconianState extends IEncoderState {
     /** Characters to use to represent the A value */
@@ -87,6 +98,10 @@ interface IBaconianState extends IEncoderState {
     abMapping: string;
     /** How wide a line can be before wrapping */
     linewidth: number;
+    /** Zoom factor (100=normal size) for Baconian characters */
+    zoom?: number;
+    /** Generate the Baconian charactrs as images instead of fonts */
+    bitmap: boolean;
     /** List of words for the encoded string.
      * Note that any punctuation is included at the end of the string
      */
@@ -144,17 +159,28 @@ export class CipherBaconianEncoder extends CipherEncoder {
         textb: 'B',
         abMapping: 'ABABABABABABABABABABABABAB',
         linewidth: this.maxEncodeWidth,
+        zoom: 100,
+        bitmap: true,
         words: [],
     };
     public state: IBaconianState = cloneObject(this.defaultstate) as IBaconianState;
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
+        {
+            title: 'Suggest AB',
+            color: 'primary',
+            id: 'suggestab',
+            disabled: true,
+        },
         this.undocmdButton,
         this.redocmdButton,
         this.questionButton,
         this.pointsButton,
         this.guidanceButton,
     ];
+    /** Work canvas for generating images */
+    workCanvas: HTMLCanvasElement;
+    canvasContext: CanvasRenderingContext2D;
     /**
      * getInteractiveTemplate creates the answer template for synchronization of
      * the realtime answers when the test is being given.
@@ -183,6 +209,21 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.setTexta(this.state.texta);
         this.setTextb(this.state.textb);
         this.setOperation(this.state.operation);
+    }
+    /**
+     * Create a Canvas for setting up images
+     */
+    public setupCanvas(): void {
+        if (this.workCanvas === undefined) {
+            let canvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
+            if (!canvas) {
+                // Get us a canvas where we can play around with
+                canvas = createDocumentElement('canvas', { class: 'hidden', id: 'canvas' }) as HTMLCanvasElement
+            }
+            const context = canvas.getContext('2d')
+            this.workCanvas = canvas
+            this.canvasContext = context
+        }
     }
     /**
      * Changes the mapping characters for the A output letters
@@ -226,6 +267,33 @@ export class CipherBaconianEncoder extends CipherEncoder {
         return changed;
     }
     /**
+     * Changes the width of the maximum line output
+     * @param zoom New line width
+     */
+    public setZoom(zoom: number): boolean {
+        let changed = false;
+        if (zoom < 1) {
+            zoom = 1;
+        }
+        if (this.state.zoom !== zoom) {
+            this.state.zoom = zoom;
+            changed = true;
+        }
+        return changed;
+    }
+    /**
+     * Changes whether bitmap output is requested or not
+     * @param checked flag to indicate we want a bitmap
+     */
+    public setBitmap(checked: boolean): boolean {
+        let changed = false;
+        if (this.state.bitmap !== checked) {
+            this.state.bitmap = checked;
+            changed = true;
+        }
+        return changed;
+    }
+    /**
      * Switches the mapping character of a letter in the character set
      * @param c Which character in the character set to change the value of
      */
@@ -233,7 +301,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         const charset = this.getCharset();
         const idx = charset.indexOf(c);
         if (idx >= 0) {
-            let val = this.state.abMapping.substr(idx, 1);
+            let val = this.state.abMapping.charAt(idx);
             if (val !== 'A') {
                 val = 'A';
             } else {
@@ -342,6 +410,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.setRichText('textb', this.state.textb);
         $('#linewidth').val(this.state.linewidth);
         $('#crib').val(this.state.crib);
+        $('#zoom').val(this.state.zoom);
+        $('#bitmap').prop('checked', this.state.bitmap);
         const abmap = this.getABMap();
         for (const c in abmap) {
             $('#l' + c).text(abmap[c]);
@@ -350,11 +420,32 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.validateQuestion();
         super.updateOutput();
         this.updateWordSelects();
+        if (this.state.operation === 'sequence') {
+            $("#suggestab").removeAttr('disabled').show()
+        } else {
+            $("#suggestab").attr('disabled', 'disabled').hide()
+
+        }
+        this.setOutputZoom();
+    }
+    /**
+     * Set the output zoom level
+     */
+    public setOutputZoom() {
+        let zoom = Math.max(50, this.state.zoom) / 100;
+        if (this.state.operation === 'words') {
+            zoom = 1
+        }
+        const rule = getCSSRule('table.bacon td');
+        if (rule) {
+            (rule.style as any)['font-size'] = `${zoom * 16}px`;
+        }
     }
     /**
      * Initializes the encoder.
      */
     public init(lang: string): void {
+        this.setupCanvas()
         super.init(lang);
     }
     /**
@@ -369,11 +460,13 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public buildset(text: string): string[] {
         // First we need to get rid of all the HTML elements in the string
+        // TODO: Remember BOLD/ITALIC and which characters they applied to and bring them back later on
         const remain = decodeHTML(text.replace(/<[^>]*>/g, '')).replace(/[\s\xa0]+/g, ' ')
         // All the entities need to be converted 
         let result: string[] = [];
         let lastc = undefined;
         let highsurrogate = false;
+        let useAltFont = false
         for (let c of remain) {
             if (highsurrogate) {
                 lastc += c;
@@ -384,6 +477,17 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 }
                 highsurrogate = true;
                 lastc = c;
+            } else if (/[\u0300-\u036F]/.test(c)) {
+                // We have a combining character to add to the previous one
+                // U+030x	◌̀	◌́	◌̂	◌̃	◌̄	◌̅	◌̆	◌̇	◌̈	◌̉	◌̊	◌̋	◌̌	◌̍	◌̎	◌̏
+                // U+031x	◌̐	◌̑	◌̒	◌̓	◌̔	◌̕	◌̖	◌̗	◌̘	◌̙	◌̚	◌̛	◌̜	◌̝	◌̞	◌̟
+                // U+032x	◌̠	◌̡	◌̢	◌̣	◌̤	◌̥	◌̦	◌̧	◌̨	◌̩	◌̪	◌̫	◌̬	◌̭	◌̮	◌̯
+                // U+033x	◌̰	◌̱	◌̲	◌̳	◌̴	◌̵	◌̶	◌̷	◌̸	◌̹	◌̺	◌̻	◌̼	◌̽	◌̾	◌̿
+                // U+034x	◌̀	◌́	◌͂	◌̓	◌̈́	◌ͅ	◌͆	◌͇	◌͈	◌͉	◌͊	◌͋	◌͌	◌͍	◌͎	 CGJ 
+                // U+035x	◌͐	◌͑	◌͒	◌͓	◌͔	◌͕	◌͖	◌͗	◌͘	◌͙	◌͚	◌͛	◌͜◌	◌͝◌	◌͞◌	◌͟◌
+                // U+036x  ◌͠◌	◌͡◌	◌͢◌	◌ͣ	◌ͤ	◌ͥ	◌ͦ	◌ͧ	◌ͨ	◌ͩ	◌ͪ	◌ͫ	◌ͬ	◌ͭ	◌ͮ	◌ͯ
+                lastc += c
+                useAltFont = true
             } else if (c === ' ') {
                 if (lastc === undefined) {
                     lastc = c
@@ -399,6 +503,47 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         if (lastc !== undefined) {
             result.push(lastc);
+        }
+        // See if we need to change it to bitmaps.
+        if (this.state.bitmap) {
+            // we need to go through result and convert everything to a bitmap
+            for (let i = 0; i < result.length; i++) {
+                const txt = result[i]
+
+                // Note that you have to work in px units when working with the canvar
+                // or it ends up scaling funny.
+                const defaultFontsize = 16 * this.state.zoom / 100
+                this.workCanvas.style.font = this.canvasContext.font
+                this.workCanvas.style.fontSize = `${defaultFontsize}px`
+                let font = 'Courier New'
+                if (useAltFont) {
+                    font = 'juliamono'
+                }
+
+                this.canvasContext.font = `${defaultFontsize}px ${font}`
+
+                const txtSize = this.canvasContext.measureText(txt)
+                let ascent = Math.max(txtSize.fontBoundingBoxAscent, txtSize.actualBoundingBoxAscent)
+                let descent = Math.max(txtSize.actualBoundingBoxDescent, txtSize.fontBoundingBoxDescent)
+                // Now we are going to *assume* that the DPI is 96 and we really want to get something that is 600 DPI.
+                // so that it prints cleanly without pixelization
+                const scaleFactor = 600 / 96
+                let height = Math.ceil((ascent + descent) * scaleFactor)
+                let width = Math.ceil(txtSize.width * scaleFactor)
+
+                // console.log(`${txt}  ${txtSize.actualBoundingBoxAscent + txtSize.actualBoundingBoxDescent} x ${txtSize.width} => ${height} x ${width}`)
+
+                this.workCanvas.width = width
+                this.workCanvas.height = height
+
+                const scaledFont = defaultFontsize * scaleFactor
+                this.canvasContext.font = `${scaledFont}px ${font}`
+                this.canvasContext.fillText(txt, 0, Math.ceil(ascent * scaleFactor))
+
+                // https://stackoverflow.com/questions/12328714/convert-text-to-image-using-javascript
+                const dataURL = this.workCanvas.toDataURL()
+                result[i] = `<img src="${dataURL}" width="${txtSize.width.toFixed(2)}">`
+            }
         }
         return result;
     }
@@ -471,12 +616,12 @@ export class CipherBaconianEncoder extends CipherEncoder {
             /**
              * See if we have to split out the line
              */
-            if (encodeline.length >= maxEncodeWidth) {
-                const sourcepart = sourceline.substr(0, maxEncodeWidth);
-                const baconpart = baconline.substr(0, maxEncodeWidth);
+            while (encodeline.length >= maxEncodeWidth) {
+                const sourcepart = sourceline.substring(0, maxEncodeWidth);
+                const baconpart = baconline.substring(0, maxEncodeWidth);
                 const encodepart = encodeline.slice(0, maxEncodeWidth);
-                sourceline = sourceline.substr(maxEncodeWidth);
-                baconline = baconline.substr(maxEncodeWidth);
+                sourceline = sourceline.substring(maxEncodeWidth);
+                baconline = baconline.substring(maxEncodeWidth);
                 encodeline = encodeline.slice(maxEncodeWidth);
                 result.lines.push({
                     plaintext: sourcepart.split(''),
@@ -511,6 +656,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public build(): JQuery<HTMLElement> {
         const result = $('<div/>');
+
         result.append(this.genAnswer(ITestType.None));
         return result;
     }
@@ -523,8 +669,22 @@ export class CipherBaconianEncoder extends CipherEncoder {
         $('#answer')
             .empty()
             .append(res);
+
+        // Check the table to see if it is wider than we expect
+
+        let msg = ''
+        if (this.state.operation !== 'words') {
+            let table = document.querySelector(`.bacon.ansblock`) as HTMLElement
+            const size = getElementSizeInInches(table)
+            if (size.width >= 8) {
+                msg = `The Baconian Symbols are too wide to fit on the page (Currently ${size.width.toFixed(1)}").  Please either reduce the Line Width or the Scale % values.`
+            }
+        }
+        this.setErrorMsg(msg, 'tsz')
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
+
+
     }
     /**
      * Check for any errors we can find in the question
@@ -661,7 +821,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         // if we find the crib, just make sure there isn't a second copy at the end
         if (pos > 0 && pos < (plaintext.length - criblook.length)) {
-            if (!plaintext.substr(plaintext.length - criblook.length).localeCompare(criblook)) {
+            if (!plaintext.substring(plaintext.length - criblook.length).localeCompare(criblook)) {
                 pos = plaintext.length - criblook.length;
             }
         }
@@ -726,7 +886,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 //lB
                 let ciphertext = this.minimizeString(encoded.cipherword[i].toUpperCase());
                 for (let j = 0; j < ciphertext.length; j++) {
-                    let c = ciphertext.substr(j, 1);
+                    let c = ciphertext.charAt(j);
                     $("#l" + c).addClass("hinted");
                 }
             }
@@ -738,7 +898,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @returns HTML DOM elements to display in the section
      */
     public genPreCommands(): JQuery<HTMLElement> {
-        console.log("genPreCommands")
         const result = $('<div/>');
         // Show them what tests the question is used on
         this.genTestUsage(result);
@@ -749,6 +908,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             { id: 'words', value: 'words', title: 'Words' },
         ];
         result.append(JTRadioButton(6, 'operation', radiobuttons, this.state.operation));
+        result.append(this.createSuggestABDlg())
 
         this.genQuestionFields(result);
         this.genEncodeField(result);
@@ -831,14 +991,25 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 'small-12 medium-6 large-6 opfield let4let sequence'
             )
         );
-        result.append(
+        const ldiv = $('<div/>', { class: "grid-x grid-margin-x" })
+        ldiv.append(
             JTFIncButton(
                 'Line Width',
                 'linewidth',
                 this.state.linewidth,
-                'small-12 medium-6 large-6 opfield let4let sequence'
+                'cell shrink opfield let4let sequence'
             )
         );
+        ldiv.append(JTFLabeledInput('Bitmap', 'checkbox', 'bitmap', false, 'cell shrink opfield let4let sequence'))
+        ldiv.append(
+            JTFIncButton(
+                'Scale %',
+                'zoom',
+                100,
+                'cell shrink opfield let4let sequence'
+            )
+        );
+        result.append(ldiv)
 
         return result;
     }
@@ -985,15 +1156,25 @@ export class CipherBaconianEncoder extends CipherEncoder {
             slotword = '';
         }
 
-        let punctuation = slotword.substr(slotword.length - 1);
+        let punctuation = slotword.substring(slotword.length - 1);
         if (this.isValidChar(punctuation.toUpperCase())) {
             punctuation = '';
         } else {
-            slotword = slotword.substr(0, slotword.length - 1);
+            slotword = slotword.substring(0, slotword.length - 1);
         }
         return [slotword, punctuation];
     }
-
+    /**
+     * Determine if we have to change the font for a combining character
+     * @returns Class modifier to select a font that supports combined characters
+     */
+    public getFontClass(): string {
+        let result = ''
+        if ((this.state.texta + this.state.textb).match(/[\u0300-\u036F]/) !== null) {
+            result += ' combchar'
+        }
+        return result
+    }
     /**
      * Generate the HTML to display the answer for a cipher
      * @param testType Type of test (A/B/C, etc)
@@ -1008,7 +1189,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             this.checkHintCrib(result, encoded)
         }
         // This table only appears on the full answer key
-        const table = new JTTable({ class: 'bacon ansblock notiny shrink cell unstriped' });
+        const table = new JTTable({ class: 'bacon ansblock notiny shrink cell unstriped' + this.getFontClass() });
 
         for (const line of encoded.lines) {
             const rowcipher = table.addBodyRow();
@@ -1018,8 +1199,19 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
             for (let i in line.ciphertext) {
                 // Spaces need to become nonbreaking space
-                let ct = line.ciphertext[i].replace(/ /g, '\xa0');
-                rowcipher.add(ct);
+                if (this.state.bitmap && this.state.operation !== 'words') {
+                    let elem = $(line.ciphertext[i])
+                    rowcipher.add({
+                        settings: { class: "b" },
+                        content: elem
+                    })
+                } else {
+                    let ct = line.ciphertext[i].replace(/ /g, '\xa0');
+                    rowcipher.add({
+                        settings: { class: "b" },
+                        content: ct
+                    });
+                }
                 rowbaconian.add(line.baconian[i]);
                 rowanswer.add({
                     settings: { class: 'a' },
@@ -1121,13 +1313,40 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>');
         const encoded = this.makeBaconianReplacement(this.getEncodingString(), this.getEncodeWidth());
-        for (const line of encoded.lines) {
-            result.append(
-                $('<div/>', {
-                    class: 'BACON TOSOLVEQ',
-                }).text(line.ciphertext.join(''))
-            );
+        if (this.state.operation === 'words') {
+            for (const line of encoded.lines) {
+                result.append(
+                    $('<div/>', {
+                        class: 'BACON TOSOLVEQ' + this.getFontClass(),
+                    }).text(line.ciphertext.join(''))
+                );
+            }
+        } else {
+            const table = new JTTable({ class: 'bacon ansblock notiny shrink cell unstriped' + this.getFontClass() });
+            for (const line of encoded.lines) {
+                const rowcipher = table.addBodyRow();
+                const rowblank = table.addBodyRow();
+                for (let i in line.ciphertext) {
+                    // Spaces need to become nonbreaking space
+                    if (this.state.bitmap) {
+                        let elem = $(line.ciphertext[i])
+                        rowcipher.add({
+                            settings: { class: "b" },
+                            content: elem
+                        })
+                    } else {
+                        let ct = line.ciphertext[i].replace(/ /g, '\xa0');
+                        rowcipher.add({
+                            settings: { class: "b" },
+                            content: ct
+                        });
+                    }
+                }
+                rowblank.add('\xa0');
+            }
+            result.append(table.generate())
         }
+        this.setOutputZoom();
         return result;
     }
     /**
@@ -1137,7 +1356,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public genInteractiveBaconianTable(encoded: encodedLines, qnum: number): JQuery<HTMLElement> {
         const qnumdisp = String(qnum + 1);
-        const table = new JTTable({ class: 'ansblock cipherint baconian SOLVER' });
+        const table = new JTTable({ class: 'ansblock cipherint baconian SOLVER' + this.getFontClass() });
         let pos = 0;
         const inputidbase = 'I' + qnumdisp + '_';
         const spcidbase = 'S' + qnumdisp + '_';
@@ -1273,7 +1492,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         const result = $('<div/>');
         if (this.state.operation === 'words') {
             result.append($('<h3/>').text('The letters are mapped as:'));
-            const table = new JTTable({ class: 'cell shrink ansblock' });
+            const table = new JTTable({ class: 'cell shrink ansblock' + this.getFontClass() });
             let row = table.addHeaderRow();
 
             for (const c of this.getCharset()) {
@@ -1296,6 +1515,227 @@ export class CipherBaconianEncoder extends CipherEncoder {
             );
         }
         return result;
+    }
+    /**
+     * Generates a dialog showing the choices for AB patterns
+     */
+    public createSuggestABDlg(): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+
+        const xDiv = $('<div/>', { class: 'grid-x' })
+        xDiv.append(JTFLabeledInput('ABText', "text", 'absample', "Learn", 'auto'))
+        xDiv.append(JTFLabeledInput('Hard', 'checkbox', 'abhard', false, 'shrink'))
+        dlgContents.append(xDiv);
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'suggestabopts' }))
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'button', id: 'genbtn' }).text('Generate'))
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Cancel'
+                    )
+                )
+        );
+        const suggestABDlg = JTFDialog('SuggestABDLG', 'Suggest A/B Options', dlgContents);
+        return suggestABDlg;
+    }
+    /**
+     * Generate a hard AB suggestion pattern (double characters which can be grouped either way)
+     * @param str String to create pattern with
+     * @param total Total number of patterns found so far
+     * @returns abSuggestion structure with name of pattern and patterned word
+     */
+    public pickHardABSuggestion(str: string, total: number): abSuggestion {
+        const equiv4 = fourWayEquiv.length  // 4 possibilites in a set  [0,1] [2,3] [0,2] [1,3]    // [0,1]/[2,3]  [0,2]/[1,3]
+        const equiv2 = pairEquiv.length   // 2 possibilities in a set
+        const choices4 = [[0, 1, 2, 3], [0, 2, 1, 3]]
+        const choices2of4 = [[0, 1], [2, 3], [0, 2], [1, 3]]
+        let a1 = 'PLAIN'
+        let b1 = 'PLAIN'
+        let a2 = 'PLAIN'
+        let b2 = 'PLAIN'
+
+        let oddtext = ''
+        let eventext = ''
+
+        // Split the characters out into sets so we know what the sets are limited by
+        for (let i = 0; i < str.length; i++) {
+            if (i % 2 === 0) {
+                oddtext += str.charAt(i)
+            } else {
+                eventext += str.charAt(i)
+            }
+        }
+        // TODO: Figure out how to get a Line Pattern
+        // 1 line pattern
+        //  ┌┬┐└┴┘├┼┤╓╥╖╙╨╜╟╫╢─
+        //  ╒╤╕╘╧╛╞╪╡╔╦╗╚╩╝╠╬╣═
+        //  ┌┬┬┬┐  └┴┴┴┘  ├┼┼┼┤      ├┼┤╓╥╖╙╨╜╟╫╢─
+        if ((total % 2) === 0) {
+            // For a 4 way pattern, we have the pick of double paired letters.
+            // For example À A̖ Á A̗  (Acute, Grave above and below)
+            // We will create a string with the pattern as
+            //    a1 a2 a1 a2 a1 
+            //    b1 b2 b1 b2 b1
+            const fourWaySlot = Math.floor(Math.random() * equiv4)
+            const slotPick = Math.floor(Math.random() * choices4.length)
+            const picks = choices4[slotPick]
+            a1 = fourWayEquiv[fourWaySlot][picks[0]]
+            a2 = fourWayEquiv[fourWaySlot][picks[1]]
+            b1 = fourWayEquiv[fourWaySlot][picks[2]]
+            b2 = fourWayEquiv[fourWaySlot][picks[3]]
+        } else {
+            // For a two way (half) pattern we will create strings alternating with unadorned charcters
+            //   a  a1 a  a1
+            //   b2 b  b2 b
+            let twoWaySlot = Math.floor(Math.random() * (equiv2 + (equiv4 * choices2of4.length)))
+            if (twoWaySlot < equiv2) {
+                a1 = pairEquiv[twoWaySlot][0]
+                b2 = pairEquiv[twoWaySlot][0]
+            } else {
+                const slotBasis = (twoWaySlot - equiv2) / choices2of4.length
+                twoWaySlot = Math.floor(slotBasis)
+                let slotPick = Math.floor((slotBasis - twoWaySlot) * choices2of4.length)
+                a1 = fourWayEquiv[twoWaySlot][choices2of4[slotPick][0]]
+                b2 = fourWayEquiv[twoWaySlot][choices2of4[slotPick][1]]
+            }
+
+        }
+        // Make sure that the strings are renderable with the choice
+        if (!validEquivSet(oddtext, alphaEquiv[a1]) || !validEquivSet(eventext, alphaEquiv[a2]) ||
+            !validEquivSet(oddtext, alphaEquiv[b1]) || !validEquivSet(eventext, alphaEquiv[b2])) { return undefined; }
+        // Package up the result
+        const result = {
+            s1: genDualEquivString(str, alphaEquiv[a1], alphaEquiv[a2]),
+            s2: genDualEquivString(str, alphaEquiv[b1], alphaEquiv[b2]),
+            s1name: a1 + '+' + a2,
+            s2name: b1 + '+' + b2
+        }
+        return result
+    }
+    /**
+     * Generate an easier AB suggestion pattern (single annotation which is all or nothing)
+     * @param str String to create pattern with
+     * @param total Total number of patterns found so far
+     * @returns abSuggestion structure with name of pattern and patterned word
+     */
+    public pickBasicABSuggestion(str: string, total: number): abSuggestion {
+        // The first that we generate will be of a known variety
+        const predefinedSets: alphaEquivType[][] = [
+            ['plain', 'above'],
+            ['plain', 'below'],
+            ['above', 'below'],
+        ]
+        // Determine the type we are 
+        let [type1, type2] = [undefined, undefined]
+        if (total < predefinedSets.length) {
+            [type1, type2] = predefinedSets[total]
+        }
+        // Pick one of the types we ask for
+        let pickedSets = pickRandomEquivSets(str, type1, type2)
+        // If we couldn't find anything then let them know
+        if (pickedSets.length < 2) {
+            if (total < predefinedSets.length) {
+                return this.pickBasicABSuggestion(str, predefinedSets.length + 1)
+            }
+            return undefined
+        }
+        // Package up the result
+        const result = {
+            s1: genEquivString(str, pickedSets[0]),
+            s1name: pickedSets[0].name,
+            s2: genEquivString(str, pickedSets[1]),
+            s2name: pickedSets[1].name,
+        }
+        return result
+    }
+    /**
+     * Populate the dialog with a set of AB suggestions. 
+     * If the Hard bit is set we will generate the harder ones
+     */
+    public populateABSuggestions(): void {
+        // we want to pick up to 10 choices
+        let str = $('#absample').val() as string
+        let isHard = $('#abhard').prop('checked')
+        let chosen: BoolMap = {}
+        let total = 0
+        let result = $('#suggestabopts')
+        result.empty()
+
+        if (str.includes('j')) {
+            result.append($('<div/>')
+                .append($('<b/>').text('NOTE:'))
+                .append('The text includes the letter j which doesn\'t render properly with some glyphs, the choices will be limited')
+                .append($('<hr/>')))
+        }
+
+        // Try up to 25 times to get 10 unique suggestions.  If for some reason
+        // we can't generate 10 unique suggestions, we will skip out
+        for (let i = 0; i < 25 && total < 10; i++) {
+            // Get a suggestion
+            let pick: abSuggestion = undefined
+            if (isHard) {
+                pick = this.pickHardABSuggestion(str, total)
+            } else {
+                pick = this.pickBasicABSuggestion(str, total)
+            }
+            // Make sure we got a pick
+            if (pick !== undefined) {
+                // See if we saw this combination before (i.e. we generated the same random numbers)
+                let nameCheck = pick.s1name + '-' + pick.s2name
+                if (chosen[nameCheck] !== true) {
+                    // This is a new combo, so let's run with it
+                    chosen[nameCheck] = true
+
+                    let div = $('<div/>', { class: "abchoice grid-x" });
+                    // Show them the choices
+                    div.append($('<div/>', { class: 'cell auto achoice BACON combchar', 'data-set': pick.s1name }).text(pick.s1));
+                    div.append($('<div/>', { class: 'cell auto bchoice BACON combchar', 'data-set': pick.s2name }).text(pick.s2));
+                    // Get two buttons for picking them 
+                    let useButtonab = $("<a/>", {
+                        'data-a': pick.s1,
+                        'data-b': pick.s2,
+                        type: "button",
+                        class: "button keyset abbuttons",
+                    }).html('Use A/B');
+                    let useButtonba = $("<a/>", {
+                        'data-a': pick.s2,
+                        'data-b': pick.s1,
+                        type: "button",
+                        class: "button keyset abbuttons",
+                    }).html('Use B/A');
+                    const buttonGroup = $("<div/>", { class: "cell shrink button-group round shrink cmds" })
+                    buttonGroup.append(useButtonab)
+                    buttonGroup.append(useButtonba)
+                    div.append(buttonGroup)
+                    result.append(div)
+                    total++
+                }
+            }
+        }
+        this.attachHandlers();
+    }
+    /**
+     * Set the A/B Values from the suggested text
+     * @param elem Element clicked on to set the AB values from
+     */
+    public setSuggestedAB(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const aSet = jqelem.attr('data-a')
+        const bSet = jqelem.attr('data-b')
+        $('#SuggestABDLG').foundation('close')
+        this.markUndo('')
+        this.setTexta(aSet)
+        this.setTextb(bSet)
+        this.updateOutput()
+    }
+    /**
+     * Start the dialog for suggesting the A/B values
+     */
+    public suggestAB(): void {
+        $('#genbtn').text('Generate')
+        $('#suggestabopts').empty().append($('<p/>').text(`Type a word to use as a basis and then click generate`))
+        $('#SuggestABDLG').foundation('open')
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
@@ -1363,7 +1803,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             .off('click')
             .on('click', (e) => {
                 const id = $(e.target).attr('id') as string;
-                const c = id.substr(1, 1);
+                const c = id.charAt(1);
                 this.markUndo(null);
                 this.toggleAB(c);
                 this.updateOutput();
@@ -1377,18 +1817,36 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     this.updateOutput();
                 }
             });
+        $('#bitmap')
+            .off('change')
+            .on('change', (e) => {
+                const checked = $(e.target).prop("checked");
+                this.markUndo('bitmap');
+                if (this.setBitmap(checked)) {
+                    this.updateOutput()
+                }
+            });
+        $('#zoom')
+            .off('input')
+            .on('input', (e) => {
+                const zoom = $(e.target).val() as number;
+                this.markUndo(null);
+                if (this.setZoom(zoom)) {
+                    this.updateOutput();
+                }
+            });
         $('.wshift')
             .off('click')
             .on('click', (e) => {
                 const id = $(e.target).attr('id') as string;
-                const type = id.substr(id.length - 1);
+                const type = id.substring(id.length - 1);
                 let shift = 1;
                 if (type === '3') {
                     shift = 3;
                 } else if (type === 'e') {
                     shift = 999999;
                 }
-                if (id.substr(1, 1) === 'l') {
+                if (id.charAt(1) === 'l') {
                     shift = -shift;
                 }
                 this.wordpos += shift;
@@ -1419,7 +1877,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     if (punctuation === '') {
                         punctpos = 0;
                     }
-                    punctuation = punctuationChars.substr(punctpos, 1);
+                    punctuation = punctuationChars.charAt(punctpos);
                     this.state.words[wordslot] = slotword + punctuation;
                     this.updateOutput();
                 }
@@ -1429,6 +1887,21 @@ export class CipherBaconianEncoder extends CipherEncoder {
             .on('click', (e) => {
                 const act = $(e.target).attr('id') as string;
                 this.updateABTable(act)
+            })
+        $('#suggestab')
+            .off('click')
+            .on('click', () => {
+                this.suggestAB()
+            })
+        $('#genbtn')
+            .off('click')
+            .on('click', () => {
+                this.populateABSuggestions()
+            })
+        $('.keyset')
+            .off('click')
+            .on('click', (e) => {
+                this.setSuggestedAB(e.target)
             })
     }
 }

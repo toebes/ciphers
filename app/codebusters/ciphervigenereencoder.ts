@@ -1,4 +1,4 @@
-import { cloneObject } from '../common/ciphercommon';
+import { BoolMap, cloneObject } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
@@ -6,7 +6,6 @@ import {
     toolMode,
     ITestQuestionFields,
     IScoreInformation,
-    QuoteRecord,
 } from '../common/cipherhandler';
 import { CipherTypeButtonItem, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -85,6 +84,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.guidanceButton,
     ];
 
+    public uniquePatterns: { [index: number]: string } = {}
     /**
      * Restore the state from either a saved file or a previous undo record
      * @param data Saved state to restore
@@ -257,13 +257,13 @@ export class CipherVigenereEncoder extends CipherEncoder {
         if (strings.length !== 1) {
             return undefined;
         }
-        const cribpos = strings[0][1].indexOf(crib);
+        const cribpos = this.minimizeString(strings[0][1]).indexOf(crib);
         if (cribpos < 0) {
             return undefined;
         }
         return {
-            plaintext: strings[0][1].substr(cribpos, crib.length),
-            ciphertext: strings[0][0].substr(cribpos, crib.length),
+            plaintext: this.minimizeString(strings[0][1]).substring(cribpos, cribpos + crib.length),
+            ciphertext: this.minimizeString(strings[0][0]).substring(cribpos, cribpos + crib.length),
             position: cribpos,
             criblen: crib.length,
             cipherlen: strings[0][0].length,
@@ -369,10 +369,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
             if (this.state.blocksize > 0) {
                 if (this.state.blocksize === this.state.keyword.length) {
                     suggested -= 20;
-                    extra += ` Having a blocksize the same as the keyword length (${this.state.keyword.length}) makes it about 20 points easier.`
+                    extra += ` Having a blocksize the same as the keyword length (${this.state.keyword.length}) makes it about 20 points easier.`;
                 } else {
                     suggested += 25;
-                    extra += ` Having a blocksize ${this.state.blocksize} different than the keyword length ${this.state.keyword.length} makes it about 25 points harder.`
+                    extra += ` Having a blocksize ${this.state.blocksize} different than the keyword length ${this.state.keyword.length} makes it about 25 points harder.`;
                 }
             }
         } else {
@@ -390,6 +390,11 @@ export class CipherVigenereEncoder extends CipherEncoder {
                 suggested -= 10
             }
         }
+        if (this.state.operation === 'crypt') {
+            suggested += 15;
+            extra += ` A cryptanalysis problem adds extra work, which makes it about 15 points harder.`;
+        }
+
         const min = Math.max(suggested - range, 0)
         const max = suggested + range
         suggested += Math.round(range * Math.random() - range / 2);
@@ -451,6 +456,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public genPreCommands(): JQuery<HTMLElement> {
         const result = $('<div/>');
         this.genTestUsage(result);
+        result.append(this.createSuggestKeyDlg('Suggest Key'))
 
         let radiobuttons = [
             CipherTypeButtonItem(ICipherType.Vigenere),
@@ -467,13 +473,16 @@ export class CipherVigenereEncoder extends CipherEncoder {
         this.genQuestionFields(result);
         this.genEncodeField(result);
 
+        const suggestButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestkey" }).text("Suggest Key")
+
         result.append(
             JTFLabeledInput(
                 'Key',
                 'text',
                 'keyword',
                 this.state.keyword,
-                'small-12 medium-12 large-12'
+                'small-12 medium-12 large-12',
+                suggestButton
             )
         );
 
@@ -777,5 +786,29 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
         result.append($('<textarea/>', { id: 'in' + qnumdisp, class: 'intnote' }));
         return result;
+    }
+    /**
+     * Start the dialog for suggesting the keyword
+     */
+    public suggestKey(): void {
+        this.suggestLenKey(3, 7);
+    }
+    /**
+     * Populate the dialog with a set of keyword suggestions. 
+     */
+    public populateKeySuggestions(): void {
+        this.populateLenKeySuggestions('genbtn', 'suggestKeyopts', 3, 7)
+    }
+    /**
+     * Set the keyword from the suggested text
+     * @param elem Element clicked on to set the keyword from
+     */
+    public setSuggestedKey(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const key = jqelem.attr('data-key')
+        $('#suggestKeyDLG').foundation('close')
+        this.markUndo('')
+        this.setKeyword(key)
+        this.updateOutput()
     }
 }

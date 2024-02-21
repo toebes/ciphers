@@ -8,7 +8,25 @@
     width: 600px;
 }
 
-.kwchoice {
+.version ul > li {
+    font-weight: bold;
+    border-top: 1px solid #cacaca;
+    list-style-type: none;
+}
+
+.version ul ul li {
+    list-style-type: circle;
+    font-weight: normal;
+    border-top: none;
+}
+
+.reveal#keywordDLG {
+    max-width: 55rem;
+    width: 90%;
+}
+
+.kwchoice,
+.abchoice {
     margin-bottom: 5px;
     border-bottom: 1px solid grey;
     padding-bottom: 5px;
@@ -17,6 +35,37 @@
     width: 150px;
     display: inline-block;
 }
+
+.abchoice .button-group {
+    margin-bottom: 0px;
+}
+
+.achoice,
+.bchoice {
+    margin: auto 0;
+}
+
+.achoice::before,
+.bchoice::before {
+    font-weight: bold;
+    background-color: #e6e6e6;
+    padding: 16px 0 16px 5px;
+}
+.achoice::before {
+    content: 'A: ';
+}
+.achoice {
+    width: 120px;
+    display: inline-block;
+}
+.bchoice {
+    width: 120px;
+    display: inline-block;
+}
+.bchoice::before {
+    content: 'B: ';
+}
+
 .kwchoice .button {
     margin: auto 5px;
 }
@@ -1024,9 +1073,7 @@ table.polybius-square td {
 }
 
 table.polybius-square {
-    width: 20%;
-    float: right;
-    position: relative;
+    width: 10rem;
     padding: 20px;
     border: 1px solid black;
     border-collapse: collapse;
@@ -1087,10 +1134,16 @@ tr.wrong {
 
 table.bacon td {
     padding: 0;
-    font-size: 24px;
+    font-size: 18pt;
     line-height: 100%;
 }
 
+table.bacon td.b {
+    font-weight: normal;
+}
+table.bacon td.b img {
+    max-width: none;
+}
 table.bacon tbody,
 table.bacon tbody tr {
     border: none;
@@ -1100,7 +1153,7 @@ table.bacon tbody tr {
 .BACON.TOSOLVE2,
 .BACON.TOSOLVEQ,
 .BACON.TOANSWER {
-    font-size: 24px;
+    font-size: 18pt;
 }
 .BACON.TOSOLVEQ {
     margin-bottom: 4rem;
@@ -1659,6 +1712,7 @@ div.tn {
     width: auto;
 }
 
+.BACON.combchar,
 .ansblock.combchar {
     font-family: juliamono, 'Consolas', 'Monaco', 'Courier New', Courier, monospace;
 }
@@ -1745,7 +1799,7 @@ div.vsolv {
     padding: 0 !important;
 }
 .SOLVER.ansblock.atest .q.v {
-    font-size: 24px;
+    font-size: 18pt;
     width: 1.5rem;
 }
 
@@ -2285,6 +2339,12 @@ table.nameline td.u {
 .sizeset .BACON.TOANSWER {
     font-size: 15px;
 }
+.sizeset .BACON.combchar.TOSOLVE,
+.sizeset .BACON.combchar.TOSOLVE2,
+.sizeset .BACON.combchar.TOSOLVEQ,
+.sizeset .BACON.combchar.TOANSWER {
+    font-size: 17px;
+}
 .sizeset .BACON.TOSOLVEQ {
     margin-bottom: 3rem;
 }
@@ -2310,6 +2370,14 @@ table.nameline td.u {
 table.morsemap {
     border: none;
     border-collapse: collapse;
+}
+
+table.morsemap tr:nth-child(even) td[class] {
+    background-color: #d3d3d3 !important;
+}
+
+table.morsemap td:not([class]) {
+    background-color: white;
 }
 
 table.morsemap td {
@@ -2414,6 +2482,7 @@ table.railfence-sm tbody {
     .page,
     .instructions {
         max-width: 8in;
+        /* overflow-x: hidden; */
     }
     div.instructions {
         display: block;
@@ -2529,4 +2598,16 @@ table.completecolumnar td {
 
 table.completecolumnar td {
     width: 33px;
+}
+
+.default-header-imaged img {
+    position: absolute;
+    top: 60px;
+    right: 10px;
+    max-height: 25%;
+    width: 25%;
+}
+
+.default-header-imaged table {
+    width: 73%;
 }

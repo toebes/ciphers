@@ -197,10 +197,18 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         id: 'docipher',
         color: 'primary',
     };
+    public relatedWordsButton: JTButtonItem = {
+        title: 'Related Words',
+        id: 'related',
+        color: 'primary',
+        target: 'related',
+        href: 'https://relatedwords.org/'
+    };
 
     public problemButtons: JTButtonItem[] = [
         this.searchButton,
         this.stopSearchButton,
+        this.relatedWordsButton,
         this.doCipherButton,
         // this.guidanceButton,
     ];
@@ -741,9 +749,20 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             $('<div/>', { class: 'probwork' })
                 .append(JTButtonGroup(this.problemButtons))
         )
+        // Give them some difficulty filters
+        const filterDiv = $('<div/>', { class: "grid-x grid-margin-x" })
+        filterDiv.append($('<div/>', { class: 'cell shrink' }).append($('<b/>').text('Difficulty:')))
+            .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('1', 'checkbox', 'd1', true, '', 'difchk')))
+            .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('2', 'checkbox', 'd2', true, '', 'difchk')))
+            .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('3', 'checkbox', 'd3', true, '', 'difchk')))
+            .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('4', 'checkbox', 'd4', false, '', 'difchk')))
+            .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('5', 'checkbox', 'd5', false, '', 'difchk')))
+            .append($('<div/>', { class: 'cell shrink' }).append(JTFLabeledInput('6', 'checkbox', 'd6', false, '', 'difchk')))
+
         result.append($('<div/>', { class: 'callout secondary probwork' })
 
             .append($('<div/>', { class: 'toptitle' }).text('Potential Cryptarithms'))
+            .append(filterDiv)
             .append($('<div/>', { class: 'callout warning', id: 'searchres' }).text('None found'))
             .append($('<div/>', { class: 'findout', id: 'findout' })))
 
@@ -798,7 +817,9 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             .removeClass('success')
             .removeClass('warning')
             .removeClass('alert')
-            .addClass(calloutclass).append($('<div/>').text(status))
+            .addClass(calloutclass).append($('<div/>').text(status)
+                // Give a place to show what is hidden
+                .append($('<span/>', { id: 'hidden' })))
     }
     /**
      * Set the UI for searching vs non-searching mode
@@ -888,7 +909,18 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         // We ran through a bunch of entries, take a break for the UI
         return true;
     }
-
+    /**
+     * Show how many results are hidden.
+     */
+    public countHidden() {
+        // Figure out how many are hidden
+        let hidden = ''
+        let hiddencount = $('*[class^="CD"]:hidden').length
+        if (hiddencount > 0) {
+            hidden = ` [${hiddencount} hidden]`
+        }
+        $("#hidden").text(hidden)
+    }
     /**
      * Main loop to search for sets.  This uses a timeout to repetetively call findWordSet() to
      * continue processing through all the combinations
@@ -900,21 +932,26 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         let processed = state.index[1] * this.wordlist.length + state.index[2];
         let total = (this.wordlist.length - 1) * this.wordlist.length;
         let pctcomplete = (100 * processed / total).toFixed(2)
-        this.setSearchResult(String(pctcomplete) + '% Complete - Searching ' + state.maxdepth + ' combinations of ' + this.wordlist.length + ' words. Found ' + state.found + ' Cryptarithms.', 'secondary');
+        this.setSearchResult(
+            `${pctcomplete}% Complete - Searching ${state.maxdepth} combinations of ${this.wordlist.length} words. Found ${state.found} Cryptarithms.`,
+            'secondary');
+        this.countHidden();
         // Call our workhorse routine.  If it finds any (or goes a while without finding any) it gives a break so we can update the UI
         const running = this.findWordSet(state)
         if (running) {
             if (this.doingSearch) {
                 this.searchTimer = setTimeout(() => { this.findWordSets(state) }, 1);
             } else {
-                this.setSearchResult('Search Stopped ' + String(state.found) + " Cryptarithms found", 'warning')
+                this.setSearchResult(`Search Stopped ${state.found} Cryptarithms found`, 'warning')
+                this.countHidden();
             }
             return;
         }
         this.setSearching(false);
         this.attachHandlers();
         let interval = (new Date().getTime()) - state.startTime
-        this.setSearchResult('Search Complete: ' + String(state.found) + " Cryptarithms found in " + String((interval / 1000).toFixed(2)) + " Seconds", 'success')
+        this.setSearchResult(`Search Complete: ${state.found} Cryptarithms found in ${(interval / 1000).toFixed(2)} Seconds`, 'success')
+        this.countHidden();
     }
     /**
      * Find all the groups of <n> words which include exactly 10 unique letters
@@ -1292,8 +1329,15 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 for (let formula of template.formulas) {
                     let outset = this.formatTemplateProblem(solutions.mapping, formula, sumsearch, sum, template.replaces)
                     const usebutton = $('<a/>', { class: 'rounded small button useprob', 'data-prob': outset[0], 'data-sol': replacements, 'data-dif': solutions.difficulty }).text('Use')
-                    $("#findout").append($('<div/>').text(" " + outset[0] + " [" + outset[1] + "] Difficulty:" + String(solutions.difficulty))
-                        .prepend(usebutton))
+                    // Add a class so we can hid/show it
+                    let difflevel = String(Math.min(6, solutions.difficulty))
+                    let sclass = "CD" + difflevel
+                    const x = $('<div/>', { class: sclass }).text(" " + outset[0] + " [" + outset[1] + "] Difficulty:" + String(solutions.difficulty))
+                        .prepend(usebutton)
+                    $("#findout").append(x)
+                    if (!$('#d' + difflevel).is(':checked')) {
+                        x.hide()
+                    }
                     $(usebutton)
                         .off('click')
                         .on('click', (e) => {
@@ -1394,6 +1438,10 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         // on the problem we will have to abort the process. 
         // As a test we will arbitrarily set the mappings
         let parsed = parseCryptarithm(this.state.cipherString, this.base);
+        // Catch when they didn't give us anything to actually do
+        if (parsed.lineitems.length === 0) {
+            return this.showSearchResult(0, 100)
+        }
         // See if we can shortcut this operation.  Everything except the last item should not have a forumla
         let canShortcut = true
         for (let i = 0; i < parsed.lineitems.length - 1; i++) {
@@ -1817,6 +1865,20 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         }
         this.doCipher()
     }
+    /**
+     * Enable/disable showing of a difficulty level
+     * @param elem Element that they clicked on for filtering difficulty
+     */
+    public filterDifficulty(elem: HTMLElement) {
+        let jqelem = $(elem)
+        const filter = (jqelem.attr('id') as string).substring(1, 2)
+        if (jqelem.is(":checked")) {
+            $('.CD' + filter).show()
+        } else {
+            $('.CD' + filter).hide()
+        }
+        this.countHidden()
+    }
 
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
@@ -1889,6 +1951,11 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             .off('click')
             .on('click', (e) => {
                 this.setProblem(e.target)
+            })
+        $('.difchk')
+            .off('click')
+            .on('click', (e) => {
+                this.filterDifficulty(e.target)
             })
         $('#wordlist')
             .off('change')

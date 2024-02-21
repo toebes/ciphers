@@ -1,5 +1,4 @@
-import { count, number } from 'yargs';
-import { cloneObject } from '../common/ciphercommon';
+import { BoolMap, cloneObject } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
@@ -14,9 +13,7 @@ import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
-import { mapperFactory } from '../common/mapperfactory';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
-import { RuleTester } from 'eslint';
 
 interface INihilistState extends IEncoderState {
     /** The type of operation */
@@ -44,7 +41,7 @@ interface ICribInfo {
 export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Nihilist';
-    public maxEncodeWidth = 30;
+    public maxEncodeWidth = 27;
     public validTests: ITestType[] = [
         ITestType.None,
         ITestType.cregional,
@@ -309,7 +306,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let msg = '';
         let ciphertypetext = 'Nihilist Substitution';
         if (this.state.operation === 'crypt') {
-            msg = `<p>The following quote by ${this.genAuthor()} has been encoded with the ${ciphertypetext}
+            msg = `<p>The following quote${this.genAuthor()} has been encoded with the ${ciphertypetext}
                 Cipher using a very common word for the key. `;
 
             const cribpos = this.placeCrib();
@@ -329,10 +326,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             const keyword = this.genMonoText(this.cleanKeyword);
             const polybiusKey = this.genMonoText(this.cleanPolyKey);
             if (this.state.operation === 'encode') {
-                msg = `<p>The following quote by ${this.genAuthor()} needs to be encoded with the
+                msg = `<p>The following quote${this.genAuthor()} needs to be encoded with the
                     ${ciphertypetext} Cipher with a keyword of ${keyword} and polybius key of ${polybiusKey}. `;
             } else {
-                msg = `<p>The following quote by ${this.genAuthor()} needs to be decoded with the 
+                msg = `<p>The following quote${this.genAuthor()} needs to be decoded with the 
                     ${ciphertypetext} Cipher with a keyword of ${keyword} and polybius key of ${polybiusKey}. `;
             }
         }
@@ -396,7 +393,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 We suggest you try a score of ${suggested}${rangetext}.</p>`
         }
 
-        return { suggested: suggested, min: min, max: max, private: qdata, text: scoringText }
+        return { suggested: suggested, min: min, max: max, text: scoringText }
     }
 
 
@@ -439,6 +436,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public genPreCommands(): JQuery<HTMLElement> {
         const result = $('<div/>');
         this.genTestUsage(result);
+        result.append(this.createSuggestKeyDlg('Suggest Key'))
+        result.append(this.createKeywordDlg('Suggest Polybius Keyword'))
 
         let radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
@@ -449,23 +448,28 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.genQuestionFields(result);
         this.genEncodeField(result);
 
+        const suggestPolybiusButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestpkey" }).text("Suggest Polybius Key")
+
         result.append(
             JTFLabeledInput(
                 'Polybius Key',
                 'text',
                 'polybiuskey',
                 this.state.polybiusKey,
-                'small-12 medium-12 large-12'
+                'small-12 medium-12 large-12',
+                suggestPolybiusButton
             )
         );
 
+        const suggestButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestkey" }).text("Suggest Keyword")
         result.append(
             JTFLabeledInput(
                 'Keyword',
                 'text',
                 'keyword',
                 this.state.keyword,
-                'small-12 medium-12 large-12'
+                'small-12 medium-12 large-12',
+                suggestButton
             )
         );
 
@@ -1069,7 +1073,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let validIndex = 1;
         for (const sequenceset of sequencesets) {
             for (let i = 0; i < order.length; i++) {
-                console.log(validIndex)
+                // console.log(validIndex)
                 let pair = order[i]
                 let localValidIndex = validIndex
 
@@ -1112,7 +1116,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                         }
 
                         localValidIndex = (localValidIndex % mod) + 1
-                        console.log(localValidIndex)
+                        // console.log(localValidIndex)
 
                     }
 
@@ -1153,10 +1157,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     // }
 
                 }
-                console.log("bruh")
+                // console.log("bruh")
                 if (i === order.length - 1) {
-                    console.log(validIndex)
-                    console.log(localValidIndex)
+                    // console.log(validIndex)
+                    // console.log(localValidIndex)
                     validIndex = localValidIndex
                 }
                 table.append(row);
@@ -1207,7 +1211,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
             let index = this.state.cipherString.toLowerCase().indexOf(this.state.crib.toLowerCase());
 
-            console.log(ciphertextNumbers);
+            // console.log(ciphertextNumbers);
 
             for (let i = 0; i < ciphertextNumbers.length; i++) {
 
@@ -1247,8 +1251,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     row2.append($('<td width="33px"/>').text(display1));
                     row3.append($('<td width="33px"/>').text(display2));
 
-                    console.log(index);
-                    console.log(index + cleanCrib.length);
+                    // console.log(index);
+                    // console.log(index + cleanCrib.length);
                     if (k >= index && index >= 0 && k < (index + this.state.crib.length)) {
                         row4.append($('<td width="33px"/>').text(plaintext[i]));
                         if (display1.indexOf('?') < 0) {
@@ -1558,8 +1562,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * Loads up the values for Nihilist
      */
     public load(): void {
-        console.log('start')
-        console.log(this.state.cipherString)
+        // console.log('start')
+        // console.log(this.state.cipherString)
 
         const encoded = this.chunk(this.cleanString(this.state.cipherString), this.state.blocksize);
         this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword))
@@ -1588,7 +1592,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         this.attachHandlers();
 
-        console.log('finish')
+        // console.log('finish')
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
@@ -1641,6 +1645,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     }
                 }
             });
+        $('#suggestpkey')
+            .off('click')
+            .on('click', () => {
+                this.suggestKeyword()
+            });
     }
 
     /**
@@ -1672,7 +1681,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @returns width and any extra class to use
      */
     public getTestWidth(testType: ITestType) {
-        let width = 33;
+        let width = 27;
         let extraclass = '';
         if (testType === ITestType.aregional) {
             width = 20;
@@ -1852,7 +1861,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
 
         let firstLetter = cleanKey.substring(0, 1)
-        let tMap = this.polybiusMap.get(firstLetter)
+        let tMap = this.getNumFromPolybiusMap(firstLetter)
         let tMapSpan = $('<span/>', { class: 'hl' }).text(tMap)
         let tMap1Span = $('<span/>', { class: 'hl' }).text(tMap.substring(0, 1))
         let tMap2Span = $('<span/>', { class: 'hl' }).text(tMap.substring(1, 2))
@@ -2134,7 +2143,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
 
         //generating empty 5x5 polybius square table for students
-
+        const polybiusDiv = $('<div/>', { class: 'cell shrink' })
         const polybiusSquare = $('<table/>', { class: 'polybius-square' });
 
         const row = $('<tr/>');
@@ -2164,14 +2173,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             polybiusSquare.append(row);
         }
 
-        result.append(polybiusSquare);
+        polybiusDiv.append(polybiusSquare)
 
         const { width, extraclass } = this.getTestWidth(testType);
         const strings = this.buildNihilistSequenceSets(
             this.state.cipherString,
             width
         );
-        const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
+        const tableDiv = $('<div/>', { class: 'cell auto' })
+        const table = new JTTable({ class: 'ansblock unstriped' + extraclass });
         // const blankrow = table.addBodyRow();
         // blankrow.add("\u00A0");
         let source = 0;
@@ -2189,7 +2199,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
             //this.addCipherTableRows(table, '', sequenceset[source].join(''), undefined, true);
         }
-        result.append(table.generate());
+        tableDiv.append(table.generate());
+        result.append(tableDiv)
+        result.append(polybiusDiv)
 
 
 
@@ -2230,5 +2242,42 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         result.append($('<textarea/>', { id: 'in' + qnumdisp, class: 'intnote' }));
         return result;
+    }
+    /**
+     * Start the dialog for suggesting the keyword
+     */
+    public suggestKey(): void {
+        this.suggestLenKey(3, 7);
+    }
+    /**
+     * Populate the dialog with a set of keyword suggestions. 
+     */
+    public populateKeySuggestions(): void {
+        this.populateLenKeySuggestions('genbtn', 'suggestKeyopts', 3, 7)
+    }
+    /**
+     * Set the keyword from the suggested text
+     * @param elem Element clicked on to set the keyword from
+     */
+    public setSuggestedKey(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const key = jqelem.attr('data-key')
+        $('#suggestKeyDLG').foundation('close')
+        this.markUndo('')
+        this.setKeyword(key)
+        this.updateOutput()
+    }
+    /**
+     * Set a keyword from the recommended set
+     * @param elem Keyword button to be used
+     */
+    public useKeyword(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const text = jqelem.attr('data-key')
+        // Give an undo state s
+        this.markUndo(null)
+        this.setPolybiusKey(text)
+        $('#keywordDLG').foundation('close')
+        this.updateOutput()
     }
 }

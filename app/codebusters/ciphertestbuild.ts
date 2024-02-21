@@ -6,6 +6,7 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
+import { IAristocratState } from './cipheraristocratencoder';
 import { IEncoderState } from './cipherencoder';
 import { CipherPrintFactory } from './cipherfactory';
 import { CipherTest, ITestState, QueryParms, QuoteUpdates, UsedIdMap } from './ciphertest';
@@ -1001,6 +1002,9 @@ export class CipherTestBuild extends CipherTest {
             if (entry.len !== undefined) {
                 parms.len = entry.len
             }
+            if (entry.homonyms !== undefined) {
+                parms.homonyms = entry.homonyms
+            }
             const keywords = $("#keywords").val() as String
             if (keywords !== undefined && keywords.trim() !== "") {
                 parms.keywords = keywords.toLowerCase().split(/\s+/)
@@ -1104,7 +1108,7 @@ export class CipherTestBuild extends CipherTest {
             testtype: this.testtype,
         };
 
-        const qCount = $('.qt').length
+        let qCount = $('.qt').length
         const englishUpdates: QuoteUpdates = {}
         const spanishUpdates: QuoteUpdates = {}
 
@@ -1119,7 +1123,9 @@ export class CipherTestBuild extends CipherTest {
             const translation = ptElem.attr('data-trans')
 
             // Division A won't have a timed question, so we can just skip it
-            if (qnum === 0 && qTitle === "") {
+            if (qnum === 0 && (qTitle === "" || qTitle === undefined)) {
+                // However it does mean that there is one more question to copy over
+                qCount++;
                 continue;
             }
             const entry = this.getChoiceEntry(qTitle)
@@ -1156,9 +1162,11 @@ export class CipherTestBuild extends CipherTest {
                 author: author,
                 curlang: lang,
                 specialbonus: isSpecial,
-                translation: translation
             };
 
+            if (translation !== null && translation !== undefined && translation !== "") {
+                (state as IAristocratState).translation = translation
+            }
             if (entry.encodeType !== undefined) {
                 state.encodeType = entry.encodeType
             }
@@ -1423,6 +1431,7 @@ export class CipherTestBuild extends CipherTest {
         if (this.isGoodSpecialCipherType(entry.cipherType)) {
             sbBox.removeAttr('hidden').show();
         } else {
+            sbBox.prop('checked', false)
             sbBox.attr('hidden', 'hidden').hide()
         }
         const ctcDiv = $('#ctc' + idNum)

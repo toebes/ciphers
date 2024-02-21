@@ -18,7 +18,7 @@ export function JTFLabeledInput(
     id: string,
     value: number | string | boolean,
     sizeClass: string,
-    parm1?: string, // Used for slider left side
+    parm1?: string | JQuery<HTMLElement>, // Used for slider left side
     parm2?: string, // Used for slider right side
 ): JQuery<HTMLElement> {
     const inputgroup = $('<div/>', { class: 'input-group' });
@@ -40,10 +40,14 @@ export function JTFLabeledInput(
             .appendTo(inputgroup);
     } else if (type === 'checkbox' || type === 'checkboxr') {
         // For a checkbox, the value is a boolean indicated that it should be checked
+        let checkclass = ''
+        if (parm1 !== undefined) {
+            checkclass = ' ' + (parm1 as string)
+        }
         const checkbox =
             $('<input/>', {
                 id: id,
-                class: 'input-group-button checkbox',
+                class: 'input-group-button checkbox' + checkclass,
                 type: 'checkbox'
             })
         if (value as boolean) {
@@ -61,7 +65,7 @@ export function JTFLabeledInput(
             .appendTo(inputgroup);
     } else if (type === 'slider') {
         $('<div/>', { class: "grid-x input-group-field" })
-            .append($('<div/>', { class: "cell shrink stext" }).text(parm1))
+            .append($('<div/>', { class: "cell shrink stext" }).text(parm1 as string))
             .append(
                 $('<div/>', { class: "cell auto slider", id: id + '_base', 'data-slider': "", 'data-initial-start': value, 'data-end': "100" })
                     .append($('<span/>', { class: "slider-handle", 'data-slider-handle': "", 'role': "slider", 'tabindex': "1" }))
@@ -76,6 +80,9 @@ export function JTFLabeledInput(
             type: type,
             value: value,
         }).appendTo(inputgroup);
+        if (parm1 !== undefined) {
+            inputgroup.append(parm1)
+        }
     }
     return $('<div/>', { class: 'cell ' + sizeClass }).append(inputgroup);
 }

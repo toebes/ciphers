@@ -114,6 +114,8 @@ export interface ITestState extends IState {
     imageUploadToken?: string;
     /** Show Tiny answerkey */
     tiny?: string;
+    /** Show the resource sheet */
+    ressheet?: string;
 }
 
 interface INewCipherEntry {
@@ -158,7 +160,7 @@ export interface IAnswerAudit {
     answermodelid: string;
 }
 
-export type ITestDisp = 'testedit' | 'testprint' | 'testans' | 'testanstiny' | 'testsols' | 'testint';
+export type ITestDisp = 'testedit' | 'testprint' | 'ressheet' | 'testans' | 'testanstiny' | 'testsols' | 'testint';
 export type ITestManage = 'local' | 'published';
 
 export interface QuoteUpdates {
@@ -349,6 +351,7 @@ export class CipherTest extends CipherHandler {
         const radiobuttons = [
             { title: 'Edit Test', value: 'testedit' },
             { title: 'Test Packet', value: 'testprint' },
+            { title: 'Resource Sheet', value: 'ressheet' },
             { title: 'Answer Key', value: 'testans' },
             { title: 'Tiny Answer Key', value: 'testanstiny' },
             { title: 'Answers and Solutions', value: 'testsols' },
@@ -474,6 +477,7 @@ export class CipherTest extends CipherHandler {
             title: 'New Test',
             useCustomHeader: false,
             customHeader: '',
+            customHeaderImage: '',
             testtype: ITestType.None,
         });
         this.gotoEditTest(test);
@@ -566,6 +570,13 @@ export class CipherTest extends CipherHandler {
         location.assign(`TestPrint.html?test=${test}`);
     }
     /**
+     * Print out the test
+     * @param test Test number to print
+     */
+    public gotoResourceSheet(test: number): void {
+        location.assign(`TestPrint.html?test=${test}&ressheet=y`);
+    }
+    /**
      * Print out the answers for a test
      * @param test Test number to print
      */
@@ -603,6 +614,9 @@ export class CipherTest extends CipherHandler {
                 break;
             case 'testanstiny':
                 this.gotoPrintAnswersTiny(this.state.test);
+                break;
+            case 'ressheet':
+                this.gotoResourceSheet(this.state.test);
                 break;
             case 'testedit':
                 this.gotoEditTest(this.state.test);
@@ -1604,6 +1618,12 @@ export class CipherTest extends CipherHandler {
         link.attr('download', 'cipher_tests.json');
         link.attr('href', url);
     }
+
+    public importImage(_filename: string, _data: any) {
+        super.importImage(_filename, _data);
+        this.updateOutput();
+    }
+
     /**
      * Process imported XML
      * @param data XML for the test to import

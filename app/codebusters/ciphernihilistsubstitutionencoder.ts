@@ -984,11 +984,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         // If we are doing Cryptanalysis, we need the Crib text
         emsg = '';
         if (this.state.operation === 'crypt') {
-            const crib = this.minimizeString(this.state.crib);
-            let msg = this.cleanString(this.state.cipherString)
+            const crib = this.state.crib.toLowerCase();//this.minimizeString(this.state.crib).toLowerCase();
+            let msg = this.cleanString(this.state.cipherString).toLowerCase();
             if (crib === '') {
                 emsg = 'No Crib Text provided for Cryptanalysis.';
-            } else if (this.minimizeString(msg).indexOf(crib) < 0) {
+            } else if (msg.indexOf(crib) < 0) {//this.minimizeString(msg).indexOf(crib) < 0) {
                 emsg = 'Crib Text ' + this.state.crib + ' not found in Plain Text';
             }
         }
@@ -1195,7 +1195,34 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //k is a running count of every single character across all sequencesets. this is used to keep track of the precise location of the crib
         let k = 0;
 
-        //i is the internal sequenceset index for every character, including invalid ones.
+        //invalid is used to help keep track of spaces that come from block size spacing
+        let invalid = 0;
+
+        //preInvalids is a count of how many invalid characters come before the crib - it helps track crib location in block size > 0 cases
+        let preInvalids = 0;
+
+        let index = this.state.cipherString.toLowerCase().indexOf(this.state.crib.toLowerCase());
+        let plaintext = this.state.cipherString.toLowerCase();
+        for (let i = 0; i < index; i++) {
+
+            if (this.getCharset().toLowerCase().indexOf(plaintext[i]) < 0) {
+                preInvalids++;
+            }
+
+        }
+
+        console.log("PREINVALIDS!!!: " + preInvalids);
+
+
+        //loop through the plaintext, counting the amount of invalid characters approached (any space, quotation)
+
+        //when deciding if the current character should be in the crib, check if the block size > 0
+
+        //if it is greater than 0, then we need to
+
+        //we need to keep track of any spaces we see, if the block size > 0, then we need to subtract 1 from our k count
+
+        let minimizedPlaintext = this.minimizeString(this.cleanString(this.state.cipherString))
 
         for (const sequenceset of sequencesets) {
 
@@ -1209,8 +1236,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             let mappedPlaintextNumbers = sequenceset[3];
             let plaintext = sequenceset[1];
 
-            let index = this.state.cipherString.toLowerCase().indexOf(this.state.crib.toLowerCase());
-
             // console.log(ciphertextNumbers);
 
             for (let i = 0; i < ciphertextNumbers.length; i++) {
@@ -1221,6 +1246,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     row2.append($('<td width="33px"/>').text(ct));
                     row3.append($('<td width="33px"/>').text(ct));
                     row4.append($('<td width="33px"/>').text(' '));
+                    invalid++;
                 } else {
                     //for first row, just append the unaltered ciphertext number
                     row1.append($('<td width="33px"/>').text(ct));
@@ -1253,7 +1279,19 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
                     // console.log(index);
                     // console.log(index + cleanCrib.length);
-                    if (k >= index && index >= 0 && k < (index + this.state.crib.length)) {
+
+                    let adjust = 0;
+                    let cribLength = this.state.crib.length;
+                    if (this.state.blocksize > 0) {
+                        adjust = invalid - preInvalids;
+                        cribLength = cleanCrib.length;
+                        console.log("k: " + k);
+                        console.log("invalid: " + invalid);
+                        console.log("preinvalids: " + preInvalids);
+                        console.log("index: " + index);
+                    }
+
+                    if (k >= (index + adjust) && (index + adjust) >= 0 && k < (index + adjust + cribLength)) {
                         row4.append($('<td width="33px"/>').text(plaintext[i]));
                         if (display1.indexOf('?') < 0) {
                             concretes.push(plaintext[i]);

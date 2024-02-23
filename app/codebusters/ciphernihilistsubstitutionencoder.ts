@@ -954,7 +954,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         // }
 
         const result = $('<div/>');
-        let key = this.cleanKeyword;
+        let key = this.cleanKeyword
         let emsg = '';
         let order = [];
         //indices guide:
@@ -984,11 +984,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         // If we are doing Cryptanalysis, we need the Crib text
         emsg = '';
         if (this.state.operation === 'crypt') {
-            const crib = this.cleanString(this.minimizeString(this.state.crib));
-            let msg = this.cleanString(this.state.cipherString)
+            const crib = this.state.crib.toLowerCase();//this.minimizeString(this.state.crib).toLowerCase();
+            let msg = this.cleanString(this.state.cipherString).toLowerCase();
             if (crib === '') {
                 emsg = 'No Crib Text provided for Cryptanalysis.';
-            } else if (this.minimizeString(this.cleanString(msg)).indexOf(crib) < 0) {
+            } else if (msg.indexOf(crib) < 0) {//this.minimizeString(msg).indexOf(crib) < 0) {
                 emsg = 'Crib Text ' + this.state.crib + ' not found in Plain Text';
             }
         }
@@ -1201,7 +1201,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //preInvalids is a count of how many invalid characters come before the crib - it helps track crib location in block size > 0 cases
         let preInvalids = 0;
 
-        let index = this.state.cipherString.toLowerCase().indexOf(cleanCrib.toLowerCase());
+        let index = this.state.cipherString.toLowerCase().indexOf(this.state.crib.toLowerCase());
         let plaintext = this.state.cipherString.toLowerCase();
         for (let i = 0; i < index; i++) {
 
@@ -1281,16 +1281,17 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     // console.log(index + cleanCrib.length);
 
                     let adjust = 0;
-                    //let cribLength = this.state.crib.length;
+                    let cribLength = this.state.crib.length;
                     if (this.state.blocksize > 0) {
                         adjust = invalid - preInvalids;
+                        cribLength = cleanCrib.length;
                         console.log("k: " + k);
                         console.log("invalid: " + invalid);
                         console.log("preinvalids: " + preInvalids);
                         console.log("index: " + index);
                     }
 
-                    if (k >= (index + adjust) && (index + adjust) >= 0 && k < (index + adjust + cleanCrib.length)) {
+                    if (k >= (index + adjust) && (index + adjust) >= 0 && k < (index + adjust + cribLength)) {
                         row4.append($('<td width="33px"/>').text(plaintext[i]));
                         if (display1.indexOf('?') < 0) {
                             concretes.push(plaintext[i]);

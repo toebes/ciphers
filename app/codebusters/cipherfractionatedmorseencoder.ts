@@ -119,6 +119,9 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
 
+        if (this.solutionLoops === -1) {
+            return { suggested: 0, min: 0, max: 0, text: 'Please be sure you have entered a keyword and crib to get a Suggested Points value.' }
+        }
         let suggested = 155 + qdata.len;
         let scoringText = ''
         let cribAtBeginningText = '';

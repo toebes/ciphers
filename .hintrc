@@ -1,12 +1,9 @@
 {
-    "extends": ["development"],
-    "hints": {
-        "typescript-config/strict": "off",
-        "compat-api/css": [
-            "default",
-            {
-                "ignore": ["@page"]
-            }
-        ]
-    }
+  "extends": [
+    "development"
+  ],
+  "hints": {
+    "typescript-config/strict": "off",
+    "compat-api/css": "off"
+  }
 }

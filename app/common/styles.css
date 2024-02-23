@@ -1065,6 +1065,17 @@ table.potential-keyword {
     text-align: center;
     font-family: 'Courier New', Courier, monospace;
 }
+.polybius-square .k td {
+    color: green;
+    font-style: italic;
+    font-weight: 700;
+    border-bottom: none;
+    padding: 0 0.5rem;
+}
+.polybius-square .b td {
+    border-top: none;
+    padding: 0 0.5rem;
+}
 
 table.polybius-square th,
 table.polybius-square td {
@@ -1103,10 +1114,15 @@ table.nihilist {
 
 table.nihilist td {
     width: 33px;
+    padding: 0;
 }
 
 table.nihilist tr.bar td {
     border-top: thin solid;
+}
+
+.solve th {
+    text-align: center;
 }
 
 table.nihilist tr.ans {

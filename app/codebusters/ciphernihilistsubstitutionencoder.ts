@@ -1,4 +1,4 @@
-import { BoolMap, cloneObject } from '../common/ciphercommon';
+import { BoolMap, cloneObject, makeCallout, makeFilledArray } from '../common/ciphercommon';
 import {
     IOperationType,
     IState,
@@ -12,7 +12,7 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
-import { JTTable } from '../common/jttable';
+import { JTRow, JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
 interface INihilistState extends IEncoderState {
@@ -24,6 +24,47 @@ interface INihilistState extends IEncoderState {
     polybiusKey: string;
     /** The current keyword length example to show in the solver */
     solverKeyLength: number;
+    /** The most recently computed solution score from the auto-solver */
+    autoSolverScore: number;
+}
+
+const AUTOSOLVER_NOKEYWORD = 2000
+const AUTOSOLVER_NOKEYPOS = 1000
+
+type NihilistSolverMappings = number[][]
+type PolybiusMap = Map<string, string[]>
+type Known = 'none' | 'tens' | 'ones' | 'all'
+
+interface NihilistSolverData {
+    /** The known keyword */
+    keyword: string
+    /** Initial mapping of the 10's digits to the keywords an array per letters in the keyword */
+    tens: NihilistSolverMappings
+    /** Initial mapping of the 1's digits to the keywords.  An Array per letters in the keyword 
+     *  Note that once the kwChoices map is created, this is no longer used
+     */
+    ones: NihilistSolverMappings
+    /** Mapping of indexes ('11', '12') to the corresponding letter choices. Initially this is
+     *  all of the letters in the alphabet, but when a final choice is made it is reduced to a single entry
+     *  Note that once the kwChoices map is created, this is no longer used
+     */
+    polybius: PolybiusMap
+    // /** Mapping of each letter in the keyword to the possible positions it can be at. 
+    //  * 'J' is 'I' so that there are only 25 entries.  If a letter has only one known spot
+    //  * then there is a single entry, otherwise it maps to the same indexes in the polybium mapping
+    //  * e.g.  'A': ['11', '12', '13],  'B': ['33']
+    //  */
+    // kwChoices: PolybiusMap
+    /** Mapping of each letter to the possible positions it can be at.  Note that 'J' is always
+     * 'I' so that there are only 25 entries
+     */
+    charMap: PolybiusMap
+    /** Mapping of the indexes ('11', '12') to the possible Keyword choices.    */
+    kwAnnotations: PolybiusMap
+    /** Indication of which indexes in the corresponding keyword letter are known */
+    kwKnown: Known[]
+    /** Indicates where we already have warned them about this being too hard to solve */
+    warned: boolean
 }
 
 interface ICribInfo {
@@ -73,8 +114,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         blocksize: 0,
         polybiusKey: '',
         solverKeyLength: 4,
-
-
+        autoSolverScore: undefined
     };
     public state: INihilistState = cloneObject(this.defaultstate) as INihilistState;
     public cmdButtons: JTButtonItem[] = [
@@ -349,8 +389,21 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let scoringText = '';
 
         if (this.state.operation === 'crypt') {
-            operationText = ' This problem requires cryptanalysis. ';
-            suggested += 100;
+            operationText = ' This problem requires cryptanalysis so we add 200 points. ';
+            suggested += 200;
+            if (this.state.autoSolverScore === undefined) {
+                operationText += ' But the Autosolver was not able to run on it yet. '
+            } else if (this.state.autoSolverScore === AUTOSOLVER_NOKEYWORD) {
+                operationText += ' But the Autosolver was not able to determine the keyword, so we add 300 points.'
+                suggested += 300
+            } else if (this.state.autoSolverScore === AUTOSOLVER_NOKEYPOS) {
+                operationText += ' But the Autosolver was not able to determine the keyword positions, so we add 250 points.'
+                suggested += 250
+            } else if (this.state.autoSolverScore > 1.25) {
+                const add = Math.round((this.state.autoSolverScore - 1.25) * 100)
+                operationText += ` The Autosolver was not able to find enough words to make it solvable, so we add ${add} points.`
+                suggested += add
+            }
         }
 
         if (this.state.blocksize != this.cleanKeyword.length) {
@@ -682,19 +735,19 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             separated into. each line contains 4 arrays, each a char array of the info to appear on each subline*/
         return result;
     }
+    /**
+     * This method builds the HTML for a polybius table
+     * @param target Place to generate the table
+     * @param center Center the table
+     * @param fillString Which letters 
+     * @param solverData Current solver data state
+     */
+    public showPolybiusTable(target: JQuery<HTMLElement>, center: boolean, fillString: string, solverData?: NihilistSolverData): void {
+        const knownCheck = fillString.toUpperCase()
+        let polyClass = 'polybius-square unstriped'
 
-    /*
-        This method builds the HTML for a polybius table
-    */
-    public buildPolybiusTable(center: boolean, fillString: string): JTTable {
-
-        let polyClass = 'polybius-square'
-
-        //center solver table
         if (center) {
             polyClass += ' center'
-        } else {
-
         }
 
         const worktable = new JTTable({
@@ -707,240 +760,371 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             top.add(String(i))
         }
 
-        let undupedPolybiusKey = this.undupeString(this.cleanPolyKey)
-
         let mainIndex = 0;
-        for (let i = 1; i <= 5; i++) {
-            const row = worktable.addBodyRow()
-            row.add({
+        for (let tens = 1; tens <= 5; tens++) {
+            const keyrow = worktable.addBodyRow({ class: "k" })
+            const row = worktable.addBodyRow({ class: "b" })
+            keyrow.add({
                 celltype: 'th',
-                content: i
+                content: `${tens}`,
+                settings: { rowspan: 2 }
             })
 
             //get an array of the keys of the polybius map
             let polybiusSequence = Array.from(this.polybiusMap.keys());
-            for (let i = 1; i <= 5; i++) {
-                if (fillString.toLowerCase().indexOf(polybiusSequence[mainIndex].toLowerCase()) < 0) {
-                    row.add(" ")
-                } else {
+            for (let ones = 1; ones <= 5; ones++) {
+                const spot = `${tens}${ones}`
+                // Figure out if this is a potential Keyword placement
+                let mapC = " "
+                if (knownCheck.includes(polybiusSequence[mainIndex].toUpperCase())) {
                     //we want to show I/J in the table, not just I
                     if (polybiusSequence[mainIndex] == 'I') {
-                        row.add('I/J')
+                        mapC = 'I/J'
                     } else {
-                        row.add(polybiusSequence[mainIndex])
+                        mapC = polybiusSequence[mainIndex]
+                    }
+                } else {
+                    // Show them all the possibile letters that can fill the spot
+                    if (solverData !== undefined) {
+                        let lastLet = ''
+                        let startLet = ''
+                        let extra = ''
+                        mapC = ''
+                        solverData.polybius.get(spot).forEach((v) => {
+                            if (lastLet !== '') {
+                                if (lastLet.charCodeAt(0) + 1 !== v.charCodeAt(0)) {
+                                    if (startLet !== '') {
+                                        mapC += extra + startLet + '-'
+                                        extra = ''
+                                        startLet = ''
+                                    }
+                                    mapC += extra + lastLet
+                                    extra = '|'
+                                    lastLet = v
+                                } else {
+                                    if (startLet === '') {
+                                        startLet = lastLet
+                                    }
+                                }
+                            }
+                            lastLet = v
+                        })
+                        if (startLet !== '') {
+                            mapC += extra + startLet + '-' + lastLet
+                        }
                     }
                 }
+                let annotations: string[] = []
+                if (solverData !== undefined && solverData.kwAnnotations.get(spot) !== undefined) {
+                    annotations = solverData.kwAnnotations.get(spot)
+                }
+                if (annotations.length > 0) {
+                    keyrow.add({ class: "k", content: annotations.join(", ") })
+                } else {
+                    keyrow.add('')
+                }
+                row.add(mapC)
                 mainIndex++;
             }
         }
 
-        return worktable
+        target.append(worktable.generate())
     }
+    /**
+     * Find any know letter gaps and fill them in
+     * @param target Place to output any motes
+     * @param solverData Current solver data state
+     * @returns Number of new letters found
+     */
+    public fillLetterGaps(target: JQuery<HTMLElement>, solverData: NihilistSolverData): number {
+        const minPolybiusLen = 3
+        let found = 0
+        let polySequence: string[] = makeFilledArray(25, undefined)
+        solverData.polybius.forEach((val: string[], slot: string) => {
+            if (val.length === 1) {
+                let tens = parseInt(slot.substring(0, 1))
+                let ones = parseInt(slot.substring(1))
+                let pos = (tens - 1) * 5 + ones - 1
+                polySequence[pos] = val[0]
+            }
+        })
 
-    public createSolverNumToLettersMap(concretes: string[]) {
-
-        let map = new Map<string, string[]>();
-        let undupedKey = this.undupeString(this.cleanPolyKey);
-
-        let polySequence = Array.from(this.polybiusMap.keys());
-
-        for (let i = 0; i < undupedKey.length; i++) {
-            let col = (i % 5) + 1;
-            let row = Math.floor(i / 5) + 1;
-            let letter = polySequence[i]
-            if (concretes.indexOf(letter) >= 0) {
-                map.set(row + "" + col, [letter]);
+        let index = 24
+        let known = ""
+        for (let c of this.charset) {
+            if (c !== 'J' && solverData.charMap.get(c).length === 1) {
+                known += c
             }
         }
+        const polybiusCharset = this.charset.replace('J', '') + ">";
 
-        let index = undupedKey.length;
-        let initialLetter = "<"
-
-        while (index < 25) {
-
-            let currentLetter = polySequence[index];
+        let lastLetter = ">"
+        while (index > minPolybiusLen) {  // Assume the polybius keyword is at least 3 characters long
             let numSpaces = 0;
 
             //this loops through the 'between' spaces of two concrete letters
-            while (index < 25 && concretes.indexOf(polySequence[index]) < 0) {
-
-                index++;
+            while (index > minPolybiusLen && polySequence[index] === undefined) {
+                index--;
                 numSpaces++;
             }
+            let firstLetter = polySequence[index]
+            if (firstLetter === undefined) {
+                break;
+            }
+            const firstIndex = polybiusCharset.indexOf(firstLetter)
+            const lastIndex = polybiusCharset.indexOf(lastLetter)
 
-            //check if the loop exited because we reached the end. if end reached, we still have work to do with ">"
-            let lastLetter
-            if (index === 25) {
-
-                lastLetter = ">"
-
-            } else {
-                //the ending letter is the last letter in this subarray
-                lastLetter = polySequence[index]
-
-                //also set the mapping in the map
-                let col = (index % 5) + 1;
-                let row = Math.floor(index / 5) + 1;
-                map.set(row + "" + col, [lastLetter]);
+            if (firstIndex > lastIndex) {
+                break;
             }
 
-            //the initial letter is whatever is left from previous run through, or if first them then "<"
+            //the last letter is whatever is left from previous run through, or if first them then "<"
+            let betweenArray = polybiusCharset.substring(firstIndex + 1, lastIndex).split("");
 
+            // Make sure we haven't crept into the keyword space
+            if (betweenArray.length < numSpaces) {
+                break;
+            }
 
-
-            //let numSpaces = polySequence.indexOf(lastLetter) - polySequence.indexOf(initialLetter) - 1
-
-            let polybiusCharset = "<" + this.charset.replace('J', '') + ">";
-
-            let betweenArray = polybiusCharset.substring(polybiusCharset.indexOf(initialLetter) + 1, polybiusCharset.indexOf(lastLetter)).split("");
-
-            let usableLetters = betweenArray.filter(x => !concretes.includes(x));
+            let usableLetters = betweenArray.filter(x => !known.includes(x));
 
             let numSubs = usableLetters.length - numSpaces + 1;
 
-            for (let i = 0; i < numSpaces; i++) {
+            const endText = lastLetter === ">" ? "the end of the polybius table" : lastLetter
 
+            if (index < this.cleanPolyKey.length) {
+                this.showStepText(target, `We see the ${numSpaces} spaces between the ${firstLetter} and ${endText}, but given how close it is to the start of the
+                Polybius Keyword, we can't be certain whether it is alphabet or keyword, so we can't fill it in until we are sure`)
+                return;
+            }
+            if (numSubs === 1 && numSpaces > 0) {
+
+                if (usableLetters.length === 1) {
+                    this.showStepText(target, `Because the only legal letter '${usableLetters[0]}' fits exactly in the single space between ${firstLetter} and ${endText} we can fill it in the gap.`)
+                } else {
+                    this.showStepText(target, `Because the only legal letters '${usableLetters.join(", ")}' fit exactly in the ${usableLetters.length} spaces between ${firstLetter} and ${endText} we can fill them in the gap.`)
+                }
+            }
+
+            for (let i = 0; i < numSpaces; i++) {
                 let subs = []
 
                 subs = usableLetters.slice(i, i + numSubs);
 
-                let col = ((index - numSpaces + i) % 5) + 1;
-                let row = Math.floor((index - numSpaces + i) / 5) + 1;
-                map.set(row + "" + col, subs);
+                const col = ((index + 1 + i) % 5) + 1;
+                const row = Math.floor((index + 1 + i) / 5) + 1;
+                const slot = `${row}${col}`
 
+                if (subs.length === 1) {
+                    // We need to remove this letter from every other place
+                    this.setPolybiusKnown(solverData, slot, subs[0])
+                    found++
+                } else {
+                    solverData.polybius.set(slot, subs);
+                }
             }
-
-
 
             //at the end, we want to set the new initial letter to be this current last letter for next iteration
-            initialLetter = lastLetter;
+            lastLetter = firstLetter;
 
-            index++;
-
-
-
+            index--;
         }
-
-        return map;
-
+        return found
+    }
+    /**
+     * Propagate the polybius choices to the charMap values
+     * @param solverData Current solver data state
+     */
+    public updateCharMap(solverData: NihilistSolverData): void {
+        // Initialize them to empty
+        for (const c of this.charset.replace('J', '')) {
+            solverData.charMap.set(c, [])
+        }
+        solverData.polybius.forEach((val: string[], slot: string) => {
+            for (let c of val) {
+                const current = solverData.charMap.get(c)
+                current.push(slot)
+                solverData.charMap.set(c, current)
+            }
+        })
 
     }
-
-
-    public buildPotentialKeyword(tensMapping: number[][], onesMapping: number[][], numToLettersMap: Map<string, string[]>) {
-
-
-        const table = $('<table/>', { class: 'potential-keyword center' });
-
-        const headerRow = $('<tr style="border-bottom:1px solid #000;font-weight:bold"/>', { class: 'solve' });
-
-        const contentRow = $('<tr/>', { class: 'solve' });
-
-        for (let i = 0; i < this.cleanKeyword.length; i++) {
-
-            headerRow.append($('<td/>').text("K" + (i + 1)));
-
-        }
-
-        for (let i = 0; i < tensMapping.length; i++) {
-
-            let possibilities = []
-
-            for (let j = 0; j < tensMapping[i].length; j++) {
-
-                for (let k = 0; k < onesMapping[i].length; k++) {
-
-                    let currentTensPossibility = tensMapping[i][j];
-                    let currentOnesPossibility = onesMapping[i][k];
-
-                    let mapValue = numToLettersMap.get(currentTensPossibility + "" + currentOnesPossibility)
-
-                    if (typeof mapValue === "undefined") {
-                        if (possibilities.indexOf("?") < 0) {
-                            possibilities.push("?")
-                        }
-                    } else {
-                        //possibilities = possibilities.concat(mapValue)
-                        //possibilities = Array.from(new Set(mapValue));
-
-                        for (let i = 0; i < mapValue.length; i++) {
-                            const p = mapValue[i]
-                            if (possibilities.indexOf(p) < 0) {
-                                possibilities.push(p)
-                            }
-                        }
-
-                    }
-
-
-
+    /**
+     * Update the Polybius data for a known value
+     * @param solverData Current solver data state
+     * @param spot Position for known character
+     * @param char Character
+     */
+    public setPolybiusKnown(solverData: NihilistSolverData, setSlot: string, char: string) {
+        solverData.polybius.forEach((val: string[], slot: string) => {
+            if (slot !== setSlot && val.includes(char)) {
+                val = val.filter(v => v != char)
+                solverData.polybius.set(slot, val)
+            }
+        })
+        solverData.polybius.set(setSlot, [char])
+        solverData.charMap.set(char, [setSlot])
+        // Check to see if we updated one of the keywords and adjust the annotation data for it
+        const kpos = solverData.keyword.indexOf(char)
+        if (kpos >= 0) {
+            // Check to see if we are updating any of the known keyword characters
+            const filterc = `K${kpos + 1}`
+            solverData.kwKnown[kpos] = 'all'
+            solverData.kwAnnotations.forEach((value: string[], index: string) => {
+                const newvalue = value.filter(x => (x !== filterc && x !== filterc + '?'))
+                if (newvalue.length !== value.length) {
+                    solverData.kwAnnotations.set(index, newvalue)
                 }
-
+            })
+            this.addToPolybiusMap(solverData.kwAnnotations, setSlot, filterc)
+        }
+    }
+    /**
+     * 
+     * @param possibilities 
+     * @param lang 
+     * @returns Number of keywords which were found
+     */
+    public getKeywordChoices(possibilities: string[][], lang: string): number {
+        // Let's look
+        let found = 0;
+        let foundKeyword = false
+        const len = possibilities.length
+        const pat = this.makeUniquePattern("ABCDEFGHIJKLMNOP".substring(0, len), 1)
+        const patSet = this.Frequent[lang][pat]
+        // for (const entry of patSet) {
+        for (let e = 0; e < patSet.length * 0.7; e++) {
+            const word = patSet[e][0]
+            let valid = true
+            for (let i = 0; valid && i < len; i++) {
+                let c = word.charAt(i)
+                if (!possibilities[i].includes(c) && !possibilities[i].includes("?")) {
+                    valid = false
+                }
             }
 
-            contentRow.append($('<td>').html(possibilities.join("<br>")));
+            if (valid) {
+                console.log(`Matches ${word}`)
+                if (word.toUpperCase() === this.cleanKeyword) {
+                    foundKeyword = true
+                }
+                found++
+            }
+        }
+        if (found > 0 && !foundKeyword) {
+            found++
+        }
+        // See if we need to check for non-unique letter words
+        if (found === 0) {
+            let entries = Object.keys(this.Frequent[lang]).filter((key) => key.length === len)
+            for (const pat of entries) {
+                const patSet = this.Frequent[lang][pat]
+                // for (const entry of patSet) {
+                for (let e = 0; e < patSet.length * 0.7; e++) {
+                    const word = patSet[e][0]
+                    let valid = true
+                    for (let i = 0; valid && i < len; i++) {
+                        let c = word.charAt(i)
+                        if (!possibilities[i].includes(c) && !possibilities[i].includes("?")) {
+                            valid = false
+                        }
+                    }
 
+                    if (valid) {
+                        if (word.toUpperCase() === this.cleanKeyword) {
+                            foundKeyword = true
+                        }
+                        found++
+                        if (found > 10) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return found
+    }
+    /**
+     * 
+     * @param tensMapping 
+     * @param onesMapping 
+     * @param numToLettersMap 
+     * @returns 
+     */
+    public showPotentialKeywords(target: JQuery<HTMLElement>, possibilities: string[][]): void {
+        const table = new JTTable({ class: 'potential-keyword center unstriped' })
+        const headerRow = table.addHeaderRow({ class: 'solve' });
+
+        for (let i = 0; i < this.cleanKeyword.length; i++) {
+            headerRow.add(`K${i + 1}`)
         }
 
-        table.append(headerRow);
-        table.append(contentRow);
+        // Figure out how many rows we will have
+        let maxRows = 0
+        for (let i = 0; i < possibilities.length; i++) {
+            maxRows = Math.max(maxRows, possibilities[i].length)
+        }
 
-        return table;
+        for (let i = 0; i < maxRows; i++) {
+            let bodyRow: JTRow = table.addBodyRow()
+            for (let j = 0; j < possibilities.length; j++) {
+                if (possibilities[j].length > i) {
+                    bodyRow.add(possibilities[j][i])
+                } else {
+                    bodyRow.add({
+                        content: '&nbsp;',
+                    });
+                }
+            }
+        }
+        target.append(table.generate());
+    }
+    /**
+     * 
+     * @param solverData Current state of the solution
+     * @returns 
+     */
+    public getKeywordPossibilities(solverData: NihilistSolverData): string[][] {
+        let possibilities: string[][] = [];
 
+        for (let i = 0; i < solverData.tens.length; i++) {
+            for (let j = 0; j < solverData.tens[i].length; j++) {
+                for (let k = 0; k < solverData.ones[i].length; k++) {
 
+                    let tens = solverData.tens[i][j];
+                    let ones = solverData.ones[i][k];
 
+                    let mapValue = solverData.polybius.get(`${tens}${ones}`);
+                    if (mapValue === undefined) {
+                        mapValue = ["?"]
+                    }
 
+                    if (possibilities[i] === undefined) {
+                        possibilities[i] = [];
+                    }
+                    for (const p of mapValue) {
+                        if (!possibilities[i].includes(p)) {
+                            possibilities[i].push(p);
+                        }
+                    }
+                }
+            }
+        }
+        return possibilities;
+    }
+    /**
+     * Generate a quick list of all the known characters
+     * @param solverData Current solver data state (Updated)
+     */
+    public getKnownPolybius(solverData: NihilistSolverData): string {
+        let knownChars = ""
 
-
-        // for () {
-
-        // }
-
-
-
-
-        // const table = $('<table/>', { class: 'nihilist' });
-
-        // const row = $('<tr/>', { class: '' });
-
-        // for (let i = 0; i < tensMapping.length; i++) {
-
-        //     let possiblities = ""
-
-        //     for (let j = 0; j < tensMapping[i].length; j++) {
-
-        //         for (let k = 0; k < onesMapping[i].length; k++) {
-
-        //             let currentTensPossibility = tensMapping[i][j];
-        //             let currentOnesPossibility = onesMapping[i][k];
-
-        //             console.log(currentTensPossibility + "" + currentOnesPossibility)
-
-        //             let mapValue = numToLettersMap.get(currentTensPossibility + "" + currentOnesPossibility)
-
-        //             if (typeof mapValue === "undefined") {
-        //                 possiblities += "?"
-        //             } else {
-        //                 let possibilitiesString = numToLettersMap.get(currentTensPossibility + "" + currentOnesPossibility).join("")
-
-        //                 possiblities += possibilitiesString
-        //             }
-
-
-
-        //         }
-
-        //     }
-
-        //     row.append($('<td/>').text(possiblities));
-
-        // }
-
-        // table.append(row)
-
-
-        // return table;
-
+        solverData.polybius.forEach((subs: string[]) => {
+            if (subs.length === 1) {
+                knownChars += subs[0]
+            }
+        })
+        return knownChars
     }
 
     /*
@@ -984,12 +1168,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         // If we are doing Cryptanalysis, we need the Crib text
         emsg = '';
         if (this.state.operation === 'crypt') {
-            const crib = this.state.crib.toLowerCase();//this.minimizeString(this.state.crib).toLowerCase();
-            let msg = this.cleanString(this.state.cipherString).toLowerCase();
+            const crib = this.minimizeString(this.state.crib).toUpperCase();
+            const plaintext = this.minimizeString(this.state.cipherString).toUpperCase();
             if (crib === '') {
                 emsg = 'No Crib Text provided for Cryptanalysis.';
-            } else if (msg.indexOf(crib) < 0) {//this.minimizeString(msg).indexOf(crib) < 0) {
-                emsg = 'Crib Text ' + this.state.crib + ' not found in Plain Text';
+            } else if (plaintext.indexOf(crib) < 0) {
+                emsg = `Crib Text '${this.state.crib}' not found in Plain Text`;
             }
         }
         this.setErrorMsg(emsg, 'vcrib');
@@ -1012,23 +1196,12 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             table.append(blank)
         }
 
-        //false to not center, true to fill alphabet (this is our normal poly table)
-        const worktable = this.buildPolybiusTable(false, "abcdefghijklmnopqrstuvwxyz")
+        const polybiusDiv = $('<div/>', { class: 'cell shrink' })
+        this.showPolybiusTable(polybiusDiv, false, "abcdefghijklmnopqrstuvwxyz")
 
         result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
-
-            //.append($('<div/>', { class: 'cell small-6 shrink' })
             .append($('<div/>', { class: 'cell shrink' }).append(table))
-            //.append($('<p/>', { class: "h5" }).text('Solution'))
-
-            //for stringset in strings
-            //make a new table
-            //fill the first row with whatever
-
-            //.append($('<div/>', { class: 'KEY' }).text("something"))
-            //.append($('<div/>', { class: 'TOSOLVE' }).text("nothing"))
-            //.append($('<div/>', { class: 'TOANSWER' }).text(this.state.keyword)))
-            .append($('<div/>', { class: 'cell shrink' }).append(worktable.generate())))
+            .append(polybiusDiv))
 
         return result;
     }
@@ -1049,7 +1222,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //ex. "3" would mean iterate a K1 K2 K3 keyword
 
         const result = $('<div/>');
-        let emsg = '';
 
         let order = [];
         if (state === 'keystring') {
@@ -1157,7 +1329,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     // }
 
                 }
-                // console.log("bruh")
                 if (i === order.length - 1) {
                     // console.log(validIndex)
                     // console.log(localValidIndex)
@@ -1178,156 +1349,158 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         return result
     }
+    /**
+     * Display the current state of the solution with the mapped characters found out so far
+     * @param target DOM element to put the output into
+     * @param solverData Current solver data state (Updated)
+     * @param showKeyword Show the keyword letters (default = true) or just K1, K2,... for the key position
+     * @returns General score of the problem
+     */
+    public showCurrentSolution(target: JQuery<HTMLElement>, solverData: NihilistSolverData, showKeyword: boolean = true): number {
 
-    public buildSolverCrib(keywordMappingsTens: number[][], keywordMappingsOnes: number[][], concretes: string[]) {
-
-        const result = $('<div/>');
-
-        const keywordLength = this.cleanKeyword.length
-        const cleanCrib = this.minimizeString(this.cleanString(this.state.crib));
-
-        const bigTable = $('<table/>', { class: 'nihilist center' });
-
+        const keywordLength = solverData.keyword.length
+        const bigTable = new JTTable({ class: 'nihilist center' })
         const sequencesets = this.sequencesets
 
-        //j is just serving as a running count of valid characters. this is used for lining up the keyword. for example D O N ' T would map to K1 K2 K3 _ K4
-        let j = 0;
-        //k is a running count of every single character across all sequencesets. this is used to keep track of the precise location of the crib
+        //k is serving as a running count of valid characters. this is used for lining up the keyword. for example D O N ' T would map to K1 K2 K3 _ K4
         let k = 0;
 
-        //invalid is used to help keep track of spaces that come from block size spacing
-        let invalid = 0;
+        let score = 0;
 
-        //preInvalids is a count of how many invalid characters come before the crib - it helps track crib location in block size > 0 cases
-        let preInvalids = 0;
-
-        let index = this.state.cipherString.toLowerCase().indexOf(this.state.crib.toLowerCase());
-        let plaintext = this.state.cipherString.toLowerCase();
-        for (let i = 0; i < index; i++) {
-
-            if (this.getCharset().toLowerCase().indexOf(plaintext[i]) < 0) {
-                preInvalids++;
-            }
-
+        let cribStart = 0
+        let cribEnd = 0
+        const cribpos = this.placeCrib();
+        if (cribpos !== undefined) {
+            cribStart = cribpos.position
+            cribEnd = cribStart + cribpos.criblen
         }
 
-        console.log("PREINVALIDS!!!: " + preInvalids);
-
-
-        //loop through the plaintext, counting the amount of invalid characters approached (any space, quotation)
-
-        //when deciding if the current character should be in the crib, check if the block size > 0
-
-        //if it is greater than 0, then we need to
-
-        //we need to keep track of any spaces we see, if the block size > 0, then we need to subtract 1 from our k count
-
-        let minimizedPlaintext = this.minimizeString(this.cleanString(this.state.cipherString))
-
         for (const sequenceset of sequencesets) {
-
-            const row1 = $('<tr/>', { class: 'solve' });
-            const row2 = $('<tr/>', { class: 'solve' });
-            const row3 = $('<tr/>', { class: 'ans bar' });
-            const row4 = $('<tr/>', { class: 'ans' });
+            const ctRow = bigTable.addBodyRow({ class: 'solve' });
+            const keywordValRow = bigTable.addBodyRow({ class: 'solve' });
+            const keywordCharRow = bigTable.addBodyRow({ class: 'solve' })
+            const ptValRow = bigTable.addBodyRow({ class: 'ans bar' });
+            const ptCharRow = bigTable.addBodyRow({ class: 'ans' });
 
             let ciphertextNumbers = sequenceset[0];
             let mappedKeyNumbers = sequenceset[2];
             let mappedPlaintextNumbers = sequenceset[3];
             let plaintext = sequenceset[1];
 
-            // console.log(ciphertextNumbers);
-
-            for (let i = 0; i < ciphertextNumbers.length; i++) {
-
+            for (const i in ciphertextNumbers) {
                 let ct = ciphertextNumbers[i]
+                //for first row, just append the unaltered ciphertext number
+                ctRow.add(ct);
                 if (isNaN(parseInt(ct)) || ct.length === 1) {
-                    row1.append($('<td width="33px"/>').text(ct));
-                    row2.append($('<td width="33px"/>').text(ct));
-                    row3.append($('<td width="33px"/>').text(ct));
-                    row4.append($('<td width="33px"/>').text(' '));
-                    invalid++;
+                    // This isn't a cipher text cahracter, so just output it as is
+                    keywordValRow.add(ct);
+                    keywordCharRow.add(' ')
+                    ptValRow.add(ct);
+                    ptCharRow.add(' ');
                 } else {
-                    //for first row, just append the unaltered ciphertext number
-                    row1.append($('<td width="33px"/>').text(ct));
-
-                    //for second row, we need to add question marks if necessary
-                    let display1 = '';
-                    let display2 = '';
-
-                    if (keywordMappingsTens.length > 0 && keywordMappingsTens[j % keywordLength].length === 1) {
-                        display1 += Math.floor(parseInt(mappedKeyNumbers[i]) / 10)
-                        display2 += Math.floor(parseInt(mappedPlaintextNumbers[i]) / 10)
+                    const kpos = k % keywordLength
+                    // We have a cipher text character.
+                    if (k >= cribStart && k < cribEnd) {
+                        const ptC = plaintext[i]
+                        const x = solverData.charMap.get(ptC)
+                        if (x.length === 1 && solverData.kwKnown[kpos] !== 'all') {
+                            this.showStepText(target, `The Crib letter '${ptC} at position ${k} is already known to be ${x[0]}
+                            which we can subtract from ${ct} to reveal that K${kpos + 1} must be ${mappedKeyNumbers[i]}   `)
+                            solverData.kwKnown[kpos] = 'all'
+                        }
+                    }
+                    // Should we show the letters of the keyword (because it is known) or
+                    // just K1, K2, ... indicating the position in the keyword
+                    if (showKeyword) {
+                        keywordCharRow.add(solverData.keyword.charAt(kpos))
                     } else {
-                        display1 += '?'
-                        display2 += '?'
+                        keywordCharRow.add(`K${(kpos) + 1}`)
                     }
 
-                    //for third row, just append the unaltered ciphertext number
-                    if (keywordMappingsOnes.length > 0 && keywordMappingsOnes[j % keywordLength].length === 1) {
-                        display1 += parseInt(mappedKeyNumbers[i]) % 10
-                        display2 += parseInt(mappedPlaintextNumbers[i]) % 10
+                    //For the PT value and the Keyword value, show as much of the number as has been
+                    // figured out already
+                    let keywordVal = '';
+                    let ptVal = '';
+                    const known = solverData.kwKnown[kpos]
+
+                    // Mask the tens digit if it isn't known
+                    if (known === 'all' || known === 'tens') {
+                        keywordVal += Math.floor(parseInt(mappedKeyNumbers[i]) / 10)
+                        ptVal += Math.floor(parseInt(mappedPlaintextNumbers[i]) / 10)
                     } else {
-                        display1 += '?'
-                        display2 += '?'
+                        keywordVal += '?'
+                        ptVal += '?'
                     }
 
-
-
-                    row2.append($('<td width="33px"/>').text(display1));
-                    row3.append($('<td width="33px"/>').text(display2));
-
-                    // console.log(index);
-                    // console.log(index + cleanCrib.length);
-
-                    let adjust = 0;
-                    let cribLength = this.state.crib.length;
-                    if (this.state.blocksize > 0) {
-                        adjust = invalid - preInvalids;
-                        cribLength = cleanCrib.length;
-                        console.log("k: " + k);
-                        console.log("invalid: " + invalid);
-                        console.log("preinvalids: " + preInvalids);
-                        console.log("index: " + index);
+                    // The same with the ones digit
+                    if (known === 'all' || known === 'ones') {
+                        keywordVal += parseInt(mappedKeyNumbers[i]) % 10
+                        ptVal += parseInt(mappedPlaintextNumbers[i]) % 10
+                    } else {
+                        keywordVal += '?'
+                        ptVal += '?'
                     }
 
-                    if (k >= (index + adjust) && (index + adjust) >= 0 && k < (index + adjust + cribLength)) {
-                        row4.append($('<td width="33px"/>').text(plaintext[i]));
-                        if (display1.indexOf('?') < 0) {
-                            concretes.push(plaintext[i]);
+                    keywordValRow.add(keywordVal);
+                    ptValRow.add(ptVal);
+
+                    // Is this a crib character that is known?
+                    if (k >= cribStart && k < cribEnd) {
+                        ptCharRow.add(plaintext[i]);
+                        if (known === 'all') {
+                            this.setPolybiusKnown(solverData, ptVal, plaintext[i])
+                            // Special case -- if we are setting a value that is also known to be
+                            // a keyword then we need to update the 
                         }
                     } else {
-                        row4.append($('<td width="33px"/>').text(' '));
+                        // Not a given crib character, but have we already figured out
+                        // what the mapping is for this Plain Text value?
+                        const choices = solverData.polybius.get(ptVal)
+                        if (choices !== undefined) {
+                            score += choices.length - 1
+                            if (choices.length <= 5) {
+                                // Display the choices with a | between them to indicate multiple options
+                                let out = ''
+                                let extra = ''
+                                choices.forEach((v: string) => {
+                                    out += extra + v
+                                    if (v === 'I') {
+                                        out += "|J";
+                                    }
+                                    extra = '|'
+                                })
+                                ptCharRow.add(out)
+                            } else {
+                                ptCharRow.add(' ');
+                            }
+                        } else {
+                            ptCharRow.add(' ');
+                            score += 25
+                        }
                     }
 
-                    j++;
+                    k++;
                 }
-
-                k++;
-
             }
 
-            bigTable.append(row1);
-            bigTable.append(row2);
-            bigTable.append(row3);
-            bigTable.append(row4);
-
-            const blank = $('<tr/>').append($('<td/>').append($('<br>')));
-            bigTable.append(blank)
-
+            const blankrow = bigTable.addBodyRow()
+            blankrow.add({
+                content: '&nbsp;',
+            })
         }
 
-        result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
-
+        target.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
             .append($('<div/>', { class: 'cell shrink' })
-
-                .append(bigTable)))
-
-        return result
-
+                .append(bigTable.generate())))
+        return score / k
     }
-
-    public buildCountArray(keywordLength: number, onesDigit: boolean): number[][] {
+    /**
+     * Count the number of digits (tens or ones) in the sequence set
+     * @param keywordLength The number of letters in the keyword
+     * @param onesDigit look at the ones digit (true) vs the tens digit
+     * @returns Mapping of the digit usage
+     */
+    public buildCountArray(keywordLength: number, onesDigit: boolean): NihilistSolverMappings {
 
         let keywordArray = [];
 
@@ -1367,14 +1540,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             keywordArray.push(row);
 
         }
-
         return keywordArray;
-
     }
 
-
-    public buildCountTable(countArray: number[][], isK1Example: boolean): JTTable {
-
+    /**
+     * Show the digit counts in the table
+     * @param target DOM element to output table
+     * @param countArray The count array to use
+     * @param isK1Example 
+     */
+    public showCountTable(target: JQuery<HTMLElement>, countArray: NihilistSolverMappings, isK1Example: boolean): void {
 
         const table = new JTTable({
             class: 'polybius-square center',
@@ -1383,6 +1558,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const header = table.addHeaderRow()
 
         header.add('')
+        const limit = isK1Example ? 1 : countArray.length
 
         for (let i = 1; i <= 10; i++) {
             let index = i % 10
@@ -1393,10 +1569,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             } else {
                 header.add(index + '')
             }
-
         }
 
-        for (let j = 0; j < countArray.length; j++) {
+        for (let j = 0; j < limit; j++) {
 
             let letterRow = countArray[j];
             let smallest = letterRow.length;
@@ -1442,123 +1617,306 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             } else {
                 row.add('');
             }
+        }
+        target.append(table.generate());
+    }
+    /**
+     * Find all the unknown keywords that we can fill in
+     * @param target DOM element to put the output into
+     * @param solverData Current solver data state (Updated)
+     */
+    public fillMatchedKeywordChars(target: JQuery<HTMLElement>, solverData: NihilistSolverData): void {
+        const keywordLength = solverData.keyword.length
+        const sequencesets = this.sequencesets
 
+        //K is just serving as a running count of valid characters. this is used for lining up the keyword. for example D O N ' T would map to K1 K2 K3 _ K4
+        let k = 0;
+
+        let cribStart = 0
+        let cribEnd = 0
+        const cribpos = this.placeCrib();
+        if (cribpos !== undefined) {
+            cribStart = cribpos.position
+            cribEnd = cribStart + cribpos.criblen
         }
 
+        for (const sequenceset of sequencesets) {
+            let ciphertextNumbers = sequenceset[0];
+            let plaintext = sequenceset[1];
 
+            for (const i in ciphertextNumbers) {
+                let ct = ciphertextNumbers[i]
+                // If this isn't a cipher text character, just skip it
+                if (isNaN(parseInt(ct)) || ct.length === 1) {
+                    continue;
+                }
+                let kpos = k % keywordLength
+                let keyc = solverData.keyword.charAt(kpos)
+                // let options = reverseMap.get(keyc)
+                let options = solverData.charMap.get(keyc)
+                if (options === undefined || options.length > 1) {
+                    let plaintextc = ''
 
-        return table;
+                    if (k >= cribStart && k < cribEnd) {
+                        plaintextc = plaintext[i]
+                    } else {
+                        // TODO: See if we had any guessed characters stored in the solverdata
+                    }
+                    // let plainoptions: string[] = reverseMap.get(plaintextc)
+                    let plainoptions: string[] = solverData.charMap.get(plaintextc)
+                    if (plainoptions === undefined) {
+                        plainoptions = []
+                    }
+                    let keyval = parseInt(ciphertextNumbers[i])
 
+                    if (plaintextc === keyc) {
+                        keyval /= 2
+                        solverData.kwKnown[kpos] = 'all'
+                        // Special case where we have a crib character in the same spot as the known plaintext
+                        this.showStepText(target, `Since we know that the plain text character '${keyc}' at position ${k} happens to be the same as the K${kpos + 1} character '${keyc}',
+                     the value for '${keyc}' is ${keyval} [½ the Ciphtertext value ${ciphertextNumbers[i]}].`)
+
+                    } else if (plainoptions.length === 1) {
+                        solverData.kwKnown[kpos] = 'all'
+                        // We know the value for a plaintext character (probably from the crib) so we can compute the value of the keyword character
+                        keyval -= parseInt(plainoptions[0])
+                        this.showStepText(target, `Since we know that the plain text character '${keyc}' at position ${k} is ${plainoptions[0]} and the corresponding ciphertext value
+                    at that position is ${ciphertextNumbers[i]} we can compute the value of the K${kpos + 1} character as ${keyval} which is the difference between the two values.`)
+                    } else if (options !== undefined && plainoptions.length > 1) {
+                        // Iterate through all of the options to see if they add up to the key value
+                        let matched = 0
+                        let v1Choice: number = undefined
+                        let v2Choice: number = undefined
+                        for (const v1 of options) {
+                            for (const v2 of plainoptions) {
+                                const v1val = parseInt(v1)
+                                const v2val = parseInt(v2)
+                                if (v1val + v2val === keyval) {
+                                    matched++
+                                    v1Choice = v1val
+                                    v2Choice = v2val
+                                }
+                            }
+                        }
+                        if (matched === 1) {
+                            solverData.kwKnown[kpos] = 'all'
+                            keyval = v2Choice
+                            this.showStepText(target, `Since K${kpos + 1} '${keyc}' could be any of '${options.join(", ")}' and '${keyc}' at position ${k} can be any of '${plainoptions.join(", ")}',  
+                            but they also have to add up to be ${ciphertextNumbers[i]}, only the choice of ${v1Choice}+${v2Choice} works which means that Since K${kpos + 1} '${keyc}' must be ${keyval}`)
+                        } else {
+                            keyval = undefined
+                        }
+                    } else {
+                        keyval = undefined
+                    }
+                    if (keyval !== undefined) {
+                        const keySpot = `${keyval}`
+                        solverData.tens[kpos] = [Math.trunc(keyval / 10)]
+                        solverData.ones[kpos] = [keyval % 10]
+
+                        this.setPolybiusKnown(solverData, keySpot, keyc)
+                    }
+                }
+                k++;
+            }
+        }
     }
+    /**
+     * Add an entry to an array in a map
+     * @param map PolybiusMap to add to
+     * @param key Key value for entry
+     * @param value New value to add to entry
+     */
+    public addToPolybiusMap(map: PolybiusMap, key: string, value: string) {
+        let entries = map.get(key)
+        if (entries === undefined || entries.length === 0) {
+            map.set(key, [value])
+        } else if (!entries.includes(value)) {
+            entries.push(value)
+            map.set(key, entries)
+        }
+    }
+    /**
+     * Eliminate all the values of Keywords that don't match what we already know
+     * @param target DOM element to put the output into
+     * @param solverData Current solver data state (Updated)
+     */
+    public eliminateKWConflicts(target: JQuery<HTMLElement>, solverData: NihilistSolverData): void {
+        let lineextra = ''
+        for (let k = 0; k < solverData.keyword.length; k++) {
+            const key = `K${k + 1}`
+            const c = solverData.keyword.charAt(k)
+            const valid: string[] = []
+            let count = 0
+            for (let tens of solverData.tens[k]) {
+                for (let ones of solverData.ones[k]) {
+                    count++
+                    const place = `${tens}${ones}`
+                    let mapValue = solverData.polybius.get(place);
+                    if (mapValue === undefined || mapValue.length === 0 || mapValue.includes(c)) {
+                        valid.push(place)
+                    } else {
+                        let extra = ''
+                        if (mapValue.length === 1) {
+                            extra = ` already maps to ${mapValue[0]}, therefore it`
+                        } else if (mapValue.length < 5) {
+                            extra = ` can only map to one of '${mapValue.join(',')}, therefore it`
+                        }
+                        target.append(`${lineextra}${place}${extra} can't be ${c}, so we can eliminate that as an option for ${key}.`)
+                    }
+                }
+            }
+            if (valid.length === 0) {
+                target.append(`${lineextra}****Something is wrong, we can't find anywhere to place ${key} '${c}'`)
+            } else if (valid.length === 1) {
+                let extra = ''
+                if (count > 1) {
+                    target.append(`${lineextra}By the process of elimination, ${key} '${c}' must be ${valid[0]}`)
+                } else {
+                    target.append(`${lineextra}${extra}${key} '${c}' was already known to be ${valid[0]}`)
+                }
+                // Remove the keyword from the other spots in the map where it is not valid
+                solverData.kwAnnotations.forEach((choices: string[], index: string) => {
+                    const newvalue = choices.filter(x => (x !== key && x !== (key + "?")))
+                    if (newvalue.length !== choices.length) {
+                        solverData.kwAnnotations.set(index, newvalue)
+                    }
+                })
+                //                this.addToPolybiusMap(solverData.kwAnnotations, valid[0], key)
+                solverData.kwKnown[k] = 'all'
+                this.setPolybiusKnown(solverData, valid[0], c)
+            } else {
+                target.append(`${lineextra}${key} '${c}' can be one of ${valid.join(', ')}`)
+                // Remove the keyword from the other spots in the map where it is not valid
+                solverData.kwAnnotations.forEach((choices: string[], index: string) => {
+                    const newvalue = choices.filter(x => (x !== key && x !== (key + "?")))
+                    if (newvalue.length !== choices.length) {
+                        solverData.kwAnnotations.set(index, newvalue)
+                    }
+                })
+                let known: Known = 'all'
+                const firstTen = valid[0].substring(0, 1)
+                const firstOne = valid[0].substring(1)
+                solverData.polybius.forEach((val: string[], slot: string) => {
+                    if (val.includes(c) && !valid.includes(slot)) {
+                        val = val.filter(v => v != c)
+                        solverData.polybius.set(slot, val)
+                    }
+                })
 
+                for (let spot of valid) {
 
-    // public buildCountTable(countArray: number[][]): JQuery<HTMLElement> {
+                    this.addToPolybiusMap(solverData.kwAnnotations, spot, key + '?')
+                    const ten = spot.substring(0, 1)
+                    const one = spot.substring(1)
 
-    //     // console.log(countArray)
-    //     // countArray.push(countArray.shift());
-    //     // console.log(countArray)
+                    if (ten !== firstTen) {
+                        if (known === 'all' || known === 'ones') {
+                            known = 'ones'
+                        } else {
+                            known = 'none'
+                        }
+                    }
+                    if (one !== firstOne) {
+                        if (known === 'all' || known === 'tens') {
+                            known = 'tens'
+                        } else {
+                            known = 'none'
+                        }
+                    }
+                    let entries = solverData.polybius.get(spot)
+                    if (entries === undefined) {
+                        entries = []
+                    }
+                    if (!entries.includes(c)) {
+                        entries.push(c)
+                        solverData.polybius.set(spot, entries)
+                    }
+                }
+                solverData.kwKnown[k] = known
+            }
+            lineextra = `<br/>`
+        }
+    }
+    /**
+     * Show a table of all the possible mappings for a keyword.  Calculate the known status of the keyword letters
+     * @param target DOM element to put the output into
+     * @param solverData Current solver data state
+     */
+    public showPossibleKeywordMappings(target: JQuery<HTMLElement>, solverData: NihilistSolverData, showKeyvalue: boolean = false): void {
 
-    //     // if (typeof countArray !== 'undefined') {
-    //     //     if (typeof countArray[0] !== 'undefined') {
-    //     //         countArray.push(countArray.shift());
-    //     //     }
-    //     // }
+        const table = new JTTable({ class: 'potential-keyword center unstriped' });
+        const headerRow = table.addHeaderRow({ class: 'solve' })
+        let showKeyValue = false
 
-    //     const table = $('<table/>', { class: 'nihilist center' });
+        headerRow.add({
+            content: '&nbsp;',
+        })
+        if (showKeyvalue) {
+            headerRow.add('Value')
+        }
+        headerRow.add("Tens");
+        headerRow.add("Ones");
 
-    //     const headerRow = $('<tr style="border-bottom:1px solid #000"/>', { class: 'solve' });
-    //     headerRow.append($('<td style="border-right:1px solid #000"/>').text(' '));
-    //     headerRow.append($('<td/>').text('1'));
-    //     headerRow.append($('<td/>').text('2'));
-    //     headerRow.append($('<td/>').text('3'));
-    //     headerRow.append($('<td/>').text('4'));
-    //     headerRow.append($('<td/>').text('5'));
-    //     headerRow.append($('<td/>').text('6'));
-    //     headerRow.append($('<td/>').text('7'));
-    //     headerRow.append($('<td/>').text('8'));
-    //     headerRow.append($('<td/>').text('9'));
-    //     headerRow.append($('<td/>').text('0'));
+        for (let k = 0; k < solverData.keyword.length; k++) {
 
-    //     table.append(headerRow)
+            const row = table.addBodyRow({ class: 'solve' })
 
-    //     for (let j = 0; j < countArray.length; j++) {
-
-    //         let letterRow = countArray[j];
-
-    //         const row = $('<tr/>', { class: 'solve' });
-
-    //         row.append($('<td style="border-right:1px solid #000"/>').text('K' + (j + 1)));
-
-    //         for (let i = 1; i < letterRow.length; i++) {
-
-    //             if (letterRow[i] === 1) {
-    //                 row.append($('<td/>').text("X"));
-    //             } else {
-    //                 row.append($('<td/>').text("-"));
-    //             }
-    //         }
-
-    //         if (letterRow[0] === 1) {
-    //             row.append($('<td/>').text("X"));
-    //         } else {
-    //             row.append($('<td/>').text("-"));
-    //         }
-
-    //         table.append(row);
-
-    //     }
-
-    //     return table;
-    // }
-
-    public buildPossibleKeywordMappings(tensMappings: number[][], onesMappings: number[][]) {
-
-        const table = $('<table/>', { class: 'potential-keyword center' });
-
-        const headerRow = $('<tr style="border-bottom:1px solid #000;font-weight:bold"/>', { class: 'solve' });
-
-        headerRow.append($('<td/>').text(" "));
-        headerRow.append($('<td/>').text("Tens"));
-        headerRow.append($('<td/>').text("Ones"));
-
-        table.append(headerRow)
-
-        for (let i = 0; i < this.cleanKeyword.length; i++) {
-
-            const row = $('<tr/>', { class: 'solve' });
-
-            row.append($('<td style="border-right:1px solid #000;font-weight:bold"/>').text("K" + (i + 1)));
+            row.add({ celltype: "th", content: `K${k + 1}` });
+            if (showKeyvalue) {
+                row.add(solverData.keyword.charAt(k))
+            }
 
             let tensString = ""
             let onesString = ""
-
-            for (let j = 0; j < tensMappings[i].length; j++) {
-
-                tensString += tensMappings[i][j] + ", "
-
+            let tenExtra = ""
+            let oneExtra = ""
+            let annotation = `K${k + 1}`
+            solverData.kwKnown[k] = 'all'
+            if (solverData.tens[k].length > 1) {
+                annotation += '?'
+                if (solverData.ones[k].length > 1) {
+                    solverData.kwKnown[k] = 'none'
+                } else {
+                    solverData.kwKnown[k] = 'ones'
+                }
+            } else if (solverData.ones[k].length > 1) {
+                annotation += '?'
+                solverData.kwKnown[k] = 'tens'
             }
 
-            for (let j = 0; j < onesMappings[i].length; j++) {
+            for (let ten of solverData.tens[k]) {
+                tensString += tenExtra + ten
+                tenExtra = ", "
 
-                onesString += onesMappings[i][j] + ", "
-
+                // While we are here, we need to update the kwAnnotations
+                for (let one of solverData.ones[k]) {
+                    const spot = `${ten}${one}`
+                    let current = solverData.kwAnnotations.get(spot)
+                    if (current === undefined) {
+                        current = []
+                    }
+                    current.push(annotation)
+                    solverData.kwAnnotations.set(spot, current)
+                }
             }
 
-            tensString = tensString.substring(0, tensString.length - 2)
-            onesString = onesString.substring(0, onesString.length - 2)
-
-            row.append($('<td/>').text(tensString));
-            row.append($('<td/>').text(onesString));
-
-            table.append(row)
-
+            for (let one of solverData.ones[k]) {
+                onesString += oneExtra + one
+                oneExtra = ", "
+            }
+            row.add(tensString)
+            row.add(onesString)
         }
-
-        return table;
-
+        target.append(table.generate());
     }
 
-    public findKeywordMappings(countArray: number[][]): number[][] {
+    /**
+     * 
+     * @param countArray 
+     * @returns 
+     */
+    public findKeywordMappings(countArray: NihilistSolverMappings): NihilistSolverMappings {
 
         let array = [];
 
@@ -1569,43 +1927,37 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
             for (let j of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
 
-                if (j < lowest && countArray[i][j % 10] === 1) {
-                    lowest = j;
-                }
+                if (countArray[i][j % 10] === 1) {
+                    if (j < lowest) {
+                        lowest = j;
+                    }
 
-                if (j > highest && countArray[i][j % 10] === 1) {
-                    highest = j;
+                    if (j > highest) {
+                        highest = j;
+                    }
                 }
             }
 
             let possibilities = [];
             for (let j = highest - 5; j < lowest; j++) {
-
                 //we don't allow possibilities that are not feasible
                 if (j > 0 && j <= 5) {
                     possibilities.push(j);
                 }
-
             }
-
             array.push(possibilities);
-
         }
 
         return array;
-
     }
 
     /**
      * Loads up the values for Nihilist
      */
     public load(): void {
-        // console.log('start')
-        // console.log(this.state.cipherString)
-
         const encoded = this.chunk(this.cleanString(this.state.cipherString), this.state.blocksize);
-        this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword))
-        this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey))
+        this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword)).toUpperCase()
+        this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey)).toUpperCase()
         this.polybiusMap = this.buildPolybiusMap();
         this.sequencesets = this.buildNihilistSequenceSets(encoded, this.maxEncodeWidth);
 
@@ -1629,8 +1981,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
 
         this.attachHandlers();
-
-        // console.log('finish')
     }
     /**
      * Set up all the HTML DOM elements so that they invoke the right functions
@@ -1732,9 +2082,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
-        let keypos = 0;
         const result = $('<div/>', { class: 'grid-x' });
-        const { width, extraclass } = this.getTestWidth(testType);
+        const { width } = this.getTestWidth(testType);
 
         const strings = this.buildNihilistSequenceSets(
             this.state.cipherString,
@@ -1794,11 +2143,24 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             this.stopGenerating = true;
             return;
         }
-
+        this.setErrorMsg('', 'si',);
+        // Make sure we have a Polybius key and a keyword before going on
+        if (this.minimizeString(this.cleanKeyword) === '' || this.cleanPolyKey === '') {
+            return
+        }
+        if (this.state.operation === 'crypt') {
+            const crib = this.minimizeString(this.state.crib).toUpperCase();
+            const plaintext = this.minimizeString(this.state.cipherString).toUpperCase();
+            if (crib === '' || plaintext.indexOf(crib) < 0) {
+                return;
+            }
+        }
         this.stopGenerating = false;
         this.isLoading = true
         if (this.state.operation === 'crypt') {
-            this.genCryptanalysisSolution(target);
+            this.loadLanguageDictionary(this.state.curlang).then(() => {
+                this.genCryptanalysisSolution(target);
+            })
         } else if (this.state.operation === 'decode') {
             this.genDecodeSolution(target);
         } else {
@@ -1836,13 +2198,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param target DOM element to put output into
      */
     public async genDecodeSolution(target: JQuery<HTMLElement>) {
-        let cleanKey = this.cleanKeyword.toUpperCase()
-        let cleanPolybiusKey = this.cleanPolyKey.toUpperCase()
+        let cleanKey = this.cleanKeyword
+        let cleanPolybiusKey = this.cleanPolyKey
 
         const result = $('<div/>', { id: 'solution' });
         target.append(result);
 
-        result.append($('<div/>', { class: 'callout secondary' }).text("Step 1: Fill out the Polybius Table"));
+        this.showStep(result, "Step 1: Fill out the Polybius Table");
 
         let polyKeySpan = $('<span/>', { class: 'hl' }).text(cleanPolybiusKey)
 
@@ -1855,26 +2217,21 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .append(` spaces of the polybius table, 
         with each <b>unique</b> letter taking up a space. (Skip any duplicate letters)`);
 
-        result.append($('<div/>', { class: 'callout primary small' }).append("Note: Treat the letters <b>I</b> and <b>J</b> as one single letter <b>I/J</b>"))
+        this.showSolvingNote(result, `Note: Treat the letters <b>I</b> and <b>J</b> as one single letter <b>I/J</b>`)
 
         //true to center table, false to not fill rest of alphabet
-        let onlyKeyPolyTable = this.buildPolybiusTable(true, cleanPolybiusKey).generate()
+        this.showPolybiusTable(result, true, cleanPolybiusKey)
 
         if (await this.restartCheck()) { return }
-
-        //result.append($('<div/>').append(polybiusTable));
-        result.append(onlyKeyPolyTable)
 
         result.append("The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table.")
 
         //true to center table, true to fill alphabet
-        let fullPolyTable = this.buildPolybiusTable(true, "abcdefghijklmnopqrstuvwxyz").generate()
+        this.showPolybiusTable(result, true, "abcdefghijklmnopqrstuvwxyz")
 
         if (await this.restartCheck()) { return }
 
-        result.append(fullPolyTable)
-
-        result.append($('<div/>', { class: 'callout secondary' }).text("Step 2: Construct the Keyword Numbers"));
+        this.showStep(result, "Step 2: Construct the Keyword Numbers");
 
         let keywordSpan = $('<span/>', { class: 'hl' }).text(cleanKey)
 
@@ -1915,7 +2272,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         if (await this.restartCheck()) { return }
 
-        result.append($('<div/>', { class: 'callout secondary' }).text("Step 3: Determine the Plaintext"));
+        this.showStep(result, "Step 3: Determine the Plaintext");
 
         result.append(`Subtract the keyword numbers from the ciphertext numbers, giving us the plaintext numbers`)
 
@@ -1923,9 +2280,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         result.append(`This is our answer (plaintext), but it just needs to be converted back into letters through the polybius table`)
 
-        let fullPolyTable2 = this.buildPolybiusTable(true, "abcdefghijklmnopqrstuvwxyz").generate()
-
-        result.append(fullPolyTable2)
+        this.showPolybiusTable(result, true, "abcdefghijklmnopqrstuvwxyz")
 
         if (await this.restartCheck()) { return }
 
@@ -1961,215 +2316,263 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public async genEncodeSolution(target: JQuery<HTMLElement>) {
         return
     }
-
+    /**
+     * Generate a solving guide for a Cryptanalysis problem
+     * @param target DOM Element to output solution into
+     */
     public async genCryptanalysisSolution(target: JQuery<HTMLElement>) {
 
-
         //determine keyword length
-
-        //first we need to determine the keyword length to help us break open the cipher
-        //since we don't know the keyword initially, we must guess what the keyword is, and then see if that guess makes sense
-        //with the resulting numbers
-
-
-        //use this increment button to choose our initial guess how many letters are in the keyword
-
-        //notice that each letter of our guess keyword is "K1, K2, etc."
-
-        //with our keyword length guess, we can follow each keyword letter through the entire ciphertext. 
-        //the respective numbers should only have a maximum of 5 
-
-        //for example, let's follow 'K1', the first letter in our potential keyword guess.
-
-        //we can see that there are _ times that K1 appears in the text. we can look at each of the respective 
-
-        //ciphertext numbers' ones digits
-
-        //if our guess of the keyword length was right, then the 'ones' digits should never be more than 5 different digits
-
-
-
-        //To think about it more,
-
-        //
-
-
-        //the following table shows the 
-
-        //if there are 6 or more X's in a row, then this keyword length cannot be right
-
-
-        //we can see that the keyword length of _X_ works best
-
-        //though if 
-
-
-
-
-        //we're given only the sequence of ciphertext numbers, and need to determine the plaintext.
-
+        const kwLength = this.cleanKeyword.length
 
         const result = $('<div/>', { id: 'solution' });
         target.append(result);
 
-        result.append($('<div/>', { class: 'callout secondary' }).text("Step 1: Determine keyword length"));
+        await this.genCryptanalysisStep1(result, kwLength)
+        if (await this.restartCheck()) { return }
 
-        result.append("Finding the keyword length is the first step to cracking this cipher. Since we don't know any information")
-            .append(" about the keyword, we start by guessing how long the keyword is, and then checking if our guess was right.")
-            .append('Use the increment button to choose a guess to continue with.')
+        this.attachHandlers();
 
+        let solverData = await this.genCryptanalysisStep2(result, kwLength)
+        if (await this.restartCheck()) { return }
+
+        await this.genCryptanalysisStep3(result, solverData)
+        if (await this.restartCheck()) { return }
+
+        await this.genCryptanalysisStep4(result, solverData)
+        if (await this.restartCheck()) { return }
+    }
+    /**
+     * Cryptanalysis Step 1: Determine the Keyword Length
+     * @param target DOM element to put output into
+     * @param kwLength Length of the known keyword
+     */
+    public genCryptanalysisStep1(target: JQuery<HTMLElement>, kwLength: number) {
+        this.showStep(target, "Step 1: Determine keyword length");
+
+        this.showStepText(target, `Finding the keyword length is the first step to cracking this cipher. Since we don't know any information
+        about the keyword, we start by guessing how long the keyword is, and then checking if our guess was right.
+        Use the increment button to choose a guess to continue with.`)
 
         const inputbox2 = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
         inputbox2.append(JTFIncButton('Keyword Length Guess', 'solverkeylength', this.state.solverKeyLength, ''));
-        result.append(inputbox2);
+        target.append(inputbox2);
 
-        result.append("Now we can line our unknown keyword across the ciphertext.")
+        this.showStepText(target, "Now we can line our unknown keyword across the ciphertext.")
 
         let encoded = this.cleanString(this.state.cipherString);
 
-        result.append(this.buildSolverNihilist(encoded, this.state.solverKeyLength.toString(), 'unknownkey'))
+        target.append(this.buildSolverNihilist(encoded, this.state.solverKeyLength.toString(), 'unknownkey'))
 
-        result.append($('<div/>', { class: 'callout primary small' }).append(
-            "Notice that we are not guessing the actual keyword yet, just the length, so each letter is unknown and represented with K1, K2, K3...")
-        )
+        this.showSolvingNote(target, "Notice that we are not guessing the actual keyword yet, just the length, so each letter is unknown and represented with K1, K2, K3...");
 
-        result.append(
-            "To continue, we can follow each keyword letter through the entire ciphertext and track the ones digit associated with each number.")
+        this.showStepText(target,
+            `To continue, we can follow each keyword letter through the entire ciphertext and track the numbers associated with each. Specifically, we are looking for the ones digit.
+            Let's follow K1, the first letter, through the entire ciphertext.`)
 
-            .append("Let's follow K1, the first letter, through the entire ciphertext, tracking its one digit in a table.")
-
-        result.append(this.buildSolverNihilist(encoded, this.state.solverKeyLength.toString(), 'k1example'))
-
+        target.append(this.buildSolverNihilist(encoded, this.state.solverKeyLength.toString(), 'k1example'))
 
         let dynamicArray = this.buildCountArray(this.state.solverKeyLength, true);
 
-        result.append($('<div/>', { class: 'center' }).append(
+        target.append($('<div/>', { class: 'center' }).append(
             "Ones Digit Count Table for Letter K1")
         )
 
         //we can see that there are _X_ X's in the above table, showing the appearances of the ones digits for K1
 
-        let k1Table = this.buildCountTable([dynamicArray[0]], true).generate();
-        result.append(k1Table);
+        this.showCountTable(target, dynamicArray, true)
 
-        result.append("The above table shows all the ones digits found at the K1 locations in the ciphertext.")
-            .append(" If we find that the smallest ones digit is more than 5 spaces away from the largest ones digit, then our keyword length guess must be wrong.")
+        this.showStepText(target, `The above table shows all the ones digits found at the K1 locations in the ciphertext.
+             If we find that the smallest ones digit is more than 5 spaces away from the largest ones digit, then our keyword length guess must be wrong.`)
 
-        result.append($('<div/>', { class: 'callout primary small' }).append(
-            "To think more about this, ")
-        )
+        this.showSolvingNote(target, "To think more about this, ")
 
-
-        result.append("We can construct a full count table to show the digits for every letter K1, K2, K3...")
-            .append(" If any of the rows do not follow the 5-space rule, then we know the corresponding keyword length guess is wrong.")
+        this.showStepText(target, `We can construct a full count table to show the digits for every letter K1, K2, K3...
+             If any of the rows do not follow the 5-space rule, then we know the corresponding keyword length guess is wrong.`)
 
 
-        let dynamicTable = this.buildCountTable(dynamicArray, false).generate();
-        result.append(dynamicTable);
+        this.showCountTable(target, dynamicArray, false)
 
-
-        result.append("If we look through all the tables for different keyword lengths (using the increment button), ")
-            .append("we see that the keyword length of " + this.cleanKeyword.length + " does not break the 5-space rule. This is likely our keyword length, so we'll continue with a length of " + this.cleanKeyword.length)
-
-
-        result.append($('<div/>', { class: 'callout secondary' }).text("Step 2: Find keyword letter mappings"));
-
-        result.append("We have determined that the keyword has a length of " + this.cleanKeyword.length + " - here is its ones digit count table.")
-
-        let continueArray = this.buildCountArray(this.cleanKeyword.length, true);
-        let continueTable = this.buildCountTable(continueArray, false).generate();
-        result.append(continueTable);
-
-        const onesMappings = this.findKeywordMappings(continueArray);
-
-        result.append("Since numbers generated from a polybius table can only end in the digits 1-5, we can analyze the count table to find specific mapping possibilities for each keyword letter.")
-            .append("To do this, look at each keyword letter (row), and think about what number, if added to numbers 1-5, could generate the resulting row.")
-
-        result.append($('<div/>', { class: 'callout primary small' }).append(
-            "A more concrete 'formula' would be  <i>[Largest Seen Digit] - 5 <= Possible Mappings < [Smallest Seen Digit]</i>")
-        )
-
-        result.append("This gives us the possible ones digits for the keyword letters. Now we can do the same with the tens digit - here is the tens digit table.")
-
-        let tensArray = this.buildCountArray(this.cleanKeyword.length, false);
-        let tensTable = this.buildCountTable(tensArray, false).generate();
-        result.append(tensTable);
-
-        const tensMappings = this.findKeywordMappings(tensArray);
-
-        result.append("Putting the tens and ones digit possibilities together, we can determine the possible mappings for each keyword letter.")
-
-
-        let possibleKeywordMappings = this.buildPossibleKeywordMappings(tensMappings, onesMappings);
-
-        result.append(possibleKeywordMappings)
-
-        result.append($('<div/>', { class: 'callout secondary' }).text("Step 3: Utilize crib to fill in polybius square"));
-
-        result.append("Using the determined keyword mappings, fill in the keyword letters (K1, K2...) with the correct mappings, leaving a '?' if there is more than one possibility.")
-
-        result.append(" Subtract the keyword mapping numbers from the original ciphertext numbers, giving us our answer (or plaintext) numbers.")
-
-        let concretes = []
-        let bigTable = this.buildSolverCrib(tensMappings, onesMappings, concretes);
-
-        result.append(bigTable);
-
-        result.append("Now we can align the crib with the answer numbers to fill in the polybius table. The below table shows all the locations we are certain about")
-
-
-        let barePolyTable = this.buildPolybiusTable(true, concretes.join("")).generate()
-
-        result.append(barePolyTable);
-
-
-        let map = this.createSolverNumToLettersMap(concretes);
-
-
-        let newConcretes = []
-
-        let keys = Array.from(map.keys());
-
-        for (let rowcol of keys) {
-            let subs = map.get(rowcol)
-            if (subs.length === 1) {
-                newConcretes.push(subs[0])
+        this.showStepText(target, `If we look through all the tables for different keyword lengths (using the increment button), 
+        we see that the keyword length of ${kwLength} does not break the 5-space rule. This is likely our keyword length, so we'll continue with a length of ${kwLength}`)
+    }
+    /**
+     * Cryptanalysys Step 2: Find the keyword letter mappings
+     * @param target DOM element to put output into
+     * @param kwLength Length of the known keyword
+     */
+    public genCryptanalysisStep2(target: JQuery<HTMLElement>, kwLength: number): NihilistSolverData {
+        const solverData: NihilistSolverData = {
+            tens: [], ones: [], keyword: this.cleanKeyword,
+            polybius: new Map<string, string[]>(),
+            charMap: new Map<string, string[]>(),
+            kwAnnotations: new Map<string, string[]>(),
+            kwKnown: makeFilledArray(this.cleanKeyword.length, 'none'),
+            warned: false
+        }
+        for (let tens of ["1", "2", "3", "4", "5"]) {
+            for (let ones of ["1", "2", "3", "4", "5"]) {
+                solverData.polybius.set(tens + ones, this.charset.replace('J', '').split(""))
             }
         }
+        this.updateCharMap(solverData)
 
-        result.append("Finally, knowing that the polybius table is alphabetical can help us uncover even more polybius cells. The auto-solver has filled in additional letters, if possible.")
+        this.showStep(target, "Step 2: Find keyword letter mappings");
 
-        let moreFilledPolyTable = this.buildPolybiusTable(true, newConcretes.join("")).generate()
+        this.showStepText(target, `We have determined that the keyword has a length of ${kwLength} - here is its ones digit count table.`)
 
-        result.append(moreFilledPolyTable);
+        let continueArray = this.buildCountArray(kwLength, true);
+        this.showCountTable(target, continueArray, false)
 
-        result.append($('<div/>', { class: 'callout primary small' }).append(
-            "For example, if a sequence on the polybius table was T _ _ W, we know the middle two blanks must be U and V. If the sequence was T _ W, we know the middle blank must be U or V")
-        )
+        solverData.ones = this.findKeywordMappings(continueArray);
 
-        result.append("Using these techniques helps us narrow down the possibilities for our keyword letters. Below is all possible keyword letters determined")
+        this.showStepText(target, `Since numbers generated from a polybius table can only end in the digits 1-5, we can analyze the count table to find specific mapping possibilities for each keyword letter.
+            To do this, look at each keyword letter (row), and think about what number, if added to numbers 1-5, could generate the resulting row.`)
 
-        let possibleKeywordTable = this.buildPotentialKeyword(tensMappings, onesMappings, map)
+        this.showSolvingNote(target, "A more concrete 'formula' would be  <i>[Largest Seen Digit] - 5 <= Possible Mappings < [Smallest Seen Digit]</i>")
 
-        result.append(possibleKeywordTable);
+        this.showStepText(target, "This gives us the possible ones digits for the keyword letters. Now we can do the same with the tens digit - here is the tens digit table.")
 
-        result.append("Hopefully, the problem is structured in a way where there is enough information to determine the exact keyword " + this.cleanKeyword.toUpperCase())
+        let tensArray = this.buildCountArray(kwLength, false);
+        this.showCountTable(target, tensArray, false)
 
+        solverData.tens = this.findKeywordMappings(tensArray);
 
+        this.showStepText(target, "Putting the tens and ones digit possibilities together, we can determine the possible mappings for each keyword letter.")
 
-        result.append("<br>With the keyword known, the entire plaintext numbers should be revealed, which should give you enough information to deduce the rest of the answer.")
+        this.showPossibleKeywordMappings(target, solverData, false);
 
+        this.updateCharMap(solverData)
 
-        //if we look through all the tables for different keyword lengths (using the increment button), we see that the keyword length of 
-        //_X_ does not have 6 X's in any of the rows
+        return solverData
+    }
+    /**
+     * Cryptanalysys Step 3:
+     * @param target DOM element to put output into
+     * @param kwLength Length of the known keyword
+     */
+    public async genCryptanalysisStep3(target: JQuery<HTMLElement>, solverData: NihilistSolverData) {
+        this.showStep(target, "Step 3: Utilize crib to fill in polybius square");
 
-        // The keyword is repeated across the entire plaintext, so we can. Since . If we are right in our guess of the keyword length, 
-        // then every 3rd plaintext number has the same corresponding keyword number associated with it. This means that every 3rd ciphertext number
-        // can only have maximum 5 different values. If we find that there is more than 5 diffferent values, then we can rule out that keyword length.
-        // A good range to test keyword lengths is keyword lengths 3 4 5 6. Let's try keyword length 3. 
+        this.showStepText(target, `Using the determined keyword mappings, fill in the keyword letters (K1, K2...) with the correct mappings, leaving a '?' if there is more than one possibility.
+         Subtract the keyword mapping numbers from the original ciphertext numbers, giving us our answer (or plaintext) numbers.`)
 
+        this.showCurrentSolution(target, solverData, false);
 
-        return result;
+        this.showStepText(target, "Now we can align the crib with the answer numbers to fill in the polybius table. The below table shows all the locations we are certain about")
+
+        this.showPolybiusTable(target, true, this.getKnownPolybius(solverData), solverData)
+        this.updateCharMap(solverData)
+
+        this.showStepText(target, "Knowing that the polybius table is alphabetical can help us uncover even more polybius cells.")
+
+        const filled = this.fillLetterGaps(target, solverData);
+
+        if (filled) {
+            this.showSolvingNote(target, `For example, if a sequence on the polybius table was T _ _ W, we know the middle two blanks must be U and V. If the sequence was T _ W, we know the middle blank must be U or V`)
+
+            this.showPolybiusTable(target, true, this.getKnownPolybius(solverData), solverData)
+        }
+
+        this.showStepText(target, "Using these techniques helps us narrow down the possibilities for our keyword letters. Below is a table of all possible keyword letters determined")
+
+        this.showCurrentSolution(target, solverData)
+
+        const kwPossibilities = this.getKeywordPossibilities(solverData)
+
+        if (await this.restartCheck()) { return }
+
+        this.showPotentialKeywords(target, kwPossibilities);
+        if (await this.restartCheck()) { return }
+
+        const kwChoices = this.getKeywordChoices(kwPossibilities, this.state.curlang)
+        if (kwChoices === 1) {
+            this.showSolvingNote(target, `Since the only possible keyword which matches that is ${solverData.keyword} we can fill that in`)
+        } else {
+            solverData.warned = true
+            this.state.autoSolverScore = AUTOSOLVER_NOKEYWORD
+
+            this.setErrorMsg(`Auto-Solver is unable to determine the keyword given the Crib Text.  Consider a longer or different Crib.`, 'si',);
+
+            let x = `${kwChoices} which possibly match`
+            if (kwChoices > 10) {
+                x = `too many possible matches to count`
+            }
+            this.showSolvingNote(target, `Hopefully, the problem is structured in a way where there is enough information to determine the exact keyword '${solverData.keyword}'.
+            However, right now we see ${x}.
+            <br>With the keyword known, the entire plaintext numbers should be revealed, which should give you enough information to deduce the rest of the answer.`)
+        }
+    }
+    /**
+     * Cryptanalysys Step 4: Work back from the keyword
+     * @param target DOM element to put output into
+     * @param kwLength Length of the known keyword
+     */
+    public genCryptanalysisStep4(target: JQuery<HTMLElement>, solverData: NihilistSolverData) {
+        this.showStep(target, "Step 4: Work back from the keyword");
+
+        target.append(`<p>Now that we know the keyword to be ${solverData.keyword} corresponding to K1-K${solverData.keyword.length} we need to find out where in the polybius table the individual letters fit</p>`)
+
+        this.eliminateKWConflicts(target, solverData)
+        this.updateCharMap(solverData)
+
+        this.fillMatchedKeywordChars(target, solverData)
+
+        this.showPolybiusTable(target, true, this.getKnownPolybius(solverData), solverData)
+
+        const changed = this.fillLetterGaps(target, solverData);
+
+        if (changed > 0) {
+            this.showPolybiusTable(target, true, this.getKnownPolybius(solverData), solverData)
+        }
+        const autoSolverScore = this.showCurrentSolution(target, solverData)
+
+        // See if they were able to know where all the letters of the crib were found
+        let knownKw = true
+        for (let x of solverData.kwKnown) {
+            if (x !== 'all') {
+                knownKw = false
+            }
+        }
+        if (!knownKw && !solverData.warned) {
+            solverData.warned = true
+            this.state.autoSolverScore = AUTOSOLVER_NOKEYPOS
+            this.setErrorMsg(`Auto-Solver is unable to determine the location of all keyword letters in the Polybius square.  Consider a longer or different Crib.`, 'si');
+        }
+
+        if (!solverData.warned) {
+            this.state.autoSolverScore = autoSolverScore
+            if (autoSolverScore > 1.25 && !solverData.warned) {
+                solverData.warned = true
+                this.setErrorMsg(`Auto-Solver is unable to figure out enough letters for the problem to be readily solved.  Consider a longer or different Crib.`, 'si')
+            }
+        }
+    }
+    /**
+     * 
+     * @param result 
+     * @param text 
+     */
+    private showSolvingNote(result: JQuery<HTMLElement>, text: string) {
+        result.append($('<div/>', { class: 'callout primary small' }).append(text)
+        );
+    }
+
+    /**
+     * Show the current step as a callout
+     * @param target Place to output the step
+     * @param text Text of the step number
+     */
+    public showStep(target: JQuery<HTMLElement>, text: string): void {
+        target.append(makeCallout(text, 'secondary'))
+    }
+    /**
+     * Show the current step as a callout
+     * @param target Place to output the note
+     * @param text Text of the step number
+     */
+    public showStepText(target: JQuery<HTMLElement>, text: string): void {
+        target.append($('<p/>').append(text))
     }
 
     /**

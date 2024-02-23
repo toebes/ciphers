@@ -299,6 +299,11 @@ class CompleteColumnarSolver extends CipherEncoder {
                 // bad crib
                 const errorMessage = `WARNING: The crib is not adequate to compute a solution for ${this.columnsToAnalyze[columnToAnalyze]} columns.`;
                 this.cipherCompleteColumnarEncoder.setErrorMsg(errorMessage, 'badcols', null);
+                let mmm = `This crib does not produce any combinations to try.`;
+                if (solutionCombos !== undefined) {
+                    mmm = `This crib produces too many combinations (${solutionCombos.length}) of column ordering.  Please adjust the crib.`;
+                }
+                details.append($('<p>').append($('<span>').addClass('bademail').text(mmm)));
                 continue;
             } else {
                 this.cipherCompleteColumnarEncoder.setErrorMsg('', 'badcols', null);

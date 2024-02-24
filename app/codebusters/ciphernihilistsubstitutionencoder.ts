@@ -965,18 +965,22 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         solverData.polybius.set(setSlot, [char])
         solverData.charMap.set(char, [setSlot])
         // Check to see if we updated one of the keywords and adjust the annotation data for it
-        const kpos = solverData.keyword.indexOf(char)
-        if (kpos >= 0) {
-            // Check to see if we are updating any of the known keyword characters
-            const filterc = `K${kpos + 1}`
-            solverData.kwKnown[kpos] = 'all'
-            solverData.kwAnnotations.forEach((value: string[], index: string) => {
-                const newvalue = value.filter(x => (x !== filterc && x !== filterc + '?'))
-                if (newvalue.length !== value.length) {
-                    solverData.kwAnnotations.set(index, newvalue)
+        if (solverData.keyword.includes(char)) {
+            // Remember that the letter might be repeated, so we have to catch all instances
+            for (let kpos = 0; kpos < solverData.keyword.length; kpos++) {
+                if (solverData.keyword.charAt(kpos) === char) {
+                    // Check to see if we are updating any of the known keyword characters
+                    const filterc = `K${kpos + 1}`
+                    solverData.kwKnown[kpos] = 'all'
+                    solverData.kwAnnotations.forEach((value: string[], index: string) => {
+                        const newvalue = value.filter(x => (x !== filterc && x !== filterc + '?'))
+                        if (newvalue.length !== value.length) {
+                            solverData.kwAnnotations.set(index, newvalue)
+                        }
+                    })
+                    this.addToPolybiusMap(solverData.kwAnnotations, setSlot, filterc)
                 }
-            })
-            this.addToPolybiusMap(solverData.kwAnnotations, setSlot, filterc)
+            }
         }
     }
     /**

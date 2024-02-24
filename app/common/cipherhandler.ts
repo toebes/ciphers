@@ -1742,13 +1742,38 @@ export class CipherHandler {
         return differences;
     }
     /**
+     * Minimize a string respecting any accents
+     * @param str String to clean up
+     * @returns String with all language characters replaced
+     */
+    public minimizeLangString(str: string): string {
+        const charset = this.getCharset();
+        const langreplace = this.langreplace[this.state.curlang];
+        let result: string = ""
+
+        // Now go through the string to encode and compute the character
+        // to map and mark it as being used
+        for (let t of str.toUpperCase()) {
+            // See if the character needs to be mapped.
+            if (typeof langreplace[t] !== 'undefined') {
+                t = langreplace[t];
+            }
+            // Make sure that this is a valid character to map from
+            const pos = charset.indexOf(t);
+            if (pos >= 0) {
+                result += t
+            }
+        }
+        return result;
+    }
+    /**
      * Analyzes a quote determining all the statistics we need about it
      * @param quote 
      * @returns QuoteRecord with the statistics filled in
      */
     public analyzeQuote(quote: string): QuoteRecord {
         const cleanquote = this.cleanString(quote);
-        const minquote = this.minimizeString(cleanquote);
+        const minquote = this.minimizeLangString(cleanquote);
         const mina = minquote.split('').filter((x, i, a) => a.indexOf(x) === i);
 
         return {

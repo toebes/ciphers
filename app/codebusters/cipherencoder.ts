@@ -71,7 +71,7 @@ export class CipherEncoder extends CipherHandler {
      */
     public editor: { [key: string]: CKInlineEditor } = {};
     public cipherName = 'Unknown';
-    public uniquePatterns: { [index: number]: string } = {}
+    public uniquePattern = this.makeUniquePattern("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1);
 
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
@@ -1194,11 +1194,61 @@ export class CipherEncoder extends CipherHandler {
     public suggestLenKey(lower: number = 3, upper: number = 7): void {
         // We need to load up the language dictionary before starting everything
         this.loadLanguageDictionary('en').then((res) => {
-            for (let len = lower; len <= upper; len++) {
-                this.uniquePatterns[len] = this.makeUniquePattern("ABCDEFGHIJKLMNOP".substring(0, len), 1)
-            }
             this.suggestKeyBase()
         });
+    }
+    /**
+      * Find words with all unique letters in a given range of length
+      * @param kwcount Number of keywords to find (broken into groups by keyword length)
+      * @param lower Lower limit on length of keywords
+      * @param upper Upper limit on length of keywords
+      * @param action Callback function when a keyword is found
+      * @returns Total number of keywords found
+      */
+    public searchForUniqueKeywords(kwcount: number, lower: number = 3, upper: number = 7, action: (count: number, keyword: string) => boolean): number {
+        const lang = 'en';
+        const groupsize = kwcount / (upper - lower + 1)
+
+        // For Division A and B we use even less of the words than for Division C
+        // in order to get language appropriate choices
+        let testUsage = this.getTestUsage();
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+        let range = 1.0
+        if (usedOnA) {
+            range *= .25
+        } else if (usedOnB) {
+            range *= .5
+        }
+
+        // Keep track of how many entries we find to present so that we don't put more than requested on the dialog
+        let found = 0
+
+        // Set some upper limits for the words we pick because a lot of them aren't very common
+        // These numbers are gotten by reading through the keywords in the English list
+        const maxSlots = [0, 0, 0, 600, 1400, 2000, 2800, 2400, 2400, 0]
+        // Find words of all the lengths that they ask for
+        for (let len = lower; len <= upper; len++) {
+            const pat = this.uniquePattern.substring(0, len)
+            const patSet = this.Frequent[lang][pat]
+            let limit = Math.min(maxSlots[len], patSet.length)
+            const maxWord = Math.trunc(limit * range)
+            const picked: BoolMap = {}
+            const foundlimit = Math.round(kwcount * ((len + 1 - lower) / (upper + 1 - lower)))
+
+            // We want to get at least 4 choices from each of the length ranges
+            for (let pass = 0; pass < 20 && found < foundlimit;) {
+                const slot = Math.trunc(maxWord * Math.random())
+                const choice = patSet[slot][0]
+                // Make sure we didn't get this one before (i.e. same random number)
+                if (picked[choice] !== true) {
+                    picked[choice] = true
+                    if (action(found, choice)) {
+                        found++
+                    }
+                }
+            }
+        } return found
     }
     /*
      * Populate the dialog with a set of keyword suggestions. 
@@ -1207,7 +1257,9 @@ export class CipherEncoder extends CipherHandler {
      * @param lower Shortest word to generate
      * @param upper Longest word to generate
      */
-    public populateLenKeySuggestions(genbtnid: string = "genbtn", resultid: string = 'suggestKeyopts', lower: number = 3, upper: number = 7): void {
+    public populateLenKeySuggestions(genbtnid: string = "genbtn", resultid: string = 'suggestKeyopts', kwcount: number, lower: number = 3, upper: number = 7,): void {
+        this.uniquePattern = this.makeUniquePattern("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1)
+
         $(`#${genbtnid}`).text('Regenerate')
         let result = $(`#${resultid}`)
         const lang = 'en'
@@ -1224,41 +1276,21 @@ export class CipherEncoder extends CipherHandler {
             range *= .5
         }
         result.empty()
-
-        // Set some upper limits for the words we pick because a lot of them aren't very common
-        // These numbers are gotten by reading through the keywords in the English list
-        const maxSlots = [0, 0, 0, 600, 1400, 2000, 2800, 2400, 0]
-        // We will alternate putting words in the left/right spot of the grid
         const divAll = $("<div/>", { class: 'grid-x' })
-        const cellLeft = $('<div/>', { class: 'cell auto' })
-        const cellRight = $('<div/>', { class: 'cell auto' })
-        divAll.append(cellLeft).append(cellRight)
-        result.append(divAll)
-        // Find words of all the lengths that they ask for
-        for (let len = lower; len <= upper; len++) {
-            const pat = this.uniquePatterns[len]
-            const patSet = this.Frequent[lang][pat]
-            let limit = Math.min(maxSlots[len], patSet.length)
-            const maxWord = Math.trunc(limit * range)
-            const picked: BoolMap = {}
-
-            // We want to get at least 4 choices from each of the length ranges
-            for (let count = 0; count < 4;) {
-                const slot = Math.trunc(maxWord * Math.random())
-                const choice = patSet[slot][0]
-                // Make sure we didn't get this one before (i.e. same random number)
-                if (picked[choice] !== true) {
-                    picked[choice] = true
-                    const useDiv = this.genUseKey(choice)
-                    if (count % 2 === 0) {
-                        cellLeft.append(useDiv)
-                    } else {
-                        cellRight.append(useDiv)
-                    }
-                    count++
-                }
-            }
+        const cells: JQuery<HTMLElement>[] = []
+        for (let cellCount = 0; cellCount < 2; cellCount++) {
+            const cell = $('<div/>', { class: 'cell auto' })
+            cells.push(cell)
+            divAll.append(cell)
         }
+        result.append(divAll)
+
+        this.searchForUniqueKeywords(kwcount, lower, upper,
+            (found: number, keyword: string): boolean => {
+                const useDiv = this.genUseKey(keyword)
+                cells[found % cells.length].append(useDiv)
+                return true
+            })
         this.attachHandlers()
     }
     /**
@@ -1322,7 +1354,7 @@ export class CipherEncoder extends CipherHandler {
         return found
     }
     /**
-     * Update the GUI with a list of suggestions
+     * Update the GUI with a list of suggestions for keywords of 8, 9, 10 and 11 unique letters
      * @param kwcount Number of keywords to find
      * @param action Callback function when a keyword is found
      * @returns Total number of keywords found
@@ -1571,14 +1603,14 @@ export class CipherEncoder extends CipherHandler {
      * @param key Keyword to add
      * @returns HTML containing a button to select the keyword and the keyword
      */
-    public genUseKey(key: string): JQuery<HTMLElement> {
+    public genUseKey(key: string, useclass = "keyset"): JQuery<HTMLElement> {
         if (key === undefined) {
             return $("<span/>")
         }
         let useButton = $("<a/>", {
             'data-key': key,
             type: "button",
-            class: "button rounded keyset abbuttons",
+            class: `button rounded ${useclass} abbuttons`,
         }).html('Use');
         let div = $("<div/>", { class: "kwchoice" })
         div.append(useButton)

@@ -2597,6 +2597,39 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         return result;
     }
     /**
+     * Update the GUI with a list of suggestions
+     */
+    public genKeywordSuggestions() {
+        let output = $("#keywordss");
+        const divAll = $("<div/>", { class: 'grid-x' })
+        const cellLeft = $('<div/>', { class: 'cell auto' })
+        const cellRight = $('<div/>', { class: 'cell auto' })
+        const cellMid = $('<div/>', { class: 'cell auto' })
+        divAll.append(cellLeft).append(cellMid).append(cellRight)
+        output.empty().append(divAll)
+        const cells = [cellLeft, cellMid]
+        // First we give them 8, 9, 10, and 11 unique letters
+        this.searchForKeywords(10, (found: number, keyword: string): boolean => {
+            const useDiv = this.genUseKey(keyword, "kwset")
+            cells[found % 2].append(useDiv)
+            return true;
+        })
+        // Then 6 and 7 letter words
+        this.searchForUniqueKeywords(10, 6, 7, (found: number, keyword: string): boolean => {
+            const useDiv = this.genUseKey(keyword, "kwset")
+            cells[found % 2].append(useDiv)
+            return true;
+        })
+        // Followed by keywords witn non unique letters
+        this.searchForNonUniqueKeywords(10, (_found: number, keyword: string): boolean => {
+            const useDiv = this.genUseKey(keyword, "kwset warning")
+            cellRight.append(useDiv)
+            return true;
+        })
+        this.attachHandlers()
+    }
+
+    /**
      * Set a keyword from the recommended set
      * @param elem Keyword button to be used
     */

@@ -420,32 +420,11 @@ export class CipherEncoder extends CipherHandler {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>');
         const strings = this.genTestStrings(testType);
-        let answerclass = 'TOANSWER'
         let extraclass = '';
         if (testType === ITestType.aregional) {
             extraclass = ' atest';
         }
 
-        if (this.state.operation === 'keyword') {
-            answerclass = 'TOANSWERK'
-
-            const keyanswer = this.state.keyword.toUpperCase();
-            let keytype = "Keyword";
-            if (this.minimizeString(keyanswer).length !== keyanswer.length) {
-                keytype = "Key Phrase"
-            }
-            // Don't put the answer text on the tiny answerkey
-            result.append(
-                $('<h3/>', { class: "notiny" }).text(keytype + " Answer:")
-            );
-            result.append(
-                $('<div/>', {
-                    class: 'TOANSWER' + extraclass,
-                }).text(keyanswer)
-            );
-            result.append($('<hr/>'));
-
-        }
         let tosolve = 0;
         let toanswer = 1;
         if (this.state.operation === 'encode') {
@@ -460,20 +439,9 @@ export class CipherEncoder extends CipherHandler {
             );
             result.append(
                 $('<div/>', {
-                    class: answerclass + extraclass,
+                    class: 'TOANSWER' + extraclass,
                 }).text(strset[toanswer])
             );
-        }
-        if (this.state.cipherType === ICipherType.Patristocrat) {
-            result.append(
-                $('<div/>', {
-                    class: 'origtext',
-                }).text(this.state.cipherString)
-            );
-        }
-        // Tapcode does not need a frequency table (and periods can not be raised to upper case).
-        if (this.state.cipherType !== ICipherType.TapCode) {
-            result.append(this.genFreqTable(true, this.state.encodeType, extraclass));
         }
         return result;
     }
@@ -489,34 +457,6 @@ export class CipherEncoder extends CipherHandler {
             extraclass = ' atest';
         }
 
-        // When doing a keyword, they need to put the answer in the boxes
-        if (this.state.operation === 'keyword') {
-            const keyanswer = this.state.keyword.toUpperCase();
-            let keytype = "Keyword";
-            if (this.minimizeString(keyanswer).length !== keyanswer.length) {
-                keytype = "Key Phrase"
-            }
-            result.append(
-                $('<p/>').append($("<b/>").text("Enter the " + keytype + " here"))
-
-            )
-            const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
-            const rowanswer = table.addBodyRow();
-
-            for (let i = 0; i < keyanswer.length; i++) {
-                const c = keyanswer.charAt(i);
-                if (this.isValidChar(c)) {
-                    rowanswer.add({
-                        settings: { class: 'e v' },
-                        content: '&nbsp;',
-                    });
-                } else {
-                    rowanswer.add(c);
-                }
-            }
-            result.append(table.generate());
-            result.append($('<p/>').append($("<b/>").text("Cipher:")))
-        }
         for (const strset of strings) {
             result.append(
                 $('<div/>', {
@@ -524,7 +464,6 @@ export class CipherEncoder extends CipherHandler {
                 }).text(strset[0])
             );
         }
-        result.append(this.genFreqTable(false, this.state.encodeType, extraclass));
         return result;
     }
     /**

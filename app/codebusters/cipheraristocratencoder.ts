@@ -1,5 +1,5 @@
 import { BoolMap, cloneObject } from "../common/ciphercommon";
-import { IOperationType, IState, ITestQuestionFields, ITestType, QuoteRecord, toolMode } from "../common/cipherhandler";
+import { IOperationType, IState, ITestQuestionFields, ITestType, toolMode } from "../common/cipherhandler";
 import { ICipherType } from "../common/ciphertypes";
 import { replaceInfo, findHomonyms } from "../common/homonyms";
 import { JTButtonItem } from "../common/jtbuttongroup";
@@ -7,6 +7,7 @@ import { JTFIncButton } from "../common/jtfIncButton";
 import { JTFDialog } from "../common/jtfdialog";
 import { JTFLabeledInput } from "../common/jtflabeledinput";
 import { JTRadioButton } from "../common/jtradiobutton";
+import { JTTable } from "../common/jttable";
 import { CipherEncoder, IEncoderState, suggestedData } from "./cipherencoder";
 
 export interface IAristocratState extends IEncoderState {
@@ -221,7 +222,61 @@ export class CipherAristocratEncoder extends CipherEncoder {
      * Generate the HTML to display the answer for a cipher
      */
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
-        let result = super.genAnswer(testType)
+        const result = $('<div/>');
+        const strings = this.genTestStrings(testType);
+        let answerclass = 'TOANSWER'
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            extraclass = ' atest';
+        }
+
+        if (this.state.operation === 'keyword') {
+            answerclass = 'TOANSWERK'
+
+            const keyanswer = this.state.keyword.toUpperCase();
+            let keytype = "Keyword";
+            if (this.minimizeString(keyanswer).length !== keyanswer.length) {
+                keytype = "Key Phrase"
+            }
+            // Don't put the answer text on the tiny answerkey
+            result.append(
+                $('<h3/>', { class: "notiny" }).text(keytype + " Answer:")
+            );
+            result.append(
+                $('<div/>', {
+                    class: 'TOANSWER' + extraclass,
+                }).text(keyanswer)
+            );
+            result.append($('<hr/>'));
+
+        }
+        let tosolve = 0;
+        let toanswer = 1;
+        if (this.state.operation === 'encode') {
+            tosolve = 1;
+            toanswer = 0;
+        }
+        for (const strset of strings) {
+            result.append(
+                $('<div/>', {
+                    class: 'TOSOLVE' + extraclass,
+                }).text(strset[tosolve])
+            );
+            result.append(
+                $('<div/>', {
+                    class: answerclass + extraclass,
+                }).text(strset[toanswer])
+            );
+        }
+        if (this.state.cipherType === ICipherType.Patristocrat) {
+            result.append(
+                $('<div/>', {
+                    class: 'origtext',
+                }).text(this.state.cipherString)
+            );
+        }
+        result.append(this.genFreqTable(true, this.state.encodeType, extraclass));
+
         // If this is a xenocrypt and they provided us a translation, display it
         if (
             this.state.curlang !== 'en' &&
@@ -236,6 +291,122 @@ export class CipherAristocratEncoder extends CipherEncoder {
             );
         }
         return result;
+    }
+    /**
+     * Generate the HTML to display the question for a cipher
+     * @param testType Type of test
+     */
+    public genQuestion(testType: ITestType): JQuery<HTMLElement> {
+        const result = $('<div/>');
+        const strings = this.genTestStrings(testType);
+        let extraclass = '';
+        if (testType === ITestType.aregional) {
+            extraclass = ' atest';
+        }
+
+        // When doing a keyword, they need to put the answer in the boxes
+        if (this.state.operation === 'keyword') {
+            const keyanswer = this.state.keyword.toUpperCase();
+            let keytype = "Keyword";
+            if (this.minimizeString(keyanswer).length !== keyanswer.length) {
+                keytype = "Key Phrase"
+            }
+            result.append(
+                $('<p/>').append($("<b/>").text("Enter the " + keytype + " here"))
+
+            )
+            const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });
+            const rowanswer = table.addBodyRow();
+
+            for (let i = 0; i < keyanswer.length; i++) {
+                const c = keyanswer.charAt(i);
+                if (this.isValidChar(c)) {
+                    rowanswer.add({
+                        settings: { class: 'e v' },
+                        content: '&nbsp;',
+                    });
+                } else {
+                    rowanswer.add(c);
+                }
+            }
+            result.append(table.generate());
+            result.append($('<p/>').append($("<b/>").text("Cipher:")))
+        }
+        for (const strset of strings) {
+            result.append(
+                $('<div/>', {
+                    class: 'TOSOLVEQ' + extraclass,
+                }).text(strset[0])
+            );
+        }
+        result.append(this.genFreqTable(false, this.state.encodeType, extraclass));
+        return result;
+    }
+    /**
+     * Creates an HTML table to display the frequency of characters for printing
+     * on the test and answer key
+     * showanswers controls whether we display the answers or just the key
+     * encodeType tells the type of encoding to print.  If it is 'random' then
+     * we leave it blank.
+     * @param showanswers Display the answers as part of the table
+     * @param encodeType The type of encoding (random/k1/k2)
+     * @param extraclass Extra class to add to the generated table
+     */
+    public genFreqTable(
+        showanswers: boolean,
+        encodeType: string,
+        extraclass: string
+    ): JQuery<HTMLElement> {
+        const table = new JTTable({
+            class: 'prfreq shrink cell unstriped' + extraclass,
+        });
+        const charset = this.getSourceCharset();
+        let replalphabet = this.state.replacement;
+        if (encodeType === 'random' || encodeType === undefined) {
+            encodeType = '';
+        } else if (encodeType === 'k2') {
+            replalphabet = {};
+            for (const c of charset.toUpperCase()) {
+                replalphabet[this.state.replacement[c]] = c;
+            }
+        }
+        // For a K2 cipher, the replacement row goes above the header row
+        let replrow;
+        if (encodeType === 'k2') {
+            replrow = table.addHeaderRow();
+        }
+        const headrow = table.addHeaderRow();
+        const freqrow = table.addBodyRow();
+        // For all other cipher types, the replacement row is below the frequency
+        if (encodeType !== 'k2') {
+            replrow = table.addBodyRow();
+        }
+
+        headrow.add({
+            settings: { class: 'topleft ' + encodeType },
+            content: encodeType.toUpperCase(),
+        });
+        freqrow.add({ celltype: 'th', content: 'Frequency' });
+        replrow.add({ celltype: 'th', content: 'Replacement' });
+
+        for (const c of charset.toUpperCase()) {
+            let repl = ''
+            let replClass = ''
+            if (showanswers) {
+                repl = replalphabet[c];
+                if (this.freq[repl] !== undefined && this.freq[repl] > 0) {
+                    replClass = "m"
+                }
+            }
+            headrow.add(c);
+            let freq = String(this.freq[c]);
+            if (freq === '0') {
+                freq = '';
+            }
+            freqrow.add(freq);
+            replrow.add({ celltype: 'td', settings: { class: replClass }, content: repl });
+        }
+        return table.generate();
     }
     /**
      * Update the question string (and validate if necessary)

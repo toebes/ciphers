@@ -1934,6 +1934,7 @@ table.baconian.cipherint td {
     padding: 0;
 }
 
+.prfreq .m,
 .hinted {
     background-color: lightgreen;
     font-weight: bold;

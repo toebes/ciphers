@@ -2024,68 +2024,6 @@ export class CipherHandler {
         return table.generate();
     }
     /**
-     * Creates an HTML table to display the frequency of characters for printing
-     * on the test and answer key
-     * showanswers controls whether we display the answers or just the key
-     * encodeType tells the type of encoding to print.  If it is 'random' then
-     * we leave it blank.
-     * @param showanswers Display the answers as part of the table
-     * @param encodeType The type of encoding (random/k1/k2)
-     * @param extraclass Extra class to add to the generated table
-     */
-    public genFreqTable(
-        showanswers: boolean,
-        encodeType: string,
-        extraclass: string
-    ): JQuery<HTMLElement> {
-        const table = new JTTable({
-            class: 'prfreq shrink cell unstriped' + extraclass,
-        });
-        const charset = this.getSourceCharset();
-        let replalphabet = this.state.replacement;
-        if (encodeType === 'random' || encodeType === undefined) {
-            encodeType = '';
-        } else if (encodeType === 'k2') {
-            replalphabet = {};
-            for (const c of charset.toUpperCase()) {
-                replalphabet[this.state.replacement[c]] = c;
-            }
-        }
-        // For a K2 cipher, the replacement row goes above the header row
-        let replrow;
-        if (encodeType === 'k2') {
-            replrow = table.addHeaderRow();
-        }
-        const headrow = table.addHeaderRow();
-        const freqrow = table.addBodyRow();
-        // For all other cipher types, the replacement row is below the frequency
-        if (encodeType !== 'k2') {
-            replrow = table.addBodyRow();
-        }
-
-        headrow.add({
-            settings: { class: 'topleft ' + encodeType },
-            content: encodeType.toUpperCase(),
-        });
-        freqrow.add({ celltype: 'th', content: 'Frequency' });
-        replrow.add({ celltype: 'th', content: 'Replacement' });
-
-        for (const c of charset.toUpperCase()) {
-            let repl = '';
-            if (showanswers) {
-                repl = replalphabet[c];
-            }
-            headrow.add(c);
-            let freq = String(this.freq[c]);
-            if (freq === '0') {
-                freq = '';
-            }
-            freqrow.add(freq);
-            replrow.add({ celltype: 'td', content: repl });
-        }
-        return table.generate();
-    }
-    /**
      * Determines if this generator is appropriate for a given test
      * type.  In the base class shared by everyone, everything is
      * appropriate.

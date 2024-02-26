@@ -1,12 +1,5 @@
-import { BoolMap, cloneObject, makeCallout, makeFilledArray } from '../common/ciphercommon';
-import {
-    IOperationType,
-    IState,
-    ITestType,
-    toolMode,
-    ITestQuestionFields,
-    IScoreInformation,
-} from '../common/cipherhandler';
+import { cloneObject, makeCallout, makeFilledArray } from '../common/ciphercommon';
+import { IOperationType, IState, ITestType, toolMode, ITestQuestionFields, IScoreInformation } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
@@ -376,7 +369,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         msg += '</p>';
         return msg;
     }
-
+    /**
+     * 
+     * @returns Suggested Score and description of that score
+     */
     public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
 
@@ -412,18 +408,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
 
         if (this.state.blocksize === 0) {
-            zeroBlockSizeText = ` The block size is 0. `
-            suggested -= 10;
+            zeroBlockSizeText = ` The block size is 0 so we subtract 25 points. `
+            suggested -= 25;
         }
 
         keywordLengthText = ` The key has length ${this.cleanKeyword.length}. `;
         // Add more  points for larger keywords...
         suggested += Math.round((10 * (this.cleanKeyword.length / 3)));
 
-        // if (this.cleanPolyKey.indexOf('Z') !== -1) {
-        //     zNotLastText = ` The letter 'Z' is not the last letter in the polybius square. `;
-        //     suggested += 10;
-        // }
+        if (this.cleanPolyKey.indexOf('Z') !== -1) {
+            zNotLastText = ` The letter 'Z' is not the last letter in the polybius square so we add 10 points. `;
+            suggested += 10;
+        }
 
         let range = 20;
         const min = Math.max(suggested - range, 0)
@@ -448,8 +444,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         return { suggested: suggested, min: min, max: max, text: scoringText }
     }
-
-
     /**
      * Cleans up any settings, range checking and normalizing any values.
      * This doesn't actually update the UI directly but ensures that all the

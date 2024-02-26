@@ -394,8 +394,8 @@ export class CipherAristocratEncoder extends CipherEncoder {
             let replClass = ''
             if (showanswers) {
                 repl = replalphabet[c];
-                if (this.freq[repl] !== undefined && this.freq[repl] > 0) {
-                    replClass = "m"
+                if (encodeType === 'k2' && this.freq[repl] !== undefined && this.freq[repl] > 0) {
+                    replClass = 'm'
                 }
             }
             headrow.add(c);

@@ -1,4 +1,4 @@
-import { cloneObject, makeCallout, makeFilledArray } from '../common/ciphercommon';
+import { calloutTypes, cloneObject, makeCallout, makeFilledArray } from '../common/ciphercommon';
 import { IOperationType, IState, ITestType, toolMode, ITestQuestionFields, IScoreInformation } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -395,7 +395,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             } else if (this.state.autoSolverScore === AUTOSOLVER_NOKEYPOS) {
                 operationText += ' But the Autosolver was not able to determine the keyword positions, so we add 250 points.'
                 suggested += 250
-            } else if (this.state.autoSolverScore > 1.25) {
+            } else if (this.state.autoSolverScore > 2.5 ||
+                (this.state.blocksize !== 0 && this.state.autoSolverScore > 1.25)
+            ) {
                 const add = Math.round((this.state.autoSolverScore - 1.25) * 100)
                 operationText += ` The Autosolver was not able to find enough words to make it solvable, so we add ${add} points.`
                 suggested += add
@@ -923,6 +925,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
             index--;
         }
+        this.updateCharMap(solverData)
         return found
     }
     /**
@@ -949,41 +952,98 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param spot Position for known character
      * @param char Character
      */
-    public setPolybiusKnown(solverData: NihilistSolverData, setSlot: string, char: string) {
+    public setPolybiusChoices(solverData: NihilistSolverData, choices: string[], char: string) {
         solverData.polybius.forEach((val: string[], slot: string) => {
-            if (slot !== setSlot && val.includes(char)) {
-                val = val.filter(v => v != char)
-                solverData.polybius.set(slot, val)
+            if (choices.includes(slot)) {
+                if (choices.length === 1) {
+                    solverData.polybius.set(slot, [char])
+                } else {
+                    if (!val.includes(char)) {
+                        solverData.polybius.set(slot, [...val, char])
+                    }
+                }
+            }
+            else {
+                if (val.includes(char)) {
+                    val = val.filter(v => v != char)
+                    solverData.polybius.set(slot, val)
+                }
             }
         })
-        solverData.polybius.set(setSlot, [char])
-        solverData.charMap.set(char, [setSlot])
+        this.updateCharMap(solverData)
+    }
+    /**
+     * Update the Polybius data for a known value
+     * @param solverData Current solver data state
+     * @param spot Position for known character
+     * @param char Character
+     */
+    public setPolybiusKnown(solverData: NihilistSolverData, setSlot: string, char: string) {
+        this.setPolybiusChoices(solverData, [setSlot], char)
+        // solverData.charMap.set(char, [setSlot])
         // Check to see if we updated one of the keywords and adjust the annotation data for it
         if (solverData.keyword.includes(char)) {
             // Remember that the letter might be repeated, so we have to catch all instances
             for (let kpos = 0; kpos < solverData.keyword.length; kpos++) {
+                // Check to see if we are updating any of the known keyword characters
                 if (solverData.keyword.charAt(kpos) === char) {
-                    // Check to see if we are updating any of the known keyword characters
-                    const filterc = `K${kpos + 1}`
-                    solverData.kwKnown[kpos] = 'all'
-                    solverData.kwAnnotations.forEach((value: string[], index: string) => {
-                        const newvalue = value.filter(x => (x !== filterc && x !== filterc + '?'))
-                        if (newvalue.length !== value.length) {
-                            solverData.kwAnnotations.set(index, newvalue)
-                        }
-                    })
-                    this.addToPolybiusMap(solverData.kwAnnotations, setSlot, filterc)
+                    this.setKWAnnotations(solverData, kpos, [setSlot])
                 }
             }
         }
     }
     /**
-     * 
+     * Set the known data for a keyword
+     * @param solverData Current solver data state
+     * @param kwindex Which keyword we are setting data for
+     * @param valid Array of known valid spots
+     */
+    public setKWAnnotations(solverData: NihilistSolverData, kwindex: number, valid: string[]): void {
+        if (valid === undefined || valid.length === 0) {
+            console.log(`setKWAnnotations: Bad valid setting for ${kwindex}`)
+            return;
+        }
+        const key = `K${kwindex + 1}`
+        let keySet = key
+        if (valid.length > 1) {
+            keySet += "?"
+        }
+        // Remove the keyword from the other spots in the map where it is not valid
+        solverData.kwAnnotations.forEach((choices: string[], index: string) => {
+            const newvalue = choices.filter(x => (x !== key && x !== (key + "?")))
+            if (newvalue.length !== choices.length) {
+                solverData.kwAnnotations.set(index, newvalue)
+            }
+        })
+        let tens = valid[0].substring(0, 1)
+        let ones = valid[0].substring(1, 2)
+        for (let spot of valid) {
+            this.addToPolybiusMap(solverData.kwAnnotations, spot, keySet)
+            if (spot.substring(0, 1) !== tens) {
+                tens = "?"
+            }
+            if (spot.substring(1, 2) !== ones) {
+                ones = "?"
+            }
+        }
+        let known: Known = 'all'
+        if (tens === '?') {
+            known = 'ones'
+            if (ones === '?') {
+                known = 'none'
+            }
+        } else if (ones === '?') {
+            known = 'tens'
+        }
+        solverData.kwKnown[kwindex] = known
+    }
+    /**
+     * Find how many keywords map to the current set of possibilities
      * @param possibilities 
      * @param lang 
      * @returns Number of keywords which were found
      */
-    public getKeywordChoices(possibilities: string[][], lang: string): number {
+    public countKeywordMatches(possibilities: string[][], lang: string): number {
         // Let's look
         let found = 0;
         let foundKeyword = false
@@ -1002,7 +1062,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
 
             if (valid) {
-                console.log(`Matches ${word}`)
+                // console.log(`Matches ${word}`)
                 if (word.toUpperCase() === this.cleanKeyword) {
                     foundKeyword = true
                 }
@@ -1400,12 +1460,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     // We have a cipher text character.
                     if (k >= cribStart && k < cribEnd) {
                         const ptC = plaintext[i]
-                        const x = solverData.charMap.get(ptC)
-                        if (x.length === 1 && solverData.kwKnown[kpos] !== 'all') {
-                            this.showStepText(target, `The Crib letter '${ptC} at position ${k} is already known to be ${x[0]}
-                            which we can subtract from ${ct} to reveal that K${kpos + 1} must be ${mappedKeyNumbers[i]}   `)
-                            solverData.kwKnown[kpos] = 'all'
-                        }
                     }
                     // Should we show the letters of the keyword (because it is known) or
                     // just K1, K2, ... indicating the position in the keyword
@@ -1445,11 +1499,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     // Is this a crib character that is known?
                     if (k >= cribStart && k < cribEnd) {
                         ptCharRow.add(plaintext[i]);
-                        if (known === 'all') {
-                            this.setPolybiusKnown(solverData, ptVal, plaintext[i])
-                            // Special case -- if we are setting a value that is also known to be
-                            // a keyword then we need to update the 
-                        }
                     } else {
                         // Not a given crib character, but have we already figured out
                         // what the mapping is for this Plain Text value?
@@ -1476,7 +1525,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                             score += 25
                         }
                     }
-
                     k++;
                 }
             }
@@ -1735,106 +1783,208 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
     }
     /**
-     * Eliminate all the values of Keywords that don't match what we already know
+     * Find everywhere a keyword index might map to
+     * @param solverData Current solver data state
+     * @param kPos Keyword entry to get
+     * @returns Array of all possible slots for the keyword index
+     */
+    public getKwChoices(solverData: NihilistSolverData, kPos: number): string[] {
+        const kwChoices: string[] = []
+        const kText = `K${kPos + 1}`
+
+        solverData.kwAnnotations.forEach((choices: string[], index: string) => {
+            if (choices.includes(kText) || choices.includes(kText + "?")) {
+                kwChoices.push(index)
+            }
+        })
+        return kwChoices
+    }
+    /**
+     * Fill in the known keyword values
      * @param target DOM element to put the output into
      * @param solverData Current solver data state (Updated)
      */
-    public eliminateKWConflicts(target: JQuery<HTMLElement>, solverData: NihilistSolverData): void {
-        let lineextra = ''
-        for (let k = 0; k < solverData.keyword.length; k++) {
-            const key = `K${k + 1}`
-            const c = solverData.keyword.charAt(k)
-            const valid: string[] = []
-            let count = 0
-            for (let tens of solverData.tens[k]) {
-                for (let ones of solverData.ones[k]) {
-                    count++
-                    const place = `${tens}${ones}`
-                    let mapValue = solverData.polybius.get(place);
-                    if (mapValue === undefined || mapValue.length === 0 || mapValue.includes(c)) {
-                        valid.push(place)
-                    } else {
-                        let extra = ''
-                        if (mapValue.length === 1) {
-                            extra = ` already maps to ${mapValue[0]}, therefore it`
-                        } else if (mapValue.length < 5) {
-                            extra = ` can only map to one of '${mapValue.join(',')}, therefore it`
-                        }
-                        target.append(`${lineextra}${place}${extra} can't be ${c}, so we can eliminate that as an option for ${key}.`)
-                    }
-                }
+    public fillKeyWord(target: JQuery<HTMLElement>, solverData: NihilistSolverData): boolean {
+        let changed = false
+        for (let kpos = 0; kpos < solverData.keyword.length; kpos++) {
+            const c = solverData.keyword.charAt(kpos)
+            const charChoices = solverData.charMap.get(c)
+            if (charChoices === undefined || charChoices.length === 0) {
+                console.log(`*** Something is wrong, no choices found for ${c}`)
+                continue;
             }
-            if (valid.length === 0) {
-                target.append(`${lineextra}****Something is wrong, we can't find anywhere to place ${key} '${c}'`)
-            } else if (valid.length === 1) {
-                let extra = ''
-                if (count > 1) {
-                    target.append(`${lineextra}By the process of elimination, ${key} '${c}' must be ${valid[0]}`)
-                } else {
-                    target.append(`${lineextra}${extra}${key} '${c}' was already known to be ${valid[0]}`)
+            // Figure out which of the charChoices aren't set
+            const charUnknown = charChoices.filter(x => solverData.polybius.get(x).length > 1)
+            const kText = `K${kpos + 1}`
+            const kwChoices: string[] = this.getKwChoices(solverData, kpos)
+            if (kwChoices.length === 1) {
+                // We knew where the keyword went, if we didn't know where the letter was, we can update it now
+                if (charChoices.length > 1) {
+                    this.showStepText(target, `Since we already knew that ${kText} was at ${kwChoices[0]}, we can now set ${kwChoices[0]} to be ${c}.`)
+                    this.setPolybiusKnown(solverData, kwChoices[0], c)
+                    changed = true
                 }
-                // Remove the keyword from the other spots in the map where it is not valid
-                solverData.kwAnnotations.forEach((choices: string[], index: string) => {
-                    const newvalue = choices.filter(x => (x !== key && x !== (key + "?")))
-                    if (newvalue.length !== choices.length) {
-                        solverData.kwAnnotations.set(index, newvalue)
-                    }
-                })
-                //                this.addToPolybiusMap(solverData.kwAnnotations, valid[0], key)
-                solverData.kwKnown[k] = 'all'
-                this.setPolybiusKnown(solverData, valid[0], c)
             } else {
-                target.append(`${lineextra}${key} '${c}' can be one of ${valid.join(', ')}`)
-                // Remove the keyword from the other spots in the map where it is not valid
-                solverData.kwAnnotations.forEach((choices: string[], index: string) => {
-                    const newvalue = choices.filter(x => (x !== key && x !== (key + "?")))
-                    if (newvalue.length !== choices.length) {
-                        solverData.kwAnnotations.set(index, newvalue)
+                // We had several choices for the keyword, filter it down by what matches the letter
+                const choices = kwChoices.filter(x => charChoices.includes(x))
+                if (choices.length === 0) {
+                    console.log(`*** Something went wrong, intersection for ${kText} '${c}' [${kwChoices.join(',')}] vs [${charChoices.join(',')}] `)
+                } else if (choices.length !== kwChoices.length) {
+                    if (choices.length === 1) {
+                        this.showStepText(target, `Since ${kText} must be one of '${kwChoices.join(',')}' and '${c}' must be one of '${charChoices.join(',')}', the intersection
+                        of the two sets leaves us with just '${choices[0]}.`)
+                    } else {
+                        this.showStepText(target, `Since ${kText} must be one of '${kwChoices.join(',')}' and '${c}' must be one of '${charChoices.join(',')}', the intersection
+                    of the two sets leaves us with '${choices.join(',')}.`)
                     }
-                })
-                let known: Known = 'all'
-                const firstTen = valid[0].substring(0, 1)
-                const firstOne = valid[0].substring(1)
-                solverData.polybius.forEach((val: string[], slot: string) => {
-                    if (val.includes(c) && !valid.includes(slot)) {
-                        val = val.filter(v => v != c)
-                        solverData.polybius.set(slot, val)
-                    }
-                })
-
-                for (let spot of valid) {
-
-                    this.addToPolybiusMap(solverData.kwAnnotations, spot, key + '?')
-                    const ten = spot.substring(0, 1)
-                    const one = spot.substring(1)
-
-                    if (ten !== firstTen) {
-                        if (known === 'all' || known === 'ones') {
-                            known = 'ones'
-                        } else {
-                            known = 'none'
-                        }
-                    }
-                    if (one !== firstOne) {
-                        if (known === 'all' || known === 'tens') {
-                            known = 'tens'
-                        } else {
-                            known = 'none'
-                        }
-                    }
-                    let entries = solverData.polybius.get(spot)
-                    if (entries === undefined) {
-                        entries = []
-                    }
-                    if (!entries.includes(c)) {
-                        entries.push(c)
-                        solverData.polybius.set(spot, entries)
-                    }
+                    this.setPolybiusChoices(solverData, choices, c)
+                    this.setKWAnnotations(solverData, kpos, choices)
                 }
-                solverData.kwKnown[k] = known
             }
-            lineextra = `<br/>`
+            // See if any of the unknown have become known
+            solverData.charMap.forEach((charChoices: string[], slotChar: string) => {
+                if (slotChar !== c && charChoices.length === 1 && charUnknown.includes(charChoices[0])) {
+                    this.showStepText(target, `Because of that, it also eliminated everything except '${charChoices[0]}' for ${slotChar}.`)
+                    this.setPolybiusKnown(solverData, charChoices[0], slotChar)
+                }
+            })
         }
+        return changed
+    }
+    /**
+     * See if any of the crib letters give us hints about the characters
+     * @param target DOM element to put the output into
+     * @param solverData Current solver data state (Updated)
+     */
+    public checkForCribHints(target: JQuery<HTMLElement>, solverData: NihilistSolverData): boolean {
+        let changed = false
+        const keywordLength = solverData.keyword.length
+        const sequencesets = this.sequencesets
+
+        //k is serving as a running count of valid characters. this is used for lining up the keyword. for example D O N ' T would map to K1 K2 K3 _ K4
+        let k = 0;
+
+        let cribStart = 0
+        let cribEnd = 0
+        let discovered = true
+        const cribpos = this.placeCrib();
+        if (cribpos !== undefined) {
+            cribStart = cribpos.position
+            cribEnd = cribStart + cribpos.criblen
+        }
+        while (discovered) {
+            discovered = false
+            for (const sequenceset of sequencesets) {
+                let ciphertextNumbers = sequenceset[0];
+                let mappedKeyNumbers = sequenceset[2];
+                let mappedPlaintextNumbers = sequenceset[3];
+                let plaintext = sequenceset[1];
+
+                for (const i in ciphertextNumbers) {
+                    let ct = ciphertextNumbers[i]
+                    //for first row, just append the unaltered ciphertext number
+                    if (isNaN(parseInt(ct)) || ct.length === 1) {
+                        continue;
+                    }
+                    const kpos = k % keywordLength
+                    const ktext = `K${kpos + 1}`
+                    const known = solverData.kwKnown[kpos]
+
+                    // We have a cipher text character.
+                    if (k >= cribStart && k < cribEnd) {
+                        const ptC = plaintext[i]
+                        const x = solverData.charMap.get(ptC)
+                        if (x !== undefined) {
+                            if (known === 'all') {
+                                // See if we don't already know the mapping for the letter
+                                if (x.length !== 1) {
+                                    this.showStepText(target,
+                                        ` Since we know the value of ${ktext} at position ${k} to already be ${mappedKeyNumbers[i]}
+                                     we can subtract that from ${ct} to reveal that ${ptC} must be ${mappedPlaintextNumbers[i]}.`)
+                                    this.setPolybiusKnown(solverData, mappedPlaintextNumbers[i], ptC)
+                                    discovered = true
+                                    changed = true
+                                }
+                            } else if (x.length === 1) {
+                                this.showStepText(target, `The Crib letter '${ptC} at position ${k} is already known to be ${x[0]}
+                            which we can subtract from ${ct} to reveal that ${ktext} must be ${mappedKeyNumbers[i]}`)
+                                solverData.kwKnown[kpos] = 'all'
+                                this.setKWAnnotations(solverData, kpos, [mappedKeyNumbers[i]])
+                                discovered = true
+                                changed = true
+                            } else {
+                                // See if we can eliminate any of the letters
+                                const tens = mappedPlaintextNumbers[i].substring(0, 1)
+                                const ones = mappedPlaintextNumbers[i].substring(1)
+                                if (known === 'ones' || known == 'tens') {
+                                    let result: string[] = []
+                                    let pos = 0
+                                    let matchC = tens
+                                    if (known === 'ones') {
+                                        pos = 1
+                                        matchC = ones
+                                    }
+                                    result = x.filter(x => x.charAt(pos) === matchC)
+                                    // If we have eliminated any options, we need to tell them
+                                    if (result.length !== x.length) {
+                                        changed = true
+                                        let prefix = `Because we know that the ${known} digit of ${ktext} at position ${k} is ${matchC} by subtraction from ${ciphertextNumbers[i]},
+                                    we can eliminate all the values for ${ptC} that don't have ${matchC} in the ${known} position.`
+                                        if (result.length === 1) {
+                                            // We eliminated all but one possibility, this is great!
+                                            this.showStepText(target, `${prefix} This leaves only ${result[0]} for the Crib letter '${ptC} at position ${k}.
+                                        By subtraction, this also tells us that ${ktext} must be ${mappedKeyNumbers[i]}`)
+                                            this.setPolybiusKnown(solverData, result[0], ptC)
+                                            this.setKWAnnotations(solverData, kpos, [mappedKeyNumbers[i]])
+                                            discovered = true
+                                        } else {
+                                            let kwChoices: string[] = []
+                                            for (const choice of result) {
+                                                const val = parseInt(ct) - parseInt(choice)
+                                                if (val >= 11 && val <= 55) {
+                                                    kwChoices.push(String(val))
+                                                }
+                                            }
+                                            this.showStepText(target, `${prefix} This leaves only '${result.join(', ')}' as potential values for ${ptC}
+                                            and '${kwChoices.join(', ')}' as potential values for ${ktext}`)
+                                            this.setPolybiusChoices(solverData, result, ptC)
+                                            this.setKWAnnotations(solverData, kpos, kwChoices)
+                                            // Eliminate
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    //For the PT value and the Keyword value, show as much of the number as has been
+                    // figured out already
+                    let keywordVal = '';
+                    let ptVal = '';
+
+                    // Mask the tens digit if it isn't known
+                    if (known === 'all' || known === 'tens') {
+                        keywordVal += Math.floor(parseInt(mappedKeyNumbers[i]) / 10)
+                        ptVal += Math.floor(parseInt(mappedPlaintextNumbers[i]) / 10)
+                    } else {
+                        keywordVal += '?'
+                        ptVal += '?'
+                    }
+
+                    // The same with the ones digit
+                    if (known === 'all' || known === 'ones') {
+                        keywordVal += parseInt(mappedKeyNumbers[i]) % 10
+                        ptVal += parseInt(mappedPlaintextNumbers[i]) % 10
+                    } else {
+                        keywordVal += '?'
+                        ptVal += '?'
+                    }
+                    k++;
+
+                }
+            }
+        }
+        return changed
     }
     /**
      * Show a table of all the possible mappings for a keyword.  Calculate the known status of the keyword letters
@@ -2457,6 +2607,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         this.showCurrentSolution(target, solverData, false);
 
+        this.checkForCribHints(target, solverData)
+
         this.showStepText(target, "Now we can align the crib with the answer numbers to fill in the polybius table. The below table shows all the locations we are certain about")
 
         this.showPolybiusTable(target, true, this.getKnownPolybius(solverData), solverData)
@@ -2468,13 +2620,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         if (filled) {
             this.showSolvingNote(target, `For example, if a sequence on the polybius table was T _ _ W, we know the middle two blanks must be U and V. If the sequence was T _ W, we know the middle blank must be U or V`)
-
-            this.showPolybiusTable(target, true, this.getKnownPolybius(solverData), solverData)
         }
+        this.showPolybiusTable(target, true, this.getKnownPolybius(solverData), solverData)
+
 
         this.showStepText(target, "Using these techniques helps us narrow down the possibilities for our keyword letters. Below is a table of all possible keyword letters determined")
-
-        this.showCurrentSolution(target, solverData)
 
         const kwPossibilities = this.getKeywordPossibilities(solverData)
 
@@ -2483,7 +2633,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.showPotentialKeywords(target, kwPossibilities);
         if (await this.restartCheck()) { return }
 
-        const kwChoices = this.getKeywordChoices(kwPossibilities, this.state.curlang)
+        const kwChoices = this.countKeywordMatches(kwPossibilities, this.state.curlang)
         if (kwChoices === 1) {
             this.showSolvingNote(target, `Since the only possible keyword which matches that is ${solverData.keyword} we can fill that in`)
         } else {
@@ -2498,7 +2648,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
             this.showSolvingNote(target, `Hopefully, the problem is structured in a way where there is enough information to determine the exact keyword '${solverData.keyword}'.
             However, right now we see ${x}.
-            <br>With the keyword known, the entire plaintext numbers should be revealed, which should give you enough information to deduce the rest of the answer.`)
+            <br>With the keyword known, the entire plaintext numbers should be revealed, which should give you enough information to deduce the rest of the answer.`, 'alert')
         }
     }
     /**
@@ -2511,7 +2661,22 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         target.append(`<p>Now that we know the keyword to be ${solverData.keyword} corresponding to K1-K${solverData.keyword.length} we need to find out where in the polybius table the individual letters fit</p>`)
 
-        this.eliminateKWConflicts(target, solverData)
+        // Now that we know the keyword, we can fill in the Polybius table and KW annotation
+        let updated = this.fillKeyWord(target, solverData)
+        this.updateCharMap(solverData)
+        if (this.fillLetterGaps(target, solverData) > 0) {
+            updated = true
+        }
+        if (this.checkForCribHints(target, solverData)) {
+            updated = true
+            this.fillKeyWord(target, solverData)
+        }
+        if (updated) {
+            this.showSolvingNote(target, `With those discoveries, our solution now looks like:`)
+            this.showPolybiusTable(target, true, this.getKnownPolybius(solverData), solverData)
+            this.showCurrentSolution(target, solverData)
+        }
+
         this.updateCharMap(solverData)
 
         this.fillMatchedKeywordChars(target, solverData)
@@ -2538,21 +2703,31 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             this.setErrorMsg(`Auto-Solver is unable to determine the location of all keyword letters in the Polybius square.  Consider a longer or different Crib.`, 'si');
         }
 
+        let showGood = true
         if (!solverData.warned) {
             this.state.autoSolverScore = autoSolverScore
-            if (autoSolverScore > 1.25 && !solverData.warned) {
+        }
+        if (autoSolverScore > 2.5 ||
+            (this.state.blocksize !== 0 && autoSolverScore > 1.25)) {
+            if (!solverData.warned) {
                 solverData.warned = true
                 this.setErrorMsg(`Auto-Solver is unable to figure out enough letters for the problem to be readily solved.  Consider a longer or different Crib.`, 'si')
             }
+            this.showSolvingNote(target, `There doesn't appear to be enough letters shown to be able to determine the remainder of the letters in the quote. [Autosolver score = ${autoSolverScore.toFixed(2)}]`, 'alert')
+            showGood = false
         }
+        if (showGood) {
+            this.showSolvingNote(target, `There appear to be enough letters revealed so that the remainder can be quickly determined. [Autosolver score = ${autoSolverScore.toFixed(2)}]`)
+        }
+
     }
     /**
      * 
      * @param result 
      * @param text 
      */
-    private showSolvingNote(result: JQuery<HTMLElement>, text: string) {
-        result.append($('<div/>', { class: 'callout primary small' }).append(text)
+    private showSolvingNote(result: JQuery<HTMLElement>, text: string, noteClass: calloutTypes = 'primary') {
+        result.append($('<div/>', { class: `callout ${noteClass} small` }).append(text)
         );
     }
 

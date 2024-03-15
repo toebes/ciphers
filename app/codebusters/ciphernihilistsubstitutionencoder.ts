@@ -369,6 +369,23 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         msg += '</p>';
         return msg;
     }
+
+    /**
+     * Generate UI components for display on "Answers and Solutions"
+     * @param testType the type of test being edited
+     * @returns JQuery html element detailing the solving steps
+     */
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
+        const result = $('<div/>');
+        result.append($('<h3/>').text('How to solve'));
+
+        this.isLoading = false;
+
+        this.genNihilistSolution(testType, result);
+
+        return result;
+    }
+
     /**
      * 
      * @returns Suggested Score and description of that score

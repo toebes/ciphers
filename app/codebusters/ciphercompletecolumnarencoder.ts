@@ -861,6 +861,20 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         this.attachHandlers();
     }
 
+    /**
+     * Generate UI components for display on "Answers and Solutions"
+     * @param testType the type of test being edited
+     * @returns JQuery html element detailing the solving steps
+     */
+    public genSolution(testType: ITestType): JQuery<HTMLElement> {
+        const result = $('<div/>');
+        this.isLoading = false;
+
+        this.genCompleteColumnarSolution(testType, result);
+
+        return result;
+    }
+
     setQuestionText(question: string): void {
         super.setQuestionText(question);
         this.validateQuestion();

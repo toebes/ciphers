@@ -100,7 +100,7 @@
         "jquery": "^3.6.0",
         "js-cookie": "^2.2.1",
         "jwt-decode": "^3.1.2",
-        "katex": "^0.13.11",
+        "katex": "^0.16.10",
         "npm-force-resolutions": "^0.0.10",
         "qr-code-generator": "github:toebes/QR-Code-generator",
         "sheetjs": "^2.0.0",

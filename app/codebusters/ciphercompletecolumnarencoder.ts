@@ -1038,6 +1038,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             .off('input')
             .on('input', (e) => {
                 const columnOrder = $(e.target).val() as string;
+                this.markUndo(null);
                 if (this.setColumnOrder(columnOrder)) {
                     this.updateOutput();
                 }
@@ -1055,6 +1056,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                 if (DEBUG) {
                     console.log('The crib text is ' + crib);
                 }
+                this.markUndo(null);
                 if (this.setCrib(crib)) {
                     this.updateOutput();
                 }
@@ -1070,6 +1072,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             .off('click')
             .on('click', (e) => {
                 const columnOrder = this.generateRandomColumnOrder();
+                this.markUndo(null);
                 if (this.setColumnOrder(columnOrder)) {
                     this.updateOutput();
                 }
@@ -1490,7 +1493,8 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                 console.log('Now processing =====>  Columns: ' + columnCount);
             }
 
-            let cribLocation = this.checkConsecutiveRowsForCrib(ccs, this.state.crib, rowLetters);
+            let cleanCrib = this.minimizeString(this.state.crib);
+            let cribLocation = this.checkConsecutiveRowsForCrib(ccs, cleanCrib, rowLetters);
             if (cribLocation.length > 0) {
                 const rowDetails = {};
                 result.append(CipherCompleteColumnarEncoder.paragraph('We can find the crib in ' + cribLocation.length + ' positions of the ' + columnCount + ' column encoding:'));
@@ -1503,15 +1507,15 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                         div = $('<div>');
                         rowDetails['row1'] = cribInfo[i][o]
 
-                        let ccc = `has ${cribInfo[i][1]} of the ${this.state.crib.length}`;
+                        let ccc = `has ${cribInfo[i][1]} of the ${cleanCrib.length}`;
                         if (cribInfo[i][1] === 0) {
                             continue;
-                        } else if (cribInfo[i][1] === this.state.crib.length) {
+                        } else if (cribInfo[i][1] === cleanCrib.length) {
                             ccc = `has all ${cribInfo[i][1]}`;
                         }
 
                         div.append(`Row ${cribInfo[i][0]} ${ccc} crib letters in it (`)
-                            .append($('<span>').addClass('allfocus').text(this.state.crib.substring(offset, offset + cribInfo[i][1]))).append(').');
+                            .append($('<span>').addClass('allfocus').text(cleanCrib.substring(offset, offset + cribInfo[i][1]))).append(').');
                         offset += cribInfo[i][1];
                         result.append(div);
                     }

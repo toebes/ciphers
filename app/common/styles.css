@@ -36,7 +36,8 @@
     display: inline-block;
 }
 
-.abchoice .button-group {
+.abchoice .button-group,
+.reduced {
     margin-bottom: 0px;
 }
 
@@ -771,6 +772,11 @@ table.tmorse input {
 
 table.crwork td {
     width: 1.5rem;
+}
+
+tr.reduced td,
+tr.reduced th {
+    padding: 0 0.625rem;
 }
 
 table.tfreq,

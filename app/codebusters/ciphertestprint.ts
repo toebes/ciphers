@@ -441,13 +441,6 @@ export class CipherTestPrint extends CipherTest {
                     settings: { class: 'v' },
                     content: String(qitem.points),
                 });
-            //             if (this.) {
-            //     trow.                .add({
-            //         settings: { colspan: 2, class: 'grey' },
-            //         content: '',
-            //     }).add('');
-
-            // } else {
             trow.add('')
                 .add('')
                 .add({
@@ -455,10 +448,16 @@ export class CipherTestPrint extends CipherTest {
                     content: (qitem.specialBonus ? '&#9733;' : '')
                 });
         }
-        // }
+        qcount = (hastimed ? 1 : 0) + this.qdata.length
+        let specialclass = ''
+        if (qcount > 29) {
+            $(".reduce").addClass("reduced")
+            if (qcount > 30) {
+                specialclass = 'reduced'
+            }
+        }
         // If we had a timed question, we put in the slot for the bonus
         if (hastimed || hasSpecialBonus) {
-
             let label = 'Bonuses';
             let timedBonus = 'Timed:';
             let specialPoints = 'Special Bonus:&nbsp;&nbsp;&#9733; = 150;&nbsp;&nbsp;&#9733;&#9733; = 400;&nbsp;&nbsp;&#9733;&#9733;&#9733; = 750';
@@ -471,7 +470,7 @@ export class CipherTestPrint extends CipherTest {
             }
 
             table
-                .addFooterRow()
+                .addFooterRow({ class: specialclass })
                 .add(label)
                 .add(timedBonus)
                 .add({
@@ -481,7 +480,7 @@ export class CipherTestPrint extends CipherTest {
                 .add('');
         }
         table
-            .addFooterRow()
+            .addFooterRow({ class: specialclass })
             .add('Final Score')
             .add({ settings: { colspan: 4 }, content: '' });
         $('#scoretable').append(table.generate());

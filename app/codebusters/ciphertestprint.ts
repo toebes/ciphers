@@ -195,6 +195,9 @@ export class CipherTestPrint extends CipherTest {
                 break
         }
 
+        if (test.testtype === ITestType.astate || test.testtype === ITestType.bstate || test.testtype === ITestType.cstate) {
+            $(".inv").hide()
+        }
         this.runningKeys = undefined;
         this.qdata = [];
         let accumulated = 0;

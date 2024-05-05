@@ -75,7 +75,7 @@ interface ICribInfo {
 export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Nihilist';
-    public maxEncodeWidth = 27;
+    public maxEncodeWidth = 19;
     public validTests: ITestType[] = [
         ITestType.None,
         ITestType.cregional,
@@ -293,6 +293,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const strings = this.buildNihilistSequenceSets(
             this.minimizeString(this.state.cipherString),
             9999,
+            0,
             true
         );
         if (strings.length !== 1) {
@@ -655,6 +656,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public buildNihilistSequenceSets(
         msg: string,
         maxEncodeWidth: number,
+        maxEncodeWidthExtra: number = 5,
         findCrib: boolean = false
     ): string[][][] {
         let key = this.cleanKeyword
@@ -736,6 +738,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     mappedMessage = mappedMessage.slice(lastSplit);
                     plainKey = plainKey.slice(lastSplit);
                     result.push([cipherPart, messagePart, mappedKeyPart, mappedMessagePart, plainKeyPart]);
+                }
+                if (result.length === 2) {
+                    maxEncodeWidth += maxEncodeWidthExtra
                 }
             }
         }
@@ -2234,7 +2239,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @returns width and any extra class to use
      */
     public getTestWidth(testType: ITestType) {
-        let width = 27;
+        let width = 20;
         let extraclass = '';
         if (testType === ITestType.aregional) {
             width = 20;

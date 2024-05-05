@@ -2344,7 +2344,7 @@ table.nameline td.u {
 .sizeset .TOSOLVE2,
 .sizeset .TOSOLVEQ,
 .sizeset .TOANSWER {
-    font-size: 15px;
+    font-size: 18px;
 }
 .TOSOLVEC.atest,
 .sizeset .TOSOLVE.atest,
@@ -2360,7 +2360,7 @@ table.nameline td.u {
 .sizeset .BACON.TOSOLVE2,
 .sizeset .BACON.TOSOLVEQ,
 .sizeset .BACON.TOANSWER {
-    font-size: 15px;
+    font-size: 18px;
 }
 .sizeset .BACON.combchar.TOSOLVE,
 .sizeset .BACON.combchar.TOSOLVE2,
@@ -2377,6 +2377,11 @@ table.nameline td.u {
 .sizeset .ansblock td.a,
 .sizeset .ansblock td.e {
     height: 2rem;
+}
+
+.sizeset .ansblock tbody {
+    font-weight: bold;
+    font-size: 18px;
 }
 .sizeset thead .topleft.k1,
 .sizeset thead .topleft.k2 {

@@ -2379,6 +2379,9 @@ table.nameline td.u {
     height: 2rem;
 }
 
+.sizeset .nihilist tbody td {
+    padding: 0.4rem;
+}
 .sizeset .ansblock tbody {
     font-weight: bold;
     font-size: 18px;

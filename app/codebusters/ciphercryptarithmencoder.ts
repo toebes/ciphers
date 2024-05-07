@@ -1228,15 +1228,14 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         }
 
         let result = $('<div/>', { class: 'cipherwork' })
-        result.append($('<div/>', { class: 'grid-x' })
-            .append($('<div/>', { class: 'cell' })
+        result.append($('<div/>', { class: 'notiny grid-x grid-padding-x align-justify-x align-spaced' })
+            .append($('<div/>', { class: 'cell shrink' })
                 .append($('<p/>', { class: "h5 notiny" }).text('Values to decode for solution'))
-                .append(solution)))
-        result.append($('<hr/>', { class: "notiny" }))
-        result.append($('<div/>', { class: 'notiny grid-x grid-padding-x align-justify' })
-            .append($('<div/>', { class: 'cell small-6 shrink' })
+                .append(solution)
+                .append($('<hr/>', { class: "notiny" }))
                 .append($('<p/>', { class: "h5" }).text('Cryptarithm formula'))
-                .append(formulaTable))
+                .append(formulaTable)
+            )
             .append($('<div/>', { class: 'cell shrink' }).append(worktable.generate())))
         return result;
 

@@ -312,7 +312,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
                 keytype = "Key Phrase"
             }
             result.append(
-                $('<p/>').append($("<b/>").text("Enter the " + keytype + " here"))
+                $('<p/>', { class: "reduced" }).append($("<b/>").text(`Enter the ${keytype} here`))
 
             )
             const table = new JTTable({ class: 'ansblock shrink cell unstriped' + extraclass });

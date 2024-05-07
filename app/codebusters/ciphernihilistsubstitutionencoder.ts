@@ -2817,7 +2817,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             width
         );
         const tableDiv = $('<div/>', { class: 'cell auto' })
-        const table = new JTTable({ class: 'ansblock unstriped' + extraclass });
+        const table = new JTTable({ class: 'nihilist ansblock unstriped' + extraclass });
         // const blankrow = table.addBodyRow();
         // blankrow.add("\u00A0");
         let source = 0;

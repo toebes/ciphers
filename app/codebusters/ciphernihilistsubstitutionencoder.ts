@@ -75,7 +75,7 @@ interface ICribInfo {
 export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Nihilist';
-    public maxEncodeWidth = 19;
+    public maxEncodeWidth = 18;
     public validTests: ITestType[] = [
         ITestType.None,
         ITestType.cregional,
@@ -2239,10 +2239,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @returns width and any extra class to use
      */
     public getTestWidth(testType: ITestType) {
-        let width = 20;
+        let width = this.maxEncodeWidth;
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width = 20;
+            width = this.maxEncodeWidth;
             extraclass = ' atest';
         }
         return { width, extraclass };

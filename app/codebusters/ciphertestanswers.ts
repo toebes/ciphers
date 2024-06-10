@@ -113,6 +113,7 @@ export class CipherTestAnswers extends CipherTest {
             // And also any spurious HR elements that weren't tagged
             $(".question hr").remove()
             // Remove extra padding from cryptarithm answers
+            $(".cell").removeClass("cell")
             $(".align-spaced").removeClass("align-spaced")
         }
         this.attachHandlers();

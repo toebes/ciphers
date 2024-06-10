@@ -112,6 +112,8 @@ export class CipherTestAnswers extends CipherTest {
             $(".hillblock").removeClass("hillblock")
             // And also any spurious HR elements that weren't tagged
             $(".question hr").remove()
+            // Remove extra padding from cryptarithm answers
+            $(".align-spaced").removeClass("align-spaced")
         }
         this.attachHandlers();
     }

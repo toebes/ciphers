@@ -1059,7 +1059,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public buildSolver(parsed: cryptarithmParsed, showanswer: boolean): JQuery<HTMLElement> {
         // We have built the lineitems array, now we just need to turn it into
         // a table (respecting the maxwidth)
-        let formulaTable = $("<table/>", { class: "cmath unstriped plain" });
+        let formulaTable = $("<table/>", { class: "cmath unstriped plain notiny" });
         let tbody = $("<tbody/>");
         for (let item of parsed.lineitems) {
             let tr = $("<tr/>");
@@ -1228,15 +1228,16 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         }
 
         let result = $('<div/>', { class: 'cipherwork' })
-        result.append($('<div/>', { class: 'notiny grid-x grid-padding-x align-justify-x align-spaced' })
+        result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify-x align-spaced' })
             .append($('<div/>', { class: 'cell shrink' })
                 .append($('<p/>', { class: "h5 notiny" }).text('Values to decode for solution'))
                 .append(solution)
                 .append($('<hr/>', { class: "notiny" }))
-                .append($('<p/>', { class: "h5" }).text('Cryptarithm formula'))
+                .append($('<p/>', { class: "h5 notiny" }).text('Cryptarithm formula'))
                 .append(formulaTable)
             )
-            .append($('<div/>', { class: 'cell shrink' }).append(worktable.generate())))
+            .append($('<div/>', { class: 'cell shrink notiny' }).append(worktable.generate()))
+        )
         return result;
 
     }

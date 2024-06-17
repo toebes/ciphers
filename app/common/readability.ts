@@ -311,6 +311,10 @@ export function textStandardRaw(text: string): number {
     const counterMap = grade.map((x) => [x, grade.filter((y) => y === x).length]);
     const finalGrade = counterMap.reduce((x, y) => (y[1] >= x[1] ? y : x));
     score = finalGrade[0];
+    // makes sure the difficulty level displayed doesn't go below 0 (-1th grade)
+    if (score < 1) {
+        score = 1;
+    }
     return score;
 }
 

@@ -218,6 +218,9 @@ export class CipherAffineEncoder extends CipherEncoder {
             suggested += 35;
             range = 25
         }
+        if (this.state.blocksize > 0) {
+            suggested += 50;
+        }
         const min = Math.max(suggested - range, 0)
         const max = suggested + range
         suggested += Math.round(range * Math.random() - range / 2);

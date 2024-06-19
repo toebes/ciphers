@@ -29,6 +29,8 @@ interface IAffineState extends IState {
     solclick1: number;
     /** The second clicked number  */
     solclick2: number;
+    /** The size of the chunking blocks for output - 0 means respect the spaces */
+    blocksize: number;
 }
 
 interface ICribPos {
@@ -70,6 +72,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         solclick1: -1 /** The second clicked number  */,
         solclick2: -1,
         replacement: {},
+        blocksize: 0,
     };
     public state: IAffineState = cloneObject(this.defaultstate) as IAffineState;
     public cmdButtons: JTButtonItem[] = [
@@ -159,6 +162,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         this.seta(this.state.a);
         this.setb(this.state.b);
         this.setOperation(this.state.operation);
+        this.setBlocksize(this.state.blocksize);
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -181,6 +185,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             $('td#m' + this.state.solclick2).addClass('TOSOLVECLICK');
             $('td#p' + this.state.solclick2).addClass('TOSOLVECLICK');
         }
+        $('#blocksize').val(this.state.blocksize);
         this.validateQuestion();
         this.attachHandlers();
     }
@@ -542,13 +547,22 @@ export class CipherAffineEncoder extends CipherEncoder {
         super.init(lang);
         this.ShowRevReplace = false;
     }
+    public setBlocksize(blocksize: number): boolean {
+        let changed = false;
+        if (this.state.blocksize !== blocksize) {
+            this.state.blocksize = blocksize;
+            changed = true;
+        }
+        return changed;
+    }
     public buildReplacement(msg: string, maxEncodeWidth: number): string[][] {
         const result: string[][] = [];
         let message = '';
         let cipher = '';
-        const msgLength = msg.length;
+        const encoded = this.chunk(msg, this.state.blocksize);
+        const msgLength = encoded.length;
         let lastSplit = -1;
-        const msgstr = msg.toUpperCase();
+        const msgstr = encoded.toUpperCase();
 
         for (let i = 0; i < msgLength; i++) {
             const messageChar = msgstr.substring(i, i + 1);
@@ -590,7 +604,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      * as the HTML to be displayed
      */
     public build(): JQuery<HTMLElement> {
-        const msg = this.minimizeString(this.state.cipherString);
+        const msg = this.chunk(this.state.cipherString, this.state.blocksize);
         const strings = this.buildReplacement(msg, this.maxEncodeWidth);
         const result = $('<div/>');
         for (const strset of strings) {
@@ -1221,6 +1235,17 @@ export class CipherAffineEncoder extends CipherEncoder {
      */
     public attachHandlers(): void {
         super.attachHandlers();
+        $('#blocksize')
+            .off('input')
+            .on('input', (e) => {
+                const blocksize = Number($(e.target).val());
+                if (blocksize !== this.state.blocksize) {
+                    this.markUndo(null);
+                    if (this.setBlocksize(blocksize)) {
+                        this.updateOutput();
+                    }
+                }
+            });
         $('#a')
             .off('input')
             .on('input', (e) => {
@@ -1278,6 +1303,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         });
         inputbox.append(JTFIncButton('A', 'a', this.state.a, 'small-12 medium-4 large-4'));
         inputbox.append(JTFIncButton('B', 'b', this.state.b, 'small-12 medium-4 large-4'));
+        inputbox.append(JTFIncButton('Block Size', 'blocksize', this.state.blocksize, ''));
         result.append(inputbox);
         return result;
     }

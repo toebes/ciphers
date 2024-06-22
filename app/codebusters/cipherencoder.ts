@@ -265,6 +265,7 @@ export class CipherEncoder extends CipherHandler {
         }
         this.setCharset(this.acalangcharset[lang]);
         this.setSourceCharset(this.encodingcharset[lang]);
+        this.init(lang);
         // Call the super if we plan to match the text against a dictionary.
         // That is generally used for a solver, but we might want to do it in the
         // case that we want to analyze the complexity of the phrase

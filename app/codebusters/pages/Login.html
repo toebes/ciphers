@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <title>
-            <%= htmlWebpackPlugin.options.title %>
-        </title>
-    </head>
 
-    <body>
-        <% for (var index in htmlWebpackPlugin.files.js) { %>
-            <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
-            <% } %>
-        <div data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-        <div id="google-sign-in-container" class="loginbutton"></div>
-        <div id="microsoft-sign-in-container" class="loginbutton">
-            <image src="images/ms-symbollockup_signin_dark.svg"
-                   class="button-microsoft-login" >
-        </div>
-    </body>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body>
+    <% for (var index in htmlWebpackPlugin.files.js) { %>
+        <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
+        <% } %>
+            <div data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+            <div id="google-sign-in-container" class="loginbutton"></div>
+            <div id="microsoft-sign-in-container" class="loginbutton">
+                <image src="images/ms-symbollockup_signin_dark.svg" class="button-microsoft-login"
+                    alt="Microsoft Login">
+            </div>
+</body>
+
 </html>

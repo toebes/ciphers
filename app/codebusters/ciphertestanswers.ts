@@ -1,4 +1,4 @@
-import { cloneObject } from '../common/ciphercommon';
+import { cloneObject, makeCallout } from '../common/ciphercommon';
 import { ITestType, menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -184,11 +184,8 @@ export class CipherTestAnswers extends CipherTest {
             // Division A doesn't have a timed quesiton, so don't print out
             // a message if it isn't there.
             if (test.testtype !== ITestType.aregional) {
-                result.append(
-                    $('<p/>', {
-                        class: 'noprint',
-                    }).text('No timed question')
-                );
+                result.append($('<div/>', { class: 'noprint' }).append(
+                    makeCallout($('<h3/>').text(`There is no timed question`), 'alert')))
             }
         } else {
             const cipherhandler = this.GetPrintFactory(test.timed);

@@ -707,7 +707,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         const lines = this.makeBaconianReplacement(this.getEncodingString(), 1)
         if (lines.cipherword.length >= (pos + len)) {
             for (let i = 0; i < len; i++) {
-                result += extra + lines.cipherword[i]
+                result += extra + lines.cipherword[pos + i]
                 extra = ' '
             }
         }

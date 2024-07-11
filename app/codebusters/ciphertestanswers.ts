@@ -96,6 +96,7 @@ export class CipherTestAnswers extends CipherTest {
             $(".qtext .timed").parent().removeClass("qtext")
             // Remove all of the frequency tables
             $(".prfreq").remove();
+            $(".tinyonly").removeClass("hidden");
             // As well as anything that the cipher marked as not visible on the tiny answer key
             $(".notiny").remove();
             // Get rid of all the rows which have q and o class field in them (these are not the answers)

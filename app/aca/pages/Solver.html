@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>
         <%= htmlWebpackPlugin.options.title %>
     </title>
@@ -12,19 +13,19 @@
     <% for (var index in htmlWebpackPlugin.files.js) { %>
         <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
         <% } %>
-    <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-    <h2>
-        <%= htmlWebpackPlugin.options.title %>
-    </h2>
-    <div class="precmds"></div>
-    <div class="cell langstatus"></div>
-    <div class="cmdbuttons"></div>
-    <div id="qtext" class="cell"></div>
-    <div class="ans cell" id="answer"></div>
-    <div class="freq shrink cell"></div>
-    <div class="postcmds"></div>
-    <div class="sanalysis grid-x" id="analysis"></div>
-    <!-- 
+            <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+            <h2>
+                <%= htmlWebpackPlugin.options.title %>
+            </h2>
+            <div class="precmds"></div>
+            <div class="cell langstatus"></div>
+            <div class="cmdbuttons"></div>
+            <div id="qtext" class="cell"></div>
+            <div class="ans cell" id="answer"></div>
+            <div class="freq shrink cell"></div>
+            <div class="postcmds"></div>
+            <div class="sanalysis grid-x" id="analysis"></div>
+            <!-- 
                 <div class="precmds"></div>
                 <div class="postcmds"></div>
                 <div class="err" id="err"></div>

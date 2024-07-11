@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>
         <%= htmlWebpackPlugin.options.title %>
     </title>
@@ -12,26 +13,26 @@
     <% for (var index in htmlWebpackPlugin.files.js) { %>
         <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
         <% } %>
-    <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-    <h2>
-        <%= htmlWebpackPlugin.options.title %>
-    </h2>
-    <label for="encoded">Encoded Text</label>
-    <textarea id="encoded" cols="20" rows="5"></textarea>
-    <div class="cmds" data-cipher="Checkerboard">
-        <input id="load" type="button" value="Load" />
-    </div>
-    <div class="ans clearfix" id="answer"></div>
-    <div class="freq"></div>
-    <div class="cmds">
-        <input id="reset" type="button" value="Reset" />
-    </div>
-    <div class="sanalysis" id="analysis"></div>
-    <div class="slookup" id="lookup">
-        <label for="find">Find spot for</label>
-        <input id="find" type="text" />
-        <div class="findres"></div>
-    </div>
+            <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+            <h2>
+                <%= htmlWebpackPlugin.options.title %>
+            </h2>
+            <label for="encoded">Encoded Text</label>
+            <textarea id="encoded" cols="20" rows="5"></textarea>
+            <div class="cmds" data-cipher="Checkerboard">
+                <input id="load" type="button" value="Load" />
+            </div>
+            <div class="ans clearfix" id="answer"></div>
+            <div class="freq"></div>
+            <div class="cmds">
+                <input id="reset" type="button" value="Reset" />
+            </div>
+            <div class="sanalysis" id="analysis"></div>
+            <div class="slookup" id="lookup">
+                <label for="find">Find spot for</label>
+                <input id="find" type="text" />
+                <div class="findres"></div>
+            </div>
 </body>
 
 </html>

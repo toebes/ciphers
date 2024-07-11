@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>
         <%= htmlWebpackPlugin.options.title %>
     </title>
@@ -12,12 +13,12 @@
     <% for (var index in htmlWebpackPlugin.files.js) { %>
         <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
         <% } %>
-    <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-    <h2>
-        <%= htmlWebpackPlugin.options.title %>
-    </h2>
-    <div class="precmds"></div>
-    <div class="cmdbuttons"></div>
+            <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+            <h2>
+                <%= htmlWebpackPlugin.options.title %>
+            </h2>
+            <div class="precmds"></div>
+            <div class="cmdbuttons"></div>
 </body>
 
 </html>

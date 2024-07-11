@@ -428,6 +428,15 @@ export class CipherBaconianEncoder extends CipherEncoder {
         this.setOutputZoom();
     }
     /**
+     * Update the question string (and validate if necessary)
+     * @param question New question text string
+     */
+    public setQuestionText(question: string): void {
+        super.setQuestionText(question);
+        this.validateQuestion();
+        this.attachHandlers();
+    }
+    /**
      * Set the output zoom level
      */
     public setOutputZoom() {
@@ -685,6 +694,98 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
 
     }
+
+    /**
+     * Find the encoded cipher text corresponding to the crib
+     * @param pt Plain text 
+     * @param pos Position of the plain text
+     * @returns Cipher text encoded or '' for no matching cipher text
+     */
+    public getCipherTextForCrib(pos: number, len: number): string {
+        let result = ''
+        let extra = ''
+        const lines = this.makeBaconianReplacement(this.getEncodingString(), 1)
+        if (lines.cipherword.length >= (pos + len)) {
+            for (let i = 0; i < len; i++) {
+                result += extra + lines.cipherword[i]
+                extra = ' '
+            }
+        }
+        return this.cleanString(result);
+    }
+    /**
+     * Determine if the question text properly identifies the location of the crib
+     * @param questionText Cleaned up question text
+     * @param pt Plain text
+     * @param pos Position that the plain text was found
+     * @returns 
+     */
+    public findQuestionMatch(questionText, pt, pos): boolean {
+        const rep = new RegExp('\\b' + pt + '\\b');
+        // If the plain text is not mentioned in the question, then they have
+        // a problem to fix.
+        if (questionText.match(rep) === null) {
+            return false;
+        }
+        // If the crib is at the beginning, look for something in the
+        // question that says something like "Starts with XX" or
+        // XX can be found at the start
+        if (
+            pos === 0 &&
+            (questionText.indexOf('START') >= 0 ||
+                questionText.indexOf('BEGIN') >= 0 ||
+                questionText.indexOf('FIRST') >= 0)
+        ) {
+            return true;
+        }
+
+        const ptstring = this.minimizeString(this.state.cipherString);
+
+        // If the crib is at the end, look for something in the
+        // question that says something like "Ends with XX" or
+        // XX can be found at the end
+        if (
+            pos === (ptstring.length - pt.length) &&
+            (questionText.indexOf('END') >= 0 ||
+                questionText.indexOf('FINAL') >= 0 ||
+                questionText.indexOf('LAST') >= 0)
+        ) {
+            return true;
+        }
+
+        // If the crib is one letter from the end, look for something in the
+        // question that mentions being the second letter
+        if (
+            (pos === 1 ||
+                (pos === (ptstring.length - (pt.length + 1)))) &&
+            (questionText.indexOf('2') >= 0 ||
+                questionText.indexOf('2ND') >= 0 ||
+                questionText.indexOf('SECOND') >= 0)
+        ) {
+            return true;
+        }
+        // We haven't found something that identifes the location, so see if they
+        // mentioned the corresponding cipher text for the crib
+        const ct = this.getCipherTextForCrib(pos, pt.length)
+        if (ct !== '') {
+            const rec = new RegExp('\\b' + ct.replace(/[ \s+]/g, '[\\s\\.,;\\-!]+') + '\\b');
+            console.log(rec)
+            if (questionText.match(rec) !== null) {
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+    /**
+     * Remove all HTML elements from a string
+     * @param str HTML String
+     * @returns String without any HTML elements
+     */
+    public removeHtml(str: string): string {
+        return super.removeHtml(str).replace(/&nbsp;/ig, ' ').replace(/ /g, ' ')
+    }
     /**
      * Check for any errors we can find in the question
      */
@@ -692,16 +793,15 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let msg = '';
         let sampleLink: JQuery<HTMLElement> = undefined;
         if (this.state.operation === 'words') {
-            const crib = this.minimizeString(this.state.crib).toUpperCase();
-            if (crib !== '') {
+            const criblook = this.minimizeString(this.state.crib).toUpperCase();
+
+            if (criblook !== '') {
                 const cribpos = this.placeCrib();
+                // We don't have to tell them if we can't place the crib because that is already done by checkHintCrib
                 if (cribpos !== undefined) {
-                    const questionText = this.minimizeString(this.state.question.toUpperCase());
-                    if (questionText.match("this.state.crib") === null) {
-                        msg =
-                            'The Question Text does not specify how the Crib letters ' +
-                            this.state.crib +
-                            ' are used';
+                    const questionText = this.removeHtml(this.state.question.toUpperCase());
+                    if (!this.findQuestionMatch(questionText, criblook, cribpos)) {
+                        msg = `The Question Text does not specify where the Crib Text '${this.state.crib}' is placed`;
                     }
                 }
             }
@@ -776,7 +876,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         } else {
             msg = '<p>The following strange headlines encode a quote' + this.genAuthor() + ' using a Baconian cipher. ';
             const plaintext = this.minimizeString(this.getEncodingString());
-            const criblook = this.minimizeString(this.state.crib);
+            const criblook = this.minimizeString(this.state.crib).toUpperCase();
+
             if (criblook.length > 0) {
                 const cribpos = this.placeCrib();
                 if (cribpos === 0) {
@@ -790,8 +891,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
                         this.genMonoText(this.state.crib);
                 } else {
                     // Not at the begining or the end
-                    msg += "You are told that the deciphered text contains " +
-                        this.genMonoText(this.state.crib) + " somewhere";
+                    let ct = this.getCipherTextForCrib(cribpos, criblook.length)
+                    msg += `You are told that the cipher text ${this.genMonoText(ct)} decodes to be ${this.genMonoText(criblook)}`;
                 }
             }
             msg += "</p>";
@@ -873,10 +974,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             // Make sure we can find the crib
             const cribpos = this.placeCrib();
             if (cribpos === undefined) {
-                msg = 'Unable to find placement of the crib';
-                result.append(
-                    $('<h4/>').text('Unable to find placement of the crib: ' + this.state.crib)
-                );
+                msg = `Unable to find a place for the Crib Text '${this.state.crib}' in the Plain Text`;
             }
             // Go through and figure out what letters we have mapped with the hint
             $(".hinted").removeClass("hinted");
@@ -1183,10 +1281,14 @@ export class CipherBaconianEncoder extends CipherEncoder {
         const result = $('<div/>');
         const cipherString = this.getEncodingString();
         const encoded = this.makeBaconianReplacement(cipherString, this.getEncodeWidth());
+        let msg = ''
         // See if we have a CRIB to compare against.
         if (this.state.crib !== "" && this.state.crib !== undefined) {
             this.checkHintCrib(result, encoded)
+        } else if (this.state.operation === 'words') {
+            msg = `You need to provide a crib when doing a Word Baconian Cipher`;
         }
+        this.setErrorMsg(msg, 'gawc')
         // This table only appears on the full answer key
         const table = new JTTable({ class: 'bacon ansblock notiny shrink cell unstriped' + this.getFontClass() });
 
@@ -1240,6 +1342,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         let baconline = '';
         let plaintextline = '';
         let prefix = '';
+        let msg = '';
         // Iterate through each letter and look it up in the map
         for (let i = 0; i < this.baconianWords.length; i++) {
             let baconian = this.baconianWords[i];
@@ -1248,7 +1351,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             // Make sure that the alphabet actually gives us a match
             if (this.wordlookup[baconian] === undefined) {
                 // There were no words matching this
-                $('#err').text('Unable to find any words for ' + baconian);
+                msg = `Unable to find any words for ${baconian}, please consider a different pattern.`;
                 resword = '[' + baconian + ']';
             } else {
                 // If the word that they selected is still valid, use it
@@ -1303,6 +1406,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 ciphertext: (wordline + prefix.trimEnd()).split('')
             });
         }
+        this.setErrorMsg(msg, 'mwrpl');
         return result;
     }
 

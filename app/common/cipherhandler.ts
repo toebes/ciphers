@@ -453,6 +453,23 @@ export class CipherHandler {
         af: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
     };
     /**
+     * These characters should be kept with the next character so that they don't split
+     * the line when generating a cipher.
+     */
+    public readonly keepwithnextchar: {
+        [key: string]: boolean
+    } = {
+            "'": true,
+            '’': true,
+            '‘': true,
+            '"': true,
+            '“': true,
+            '”': true,
+            '¡': true,
+            '¿': true,
+            '«': true,
+        }
+    /**
      * Character replacement for purposes of encoding
      */
     public readonly acalangreplace: {
@@ -2890,7 +2907,8 @@ export class CipherHandler {
                     this.freq[t] = 0;
                 }
                 this.freq[t]++;
-            } else if (t !== "'" && t !== '’' && t !== '‘' && t !== '"' && t !== '“' && t !== '”') {
+
+            } else if (this.keepwithnextchar[t] !== true) {
                 // This is a potential split position, so remember it
                 lastsplit = decodeline.length;
             }

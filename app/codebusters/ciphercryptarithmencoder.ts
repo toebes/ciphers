@@ -11,9 +11,9 @@ import { buildLegal, cryptarithmForumlaItem, cryptarithmParsed, cryptarithmResul
 import { JTButtonItem, JTButtonGroup } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
-import { CipherEncoder, suggestedData } from './cipherencoder';
+import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
-interface ICryptarithmState extends IState {
+interface ICryptarithmState extends IEncoderState {
     /** Problem */
     problem: string;
     /** Mapping of letters to values */

@@ -352,7 +352,7 @@ export class CipherTestScoreAdjust extends CipherTest {
         if (order === -1 && qnum === -1 && testtype !== ITestType.aregional) {
             const callout = $('<div/>', {
                 class: 'callout warning',
-            }).text('No Timed Question!');
+            }).text('There is No Timed Question!');
             row.add({
                 celltype: 'td',
                 settings: { colspan: 6 },

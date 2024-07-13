@@ -379,7 +379,7 @@ export class CipherTableEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
-        let width = 40;
+        let width = 37;
         let extraclass = '';
         if (testType === ITestType.aregional) {
             width = 30;
@@ -449,7 +449,7 @@ export class CipherTableEncoder extends CipherEncoder {
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
-        let width = 40;
+        let width = 37;
         let extraclass = '';
         if (testType === ITestType.aregional) {
             width = 30;

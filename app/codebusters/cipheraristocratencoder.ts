@@ -950,12 +950,12 @@ export class CipherAristocratEncoder extends CipherEncoder {
         })
     }
     /**
- * Generate a single misspelled/typo quote
- * @param replace Homonym replacement information
- * @param wordrepl Range of number of words to replace (0-100%)
- * @param typos Range of number of typos to introduce (0-100%)
- * @returns HTML String (<em></em> around changes) of a generate string
- */
+     * Generate a single misspelled/typo quote
+     * @param replace Homonym replacement information
+     * @param wordrepl Range of number of words to replace (0-100%)
+     * @param typos Range of number of typos to introduce (0-100%)
+     * @returns HTML String (<em></em> around changes) of a generate string
+     */
     public makeOneMisspell(replace: replaceInfo, wordrepl: number, typos: number): string {
         // Limit how many words we will attack at the extreme range
         const typoMaxPct = 0.85

@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>
         <%= htmlWebpackPlugin.options.title %>
     </title>
@@ -13,19 +14,19 @@
         <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
         <% } %>
 
-    <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
-    <h2>
-        <%= htmlWebpackPlugin.options.title %>
-    </h2>
-    <div class="slookup" id="lookup">
-        <div class="langstatus"></div>
-        <div>
-            <label for="lang">Pick Language</label>
-            <select class="lang"></select>
-        </div>
-    </div>
-    <hr />
-    <div class="langout"></div>
+            <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+            <h2>
+                <%= htmlWebpackPlugin.options.title %>
+            </h2>
+            <div class="slookup" id="lookup">
+                <div class="langstatus"></div>
+                <div>
+                    <label for="lang">Pick Language</label>
+                    <select title="language" class="lang"></select>
+                </div>
+            </div>
+            <hr />
+            <div class="langout"></div>
 </body>
 
 </html>

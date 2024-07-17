@@ -1,7 +1,8 @@
-import { calloutTypes, cloneObject, makeCallout, makeFilledArray } from '../common/ciphercommon';
+import { BoolMap, calloutTypes, cloneObject, makeCallout, makeFilledArray, NumberMap } from '../common/ciphercommon';
 import { IOperationType, IState, ITestType, toolMode, ITestQuestionFields, IScoreInformation } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFDialog } from '../common/jtfdialog';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
@@ -274,7 +275,226 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.setErrorMsg(msg, 'vq', sampleLink);
 
     }
+    // Algorithm from https://github.com/WilliamMason/rec-crypt/blob/main/min_crib/nihilist_sub_min_crib.html
+    /**
+     * 
+     * @param crib 
+     * @param pairs 
+     * @param period 
+     * @param single_key_flag 
+     * @param key_value 
+     * @returns 
+     */
+    public countCribHits(crib: number[], pairs: number[], period: number, single_key_flag: BoolMap, key_value: NumberMap) {
+        /*
+            poly_alpha = [None]*(period+1)
+            inverse_poly_alpha = [None]*(period+1)	
+            numb_hits = 0;
+        */
+        const poly_alpha = [];
+        const inverse_poly_alpha = []
+        let numb_hits = 0;
+        //  var  i, c, index, flag, v;
+        // one extra alphabet to handle indices where key value is known
+        for (let crib_pos = 0; crib_pos < pairs.length - crib.length + 1; crib_pos++) {
+            for (let n = 0; n < period + 1; n++) {
+                poly_alpha[n] = [];
+                for (let i = 0; i < 26; i++)
+                    poly_alpha[n][i] = -1;
+                inverse_poly_alpha[n] = [];
+                for (let i = 0; i <= 111; i++) //max value of a "pair" is 55+55 = 110	
+                    inverse_poly_alpha[n][i] = -1;
+            }
+            var crib_buffer = [];
+            for (let i = 0; i < pairs.length; i++) {
+                crib_buffer[i] = -1;
+            }
+            for (let n = 0; n < crib.length; n++) {
+                crib_buffer[crib_pos + n] = crib[n];
+            }
+            let index = 0
+            let flag = true;
+            for (let n = 0; n < pairs.length; n++) {
+                if (crib_buffer[n] == -1) {
+                    index += 1;
+                    if (index == period)
+                        index = 0;
+                    continue;
+                }
+                const c = crib_buffer[n];
+                //is the current index one with just one key value? If so put in the common alphabet with index 'period'
+                if (single_key_flag[index]) {
+                    const v = pairs[n] - key_value[index]
+                    if (poly_alpha[period][c] == -1) { // first encounter
+                        poly_alpha[period][c] = v
+                    } else if (poly_alpha[period][c] != v) {
+                        // crib won't fit here
+                        //print "pos ",crib_pos, "common bad at index ",index,"with ",lowerC[c]," values ", poly_alpha[period][c]," ", v
+                        flag = false;
+                        break;
+                    }
+                    if (inverse_poly_alpha[period][v] == -1) {
+                        inverse_poly_alpha[period][v] = c
+                    } else if (inverse_poly_alpha[period][v] != c) {
+                        //crib won't fit here
+                        // print "pos ",crib_pos, "common bad at index ",index,"with ",lowerC[c]," values ", poly_alpha[period][c]," ", v
+                        flag = false;
+                        break;
+                    }
+                } // end if
+                else {
+                    const v = pairs[n];
+                    if (poly_alpha[index][c] == -1) {// # first encounter
+                        poly_alpha[index][c] = v
+                    } else if (poly_alpha[index][c] != v) {
+                        // crib won't fit here
+                        //print  "pos ",crib_pos, "bad at ",index
+                        flag = false;
+                        break;
+                    }
+                    if (inverse_poly_alpha[index][v] == -1) { // # first encounter
+                        inverse_poly_alpha[index][v] = c
+                    } else if (inverse_poly_alpha[index][v] != c) {
+                        //crib won't fit here
+                        //print  "pos ",crib_pos, "bad at ",index
+                        flag = false;
+                        break;
+                    }
+                } // end else
+                index += 1
+                if (index == period) {
+                    index = 0
+                }
+            } // next n		
+            if (flag) {
+                numb_hits += 1
+                //print crib_pos+1," ",
+                if (numb_hits > 1) { // #no unique position
+                    return numb_hits
+                }
+            }
+            //print " "
+        } // next crib_pos
+        return (numb_hits)// better be one not zero!
+    }
+    /**
+     * 
+     * @param kwcount Number of cribs to look for
+     * @param action Function to call when a crib is found
+     * @returns N
+     */
+    public findPossibleCribs(kwcount: number, action: (count: number, crib: string) => boolean) {
+        const alpha = "ABCDEFGHIKLMNOPQRSTUVWXYZ";
+        const strings = this.buildNihilistSequenceSets(
+            this.minimizeString(this.state.cipherString),
+            9999,
+            0,
+            true
+        );
+        if (strings.length !== 1) {
+            return undefined;
+        }
 
+        // strings[0][1] - Array of plaintext - need to replace J with I
+        let plainText = ""
+        const plain: number[] = [];
+        strings[0][1].forEach((pt: string) => {
+            if (pt === 'J') {
+                pt = 'I'
+            }
+            plain.push(alpha.indexOf(pt));
+            plainText += pt;
+        })
+        // strings[0][0] - Array of ciphertext strings (need to convert to numbers)
+        const pairs: number[] = []
+        strings[0][0].forEach((ct: string) => {
+            let value = parseInt(ct)
+            if (value < 11) {
+                value += 100;
+            }
+            pairs.push(value)
+        })
+
+        const single_key_flag: BoolMap = {}
+        const keyword_value: NumberMap = {}
+        const cleanKey = this.minimizeString(this.cleanString(this.state.keyword)).toUpperCase()
+        const period = cleanKey.length;
+
+        // Get the Polybius key value for each letter of the keyword
+        for (let i = 0; i < period; i++) {
+            single_key_flag[i] = false;
+            keyword_value[i] = parseInt(this.getNumFromPolybiusMap(cleanKey.charAt(i)));
+        }
+
+        for (let cycle = 0; cycle < period; cycle++) {
+            let key_count = 0;
+            for (let n1 = 1; n1 < 6; n1++) {
+                for (let n2 = 1; n2 < 6; n2++) {
+                    const n = 10 * n1 + n2;
+                    let flag = true;
+                    for (let pos = cycle; pos < pairs.length; pos += period) {
+                        const i = pairs[pos] - n;
+                        const j1 = Math.floor(i / 10);
+                        const j2 = i % 10;
+                        if (j1 < 1 || j1 > 5 || j2 < 1 || j2 > 5) {
+                            flag = false
+                            break
+                        }
+                    }
+                    if (flag) {
+                        key_count++;
+                    }
+                }
+                // If we only found one legal value
+                if (key_count == 1) {
+                    single_key_flag[cycle] = true
+                }
+            }
+        } // next cycle
+
+        console.log(`Single key indices and their values`);
+        for (let i = 0; i < period; i++) {
+            if (single_key_flag[i]) {
+                console.log(`  ${i} ${keyword_value[i]}`);
+            }
+        }
+
+        //
+        // At this point we have:
+        //
+        //   plain[] is an array of the numeric index of each letter in the plaintext
+        //   pairs[] is an array of numbers corresponding to the cipher text values (02 gets mapped to 102)
+        //   keyword_value[] is the polybius index of each of the letters in the encoding keyword
+        //   single_key_flag[] is an indication for each letter in the encoding keyword ????
+        //   Period is the length of the keyword
+        //   plainText is the plaintext without any spaces or punctuation
+        //
+        const skip_index = Math.min(25, Math.max(10, plain.length - 25));
+        const min_allowed_len = plain.length + 1;
+
+        let found = 0
+        for (let pos = skip_index; pos < plain.length - min_allowed_len + 1; pos++) {
+            for (let le = min_allowed_len; le < plain.length - pos; le++) {
+                let crib = plain.slice(pos, pos + le);
+                const n = this.countCribHits(crib, pairs, period, single_key_flag, keyword_value);
+                if (n == 1) {
+                    const cribtext = plainText.substring(pos + 1, pos + 1 + le)
+                    if (action(found, cribtext)) {
+                        found++;
+                        if (found >= kwcount) {
+                            return;
+                        }
+                    }
+                    break;
+                }
+                else if (n == 0) {
+                    console.log(`Program bug! no possible crib at ${pos}`);
+                    return;
+                }
+            }
+        }
+        return found;
+    }
     /*
         This replaces the 'get()' method for a normal Map. Since J is not located in our polybius map, but it still needs
         to be incorporated in our question, we have to treat any get('J') as a get('I'). This method acts as that filter.
@@ -505,6 +725,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.genTestUsage(result);
         result.append(this.createSuggestKeyDlg('Suggest Key'))
         result.append(this.createKeywordDlg('Suggest Polybius Keyword'))
+        result.append(this.createSuggestCribDlg('Suggest Crib'))
 
         let radiobuttons = [
             { id: 'wrow', value: 'encode', title: 'Encode' },
@@ -540,13 +761,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             )
         );
 
+        const suggestCribButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestcrib" }).text("Suggest Crib")
         result.append(
             JTFLabeledInput(
                 'Crib Text',
                 'text',
                 'crib',
                 this.state.crib,
-                'crib small-12 medium-12 large-12'
+                'crib small-12 medium-12 large-12',
+                suggestCribButton
             )
         );
 
@@ -646,24 +869,29 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return changed;
     }
 
-    /*
-        This method returns an array of 'sequencesets', which contains all the information of a nihilist problem,
-        such as the cipher string, mapped cipher string, mapped key, mapped answer, etc. These are all different arrays, or sequences,
-        containing either a character or a number. Such as ['35', '56', 78'] or ['K', 'E', 'Y']. These sequences should all be the
-        same length. If the sequence ever exceeds the maxencodewidth, then it will create another sequenceset for the next chunk of
-        sequences to display on a new line.
-    */
+    /**
+     * This method returns an array of 'sequencesets', which contains all the information of a nihilist problem,
+     * such as the cipher string, mapped cipher string, mapped key, mapped answer, etc. These are all different arrays, or sequences,
+     * containing either a character or a number. Such as ['35', '56', 78'] or ['K', 'E', 'Y']. These sequences should all be the
+     * same length. If the sequence ever exceeds the maxencodewidth, then it will create another sequenceset for the next chunk of
+     * sequences to display on a new line.
+     * @param msg Plain text to encode
+     * @param maxEncodeWidth The maximum length of a line to encode
+     * @param maxEncodeWidthExtra How much more can be on the second and subsequent lines
+     * @param unChunked Don't chunk the content
+     * @returns 
+     */
     public buildNihilistSequenceSets(
         msg: string,
         maxEncodeWidth: number,
         maxEncodeWidthExtra: number = 5,
-        findCrib: boolean = false
+        unChunked: boolean = false
     ): string[][][] {
         let key = this.cleanKeyword
         if (key === '') {
             key = 'A';
         }
-        const encoded = findCrib ? msg : this.chunk(msg, this.state.blocksize);
+        const encoded = unChunked ? msg : this.chunk(msg, this.state.blocksize);
         const result: string[][][] = [];
         const charset = this.getCharset();
         let cipher = [];
@@ -2017,7 +2245,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         const table = new JTTable({ class: 'potential-keyword center unstriped' });
         const headerRow = table.addHeaderRow({ class: 'solve' })
-        let showKeyValue = false
 
         headerRow.add({
             content: '&nbsp;',
@@ -2152,64 +2379,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         this.attachHandlers();
     }
-    /**
-     * Set up all the HTML DOM elements so that they invoke the right functions
-     */
-    public attachHandlers(): void {
-        super.attachHandlers();
-        $('#blocksize')
-            .off('input')
-            .on('input', (e) => {
-                const blocksize = Number($(e.target).val());
-                if (blocksize !== this.state.blocksize) {
-                    this.markUndo(null);
-                    if (this.setBlocksize(blocksize)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-        $('#keyword')
-            .off('input')
-            .on('input', (e) => {
-                const newkeyword = $(e.target).val() as string;
-                if (newkeyword !== this.state.keyword) {
-                    this.markUndo('keyword');
-                    if (this.setKeyword(newkeyword)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-
-        $('#polybiuskey')
-            .off('input')
-            .on('input', (e) => {
-                const newPolybiusKey = $(e.target).val() as string;
-                if (newPolybiusKey !== this.state.polybiusKey) {
-                    this.markUndo('polybiuskey');
-                    if (this.setPolybiusKey(newPolybiusKey)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-
-        $('#solverkeylength')
-            .off('input')
-            .on('input', (e) => {
-                const solverKeyLength = Number($(e.target).val());
-                if (solverKeyLength !== this.state.solverKeyLength) {
-                    this.markUndo(null);
-                    if (this.setSolverKeyLength(solverKeyLength)) {
-                        this.updateOutput();
-                    }
-                }
-            });
-        $('#suggestpkey')
-            .off('click')
-            .on('click', () => {
-                this.suggestKeyword()
-            });
-    }
-
     /**
      * Generate the score of an answered cipher
      * @param answer - the array of characters from the interactive test.
@@ -2904,6 +3073,27 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.updateOutput()
     }
     /**
+     * Generate a dialog showing the choices for potential Cribs
+     */
+    public createSuggestCribDlg(title: string): JQuery<HTMLElement> {
+        const dlgContents = $('<div/>');
+
+        const xDiv = $('<div/>', { class: 'grid-x' })
+        dlgContents.append(xDiv);
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'suggestCribOpts' }))
+        dlgContents.append(
+            $('<div/>', { class: 'expanded button-group' })
+                .append($('<a/>', { class: 'button', id: 'genbtn' }).text('Generate'))
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Cancel'
+                    )
+                )
+        );
+        const suggestKeyDlg = JTFDialog('suggestCribDLG', title, dlgContents);
+        return suggestKeyDlg;
+    }
+    /**
      * Set a keyword from the recommended set
      * @param elem Keyword button to be used
      */
@@ -2915,5 +3105,126 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.setPolybiusKey(text)
         $('#keywordDLG').foundation('close')
         this.updateOutput()
+    }
+
+    public genCribSuggestions() {
+        let output = $("#suggestCribOpts");
+        const divAll = $("<div/>", { class: 'grid-x' })
+        const cellLeft = $('<div/>', { class: 'cell auto' })
+        const cellRight = $('<div/>', { class: 'cell auto' })
+        const cellMid = $('<div/>', { class: 'cell auto' })
+        divAll.append(cellLeft).append(cellMid).append(cellRight)
+        output.empty().append(divAll)
+
+        const found = this.findPossibleCribs(20, (found: number, crib: string): boolean => {
+            console.log(`Crib found: ${found}: ${crib}`)
+            let div = $('<div/>', { class: "kwchoice" });
+
+            let useButton = $("<a/>", {
+                'data-crib': crib,
+                type: "button",
+                class: "button rounded cribset abbuttons",
+            }).html('Use');
+            div.append(useButton)
+            div.append(crib)
+            if (found % 2 === 0) {
+                cellLeft.append(div)
+            } else {
+                cellMid.append(div)
+            }
+
+            return true;
+        });
+        this.attachHandlers()
+    }
+    /**
+    * Start the process to suggest cribs
+    */
+    public suggestCrib(): void {
+        // this.loadLanguageDictionary('en').then(() => {
+        $('#suggestCribDLG').foundation('open');
+        this.genCribSuggestions();
+        // })
+    }
+    /**
+     * Set a keyword and offset from the recommended set
+     * @param elem Keyword button to be used
+     */
+    public useCrib(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const text = jqelem.attr('data-crib')
+        // Give an undo state s
+        this.markUndo(null)
+        this.setCrib(text)
+        $('#suggestCribDLG').foundation('close')
+        this.updateOutput()
+
+    }
+    /**
+     * Set up all the HTML DOM elements so that they invoke the right functions
+     */
+    public attachHandlers(): void {
+        super.attachHandlers();
+        $('#blocksize')
+            .off('input')
+            .on('input', (e) => {
+                const blocksize = Number($(e.target).val());
+                if (blocksize !== this.state.blocksize) {
+                    this.markUndo(null);
+                    if (this.setBlocksize(blocksize)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $('#keyword')
+            .off('input')
+            .on('input', (e) => {
+                const newkeyword = $(e.target).val() as string;
+                if (newkeyword !== this.state.keyword) {
+                    this.markUndo('keyword');
+                    if (this.setKeyword(newkeyword)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+
+        $('#polybiuskey')
+            .off('input')
+            .on('input', (e) => {
+                const newPolybiusKey = $(e.target).val() as string;
+                if (newPolybiusKey !== this.state.polybiusKey) {
+                    this.markUndo('polybiuskey');
+                    if (this.setPolybiusKey(newPolybiusKey)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+
+        $('#solverkeylength')
+            .off('input')
+            .on('input', (e) => {
+                const solverKeyLength = Number($(e.target).val());
+                if (solverKeyLength !== this.state.solverKeyLength) {
+                    this.markUndo(null);
+                    if (this.setSolverKeyLength(solverKeyLength)) {
+                        this.updateOutput();
+                    }
+                }
+            });
+        $('#suggestpkey')
+            .off('click')
+            .on('click', () => {
+                this.suggestKeyword()
+            });
+        $('#suggestcrib')
+            .off('click')
+            .on('click', () => {
+                this.suggestCrib()
+            })
+        $('.cribset')
+            .off('click')
+            .on('click', (e) => {
+                this.useCrib(e.target)
+            })
     }
 }

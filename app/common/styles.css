@@ -244,6 +244,7 @@ button.qmore {
 }
 
 button.use,
+button.useq,
 button.ban {
     font-size: 0.8 rem;
     padding: 4px 6px;

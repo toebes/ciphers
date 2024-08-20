@@ -33,6 +33,10 @@ export function JTAppendSubMenu(parent: JQuery<HTMLElement>, submenu: menuItem[]
             if (item.cipherType !== undefined) {
                 href += '?cipherType=' + item.cipherType;
             }
+            if (item.lang !== undefined) {
+                if (href.includes("?")) href += '&curlang=' + item.lang;
+                else href += '?curlang=' + item.lang;
+            }
             const match = '/' + href;
             const tocheck = '/' + window.location.pathname;
             // See if we are at the location of the href and mark it as such

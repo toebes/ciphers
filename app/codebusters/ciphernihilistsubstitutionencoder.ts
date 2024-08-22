@@ -470,7 +470,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         //   plainText is the plaintext without any spaces or punctuation
         //
         const skip_index = Math.min(25, Math.max(10, plain.length - 25));
-        const min_allowed_len = plain.length + 1;
+        const min_allowed_len = 5; // plain.length + 1;
 
         let found = 0
         for (let pos = skip_index; pos < plain.length - min_allowed_len + 1; pos++) {
@@ -1396,6 +1396,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let possibilities: string[][] = [];
 
         for (let i = 0; i < solverData.tens.length; i++) {
+            possibilities[i] = [];
             for (let j = 0; j < solverData.tens[i].length; j++) {
                 for (let k = 0; k < solverData.ones[i].length; k++) {
 
@@ -1407,9 +1408,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                         mapValue = ["?"]
                     }
 
-                    if (possibilities[i] === undefined) {
-                        possibilities[i] = [];
-                    }
                     for (const p of mapValue) {
                         if (!possibilities[i].includes(p)) {
                             possibilities[i].push(p);

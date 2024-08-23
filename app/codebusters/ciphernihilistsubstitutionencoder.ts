@@ -2740,7 +2740,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      */
     public genCryptanalysisStep2(target: JQuery<HTMLElement>, kwLength: number): NihilistSolverData {
         const solverData: NihilistSolverData = {
-            tens: [], ones: [], keyword: this.cleanKeyword,
+            tens: [], ones: [], keyword: this.cleanKeyword.replace('J', 'I'),
             polybius: new Map<string, string[]>(),
             charMap: new Map<string, string[]>(),
             kwAnnotations: new Map<string, string[]>(),

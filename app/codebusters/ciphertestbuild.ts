@@ -399,6 +399,12 @@ export class CipherTestBuild extends CipherTest {
             group: 3, weight: 0.5, cipherType: ICipherType.PigPen,
         },
         {
+            title: "Knights Templar",
+            guidance: '[40-50 characters]',
+            len: [40, 50],
+            group: 3, weight: 0.5, cipherType: ICipherType.KnightsTemplar,
+        },
+        {
             title: 'TapCode',
             guidance: '[18-30 characters]',
             len: [18, 30],

@@ -206,6 +206,7 @@ export class CipherTest extends CipherHandler {
         'Transposition',
         'DancingMen',
         'PigPen',
+        'KnightsTemplar',
         'TapCode',
         'Other'
     ];
@@ -230,6 +231,7 @@ export class CipherTest extends CipherHandler {
         [ICipherType.RunningKey, 'Other',],
         [ICipherType.RSA, 'Other',],
         [ICipherType.PigPen, 'PigPen',],
+        [ICipherType.KnightsTemplar, 'KnightsTemplar',],
         [ICipherType.TapCode, 'TapCode',],
     ])
 
@@ -313,6 +315,7 @@ export class CipherTest extends CipherHandler {
         { cipherType: ICipherType.Baconian },
         { cipherType: ICipherType.RSA },
         { cipherType: ICipherType.PigPen },
+        { cipherType: ICipherType.KnightsTemplar },
         { cipherType: ICipherType.TapCode },
         { cipherType: ICipherType.Morbit },
         { cipherType: ICipherType.Pollux },

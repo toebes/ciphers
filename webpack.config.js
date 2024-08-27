@@ -191,6 +191,10 @@ config = {
                     to: path.resolve(__dirname, 'dist', 'images'),
                 },
                 {
+                    from: path.join(__dirname, 'app', 'images', 'knights-templar-letters.svg'),
+                    to: path.resolve(__dirname, 'dist', 'images'),
+                },
+                {
                     from: path.join(__dirname, 'app', 'images', 'tapcode.png'),
                     to: path.resolve(__dirname, 'dist', 'images'),
                 },
@@ -369,6 +373,13 @@ config = {
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
             cipher: 'PigPen',
             title: 'PigPen/Masonic Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'KnightsTemplarEncrypt.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
+            cipher: 'KnightsTemplar',
+            title: 'Knights Templar Encoder',
         }),
         new HtmlWebpackPlugin({
             inject: false,

@@ -35,6 +35,7 @@ export const enum ICipherType {
     IncompleteColumnar = 'inccolumnar',
     InterruptedKey = 'interruptedkey',
     KeyPhrase = 'keyphrase',
+    KnightsTemplar = 'knightstemplar',
     MonomeDinome = 'monomedinome',
     Morbit = 'morbit',
     Myszkowski = 'myszkowski',
@@ -318,6 +319,7 @@ const cipherTypeConfig = new Map(<[ICipherType, any][]>[
             equiv: [ICipherType.KeyPhrase],
         },
     ],
+
     [
         ICipherType.MonomeDinome,
         /* Not Yet Implemented */ {

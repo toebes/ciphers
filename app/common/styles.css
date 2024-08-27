@@ -1875,6 +1875,19 @@ p.knightstemplar {
     font-size: 24pt;
 }
 
+.ktemplar.ansblock .q.v {
+    border: none;
+    font-family: knightstemplar;
+}
+
+.ktemplar.ansblock td.a {
+    border: 1px solid block;
+}
+
+.ktemplarsvg {
+    width: 600px;
+}
+
 .pigpen.ansblock .q.v {
     border: none;
     font-family: pigpen;

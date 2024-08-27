@@ -30,6 +30,7 @@ import { CipherVigenereEncoder } from './ciphervigenereencoder';
 import { CipherTestBuild } from './ciphertestbuild';
 import { CipherQuoteManager } from './cipherquotemanager';
 import { CipherAristocratEncoder } from './cipheraristocratencoder';
+import { CipherKnightsTemplarEncoder } from './cipherknightstemplar';
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -95,6 +96,11 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     Hill: {
         cipherType: ICipherType.Hill,
         cipherClass: CipherHillEncoder,
+        canPrint: true,
+    },
+    KnightsTemplar: {
+        cipherType: ICipherType.KnightsTemplar,
+        cipherClass: CipherKnightsTemplarEncoder,
         canPrint: true,
     },
     Morbit: {

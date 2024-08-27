@@ -114,6 +114,12 @@ export const CipherMenu: menuItem[] = [
                 classname: 'chkmod menua',
             },
             {
+                title: 'Knights Templar',
+                href: 'KnightsTemplarEncrypt.html',
+                cipherType: ICipherType.PigPen,
+                classname: 'chkmod menua',
+            },
+            {
                 title: 'Pollux',
                 href: 'PolluxEncrypt.html',
                 cipherType: ICipherType.Pollux,

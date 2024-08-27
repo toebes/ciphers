@@ -59,6 +59,7 @@ const CipherTypeLookup: { [key: string]: ICipherType } = {
     'NIHILIST SUBSTITUTION': ICipherType.NihilistSubstitution,
     'NIHILIST SUBST': ICipherType.NihilistSubstitution,
     'NIHILIST TRANSPOSITION': ICipherType.NihilistTransposition,
+    'KNIGHTS TEMPLAR': ICipherType.KnightsTemplar,
     'NULL': ICipherType.Null,
     'NUMBERED KEY': ICipherType.NumberedKey,
     'PAT': ICipherType.Patristocrat,

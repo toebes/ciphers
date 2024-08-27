@@ -116,7 +116,7 @@ export const CipherMenu: menuItem[] = [
             {
                 title: 'Knights Templar',
                 href: 'KnightsTemplarEncrypt.html',
-                cipherType: ICipherType.PigPen,
+                cipherType: ICipherType.KnightsTemplar,
                 classname: 'chkmod menua',
             },
             {

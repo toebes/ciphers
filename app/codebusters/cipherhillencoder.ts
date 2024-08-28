@@ -309,7 +309,7 @@ export class CipherHillEncoder extends CipherEncoder {
             groupscore = 16.5
         } else if (key.length === 9) {
             matsize = 3
-            groupscore = 21
+            groupscore = 24
         } else {
             text = `<p><b>WARNING:</b> <em>There is no valid keyword specified, unable to compute a score.
             Please pick either a 4 or 9 letter keyword.</em></p>`

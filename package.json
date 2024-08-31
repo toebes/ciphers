@@ -18,6 +18,7 @@
         "build-aca": "webpack --mode=production --env=zip=y --config webpack-aca.config.js",
         "dev": "webpack --mode=development",
         "preinstall": "npx npm-force-resolutions",
+        "audit": "npm audit --omit=dev",
         "analyze": "webpack --mode=production --analyze --env=zip=y",
         "deploy": "node deploy"
     },

@@ -1832,8 +1832,8 @@ div.vsolv {
 
 @font-face {
     font-family: knightstemplar;
-    src: url(fonts/KnightsTemplar.woff2) format('woff2') url(fonts/KnightsTemplar.woff)
-        format('woff');
+    src: url(fonts/KnightsTemplar.woff2) format('woff2'),
+        url(fonts/KnightsTemplar.woff) format('woff');
 }
 
 @font-face {
@@ -1843,8 +1843,14 @@ div.vsolv {
 
 @font-face {
     font-family: juliamono;
-    src: url(fonts/JuliaMono-Regular.woff2) format('woff2')
+    src: url(fonts/JuliaMono-Regular.woff2) format('woff2'),
         url(fonts/JuliaMono-Regular.woff) format('woff');
+}
+
+.pigpen.ansblock td.a,
+.ktemplar.ansblock td.a,
+.dancingmen.ansblock td.a {
+    border: 1px solid block;
 }
 
 .dancingmen.ansblock .q.v {
@@ -1853,31 +1859,20 @@ div.vsolv {
     font-family: dancingmen;
 }
 
-.dancingmen.ansblock td.a {
-    border: 1px solid block;
-}
 p.dancingmen {
     font-family: dancingmen;
     font-size: 24pt;
 }
 
-.knightstemplar.ansblock .q.v {
-    border: none;
-    font-size: 24pt;
-    font-family: knightstemplar;
-}
-
-.knightstemplar.ansblock td.a {
-    border: 1px solid block;
-}
-p.knightstemplar {
-    font-family: knightstemplar;
-    font-size: 24pt;
-}
-
 .ktemplar.ansblock .q.v {
     border: none;
+    font-size: 24pt;
     font-family: knightstemplar;
+}
+
+p.ktemplar {
+    font-family: knightstemplar;
+    font-size: 24pt;
 }
 
 .ktemplar.ansblock td.a {
@@ -1893,9 +1888,6 @@ p.knightstemplar {
     font-family: pigpen;
 }
 
-.pigpen.ansblock td.a {
-    border: 1px solid block;
-}
 .TapCode td {
     padding: 0.1rem;
 }

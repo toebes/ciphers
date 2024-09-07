@@ -1866,13 +1866,13 @@ p.dancingmen {
 
 .ktemplar.ansblock .q.v {
     border: none;
-    font-size: 24pt;
+    font-size: 14pt;
     font-family: knightstemplar;
 }
 
 p.ktemplar {
     font-family: knightstemplar;
-    font-size: 24pt;
+    font-size: 14pt;
 }
 
 .ktemplar.ansblock td.a {
@@ -2041,19 +2041,22 @@ table.testscores {
 table.testscores th,
 table.testscores td {
     border: 1px solid black;
-    width: 11rem;
+    width: 7rem;
 }
 table.testscores th {
     text-align: center;
     padding: 0rem 0.5rem 0rem 0.5rem;
 }
+table.testscores td.spb {
+    width: 19rem;
+}
 table.testscores td.v {
     text-align: right;
-    padding: 0rem 4rem 0rem 0.5rem;
+    padding: 0rem 2rem 0rem 0.5rem;
 }
 table.testscores td.t {
     text-align: left;
-    padding: 0rem 0.5rem 0rem 4rem;
+    padding: 0rem 0.5rem 0rem 2rem;
 }
 table.testscores td.specialindicator {
     text-align: right;
@@ -2087,7 +2090,7 @@ table.instlfreq td.l::after {
     content: ' - ';
 }
 table.nameline {
-    width: 50rem;
+    width: 8in;
     padding: 0;
 }
 table.nameline td {
@@ -2557,6 +2560,10 @@ table.railfence-sm tbody {
         height: 100%;
         page-break-after: always;
         page-break-before: always;
+        break-after: initial !important;
+    }
+    .page > .pagebreak {
+        break-before: initial !important;
     }
     .prfreq th {
         width: 1.5rem;

@@ -471,7 +471,7 @@ export class CipherTestPrint extends CipherTest {
                 .add(label)
                 .add(timedBonus)
                 .add({
-                    settings: { colspan: 2, class: 'grey' },
+                    settings: { colspan: 2, class: 'grey spb' },
                     content: specialPoints,
                 })
                 .add('');

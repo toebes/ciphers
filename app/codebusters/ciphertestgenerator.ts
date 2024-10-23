@@ -7,12 +7,6 @@ import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
 import { buttonInfo, CipherTest, ITestState } from './ciphertest';
 
-interface SortableEntry {
-    weight: number;
-    entry: number;
-    cipherType: string;
-}
-
 /**
  * TestGenerator.html?test=<n>
  *    This edits a specific test.  It requires a test number.  If none
@@ -89,21 +83,21 @@ export class CipherTestGenerator extends CipherTest {
         if (test.useCustomHeader) {
             const custom_image_div = $('<div/>').addClass('cell small-12 medium-12 large-12');
 
-            const button_div = $( '<div/>').addClass('tight small-12 medium-12 large-12');
+            const button_div = $('<div/>').addClass('tight small-12 medium-12 large-12');
             const loadHeaderImageButton = $('<a/>', { type: "button", class: "button primary tight", id: "load-header-image" }).text("Select Header Image");
             button_div.append(loadHeaderImageButton);
 
             // Create button to remove custome
-            const clearHeaderImageButton = $('<a/>', { type: "button", class:"button alert tight", id:"clear-header-image"}).text('Clear Header Image');
+            const clearHeaderImageButton = $('<a/>', { type: "button", class: "button alert tight", id: "clear-header-image" }).text('Clear Header Image');
             button_div.append(clearHeaderImageButton);
 
             // Build label and field for name of image file, include clear image button in here, too.
             custom_image_div.append(
                 JTFLabeledInput('Custom Image Filename',
-               'text',
-                 'custom-header-image-filename',
-                     test.customHeaderImageFilename,
-             'small-12 medium-12 large-12 readonly', button_div)
+                    'text',
+                    'custom-header-image-filename',
+                    test.customHeaderImageFilename,
+                    'small-12 medium-12 large-12 readonly', button_div)
             );
 
             // Put these new widgets in the custom header div
@@ -507,61 +501,6 @@ export class CipherTestGenerator extends CipherTest {
         }
         return thisType;
     }
-    /**
-     * Reorder the questions on a test, attempting to keep similar ciphers separated away from one another
-     * @param questions Array of entries to shuffle
-     * @returns 
-     */
-    public shuffleEntries(questions: number[]): number[] {
-        let testData: SortableEntry[] = []
-        let finalData: SortableEntry[] = []
-        let saveData: SortableEntry[] = []
-        // Gather all the questions together.  First we put them all in a list using a random number that we can sort on
-        for (let entry of questions) {
-            const fileEntry = this.getFileEntry(entry);
-            let sortEntry: SortableEntry = {
-                weight: Math.random(),
-                entry: entry,
-                cipherType: this.getCipherSubType(fileEntry.cipherType)
-            }
-            testData.push(sortEntry);
-        }
-        // Sort the list based on the random weights as an initial ordering
-        testData = testData.sort((a, b) => a.weight - b.weight)
-        // Next we need to make sure that no two cipher types are next to each other (if that is possible)
-        let lastType = 'Aristocrat';
-        testData.forEach((entry) => {
-            // What general type of cipher is this?
-            let thisType = entry.cipherType;
-
-            if (thisType === lastType) {
-                // We can't put this next to the current one, so push it onto the save stack
-                saveData.push(entry);
-            } else {
-                finalData.push(entry);
-                lastType = thisType;
-            }
-            // See if there is anything on the save stack that we can pull in
-            while (saveData.length > 0) {
-                const foundIndex = saveData.findIndex((entry) => entry.cipherType !== lastType)
-                if (foundIndex === -1) {
-                    break;
-                }
-                const entries = saveData.splice(foundIndex, 1)
-                entries.forEach((entry) => {
-                    finalData.push(entry);
-                    lastType = entry.cipherType
-                });
-
-            }
-        })
-        // We sorted the best we can, so give them the final list
-        const result: number[] = []
-        finalData.forEach((entry) => result.push(entry.entry))
-        saveData.forEach((entry) => result.push(entry.entry))
-        return result
-    }
-
 
     public gotoRandomizeTest(): void {
         const test = this.getTestEntry(this.state.test);

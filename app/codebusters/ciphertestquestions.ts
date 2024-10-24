@@ -1,5 +1,5 @@
 import 'foundation-sites';
-import { cloneObject } from '../common/ciphercommon';
+import { BoolMap, cloneObject } from '../common/ciphercommon';
 import { menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -39,6 +39,7 @@ export class CipherTestQuestions extends CipherTest {
             color: 'primary',
             id: 'importurl',
         },
+        { title: 'Delete Unused Problems', color: 'alert', id: 'delunused' },
         { title: 'Delete All Problems', color: 'alert', id: 'delall' },
     ];
     /**
@@ -120,6 +121,48 @@ export class CipherTestQuestions extends CipherTest {
                 $('#delalldlg').foundation('close');
                 this.updateOutput();
             });
+        $('#delallq').text('This will delete all question even if they are in use on a test!')
+        $('#delalldlg .dlgtitle').text('Delete All Problems')
+        $('#okdel').removeAttr('disabled');
+        $('#delalldlg').foundation('open');
+    }
+    public findUsedQuestions(): BoolMap {
+        const testcount = this.getTestCount();
+        const testuse: BoolMap = {}
+
+        // Figure out what tests each entry is used with
+        for (let testent = 0; testent < testcount; testent++) {
+            const test = this.getTestEntry(testent);
+            // If we have a timed question, mark it as used
+            if (test.timed !== -1) {
+                testuse[test.timed] = true
+            }
+            // And record the use of all the other questions
+            for (const entry of test.questions) {
+                testuse[entry] = true
+            }
+        }
+        return testuse
+    }
+    /**
+     * This prompts a user and deletes the unused ciphers
+     */
+    public gotoDeleteUnusedCiphers(): void {
+        $('#okdel')
+            .off('click')
+            .on('click', (e) => {
+                const testuse = this.findUsedQuestions();
+                const cipherCount = this.getCipherCount();
+                for (let entry = cipherCount - 1; entry >= 0; entry--) {
+                    if (!testuse[entry]) {
+                        this.deleteFileEntry(entry);
+                    }
+                }
+                $('#delalldlg').foundation('close');
+                this.updateOutput();
+            });
+        $('#delalldlg .dlgtitle').text('Delete Unused Problems')
+        $('#delallq').text('This will delete all questions not used on any test.')
         $('#okdel').removeAttr('disabled');
         $('#delalldlg').foundation('open');
     }
@@ -129,12 +172,12 @@ export class CipherTestQuestions extends CipherTest {
     private createDeleteAllDlg(): JQuery<HTMLElement> {
         const dlgContents = $('<div/>', {
             class: 'callout alert',
-        }).text(
-            'This will delete all questions! ' +
-                'This operation can not be undone. ' +
+        }).append($('<div/>').append(
+            $('<strong/>', { id: 'delallq' }).text('This will delete all questions! ')))
+            .append('This operation can not be undone. ' +
                 'Please make sure you have saved a copy in case you need them. ' +
                 '  Are you sure you want to do this?'
-        );
+            );
         const DeleteAllDlg = JTFDialog(
             'delalldlg',
             'Delete all Problems',
@@ -189,6 +232,11 @@ export class CipherTestQuestions extends CipherTest {
             .off('click')
             .on('click', (e) => {
                 this.gotoDeleteAllCiphers();
+            });
+        $('#delunused')
+            .off('click')
+            .on('click', (e) => {
+                this.gotoDeleteUnusedCiphers();
             });
     }
 }

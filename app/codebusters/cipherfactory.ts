@@ -31,6 +31,7 @@ import { CipherTestBuild } from './ciphertestbuild';
 import { CipherQuoteManager } from './cipherquotemanager';
 import { CipherAristocratEncoder } from './cipheraristocratencoder';
 import { CipherKnightsTemplarEncoder } from './cipherknightstemplar';
+import { CipherTestSlicer } from './ciphertestslicer';
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -201,6 +202,11 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
     TestScoreAdjust: {
         cipherType: ICipherType.Test,
         cipherClass: CipherTestScoreAdjust,
+        canPrint: false,
+    },
+    TestSlicer: {
+        cipherType: ICipherType.Test,
+        cipherClass: CipherTestSlicer,
         canPrint: false,
     },
     Vigenere: {

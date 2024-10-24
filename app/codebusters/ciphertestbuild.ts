@@ -578,16 +578,6 @@ export class CipherTestBuild extends CipherTest {
         }
     }
     /**
-     * 
-     * @param step Step number to display
-     * @param body Content as DOM elements
-     * @returns 
-     */
-    public makeStepCallout(step: string, body: ChildNode): JQuery<HTMLElement> {
-        const title = $('<h3>').text(step)
-        return makeCallout($("<div/>").append(title).append(body as HTMLElement), 'secondary')
-    }
-    /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
      * @returns HTML DOM elements to display in the section
      */

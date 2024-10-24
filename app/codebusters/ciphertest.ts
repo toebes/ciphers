@@ -1,4 +1,4 @@
-import { cloneObject, NumberMap, StringMap } from '../common/ciphercommon';
+import { cloneObject, makeCallout, NumberMap, StringMap } from '../common/ciphercommon';
 import {
     CipherHandler,
     IRunningKey,
@@ -709,7 +709,16 @@ export class CipherTest extends CipherHandler {
             }
         })
     }
-
+    /**
+     * 
+     * @param step Step number to display
+     * @param body Content as DOM elements
+     * @returns 
+     */
+    public makeStepCallout(step: string, body: ChildNode): JQuery<HTMLElement> {
+        const title = $('<h3>').text(step)
+        return makeCallout($("<div/>").append(title).append(body as HTMLElement), 'secondary')
+    }
     /**
      * Make a range that can be passed to IndexDB openCursor routines
      * From https://developer.mozilla.org/en-US/docs/Web/API/IDBKeyRange

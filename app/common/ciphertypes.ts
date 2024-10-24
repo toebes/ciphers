@@ -319,6 +319,14 @@ const cipherTypeConfig = new Map(<[ICipherType, any][]>[
             equiv: [ICipherType.KeyPhrase],
         },
     ],
+    [
+        ICipherType.KnightsTemplar,
+        {
+            title: 'Knights Templar',
+            id: 'knightstemplar',
+            equiv: [ICipherType.KnightsTemplar],
+        },
+    ],
 
     [
         ICipherType.MonomeDinome,

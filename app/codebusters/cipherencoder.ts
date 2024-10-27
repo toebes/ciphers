@@ -140,6 +140,16 @@ export class CipherEncoder extends CipherHandler {
     public setQuestionText(question: string): void {
         this.state.question = question;
     }
+    public setPoints(points: number): boolean {
+        let changed = false
+        if (this.state.points != points) {
+            this.markUndo('points')
+            this.state.points = points;
+            this.updateQuestionsOutput();
+            changed = true;
+        }
+        return changed;
+    }
     /**
      * Make sure that they are asking them to solve the cipher or fill in the keyword.
      * If they are using a K1/K2/K3/K4 alphabet, they should also mention it
@@ -1094,11 +1104,7 @@ export class CipherEncoder extends CipherHandler {
      */
     public replaceScoreValue(): void {
         const points = Number($('#spval').attr('data-points'));
-        if (points !== this.state.points) {
-            this.markUndo('points');
-            this.state.points = points;
-            this.updateQuestionsOutput();
-        }
+        this.setPoints(points)
         $('#SamplePoints').foundation('close')
     }
     /**
@@ -1622,10 +1628,7 @@ export class CipherEncoder extends CipherHandler {
             .off('input')
             .on('input', (e) => {
                 const points = Number($(e.target).val());
-                if (points !== this.state.points) {
-                    this.markUndo('points');
-                    this.state.points = points;
-                }
+                this.setPoints(points)
             });
         $('#spbonus')
             .off('change')

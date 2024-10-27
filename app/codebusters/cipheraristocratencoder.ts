@@ -27,6 +27,8 @@ export interface IAristocratState extends IEncoderState {
     hint?: string;
     /** Optional crib tracking string */
     crib?: string;
+    /** We generated a misspelled word */
+    misspelled?: boolean;
 }
 
 export class CipherAristocratEncoder extends CipherEncoder {
@@ -45,7 +47,8 @@ export class CipherAristocratEncoder extends CipherEncoder {
         alphabetDest: '',
         curlang: 'en',
         replacement: {},
-        operation: 'decode'
+        operation: 'decode',
+        misspelled: false
     };
 
     public validTests: ITestType[] = [
@@ -142,7 +145,28 @@ export class CipherAristocratEncoder extends CipherEncoder {
         super.setUIDefaults();
         this.setOffset2(this.state.offset2);
     }
-
+    public updateQuestionsOutput(): void {
+        super.updateQuestionsOutput();
+        this.checkRandomDifficulty();
+    }
+    /**
+     * See if they are using a random alphabet for a difficult question
+     */
+    public checkRandomDifficulty() {
+        let msg = ''
+        if (this.state.encodeType === 'random') {
+            if (this.state.curlang !== 'en') {
+                msg = "For a Xenocrypt, you should use a non-random Alphabet Type to ensure that they can solve it."
+            } else if (this.state.cipherType == ICipherType.Patristocrat) {
+                msg = "For a Patristocrat, you should use a non-random Alphabet Type to ensure that they can solve it."
+            } else if (this.state.misspelled) {
+                msg = "When generating a misspelled cipher, you should use a non-random Alphabet Type to ensure that they can solve it."
+            } else if (this.state.points > 300) {
+                msg = "With a question this difficult,  you should consider using a non-random Alphabet Type to ensure that they can solve it."
+            }
+        }
+        this.setErrorMsg(msg, 'wrand');
+    }
     /**
      * Update the output based on current state settings.  This propagates
      * All values to the UI
@@ -154,6 +178,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
         $('#offset2').val(this.state.offset2);
         $('#translated').val(this.state.translation);
 
+        this.checkRandomDifficulty();
         if (this.state.operation === 'keyword') {
             $('#encrand').attr('disabled', 'disabled').hide();
         } else {
@@ -1178,6 +1203,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
         const text = jqelem.attr('data-text')
         // Give an undo state s
         this.markUndo(null)
+        this.state.misspelled = true
         this.setCipherString(text)
         $('#MisspellDLG').foundation('close')
         this.updateOutput()

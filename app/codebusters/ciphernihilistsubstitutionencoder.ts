@@ -201,12 +201,92 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.attachHandlers();
     }
     /**
+     * Sets the keyword (state.keyword)
+     * @param keyword New keyword
+     * @returns Boolean indicating if the value actually changed
+     */
+    public setKeyword(keyword: string): boolean {
+        let changed = super.setKeyword(keyword);
+        if (changed) {
+            this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword)).toUpperCase()
+            this.setSolverKeyLength(this.cleanKeyword.length)
+        }
+        return changed;
+    }
+
+    /**
+     * Convert a number the corresponding English version
+     * @param num number to convert
+     * @returns string with the text version of the number
+     */
+    public numberToWords(num: number): string {
+        const numbersInWords: { [key: number]: string } = {
+            0: 'ZERO',
+            1: 'ONE',
+            2: 'TWO',
+            3: 'THREE',
+            4: 'FOUR',
+            5: 'FIVE',
+            6: 'SIX',
+            7: 'SEVEN',
+            8: 'EIGHT',
+            9: 'NINE',
+            10: 'TEN',
+            11: 'ELEVEN',
+            12: 'TWELVE',
+            13: 'THIRTEEN',
+            14: 'FOURTEEN',
+            15: 'FIFTEEN',
+            16: 'SIXTEEN',
+            17: 'SEVENTEEN',
+            18: 'EIGHTEEN',
+            19: 'NINETEEN',
+            20: 'TWENTY',
+            30: 'THIRTY',
+            40: 'FORTY',
+            50: 'FIFTY',
+            60: 'SIXTY',
+            70: 'SEVENTY',
+            80: 'EIGHTY',
+            90: 'NINETY',
+        };
+
+        if (num <= 20 || (num < 100 && num % 10 === 0)) {
+            return numbersInWords[num];
+        } else if (num < 100) {
+            const tens = Math.floor(num / 10) * 10;
+            const ones = num % 10;
+            return `${numbersInWords[tens]}-${numbersInWords[ones]}`;
+        }
+
+        // Expand as needed for larger numbers
+        return '';
+    }
+    /**
+     * Look for a number either as the numeric value or spelled out English word in a string
+     * @param questionText Text to scan
+     * @param keyLength Length value to look for
+     * @returns boolean indicating containment or not
+     */
+    public containsExactNumberOrWord(questionText: string, keyLength: number): boolean {
+        const keyLengthWord = this.numberToWords(keyLength);
+
+        // Create regular expressions to match the numeric and word representations as exact words
+        const numberRegex = new RegExp(`\\b${keyLength}\\b`);
+        const wordRegex = new RegExp(`\\b${keyLengthWord}\\b`); // Case-insensitive for the word
+
+        // Check if the question text contains the numeric value or the word representation
+        return numberRegex.test(questionText) || wordRegex.test(questionText);
+    }
+
+    /**
      * Determine if the question text references the right pieces of this cipher
      */
     public validateQuestion(): void {
         let msg = '';
 
         const questionText = this.state.question.toUpperCase();
+        const key = this.cleanKeyword
         if (this.state.operation === 'crypt') {
             if (
                 questionText.indexOf('DECOD') < 0 &&
@@ -226,14 +306,23 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     this.state.crib +
                     "' doesn't appear to be mentioned in the Question Text.";
             }
+            // See if they told us the length of the keyword
+            //   Possible options are:
+            //         with a 5 letter keyword
+            //         with a keyword that is 5 letters long
+            //         with a five-letter keyword
+            //         using a keyword of five letters
+            // Essentially we want to see either either "letter" "letter" or "keyword"
+            // and the number (with non digits on either side) or the text version of the number
+            // Remember that we already know the length of the keyword
+            if (!(questionText.indexOf('LETTER') >= 0 || questionText.indexOf('KEYWORD') >= 0) ||
+                !this.containsExactNumberOrWord(questionText, key.length)) {
+                msg += `The question doesn't specify the length (${this.cleanKeyword.length}) of the keyword. `;
+            }
         } else {
             // For an encode or decode, they need to mention the key
-            const key = this.cleanKeyword;
             if (key !== '' && questionText.indexOf(key) < 0) {
-                msg +=
-                    "The Key '" +
-                    this.cleanKeyword +
-                    "' doesn't appear to be mentioned in the Question Text.";
+                msg += `The Key '${this.cleanKeyword}' doesn't appear to be mentioned in the Question Text.`;
             }
             const polybiusKey = this.cleanPolyKey;
             if (polybiusKey !== '' && questionText.indexOf(polybiusKey) < 0) {
@@ -560,8 +649,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let msg = '';
         let ciphertypetext = 'Nihilist Substitution';
         if (this.state.operation === 'crypt') {
+            const keylen = this.numberToWords(this.cleanKeyword.length).toLowerCase()
             msg = `<p>The following quote${this.genAuthor()} has been encoded with the ${ciphertypetext}
-                Cipher using a very common word for the key. `;
+                Cipher using a common ${keylen}-letter word for the key. `;
 
             const cribpos = this.placeCrib();
             if (cribpos === undefined) {

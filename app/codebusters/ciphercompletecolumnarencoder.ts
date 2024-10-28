@@ -937,8 +937,9 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         }
 
         // duplicate letters in crib row(s) makes is more difficult + 15 for each duplicate
-        const cribUnique = this.state.crib.split('').filter((x, i, a) => a.indexOf(x) === i);
-        const cribUniqueDifference = this.state.crib.length - cribUnique.length;
+        const spacelessCrib = this.minimizeString(this.state.crib);
+        const cribUnique = spacelessCrib.split('').filter((x, i, a) => a.indexOf(x) === i);
+        const cribUniqueDifference = spacelessCrib.length - cribUnique.length;
         if (cribUniqueDifference > 0) {
             suggested += (15 * (cribUniqueDifference));
             cribDuplicates = ' The crib has duplicate letters, which makes finding the column order more difficult. ';
@@ -1206,11 +1207,12 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         const usedOnCState = testUsage.includes(ITestType.cstate);
 
         let errorMessage = '';
-        if (this.state.crib.length < this.state.columns - 1 && !usedOnCState) {
+        const spacelessCrib = this.minimizeString(this.state.crib);
+        if (spacelessCrib.length < this.state.columns - 1 && !usedOnCState) {
             errorMessage = `For this test type, the length of the crib must be no shorter than ${(this.state.columns - 1)} 
                 (i.e. one less the number of columns used).`;
             this.setErrorMsg(errorMessage, 'cribl', null);
-        } else if (this.state.crib.length < this.state.columns - 3 && usedOnCState ) {
+        } else if (spacelessCrib.length < this.state.columns - 3 && usedOnCState ) {
             errorMessage = `For a Division C State/National test, the length of the crib must be no shorter
              than ${(this.state.columns - 3)} (i.e. three less the number of columns used).`;
         }

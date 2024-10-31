@@ -627,6 +627,11 @@ label.slil:after {
     background-color: yellow;
 }
 
+.morefocus {
+    background-color: yellow;
+    text-decoration: underline;
+}
+
 .focus {
     border: 1px solid black !important;
 }

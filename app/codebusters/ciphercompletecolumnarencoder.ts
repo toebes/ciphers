@@ -237,12 +237,6 @@ class CompleteColumnarSolver extends CipherEncoder {
     }
 
     public getCompleteColumnarSolution(): JQuery<HTMLElement> {
-        let tableClass = 'railfence-lg';
-        if (this.textLength > 90) {
-            tableClass = 'railfence-sm';
-        } else if (this.textLength > 45) {
-            tableClass = 'railfence-md';
-        }
         let foundAnswer = false;
 
         const returnValue = $('<div/>');
@@ -267,9 +261,10 @@ class CompleteColumnarSolver extends CipherEncoder {
             }
 
 
-            details.append(`Row ${s.getFirstRow()} has ${s.getLettersInFirstRow()} of the ${s.getCribLength()} crib letters in it (`);
-            details.append($('<span>').addClass('allfocus').text(this.crib.substring(0, s.getLettersInFirstRow())))
-                .append(`).`);
+            details.append(`Row ${s.getFirstRow() + 1} has ${s.getLettersInFirstRow()} crib letters in it (`);
+            details.append();
+            details.append($('<span>').addClass('morefocus').text(this.crib.substring(0, s.getLettersInFirstRow())))
+                .append(`${this.crib.substring(s.getLettersInFirstRow())}).`);
             if (s.isSplitOverRows()) {
                 details.append(`  So for row ${s.getFirstRow()}, the column order has to `)
                     .append($('<span>').addClass('fq').text('end')).append(' with these letters.');
@@ -279,9 +274,11 @@ class CompleteColumnarSolver extends CipherEncoder {
 
             if (s.getLettersInSecondRow() > 0) {
                 details = $('<div>');
-                details.append(`Row ${s.getFirstRow() + 1} has ${s.getLettersInSecondRow()} of the ${s.getCribLength()} crib letters in it (`);
-                details.append($('<span>').addClass('allfocus').text(this.crib.substring(s.getLettersInFirstRow())))
-                    .append(`).`);
+                details.append(`Row ${s.getFirstRow() + 1 + 1} has ${s.getLettersInSecondRow()} crib letters in it (`);
+                details.append(this.crib.substring(0, s.getLettersInFirstRow()));
+                details.append($('<span>').addClass('morefocus').text(this.crib.substring(s.getLettersInFirstRow(), s.getLettersInFirstRow() + s.getLettersInSecondRow())));
+                details.append(this.crib.substring(s.getLettersInFirstRow() + s.getLettersInSecondRow()));
+                details.append(`).`);
                 if (s.isSplitOverRows()) {
                     details.append(`  So for row ${s.getFirstRow() + 1}, the column order has to `)
                         .append($('<span>').addClass('fq').text('start')).append(' with these letters.');
@@ -314,7 +311,6 @@ class CompleteColumnarSolver extends CipherEncoder {
             } else {
                 returnValue.append(CipherCompleteColumnarEncoder.paragraph('With this information, we can derive different combinations for column ordering.'));
 
-                let combosToTry = '';
                 let trials = $('<div>');
                 let paragraph = $('<p>');
                 let firstPass = true;
@@ -389,7 +385,7 @@ class CompleteColumnarSolver extends CipherEncoder {
             }
 
             // Get the part of the crib in the second row.  This fills the array from the FRONT
-            let cribInSecondRow = this.crib.substring(splitInfo.getLettersInFirstRow());
+            let cribInSecondRow = this.crib.substring(splitInfo.getLettersInFirstRow(), splitInfo.getLettersInFirstRow() + columnsInThisAnalysis);
 
             let cribLetters = cribInSecondRow.split('');
             let index = 0, rowOrder = [];
@@ -1215,6 +1211,8 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         } else if (spacelessCrib.length < this.state.columns - 3 && usedOnCState ) {
             errorMessage = `For a Division C State/National test, the length of the crib must be no shorter
              than ${(this.state.columns - 3)} (i.e. three less the number of columns used).`;
+        } else if (spacelessCrib.length > this.state.columns) {
+            errorMessage = `Warning: The crib length is greater than the number of columns.  The auto-solver will only use the first ${this.state.columns} letters of the crib`;
         }
         this.setErrorMsg(errorMessage, 'cribl', null);
 
@@ -1395,9 +1393,9 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         this.stopGenerating = false;
         this.isLoading = true;
 
-        let r: number;
         const result = $('<div/>');
         target.append(result);
+        this.setErrorMsg('', 'cribspan', null);
 
         if (this.state.cipherString.length === 0) {
             this.isLoading = false;
@@ -1495,8 +1493,14 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                 console.log('Now processing =====>  Columns: ' + columnCount);
             }
 
-            let cleanCrib = this.minimizeString(this.state.crib);
-            let cribLocation = this.checkConsecutiveRowsForCrib(ccs, cleanCrib, rowLetters);
+            const cleanCrib = this.minimizeString(this.state.crib);
+            let safeCrib = cleanCrib;
+
+            if (cleanCrib.length + 1 > columnCount) {
+                safeCrib = cleanCrib.substring(0, columnCount);
+                ccs.setCrib(safeCrib);
+            }
+            let cribLocation = this.checkConsecutiveRowsForCrib(ccs, safeCrib, rowLetters);
             if (cribLocation.length > 0) {
                 const rowDetails = {};
                 result.append(CipherCompleteColumnarEncoder.paragraph('We can find the crib in ' + cribLocation.length + ' positions of the ' + columnCount + ' column encoding:'));
@@ -1509,25 +1513,27 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                         div = $('<div>');
                         rowDetails['row1'] = cribInfo[i][o]
 
-                        let ccc = `has ${cribInfo[i][1]} of the ${cleanCrib.length}`;
+                        let cribCountInfo = `has ${cribInfo[i][1]} of the ${this.minimizeString(this.state.crib).length}`;
                         if (cribInfo[i][1] === 0) {
                             continue;
                         } else if (cribInfo[i][1] === cleanCrib.length) {
-                            ccc = `has all ${cribInfo[i][1]}`;
+                            cribCountInfo = `has all ${cribInfo[i][1]}`;
                         }
 
-                        div.append(`Row ${cribInfo[i][0]} ${ccc} crib letters in it (`)
-                            .append($('<span>').addClass('allfocus').text(cleanCrib.substring(offset, offset + cribInfo[i][1]))).append(').');
+                        // !!!!!!!!!!!!!
+                        div.append(`Row ${cribInfo[i][0] + 1} ${cribCountInfo} crib letters in it (`);
+                        div.append(cleanCrib.substring(0, offset));
+                        div.append($('<span>').addClass('morefocus').text(cleanCrib.substring(offset, offset + cribInfo[i][1])));
+                        div.append(cleanCrib.substring(offset + cribInfo[i][1])).append(`).`);
                         offset += cribInfo[i][1];
                         result.append(div);
                     }
                     result.append($('<p>'));
                 }
             } else {
-                result.append(CipherCompleteColumnarEncoder.paragraph('Crib not found, rule out an encoding of ' + columnCount + ' columns.'))
+              result.append(CipherCompleteColumnarEncoder.paragraph('Crib not found, rule out an encoding of ' + columnCount + ' columns.'))
             }
         }
-
         result.append(CipherCompleteColumnarEncoder.heading('Analyze possibilities...'));
 
         result.append(ccs.getCompleteColumnarSolution());

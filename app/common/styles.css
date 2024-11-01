@@ -546,6 +546,12 @@ input.cb {
     margin-bottom: 5px;
     font-style: italic;
 }
+#statistics {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    font-style: italic;
+}
 .sword,
 .sword tbody {
     float: left;

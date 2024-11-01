@@ -838,6 +838,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
      */
     public load(): void {
         this.clearErrors();
+        $('#statistics').text(`Plain text length=${this.minimizeString(this.state.cipherString).length}`);
         this.validateQuestion();
         let res = this.build();
         $('#answer')

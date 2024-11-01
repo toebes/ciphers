@@ -28,6 +28,7 @@ const AUTOSOLVER_NOKEYPOS = 1000
 type NihilistSolverMappings = number[][]
 type PolybiusMap = Map<string, string[]>
 type Known = 'none' | 'tens' | 'ones' | 'all'
+type TableType = 'tens' | 'ones' | 'example'
 
 interface NihilistSolverData {
     /** The known keyword */
@@ -90,6 +91,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public cleanPolyKey = '';
     public polybiusMap = new Map<string, string>();
     public sequencesets = [];
+    public lengthKnown = false;
 
     public isLoading = false;
     public stopGenerating = false;
@@ -318,6 +320,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             if (!(questionText.indexOf('LETTER') >= 0 || questionText.indexOf('KEYWORD') >= 0) ||
                 !this.containsExactNumberOrWord(questionText, key.length)) {
                 msg += `The question doesn't specify the length (${this.cleanKeyword.length}) of the keyword. `;
+                this.lengthKnown = false;
+            } else {
+                this.lengthKnown = true;
             }
         } else {
             // For an encode or decode, they need to mention the key
@@ -1933,7 +1938,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param countArray The count array to use
      * @param isK1Example 
      */
-    public showCountTable(target: JQuery<HTMLElement>, countArray: NihilistSolverMappings, isK1Example: boolean): void {
+    public showCountTable(target: JQuery<HTMLElement>, countArray: NihilistSolverMappings, tableType: TableType): void {
 
         const table = new JTTable({
             class: 'polybius-square center',
@@ -1942,11 +1947,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const header = table.addHeaderRow()
 
         header.add('')
-        const limit = isK1Example ? 1 : countArray.length
+        const limit = tableType === 'example' ? 1 : countArray.length
 
         for (let i = 1; i <= 10; i++) {
             let index = i % 10
-            if (isK1Example && countArray[0][index] === 1) {
+            if (tableType === 'example' && countArray[0][index] === 1) {
                 header.add({
                     content: '<span class="ones">' + index + '</span>'
                 })
@@ -1975,7 +1980,14 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
 
             let row
-            if (largest - smallest >= 5 && !isK1Example) {
+            const range = largest - smallest
+            let rangelimit = 5
+            if (tableType === 'example') {
+                rangelimit = 999
+            } else if (tableType === 'tens') {
+                rangelimit = 6
+            }
+            if (range >= rangelimit) {
                 row = table.addBodyRow({ class: 'wrong' })
             } else {
                 row = table.addBodyRow()
@@ -2422,6 +2434,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     }
                 }
             }
+            // When we have 45+45, we end up getting 6 slots instead of 5
+            if ((highest - lowest) === 5) {
+                highest--;
+            }
 
             let possibilities = [];
             for (let j = highest - 5; j < lowest; j++) {
@@ -2775,6 +2791,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param kwLength Length of the known keyword
      */
     public genCryptanalysisStep1(target: JQuery<HTMLElement>, kwLength: number) {
+        if (this.lengthKnown) {
+            this.showStep(target, "Step 1: Get the keyword length")
+            this.showStepText(target, `Since we are told that the keyword is ${this.cleanKeyword.length} letters long we use that to determine the keyword letter mappings.`)
+            return
+        }
         this.showStep(target, "Step 1: Determine keyword length");
 
         this.showStepText(target, `Finding the keyword length is the first step to cracking this cipher. Since we don't know any information
@@ -2807,7 +2828,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         //we can see that there are _X_ X's in the above table, showing the appearances of the ones digits for K1
 
-        this.showCountTable(target, dynamicArray, true)
+        this.showCountTable(target, dynamicArray, 'example')
 
         this.showStepText(target, `The above table shows all the ones digits found at the K1 locations in the ciphertext.
              If we find that the smallest ones digit is more than 5 spaces away from the largest ones digit, then our keyword length guess must be wrong.`)
@@ -2818,7 +2839,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
              If any of the rows do not follow the 5-space rule, then we know the corresponding keyword length guess is wrong.`)
 
 
-        this.showCountTable(target, dynamicArray, false)
+        this.showCountTable(target, dynamicArray, 'ones')
 
         this.showStepText(target, `If we look through all the tables for different keyword lengths (using the increment button), 
         we see that the keyword length of ${kwLength} does not break the 5-space rule. This is likely our keyword length, so we'll continue with a length of ${kwLength}`)
@@ -2849,7 +2870,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.showStepText(target, `We have determined that the keyword has a length of ${kwLength} - here is its ones digit count table.`)
 
         let continueArray = this.buildCountArray(kwLength, true);
-        this.showCountTable(target, continueArray, false)
+        this.showCountTable(target, continueArray, 'ones')
 
         solverData.ones = this.findKeywordMappings(continueArray);
 
@@ -2861,7 +2882,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.showStepText(target, "This gives us the possible ones digits for the keyword letters. Now we can do the same with the tens digit - here is the tens digit table.")
 
         let tensArray = this.buildCountArray(kwLength, false);
-        this.showCountTable(target, tensArray, false)
+        this.showCountTable(target, tensArray, 'tens')
 
         solverData.tens = this.findKeywordMappings(tensArray);
 

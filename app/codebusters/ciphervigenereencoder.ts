@@ -119,10 +119,12 @@ export class CipherVigenereEncoder extends CipherEncoder {
         const changed = super.setCipherType(cipherType);
         this.ciphermap = mapperFactory(cipherType);
         if (cipherType === ICipherType.Porta) {
+            this.cipherName = "Porta";
             this.validTests = this.validPortaTests;
             this.usesPortaTable = true;
             this.usesVigenereTable = false;
         } else {
+            this.cipherName = "Vigenere";
             this.validTests = this.validVigenereTests;
             this.usesPortaTable = false;
             this.usesVigenereTable = true;

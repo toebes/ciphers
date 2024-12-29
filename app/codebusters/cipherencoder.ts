@@ -1383,12 +1383,65 @@ export class CipherEncoder extends CipherHandler {
         this.attachHandlers()
         return found
     }
+
+    public genHintText(hint: string): string {
+        return hint !== undefined ? ` You are told that ${hint}` : '';
+    }
+
+    /**
+     * 
+     * @param qOptions List of possible question options to display
+     * @param langtext Text indicating what language the cipher is in
+     * @param hinttext Hint text to display with question
+     * @param fixedName Cipher name
+     * @param operationtext Asks for keyword
+     * @param operationtext2 Tells what type of alphabet was used to encode (K1, etc)
+     * @param cipherAorAn Either A or An depending on if the cipher starts with vowel
+     * @returns whether qOptions was modified
+     */
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+        qOptions.push(`A quote${this.genAuthor()}${langtext} has been encoded using the ${fixedName} Cipher${operationtext2} for you to decode.${hinttext}${operationtext}`);
+        qOptions.push(`Solve this quote${this.genAuthor()}${langtext} that has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Decrypt the following cipher text${langtext} that has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A phrase${this.genAuthor()}${langtext} has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A famous phrase${this.genAuthor()} has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A message${langtext}${this.genAuthor()} encrypted${operationtext2} with the ${fixedName} cipher has been recieved.${hinttext}${operationtext}`);
+        qOptions.push(`The following quote${this.genAuthor()}${langtext} needs to be decoded with the ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Someone passed you a piece of paper with this ${fixedName} encoded phrase of a quote${this.genAuthor()}${langtext}${operationtext2}. ${hinttext}${operationtext}`);
+
+
+        if (hinttext !== '') {
+            if (this.state.operation === 'keyword') {
+                qOptions.push(`Solve this ${fixedName}${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            }
+            else {
+                qOptions.push(`Solve this ${fixedName}${this.genAuthor()}${langtext}${operationtext2}.${hinttext}`);
+            }
+
+        }
+        if (this.state.author !== undefined && this.state.author !== '') {
+            qOptions.push(`${this.state.author} has been heard to say the following phrase that has been encoded using the ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`${this.state.author} was often heard to say the following phrase which has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`${this.state.author} offers us some advice that has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`${this.state.author} offers an observation that has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`Upon searching a room, the following were found on scraps of paper. You realize it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You came across the following written on a wall in a cave. You notice that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You found the following carved into the bark of a hollow log. You recognize that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        }
+        else {
+            qOptions.push(`Upon searching a room, the following were found on scraps of paper. You realize it's encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You came across the following written on a wall in a cave. You notice that it's encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You found the following carved into the bark of a hollow log. You recognize that it's encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        }
+        return false;
+    }
     /**
      * Update the GUI with a list of suggestions for questions
      * @param qcount Number of questions to find
      * @param action Callback function when a question is found
      * @returns Total number of questions found
      */
+    // TODO: morbit and pollux doesn't have the q gen button
     public searchForQuestions(qcount: number, action: (count: number, question: string) => boolean): number {
         const lang = 'en';
 
@@ -1396,9 +1449,12 @@ export class CipherEncoder extends CipherHandler {
         let qOptions: string[] = [];
 
         const hint = this.genSampleHint();
-        let hinttext = hint !== undefined ? ` You are told that ${hint}` : '';
+
+        let hinttext = this.genHintText(hint)
+
         let langtext = '';
-        if (this.state.curlang === 'es') langtext = ' in Spanish';
+        let fixedName = this.cipherName;
+        if (this.state.curlang === 'es') { langtext = ' in Spanish'; }
         let enctype = ''
         if (this.state.encodeType !== undefined && this.state.encodeType !== 'random') {
             enctype += ' ' + this.state.encodeType.toUpperCase();
@@ -1407,79 +1463,33 @@ export class CipherEncoder extends CipherHandler {
         let operationtext2 = '';
 
         if (this.state.operation === 'keyword') {
-            let keytype = "Keyword";
+            let keytype = 'Keyword';
             const keyanswer = this.state.keyword.toUpperCase();
             if (this.minimizeString(keyanswer).length !== keyanswer.length) {
-                keytype = "Key Phrase";
+                keytype = 'Key Phrase';
             }
             operationtext = ` What was the${enctype} ${keytype} used to encode it?`;
         }
-        if (enctype !== "random" && enctype !== "") {
+        if (enctype !== 'random' && enctype !== '') {
             operationtext2 = ` using a${enctype} alphabet`;
         }
-        let vowels = "aeiouy";
+        let vowels = 'aeiouy';
         let cipherAorAn = 'a';
-        if (vowels.indexOf(this.cipherName.substring(0, 1).toLowerCase()) >= 0) cipherAorAn = 'an';
+        if (vowels.indexOf(fixedName.substring(0, 1).toLowerCase()) >= 0) cipherAorAn = 'an';
 
 
         // Potential improvements TODO:
         // Add references if it's misspelled
-        // Maybe add if the person was at an event
         // 
         if (this.state.operation === 'encode') {
-            qOptions.push(`Encode this quote${this.genAuthor()}${langtext} using the ${this.cipherName} Cipher.${hinttext}`);
-            qOptions.push(`Encode this famous quote${this.genAuthor()}${langtext} using the ${this.cipherName} Cipher.${hinttext}`);
-            qOptions.push(`Encrypt this common phrase${this.genAuthor()}${langtext} using the ${this.cipherName} Cipher.${hinttext}`);
+            qOptions.push(`Encode this quote${this.genAuthor()}${langtext} using the ${fixedName} Cipher.${hinttext}`);
+            qOptions.push(`Encode this famous quote${this.genAuthor()}${langtext} using the ${fixedName} Cipher.${hinttext}`);
+            qOptions.push(`Encrypt this common phrase${this.genAuthor()}${langtext} using the ${fixedName} Cipher.${hinttext}`);
         }
         else {
-            qOptions.push(`A quote${this.genAuthor()}${langtext} has been encoded using the ${this.cipherName} Cipher${operationtext2} for you to decode.${hinttext}${operationtext}`);
-            qOptions.push(`Solve this quote${this.genAuthor()}${langtext} that has been encoded using the ${this.cipherName} Cipher${operationtext2}.${hinttext}${operationtext}`);
-            qOptions.push(`Decrypt the following cipher text${langtext} that has been encoded using the ${this.cipherName} Cipher${operationtext2}.${hinttext}${operationtext}`);
-            qOptions.push(`A phrase${this.genAuthor()}${langtext} has been encoded using the ${this.cipherName} Cipher${operationtext2}.${hinttext}${operationtext}`);
-            qOptions.push(`A famous phrase${this.genAuthor()} has been encoded as ${cipherAorAn} ${this.cipherName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-            qOptions.push(`A message${langtext}${this.genAuthor()} encrypted${operationtext2} with the ${this.cipherName} cipher has been recieved.${hinttext}${operationtext}`);
-            qOptions.push(`The following quote${this.genAuthor()}${langtext} needs to be decoded with the ${this.cipherName} cipher${operationtext2} has been recieved.${hinttext}${operationtext}`);
-            qOptions.push(`Someone passed you a piece of paper with this ${this.cipherName} encoded phrase of a quote${this.genAuthor()}${langtext}${operationtext2}. ${hinttext}${operationtext}`);
+            // adds questions 
+            this.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
 
-            if (this.state.cipherType === ICipherType.Baconian) {
-                if (this.state.operation !== 'words') {
-                    qOptions.push(`The following symbols encodes a phrase${this.genAuthor()} using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
-                    if (this.state.author !== undefined && this.state.author !== '') {
-                        qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as a prankster who scratched a quote by ${this.state.author} on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
-                    }
-                    else {
-                        qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as a prankster who scratched it on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
-                    }
-                }
-                else {
-                    qOptions.push(`The following strange headlines encodes a phrase${this.genAuthor()} using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
-                }
-            }
-
-
-            if (hinttext !== '') {
-                if (this.state.operation === 'keyword') {
-                    qOptions.push(`Solve this ${this.cipherName}${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-                }
-                else {
-                    qOptions.push(`Solve this ${this.cipherName}${this.genAuthor()}${langtext}${operationtext2}.${hinttext}`);
-                }
-
-            }
-            if (this.state.author !== undefined && this.state.author !== '') {
-                qOptions.push(`${this.state.author} has been heard to say the following phrase that has been encoded using the ${this.cipherName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}`);
-                qOptions.push(`${this.state.author} was often heard to say the following phrase which has been encoded as ${cipherAorAn} ${this.cipherName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-                qOptions.push(`${this.state.author} offers us some advice that has been encoded as ${cipherAorAn} ${this.cipherName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-                qOptions.push(`${this.state.author} offers an observation that has been encoded as ${cipherAorAn} ${this.cipherName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-                qOptions.push(`Upon searching a room, the following were found on scraps of paper. You realize it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${this.cipherName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-                qOptions.push(`You came across the following written on a wall in a cave. You notice that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${this.cipherName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-                qOptions.push(`You found the following carved into the bark of a hollow log. You recognize that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${this.cipherName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-            }
-            else {
-                qOptions.push(`Upon searching a room, the following were found on scraps of paper. You realize it's encoded as ${cipherAorAn} ${this.cipherName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-                qOptions.push(`You came across the following written on a wall in a cave. You notice that it's encoded as ${cipherAorAn} ${this.cipherName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-                qOptions.push(`You found the following carved into the bark of a hollow log. You recognize that it's encoded as ${cipherAorAn} ${this.cipherName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-            }
 
         }
 

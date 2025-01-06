@@ -1,0 +1,142 @@
+.amain {
+    height: 100vh;
+    background-color: lightcyan;
+    display: grid;
+    grid-template-rows: auto 1fr minmax(4.5rem, auto);
+}
+
+.topbar {
+    height: 1.5rem;
+    background-color: purple;
+    grid-row: 1;
+}
+
+.appgui {
+    background-color: yellow;
+    display: grid;
+    grid-template-rows: 3fr 1fr 1fr;
+    grid-row: 2;
+}
+
+.appinfo1 {
+    background-color: lightcoral;
+    grid-row: 2;
+}
+
+.appinfo2 {
+    background-color: lightseagreen;
+    grid-row: 3;
+}
+
+.appkeybd {
+    background-color: black;
+    grid-row: 3;
+    height: 160px;
+    justify-content: center;
+    align-items: center;
+    min-height: 4.5rem;
+}
+
+.kbmain {
+    display: flex;
+    flex-direction: row;
+    gap: 20px; /* Space between keyboard and arrow keys */
+    max-width: 100%;
+}
+
+.keyboard-rows {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 80%;
+}
+
+.kbrow {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.kbmain .row2 {
+    padding-left: 15px;
+}
+
+.kbmain .row3 {
+    padding-left: 30px;
+}
+.keyboard-rows .key {
+    max-width: 8%;
+}
+
+.kbmain .key {
+    flex: 1;
+    padding: 8px;
+    font-size: 1rem;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.kbmain .key:active {
+    background-color: #45a049;
+}
+
+.arrows {
+    display: grid;
+    grid-template-areas:
+        '. . kup kup kup . .'
+        'kleft kleft kleft . kright kright kright'
+        '. . kdown kdown kdown . .';
+    gap: 5px;
+}
+
+.arrows .kup {
+    grid-area: kup;
+}
+.arrows .kleft {
+    grid-area: kleft;
+}
+.arrows .kdown {
+    grid-area: kdown;
+}
+.arrows .kright {
+    grid-area: kright;
+}
+
+.arrows .key {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 400px) {
+    .kbmain {
+        max-width: 90%;
+        gap: 10px;
+    }
+
+    .keyboard-rows .key {
+        padding: 8px;
+        font-size: 0.7rem;
+        text-align: center;
+    }
+
+    .kbmain .row2 {
+        padding: 0px 10px;
+    }
+
+    .kbmain .row3 {
+        padding: 0px 20px;
+    }
+
+    .arrows .key {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+}

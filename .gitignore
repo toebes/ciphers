@@ -39,3 +39,4 @@ app/*/*.js
 app/*/*.js.map
 ANC-written-count.txt
 ANC-written-lemma.txt
+android/

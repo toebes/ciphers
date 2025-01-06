@@ -14,8 +14,10 @@
     "scripts": {
         "serve": "webpack serve --mode=development",
         "build": "webpack --mode=production --env=zip=y",
-        "serve-aca": "webpack serve --mode=development  --config webpack-aca.config.js",
+        "serve-aca": "webpack serve --mode=development --config webpack-aca.config.js",
         "build-aca": "webpack --mode=production --env=zip=y --config webpack-aca.config.js",
+        "serve-app": "webpack serve --mode=development --config webpack-app.config.js",
+        "build-app": "webpack --mode=production --env=zip=y --config webpack-app.config.js",
         "dev": "webpack --mode=development",
         "preinstall": "npx npm-force-resolutions",
         "audit": "npm audit --omit=dev",
@@ -71,6 +73,9 @@
     },
     "dependencies": {
         "@azure/msal-browser": "^2.14.2",
+        "@capacitor/android": "^6.1.2",
+        "@capacitor/cli": "^6.1.2",
+        "@capacitor/core": "^6.1.2",
         "@ckeditor/ckeditor5-basic-styles": "^34.0.0",
         "@ckeditor/ckeditor5-block-quote": "^34.0.0",
         "@ckeditor/ckeditor5-dev-utils": "^30.1.3",

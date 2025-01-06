@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body>
+    <% for (var index in htmlWebpackPlugin.files.js) { %>
+        <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
+        <% } %>
+            <div class="amain">
+                <div class="topbar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"
+                    title="<%= htmlWebpackPlugin.options.title %>"></div>
+                <div class="buttonlist">
+                    <a class="button rounded" href="Affine.html">Affine</a>
+                    <a class="button rounded" href="Aristocrat.html">Aristocrat</a>
+                    <a class="button rounded" href="Atbash.html">Atbash</a>
+                    <a class="button rounded" href="Baconian.html">Baconian</a>
+                    <a class="button rounded" href="DancingMen.html">DancingMen</a>
+                    <a class="button rounded" href="Caesar.html">Caesar</a>
+                    <a class="button rounded" href="Checkerboard.html">Checkerboard</a>
+                    <a class="button rounded" href="CompleteColumnar.html">CompleteColumnar</a>
+                    <a class="button rounded" href="Cryptarithm.html">Cryptarithm</a>
+                    <a class="button rounded" href="FractionatedMorse.html">FractionatedMorse</a>
+                    <a class="button rounded" href="Hill.html">Hill</a>
+                    <a class="button rounded" href="KnightsTemplar.html">KnightsTemplar</a>
+                    <a class="button rounded" href="NihilistSubstitution.html">NihilistSubstitution</a>
+                    <a class="button rounded" href="Patristocrat.html">Patristocrat</a>
+                    <a class="button rounded" href="PigPen.html">PigPen</a>
+                    <a class="button rounded" href="Porta.html">Porta</a>
+                    <a class="button rounded" href="TapCode.html">TapCode</a>
+                    <a class="button rounded" href="Vigenere.html">Vigenere</a>
+                    <a class="button rounded" href="Xenocrypt.html">Xenocrypt</a>
+                </div>
+</body>
+
+</html>

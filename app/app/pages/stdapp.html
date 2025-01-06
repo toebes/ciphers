@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+</head>
+
+<body>
+    <% for (var index in htmlWebpackPlugin.files.js) { %>
+        <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
+        <% } %>
+            <div class="amain">
+                <div class="topbar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"
+                    title="<%= htmlWebpackPlugin.options.title %>"></div>
+                <div class="appgui" id="agui">
+                    <div class="appinfo1" id="ainfo1"></div>
+                    <div class="appinfo2" id="ainfo2"></div>
+                </div>
+                <div class="appkeybd" id="akbd"></div>
+            </div>
+</body>
+
+</html>

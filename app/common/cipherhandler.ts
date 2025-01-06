@@ -25,6 +25,7 @@ export const enum menuMode {
 export const enum toolMode {
     aca,
     codebusters,
+    app,
 }
 
 /** The types of operations that an encoder will support */

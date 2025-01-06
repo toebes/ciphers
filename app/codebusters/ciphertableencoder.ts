@@ -123,14 +123,12 @@ export class CipherTableEncoder extends CipherEncoder {
     }
     public setCipherType(cipherType: ICipherType): boolean {
         const changed = super.setCipherType(cipherType);
-        if (changed) {
-            if (cipherType === ICipherType.Caesar) {
-                this.validTests = this.validCaesarTests;
-                this.cipherName = 'Caesar'
-            } else {
-                this.validTests = this.validAtBashTests;
-                this.cipherName = 'AtBash'
-            }
+        if (cipherType === ICipherType.Caesar) {
+            this.validTests = this.validCaesarTests;
+            this.cipherName = 'Caesar'
+        } else {
+            this.validTests = this.validAtBashTests;
+            this.cipherName = 'Atbash'
         }
         return changed;
     }

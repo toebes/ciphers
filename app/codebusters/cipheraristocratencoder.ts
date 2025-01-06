@@ -482,8 +482,15 @@ export class CipherAristocratEncoder extends CipherEncoder {
             changed = true;
         }
         if (this.state.cipherType === ICipherType.Aristocrat || this.state.cipherType === ICipherType.Patristocrat) {
+            if (this.state.cipherType === ICipherType.Patristocrat) {
+                this.cipherName = "Patristocrat";
+            }
+            else {
+                this.cipherName = "Aristocrat";
+            }
             if (this.state.curlang === 'es') {
                 this.guidanceURL = 'TestGuidance.html#Xenocrypt';
+                this.cipherName = "Xenocrypt";
             } else if (this.state.operation === 'keyword') {
                 this.guidanceURL = 'TestGuidance.html#Aristocrat_Keyword';
             } else {

@@ -75,7 +75,7 @@ interface searchState {
 export class CipherCryptarithmEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Cryptarithm';
-    public cipherName = 'Pig Pen'
+    public cipherName = 'Cryptarithm'
 
     public lettermask: { [index: string]: number } = {
         'A': 1 << 0,
@@ -144,7 +144,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
 
     public defaultstate: ICryptarithmState = {
         /** The type of operation */
-        operation: 'encode' /** a value */,
+        operation: 'decode' /** a value */,
         problem: '',
         cipherString: '' /** The type of cipher we are doing */,
         soltext: '', /**  */
@@ -244,6 +244,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
     public restore(data: ICryptarithmState, suppressOutput = false): void {
         this.state = cloneObject(this.defaultstate) as ICryptarithmState;
         this.copyState(this.state, data);
+        this.state.operation = "decode";
         if (!suppressOutput) {
             this.setUIDefaults();
             this.updateOutput();
@@ -474,6 +475,13 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
             this.genMonoText(solValues) +
             '. What do they decode to?</p>';
         return msg;
+    }
+
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+        const solValues = this.getSolValues()
+        operationtext = ' What do the values ' + this.genMonoText(solValues) + ' decode to?';
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+
     }
     /**
      * Initializes the encoder.

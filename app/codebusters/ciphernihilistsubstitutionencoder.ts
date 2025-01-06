@@ -87,6 +87,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         // ITestType.aregional,
     ];
 
+    public cipherName = 'Nihilist Substitution';
     public cleanKeyword = '';
     public cleanPolyKey = '';
     public polybiusMap = new Map<string, string>();
@@ -2200,6 +2201,39 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             })
         }
         return changed
+    }
+
+    public genHintText(hint: string): string {
+        let hinttext = ''
+        if (this.state.operation != 'crypt') return '';
+
+        const cribpos = this.placeCrib();
+        if (cribpos == undefined) return '';
+        hinttext = "";
+
+        if (cribpos.position === 0) {
+            hinttext += ` The deciphered text starts with ${this.genMonoText(cribpos.plaintext)}. `;
+        } else if (cribpos.position === cribpos.cipherlen - cribpos.criblen) {
+            hinttext += ` The deciphered text ends with ${this.genMonoText(cribpos.plaintext)}. `;
+        } else {
+            const startpos = this.getPositionText(cribpos.position + 1);
+            const endpos = this.getPositionText(cribpos.position + cribpos.criblen);
+            hinttext += ` The ${startpos} through ${endpos} cipher units (${this.genMonoText(cribpos.ciphertext.join(' '))})
+                decode to be ${this.genMonoText(cribpos.plaintext)}. `
+        }
+        return hinttext
+    }
+
+
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+        if (this.state.operation != 'crypt') {
+            const keyword = this.genMonoText(this.cleanKeyword);
+            const polybiusKey = this.genMonoText(this.cleanPolyKey);
+            operationtext2 += ` with a keyword of ${keyword} and polybius key of ${polybiusKey}`;
+        }
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+
+
     }
     /**
      * See if any of the crib letters give us hints about the characters

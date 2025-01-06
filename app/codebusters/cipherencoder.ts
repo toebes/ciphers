@@ -885,11 +885,15 @@ export class CipherEncoder extends CipherHandler {
     public createQuestionTextDlg(): JQuery<HTMLElement> {
         const dlgContents = $('<div/>');
         dlgContents.append($('<div/>', { id: 'sqtext', class: '' }));
+        dlgContents.append($('<div/>', { class: 'callout primary', id: 'questionopts' }))
         dlgContents.append(
             $('<div/>', { class: 'expanded button-group' })
-                .append($('<a/>', { class: 'sqtcpy button' }).text('Copy to Clipboard'))
-                .append($('<a/>', { class: 'sqtins button' }).text('Replace Question Text'))
-                .append($('<a/>', { class: 'secondary button', 'data-close': '' }).text('Close'))
+                .append($('<a/>', { class: 'qgen button', id: 'questiongenbtn' }).text('Regenerate'))
+                .append(
+                    $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
+                        'Cancel'
+                    )
+                )
         );
         const questionTextDlg = JTFDialog('SampleQText', 'Sample Question Text', dlgContents);
         return questionTextDlg;
@@ -1055,8 +1059,8 @@ export class CipherEncoder extends CipherHandler {
     public showSampleQuestionText(): void {
         $('#sqtext')
             .empty()
-            .append($(this.genSampleQuestionText()));
         $('#SampleQText').foundation('open');
+        this.genQuestionSuggestions();
     }
     /**
      * Populate the Sample Points dialog and show it
@@ -1385,6 +1389,146 @@ export class CipherEncoder extends CipherHandler {
         this.attachHandlers()
         return found
     }
+
+    public genHintText(hint: string): string {
+        return hint !== undefined ? ` You are told that ${hint}` : '';
+    }
+
+    /**
+     * 
+     * @param qOptions List of possible question options to display
+     * @param langtext Text indicating what language the cipher is in
+     * @param hinttext Hint text to display with question
+     * @param fixedName Cipher name
+     * @param operationtext Asks for keyword
+     * @param operationtext2 Tells what type of alphabet was used to encode (K1, etc)
+     * @param cipherAorAn Either A or An depending on if the cipher starts with vowel
+     * @returns whether qOptions was modified
+     */
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+        qOptions.push(`A quote${this.genAuthor()}${langtext} has been encoded using the ${fixedName} Cipher${operationtext2} for you to decode.${hinttext}${operationtext}`);
+        qOptions.push(`Solve this quote${this.genAuthor()}${langtext} that has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Decrypt the following cipher text${langtext} that has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A phrase${this.genAuthor()}${langtext} has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A famous phrase${this.genAuthor()} has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A message${langtext}${this.genAuthor()} encrypted${operationtext2} with the ${fixedName} cipher has been recieved.${hinttext}${operationtext}`);
+        qOptions.push(`The following quote${this.genAuthor()}${langtext} needs to be decoded with the ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Someone passed you a piece of paper with this ${fixedName} encoded phrase of a quote${this.genAuthor()}${langtext}${operationtext2}. ${hinttext}${operationtext}`);
+
+
+        if (hinttext !== '') {
+            if (this.state.operation === 'keyword') {
+                qOptions.push(`Solve this ${fixedName}${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            }
+            else {
+                qOptions.push(`Solve this ${fixedName}${this.genAuthor()}${langtext}${operationtext2}.${hinttext}`);
+            }
+
+        }
+        if (this.state.author !== undefined && this.state.author !== '') {
+            qOptions.push(`${this.state.author} has been heard to say the following phrase that has been encoded using the ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`${this.state.author} was often heard to say the following phrase which has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`${this.state.author} offers us some advice that has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`${this.state.author} offers an observation that has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`Upon searching a room, the following were found on scraps of paper. You realize it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You came across the following written on a wall in a cave. You notice that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You found the following carved into the bark of a hollow log. You recognize that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        }
+        else {
+            qOptions.push(`Upon searching a room, the following were found on scraps of paper. You realize it's encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You came across the following written on a wall in a cave. You notice that it's encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You found the following carved into the bark of a hollow log. You recognize that it's encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        }
+        return false;
+    }
+    /**
+     * Update the GUI with a list of suggestions for questions
+     * @param qcount Number of questions to find
+     * @param action Callback function when a question is found
+     * @returns Total number of questions found
+     */
+    // TODO: morbit and pollux doesn't have the q gen button
+    public searchForQuestions(qcount: number, action: (count: number, question: string) => boolean): number {
+        const lang = 'en';
+
+        const picked: BoolMap = {}
+        let qOptions: string[] = [];
+
+        const hint = this.genSampleHint();
+
+        let hinttext = this.genHintText(hint)
+
+        let langtext = '';
+        let fixedName = this.cipherName;
+        if (this.state.curlang === 'es') { langtext = ' in Spanish'; }
+        let enctype = ''
+        if (this.state.encodeType !== undefined && this.state.encodeType !== 'random') {
+            enctype += ' ' + this.state.encodeType.toUpperCase();
+        }
+        let operationtext = ' What does it say?';
+        let operationtext2 = '';
+
+        if (this.state.operation === 'keyword') {
+            let keytype = 'Keyword';
+            const keyanswer = this.state.keyword.toUpperCase();
+            if (this.minimizeString(keyanswer).length !== keyanswer.length) {
+                keytype = 'Key Phrase';
+            }
+            operationtext = ` What was the${enctype} ${keytype} used to encode it?`;
+        }
+        if (enctype !== 'random' && enctype !== '') {
+            operationtext2 = ` using a${enctype} alphabet`;
+        }
+        let vowels = 'aeiouy';
+        let cipherAorAn = 'a';
+        if (vowels.indexOf(fixedName.substring(0, 1).toLowerCase()) >= 0) cipherAorAn = 'an';
+
+
+        // Potential improvements TODO:
+        // Add references if it's misspelled
+        // 
+        if (this.state.operation === 'encode') {
+            qOptions.push(`Encode this quote${this.genAuthor()}${langtext} using the ${fixedName} Cipher.${hinttext}`);
+            qOptions.push(`Encode this famous quote${this.genAuthor()}${langtext} using the ${fixedName} Cipher.${hinttext}`);
+            qOptions.push(`Encrypt this common phrase${this.genAuthor()}${langtext} using the ${fixedName} Cipher.${hinttext}`);
+        }
+        else {
+            // adds questions 
+            this.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+
+
+        }
+
+
+        let testUsage = this.cipherName;
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+
+        // We use the 8, 9, 10 and 11 unique character strings as our potential keyword choices
+        let scaleb9 = 10
+        let scalec9 = 10
+
+        // Keep track of how many entries we find to present so that we don't put more than 10 on the dialog
+        let found = 0
+
+        for (let tval = 0; found < qcount && tval < 50; tval++) {
+            // Pick a random number from the set of choices
+            let slot = Math.floor(Math.random() * (qOptions.length));
+            // And figure out which slot it is in as well as the pattern that gets us to the slot
+
+            let question = qOptions[slot];
+
+            if (picked[question] !== true) {
+                picked[question] = true;
+                // We have a keyword, so let them process it (if they can)
+                if (action(found, question)) {
+                    found++
+                }
+            }
+        }
+        this.attachHandlers()
+        return found
+    }
     /**
      * Update the GUI with a list of suggestions
     */
@@ -1428,6 +1572,43 @@ export class CipherEncoder extends CipherHandler {
             return true;
         })
         this.attachHandlers()
+    }
+    /**
+     * Update the GUI with a list of suggestions
+    */
+    public genQuestionSuggestions() {
+        let output = $("#questionopts");
+        const divAll = $("<div/>")
+        output.empty().append(divAll)
+
+        const found = this.searchForQuestions(7, (found: number, question: string): boolean => {
+            // let div = $('<div/>');
+            let useButton = $("<button/>", {
+                'data-text': question,
+                type: "button",
+                class: "rounded button useq",
+            }).html("Use");
+            divAll.append($('<div/>')
+                .append(useButton)
+                .append($('<span/>').html(question))
+            )
+            // divAll.append(div);
+            return true;
+        })
+        this.attachHandlers()
+    }
+    /**
+     * Select a generated question recommendation to replace the current question text
+     * @param elem Element clicked on with string to use
+     */
+    public useQuestion(elem: HTMLElement): void {
+        const jqelem = $(elem)
+        const text = jqelem.attr('data-text')
+        // Give an undo state s
+        this.markUndo(null)
+        this.setQuestionText(text)
+        $('#SampleQText').foundation('close')
+        this.updateOutput()
     }
     /**
      * Find out what letters are used in the cipher string
@@ -1694,6 +1875,7 @@ export class CipherEncoder extends CipherHandler {
         $('.sampq')
             .off('click')
             .on('click', (e) => {
+                console.log("test");
                 this.showSampleQuestionText();
             });
         $('.sampp')
@@ -1732,6 +1914,11 @@ export class CipherEncoder extends CipherHandler {
             .off('click')
             .on('click', () => {
                 this.genKeywordSuggestions()
+            });
+        $('#questiongenbtn')
+            .off('click')
+            .on('click', () => {
+                this.genQuestionSuggestions()
             });
 
         $('.kwset')
@@ -1773,5 +1960,15 @@ export class CipherEncoder extends CipherHandler {
             .on('click', (e) => {
                 this.setSuggestedKey(e.target)
             })
+        $('.useq')
+            .off('click')
+            .on('click', (e) => {
+                this.useQuestion(e.target);
+            })
+        $('.mgen')
+            .off('click')
+            .on('click', (e) => {
+                this.showSampleQuestionText();
+            });
     }
 }

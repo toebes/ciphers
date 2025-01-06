@@ -638,6 +638,10 @@ export class CipherRailFenceEncoder extends CipherEncoder {
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
 
+    public genHintText(hint: string): string {
+        return ` You are told that ${hint.substring(0, hint.indexOf("were used"))} ${hint.includes("rails") ? '' : 'rails '}were used to encode it.`
+    }
+
     public genSampleHint(): string {
         let hint = ` ${this.state.rails.toString()} were used to encode it.`;
 

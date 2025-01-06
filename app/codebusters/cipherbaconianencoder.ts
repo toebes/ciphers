@@ -695,6 +695,22 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
     }
 
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+        if (this.state.operation !== 'words') {
+            qOptions.push(`The following symbols encodes a phrase${this.genAuthor()} using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
+            if (this.state.author !== undefined && this.state.author !== '') {
+                qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as a prankster who scratched a quote by ${this.state.author} on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
+            }
+            else {
+                qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as a prankster who scratched it on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
+            }
+        }
+        else {
+            qOptions.push(`The following strange headlines encodes a phrase${this.genAuthor()} using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
+        }
+        super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+        return true;
+    }
     /**
      * Find the encoded cipher text corresponding to the crib
      * @param pt Plain text 

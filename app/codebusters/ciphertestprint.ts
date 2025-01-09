@@ -35,6 +35,9 @@ export class CipherTestPrint extends CipherTest {
             this.updateOutput();
         }
     }
+    public isFirefox(): boolean {
+        return navigator.userAgent.toLowerCase().includes('firefox');
+    }
     /**
      * Update the output based on current state settings.  This propagates
      * All values to the UI
@@ -53,6 +56,10 @@ export class CipherTestPrint extends CipherTest {
                 this.genTestQuestions($(elem));
             });
             this.setTeamNumberPrefix();
+        }
+        // If we aren't on firefox, hide the warning
+        if (!this.isFirefox()) {
+            $(".firefox").hide();
         }
         $(".testurl").attr('href', `TestPrint.html?test=${this.state.test}`)
         $(".resurl").attr('href', `TestPrint.html?test=${this.state.test}&ressheet=y`)

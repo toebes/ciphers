@@ -1461,7 +1461,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                         });
                     }
                 }
-                rowblank.add('\xa0');
+                rowblank.add({ settings: { class: "w" }, content: '\xa0' });
             }
             result.append(table.generate())
         }

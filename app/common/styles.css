@@ -1172,6 +1172,10 @@ table.bacon td {
     line-height: 100%;
 }
 
+table.bacon td.w {
+    line-height: 400%;
+}
+
 table.bacon td.b {
     font-weight: normal;
 }

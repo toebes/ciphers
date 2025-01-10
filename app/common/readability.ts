@@ -1,5 +1,5 @@
 import { syllable } from 'syllable';
-const punctuationRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-./:;<=>?@[\]^_`{|}~]/g;
+const punctuationRE = /[\u2000-\u206F\u2E00-\u2E7F\\'!"#$%&()*+,\-\.\/:;<=>\?@[\]^_`{|}~]/g;
 import { easyWordSet } from './easywords';
 
 export function copySign(x: number, y: number): number {
@@ -7,7 +7,6 @@ export function copySign(x: number, y: number): number {
 }
 export function legacyRound(number: number, points = 0): number {
     const p = 10 ** points;
-    // return float(math.floor((number * p) + math.copysign(0.5, number))) / p
     return Math.floor(number * p + copySign(0.5, number)) / p;
 }
 export function getDisplayGrade(grade: number): string {
@@ -43,12 +42,12 @@ export function letterCount(text: string, ignoreSpaces = true): number {
     return removePunctuation(text).length;
 }
 export function splitset(text: string): string[] {
-    let textset = text.split(/,| |\n|\r/g);
+    let textset = text.split(/[, \n\r]+/g);
     textset = textset.filter((n) => n);
     return textset;
 }
 export function lexiconCount(text: string): number {
-    let textset = text.split(/,| |\n|\r/g);
+    let textset = text.split(/[, \n\r]+/g);
     textset = textset.filter((n) => n);
     return textset.length;
 }
@@ -64,7 +63,7 @@ export function syllableCount(text: string, lang = 'en-US'): number {
 }
 export function sentenceCount(text: string): number {
     let ignoreCount = 0;
-    const sentences = text.split(/ *[.?!]['")\]]*[ |\n](?=[A-Z])/g);
+    const sentences = text.split(/ *[\.\?!]['")\]]*[ |\n](?=[A-Z])/g);
     for (const sentence of sentences) {
         if (lexiconCount(sentence) <= 2) {
             ignoreCount += 1;
@@ -226,91 +225,121 @@ export function rix(text: string): number {
     const rix = longWordsCount / sentencesCount;
     return !isNaN(rix) ? legacyRound(rix, 2) : 0.0;
 }
-export function textStandardRaw(text: string): number {
-    const grade = [];
-    // Appending Flesch Kincaid Grade
-    let lower = legacyRound(fleschKincaidGrade(text));
-    let upper = Math.ceil(fleschKincaidGrade(text));
-    grade.push(Math.floor(lower));
-    grade.push(Math.floor(upper));
 
+export function getWeightAtPosition(center: number, position: number): number {
+    const stdDev = 1; // Fixed standard deviation
+    const maxHeight = 10; // Fixed maximum height at the center
+    const sqrtTwoPi = Math.sqrt(2 * Math.PI);
+
+    // Compute the scaling factor to ensure maxHeight at the center
+    const scalingFactor = maxHeight * stdDev * sqrtTwoPi;
+
+    // Compute the exponent for the normal distribution formula
+    const exponent = -((position - center) ** 2) / (2 * stdDev ** 2);
+
+    // Compute and return the height using the PDF of the normal distribution
+    return (1 / (stdDev * sqrtTwoPi)) * Math.exp(exponent) * scalingFactor;
+}
+
+export function markGradeScore(score: number, gradefreq: number[]) {
+    const topIndex = Math.ceil(score + 3)
+    const bottomIndex = Math.max(0, Math.floor(score - 3))
+    while (gradefreq.length <= topIndex) {
+        gradefreq.push(0);
+    }
+    for (let i = bottomIndex; i <= topIndex; i++) {
+        gradefreq[i] += getWeightAtPosition(score, i)
+    }
+}
+
+export function findConsensus(gradefreq: number[]) {
+    let mostCommon = -1;
+    let commonsum = 0;
+    let commoncount = 1;
+    for (let i = 0; i < gradefreq.length; i++) {
+        if (gradefreq[i] > mostCommon) {
+            commonsum = i;
+            commoncount = 1;
+            mostCommon = gradefreq[i];
+        } else if (gradefreq[i] === mostCommon) {
+            commonsum += i;
+            commoncount++;
+        }
+    }
+    return Math.floor(commonsum / commoncount);
+}
+
+export function mapfleschReadingEase(input: number): number {
+    const mapping = [
+        { x: 100, y: 5 },
+        { x: 90, y: 6 },
+        { x: 80, y: 7 },
+        { x: 70, y: 8 },
+        { x: 60, y: 10 },
+        { x: 50, y: 11 },
+        { x: 40, y: 12 },
+        { x: 30, y: 13 },
+        { x: 0, y: 20 }
+    ];
+
+    // Clamp input between 0 and 100
+    if (input >= 100) return 5;
+    if (input <= 0) return 20;
+
+    // Find the two nearest points for interpolation
+    for (let i = 0; i < mapping.length - 1; i++) {
+        const p1 = mapping[i];
+        const p2 = mapping[i + 1];
+
+        if (input <= p1.x && input >= p2.x) {
+            // Linear interpolation formula
+            const proportion = (input - p2.x) / (p1.x - p2.x);
+            return p1.y + proportion * (p2.y - p1.y);
+        }
+    }
+}
+
+export function textStandardRaw(text: string): number {
+    text = text.replace(/[\s\n\r]+/g, ' ');
+
+    const gradeFreq = [];
+
+    // Flesch Kincaid Grade
+    let fkG = fleschKincaidGrade(text)
+    markGradeScore(fkG, gradeFreq);
+
+    // flesch Reading Ease
     let score = fleschReadingEase(text);
-    if (score < 100 && score >= 90) {
-        grade.push(5);
-    } else if (score < 90 && score >= 80) {
-        grade.push(6);
-    } else if (score < 80 && score >= 70) {
-        grade.push(7);
-    } else if (score < 70 && score >= 60) {
-        grade.push(8);
-        grade.push(9);
-    } else if (score < 60 && score >= 50) {
-        grade.push(10);
-    } else if (score < 50 && score >= 40) {
-        grade.push(11);
-    } else if (score < 40 && score >= 30) {
-        grade.push(12);
-    } else {
-        grade.push(13);
+    let fleschReading = mapfleschReadingEase(score);
+    markGradeScore(fleschReading, gradeFreq);
+
+    // smog Index
+    const smogI = smogIndex(text)
+    if (smogI > 0) {
+        markGradeScore(smogI, gradeFreq);
     }
 
-    // console.log('grade till now: \n', grade)
+    // Coleman Liau Index
+    const colemanLiau = colemanLiauIndex(text);
+    markGradeScore(colemanLiau, gradeFreq);
 
-    lower = legacyRound(smogIndex(text));
-    upper = Math.ceil(smogIndex(text));
-    grade.push(Math.floor(lower));
-    grade.push(Math.floor(upper));
+    // Automated Readability Index
+    const automatedReadability = automatedReadabilityIndex(text);
+    markGradeScore(automatedReadability, gradeFreq);
 
-    // Appending Coleman_Liau_Index
-    lower = legacyRound(colemanLiauIndex(text));
-    upper = Math.ceil(colemanLiauIndex(text));
-    grade.push(Math.floor(lower));
-    grade.push(Math.floor(upper));
+    // Dale Chall Readability Score
+    const daleChall = daleChallReadabilityScore(text);
+    markGradeScore(daleChall, gradeFreq);
 
-    // Appending Automated_Readability_Index
-    lower = legacyRound(automatedReadabilityIndex(text));
-    upper = Math.ceil(automatedReadabilityIndex(text));
-    grade.push(Math.floor(lower));
-    grade.push(Math.floor(upper));
+    // linsear Write Formula
+    const linsearWrite = linsearWriteFormula(text);
+    markGradeScore(linsearWrite, gradeFreq);
 
-    // console.log('grade till now : 2 : \n', grade)
+    // Gunning Fog Index
+    const gunningFogVal = gunningFog(text);
+    markGradeScore(gunningFogVal, gradeFreq);
 
-    // Appending  Dale_Chall_Readability_Score
-    lower = legacyRound(daleChallReadabilityScore(text));
-    upper = Math.ceil(daleChallReadabilityScore(text));
-    grade.push(Math.floor(lower));
-    grade.push(Math.floor(upper));
-
-    // Appending linsearWriteFormula
-    lower = legacyRound(linsearWriteFormula(text));
-    upper = Math.ceil(linsearWriteFormula(text));
-    grade.push(Math.floor(lower));
-    grade.push(Math.floor(upper));
-
-    // Appending Gunning Fog Index
-    lower = legacyRound(gunningFog(text));
-    upper = Math.ceil(gunningFog(text));
-    grade.push(Math.floor(lower));
-    grade.push(Math.floor(upper));
-
-    // d = Counter(grade)
-    // final_grade = d.most_common(1)
-    // score = final_grade[0][0]
-
-    // if float_output:
-    //     return float(score)
-    // else:
-    //     lower_score = int(score) - 1
-    //     upper_score = lower_score + 1
-    //     return "{}{} and {}{} grade".format(
-    //         lower_score, get_grade_suffix(lower_score),
-    //         upper_score, get_grade_suffix(upper_score)
-    //     )
-    // Finding the Readability Consensus based upon all the above tests
-    // console.log('grade List: ', grade)
-    const counterMap = grade.map((x) => [x, grade.filter((y) => y === x).length]);
-    const finalGrade = counterMap.reduce((x, y) => (y[1] >= x[1] ? y : x));
-    score = finalGrade[0];
+    score = findConsensus(gradeFreq);
     // makes sure the difficulty level displayed doesn't go below 0 (-1th grade)
     if (score < 1) {
         score = 1;

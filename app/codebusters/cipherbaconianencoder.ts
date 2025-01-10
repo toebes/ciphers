@@ -256,8 +256,9 @@ export class CipherBaconianEncoder extends CipherEncoder {
      */
     public setLineWidth(linewidth: number): boolean {
         let changed = false;
-        if (linewidth < 0) {
-            linewidth = this.maxEncodeWidth;
+        if (linewidth < 1) {
+            linewidth = 1;
+            changed = true;
         }
         if (this.state.linewidth !== linewidth) {
             this.state.linewidth = linewidth;
@@ -655,7 +656,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
     public getEncodeWidth(): number {
         let linewidth = this.maxEncodeWidth;
         if (this.state.operation !== 'words') {
-            linewidth = this.state.linewidth;
+            linewidth = Math.max(1, this.state.linewidth);
         }
         return linewidth;
     }

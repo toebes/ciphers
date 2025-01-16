@@ -3511,7 +3511,7 @@ export class CipherHandler {
                 $('<input/>', {
                     type: 'file',
                     id: 'xmlFile',
-                    accept: '.json,.xlsx,.xls',
+                    accept: '.json,.xlsx,.xls,.csv',
                     class: 'impfile show-for-sr',
                 })
             )

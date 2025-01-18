@@ -1,7 +1,7 @@
 import { BoolMap, cloneObject, NumberMap, StringMap } from '../common/ciphercommon';
 import { ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
-import { IEncoderState } from './cipherencoder';
+import {IEncoderState, suggestedData} from './cipherencoder';
 import { frommorse, tomorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, ptindex } from './ciphermorseencoder';
@@ -94,46 +94,66 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
         }
         super.updateOutput();
     }
+
     /**
-     * Check for any errors we can find in the question
+     * Generates scoring guidance
      */
-    public validateQuestion(): void {
-        super.validateQuestion();
-        let msg = '';
+    public genScoreRangeAndText(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
 
-        // Grab the question text without any HTML overhead
-        let questionText = this.state.question.toUpperCase().replace(/<[^>]*>/g, '');
-        questionText = questionText.replace(/&#9679;/g, 'O').replace(/●/g, 'O')
-        questionText = questionText.replace(/&ndash;/g, '-').replace(/–/g, '-')
-        questionText = questionText.replace(/&times;/g, 'X').replace(/×/g, 'X')
 
-        console.log(questionText)
-        const hintchars = this.state.hint ?? '';
+        let suggested = 97 + qdata.len;
+        let scoringText = ''
+        let hintIncludesXXText = '';
 
-        if (this.state.operation === 'decode' && hintchars !== '') {
-            // Look to see if the Hint Digits appear in the Question Text
-            const morseletmap = this.buildMorseletMap();
-            let extra = '';
-            let notfound = '';
-            for (const e of hintchars) {
-                const hint = `${e}=${morseletmap[e]}`
-                console.log(hint)
-                if (questionText.indexOf(hint) < 0) {
-                    notfound += extra + hint;
-                    extra = ', '
-                }
-            }
-            if (notfound !== '') {
-                msg =
-                    'The Hint Digits ' +
-                    notfound +
-                    " don't appear to be mentioned in the Question Text.";
+        const hintchars = this.state.hint ?? ';'
+        const uniqueHintchars = new Set(hintchars.split('')).size;
+        let hintPoints = 0;
+        // Even though there should be at least 4 hint characters, we add points if there are fewer, and subtract
+        // points if there are more...since more is given, the problem is easier.
+        if (uniqueHintchars > 0) {
+            if (uniqueHintchars < 5) {
+                hintPoints = Math.pow(2, 7 - uniqueHintchars);
+            } else if (uniqueHintchars < 10) {
+                hintPoints = -Math.pow(2, uniqueHintchars - 3);
             }
         }
-        if (msg !== '') {
-            this.setErrorMsg(msg, 'vqm', null);
+        suggested += hintPoints;
+
+        // Check if the mapping of XX is given.
+        const morseletmap = this.buildMorseletMap();
+        let doesNotMapXX = true;
+        for (const h of hintchars) {
+            if (morseletmap[h] === 'XX') {
+                doesNotMapXX = false;
+            }
         }
+        if (doesNotMapXX) {
+            hintIncludesXXText = `  The mapping of 'XX' is not given by the hint digits, so points are increased. `;
+            suggested += 23;
+        }
+
+        let range = 20;
+        const min = Math.max(suggested - range, 0)
+        const max = suggested + range
+        suggested += Math.round(range * Math.random() - range / 2);
+
+        let rangetext = ''
+        if (max > min) {
+            rangetext = `, from a range of ${min} to ${max}`
+        }
+        if (qdata.len < 26) {
+            scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend around 40 characters for a good quote</em></p>`
+        }
+
+        scoringText += `<p>There are ${qdata.len} characters in the quote.
+                ${hintIncludesXXText}
+                We suggest you try a score of ${suggested}${rangetext}.</p>`
+
+
+        return { suggested: suggested, min: min, max: max, text: scoringText }
     }
+
     public genSampleHint(): string {
         let hint = '';
         if (this.state.operation === 'crypt') {

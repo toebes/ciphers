@@ -17,6 +17,8 @@ export class CipherMorseEncoder extends CipherEncoder {
         { title: 'Randomize', color: 'primary', id: 'randomize' },
         this.undocmdButton,
         this.redocmdButton,
+        this.questionButton,
+        this.pointsButton,
         this.guidanceButton,
     ];
 

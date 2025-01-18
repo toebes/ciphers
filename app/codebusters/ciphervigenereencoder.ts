@@ -345,6 +345,14 @@ export class CipherVigenereEncoder extends CipherEncoder {
         msg += '</p>';
         return msg;
     }
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+
+        if (this.state.operation != 'crypt') {
+            operationtext2 = ` using a keyword of ${this.state.keyword}`
+        }
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+
+    }
     /**
       * Generate the recommended score and score ranges for a cipher
       * 100 for a Decode (approximately 2 points per letter), 120 for an Encode.

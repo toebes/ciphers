@@ -1411,7 +1411,7 @@ export class CipherEncoder extends CipherHandler {
         qOptions.push(`Decrypt the following cipher text${langtext} that has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}`);
         qOptions.push(`A phrase${this.genAuthor()}${langtext} has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}`);
         qOptions.push(`A famous phrase${this.genAuthor()} has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-        qOptions.push(`A message${langtext}${this.genAuthor()} encrypted${operationtext2} with the ${fixedName} cipher has been recieved.${hinttext}${operationtext}`);
+        qOptions.push(`A message${langtext}${this.genAuthor()} encrypted${operationtext2} with the ${fixedName} cipher has been received.${hinttext}${operationtext}`);
         qOptions.push(`The following quote${this.genAuthor()}${langtext} needs to be decoded with the ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}`);
         qOptions.push(`Someone passed you a piece of paper with this ${fixedName} encoded phrase of a quote${this.genAuthor()}${langtext}${operationtext2}. ${hinttext}${operationtext}`);
 

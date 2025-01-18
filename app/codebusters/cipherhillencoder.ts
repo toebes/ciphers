@@ -358,6 +358,14 @@ export class CipherHillEncoder extends CipherEncoder {
         }
         return msg;
     }
+
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+
+        operationtext2 = ` with a keyword of ${this.state.keyword}`
+
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+
+    }
     /**
      *
      */

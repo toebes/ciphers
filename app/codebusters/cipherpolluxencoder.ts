@@ -2,7 +2,7 @@ import { cloneObject, StringMap, BoolMap } from '../common/ciphercommon';
 import { ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import { IEncoderState } from './cipherencoder';
+import {IEncoderState, suggestedData} from './cipherencoder';
 import { tomorse, frommorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, morseindex, ptindex } from './ciphermorseencoder';
@@ -141,6 +141,74 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         $('#xchar').val(this.state.xchars);
         super.updateOutput();
     }
+
+    /**
+     * Generates scoring guidance
+     */
+    public genScoreRangeAndText(): suggestedData {
+        const qdata = this.analyzeQuote(this.state.cipherString)
+
+
+        let suggested = 97 + qdata.len;
+        let scoringText = ''
+        let hintXCountGivenText = '';
+
+        const hintchars = this.state.hint ?? ';'
+        const uniqueHintCharsNew = new Set(hintchars.split(''));
+        let uniqueHintChars = '';
+        for (let i = 0; i < hintchars.length; i++) {
+            if (uniqueHintChars.indexOf(hintchars[i]) === -1) {
+                uniqueHintChars += hintchars[i];
+            }
+        }
+        const uniqueHintCharCount = uniqueHintChars.length;
+        let hintPoints = 0;
+        // Even though there should be at least 4 hint characters, we add points if there are fewer, and subtract
+        // points if there are more...since more is given, the problem is easier.
+        if (uniqueHintCharCount > 0) {
+            if (uniqueHintCharCount < 5) {
+                hintPoints = Math.pow(2, 7 - uniqueHintCharCount);
+            } else if (uniqueHintCharCount < 10) {
+                hintPoints = -Math.pow(2, uniqueHintCharCount - 3);
+            }
+        }
+        suggested += hintPoints;
+
+        // Check how many mappings of X are given.
+        const morseletmap = this.buildMorseletMap();
+        let xMappingsGiven = 0;
+        for (const h of uniqueHintChars) {
+            if (morseletmap[h] === 'X') {
+                xMappingsGiven++;
+            }
+        }
+        const hintAdjustment = (-9 * xMappingsGiven) + 27;
+        if (hintAdjustment !== 0) {
+            hintXCountGivenText = `  There ${xMappingsGiven !== 1 ? `are` : `is`} ${xMappingsGiven} ${xMappingsGiven !== 1 ? `hints`: `hint`} for the 
+                mapping of 'X', so adjust score by ${hintAdjustment}. `;
+            suggested += hintAdjustment;
+        }
+
+        let range = 20;
+        const min = Math.max(suggested - range, 0)
+        const max = suggested + range
+        suggested += Math.round(range * Math.random() - range / 2);
+
+        let rangetext = ''
+        if (max > min) {
+            rangetext = `, from a range of ${min} to ${max}`
+        }
+        if (qdata.len < 26) {
+            scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in the quote, we recommend around 40 characters for a good quote</em></p>`
+        }
+
+        scoringText += `<p>There are ${qdata.len} characters in the quote.  ${uniqueHintCharCount} mappings are given.
+                ${hintXCountGivenText}  We suggest you try a score of ${suggested}${rangetext}.</p>`
+
+
+        return { suggested: suggested, min: min, max: max, text: scoringText }
+    }
+
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
      * @returns HTML DOM elements to display in the section

@@ -103,6 +103,7 @@ export class CipherMorseEncoder extends CipherEncoder {
      * Check for any errors we can find in the question
      */
     public validateQuestion(): void {
+        super.validateQuestion();
         let msg = '';
         let showsample = false;
         let sampleLink: JQuery<HTMLElement> = undefined;
@@ -513,7 +514,7 @@ export class CipherMorseEncoder extends CipherEncoder {
         // one or more spaces, sometimes a '/' (word divider).
         for (let i = 0; i < crib.length; i++) {
             // This is skip looking for spaces at the very beginning of the crib.
-            cribRegex += `${i === 0 ? '' : '\\ {0,}'}${crib.substring(i, i+1)}${notLetters}`;
+            cribRegex += `${i === 0 ? '' : '\\ {0,}'}${crib.substring(i, i + 1)}${notLetters}`;
         }
         const regex = new RegExp(cribRegex, 'g');
         const match = regex.exec(plainText);

@@ -186,6 +186,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Determine if the question text references the right pieces of this cipher
      */
     public validateQuestion(): void {
+        super.validateQuestion();
         let msg = '';
 
         const questionText = this.state.question.toUpperCase();

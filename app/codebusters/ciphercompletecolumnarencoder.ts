@@ -1,11 +1,11 @@
-import {cloneObject, repeatStr} from '../common/ciphercommon';
-import {IScoreInformation, IState, ITestQuestionFields, ITestType, toolMode,} from '../common/cipherhandler';
-import {ICipherType} from '../common/ciphertypes';
-import {JTButtonItem} from '../common/jtbuttongroup';
-import {JTFLabeledInput} from '../common/jtflabeledinput';
-import {CipherEncoder, suggestedData} from './cipherencoder';
-import {JTFIncButton} from '../common/jtfIncButton';
-import {JTTable} from '../common/jttable';
+import { cloneObject, repeatStr } from '../common/ciphercommon';
+import { IScoreInformation, IState, ITestQuestionFields, ITestType, toolMode, } from '../common/cipherhandler';
+import { ICipherType } from '../common/ciphertypes';
+import { JTButtonItem } from '../common/jtbuttongroup';
+import { JTFLabeledInput } from '../common/jtflabeledinput';
+import { CipherEncoder, suggestedData } from './cipherencoder';
+import { JTFIncButton } from '../common/jtfIncButton';
+import { JTTable } from '../common/jttable';
 
 type IColumnOrder = number[][];
 /*interface IColumnOrder {
@@ -654,8 +654,7 @@ class CompleteColumnarSolver extends CipherEncoder {
      * This routine throws out any combinations that do not end will all 'X's.
      * @private
      */
-    private applyPaddingAssumption(possibleColumnCombinations: number[][], cribSplitInfo: CribSplitInformation): number[][]
-    {
+    private applyPaddingAssumption(possibleColumnCombinations: number[][], cribSplitInfo: CribSplitInformation): number[][] {
         // Making the assumption that any 'X'es in the last row MUST be at the end of the row, we can further
         // Limit the columns order to these possibilities.
         const lastRow = cribSplitInfo.getLastTableRow();
@@ -687,7 +686,7 @@ class CompleteColumnarSolver extends CipherEncoder {
                 }
             }
         }
-        return result.sort(function(a, b) {
+        return result.sort(function (a, b) {
             return a - b;
         });
     }
@@ -1108,6 +1107,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
      * Check for any errors we can find in the question
      */
     public validateQuestion(): void {
+        super.validateQuestion();
         let msg = '';
         let showsample = false;
         let sampleLink: JQuery<HTMLElement> = undefined;
@@ -1330,7 +1330,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             errorMessage = `For this test type, the length of the crib must be no shorter than ${(this.state.columns - 1)} 
                 (i.e. one less the number of columns used).`;
             this.setErrorMsg(errorMessage, 'cribl', null);
-        } else if (spacelessCrib.length < this.state.columns - 3 && usedOnCState ) {
+        } else if (spacelessCrib.length < this.state.columns - 3 && usedOnCState) {
             errorMessage = `For a Division C State/National test, the length of the crib must be no shorter
              than ${(this.state.columns - 3)} (i.e. three less the number of columns used).`;
         } else if (spacelessCrib.length > this.state.columns) {
@@ -1672,7 +1672,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
                     result.append($('<p>'));
                 }
             } else {
-              result.append(CipherCompleteColumnarEncoder.paragraph('Crib not found, rule out an encoding of ' + columnCount + ' columns.'))
+                result.append(CipherCompleteColumnarEncoder.paragraph('Crib not found, rule out an encoding of ' + columnCount + ' columns.'))
             }
         }
         result.append(CipherCompleteColumnarEncoder.heading('Analyze possibilities...'));
@@ -1914,7 +1914,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         }
 
         const totalXs = xCount + rowXCount[i];
-        let statusMsg = `${totalXs > 0 ? `There ${totalXs === 1 ? ` is ${totalXs} X ` : ` are ${totalXs} Xs`} in the table.` : `` }`;
+        let statusMsg = `${totalXs > 0 ? `There ${totalXs === 1 ? ` is ${totalXs} X ` : ` are ${totalXs} Xs`} in the table.` : ``}`;
 
 
         returnValue += `${statusMsg}  The last row has ${rowXCount[i]} ${rowXCount[i] === 1 ? ' occurrence ' : ' occurrences '} of 'X'

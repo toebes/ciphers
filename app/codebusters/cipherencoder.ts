@@ -23,6 +23,8 @@ export interface IEncoderState extends IState {
     hint?: string;
     /** Optional crib tracking string */
     crib?: string;
+    /** Indication that the question text was auto generated and needs to be replaced */
+    placeholder?: boolean;
 }
 
 export interface suggestedData {
@@ -156,8 +158,11 @@ export class CipherEncoder extends CipherHandler {
      */
     public validateQuestion(): void {
         let msg = '';
-        const sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
-        this.setErrorMsg(msg, 'vq', sampleLink);
+        this.setErrorMsg(msg, 'vq');
+        if (this.state.placeholder) {
+            msg = "The Question Text needs to be updated from the generated placeholder.";
+        }
+        this.setErrorMsg(msg, 'pq');
     }
     /**
      * 
@@ -1859,6 +1864,9 @@ export class CipherEncoder extends CipherHandler {
                         question !== '<p>' + oldquestion2 + '</p>'
                     ) {
                         this.markUndo('question');
+                        if (this.state.question !== question) {
+                            delete this.state.placeholder;
+                        }
                     }
                     this.setQuestionText(question);
                 }

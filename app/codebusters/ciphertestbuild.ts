@@ -1158,6 +1158,7 @@ export class CipherTestBuild extends CipherTest {
                 author: author,
                 curlang: lang,
                 specialbonus: isSpecial,
+                placeholder: true,
             };
 
             if (translation !== null && translation !== undefined && translation !== "") {

@@ -832,6 +832,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * Check for any errors we can find in the question
      */
     public validateQuestion(): void {
+        super.validateQuestion();
         let msg = '';
         let sampleLink: JQuery<HTMLElement> = undefined;
         if (this.state.operation === 'words') {

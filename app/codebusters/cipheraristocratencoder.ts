@@ -447,6 +447,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
      * If they are using a K1/K2/K3/K4 alphabet, they should also mention it
      */
     public validateQuestion(): void {
+        super.validateQuestion();
         let msg = '';
         const sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
         const questionText = this.state.question.toUpperCase();

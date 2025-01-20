@@ -584,6 +584,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * Check for any errors we can find in the question
      */
     public validateQuestion(): void {
+        super.validateQuestion();
         let msg = '';
         let showsample = false;
         let sampleLink: JQuery<HTMLElement> = undefined;

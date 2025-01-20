@@ -450,6 +450,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      * Check for any errors we can find in the question
      */
     public validateQuestion(): void {
+        super.validateQuestion();
         let msg = '';
         let sampleLink: JQuery<HTMLElement> = undefined;
         const questionText = this.state.question.toUpperCase();

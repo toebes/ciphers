@@ -1868,6 +1868,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         // We need to set the replacements
 
         this.state.validmapping = true;
+        this.state.mapping = {};
         for (let i = 0; i < replacement.length; i++) {
             this.state.mapping[replacement.substring(i, i + 1)] = i
         }

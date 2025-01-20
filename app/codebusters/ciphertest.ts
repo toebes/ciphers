@@ -1272,6 +1272,7 @@ export class CipherTest extends CipherHandler {
         if (!showPlain) {
             plainclass = 'qplain';
         }
+        $(".err").hide();
         let extratext = '';
         if (order === -1) {
             extratext =
@@ -1354,11 +1355,23 @@ export class CipherTest extends CipherHandler {
                         class: plainclass,
                     }).text(state.cipherString)
                 );
-            if (qerror !== '') {
+            let errContent = undefined
+            if (!($('.err').is(':empty'))) {
+                errContent = $('.err').contents();
+                if (errContent.hasClass('callout')) {
+                    errContent = errContent.contents();
+                }
+                errContent.find('a').remove();
+                $('.err').empty();
+            }
+            if (qerror !== '' || errContent !== undefined) {
                 row = table.addBodyRow();
                 const callout = $('<div/>', {
                     class: 'callout alert',
                 }).text(qerror);
+                if (errContent !== undefined) {
+                    callout.append(errContent);
+                }
                 row.add({
                     celltype: 'td',
                     settings: { colspan: 6 },

@@ -227,7 +227,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
         )) {
             return 'Special Bonus not allowed for Aristocrats/Patristocrats/Xenocrypts';
         }
-        if (!anyOperation) {
+        if (!anyOperation && testType !== ITestType.None) {
             // Make sure the operation type is legal.
             if (this.state.operation === 'keyword') {
                 if (testType !== ITestType.cregional && testType !== ITestType.cstate) {

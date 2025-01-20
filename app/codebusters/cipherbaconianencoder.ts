@@ -697,6 +697,31 @@ export class CipherBaconianEncoder extends CipherEncoder {
     }
 
     public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+        const plaintext = this.minimizeString(this.getEncodingString());
+        const criblook = this.minimizeString(this.state.crib).toUpperCase();
+        hinttext = '';
+
+        if (criblook.length > 0) {
+            hinttext += ' ';
+            const cribpos = this.placeCrib();
+            if (cribpos === 0) {
+                hinttext += "You are told that the deciphered text starts with " +
+                    this.genMonoText(this.state.crib);
+            } else if (cribpos === (plaintext.length - criblook.length)) {
+                hinttext += "You are told that the deciphered text ends with " +
+                    this.genMonoText(this.state.crib);
+            } else if (cribpos === 1) {
+                hinttext += "You are told that the deciphered text starts with a single letter followed by " +
+                    this.genMonoText(this.state.crib);
+            } else {
+                // Not at the begining or the end
+                let ct = this.getCipherTextForCrib(cribpos, criblook.length)
+                hinttext += `You are told that the cipher text ${this.genMonoText(ct)} decodes to be ${this.genMonoText(criblook)}`;
+            }
+            hinttext += '.';
+        }
+
+
         if (this.state.operation !== 'words') {
             qOptions.push(`The following symbols encodes a phrase${this.genAuthor()} using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
             if (this.state.author !== undefined && this.state.author !== '') {

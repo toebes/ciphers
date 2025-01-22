@@ -1356,15 +1356,9 @@ export class CipherTest extends CipherHandler {
                         class: plainclass,
                     }).text(state.cipherString)
                 );
-            let errContent = undefined
-            if (!($('.err').is(':empty'))) {
-                errContent = $('.err').contents();
-                if (errContent.hasClass('callout')) {
-                    errContent = errContent.contents();
-                }
-                errContent.find('a').remove();
+            let errContent = this.getGeneratedErrors();
+            if (errContent !== undefined) {
                 state.errorcount = errContent.contents().length;
-                $('.err').empty();
             }
             if (qerror !== '' || errContent !== undefined) {
                 row = table.addBodyRow();
@@ -1383,6 +1377,26 @@ export class CipherTest extends CipherHandler {
         }
         return state;
     }
+    /**
+     * Get all the errors (if any) generated for a cipher
+     * @returns HTML Elements of the errors
+     */
+    public getGeneratedErrors(): JQuery<HTMLElement> {
+        let errContent = undefined;
+        if (!($('.err').is(':empty'))) {
+            errContent = $('.err').contents();
+            if (errContent.hasClass('callout')) {
+                errContent = errContent.contents();
+            }
+            errContent.find('a').remove();
+            // Remove all <div> elements with data-msg="polgs"  
+            // These correspond to the AutoSolver being unable to find a solution
+            errContent.filter('div[data-msg="polgs"]').remove();
+            $('.err').empty();
+        }
+        return errContent;
+    }
+
     /**
      * Add a named error to the list of errors associated with a test.
      * @param qnum Which error to add

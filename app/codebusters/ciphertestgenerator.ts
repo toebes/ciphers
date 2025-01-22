@@ -214,7 +214,7 @@ export class CipherTestGenerator extends CipherTest {
          */
         if (errorcount > 0) {
             if (errorcount === 1) {
-                errors.push('An issue was found when generating one of the questions.')
+                errors.push('An issue down below was found when generating one of the questions.')
             } else {
                 errors.push(`${errorcount} issues were found when generating the questions.`)
             }

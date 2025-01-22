@@ -160,7 +160,7 @@ export class CipherTestGenerator extends CipherTest {
             if (qstate !== undefined) {
                 if (qstate.curlang === 'es') { SpanishCount++; }
                 if (qstate.specialbonus) { SpecialBonusCount++; }
-                errorcount += qstate.errorcount;
+                if (qstate.errorcount) { errorcount += qstate.errorcount; }
             }
         }
         for (let entry = 0; entry < test.count; entry++) {
@@ -186,7 +186,7 @@ export class CipherTestGenerator extends CipherTest {
             if (qstate !== undefined) {
                 if (qstate.curlang === 'es') { SpanishCount++; }
                 if (qstate.specialbonus) { SpecialBonusCount++; }
-                errorcount += qstate.errorcount;
+                if (qstate.errorcount) { errorcount += qstate.errorcount; }
             }
         }
         if (test.count === 0) {

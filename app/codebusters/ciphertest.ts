@@ -15,6 +15,7 @@ import { countHomonyms } from '../common/homonyms';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
+import { IEncoderState } from './cipherencoder';
 import { CipherPrintFactory } from './cipherfactory';
 
 const DATABASE_VERSION = 4
@@ -1256,7 +1257,7 @@ export class CipherTest extends CipherHandler {
      * @param showPlain Boolean to show the plain text
      * @param testtype Type of test the question is being used for
      * @param prevuse Any previous use of the question on another test
-     * @returns State representing the test question data
+     * @returns State representing the test question data,  state.errorcount tells how many errors were found
      */
     public addQuestionRow(
         table: JTTable,
@@ -1266,7 +1267,7 @@ export class CipherTest extends CipherHandler {
         showPlain: boolean,
         testtype: ITestType,
         prevuse: any
-    ): IState {
+    ): IEncoderState {
         let ordertext = 'Timed';
         let plainclass = '';
         if (!showPlain) {
@@ -1280,7 +1281,7 @@ export class CipherTest extends CipherHandler {
         } else {
             ordertext = String(order);
         }
-        let state: IState = undefined;
+        let state: IEncoderState = undefined;
         let row = table.addBodyRow();
         // We have a timed question on everything except the Division A
         if (order === -1 && qnum === -1 && testtype !== ITestType.aregional) {
@@ -1362,6 +1363,7 @@ export class CipherTest extends CipherHandler {
                     errContent = errContent.contents();
                 }
                 errContent.find('a').remove();
+                state.errorcount = errContent.contents().length;
                 $('.err').empty();
             }
             if (qerror !== '' || errContent !== undefined) {

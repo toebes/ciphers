@@ -25,6 +25,8 @@ export interface IEncoderState extends IState {
     crib?: string;
     /** Indication that the question text was auto generated and needs to be replaced */
     placeholder?: boolean;
+    /** Track how many errors were generated (this should never be saved to a file) */
+    errorcount?: number;
 }
 
 export interface suggestedData {

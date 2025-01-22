@@ -6,6 +6,7 @@ import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTTable } from '../common/jttable';
 import { buttonInfo, CipherTest, ITestState } from './ciphertest';
+import { IEncoderState } from './cipherencoder';
 
 /**
  * TestGenerator.html?test=<n>
@@ -65,6 +66,7 @@ export class CipherTestGenerator extends CipherTest {
         const testcount = this.getTestCount();
         let SpanishCount = 0;
         let SpecialBonusCount = 0;
+        let errorcount = 0;
         if (testcount === 0) {
             result.append($('<h3>').text('No Tests Created Yet'));
             return result;
@@ -158,6 +160,7 @@ export class CipherTestGenerator extends CipherTest {
             if (qstate !== undefined) {
                 if (qstate.curlang === 'es') { SpanishCount++; }
                 if (qstate.specialbonus) { SpecialBonusCount++; }
+                errorcount += qstate.errorcount;
             }
         }
         for (let entry = 0; entry < test.count; entry++) {
@@ -183,6 +186,7 @@ export class CipherTestGenerator extends CipherTest {
             if (qstate !== undefined) {
                 if (qstate.curlang === 'es') { SpanishCount++; }
                 if (qstate.specialbonus) { SpecialBonusCount++; }
+                errorcount += qstate.errorcount;
             }
         }
         if (test.count === 0) {
@@ -208,6 +212,13 @@ export class CipherTestGenerator extends CipherTest {
         /**
          * See if we need to show/hide the Spanish Hints
          */
+        if (errorcount > 0) {
+            if (errorcount === 1) {
+                errors.push('An issue was found when generating one of the questions.')
+            } else {
+                errors.push(`${errorcount} issues were found when generating the questions.`)
+            }
+        }
         if (SpanishCount > 0) {
             if (SpanishCount > 1) {
                 if (test.testtype !== ITestType.bstate && test.testtype !== ITestType.cstate) {
@@ -276,12 +287,13 @@ export class CipherTestGenerator extends CipherTest {
         if (lang === undefined || lang === '') {
             lang = 'en';
         }
-        const state: IState = {
+        const state: IEncoderState = {
             cipherType: ciphertype,
             points: 0,
             question: 'Solve this',
             cipherString: '',
             curlang: lang,
+            placeholder: true,
         };
         const entry = this.setFileEntry(-1, state);
         if (fortimed) {

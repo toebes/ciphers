@@ -1106,6 +1106,7 @@ export class CipherEncoder extends CipherHandler {
      */
     public replaceQuestionText(): void {
         this.markUndo(null)
+        delete this.state.placeholder
         this.setQuestionText($('#sqtext').html());
         this.updateQuestionsOutput();
         $('#SampleQText').foundation('close');
@@ -1613,6 +1614,8 @@ export class CipherEncoder extends CipherHandler {
         const text = jqelem.attr('data-text')
         // Give an undo state s
         this.markUndo(null)
+        // Mark it so that they know it has been updated.
+        delete this.state.placeholder
         this.setQuestionText(text)
         $('#SampleQText').foundation('close')
         this.updateOutput()

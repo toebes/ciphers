@@ -47,6 +47,7 @@ interface QuestionType {
     unique?: number[]
     homonyms?: number[]
     msg?: string;
+    usehint?: boolean;
 }
 
 interface WeightedQuestion {
@@ -80,7 +81,7 @@ export class CipherTestBuild extends CipherTest {
         {
             title: 'Easy Aristocrat with a Hint',
             guidance: 'Easy Quote [75-90 non-blank characters, χ²<20] with Hint',
-            len: [75, 90], chi2: [-Infinity, 20], unique: [19, Infinity],
+            len: [75, 90], chi2: [-Infinity, 20], unique: [19, Infinity], usehint: true,
             group: 1, weight: 0.75, cipherType: ICipherType.Aristocrat,
             operation: 'decode', encodeType: 'random', difficulty: 'easy',
         },
@@ -94,7 +95,7 @@ export class CipherTestBuild extends CipherTest {
         {
             title: 'Medium Aristocrat with a Hint',
             guidance: 'Medium Quote [75-90 non-blank characters, 20<χ²<25] with Hint',
-            len: [75, 90], chi2: [20, 25], unique: [19, Infinity],
+            len: [75, 90], chi2: [20, 25], unique: [19, Infinity], usehint: true,
             group: 1, weight: 0.75, cipherType: ICipherType.Aristocrat,
             operation: 'decode', encodeType: 'random', difficulty: 'medium',
         },
@@ -108,7 +109,7 @@ export class CipherTestBuild extends CipherTest {
         {
             title: 'Hard K1 Aristocrat with a Hint',
             guidance: 'Hard Quote [75-90 non-blank characters, χ²>25] with Hint',
-            len: [75, 90], chi2: [25, Infinity], unique: [19, Infinity],
+            len: [75, 90], chi2: [25, Infinity], unique: [19, Infinity], usehint: true,
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k1', difficulty: 'hard',
         },
@@ -122,7 +123,7 @@ export class CipherTestBuild extends CipherTest {
         {
             title: 'Hard K2 Aristocrat with a Hint',
             guidance: 'Hard Quote [75-90 non-blank characters, χ²>25] with Hint',
-            len: [75, 90], chi2: [25, Infinity], unique: [19, Infinity],
+            len: [75, 90], chi2: [25, Infinity], unique: [19, Infinity], usehint: true,
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k2', difficulty: 'hard',
         },
@@ -136,7 +137,7 @@ export class CipherTestBuild extends CipherTest {
         {
             title: 'Misspelled K1 Aristocrat with a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25] with Hint',
-            len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity],
+            len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity], usehint: true,
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
             testtype: allButARegional, operation: 'decode', encodeType: 'k1',
         },
@@ -150,7 +151,7 @@ export class CipherTestBuild extends CipherTest {
         {
             title: 'Misspelled K2 Aristocrat with a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25] with Hint',
-            len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity],
+            len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity], usehint: true,
             testtype: allButARegional, operation: 'decode', encodeType: 'k2',
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
         },
@@ -1173,6 +1174,10 @@ export class CipherTestBuild extends CipherTest {
             if (entry.keyword !== undefined) {
                 state.keyword = entry.keyword;
             }
+            if (entry.usehint !== undefined) {
+                state.usehint = entry.usehint;
+            }
+
             if (author !== "") {
                 state.question += ` Quote Author: ${author}`
             }

@@ -19,7 +19,7 @@ export function JTFLabeledInput(
     value: number | string | boolean,
     sizeClass: string,
     parm1?: string | JQuery<HTMLElement>, // Used for slider left side
-    parm2?: string, // Used for slider right side
+    parm2?: string | JQuery<HTMLElement>, // Used for slider right side
 ): JQuery<HTMLElement> {
     const inputgroup = $('<div/>', { class: 'input-group' });
     const label = $('<span/>', { class: 'input-group-label' }).text(title)
@@ -71,9 +71,12 @@ export function JTFLabeledInput(
                     .append($('<span/>', { class: "slider-handle", 'data-slider-handle': "", 'role': "slider", 'tabindex': "1" }))
                     .append($('<span/>', { class: "slider-fill", 'data-slider-fill': "" }))
                     .append($('<input/>', { type: "hidden", id: id })))
-            .append($('<div/>', { class: "cell shrink stext" }).text(parm2))
+            .append($('<div/>', { class: "cell shrink stext" }).text(parm2 as string))
             .appendTo(inputgroup);
     } else {
+        if (parm2 !== undefined) {
+            inputgroup.append(parm2)
+        }
         $('<input/>', {
             id: id,
             class: 'input-group-field',

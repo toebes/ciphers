@@ -1556,6 +1556,10 @@ button.rounded {
     font-weight: 400;
 }
 
+.input-group .precheck {
+    margin-right: 10px;
+}
+
 .menu-text a {
     padding: 0 !important;
 }

@@ -177,6 +177,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
         $('#keyword2').val(this.state.keyword2);
         $('#offset2').val(this.state.offset2);
         $('#translated').val(this.state.translation);
+        $("#hint").val(this.state.hint);
 
         this.checkRandomDifficulty();
         if (this.state.operation === 'keyword') {
@@ -189,6 +190,14 @@ export class CipherAristocratEncoder extends CipherEncoder {
             $('#misspell').removeAttr('disabled').show();
         } else {
             $('#misspell').attr('disabled', 'disabled').hide();
+        }
+
+        $('#usehint').prop('checked', !!this.state.usehint);
+
+        if (this.state.usehint) {
+            $("#hint").removeAttr('disabled')
+        } else {
+            $("#hint").attr('disabled', 'disabled')
         }
 
         if (this.state.curlang === 'en') {
@@ -441,6 +450,14 @@ export class CipherAristocratEncoder extends CipherEncoder {
         super.setQuestionText(question)
         this.validateQuestion();
         this.attachHandlers();
+    }
+    public setUseHint(useHint: boolean): boolean {
+        let changed = false;
+        if (useHint !== this.state.usehint) {
+            this.state.usehint = useHint;
+            changed = true;
+        }
+        return changed;
     }
     /**
      * Make sure that they are asking them to solve the cipher or fill in the keyword.
@@ -810,6 +827,18 @@ export class CipherAristocratEncoder extends CipherEncoder {
                 'translated',
                 this.state.translation,
                 'small-12 medium-12 large-12'
+            )
+        );
+        /// 
+        result.append(
+            JTFLabeledInput(
+                'Optional Hint',
+                'text',
+                'hint',
+                this.state.hint,
+                'small-12 medium-4 large-4',
+                undefined,
+                $('<input/>', { id: "usehint", class: "input-group-button checkbox precheck", type: "checkbox", value: "false" })
             )
         );
         result.append(this.createAlphabetType());
@@ -1390,11 +1419,21 @@ export class CipherAristocratEncoder extends CipherEncoder {
                     }
                 }
             });
-        $('#misspell')
-            .off('click')
-            .on('click', (e) => {
-                this.genMisspell()
-            })
+        $('#hint')
+            .off('input')
+            .on('input', (e) => {
+                const hint = $(e.target).val() as string;
+                if (hint !== this.state.hint) {
+                    this.markUndo('hint');
+                    if (this.setHint(hint)) {
+                        this.updateOutput();
+                    }
+                }
+            }); $('#misspell')
+                .off('click')
+                .on('click', (e) => {
+                    this.genMisspell()
+                })
         $('#wordrepl_base,#typos_base')
             .off('changed.zf.slider moved.zf.slider')
             .on('changed.zf.slider moved.zf.slider', (e) => {
@@ -1410,6 +1449,14 @@ export class CipherAristocratEncoder extends CipherEncoder {
             .on('click', (e) => {
                 this.useQuote(e.target);
             })
+        $('#usehint')
+            .off('click')
+            .on('click', (e) => {
+                let isChecked = $(e.target).is(':checked');
+                this.markUndo('usehint');
+                this.setUseHint(isChecked);
+                this.updateOutput();
+            });
 
     }
 }

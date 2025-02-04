@@ -27,6 +27,8 @@ export interface IEncoderState extends IState {
     placeholder?: boolean;
     /** Track how many errors were generated (this should never be saved to a file) */
     errorcount?: number;
+    /** Optional hint is expected */
+    usehint?: boolean;
 }
 
 export interface suggestedData {

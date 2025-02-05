@@ -18,6 +18,7 @@ const aristocratDivAPCTMin = .15
 const aristocratDivAPCTMax = .25
 
 export type TemplateTestTypes = 'none' | 'cregional' | 'cstate' | 'cnational' | 'cpractice' | 'bregional' | 'bstate' | 'bnational' | 'bpractice' | 'aregional' | 'apractice'
+export type TestDifficultyType = 'easy' | 'standard'
 export type DifficultyType = 'easy' | 'medium' | 'hard'
 export interface ITempleteInfo {
     title: string;
@@ -467,6 +468,7 @@ export class CipherTestBuild extends CipherTest {
 
     public title = "Untitled Test";
     public templateType: TemplateTestTypes = 'none'
+    public testDifficulty: TestDifficultyType = 'standard'
     public questionCount = 10
     public xenocryptCount = 0
     public testtype: ITestType = ITestType.None;
@@ -606,6 +608,7 @@ export class CipherTestBuild extends CipherTest {
         });
         inputbox.append(JTFIncButton('Questions', 'qcount', this.questionCount, 'small-6 medium-6 large-3'));
         inputbox.append(JTFIncButton('Xenocrypts', 'xcount', this.xenocryptCount, 'small-6 medium-6 large-3'));
+        inputbox.append(this.genTestDifficultyDropdown('difficulty', 'Test Difficulty', 'standard', 'cell small-6 medium-6 large-3'));
 
         inputbox.append($("<a>", { id: "genlist", class: "button rounded cell shrink" }).text('Generate Template'))
         testdiv.append(inputbox)
@@ -663,6 +666,50 @@ export class CipherTestBuild extends CipherTest {
             }
             select.append(option);
         }
+        inputgroup.append(select);
+        return inputgroup;
+    }
+
+    /**
+ * Generate a dropdown for the type of test
+ * @param ID HTML ID of the generated dropdown
+ * @param title Title text for the generated dropdown
+ */
+    public genTestDifficultyDropdown(
+        id: string,
+        title: string,
+
+        difficulty: TestDifficultyType,
+        sizeclass: string
+    ): JQuery<HTMLElement> {
+        const inputgroup = $('<div/>', {
+            class: `input-group ${sizeclass}`,
+        });
+        if (difficulty === undefined) {
+            difficulty = 'standard'
+        }
+        $('<span/>', { class: 'input-group-label' })
+            .text(title)
+            .appendTo(inputgroup);
+        const select = $('<select/>', {
+            id: id,
+            class: 'input-group-field',
+        });
+
+        let option = $('<option />', {
+            value: 'standard',
+        }).text('Standard');
+        if (difficulty === 'standard') {
+            option.attr('selected', 'selected');
+        }
+        select.append(option);
+        option = $('<option />', {
+            value: 'easy',
+        }).text('Easy');
+        if (difficulty === 'easy') {
+            option.attr('selected', 'selected');
+        }
+        select.append(option);
         inputgroup.append(select);
         return inputgroup;
     }
@@ -737,6 +784,14 @@ export class CipherTestBuild extends CipherTest {
                 this.setXenocryptCount(template.xenoctyptCount);
                 this.setTestType(template.type);
             }
+        }
+        return changed;
+    }
+    public setTestDifficulty(difficulty: TestDifficultyType): boolean {
+        let changed = false
+        if (this.testDifficulty !== difficulty) {
+            this.testDifficulty = difficulty;
+            changed = true;
         }
         return changed;
     }
@@ -1485,6 +1540,15 @@ export class CipherTestBuild extends CipherTest {
                 }
                 e.preventDefault();
             });
+        $('#difficulty')
+            .off('change')
+            .on('change', (e) => {
+                // We need to lookup the id and convert it to a test type
+                if (this.setTestDifficulty($(e.target).val() as TestDifficultyType)) {
+                    this.updateOutput();
+                }
+                e.preventDefault();
+            })
         $('#title')
             .off('input')
             .on('input', (e) => {

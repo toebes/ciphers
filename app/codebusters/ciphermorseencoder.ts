@@ -598,7 +598,7 @@ export class CipherMorseEncoder extends CipherEncoder {
                     bighint +
                     ' we now know the mapping of ' +
                     String(hint.length) +
-                    ' characters. '
+                    ' unique characters. '
                 );
             }
         } else if (hint.length < minHintLength) {

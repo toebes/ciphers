@@ -250,6 +250,9 @@ export class CipherAristocratEncoder extends CipherEncoder {
                 return this.state.encodeType.toUpperCase() + ' Alphabet not allowed for ' + this.getTestTypeName(testType);
             }
         }
+        if (this.state.usehint && (this.state.hint === undefined || this.state.hint.trim() === '')) {
+            return `Optional Hint is selected, but no hint has been entered. `
+        }
         return super.CheckAppropriate(testType, anyOperation)
     }
     /**
@@ -485,6 +488,9 @@ export class CipherAristocratEncoder extends CipherEncoder {
             if (questionText.indexOf(enctype) < 0) {
                 msg += "The Question Text doesn't mention that the cipher uses a " + enctype + " alphabet encoding. ";
             }
+        }
+        if (this.state.usehint && (this.state.hint === undefined || this.state.hint.trim() === '')) {
+            msg += "Optional Hint is selected, but no hint has been entered. "
         }
 
         this.setErrorMsg(msg, 'vq', sampleLink);

@@ -1304,50 +1304,64 @@
                 </h2>
                 <p>The Fractionated Morse Cipher encodes text by first converting the plain text into morse
                     code with the space between characters represented by an <span class="fq">&times;</span> and the
-                    space
-                    between
-                    words represented by two <span class="fq">&times;</span> characters. The resulting morse code is
-                    then assigned to letters using a K1-like replacement table to represent the morse characters:
+                    space between words represented by two <span class="fq">&times;</span> characters. The resulting
+                    morse code string is divided into groups of three characters called a morslet.  The morslet is
+                    made up of combinations of these characters:
                     (<span class="fq">&#9679;</span>,
                     <span class="fq">&ndash;</span>,
-                    <span class="fq">&times;</span>). The table is always the same, and the letters in the keyword (with
+                    <span class="fq">&times;</span>).  There are 27
+                    possible morselets using combinations of those characters.  Each morslet is
+                    assigned to letters using a K1-like replacement table.  26 morselets are
+                    used in the replacement table; (<span class="fq">&times;&times;&times;</span>) is not used.
+                    The table is always the same, and the letters in the keyword (with
                     duplicates removed) are always the initial letters in the table, with the remaining letters
                     following alphabetically.
-                    The sets of morse
-                    characters are then replaced with the corresponding letter to generate
+                    The morslet (sets of morse
+                    characters) are then replaced with the corresponding letter to generate
                     the final cipher string. Decoding is done by reversing the process. The YouTube video on how to
                     generate a Fractionated Morse cipher using the Test Generator can be found <a class="ytvideo"
                         href="https://www.youtube.com/watch?v=13BJiRSIbYg">here</a>.
                 </p>
                 <span class="ht">Setting Difficulty:</span>
-
                 <p class="in">
-                    The difficulty can depend on how long the crib is (longer is easier) and where the crib
-                    text is placed (it may reveal more morse mappings). The difficulty is also related to the
-                    letters that are chosen for the keyword -- the difficulty
-                    increases when the keyword draws letters from throughout the alphabet, when it draws
+                    The difficulty will depend on how many cipher characters are revealed by the crib.  This is determined
+                    by the length of the crib and where it is placed. The difficulty is also related to the
+                    letters that are chosen for the keyword, although less so.  Difficulty
+                    increases when the keyword draws letters spread throughout the alphabet, when it draws
                     from the end of the alphabet, when the keyword is very long, and when there are duplicate letters in
                     the keyword.
-                    Another factor for difficulty is how frequently the letters that the crib maps to are
-                    used throughout the rest of the cipher.
+                    Another factor for difficulty is how frequently the cipher letters that are revealed by the crib
+                    are used in the cipher.
+                </p>
+                <p class="in1">A crib which provides 10 to 12 mappings of cipher letters to morslets should be adequate
+                    to solve the cipher in a reasonable amount of time.  As stated above, the position and length
+                    of the crib determine how many cipher letters are revealed.  A shorter crib may reveal
+                    more cipher letters than a longer crib, it all depends on the length of the morse characters generated
+                    by the plain text.  The auto-solver output shows what cipher characters the crib reveals, so trying different cribs
+                    gives immediate feedback to the test writer.  The auto-solver also makes an estimate
+                    of the length of the keyword.  How close this estimate is to the actual length of the keyword
+                    will make the problem marginally easier.
                 </p>
                 <p class="in1">Looking at the
-                    autosolver's first attempt will give an idea of what students have to start with,
-                    looking at its final attempt will give an approximate idea of what students should
-                    have to end with, and looking at its iterations in the middle will help show how
-                    much trial and error students might have to do between those two points.
+                    auto-solver output should give an idea of how much effort a problem will take to solve.  The auto-solver
+                    iterates through logic and builds upon previous progress--techniques a student would use.  Put another way,
+                    in general, the longer the output from the auto-solver, the more effort it will take a student to solve it,
+                    thus a more difficult problem.
                 </p>
 
                 <span class="ht">Points:</span>
-                <p class="in">225-300. This can be adjusted using the factors for difficulty above.</p>
+                <p class="in">350-400. This can be adjusted using the factors for difficulty above.  The 'Suggest Points'
+                button uses these considerations to determine a score.</p>
                 <span class="ht">Question Text:</span>
-                <p class="in">The question should be around 40 characters.</p>
-                <p class="ex callout small secondary">A quote has been encoded using the Fractionated
-                    Morse Cipher for you to decode. You are told that the quote has <span class="fq">CHAN</span>
-                    in it corresponding to the encoded text <span class="fq">V J T B P D</span>,
-                    meaning <span class="fq">B = &#9679;&times;&#9679;; D = &#9679;&times;&ndash;;
-                        J = &ndash;&#9679;&times;; P = &ndash;&times;&ndash;; T = &#9679;&#9679;&#9679;;
-                        V = &times;&ndash;&#9679;.</span></p>
+                <p class="in">The question should be around 40 characters.  Note that the encoded text revealed by the
+                    11 characters of the crib has a length of 13 characters, but only 9 are unique.</p>
+                <p class="ex callout small secondary">
+                    Someone passed you a piece of paper with this Fractionated Morse encoded phrase of a quote. You are
+                    told that the quote has <span class="fq">EDSOMEMAGIC</span> in it corresponding to the encoded text
+                    <span class="fq">N G S N L L E L B J S V H</span>,
+                    meaning <span class="fq">B = &#9679;–×; E = &#9679;××; G = &#9679;&#9679;×; H = –&#9679;×;
+                    J = ––&#9679;; L = ––×; N = &#9679;×–; S = ×&#9679;&#9679;; V = ×–&#9679;</span>. What does it say?
+                </p>
             </div>
 
             <div id="RunningKey">

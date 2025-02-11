@@ -77,6 +77,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
     private solutionUnknowns = -1;
     private SOLUTION_ITERATIONS = 20;
 
+    private guessLetters = new Map<string, number>();
+
     public init(lang: string): void {
         super.init(lang);
         this.loadLanguageDictionary('en').then((res) => {
@@ -164,6 +166,20 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             suggested += 15;
         }
 
+        // Add some points if you had to guess at some mappings.
+        let pointsForGuessing = '';
+        if (this.guessLetters.size > 0) {
+            let totalPossibilities = 0;
+            let letters = '';
+            this.guessLetters.forEach((count, letter) => {
+                letters += `<code>${letter}</code> `;
+                totalPossibilities += count;
+            })
+            suggested += totalPossibilities;
+            pointsForGuessing = ` The mapping of ${this.guessLetters.size} letters (${letters.trim()}) were guessed at, so add 
+            ${totalPossibilities} points. `;
+        }
+
         let range = 20;
         const min = Math.max(suggested - range, 0)
         const max = suggested + range
@@ -178,7 +194,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         }
         if (qdata.len > 2) {
             scoringText += `<p>There are ${qdata.len} characters in the quote.
-                ${hintCharsRevealedText}${autoSolverLoops}${remainingUnknowns}
+                ${hintCharsRevealedText}${autoSolverLoops}${remainingUnknowns}${pointsForGuessing}
                 We suggest you try a score of ${suggested}${rangetext}.</p>`
         }
 
@@ -1904,11 +1920,21 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 first = false;
             }
             morsePossibilities += '.  ';
-            msg.append(`Looking at the cipher text above, notice the letter ${singleLetter} is not mapped.  
+            msg.append(`Looking at the cipher text above, notice the letter <code>${singleLetter}</code> is not mapped.  
                 Based on the current mapping table, it has ${possibilitiesCount === 1 ? `1 possible value` : 
                 `${possibilitiesCount} possible values`} : ${morsePossibilities}.`);
             // These are the guess values for the letter that will be used by takeAguess().
             this.trialLetters[singleLetter] = possibilities;
+            // The more possibilities for a guess, the more points it should be worth, as it is more work.
+            // This is used for calculating a point estimate for this question.  It tracks the number of
+            // letters used to guess and the number of possibilities for that letter.
+            if (!this.guessLetters.has(singleLetter)) {
+                this.guessLetters.set(singleLetter, possibilitiesCount);
+            } else {
+                // We will take the fewest number of possibilities.
+                this.guessLetters.set(singleLetter, Math.min(this.guessLetters.get(singleLetter), possibilitiesCount));
+            }
+
             result.append(msg);
         }
 
@@ -2644,6 +2670,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             );
         } else {
             let limit = this.SOLUTION_ITERATIONS;
+            // Reset the guesses map with tracks how much you have to guess.
+            this.guessLetters.clear();
             while (limit > 0) {
 
                 /*if (this.cleanAndCheckSpans(result, knownmap, working)) {

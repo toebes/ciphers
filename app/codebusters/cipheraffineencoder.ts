@@ -446,36 +446,8 @@ export class CipherAffineEncoder extends CipherEncoder {
             msg = '<p>The following quote' + this.genAuthor() + ' has been encoded using the Affine Cipher. ';
             const cribpos = this.placeCrib();
             const ptstring = this.minimizeString(this.state.cipherString);
-            if (cribpos === undefined) {
-                msg += 'But not enough hint digits have been selected';
-            } else if (cribpos.length === 1) {
-                if (cribpos[0].position === 0) {
-                    msg +=
-                        'You are told that the deciphered text starts with ' +
-                        this.genMonoText(cribpos[0].plaintext);
-                } else if (cribpos[0].position === ptstring.length - 2) {
-                    msg +=
-                        'You are told that the deciphered text ends with ' +
-                        this.genMonoText(cribpos[0].plaintext);
-                } else {
-                    msg +=
-                        'You are told that the cipher text ' +
-                        this.genMonoText(cribpos[0].ciphertext) +
-                        ' decodes to be ';
-                    this.genMonoText(cribpos[0].plaintext);
-                }
-            } else {
-                // Crib characters aren't together
-                let extra = 'You are told that ';
-                for (const cribent of cribpos) {
-                    msg +=
-                        extra +
-                        this.genMonoText(cribent.ciphertext) +
-                        ' decodes to be ' +
-                        this.genMonoText(cribent.plaintext);
-                    extra = ' and ';
-                }
-            }
+
+            msg += this.getCribPlacement(cribpos, ptstring);
             msg += '.';
         } else {
             if (this.state.operation === 'encode') {
@@ -498,12 +470,71 @@ export class CipherAffineEncoder extends CipherEncoder {
         return msg;
     }
 
+    /**
+     * This handles the Affine Cipher specific question options.
+     * @param qOptions the array of options
+     * @param langtext the language string (blank for English)
+     * @param hinttext any hint text provided
+     * @param fixedName name of the cipher
+     * @param operationtext existing question text
+     * @param operationtext2 additional question text for the specific cipher
+     * @param cipherAorAn literally 'a' or 'an' for referring to a cipher type.
+     */
     public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
 
-        operationtext2 = ` with a = ${this.state.a} and b = ${this.state.b}`;
+        if (this.state.operation === 'crypt') {
+            const cribpos = this.placeCrib();
+            const ptstring = this.minimizeString(this.state.cipherString);
+            operationtext2 = `. ${this.getCribPlacement(cribpos, ptstring)}`;
+        } else {
+            operationtext2 = ` with <strong><i>a</i>=${this.genMonoText(String(this.state.a))}</strong> and <strong><i>b</i>=${this.genMonoText(String(this.state.b))}</strong>`;
+        }
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
-
     }
+
+    /**
+     * This function identifies the crib placement for Affine cryptanalysis and returns question text describing the placement.
+     * @param cribpos structure containing crib placement info from selected crib letters
+     * @param ptstring the plain text string
+     * @return string describing what the selected cipher characters map to in plain text.
+     * @private
+     */
+    private getCribPlacement(cribpos: ICribPos[], ptstring: string): string
+    {
+        let msg = '';
+        if (cribpos === undefined) {
+            msg += 'But not enough hint digits have been selected';
+        } else if (cribpos.length === 1) {
+            if (cribpos[0].position === 0) {
+                msg +=
+                    'You are told that the deciphered text starts with ' +
+                    this.genMonoText(cribpos[0].plaintext);
+            } else if (cribpos[0].position === ptstring.length - 2) {
+                msg +=
+                    'You are told that the deciphered text ends with ' +
+                    this.genMonoText(cribpos[0].plaintext);
+            } else {
+                msg +=
+                    'You are told that the cipher text ' +
+                    this.genMonoText(cribpos[0].ciphertext) +
+                    ' decodes to be ';
+                this.genMonoText(cribpos[0].plaintext);
+            }
+        } else {
+            // Crib characters aren't together
+            let extra = 'You are told that ';
+            for (const cribent of cribpos) {
+                msg +=
+                    extra +
+                    this.genMonoText(cribent.ciphertext) +
+                    ' decodes to be ' +
+                    this.genMonoText(cribent.plaintext);
+                extra = ' and ';
+            }
+        }
+        return msg;
+    }
+
     /**
      * Sets the new A value.  A direction is also provided in the state so that if the
      * intended value is bad, we can keep advancing until we find one

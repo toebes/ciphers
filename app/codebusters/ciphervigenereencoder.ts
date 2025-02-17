@@ -350,6 +350,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
         if (this.state.operation != 'crypt') {
             operationtext2 = ` using a keyword of ${this.state.keyword}`
         }
+        fixedName = 'Vigenère';
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
 
     }

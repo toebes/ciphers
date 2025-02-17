@@ -2232,6 +2232,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             const polybiusKey = this.genMonoText(this.cleanPolyKey);
             operationtext2 += ` with a keyword of ${keyword} and polybius key of ${polybiusKey}`;
         }
+        else {
+            const keyword = this.cleanKeyword;
+            operationtext2 += ` with a keyword length of ${keyword.length}`;
+        }
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
 
 

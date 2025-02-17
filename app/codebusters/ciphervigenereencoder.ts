@@ -303,57 +303,69 @@ export class CipherVigenereEncoder extends CipherEncoder {
             ciphertypetext = 'Porta';
         }
         if (this.state.operation === 'crypt') {
-            msg =
-                '<p>The following quote' + this.genAuthor() + ' has been encoded with the ' + ciphertypetext +
-                ' Cipher using a very common word for the key. ';
+            msg = `<p>The following quote ${this.genAuthor()} has been encoded with the ${ciphertypetext}
+                Cipher using a very common word for the key. `;
 
             const cribpos = this.placeCrib();
-            if (cribpos === undefined) {
-                msg += 'But <strong>the crib can not be found in the Plain Text</strong>. ';
-            } else if (cribpos.position === 0) {
-                msg +=
-                    'The deciphered text starts with ' + this.genMonoText(cribpos.plaintext) + '. ';
-            } else if (cribpos.position === cribpos.cipherlen - cribpos.criblen) {
-                msg +=
-                    'The deciphered text ends with ' + this.genMonoText(cribpos.plaintext) + '. ';
-            } else {
-                const startpos = this.getPositionText(cribpos.position + 1);
-                const endpos = this.getPositionText(cribpos.position + cribpos.criblen);
-                msg +=
-                    'The ' +
-                    startpos +
-                    ' through ' +
-                    endpos +
-                    ' cipher characters (' +
-                    this.genMonoText(cribpos.ciphertext) +
-                    ') decode to be ' +
-                    this.genMonoText(cribpos.plaintext);
-            }
+            msg += this.getCribPlacement(cribpos);
         } else {
             const keyword = this.genMonoText(this.minimizeString(this.state.keyword));
             if (this.state.operation === 'encode') {
-                msg =
-                    '<p>The following quote' + this.genAuthor() + ' needs to be encoded ' +
-                    ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
-                    keyword;
+                msg = `<p>The following quote ${this.genAuthor()} needs to be encoded 
+                    with the ${ciphertypetext} Cipher with a keyword of ${keyword}`;
             } else {
-                msg =
-                    '<p>The following quote' + this.genAuthor() + ' needs to be decoded ' +
-                    ' with the ' + ciphertypetext + ' Cipher with a keyword of ' +
-                    keyword;
+                msg = `<p>The following quote ${this.genAuthor()} needs to be decoded 
+                    with the ${ciphertypetext} Cipher with a keyword of ${keyword}`;
             }
         }
         msg += '</p>';
         return msg;
     }
+
+    /**
+     * This handles the Vigenere/Porta Cipher specific question options.
+     * @param qOptions the array of options
+     * @param langtext the language string (blank for English)
+     * @param hinttext any hint text provided
+     * @param fixedName name of the cipher
+     * @param operationtext existing question text
+     * @param operationtext2 additional question text for the specific cipher
+     * @param cipherAorAn literally 'a' or 'an' for referring to a cipher type.
+     */
     public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
 
         if (this.state.operation != 'crypt') {
-            operationtext2 = ` using a keyword of ${this.state.keyword}`
+            operationtext2 = ` using a keyword of ${this.genMonoText(this.minimizeString(this.state.keyword))}`
+        } else {
+            const cribpos = this.placeCrib();
+            operationtext2 = this.getCribPlacement(cribpos);
         }
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
-
     }
+    /**
+     * This function identifies the crib placement for Affine cryptanalysis and returns question text describing the placement.
+     * @param cribpos structure containing crib placement info from selected crib letters
+     * @param ptstring the plain text string
+     * @return string describing what the selected cipher characters map to in plain text.
+     * @private
+     */
+    private getCribPlacement(cribpos: ICribInfo): string {
+        let msg = '';
+        if (cribpos === undefined) {
+            msg += 'But <strong>the crib can not be found in the Plain Text</strong>. ';
+        } else if (cribpos.position === 0) {
+            msg += `The deciphered text starts with ${this.genMonoText(cribpos.plaintext)}.`;
+        } else if (cribpos.position === cribpos.cipherlen - cribpos.criblen) {
+            msg += `The deciphered text ends with ${this.genMonoText(cribpos.plaintext)}.`;
+        } else {
+            const startpos = this.getPositionText(cribpos.position + 1);
+            const endpos = this.getPositionText(cribpos.position + cribpos.criblen);
+            msg += `The ${startpos} through ${endpos} cipher characters (${this.genMonoText(cribpos.ciphertext)}) decode
+                to be ${this.genMonoText(cribpos.plaintext)}`;
+        }
+        return msg;
+    }
+
     /**
       * Generate the recommended score and score ranges for a cipher
       * 100 for a Decode (approximately 2 points per letter), 120 for an Encode.

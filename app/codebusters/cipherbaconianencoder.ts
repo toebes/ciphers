@@ -723,7 +723,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
 
         if (this.state.operation !== 'words') {
-            qOptions.push(`The following symbols encodes a phrase${this.genAuthor()} using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
+            qOptions.push(`The following symbols encode a phrase${this.genAuthor()} using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
             if (this.state.author !== undefined && this.state.author !== '') {
                 qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as a prankster who scratched a quote by ${this.state.author} on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
             }
@@ -732,7 +732,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
         else {
-            qOptions.push(`The following strange headlines encodes a phrase${this.genAuthor()} using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
+            qOptions.push(`The following strange headlines encode a phrase${this.genAuthor()} using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
         }
         super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
         return true;

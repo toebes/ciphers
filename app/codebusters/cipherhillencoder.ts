@@ -275,6 +275,8 @@ export class CipherHillEncoder extends CipherEncoder {
                 (questionText.indexOf('DECRY') < 0 &&
                     questionText.indexOf('DECOD') < 0 &&
                     questionText.indexOf('BEEN ENC') < 0 &&
+                    questionText.indexOf('ENCODED') < 0 &&
+                    questionText.indexOf('ENCRYPTED') < 0 &&
                     questionText.indexOf('WAS ENC') < 0)
             ) {
                 msg += "The Question Text doesn't indicate that the text should be decoded.";

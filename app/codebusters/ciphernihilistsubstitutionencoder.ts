@@ -347,6 +347,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     questionText.indexOf('WAS ENCOD') > 0 ||
                     questionText.indexOf('BEEN ENCOD') > 0 ||
                     questionText.indexOf('WAS ENCRY') > 0 ||
+                    questionText.indexOf('ENCRYPTED') > 0 ||
                     questionText.indexOf('BEEN ENCRY') > 0
                 ) {
                     msg +=
@@ -358,6 +359,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     questionText.indexOf('DECOD') < 0 &&
                     questionText.indexOf('DECRY') < 0 &&
                     questionText.indexOf('WAS ENC') < 0 &&
+                    questionText.indexOf('ENCODED') < 0 &&
+                    questionText.indexOf('ENCRYPTED') < 0 &&
                     questionText.indexOf('BEEN ENC') < 0
                 ) {
                     msg +=

@@ -424,6 +424,8 @@ export class CipherAffineEncoder extends CipherEncoder {
                     questionText.indexOf('DECRY') < 0 &&
                     questionText.indexOf('DECOD') < 0 &&
                     questionText.indexOf('BEEN ENC') < 0 &&
+                    questionText.indexOf('ENCODED') < 0 &&
+                    questionText.indexOf('ENCRYPTED') < 0 &&
                     questionText.indexOf('WAS ENC') < 0
                 ) {
                     msg += "The Question Text doesn't indicate that the text should be decoded.";
@@ -499,8 +501,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      * @return string describing what the selected cipher characters map to in plain text.
      * @private
      */
-    private getCribPlacement(cribpos: ICribPos[], ptstring: string): string
-    {
+    private getCribPlacement(cribpos: ICribPos[], ptstring: string): string {
         let msg = '';
         if (cribpos === undefined) {
             msg += 'But not enough hint digits have been selected';

@@ -1791,7 +1791,6 @@ export const fiveletterwords: string[] = [
     'RITES',
     'RIVAL',
     'RIVER',
-    'RLNGS',
     'ROADS',
     'ROARS',
     'ROAST',

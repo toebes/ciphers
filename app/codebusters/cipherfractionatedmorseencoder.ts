@@ -1828,6 +1828,106 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         return returnValue;
     }
 
+
+    /**
+     * This method will search the mapping table, but not into the keyword and deduce a mapping based on possible
+     * letters and the number of spaces in a range of letters.
+     * @param result
+     * @param knownmap
+     * @param working
+     * @returns true if it did some work.
+     * @private
+     */
+    private deducedLettersInSlots(result: JQuery<HTMLElement>,
+    knownmap: StringMap,
+    working: string[][]): boolean {
+        let msg = $('<p/>');
+        msg.append(`Looking through the mapping table above, let's see if we can reason out some mappings...`);
+        let determinedMapping = false;
+
+        // This will hold the end of the range.
+        let endLetter = '';
+
+        // Check the map but stay away from the keyword.
+        for (let i = this.keywordMap.length - 1; i >= this.state.keyword.length + 3; i--) {
+            endLetter = this.keywordMap[i];
+
+            // Where to start from going backwards to find another known mapping
+            let backup = i - 1;
+            // Counts the number of slots between known mappings
+            let count = 0;
+            while (this.possibilitiesMap[backup].length !== 1) {
+                count += 1;
+                backup--;
+            }
+            // If nothing found, go on to the next endLetter
+            if (count === 0) {
+                continue;
+            }
+            // If we get this far, we are into the keyword and we need to get out of here.
+            if (backup <= this.state.keyword.length) {
+                return false;
+            }
+
+            // The index of the end of the range
+            let endIndex = i;
+
+            // Calculated index of the beginning of the range
+            let startIndex = endIndex - count - 1
+            // The letter at the start
+            let startLetter = this.keywordMap[startIndex];
+
+            // Storage for possible letters for this range
+            let remainingLetters = [];
+
+            // Go thru this range, slot by slot
+            for (let j = startIndex + 1; j < endIndex; j++) {
+                // Get the possibilities for this slot
+                let viableLetters = this.possibilitiesMap[j].split('').sort();
+                for (let viableLetter of viableLetters) {
+                    // Check if a possibility is outside the range...i.e. A is not between G-J, so skip it.
+                    if (viableLetter.charCodeAt(0) < startLetter.charCodeAt(0) ||
+                        viableLetter.charCodeAt(0) > endLetter.charCodeAt(0)) {
+                        // Throw this letter out.
+                        continue;
+                    } else {
+                        // Store the letter if we have not seen it before.
+                        if (remainingLetters.indexOf(viableLetter) === -1) {
+                            remainingLetters.push(viableLetter);
+                        }
+                    }
+                }
+            }
+            // Check if the number of letters matches the number of slots in the range...
+            if (endIndex - startIndex - 1 === remainingLetters.length) {
+                // We can declare these mappings!
+                determinedMapping = true;
+                let reasonedLetters = [];
+                for (let replaceIndex = 0; replaceIndex < remainingLetters.length; replaceIndex++) {
+                    let remainingLetter = remainingLetters[replaceIndex];
+                    reasonedLetters.push(remainingLetter);
+                    this.possibilitiesMap[startIndex + 1 + replaceIndex] = remainingLetter;
+                    this.removeKnownFromPossibilitiesMap(this.possibilitiesMap, startIndex + 1 + replaceIndex, remainingLetter);
+                }
+                this.cleanPossibilities(knownmap);
+                this.reconcileKnownMap(knownmap);
+                this.reconcilePossibilitiesMap(knownmap);
+
+                msg.append($('<p/>'));
+                msg.append(`Since letters in the table must be in order, we know that between 
+                    <code>${startLetter}</code> and <code>${endLetter}</code>, the only 
+                    ${reasonedLetters.length === 1 ? `possibility is` : `possibilities are`} 
+                    <code>${reasonedLetters.join(', ')}</code>.`);
+            }
+        }
+        // If we were able to determine a mapping, output it and return ture.
+        if (determinedMapping) {
+            result.append(msg);
+            return true;
+        }
+        return false;
+    }
+
     /**
      * This method looks for a single unknown morse fragment.  It will go thru the table
      * and count the possibilities for that cipher letter and if less than X (e.g.3), it will
@@ -1856,6 +1956,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             morseSequence += working[i][1].replace(/ /g, '?');
         }
 
+        // This will hold all the locations we will want to try
+        const locationsToTry = [];
         let possibilitiesCount: number = 0;
         let possibilities = [];
         let singleLetterLocation = -1;
@@ -1883,7 +1985,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 // count is a good candidate, set the offset for the corresponding letter since there are 3 morse per letter.
                 if (found) {
                     singleLetterLocation = count * 3;
-                    break;
+                    locationsToTry.push(singleLetterLocation);
                 }
             }
             count += 1;
@@ -1891,51 +1993,56 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         }
 
         // If nothing found, exit
-        if (singleLetterLocation === -1) {
+        if (locationsToTry.length === 0) {
             return false;
         }
-        // Get the letter to guess
-        let singleLetter = cipherSequence.substring(singleLetterLocation, singleLetterLocation + 3).trim();
+        let singleLetter = '';
+        // Get the letter to guess out of all our possible guesses
+        for (let locationToTry of locationsToTry) {
+            singleLetter = cipherSequence.substring(locationToTry, locationToTry + 3).trim();
 
-        // Find the possible mappings for the letter.
-        let possibilityOffset = 0;
-        for (let possibility of this.possibilitiesMap) {
-            if (possibility.indexOf(singleLetter) > -1) {
-                possibilitiesCount += 1;
-                possibilities.push(this.morseReplaces[possibilityOffset]);
-            }
-            possibilityOffset += 1;
-        }
-
-        // Create an explanation of the letter and the possible mappings for it.
-        if (this.trialLetters[singleLetter] === undefined && possibilitiesCount < 7) {
-            let msg = $('<p/>');
-            let morsePossibilities = '';
-            let first = true;
-            for (const guess of possibilities) {
-                if (!first) {
-                    morsePossibilities += ', ';
+            // Find the possible mappings for the letter.
+            let possibilityOffset = 0;
+            for (let possibility of this.possibilitiesMap) {
+                if (possibility.indexOf(singleLetter) > -1) {
+                    possibilitiesCount += 1;
+                    possibilities.push(this.morseReplaces[possibilityOffset]);
                 }
-                morsePossibilities += this.normalizeHTML(guess);
-                first = false;
-            }
-            morsePossibilities += '.  ';
-            msg.append(`Looking at the cipher text above, notice the letter <code>${singleLetter}</code> is not mapped.  
-                Based on the current mapping table, it has ${possibilitiesCount === 1 ? `1 possible value` : 
-                `${possibilitiesCount} possible values`} : ${morsePossibilities}.`);
-            // These are the guess values for the letter that will be used by takeAguess().
-            this.trialLetters[singleLetter] = possibilities;
-            // The more possibilities for a guess, the more points it should be worth, as it is more work.
-            // This is used for calculating a point estimate for this question.  It tracks the number of
-            // letters used to guess and the number of possibilities for that letter.
-            if (!this.guessLetters.has(singleLetter)) {
-                this.guessLetters.set(singleLetter, possibilitiesCount);
-            } else {
-                // We will take the fewest number of possibilities.
-                this.guessLetters.set(singleLetter, Math.min(this.guessLetters.get(singleLetter), possibilitiesCount));
+                possibilityOffset += 1;
             }
 
-            result.append(msg);
+            // Create an explanation of the letter and the possible mappings for it...limited to max of 6 values to guess
+            if (this.trialLetters[singleLetter] === undefined && possibilitiesCount < 7) {
+                let msg = $('<p/>');
+                let morsePossibilities = '';
+                let first = true;
+                for (const guess of possibilities) {
+                    if (!first) {
+                        morsePossibilities += ', ';
+                    }
+                    morsePossibilities += this.normalizeHTML(guess);
+                    first = false;
+                }
+                morsePossibilities += '.  ';
+                msg.append(`Looking at the cipher text above, notice the letter <code>${singleLetter}</code> is not mapped.  
+                    Based on the current mapping table, it has ${possibilitiesCount === 1 ? `1 possible value` : 
+                    `${possibilitiesCount} possible values`} : ${morsePossibilities}.`);
+                // These are the guess values for the letter that will be used by takeAguess().
+                this.trialLetters[singleLetter] = possibilities;
+                // The more possibilities for a guess, the more points it should be worth, as it is more work.
+                // This is used for calculating a point estimate for this question.  It tracks the number of
+                // letters used to guess and the number of possibilities for that letter.
+                if (!this.guessLetters.has(singleLetter)) {
+                    this.guessLetters.set(singleLetter, possibilitiesCount);
+                } else {
+                    // We will take the fewest number of possibilities.
+                    this.guessLetters.set(singleLetter, Math.min(this.guessLetters.get(singleLetter), possibilitiesCount));
+                }
+
+                result.append(msg);
+                // Just try one...the first successful possibility.
+                break;
+            }
         }
 
         return returnValue;
@@ -2349,6 +2456,10 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
             const guesses = this.trialLetters[letter];
             if (guesses === undefined)
                 continue;
+            // The number of guesses past 6 is too overwhelming... limit to maximum of 6
+            else if (guesses.length > 7) {
+                continue;
+            }
             let message = 'We know <code>' + letter + '</code> can be one of ';
             let first = true;
             for (const guess of guesses) {
@@ -2455,7 +2566,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     let firstLetterIndex = this.encodecharset.indexOf(theLetter);
                     thing = this.fillInContinuousPossibilitiesMap(thing, i + 1, endAt, 1, firstLetterIndex + 1);
                     endAt = this.keywordMap.indexOf(theLetter);
-                } else if (delta < 0 || delta < approximateKeywordLength || delta > i /* || this.state.keyword.toUpperCase().indexOf(theLetter) > -1*/) {
+                } else if (delta < 0 || delta < approximateKeywordLength) { // test to estimate if letter is in keyword.
                     if (!this.mentionedLetters.has(theLetter)) {
                         let msg = $('<p/>');
                         msg.append('The letter <code>' + theLetter + '</code> is likely in the keyword');
@@ -2688,16 +2799,20 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     //     console.log('Found: exploreStandaloneLetter');
                     // } else if (this.eliminateInvalidSequences(result, knownmap, working)) {
                     //     console.log('Found: findIsolatedMorseBlankAfter');
-                }else if (this.takeAGuess(result, knownmap, working)) {
+                } else if (this.takeAGuess(result, knownmap, working)) {
                     //
                     // console.log('Found: findIsolatedMorseBlankAfter2');
-                }  else {
+                } else if (this.deducedLettersInSlots(result, knownmap, working)) {
+                    //
+                    // console.log('Found: deducedLettersInSlots');
+                } else {
                     // Nothing more that we can do..
                     result.append(
                         $('<h4.>').text(
-                            'There are no more automated solving techniques, ' +
-                            'so you need to do some trial and error with the remaining unknowns. ' +
-                            'Please feel free to submit an issue with the example so we can improve this.'
+                            `There are no more automated solving techniques, 
+                             it is recommended to modify the crib text to provide additional 
+                             information to the automated solver and also the students solving the problem. 
+                             Please feel free to submit an issue with the example so we can improve the solver.`
                         )
                     );
                     limit = 0;

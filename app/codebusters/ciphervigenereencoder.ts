@@ -346,7 +346,9 @@ export class CipherVigenereEncoder extends CipherEncoder {
             const cribpos = this.placeCrib();
             operationtext2 = this.getCribPlacement(cribpos);
         }
-        fixedName = 'Vigenère';
+        if (fixedName == 'Vigenere') {
+            fixedName = 'Vigenère';
+        }
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
     }
     /**

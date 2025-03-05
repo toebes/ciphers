@@ -767,7 +767,11 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // If the plain text is not mentioned in the question, then they have
         // a problem to fix.
         if (questionText.match(rep) === null) {
-            return false;
+            const rep2 = new RegExp('\\b' + pt.split('').join('\\s*') + '\\b')
+            // What about looking for the crib without any spaces
+            if (questionText.match(rep2) === null) {
+                return false;
+            }
         }
         // If the crib is at the beginning, look for something in the
         // question that says something like "Starts with XX" or

@@ -155,6 +155,7 @@ export class CipherTableEncoder extends CipherEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
+        this.showLengthStatistics();
         if (this.state.cipherType === ICipherType.Caesar) {
             this.guidanceURL = 'TestGuidance.html#Caesar';
             $('.offset').show();

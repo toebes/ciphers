@@ -1124,11 +1124,16 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         }
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+        hinttext = this.genSampleHint();
+
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+    }
 
     public genSampleHint(): string {
 
         let hint = '';
-        const crib = this.minimizeString(this.state.crib);
+        const crib = this.state.crib;
         const cribtext = this.genMonoText(crib);
 
         hint = 'the quote has ' + cribtext + ' somewhere in it.';

@@ -2443,7 +2443,6 @@ export const fiveletterwords: string[] = [
     'WOODS',
     'WOODY',
     'WORDS',
-    'WORID',
     'WORKS',
     'WORLD',
     'WORMS',

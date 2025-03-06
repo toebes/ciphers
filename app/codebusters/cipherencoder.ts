@@ -156,6 +156,9 @@ export class CipherEncoder extends CipherHandler {
         }
         return changed;
     }
+    public showLengthStatistics() {
+        $('#statistics').text(`Plain text length=${this.minimizeString(this.state.cipherString).length}`);
+    }
     /**
      * Make sure that they are asking them to solve the cipher or fill in the keyword.
      * If they are using a K1/K2/K3/K4 alphabet, they should also mention it

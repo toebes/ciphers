@@ -404,6 +404,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
+        this.showLengthStatistics();
         $('.opfield').hide();
         $('.' + this.state.operation).show();
         this.setRichText('texta', this.state.texta);

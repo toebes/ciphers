@@ -2,7 +2,7 @@ import { cloneObject, StringMap, BoolMap } from '../common/ciphercommon';
 import { ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import {IEncoderState, suggestedData} from './cipherencoder';
+import { IEncoderState, suggestedData } from './cipherencoder';
 import { tomorse, frommorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, morseindex, ptindex } from './ciphermorseencoder';
@@ -135,6 +135,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         this.state.encoded = '';
     }
     public updateOutput(): void {
+        this.showLengthStatistics();
         this.guidanceURL = 'TestGuidance.html#' + this.cipherName + this.state.operation;
         $('#dotchar').val(this.state.dotchars);
         $('#dashchar').val(this.state.dashchars);
@@ -184,7 +185,7 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         }
         const hintAdjustment = (-9 * xMappingsGiven) + 27;
         if (hintAdjustment !== 0) {
-            hintXCountGivenText = `  There ${xMappingsGiven !== 1 ? `are` : `is`} ${xMappingsGiven} ${xMappingsGiven !== 1 ? `hints`: `hint`} for the 
+            hintXCountGivenText = `  There ${xMappingsGiven !== 1 ? `are` : `is`} ${xMappingsGiven} ${xMappingsGiven !== 1 ? `hints` : `hint`} for the 
                 mapping of 'X', so adjust score by ${hintAdjustment}. `;
             suggested += hintAdjustment;
         }

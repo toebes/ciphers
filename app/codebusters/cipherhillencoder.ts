@@ -141,6 +141,7 @@ export class CipherHillEncoder extends CipherEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
+        this.showLengthStatistics();
         if (this.state.operation === 'compute') {
             $('.encbox').hide();
             this.guidanceURL = 'TestGuidance.html#Hill_Matrix';

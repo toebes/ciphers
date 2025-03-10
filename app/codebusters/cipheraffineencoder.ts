@@ -169,6 +169,7 @@ export class CipherAffineEncoder extends CipherEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
+        this.showLengthStatistics();
         super.updateOutput();
         $('#a').val(this.state.a);
         $('#b').val(this.state.b);

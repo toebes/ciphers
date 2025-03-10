@@ -270,6 +270,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         this.state.encoded = '';
     }
     public updateOutput(): void {
+        this.showLengthStatistics();
         super.updateOutput();
     }
     /**
@@ -1839,8 +1840,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
      * @private
      */
     private deducedLettersInSlots(result: JQuery<HTMLElement>,
-    knownmap: StringMap,
-    working: string[][]): boolean {
+        knownmap: StringMap,
+        working: string[][]): boolean {
         let msg = $('<p/>');
         msg.append(`Looking through the mapping table above, let's see if we can reason out some mappings...`);
         let determinedMapping = false;
@@ -2025,8 +2026,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 }
                 morsePossibilities += '.  ';
                 msg.append(`Looking at the cipher text above, notice the letter <code>${singleLetter}</code> is not mapped.  
-                    Based on the current mapping table, it has ${possibilitiesCount === 1 ? `1 possible value` : 
-                    `${possibilitiesCount} possible values`} : ${morsePossibilities}.`);
+                    Based on the current mapping table, it has ${possibilitiesCount === 1 ? `1 possible value` :
+                        `${possibilitiesCount} possible values`} : ${morsePossibilities}.`);
                 // These are the guess values for the letter that will be used by takeAguess().
                 this.trialLetters[singleLetter] = possibilities;
                 // The more possibilities for a guess, the more points it should be worth, as it is more work.
@@ -2451,7 +2452,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         // TODO start the guessing from the back or the front of the table?
         for (let k = this.encodecharset.length; k >= 0; k--) {
             const letter = this.encodecharset[k];
-//        for (const letter in this.trialLetters) {
+            //        for (const letter in this.trialLetters) {
 
             const guesses = this.trialLetters[letter];
             if (guesses === undefined)
@@ -2861,7 +2862,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                         }).text(answer)
                     );
                     if (mappedLetters[0].length > 0) {
-                        result.append($('<p/>').text(`There ${mappedLetters[0].length > 1 ? `are ${mappedLetters[0].length} letters that are ` : 
+                        result.append($('<p/>').text(`There ${mappedLetters[0].length > 1 ? `are ${mappedLetters[0].length} letters that are ` :
                             `is 1 letter that is `} not mapped because they are not used in the ciphertext, so a definitive mapping can not be determined.`)
                         );
                     }

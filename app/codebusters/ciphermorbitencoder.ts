@@ -1,7 +1,7 @@
 import { BoolMap, cloneObject, NumberMap, StringMap } from '../common/ciphercommon';
 import { ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
-import {IEncoderState, suggestedData} from './cipherencoder';
+import { IEncoderState, suggestedData } from './cipherencoder';
 import { frommorse, tomorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, ptindex } from './ciphermorseencoder';
@@ -88,6 +88,7 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
+        this.showLengthStatistics();
         this.guidanceURL = 'TestGuidance.html#' + this.cipherName + this.state.operation;
         for (const i in morbitmap) {
             $("input[data-char='" + i + "']").val(this.state.replacement[morbitmap[i]]);

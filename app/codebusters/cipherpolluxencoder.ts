@@ -135,7 +135,6 @@ export class CipherPolluxEncoder extends CipherMorseEncoder {
         this.state.encoded = '';
     }
     public updateOutput(): void {
-        this.showLengthStatistics();
         this.guidanceURL = 'TestGuidance.html#' + this.cipherName + this.state.operation;
         $('#dotchar').val(this.state.dotchars);
         $('#dashchar').val(this.state.dashchars);

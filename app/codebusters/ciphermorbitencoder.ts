@@ -88,7 +88,6 @@ export class CipherMorbitEncoder extends CipherMorseEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
-        this.showLengthStatistics();
         this.guidanceURL = 'TestGuidance.html#' + this.cipherName + this.state.operation;
         for (const i in morbitmap) {
             $("input[data-char='" + i + "']").val(this.state.replacement[morbitmap[i]]);

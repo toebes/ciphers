@@ -270,7 +270,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         this.state.encoded = '';
     }
     public updateOutput(): void {
-        this.showLengthStatistics();
         super.updateOutput();
     }
     /**

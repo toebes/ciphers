@@ -168,6 +168,20 @@ export class CipherAristocratEncoder extends CipherEncoder {
         this.setErrorMsg(msg, 'wrand');
     }
     /**
+     * Check if they are missing a keyword for a selected alphabet
+     */
+    public checkKeywords() {
+        let msg = ''
+        if (this.state.encodeType !== 'random') {
+            if (this.state.keyword === '') {
+                msg = 'You need to select a Keyword when using a ' + this.state.encodeType.toUpperCase() + ' Alphabet'
+            } else if (this.state.encodeType === 'k4' && this.state.keyword2 === '') {
+                msg = 'You need to select a Keyword 2 when using a ' + this.state.encodeType.toUpperCase() + ' Alphabet'
+            }
+        }
+        this.setErrorMsg(msg, 'wkey');
+    }
+    /**
      * Update the output based on current state settings.  This propagates
      * All values to the UI
      */
@@ -180,6 +194,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
         $("#hint").val(this.state.hint);
 
         this.checkRandomDifficulty();
+        this.checkKeywords();
         if (this.state.operation === 'keyword') {
             $('#encrand').attr('disabled', 'disabled').hide();
         } else {

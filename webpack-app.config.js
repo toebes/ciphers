@@ -16,7 +16,7 @@ const dist = path.resolve(__dirname, 'dist-aca')
 process.traceDeprecation = true;
 
 config = {
-    stats: 'errors-warnings',
+    // stats: 'errors-warnings',
     mode: "production",
     context: __dirname,
     entry: [path.join(__dirname, 'app', 'app', 'ciphers.ts')],

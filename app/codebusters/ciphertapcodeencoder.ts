@@ -82,6 +82,7 @@ export class CipherTapCodeEncoder extends CipherEncoder {
     public load(): void {
         this.clearErrors();
         this.genAlphabet();
+        this.showLengthStatistics();
         $('#answer')
             .empty()
             .append(this.build())

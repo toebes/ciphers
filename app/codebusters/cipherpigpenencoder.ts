@@ -45,6 +45,7 @@ export class CipherPigPenEncoder extends CipherEncoder {
      */
     public load(): void {
         this.clearErrors();
+        this.showLengthStatistics();
         this.genAlphabet();
         $('#answer')
             .empty()

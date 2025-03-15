@@ -43,6 +43,7 @@ export class CipherDancingMenEncoder extends CipherEncoder {
      */
     public load(): void {
         this.clearErrors();
+        this.showLengthStatistics();
         $('#answer')
             .empty()
             .append(this.build())

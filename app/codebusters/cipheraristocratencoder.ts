@@ -477,6 +477,12 @@ export class CipherAristocratEncoder extends CipherEncoder {
         }
         return changed;
     }
+    public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
+        if (this.state.usehint) {
+            hinttext = ` You are told that the cipher contains ${this.genMonoText(this.state.hint)}.`;
+        }
+        return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
+    }
     /**
      * Make sure that they are asking them to solve the cipher or fill in the keyword.
      * If they are using a K1/K2/K3/K4 alphabet, they should also mention it

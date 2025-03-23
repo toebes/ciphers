@@ -1,6 +1,6 @@
 import 'foundation-sites';
-import { cloneObject } from '../common/ciphercommon';
-import { IState, ITest, ITestType, menuMode, toolMode } from '../common/cipherhandler';
+import { BoolMap, cloneObject, StringMap } from '../common/ciphercommon';
+import { ITest, ITestType, menuMode, toolMode } from '../common/cipherhandler';
 import { getCipherTitle, ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
@@ -67,6 +67,8 @@ export class CipherTestGenerator extends CipherTest {
         let SpanishCount = 0;
         let SpecialBonusCount = 0;
         let errorcount = 0;
+        let hasOddScores = false;
+        let specialBonusTypes: BoolMap = {}
         if (testcount === 0) {
             result.append($('<h3>').text('No Tests Created Yet'));
             return result;
@@ -140,18 +142,33 @@ export class CipherTestGenerator extends CipherTest {
                     .append($('<a/>', { id: 'showplain' }).text('(show)'))
             );
         }
-        const buttons: buttonInfo[] = [
-            { title: 'Edit', btnClass: 'quesedit' },
-            { title: 'Remove', btnClass: 'quesremove alert' },
-        ];
-        // If the test has a timed question, then put it.  Note that
-        // The Division A doesn't have a timed question, but if someone
-        // snuck one in, we have to show it.
-        if (test.timed !== -1 || test.testtype !== ITestType.aregional) {
+        const errors: string[] = [];
+
+        for (let entry = -1; entry < test.count; entry++) {
+            // If the test has a timed question, then put it.  Note that
+            // The Division A doesn't have a timed question, but if someone
+            // snuck one in, we have to show it.
+            let slot = entry + 1;
+            let qnum = -1;
+            const buttons: buttonInfo[] = [
+                { title: 'Edit', btnClass: 'quesedit' },
+                { title: 'Remove', btnClass: 'quesremove alert' },
+            ];
+            if (entry === -1) {
+                slot = -1;
+                qnum = test.timed;
+                if (qnum === -1 && test.testtype === ITestType.aregional) {
+                    continue;
+                }
+            } else {
+                qnum = test.questions[entry]
+                buttons.unshift({ title: '&uarr;', btnClass: 'quesup', disabled: entry === 0 });
+                buttons.unshift({ title: '&darr;', btnClass: 'quesdown', disabled: entry === test.count - 1 });
+            }
             let qstate = this.addQuestionRow(
                 table,
-                -1,
-                test.timed,
+                slot,
+                qnum,
                 buttons,
                 this.showPlain,
                 test.testtype,
@@ -159,36 +176,18 @@ export class CipherTestGenerator extends CipherTest {
             );
             if (qstate !== undefined) {
                 if (qstate.curlang === 'es') { SpanishCount++; }
-                if (qstate.specialbonus) { SpecialBonusCount++; }
+                if (qstate.specialbonus) {
+                    if (specialBonusTypes[qstate.cipherType]) {
+                        errors.push(`More than one special bonus question is the same ${getCipherTitle(qstate.cipherType)} type cipher.`)
+                    }
+                    specialBonusTypes[qstate.cipherType] = true;
+                    SpecialBonusCount++;
+                }
                 if (qstate.errorcount) { errorcount += qstate.errorcount; }
+                if (qstate.points % 5) { hasOddScores = true }
             }
         }
-        for (let entry = 0; entry < test.count; entry++) {
-            const buttons2: buttonInfo[] = [
-                { title: '&uarr;', btnClass: 'quesup', disabled: entry === 0 },
-                {
-                    title: '&darr;',
-                    btnClass: 'quesdown',
-                    disabled: entry === test.count - 1,
-                },
-                { title: 'Edit', btnClass: 'quesedit' },
-                { title: 'Remove', btnClass: 'quesremove alert' },
-            ];
-            let qstate = this.addQuestionRow(
-                table,
-                entry + 1,
-                test.questions[entry],
-                buttons2,
-                this.showPlain,
-                test.testtype,
-                undefined
-            );
-            if (qstate !== undefined) {
-                if (qstate.curlang === 'es') { SpanishCount++; }
-                if (qstate.specialbonus) { SpecialBonusCount++; }
-                if (qstate.errorcount) { errorcount += qstate.errorcount; }
-            }
-        }
+
         if (test.count === 0) {
             const callout = $('<div/>', {
                 class: 'callout warning',
@@ -205,10 +204,28 @@ export class CipherTestGenerator extends CipherTest {
             settings: { colspan: 6 },
             content: dropdown,
         });
-        const errors: string[] = [];
         $('.testerrors').empty();
 
+        const testTypeRangeMap: Record<ITestType, { min: number; max: number }> = {
+            [ITestType.None]: { min: 0, max: 999 },
+            [ITestType.bstate]: { min: 18, max: 28 },
+            [ITestType.cregional]: { min: 18, max: 26 },
+            [ITestType.cstate]: { min: 24, max: 33 },
+            [ITestType.bregional]: { min: 18, max: 26 },
+            [ITestType.aregional]: { min: 16, max: 22 },
+            [ITestType.astate]: { min: 18, max: 26 },
+        };
 
+        // Check to see if we have a reasonable number of questions
+        const qRange = testTypeRangeMap[test.testtype]
+        if (test.count < qRange.min) {
+            errors.push(`This test only has ${test.count} questions.  A minimum of ${qRange.min} is recommended unless this is a practice test.`)
+        } else if (test.count > qRange.max) {
+            errors.push(`This test only has ${test.count} questions which is higher than the recommended maximum of ${qRange.min}.`)
+        }
+        if (test.count > 0 && !hasOddScores) {
+            errors.push(`All of the question scores end in 0 or 5 which makes it more likely to have a tie.`)
+        }
         /**
          * See if we need to show/hide the Spanish Hints
          */

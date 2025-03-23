@@ -762,6 +762,7 @@ export class CipherRailFenceEncoder extends CipherEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
+        this.showLengthStatistics();
         super.updateOutput();
         $('#rails').val(this.state.rails);
         $("#railOffset").val(this.state.railOffset);

@@ -206,6 +206,7 @@ export class CipherTableEncoder extends CipherEncoder {
     public load(): void {
         this.clearErrors();
         this.genAlphabet();
+        this.validateQuestion()
         const res = this.build();
         $('#answer')
             .empty()

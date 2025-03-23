@@ -458,6 +458,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
+        this.showLengthStatistics();
         if (this.state.cipherType === ICipherType.Porta) {
             if (this.state.operation !== 'crypt') {
                 this.guidanceURL = 'TestGuidance.html#Porta';

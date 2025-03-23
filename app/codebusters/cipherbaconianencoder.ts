@@ -404,6 +404,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
+        this.showLengthStatistics();
         $('.opfield').hide();
         $('.' + this.state.operation).show();
         this.setRichText('texta', this.state.texta);
@@ -690,6 +691,20 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
         this.setErrorMsg(msg, 'tsz')
+
+        msg = ''
+        if (this.state.operation === 'words') {
+            if (!this.ValidateAllWords()) {
+                msg = "Not all of the words have been selected for the mapping"
+            }
+        } else {
+            const texta = this.removeHtml(this.state.texta)
+            const textb = this.removeHtml(this.state.textb)
+            if (texta === "A" || texta === "" || textb === "B" || textb === "") {
+                msg = "Please change the A and B values to something meaningful."
+            }
+        }
+        this.setErrorMsg(msg, 'ab');
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
 
@@ -857,7 +872,26 @@ export class CipherBaconianEncoder extends CipherEncoder {
             sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');
         }
         this.setErrorMsg(msg, 'vq', sampleLink);
+    }
+    /**
+     * Check to see if all the words in the current word cipher have a valid mapping
+     * @returns True/false all words have been mapped
+     */
+    public ValidateAllWords(): boolean {
+        if (this.state.words.length < this.baconianWords.length) {
+            return false;
+        }
+        for (let slot in this.state.words) {
 
+            const baconian = this.baconianWords[slot];
+            const [word, punctuation] = this.getSlotWord(Number(slot));
+            if (word === undefined ||
+                this.wordlookup[baconian] === undefined ||
+                !this.wordlookup[baconian].includes(word)) {
+                return false
+            }
+        }
+        return true;
     }
     /**
       * Generate the recommended score and score ranges for a cipher

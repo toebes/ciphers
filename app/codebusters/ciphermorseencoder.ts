@@ -171,6 +171,7 @@ export class CipherMorseEncoder extends CipherEncoder {
      * All values to the UI
      */
     public updateOutput(): void {
+        this.showLengthStatistics();
         if (this.state.operation === 'decode') {
             $('.hint').show();
             $('.crib').hide();

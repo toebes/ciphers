@@ -21,7 +21,7 @@ your 995324
 have 975195
 do 954010
 no 935435
-don 928842
+don't 928842
 are 895002
 be 890777
 not 864776
@@ -97,7 +97,7 @@ gonna 223713
 down 222253
 could 222219
 hey 221629
-didn 214839
+didn't 214839
 something 211583
 never 211322
 way 210863
@@ -184,7 +184,7 @@ ever 97179
 place 93565
 big 92052
 nice 92013
-doesn 90913
+doesn't 90913
 uh 89868
 isn 89353
 feel 88822
@@ -200,7 +200,7 @@ may 84594
 guy 84353
 hear 84101
 understand 83470
-shit 83390
+shit 1
 coming 82772
 world 82422
 enough 81587
@@ -222,7 +222,7 @@ lot 77465
 kind 76811
 wanted 76810
 through 76031
-fuck 75908
+fuck 1
 guys 75871
 came 75845
 ask 75780
@@ -255,7 +255,7 @@ baby 66272
 next 66157
 talking 65901
 move 65532
-fucking 64861
+fucking 1
 huh 64671
 live 64221
 looking 63786
@@ -1230,7 +1230,7 @@ chicken 8616
 cost 8610
 nature 8603
 shh 8597
-fucked 8596
+fucked 1
 hero 8595
 shooting 8594
 breakfast 8588
@@ -1376,7 +1376,7 @@ chinese 7519
 skin 7506
 breathe 7504
 large 7502
-motherfucker 7501
+motherfucker 1
 gentleman 7477
 leaves 7471
 driver 7465
@@ -2661,7 +2661,7 @@ title 3195
 parties 3190
 policy 3189
 ages 3188
-cock 3186
+cock 1
 conference 3186
 accepted 3184
 entirely 3183
@@ -2741,7 +2741,7 @@ forty 3064
 narrator 3060
 gentle 3059
 convince 3056
-fucker 3048
+fucker 1
 favour 3047
 sobbing 3046
 background 3046
@@ -3121,7 +3121,7 @@ reported 2572
 units 2571
 chill 2569
 harold 2567
-tits 2565
+tits 1
 admiral 2563
 mars 2563
 coughing 2560
@@ -3243,7 +3243,7 @@ wicked 2451
 flow 2451
 invented 2449
 visiting 2449
-nigger 2449
+nigger 1
 halt 2448
 catherine 2445
 aid 2445
@@ -3436,7 +3436,7 @@ kit 2270
 deputy 2269
 granny 2268
 underneath 2266
-cunt 2266
+cunt 1
 hers 2263
 shark 2263
 construction 2262
@@ -3866,7 +3866,7 @@ separated 1937
 brandy 1937
 buzzing 1936
 unfortunate 1935
-penis 1935
+penis 1
 ross 1935
 profession 1935
 messing 1934
@@ -4167,7 +4167,7 @@ understands 1746
 tanks 1746
 entry 1746
 boarding 1746
-motherfuckers 1745
+motherfuckers 1
 puppy 1744
 airplane 1744
 watson 1744
@@ -4205,7 +4205,7 @@ temporary 1724
 practical 1724
 vic 1723
 cent 1722
-asses 1722
+asses 1
 cart 1722
 rehearsal 1720
 protest 1720
@@ -5549,7 +5549,7 @@ uniforms 1195
 touches 1193
 balcony 1193
 dried 1191
-lesbian 1191
+lesbian 1
 wells 1191
 bella 1190
 bandit 1190
@@ -5643,7 +5643,7 @@ satisfaction 1161
 determine 1160
 snoring 1160
 mule 1160
-cocktail 1159
+cocktail 10
 signals 1159
 fold 1159
 occupation 1159
@@ -6215,7 +6215,7 @@ sniffs 1010
 rack 1010
 gown 1010
 sacrificed 1009
-fuckers 1009
+fuckers 1
 issued 1009
 contain 1009
 trading 1009
@@ -6237,7 +6237,7 @@ plead 1005
 sting 1005
 inevitable 1005
 profits 1005
-cocks 1005
+cocks 1
 lifted 1005
 kathy 1005
 portuguese 1005
@@ -6501,8 +6501,8 @@ freaked 945
 essence 945
 handful 945
 millionaire 945
-pissing 944
-retarded 944
+pissing 1
+retarded 1
 fierce 944
 explaining 944
 rises 944
@@ -6782,7 +6782,7 @@ terminal 884
 calvin 884
 refer 884
 herb 884
-fucks 884
+fucks 1
 ambitious 884
 shells 884
 pinky 884
@@ -7163,7 +7163,7 @@ lease 810
 relieve 810
 squeal 810
 pancakes 810
-niggers 810
+niggers 1
 casting 809
 lobster 809
 boiled 809
@@ -7206,7 +7206,7 @@ shattered 804
 liable 804
 venture 803
 additional 803
-cocksucker 803
+cocksucker 1
 daphne 803
 rail 802
 thai 802
@@ -7495,7 +7495,7 @@ yield 752
 niggas 752
 entertaining 751
 shipping 751
-shitting 751
+shitting 1
 naomi 751
 thoughtful 751
 runway 751
@@ -7773,8 +7773,8 @@ sinner 710
 judgement 710
 contribution 710
 ro 710
-booty 709
-retard 709
+booty 1
+retard 1
 videos 709
 reflect 709
 skeleton 709
@@ -8099,7 +8099,7 @@ das 664
 wool 664
 parallel 664
 weddings 664
-lynch 664
+lynch 1
 woof 664
 darcy 664
 rosemary 664
@@ -9364,7 +9364,7 @@ barrels 528
 hooks 528
 trey 528
 menace 527
-shits 527
+shits 1
 fasten 527
 manuscript 527
 experimental 527
@@ -9602,7 +9602,7 @@ organisation 506
 collision 506
 witchcraft 506
 wimp 506
-intercourse 506
+intercourse 1
 felony 505
 allan 505
 siege 505
@@ -9755,7 +9755,7 @@ caress 492
 convey 492
 powered 492
 serpent 492
-cocky 492
+cocky 1
 nobel 492
 whoop 492
 redhead 491
@@ -9912,7 +9912,7 @@ wen 479
 fiery 479
 undone 479
 norm 479
-cocktails 479
+cocktails 10
 dalton 479
 analyze 479
 katy 479
@@ -10995,7 +10995,7 @@ safest 406
 hye 406
 silently 405
 solving 405
-douche 405
+douche 1
 jaime 405
 gem 405
 rubles 405
@@ -11629,7 +11629,7 @@ solutions 370
 feeble 369
 racial 369
 distribute 369
-faggots 369
+faggots 1
 implying 369
 intends 369
 siblings 369
@@ -11721,7 +11721,7 @@ frustrating 365
 laddie 365
 forwards 365
 bertie 365
-shite 365
+shite 1
 venom 365
 vern 365
 hussein 365
@@ -12455,7 +12455,7 @@ snails 331
 confrontation 331
 ac 331
 bridger 331
-bullshitting 331
+bullshitting 1
 hoop 330
 ferguson 330
 contradiction 330
@@ -13159,7 +13159,7 @@ tedious 301
 trio 301
 spence 301
 reunited 301
-lesbians 301
+lesbians 1
 taliban 301
 cosy 300
 albanian 300
@@ -13256,7 +13256,7 @@ pickin 297
 chilling 297
 gurney 297
 terri 297
-cunts 297
+cunts 1
 episodes 296
 closure 296
 workout 296
@@ -13314,7 +13314,7 @@ controller 295
 congo 295
 macarthur 295
 ozone 295
-horseshit 295
+horseshit 1
 tino 295
 rubin 295
 seaside 294
@@ -13705,7 +13705,7 @@ liberties 281
 angelina 281
 booster 281
 implant 281
-shitless 281
+shitless 1
 unicorn 280
 slugs 280
 advertisement 280
@@ -15904,7 +15904,7 @@ thrusters 217
 honorary 216
 fallout 216
 clank 216
-chickenshit 216
+chickenshit 1
 bucharest 216
 fussing 216
 uterus 216
@@ -16756,7 +16756,7 @@ devoured 197
 schubert 197
 consolidated 197
 laundering 197
-cocked 197
+cocked 10
 lancaster 197
 directive 197
 yapping 197
@@ -17478,7 +17478,7 @@ ion 182
 laces 182
 roadside 182
 vial 182
-cocksuckers 182
+cocksuckers 1
 quickie 182
 hasten 182
 renovation 182
@@ -18910,16 +18910,16 @@ wynn 157
 integration 157
 webber 157
 mayan 157
-retards 157
-rectum 157
+retards 1
+rectum 1
 sportscaster 157
 surya 157
 rampage 156
 tiara 156
 freeing 156
-pedophile 156
+pedophile 1
 rubs 156
-smartass 156
+smartass 1
 yeller 156
 boycott 156
 unprotected 156
@@ -19147,7 +19147,7 @@ rainbows 153
 strengths 153
 conspired 153
 billboards 153
-shootings 153
+shootings 1
 licenses 153
 stooge 153
 ulcers 153
@@ -19818,7 +19818,7 @@ narc 144
 sexier 144
 vinyl 144
 acne 144
-penises 144
+penises 1
 superheroes 144
 snowboarding 144
 farsi 144
@@ -20346,7 +20346,7 @@ nobis 137
 prod 137
 kc 137
 jefe 137
-shitheads 137
+shitheads 1
 diminish 137
 interviewer 137
 projecting 137
@@ -20432,7 +20432,7 @@ pyle 136
 swordsmanship 136
 kike 136
 astrologer 136
-fuckhead 136
+fuckhead 1
 clovis 136
 aline 136
 ig 136
@@ -22346,7 +22346,7 @@ confronting 114
 bod 114
 collie 114
 enquiries 114
-shitter 114
+shitter 1
 glider 114
 inconsistent 114
 barrio 114
@@ -23089,7 +23089,7 @@ exchanges 106
 braying 106
 discriminate 106
 appetizers 106
-lynching 106
+lynching 1
 manhole 106
 quarrelling 106
 eavesdrop 106
@@ -25443,7 +25443,7 @@ wheres 87
 cheekbones 87
 cloakroom 87
 northbound 87
-lynched 87
+lynched 1
 dependence 87
 ramifications 87
 quaker 87
@@ -25709,7 +25709,7 @@ oregano 86
 daedalus 86
 stamper 86
 lida 86
-fuckup 86
+fuckup 1
 laputa 86
 hoes 86
 shoop 86
@@ -30938,7 +30938,7 @@ liston 57
 wittgenstein 57
 sedat 57
 hybrids 57
-dogshit 57
+dogshit 1
 prue 57
 takedown 57
 yuppies 57
@@ -32621,9 +32621,8 @@ jerkin 50
 braga 50
 lod 50
 cryogenic 50
-faggy 50
+faggy 1
 bartending 50
-pp 50
 ketamine 50
 hellman 50
 vanda 50
@@ -36830,7 +36829,7 @@ escalates 37
 sprawl 37
 tollbooth 37
 handprint 37
-fuckwit 37
+fuckwit 1
 multinationals 37
 szell 37
 quaaludes 37
@@ -38853,7 +38852,7 @@ lasagne 32
 checkups 32
 embryonic 32
 amrita 32
-faggoty 32
+faggoty 1
 countered 32
 putain 32
 nouvelle 32
@@ -38916,8 +38915,6 @@ sadat 32
 zealot 32
 launderette 32
 consonant 32
-fagot 32
-fsb 32
 dyslexia 32
 fictions 32
 antes 32
@@ -40254,7 +40251,7 @@ shovelling 29
 flaked 29
 hoppers 29
 priss 29
-retardation 29
+retardation 1
 asserts 29
 plotters 29
 immobility 29
@@ -41963,7 +41960,7 @@ earphone 26
 neolithic 26
 woohoo 26
 knackers 26
-shitheel 26
+shitheel 1
 morbidity 26
 sprints 26
 squeegee 26
@@ -42542,7 +42539,7 @@ pasties 25
 misanthrope 25
 tzarina 25
 storied 25
-shitted 25
+shitted 1
 sjaak 25
 yob 25
 rhesus 25
@@ -42580,7 +42577,7 @@ pluses 25
 antigen 25
 caseworker 25
 greaves 25
-fuckups 25
+fuckups 1
 plexiglas 25
 sixpack 25
 contaminants 25
@@ -43145,8 +43142,7 @@ palisade 24
 fungal 24
 mollusk 24
 unsolvable 24
-lesbianism 24
-wb 24
+lesbianism 1
 daemons 24
 proms 24
 subculture 24
@@ -44498,7 +44494,7 @@ fantasise 22
 rehired 22
 pederast 22
 dinks 22
-shittiest 22
+shittiest 1
 crypts 22
 deflectors 22
 mohel 22
@@ -44945,7 +44941,7 @@ rashness 21
 greedier 21
 envisaged 21
 braceros 21
-bullshitted 21
+bullshitted 1
 jettisoned 21
 warhorse 21
 reeducation 21
@@ -46867,7 +46863,6 @@ tasmanian 19
 ronco 19
 bioweapons 19
 defaults 19
-bullshiting 19
 disaffected 19
 falkland 19
 oxidation 19
@@ -47689,7 +47684,7 @@ crawlspace 18
 snaking 18
 exemplifies 18
 rankings 18
-fuckheads 18
+fuckheads 1
 humpy 18
 olivine 18
 bumpity 18
@@ -48520,8 +48515,8 @@ silverfish 17
 environs 17
 feedlot 17
 yulan 17
-chickenshits 17
-preggers 17
+chickenshits 1
+preggers 1
 sterne 17
 genocidal 17
 offshoot 17
@@ -50526,7 +50521,7 @@ unbe 15
 pened 15
 occupier 15
 youngberry 15
-shittier 15
+shittier 1
 radiotron 15
 rems 15
 tricolour 15
@@ -51585,7 +51580,7 @@ castrates 14
 stonework 14
 crossways 14
 pipa 14
-bullshits 14
+bullshits 1
 patchy 14
 anat 14
 wanks 14
@@ -52261,7 +52256,7 @@ reappearing 13
 worshipful 13
 garrote 13
 oses 13
-fagged 13
+fagged 1
 mouses 13
 chits 13
 firings 13
@@ -53422,7 +53417,7 @@ purulent 12
 deme 12
 appropriating 12
 garrisoned 12
-lynchings 12
+lynchings 1
 hesitancy 12
 wholehearted 12
 nixie 12
@@ -54125,7 +54120,7 @@ decimator 12
 bourdon 12
 wolfed 12
 hipper 12
-shitters 12
+shitters 1
 chuffing 12
 gutta 12
 pinecones 12
@@ -54304,7 +54299,7 @@ macer 12
 relativism 12
 prion 12
 rwandans 12
-faggotry 12
+faggotry 1
 annet 12
 conclavist 12
 kaif 12
@@ -58821,7 +58816,7 @@ nanoseconds 9
 scrod 9
 quarantines 9
 whizzes 9
-shitlist 9
+shitlist 1
 duffers 9
 waterside 9
 dinges 9
@@ -59834,7 +59829,7 @@ intestate 8
 dignities 8
 unpredictably 8
 tipi 8
-shita 8
+shita 1
 editorialize 8
 gaudeamus 8
 seminaries 8
@@ -60456,7 +60451,6 @@ volte 8
 sledgehammers 8
 abbots 8
 maces 8
-fagots 8
 footages 8
 hoopoe 8
 horsetail 8
@@ -63070,7 +63064,7 @@ gand 7
 corruptor 7
 bruces 7
 shambolic 7
-douches 7
+douches 1
 lig 7
 takedowns 7
 houseplant 7
@@ -63311,7 +63305,7 @@ winemakers 7
 bodyweight 7
 opossums 7
 cabbing 7
-shites 7
+shites 1
 sequencers 7
 liquidators 7
 progesterone 7
@@ -66558,7 +66552,7 @@ malthe 6
 essayist 6
 bournes 6
 reburied 6
-retardations 6
+retardations 1
 inchworms 6
 hemmer 6
 wapiti 6
@@ -68720,7 +68714,7 @@ hipparchus 5
 ekgs 5
 ascendance 5
 tramontana 5
-retarding 5
+retarding 1
 undocked 5
 smoulders 5
 eulogized 5
@@ -69877,7 +69871,6 @@ androcles 5
 reflectively 5
 defames 5
 jokesters 5
-fagott 5
 alphanumeric 5
 bhava 5
 mst 5
@@ -70202,7 +70195,7 @@ tootsy 4
 doxepin 4
 trustingly 4
 rives 4
-lynchers 4
+lynchers 1
 kentuckian 4
 hool 4
 nailbrush 4
@@ -72973,7 +72966,7 @@ grivois 4
 guernseys 4
 calchas 4
 epistolary 4
-lynches 4
+lynches 1
 misjudgments 4
 nordhausen 4
 scavenged 4
@@ -74340,7 +74333,6 @@ tallboy 4
 kinesiology 4
 chuggers 4
 harrys 4
-shiting 4
 babai 4
 mashhad 4
 bahraini 4
@@ -79372,7 +79364,6 @@ papermaking 3
 metalworking 3
 matchlocks 3
 juked 3
-bullshited 3
 slicking 3
 impassivity 3
 isograph 3
@@ -81894,7 +81885,7 @@ tuppeny 2
 celerity 2
 grecians 2
 scrublands 2
-intercourses 2
+intercourses 1
 tonier 2
 finagler 2
 overemphatic 2
@@ -83513,7 +83504,7 @@ governorships 2
 optometrists 2
 haltes 2
 cautery 2
-douched 2
+douched 1
 raif 2
 uglified 2
 searest 2
@@ -83676,7 +83667,7 @@ misreported 2
 zoophile 2
 flon 2
 muga 2
-diddlyshit 2
+diddlyshit 1
 infirmaries 2
 stuned 2
 declivity 2
@@ -85075,7 +85066,7 @@ coala 2
 tangler 2
 perfunctorily 2
 mountainsides 2
-fagging 2
+fagging 1
 tapdance 2
 awakener 2
 pocking 2
@@ -90179,32 +90170,873 @@ chinkara 2
 eths 2
 heliographic 2
 speechwriters 2
-gulyas 2
 resubmission 2
 symptomatically 2
 bellic 2
-anilingus 2
+anilingus 1
 transitivity 2
-vaporiser 2
 geomantic 2
 judicature 2
-meseems 2
-bassan 2
 anaphylactoid 2
-hdl 2
-sangoma 2
-doray 2
-scarrow 2
 plasterboard 2
-stm 2
 terman 2
-dorobo 2
-pulvinus 2
-balut 2
 honkeys 2
 marchlands 2
-baryons 2
-leptons 2
+i'm 100000
+it's 100000
+can't 100000
+you're 100000
+that's 100000
+man's 50000
+isn't 50000
+one's 50000
+i'd 50000
+won't 50000
+there's 50000
+you've 50000
+you'll 50000
+wasn't 50000
+god's 50000
+he's 50000
+wouldn't 50000
+what's 50000
+they're 50000
+we're 50000
+couldn't 50000
+aren't 50000
+ain't 10000
+haven't 50000
+people's 10000
+we've 50000
+shouldn't 50000
+men's 10000
+she's 10000
+life's 10000 
+you'd 10000
+woman's 10000
+world's 10000
+another's 10000
+women's 10000
+who's 10000
+else's 10000
+they've 10000
+hasn't 50000
+person's 10000
+we'll 10000
+mother's 10000
+nature's 10000
+weren't 10000
+let's 10000
+they'll 10000
+he'll 10000
+father's 10000
+someone's 10000
+today's 10000
+other's 10000
+we'd 10000
+they'd 10000
+nobody's 10000
+love's 10000
+hadn't 10000
+soul's
+he'd 10000
+everyone's 10000
+child's 10000
+america's
+it'll 10000
+devil's
+valentine's
+dad's
+country's
+nation's
+o'clock
+heart's
+mom's
+everybody's 10000
+day's 10000
+children's 10000
+she'll 10000
+friend's 10000
+wife's
+mind's
+heaven's
+anyone's 10000
+writer's
+earth's
+tomorrow's 10000
+society's
+she'd 10000
+fool's
+family's
+poet's
+king's
+enemy's
+death's
+caesar's
+brother's
+year's
+mustn't
+lover's
+would've 10000
+son's
+somebody's 10000
+husband's
+sun's
+government's 10000
+girl's
+angel's
+virtue's
+time's
+teacher's
+beauty's
+who'd
+that'll
+summer's
+something's 10000
+hour's
+body's
+yesterday's 10000
+who've
+sorrow's
+philosopher's
+lion's
+leader's
+lady's
+here's 10000
+author's
+artist's
+anybody's
+santa's
+who'll
+music's
+master's
+mankind's
+lawyer's
+giant's
+future's
+fortune's
+dog's
+could've
+cupid's
+wit's
+where's
+war's
+tree's
+sister's
+serpent's
+politician's
+night's
+needn't
+moment's
+individual's
+humanity's
+everything's 10000
+driver's
+company's
+city's
+captain's
+boy's
+beggar's
+audience's
+europe's
+eternity's
+winter's
+wind's
+week's
+tyrant's
+tiger's
+there'd
+subject's
+spirit's
+soldier's
+ship's
+sheep's
+reason's
+reader's
+play's
+ocean's
+neighbor's
+ma'am
+judge's
+freedom's
+fellow's
+elephant's
+doctor's
+daughter's
+cuckoo's
+cat's
+bird's
+battle's
+art's
+architect's
+pharaoh's
+majesty's
+bush's
+y'know
+wisdom's
+wasp's
+truth's
+there'll
+tailor's
+stranger's
+statesman's
+snowman's
+sky's
+religion's
+prince's
+priest's
+peacock's
+passion's
+party's
+oughtn't
+opponent's
+nothing's
+name's
+morning's
+money's
+minute's
+learning's
+kid's
+infant's
+guy's
+grandfather's
+good's
+frog's
+folk's
+expert's
+duck's
+director's
+customer's
+creation's
+cowslip's
+cannon's
+barber's
+atom's
+liberty's
+joy's
+hell's
+court's
+baker's
+almighty's
+writing's
+woodman's
+will's
+who're
+whale's
+well's
+weaver's
+weather's
+warrior's
+violet's
+villain's
+victor's
+travel's
+town's
+tongue's
+tinker's
+taskmaster's
+student's
+story's
+state's
+spider's
+sluggard's
+sin's
+shark's
+shadow's
+servant's
+river's
+reaper's
+ram's
+questioner's
+public's
+programmer's
+product's
+president's
+policeman's
+pleasure's
+player's
+pin's
+pigmy's
+physician's
+patient's
+parent's
+mum's
+mortal's
+morrow's
+more's
+monarch's
+misfortune's
+miser's
+mine's
+memory's
+maker's
+maiden's
+librarian's
+law's
+labor's
+jury's
+journey's
+how's
+hope's
+hero's
+hearer's
+hat's
+grandmother's
+gentleman's
+generation's
+form's
+food's
+fate's
+faith's
+faery's
+eagle's
+drama's
+dragon's
+doer's
+democracy's
+defendant's
+daddy's
+culture's
+crocodile's
+coward's
+committee's
+comedian's
+carpenter's
+care's
+car's
+boyfriend's
+blackbird's
+beginner's
+bachelor's
+autumn's
+anything's
+all's
+actor's
+wood's
+variety's
+thursday's
+them's
+So's
+science's
+power's
+pain's
+neptune's
+morality's
+may's
+jack's
+sweetheart's
+fleet's
+fame's
+destiny's
+constitution's
+comfort's
+black's
+affection's
+zebra's
+youth's
+yeoman's
+workingman's
+work's
+womankind's
+wolf's
+wokeness's
+woe's
+witch's
+widow's
+whoever's
+whatever's
+what'll
+welfare's
+weightlifter's
+weed's
+wedlock's
+weapon's
+watchdog's
+walk's
+vulnerability's
+viewer's
+victim's
+vicar's
+vampire's
+user's
+uproar's
+uncle's
+tyranny's
+turkey's
+translation's
+traitor's
+touch'd
+tomb's
+three's
+this'll
+third's
+that'd
+teenager's
+technology's
+tea's
+taper's
+talk's
+tale's
+swine's
+swallow's
+survivor's
+surgeon's
+sultan's
+sufferer's
+sucker's
+striker's
+storm's
+stone's
+stationmaster's
+speaker's
+snow's
+skylark's
+sinner's
+singer's
+showman's
+show's
+should've
+shame's
+secret's
+season's
+seal's
+sea's
+scoffer's
+scientist's
+school's
+scholar's
+sausage's
+saint's
+sage's
+sacrifice's
+runner's
+ruler's
+ruin's
+rose's
+room's
+rogue's
+robber's
+road's
+rhetorician's
+retiree's
+resume's
+restaurant's
+relationship's
+reengineering's
+red's
+razor's
+rat's
+rapture's
+rain's
+rabbit's
+question's
+queen's
+pursuer's
+psychiatrist's
+proprietor's
+procrastinator's
+printer's
+prey's
+predator's
+poverty's
+potter's
+poison's
+point's
+poinsettia's
+poetry's
+plumber's
+ploughmen's
+planter's
+planet's
+pirate's
+piper's
+pilgrim's
+pig's
+photographer's
+phone's
+perfumer's
+patriot's
+past's
+passport's
+partner's
+parson's
+paranoiac's
+painter's
+oyster's
+owner's
+oven's
+ostrich's
+organization's
+orator's
+omicron's
+old's
+oculist's
+occupation's
+occasion's
+obsession's
+observer's
+now's
+nostalgia's
+noon's
+nonprofit's
+nobility's
+nerd's
+needle's
+mummy's
+morn's
+moon's
+monster's
+monkey's
+momma's
+mollusk's
+minister's
+miner's
+millener's
+mightn't
+mermaid's
+merit's
+mercer's
+menu's
+mentor's
+mentee's
+member's
+melancholy's
+media's
+mathematician's
+marshal's
+market's
+mantle's
+majority's
+magician's
+magic's
+loser's
+lord's
+literature's
+lightning's
+lifetime's
+lie's
+liar's
+level's
+leadership's
+laugh's
+latter's
+landlord's
+land's
+lamp's
+lamb's
+lake's
+ladder's
+laborer's
+know's
+keeper's
+just's
+juggler's
+journalism's
+joke's
+job's
+jeweler's
+jest's
+jerkin's
+jerk's
+jackal's
+it'd
+island's
+intention's
+infantryman's
+idol's
+i've
+i'll
+hydra's
+human's
+horse's
+horror's
+hook's
+honey's
+history's
+hippopotamus's
+hindsight's
+hill's
+highway's
+herring's
+hermit's
+herder's
+hen's
+hearsay's
+harm's
+hare's
+handclasp's
+hair's
+habit's
+gull's
+guinea's
+group's
+ground's
+grocer's
+grief's
+grave's
+grandpa's
+grandma's
+godhead's
+goat's
+gnomons's
+glory's
+giver's
+girlfriend's
+gift's
+general's
+fustian's
+fury's
+furrier's
+friendship's
+freeman's
+fox's
+founder's
+fortnight's
+football's
+foot's
+folly's
+fly's
+flattery's
+fisherman's
+fisher's
+film's
+fetus's
+fear's
+fault's
+farmer's
+fancy's
+fairy's
+failure's
+factor's
+experimenter's
+ex's
+evil's
+ever's
+evening's
+employee's
+emperor's
+embalmer's
+element's
+egg's
+education's
+economist's
+echo's
+dyer's
+duty's
+dullard's
+duke's
+dream's
+draper's
+door's
+doom's
+dominant's
+dolphin's
+doll's
+diviner's
+disgrace's
+diplomat's
+dentist's
+denial's
+deed's
+debt's
+dealing's
+dead's
+daylight's
+daren't
+danger's
+curate's
+crown's
+criticism's
+critic's
+cripple's
+crime's
+coxcomb's
+couple's
+coroner's
+corncrake's
+corn's
+cool'd
+conversation's
+convent's
+conqueror's
+confession's
+conceal'd
+competition's
+cloister's
+clinician's
+climate's
+client's
+civilization's
+citizen's
+church's
+childhood's
+chicken's
+cherub's
+chef's
+chap's
+chameleon's
+censer's
+cell's
+cavalryman's
+castle's
+capitalism's
+candle's
+camel's
+calf's
+butterfly's
+butler's
+building's
+broadcaster's
+brain's
+bosom's
+book's
+bishop's
+birthday's
+being's
+begging's
+bat's
+barmaid's
+banker's
+bank's
+banjo's
+bad's
+aunt's
+attic's
+atheist's
+astronaut's
+astrologer's
+assassin's
+arm's
+apple's
+answer's
+animal's
+anger's
+anarchist's
+ambition's
+ally's
+alcoholic's
+air's
+aim's
+agent's
+age's
+adversary's
+administration's
+actress's
+action's
+acting's
+yoga's
+y'all
+winner's
+university's
+twitcher's
+titan's
+throat's
+tech's
+tartar's
+monday's
+tuesday's
+wednesday's
+friday's
+saturday's
+sunday's
+street's
+stagnation's
+springtime's
+solo's
+slumber's
+seven's
+second's
+scoutmaster's
+right's
+rhapsody's
+redeemer's
+reality's
+rap's
+prosperity's
+prosecutor's
+project's
+professor's
+pride's
+present's
+praying's
+pound's
+popularity's
+pluto's
+pen's
+parliament's
+pandora's
+optimal's
+oppression's
+october's
+number's
+north's
+noah's
+murder's
+mud's
+motley's
+mortality's
+mommy's
+milk's
+messenger's
+mercy's
+meek's
+marigold's
+many's
+lot's
+long's
+legionary's
+left's
+lad's
+knavery's
+john's
+jig's
+java's
+information's
+indecency's
+imagination's
+hyacinth's
+hunter's
+honor's
+head's
+hall's
+guru's
+great's
+gravity's
+gold's
+gene's
+feminism's
+fashion's
+eye's
+evolution's
+envy's
+entropy's
+detraction's
+cricket's
+creator's
+corsair's
+corruption's
+content's
+congress's
+comedy's
+column's
+codlin's
+cardinal's
+cam's
+brown's
+benefit's
+bell'
+beau's
+bay's
+bacon's
+baby's
+aurora's
+appeal's
+anxiety's
+alliteration's
+ahead's
+afternoon's
+affliction's
+adversity's
 aahed 
 aani 
 aardwolf 

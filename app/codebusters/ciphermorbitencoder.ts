@@ -1,7 +1,7 @@
 import { BoolMap, cloneObject, NumberMap, StringMap } from '../common/ciphercommon';
 import { ITestType, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
-import {IEncoderState, suggestedData} from './cipherencoder';
+import { IEncoderState, suggestedData } from './cipherencoder';
 import { frommorse, tomorse } from '../common/morse';
 import { JTTable } from '../common/jttable';
 import { CipherMorseEncoder, ctindex, ptindex } from './ciphermorseencoder';

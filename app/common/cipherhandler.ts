@@ -11,6 +11,7 @@ import { InitStorage, JTStorage } from './jtstore';
 import { JTTable, JTRow } from './jttable';
 import { parseQueryString } from './parsequerystring';
 import { textStandard, textStandardRaw } from '../common/readability';
+import { htmlToElement } from './htmldom';
 
 // eslint-disable-next-line no-underscore-dangle
 declare let __DATE_BUILT__: string;
@@ -1304,7 +1305,7 @@ export class CipherHandler {
                     }
                     if (
                         fileEntry.question !== '' &&
-                        this.storageCipherEntryPrefix.substr(0, 1) === 'A'
+                        this.storageCipherEntryPrefix.slice(0, 1) === 'A'
                     ) {
                         entryText += fileEntry.question;
                     } else if (fileEntry.cipherString !== '') {
@@ -1816,7 +1817,7 @@ export class CipherHandler {
         let avgFrequency = 0
         let avgIndexLen = 0
         let avgIndex = 0
-        let words = str.toUpperCase().replace(/'/g, " '").split(/[^A-ZÁÉÍÓÚÜÑ']+/)
+        let words = str.toUpperCase().split(/[^A-ZÁÉÍÓÚÜÑ']+/)
 
         if (
             lang === "" ||
@@ -2927,10 +2928,10 @@ export class CipherHandler {
                     encodeline = '';
                     decodeline = '';
                 } else {
-                    const encodepart = encodeline.substr(0, lastsplit);
-                    const decodepart = decodeline.substr(0, lastsplit);
-                    encodeline = encodeline.substr(lastsplit);
-                    decodeline = decodeline.substr(lastsplit);
+                    const encodepart = encodeline.slice(0, lastsplit);
+                    const decodepart = decodeline.slice(0, lastsplit);
+                    encodeline = encodeline.slice(lastsplit);
+                    decodeline = decodeline.slice(lastsplit);
                     result.push([encodepart, decodepart]);
                 }
                 lastsplit = -1;
@@ -3202,7 +3203,9 @@ export class CipherHandler {
      * This makes it easy to search for a pattern in any input cryptogram
      */
     public makeUniquePattern(str: string, width: number): string {
-        const cmap = {};
+        // Apostrophes get encoded in the pattern as themselves
+        // This means didn't comes out as 0102'3 
+        const cmap = { "'": "'" };
         let res = '';
         let mapval = 0;
         const len = str.length;
@@ -3210,7 +3213,7 @@ export class CipherHandler {
         str += 'XXXX';
 
         for (let i = 0; i < len; i += width) {
-            const c = str.substr(i, width);
+            const c = str.slice(i, i + width);
             if (typeof cmap[c] === 'undefined') {
                 cmap[c] = mapval.toString(36).toUpperCase();
                 mapval++;
@@ -3391,11 +3394,8 @@ export class CipherHandler {
                         this.Frequent[lang][pat].push(elem);
                     }
                 }
-                // console.log(this.Frequent)
-                $('.langout').each((i: number, elem: HTMLElement) => {
-                    this.showLangStatus('warning', 'Dumping ' + this.langmap[lang] + '...');
-                    $(elem).text(this.dumpLang(lang));
-                });
+                this.enableDumpLangButton(lang);
+
                 // We need to also save it on the root object
                 const rootCipherTool = this.getRootCipherTool();
                 rootCipherTool.Frequent[lang] = this.Frequent[lang];
@@ -3405,6 +3405,42 @@ export class CipherHandler {
             }).fail((res) => reject(res));
         })
     }
+
+    public enableDumpLangButton(lang: string) {
+        // Get the UL element inside the div with id 'cmainmenu' that has class 'dropdown menu'
+        const menu = document.querySelector<HTMLUListElement>("#cmainmenu .dropdown.menu");
+
+        if (menu) {
+            menu.appendChild(htmlToElement(`<li><button data-lang="${lang}" class="dllang rounded alert button">Download ${lang}.js</button></li>`))
+            this.attachHandlers()
+        }
+    }
+
+    // /**
+    //  * Make a link download the JS file for the currently loaded language
+    //  * @param link <A> link to associate download with
+    //  */
+    public downloadLanguageJs(element: JQuery<HTMLElement>, lang: string) {
+        const blob = new Blob([this.dumpLang(lang)], { type: 'text/json' });
+        const url = URL.createObjectURL(blob);
+        const filename = `${lang}.js`;
+
+        if (element.is("a")) {
+            // If it's an <a> element, set download attributes
+            element.attr("download", filename);
+            element.attr("href", url);
+        } else if (element.is("button")) {
+            // If it's a <button>, create a temporary <a> element to trigger download
+            const tempLink = document.createElement("a");
+            tempLink.href = url;
+            tempLink.download = filename;
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
+        }
+    }
+
+
     /**
      * Updates the language status message box with a message (or clears it)
      * @param calloutclass Class of the callout
@@ -3652,7 +3688,7 @@ export class CipherHandler {
             .children()
             .each((i, elem) => {
                 const eid = $(elem).attr('id');
-                replOrder += eid.substr(eid.length - 1);
+                replOrder += eid.slice(-1);
             });
         this.state.replOrder = replOrder;
     }
@@ -4037,6 +4073,12 @@ export class CipherHandler {
             .on('click', (e) => {
                 $('.prev').show();
                 $('.moreprev').hide();
+            });
+        $('.dllang')
+            .off('click')
+            .on('click', (e) => {
+                const lang = $(e.target).attr('data-lang')
+                this.downloadLanguageJs($(e.target), lang)
             });
     }
     /**

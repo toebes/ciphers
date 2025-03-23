@@ -344,7 +344,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             operationtext2 = ` using a keyword of ${this.genMonoText(this.minimizeString(this.state.keyword))}`
         } else {
             const cribpos = this.placeCrib();
-            operationtext2 = this.getCribPlacement(cribpos);
+            operationtext2 = '. ' + this.getCribPlacement(cribpos);
         }
         if (fixedName == 'Vigenere') {
             fixedName = 'Vigenère';

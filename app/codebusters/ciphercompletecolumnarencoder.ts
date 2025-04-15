@@ -970,6 +970,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
      */
     public load(): void {
         this.clearErrors();
+        $('#statistics').text(`Plain text length=${this.minimizeString(this.state.cipherString).length}`);
         this.validateQuestion();
         let res = this.build();
         $('#answer')
@@ -1147,7 +1148,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         const crib = this.state.crib;
         const cribtext = this.genMonoText(crib);
 
-        hint = 'the quote has ' + cribtext + ' somewhere in it.';
+        hint = ' The quote has ' + cribtext + ' somewhere in it.';
 
         return hint
     }
@@ -1238,7 +1239,6 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
      */
     public updateOutput(): void {
         super.updateOutput();
-        this.showLengthStatistics();
         $('#columns').val(this.state.columns);
         $('#columnorder').val(this.state.keyword);
         $('#crib').val(this.state.crib);

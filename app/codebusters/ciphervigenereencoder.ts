@@ -157,11 +157,10 @@ export class CipherVigenereEncoder extends CipherEncoder {
     public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
         let result = super.CheckAppropriate(testType, anyOperation);
         if (!anyOperation && result === '' && testType !== undefined) {
-            if (
-                testType !== ITestType.cregional &&
-                testType !== ITestType.cstate &&
-                testType !== ITestType.bregional &&
-                testType !== ITestType.bstate &&
+            if ((testType == ITestType.cregional ||
+                testType == ITestType.cstate ||
+                testType == ITestType.bregional ||
+                testType == ITestType.bstate) &&
                 this.state.operation === 'encode'
             ) {
                 result = 'Encode problems are not allowed on ' + this.getTestTypeName(testType);
@@ -169,6 +168,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             if (
                 testType !== ITestType.bstate &&
                 testType !== ITestType.cstate &&
+                testType !== ITestType.None &&
                 this.state.operation === 'crypt'
             ) {
                 result =
@@ -344,7 +344,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             operationtext2 = ` using a keyword of ${this.genMonoText(this.minimizeString(this.state.keyword))}`
         } else {
             const cribpos = this.placeCrib();
-            operationtext2 = this.getCribPlacement(cribpos);
+            operationtext2 = '. ' + this.getCribPlacement(cribpos);
         }
         if (fixedName == 'Vigenere') {
             fixedName = 'Vigenère';

@@ -150,6 +150,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             } else if (
                 testType !== ITestType.bstate &&
                 testType !== ITestType.cstate &&
+                testType !== ITestType.None &&
                 this.state.operation === 'crypt'
             ) {
                 result =

@@ -478,7 +478,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
         return changed;
     }
     public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
-        if (this.state.usehint) {
+        if (this.state.usehint && this.state.hint.length > 0) {
             hinttext = ` You are told that the cipher contains ${this.genMonoText(this.state.hint)}.`;
         }
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);

@@ -150,6 +150,7 @@ export class CipherAffineEncoder extends CipherEncoder {
             } else if (
                 testType !== ITestType.bstate &&
                 testType !== ITestType.cstate &&
+                testType !== ITestType.None &&
                 this.state.operation === 'crypt'
             ) {
                 result =
@@ -651,6 +652,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         const msg = this.chunk(this.state.cipherString, this.state.blocksize);
         const strings = this.buildReplacement(msg, this.maxEncodeWidth);
         const result = $('<div/>');
+        let charIndex = 0;
         for (const strset of strings) {
             const table = new JTTable({
                 class: 'cell shrink tfreq',
@@ -675,18 +677,19 @@ export class CipherAffineEncoder extends CipherEncoder {
                         toprow.add({
                             settings: {
                                 class: 'TOSOLVE',
-                                id: 'm' + i,
+                                id: 'm' + charIndex,
                             },
                             content: cipherchar,
                         });
                         bottomrow.add({
                             settings: {
                                 class: 'TOANSWER',
-                                id: 'p' + i,
+                                id: 'p' + charIndex,
                             },
                             content: plainchar,
                         });
                     }
+                    charIndex++;
                 }
             }
             result.append(table.generate());
@@ -1161,7 +1164,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         // solution for b
         result.append(
             $('<p/>').text(
-                'To find b, substitute that back into the equation with the lowest multiplier. '
+                `To find b, substitute the a value (${a}) back into the equation with the lowest multiplier. `
             )
         );
         let findingB =
@@ -1184,7 +1187,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         findingB =
             '\\begin{aligned}(' +
             a * mSubstitute +
-            ' +b)\\;\\text{mod 26} - ' +
+            ' + b)\\;\\text{mod 26} - ' +
             a * mSubstitute +
             ' & = (' +
             cSubstitute +
@@ -1196,17 +1199,21 @@ export class CipherAffineEncoder extends CipherEncoder {
             '\\;\\text{mod 26}\\\\';
 
         let b = cSubstitute - a * mSubstitute;
-        while (b < 0) {
-            b += 26;
+        if (b < 0) {
+            while (b < 0) {
+                b += 26;
+            }
+            findingB += 'b\\;\\text{mod 26} & = ' + b + '\\;\\text{mod 26}\\end{aligned}';
+        } else {
+            findingB += '\\end{aligned}';
         }
-        findingB += 'b\\;\\text{mod 26} & = ' + b + '\\;\\text{mod 26}\\end{aligned}';
+
         result.append(renderMath(findingB));
-        result.append(p);
         p = $('<p/>').text('And we see that ');
         p.append(renderMath('\\colorbox{yellow}{b =' + b + '}'));
         result.append(p);
 
-        result.append($('<p/>').text('However, we only know a few of the letters in the cipher.'));
+        result.append($('<p/>').text('From the given crib, we only know a few of the letters in the cipher.'));
 
         this.showDecodeSteps(result, msg, a, b, m1 + m2);
         return result;
@@ -1321,7 +1328,7 @@ export class CipherAffineEncoder extends CipherEncoder {
                 if (this.state.operation === 'crypt' && id !== '') {
                     this.markUndo('solclick');
                     this.state.solclick1 = this.state.solclick2;
-                    this.state.solclick2 = Number(id.substr(1));
+                    this.state.solclick2 = Number(id.substring(1));
                     this.updateOutput();
                 }
             });

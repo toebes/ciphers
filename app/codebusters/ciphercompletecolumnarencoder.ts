@@ -869,19 +869,31 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         if (this.thisTestType === undefined || this.thisTestType !== testType) {
             this.thisTestType = testType;
         }
+
         if (!anyOperation && result === '' && testType !== undefined) {
             // What is allowed is:
             //  Division B Regional:  Up to 9 columns, crib no shorter than columns - 1.
             //  Division B State:  Up to 9 columns, crib no shorter than columns - 1.
             //  Division C Regional:  Up to 9 columns, crib no shorter than columns - 1.
             //  Division C State:  Up to 11 columns, crib no shorter than columns - 3.
+            let errorMessage = '';
+            const testUsage = this.getTestUsage();
+            const usedOnCState = testUsage.includes(ITestType.cstate);
+            const spacelessCrib = this.minimizeString(this.state.crib);
 
             if ((testType === ITestType.bregional || testType === ITestType.bstate || testType === ITestType.cregional) &&
                 this.state.columns > 9) {
-                result = 'Only nine or fewer columns are allowed on ' + this.getTestTypeName(testType);
+                result = 'Only 9 or fewer columns are allowed on ' + this.getTestTypeName(testType);
             }
             else if (testType === ITestType.cstate && this.state.columns > 11) {
-                result = 'Only eleven or fewer columns are allowed on ' + this.getTestTypeName(testType);
+                result = 'Only 11 or fewer columns are allowed on ' + this.getTestTypeName(testType);
+            }
+            else if (spacelessCrib.length < this.state.columns - 1 && !usedOnCState) {
+                result = `For a ${this.getTestTypeName(testType)} test and a column count of ${this.state.columns}, the length of the crib must be no shorter than ${(this.state.columns - 1)}
+                    (i.e. one less the number of columns used).`;
+            } else if (spacelessCrib.length < this.state.columns - 3 && usedOnCState) {
+                result = `For a ${this.getTestTypeName(testType)} test and a column count of ${this.state.columns}, the length of the crib must be no shorter
+                 than ${(this.state.columns - 3)} (i.e. three less the number of columns used).`;
             }
         }
         return result;
@@ -1326,19 +1338,10 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>' /*, { class: 'grid-x' }*/);
 
-        const testUsage = this.getTestUsage();
-        const usedOnCState = testUsage.includes(ITestType.cstate);
-
         let errorMessage = '';
         const spacelessCrib = this.minimizeString(this.state.crib);
-        if (spacelessCrib.length < this.state.columns - 1 && !usedOnCState) {
-            errorMessage = `For this test type, the length of the crib must be no shorter than ${(this.state.columns - 1)} 
-                (i.e. one less the number of columns used).`;
-            this.setErrorMsg(errorMessage, 'cribl', null);
-        } else if (spacelessCrib.length < this.state.columns - 3 && usedOnCState) {
-            errorMessage = `For a Division C State/National test, the length of the crib must be no shorter
-             than ${(this.state.columns - 3)} (i.e. three less the number of columns used).`;
-        } else if (spacelessCrib.length > this.state.columns) {
+
+        if (spacelessCrib.length > this.state.columns) {
             errorMessage = `Warning: The crib length is greater than the number of columns.  The auto-solver will only use the first ${this.state.columns} letters of the crib`;
         }
         this.setErrorMsg(errorMessage, 'cribl', null);
@@ -1693,9 +1696,9 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     }
     /**
      * Check to see if we need to restart the output operation all over
-     * This works by giving a UI break sot that we can check for any input and decide to 
+     * This works by giving a UI break sot that we can check for any input and decide to
      * regenerate the output (because it might take a long time)
-     * 
+     *
      * You need to call this whenever an operation has taken a long time to see
      * if something needs to be updated:
      *             if (await this.restartCheck()) { return }

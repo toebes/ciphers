@@ -178,11 +178,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
         let result = super.CheckAppropriate(testType, anyOperation);
         if (!anyOperation && result === '' && testType !== undefined) {
-            if (
-                testType !== ITestType.cregional &&
-                testType !== ITestType.cstate &&
-                testType !== ITestType.bregional &&
-                testType !== ITestType.bstate &&
+            if ((testType == ITestType.cregional ||
+                testType == ITestType.cstate ||
+                testType == ITestType.bregional ||
+                testType == ITestType.bstate) &&
                 this.state.operation === 'encode'
             ) {
                 result = 'Encode problems are not allowed on ' + this.getTestTypeName(testType);
@@ -190,6 +189,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             if (
                 testType !== ITestType.bstate &&
                 testType !== ITestType.cstate &&
+                testType !== ITestType.None &&
                 this.state.operation === 'crypt'
             ) {
                 result =

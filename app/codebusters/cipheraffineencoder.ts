@@ -488,7 +488,7 @@ export class CipherAffineEncoder extends CipherEncoder {
         if (this.state.operation === 'crypt') {
             const cribpos = this.placeCrib();
             const ptstring = this.minimizeString(this.state.cipherString);
-            operationtext2 = `. ${this.getCribPlacement(cribpos, ptstring)}`;
+            hinttext = ` ${this.getCribPlacement(cribpos, ptstring)}.`;
         } else {
             operationtext2 = ` with <strong><i>a</i>=${this.genMonoText(String(this.state.a))}</strong> and <strong><i>b</i>=${this.genMonoText(String(this.state.b))}</strong>`;
         }

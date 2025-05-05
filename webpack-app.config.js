@@ -307,14 +307,21 @@ config = {
             filename: 'Baconian.html',
             template: path.join(__dirname, 'app', 'app', 'pages', 'stdapp.html'),
             cipher: 'Baconian',
-            title: 'Solve an Baconian Cipher',
+            title: 'Solve a Baconian Cipher',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
+            filename: 'Checkerboard.html',
+            template: path.join(__dirname, 'app', 'app', 'pages', 'stdapp.html'),
+            cipher: 'Checkerboard',
+            title: 'Solve a Checkerboard Cipher',
         }),
         new HtmlWebpackPlugin({
             inject: false,
             filename: 'DancingMen.html',
             template: path.join(__dirname, 'app', 'app', 'pages', 'stdapp.html'),
             cipher: 'DancingMen',
-            title: 'Solve an DancingMen Cipher',
+            title: 'Solve a DancingMen Cipher',
         }),
         new HtmlWebpackPlugin({
             inject: false,

@@ -1,4 +1,4 @@
-import { BoolMap, calloutTypes, cloneObject, makeCallout, makeFilledArray, NumberMap } from '../common/ciphercommon';
+import { BoolMap, calloutTypes, cloneObject, makeCallout, makeFilledArray, NumberMap, StringMap } from '../common/ciphercommon';
 import { IOperationType, IState, ITestType, toolMode, ITestQuestionFields, IScoreInformation } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -9,15 +9,15 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTRow, JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
-interface INihilistState extends IEncoderState {
+interface ICheckerboardState extends IEncoderState {
     /** The type of operation */
     operation: IOperationType;
     /** The size of the chunking blocks for output - 0 means respect the spaces */
     blocksize: number;
     /** The polybius key string */
     polybiusKey: string;
-    /** The current keyword length example to show in the solver */
-    solverKeyLength: number;
+    /** The column Keyword */
+    keyword2: string;
     /** The most recently computed solution score from the auto-solver */
     autoSolverScore: number;
 }
@@ -25,20 +25,25 @@ interface INihilistState extends IEncoderState {
 const AUTOSOLVER_NOKEYWORD = 2000
 const AUTOSOLVER_NOKEYPOS = 1000
 
-type NihilistSolverMappings = number[][]
+type CheckerboardSolverMappings = number[][]
 type PolybiusMap = Map<string, string[]>
 type Known = 'none' | 'tens' | 'ones' | 'all'
 type TableType = 'tens' | 'ones' | 'example'
+type SuggestType = 'row' | 'col'
 
-interface NihilistSolverData {
+interface CheckerboardSolverData {
+    /** The known Row keyword */
+    rowKeyword: string;
+    /** The known Column keyword */
+    colKeyword: string;
     /** The known keyword */
     keyword: string
     /** Initial mapping of the 10's digits to the keywords an array per letters in the keyword */
-    tens: NihilistSolverMappings
+    tens: CheckerboardSolverMappings
     /** Initial mapping of the 1's digits to the keywords.  An Array per letters in the keyword 
      *  Note that once the kwChoices map is created, this is no longer used
      */
-    ones: NihilistSolverMappings
+    ones: CheckerboardSolverMappings
     /** Mapping of indexes ('11', '12') to the corresponding letter choices. Initially this is
      *  all of the letters in the alphabet, but when a final choice is made it is reduced to a single entry
      *  Note that once the kwChoices map is created, this is no longer used
@@ -60,6 +65,8 @@ interface NihilistSolverData {
     kwKnown: Known[]
     /** Indicates where we already have warned them about this being too hard to solve */
     warned: boolean
+    /** Indicates whether we tested a pair before */
+    tested: BoolMap
 }
 
 interface ICribInfo {
@@ -71,12 +78,12 @@ interface ICribInfo {
 }
 /**
  *
- * Nihilist Encoder
+ * Checkerboard Encoder
  *
  */
-export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
+export class CipherCheckerboardEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
-    public guidanceURL = 'TestGuidance.html#Nihilist';
+    public guidanceURL = 'TestGuidance.html#Checkerboard';
     public maxEncodeWidth = 18;
     public validTests: ITestType[] = [
         ITestType.None,
@@ -87,21 +94,25 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         // ITestType.aregional,
     ];
 
-    public cipherName = 'Nihilist Substitution';
-    public cleanKeyword = '';
+    public cipherName = 'Checkerboard';
+    public cleanRowKeyword = '';
+    public cleanColKeyword = '';
     public cleanPolyKey = '';
+    public polybiusSequence = ''
     public polybiusMap = new Map<string, string>();
-    public sequencesets = [];
-    public lengthKnown = false;
+    public sequencesets: string[][][] = [];
+    public suggestType: SuggestType = 'col'
 
     public isLoading = false;
     public stopGenerating = false;
 
-    public defaultstate: INihilistState = {
+    public defaultstate: ICheckerboardState = {
         /** The current cipher type we are working on */
-        cipherType: ICipherType.NihilistSubstitution,
-        /** Currently selected keyword */
+        cipherType: ICipherType.Checkerboard,
+        /** Row keyword */
         keyword: '',
+        /** Column Keyword */
+        keyword2: '',
         /** The current cipher we are working on */
         cipherString: '',
         crib: '',
@@ -110,10 +121,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         operation: 'decode',
         blocksize: 0,
         polybiusKey: '',
-        solverKeyLength: 4,
         autoSolverScore: undefined
     };
-    public state: INihilistState = cloneObject(this.defaultstate) as INihilistState;
+    public state: ICheckerboardState = cloneObject(this.defaultstate) as ICheckerboardState;
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
         this.undocmdButton,
@@ -128,7 +138,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param data Saved state to restore
      */
     public restore(data: IState, suppressOutput = false): void {
-        this.state = cloneObject(this.defaultstate) as INihilistState;
+        this.state = cloneObject(this.defaultstate) as ICheckerboardState;
         this.copyState(this.state, data);
         if (suppressOutput) {
             this.setCipherType(this.state.cipherType);
@@ -204,16 +214,47 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.attachHandlers();
     }
     /**
-     * Sets the keyword (state.keyword)
+     * Sets the keyword (state.keyword) which is used as the Row Keyword
      * @param keyword New keyword
      * @returns Boolean indicating if the value actually changed
      */
     public setKeyword(keyword: string): boolean {
         let changed = super.setKeyword(keyword);
-        if (changed) {
-            this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword)).toUpperCase()
-            this.setSolverKeyLength(this.cleanKeyword.length)
+        this.cleanRowKeyword = this.minimizeString(this.cleanString(this.state.keyword)).toUpperCase()
+        return changed;
+    }
+    /**
+     * Sets the secondary keyword (state.keyword2) which is used as the Column Keyword
+     * @param keyword2 new Secondary keyword
+     * @returns Boolean indicating if the value actually changed
+     */
+    public setKeyword2(keyword2: string): boolean {
+        let changed = false;
+        if (this.state.keyword2 !== keyword2) {
+            this.state.keyword2 = keyword2;
+            changed = true;
         }
+        this.cleanColKeyword = this.minimizeString(this.cleanString(this.state.keyword2)).toUpperCase()
+        return changed;
+    }
+    public getPolybiusSequence(polybiusKey: string): string {
+        let normalizedKey = this.minimizeString(polybiusKey.toUpperCase()) + this.charset;
+        normalizedKey = normalizedKey.replace(/J/g, 'I'); // Normalize 'J' to 'I'
+        return this.undupeString(normalizedKey); // Remove duplicates
+    }
+    /**
+     * Sets the polybius key
+     * @param polybiusKey New Polybius key
+     * @returns Boolean indicating if the value actually changed
+     */
+    public setPolybiusKey(polybiusKey: string): boolean {
+        let changed = false;
+        if (this.state.polybiusKey !== polybiusKey) {
+            this.state.polybiusKey = polybiusKey;
+            changed = true;
+        }
+        this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey)).toUpperCase()
+        this.polybiusSequence = this.getPolybiusSequence(this.cleanPolyKey)
         return changed;
     }
 
@@ -281,7 +322,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         // Check if the question text contains the numeric value or the word representation
         return numberRegex.test(questionText) || wordRegex.test(questionText);
     }
-
     /**
      * Determine if the question text references the right pieces of this cipher
      */
@@ -290,12 +330,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         let msg = '';
 
         const questionText = this.state.question.toUpperCase();
-        const key = this.cleanKeyword
+        const key = this.cleanRowKeyword
         if (this.state.operation === 'crypt') {
             if (
                 questionText.indexOf('DECOD') < 0 &&
                 questionText.indexOf('DECRY') < 0 &&
                 questionText.indexOf('WAS ENC') < 0 &&
+                questionText.indexOf('IT\'S ENC') < 0 &&
                 questionText.indexOf('BEEN ENC') < 0
             ) {
                 msg +=
@@ -304,33 +345,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
             // Look to see if the crib appears in the question text
             const crib = this.minimizeString(this.state.crib);
-            if (crib !== '' && this.minimizeString(questionText).indexOf(crib) < 0) {
+            if (crib !== '' && questionText.indexOf(crib) < 0) {
                 msg +=
                     "The Crib Text '" +
                     this.state.crib +
                     "' doesn't appear to be mentioned in the Question Text.";
             }
-            // See if they told us the length of the keyword
-            //   Possible options are:
-            //         with a 5 letter keyword
-            //         with a keyword that is 5 letters long
-            //         with a five-letter keyword
-            //         using a keyword of five letters
-            // Essentially we want to see either either "letter" "letter" or "keyword"
-            // and the number (with non digits on either side) or the text version of the number
-            // Remember that we already know the length of the keyword
-            if (!(questionText.indexOf('LETTER') >= 0 || questionText.indexOf('KEYWORD') >= 0) ||
-                !this.containsExactNumberOrWord(questionText, key.length)) {
-                msg += `The question doesn't specify the length (${this.cleanKeyword.length}) of the keyword. `;
-                this.lengthKnown = false;
-            } else {
-                this.lengthKnown = true;
-            }
         } else {
-            // For an encode or decode, they need to mention the key
-            if (key !== '' && questionText.indexOf(key) < 0) {
-                msg += `The Key '${this.cleanKeyword}' doesn't appear to be mentioned in the Question Text.`;
-            }
             const polybiusKey = this.cleanPolyKey;
             if (polybiusKey !== '' && questionText.indexOf(polybiusKey) < 0) {
                 msg +=
@@ -374,245 +395,17 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.setErrorMsg(msg, 'vq', sampleLink);
 
     }
-    // Algorithm from https://github.com/WilliamMason/rec-crypt/blob/main/min_crib/nihilist_sub_min_crib.html
     /**
-     * 
-     * @param crib 
-     * @param pairs 
-     * @param period 
-     * @param single_key_flag 
-     * @param key_value 
-     * @returns 
+     * Figure out where the crib should appear in the cipher
+     * @returns Crib placement information
      */
-    public countCribHits(crib: number[], pairs: number[], period: number, single_key_flag: BoolMap, key_value: NumberMap) {
-        /*
-            poly_alpha = [None]*(period+1)
-            inverse_poly_alpha = [None]*(period+1)	
-            numb_hits = 0;
-        */
-        const poly_alpha = [];
-        const inverse_poly_alpha = []
-        let numb_hits = 0;
-        //  var  i, c, index, flag, v;
-        // one extra alphabet to handle indices where key value is known
-        for (let crib_pos = 0; crib_pos < pairs.length - crib.length + 1; crib_pos++) {
-            for (let n = 0; n < period + 1; n++) {
-                poly_alpha[n] = [];
-                for (let i = 0; i < 26; i++)
-                    poly_alpha[n][i] = -1;
-                inverse_poly_alpha[n] = [];
-                for (let i = 0; i <= 111; i++) //max value of a "pair" is 55+55 = 110	
-                    inverse_poly_alpha[n][i] = -1;
-            }
-            var crib_buffer = [];
-            for (let i = 0; i < pairs.length; i++) {
-                crib_buffer[i] = -1;
-            }
-            for (let n = 0; n < crib.length; n++) {
-                crib_buffer[crib_pos + n] = crib[n];
-            }
-            let index = 0
-            let flag = true;
-            for (let n = 0; n < pairs.length; n++) {
-                if (crib_buffer[n] == -1) {
-                    index += 1;
-                    if (index == period)
-                        index = 0;
-                    continue;
-                }
-                const c = crib_buffer[n];
-                //is the current index one with just one key value? If so put in the common alphabet with index 'period'
-                if (single_key_flag[index]) {
-                    const v = pairs[n] - key_value[index]
-                    if (poly_alpha[period][c] == -1) { // first encounter
-                        poly_alpha[period][c] = v
-                    } else if (poly_alpha[period][c] != v) {
-                        // crib won't fit here
-                        //print "pos ",crib_pos, "common bad at index ",index,"with ",lowerC[c]," values ", poly_alpha[period][c]," ", v
-                        flag = false;
-                        break;
-                    }
-                    if (inverse_poly_alpha[period][v] == -1) {
-                        inverse_poly_alpha[period][v] = c
-                    } else if (inverse_poly_alpha[period][v] != c) {
-                        //crib won't fit here
-                        // print "pos ",crib_pos, "common bad at index ",index,"with ",lowerC[c]," values ", poly_alpha[period][c]," ", v
-                        flag = false;
-                        break;
-                    }
-                } // end if
-                else {
-                    const v = pairs[n];
-                    if (poly_alpha[index][c] == -1) {// # first encounter
-                        poly_alpha[index][c] = v
-                    } else if (poly_alpha[index][c] != v) {
-                        // crib won't fit here
-                        //print  "pos ",crib_pos, "bad at ",index
-                        flag = false;
-                        break;
-                    }
-                    if (inverse_poly_alpha[index][v] == -1) { // # first encounter
-                        inverse_poly_alpha[index][v] = c
-                    } else if (inverse_poly_alpha[index][v] != c) {
-                        //crib won't fit here
-                        //print  "pos ",crib_pos, "bad at ",index
-                        flag = false;
-                        break;
-                    }
-                } // end else
-                index += 1
-                if (index == period) {
-                    index = 0
-                }
-            } // next n		
-            if (flag) {
-                numb_hits += 1
-                //print crib_pos+1," ",
-                if (numb_hits > 1) { // #no unique position
-                    return numb_hits
-                }
-            }
-            //print " "
-        } // next crib_pos
-        return (numb_hits)// better be one not zero!
-    }
-    /**
-     * 
-     * @param kwcount Number of cribs to look for
-     * @param action Function to call when a crib is found
-     * @returns N
-     */
-    public findPossibleCribs(kwcount: number, action: (count: number, crib: string) => boolean) {
-        const alpha = "ABCDEFGHIKLMNOPQRSTUVWXYZ";
-        const strings = this.buildNihilistSequenceSets(
-            this.minimizeString(this.state.cipherString),
-            9999,
-            0,
-            true
-        );
-        if (strings.length !== 1) {
-            return undefined;
-        }
-
-        // strings[0][1] - Array of plaintext - need to replace J with I
-        let plainText = ""
-        const plain: number[] = [];
-        strings[0][1].forEach((pt: string) => {
-            if (pt === 'J') {
-                pt = 'I'
-            }
-            plain.push(alpha.indexOf(pt));
-            plainText += pt;
-        })
-        // strings[0][0] - Array of ciphertext strings (need to convert to numbers)
-        const pairs: number[] = []
-        strings[0][0].forEach((ct: string) => {
-            let value = parseInt(ct)
-            if (value < 11) {
-                value += 100;
-            }
-            pairs.push(value)
-        })
-
-        const single_key_flag: BoolMap = {}
-        const keyword_value: NumberMap = {}
-        const cleanKey = this.minimizeString(this.cleanString(this.state.keyword)).toUpperCase()
-        const period = cleanKey.length;
-
-        // Get the Polybius key value for each letter of the keyword
-        for (let i = 0; i < period; i++) {
-            single_key_flag[i] = false;
-            keyword_value[i] = parseInt(this.getNumFromPolybiusMap(cleanKey.charAt(i)));
-        }
-
-        for (let cycle = 0; cycle < period; cycle++) {
-            let key_count = 0;
-            for (let n1 = 1; n1 < 6; n1++) {
-                for (let n2 = 1; n2 < 6; n2++) {
-                    const n = 10 * n1 + n2;
-                    let flag = true;
-                    for (let pos = cycle; pos < pairs.length; pos += period) {
-                        const i = pairs[pos] - n;
-                        const j1 = Math.floor(i / 10);
-                        const j2 = i % 10;
-                        if (j1 < 1 || j1 > 5 || j2 < 1 || j2 > 5) {
-                            flag = false
-                            break
-                        }
-                    }
-                    if (flag) {
-                        key_count++;
-                    }
-                }
-                // If we only found one legal value
-                if (key_count == 1) {
-                    single_key_flag[cycle] = true
-                }
-            }
-        } // next cycle
-
-        console.log(`Single key indices and their values`);
-        for (let i = 0; i < period; i++) {
-            if (single_key_flag[i]) {
-                console.log(`  ${i} ${keyword_value[i]}`);
-            }
-        }
-
-        //
-        // At this point we have:
-        //
-        //   plain[] is an array of the numeric index of each letter in the plaintext
-        //   pairs[] is an array of numbers corresponding to the cipher text values (02 gets mapped to 102)
-        //   keyword_value[] is the polybius index of each of the letters in the encoding keyword
-        //   single_key_flag[] is an indication for each letter in the encoding keyword ????
-        //   Period is the length of the keyword
-        //   plainText is the plaintext without any spaces or punctuation
-        //
-        const skip_index = Math.min(25, Math.max(10, plain.length - 25));
-        const min_allowed_len = 5; // plain.length + 1;
-
-        let found = 0
-        for (let pos = skip_index; pos < plain.length - min_allowed_len + 1; pos++) {
-            for (let le = min_allowed_len; le < plain.length - pos; le++) {
-                let crib = plain.slice(pos, pos + le);
-                const n = this.countCribHits(crib, pairs, period, single_key_flag, keyword_value);
-                if (n == 1) {
-                    const cribtext = plainText.substring(pos + 1, pos + 1 + le)
-                    if (action(found, cribtext)) {
-                        found++;
-                        if (found >= kwcount) {
-                            return;
-                        }
-                    }
-                    break;
-                }
-                else if (n == 0) {
-                    console.log(`Program bug! no possible crib at ${pos}`);
-                    return;
-                }
-            }
-        }
-        return found;
-    }
-    /*
-        This replaces the 'get()' method for a normal Map. Since J is not located in our polybius map, but it still needs
-        to be incorporated in our question, we have to treat any get('J') as a get('I'). This method acts as that filter.
-    */
-    public getNumFromPolybiusMap(s: string) {
-        let polyMap = this.polybiusMap;
-        if (s == 'J') {
-            s = 'I'
-        }
-        return polyMap.get(s);
-    }
-
-
     public placeCrib(): ICribInfo {
         const crib = this.minimizeString(this.state.crib);
-        const strings = this.buildNihilistSequenceSets(
+        const strings = this.buildCheckerboardSequenceSets(
             this.minimizeString(this.state.cipherString),
             9999,
             0,
+            undefined,
             true
         );
         if (strings.length !== 1) {
@@ -662,7 +455,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         this.isLoading = false;
 
-        this.genNihilistSolution(testType, result);
+        this.genCheckerboardSolution(testType, result);
 
         return result;
     }
@@ -702,7 +495,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             }
         }
 
-        if (this.state.blocksize != this.cleanKeyword.length) {
+        if (this.state.blocksize != this.cleanRowKeyword.length) {
             blockSizeMatchesText = ' The block size does not match the keyword length. ';
             suggested += 15;
         }
@@ -712,9 +505,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             suggested -= 25;
         }
 
-        keywordLengthText = ` The key has length ${this.cleanKeyword.length}. `;
+        keywordLengthText = ` The key has length ${this.cleanRowKeyword.length}. `;
         // Add more  points for larger keywords...
-        suggested += Math.round((10 * (this.cleanKeyword.length / 3)));
+        suggested += Math.round((10 * (this.cleanRowKeyword.length / 3)));
 
         if (this.cleanPolyKey.indexOf('Z') !== -1) {
             zNotLastText = ` The letter 'Z' is not the last letter in the polybius square so we add 10 points. `;
@@ -754,7 +547,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.setOperation(this.state.operation);
         this.setCipherType(this.state.cipherType);
         this.setBlocksize(this.state.blocksize);
-        this.setSolverKeyLength(this.state.solverKeyLength);
     }
     /**
      * Update the output based on current state settings.  This propagates
@@ -763,18 +555,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public updateOutput(): void {
         this.showLengthStatistics();
         if (this.state.operation !== 'crypt') {
-            this.guidanceURL = 'TestGuidance.html#Nihilist';
+            this.guidanceURL = 'TestGuidance.html#Checkerboard';
             $('.crib').hide();
         } else {
-            this.guidanceURL = 'TestGuidance.html#Nihilist_Cryptanalysis';
+            this.guidanceURL = 'TestGuidance.html#Checkerboard_Cryptanalysis';
             $('.crib').show();
         }
-        JTRadioButtonSet('ciphertype', this.state.cipherType);
-        JTRadioButtonSet('operation', this.state.operation);
+        JTRadioButtonSet('ciphertype', this.state.cipherType)
+        JTRadioButtonSet('operation', this.state.operation)
+        $('#keyword2').val(this.state.keyword2)
         $('#blocksize').val(this.state.blocksize)
         $('#polybiuskey').val(this.state.polybiusKey)
         $('#crib').val(this.state.crib);
-        $('#solverkeylength').val(this.state.solverKeyLength);
         super.updateOutput();
     }
     /**
@@ -810,15 +602,31 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             )
         );
 
-        const suggestButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestkey" }).text("Suggest Keyword")
-        result.append(
+        const divkey = $("<div\>", { class: "grid-x margin-x colrow" })
+        result.append(divkey)
+
+        const suggestButton = $('<a/>', { type: "button", class: "button primary tight", id: "suggestkey" }).text("Suggest Row")
+        divkey.append(
             JTFLabeledInput(
-                'Keyword',
+                'Row Keyword',
                 'text',
                 'keyword',
                 this.state.keyword,
-                'small-12 medium-12 large-12',
+                'small-12 medium-5 large-5',
                 suggestButton
+            )
+        );
+        divkey.append($('<div/>', { class: 'medium-1 large-1' }))
+
+        const suggest2Button = $('<a/>', { type: "button", class: "button primary tight", id: "suggestkey2" }).text("Suggest Column")
+        divkey.append(
+            JTFLabeledInput(
+                'Column Keyword',
+                'text',
+                'keyword2',
+                this.state.keyword2,
+                'small-12 medium-6 large-6',
+                suggest2Button
             )
         );
 
@@ -842,21 +650,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         return result;
     }
-
-
     public setBlocksize(blocksize: number): boolean {
         let changed = false;
         if (this.state.blocksize !== blocksize) {
             this.state.blocksize = blocksize;
-            changed = true;
-        }
-        return changed;
-    }
-
-    public setSolverKeyLength(solverKeyLength: number): boolean {
-        let changed = false;
-        if (this.state.solverKeyLength !== solverKeyLength) {
-            this.state.solverKeyLength = solverKeyLength;
             changed = true;
         }
         return changed;
@@ -868,70 +665,85 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     */
     public encodePolybius(c1: string, c2: string): string {
 
-        let num1 = Number(this.getNumFromPolybiusMap(c1));
-        let num2 = Number(this.getNumFromPolybiusMap(c2));
+        let num1 = Number(this.polybiusMap.get(c1));
+        let num2 = Number(this.polybiusMap.get(c2));
 
         let result = (num1 + num2).toString();
 
         return result;
     }
 
-    /*
-        This method returns a Map object which maps a character (key) to 
-        its corresponding number, based on the polybius table row/column.
-    */
-    public buildPolybiusMap(): Map<string, string> {
-
+    /**
+     * This returns a Map object which maps a character (key) to 
+     * its corresponding ciphertext, based on the polybius table row/column.
+     * @param rowKeyword Optional keyword to override the problem Row Keyword
+     * @param colKeyword Optional keyword to override the problem Column Keyword
+     * @returns A mapping from the plaintext to the ciphertext
+     */
+    public buildPolybiusMap(rowKeyword?: string, colKeyword?: string): Map<string, string> {
         const polybiusMap = new Map<string, string>();
 
-        let preKey = this.cleanPolyKey.toUpperCase();
-
-        preKey = this.minimizeString(preKey);
-
+        if (rowKeyword === undefined) {
+            rowKeyword = this.cleanRowKeyword
+        }
+        if (colKeyword === undefined) {
+            colKeyword = this.cleanColKeyword
+        }
+        // Step 1: Prepare the character sequence
+        let preKey = this.minimizeString(this.cleanPolyKey.toUpperCase()) + this.charset;
         //in the behind the scenes, we treat the map/tables as if 'J' doesn't exist and there's only I.
         //if J appears in any user input, we manually convert it to I
         //later on we will deal with the I converting to I/J (namely in buildpolybius table method)
-        preKey = preKey.replace('J', 'I')
-        let sequence = '';
-        //get rid of duplicates
+        preKey = preKey.replace(/J/g, 'I'); // Normalize 'J' to 'I'
+        const sequence = this.undupeString(preKey); // Remove duplicates
 
-        //add the unduped key to the polybius sequnece
-        sequence += this.undupeString(preKey);
-
-        //again pretending the J doesn't exist
-        let polybiusCharset = this.charset.replace('J', '');
-
-        //add remaining chars in alphabet to the polybius sequence
-        for (const ch of polybiusCharset) {
-            if (sequence.indexOf(ch) < 0) {
-                sequence += ch;
-            }
-        }
-
-
+        // Step 2: Build the Polybius map
         for (let i = 0; i < sequence.length; i++) {
-            let row = Math.floor(i / 5) + 1;
-            let col = i % 5 + 1;
+            const keyChar = sequence[i];
 
-            let key = sequence.substring(i, i + 1)
-            polybiusMap.set(key, "" + row + col);
+            const row = Math.floor(i / 5);
+            const col = i % 5;
+
+            const rowChar = rowKeyword[row] ?? '?';
+            const colChar = colKeyword[col] ?? '?';
+
+            polybiusMap.set(keyChar, rowChar + colChar);
         }
+        // Make it convenient to look up both I and J since they produce the same result
+        polybiusMap.set('J', polybiusMap.get('I'))
 
         return polybiusMap;
-
     }
-
-    public setPolybiusKey(polybiusKey: string): boolean {
-        let changed = false;
-        if (this.state.polybiusKey !== polybiusKey) {
-            this.state.polybiusKey = polybiusKey;
-            changed = true;
-        }
-        return changed;
+    /**
+     * Build a reverse table to look up cipher text characters
+     * @param rowKeyword Optional keyword to override the problem Row Keyword
+     * @param colKeyword Optional keyword to override the problem Column Keyword
+     * @returns a Mapping from a ciper text character to a plaintext
+     */
+    public buildReversePolybiusMap(rowKeyword?: string, colKeyword?: string): StringMap {
+        return this.getReversePolybiusMap(this.buildPolybiusMap(rowKeyword, colKeyword));
     }
 
     /**
-     * This method returns an array of 'sequencesets', which contains all the information of a nihilist problem,
+     * Generate a reverse table to map a cipher text to the plain text
+     * @param pbMap Forward map to process
+     * @returns A maping from a cipher text character to a plaintext
+     */
+    public getReversePolybiusMap(pbMap: Map<string, string>) {
+        const revRepl: StringMap = {};
+        Array.from(pbMap.entries()).forEach(([key, value]) => {
+            if (revRepl[value] === undefined) {
+                revRepl[value] = key;
+            }
+            else {
+                revRepl[value] += '/' + key;
+            }
+        });
+        return revRepl;
+    }
+
+    /**
+     * This method returns an array of 'sequencesets', which contains all the information of a Checkerboard problem,
      * such as the cipher string, mapped cipher string, mapped key, mapped answer, etc. These are all different arrays, or sequences,
      * containing either a character or a number. Such as ['35', '56', 78'] or ['K', 'E', 'Y']. These sequences should all be the
      * same length. If the sequence ever exceeds the maxencodewidth, then it will create another sequenceset for the next chunk of
@@ -940,62 +752,41 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param maxEncodeWidth The maximum length of a line to encode
      * @param maxEncodeWidthExtra How much more can be on the second and subsequent lines
      * @param unChunked Don't chunk the content
-     * @returns 
+     * @returns string[][][] where the first level if the collections of lines, the second level is [Ciphertext][plaintext] and the last level are the individual symbols
      */
-    public buildNihilistSequenceSets(
+    public buildCheckerboardSequenceSets(
         msg: string,
         maxEncodeWidth: number,
         maxEncodeWidthExtra: number = 5,
-        unChunked: boolean = false
+        polybiusMap?: Map<string, string>,
+        unChunked: boolean = false,
     ): string[][][] {
-        let key = this.cleanKeyword
-        if (key === '') {
-            key = 'A';
-        }
         const encoded = unChunked ? msg : this.chunk(msg, this.state.blocksize);
         const result: string[][][] = [];
         const charset = this.getCharset();
         let cipher = [];
         let message = [];
-        let mappedKey = [];
-        let mappedMessage = [];
-        let plainKey = [];
         const msgLength = encoded.length;
-        const keyLength = key.length;
-        let keyIndex = 0;
         let lastSplit = -1;
+        if (polybiusMap === undefined) {
+            polybiusMap = this.polybiusMap
+        }
 
         for (let i = 0; i < msgLength; i++) {
             //messagechar is the current character in the encoded string
-            const messageChar = encoded.substring(i, i + 1).toUpperCase();
-            if (messageChar == 'J') {
-                messageChar
-            }
+            let messageChar = encoded.substring(i, i + 1).toUpperCase();
+            // if (messageChar == 'J') {
+            //     messageChar = 'I'
+            // }
+            message.push(messageChar);
             const m = charset.indexOf(messageChar);
             if (m >= 0) {
-                //keychar is the current character in the key string
-                let keyChar = key.substring(keyIndex, keyIndex + 1).toUpperCase();
-
-                mappedKey.push(this.getNumFromPolybiusMap(keyChar));
-                message.push(messageChar);
-
-                mappedMessage.push(this.getNumFromPolybiusMap(messageChar));
                 //cipher is the text we are decoding/encoding into
-                cipher.push(this.encodePolybius(messageChar, keyChar));
-
-                plainKey.push(keyChar)
-
-                keyIndex = (keyIndex + 1) % keyLength;
-
+                cipher.push(polybiusMap.get(messageChar));
             } else {
                 //if the current character in encoded message is not found in charset, then don't modify it (such as w/ punctuation)
                 //directly push it onto the arrays
-                message.push(messageChar);
                 cipher.push(messageChar);
-                mappedKey.push(messageChar);
-                mappedMessage.push(messageChar);
-                plainKey.push(messageChar)
-                lastSplit = cipher.length;
                 continue;
             }
             if (message.length >= maxEncodeWidth) {
@@ -1005,28 +796,19 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 */
                 if (lastSplit === -1) {
                     //if no last split exists, we'll push the entire line and start over on the next line
-                    result.push([cipher, message, mappedKey, mappedMessage, plainKey]);
+                    result.push([cipher, message]);
                     message = [];
                     cipher = [];
-                    mappedKey = [];
-                    mappedMessage = [];
-                    plainKey = [];
                     lastSplit = -1;
                 } else {
                     //if there is a last split, we want to separate the new lines at this point
                     const messagePart = message.slice(0, lastSplit);
                     const cipherPart = cipher.slice(0, lastSplit);
-                    const mappedKeyPart = mappedKey.slice(0, lastSplit);
-                    const mappedMessagePart = mappedMessage.slice(0, lastSplit);
-                    const plainKeyPart = plainKey.slice(0, lastSplit);
 
                     //this next line will continue, having the remaining text after the split
                     message = message.slice(lastSplit);
                     cipher = cipher.slice(lastSplit);
-                    mappedKey = mappedKey.slice(lastSplit);
-                    mappedMessage = mappedMessage.slice(lastSplit);
-                    plainKey = plainKey.slice(lastSplit);
-                    result.push([cipherPart, messagePart, mappedKeyPart, mappedMessagePart, plainKeyPart]);
+                    result.push([cipherPart, messagePart]);
                 }
                 if (result.length === 2) {
                     maxEncodeWidth += maxEncodeWidthExtra
@@ -1035,7 +817,81 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         //push the remaining left messages onto a new line
         if (message.length > 0) {
-            result.push([cipher, message, mappedKey, mappedMessage, plainKey]);
+            result.push([cipher, message]);
+        }
+
+        /* the result is an array of arrays of arrays - the large array contains all the lines (arrays) that the entire text is
+            separated into. each line contains 4 arrays, each a char array of the info to appear on each subline*/
+        return result;
+    }
+
+    public buildDecodeSequenceSets(
+        msg: string,
+        maxEncodeWidth: number,
+        polybiusMap?: Map<string, string>,
+        maxEncodeWidthExtra: number = 5
+    ): string[][][] {
+        const encoded = this.chunk(msg, this.state.blocksize);
+        const result: string[][][] = [];
+        const charset = this.getCharset();
+        let cipher = [];
+        let message = [];
+        const msgLength = encoded.length;
+        let lastSplit = -1;
+        if (polybiusMap === undefined) {
+            polybiusMap = this.polybiusMap
+        }
+        const pbReverse = this.getReversePolybiusMap(polybiusMap)
+
+        for (let i = 0; i < msgLength; i++) {
+            //messagechar is the current character in the encoded string
+            let messageChar = encoded[i].toUpperCase();
+            const m = charset.indexOf(messageChar);
+            if (m >= 0) {
+                const ct = polybiusMap.get(messageChar)
+                const pt = pbReverse[ct]
+                if (pt !== undefined) {
+                    messageChar = pt
+                }
+                //cipher is the text we are decoding/encoding into
+                message.push(messageChar)
+                cipher.push(ct);
+            } else {
+                //if the current character in encoded message is not found in charset, then don't modify it (such as w/ punctuation)
+                //directly push it onto the arrays
+                message.push(messageChar);
+                cipher.push(messageChar);
+                continue;
+            }
+            if (message.length >= maxEncodeWidth) {
+                /*
+                    last split refers to the last index in which a non-charset key appeared in the message. 
+                    this creates a 'split' in the text, a place where we want to separate lines at
+                */
+                if (lastSplit === -1) {
+                    //if no last split exists, we'll push the entire line and start over on the next line
+                    result.push([cipher, message]);
+                    message = [];
+                    cipher = [];
+                    lastSplit = -1;
+                } else {
+                    //if there is a last split, we want to separate the new lines at this point
+                    const messagePart = message.slice(0, lastSplit);
+                    const cipherPart = cipher.slice(0, lastSplit);
+
+                    //this next line will continue, having the remaining text after the split
+                    message = message.slice(lastSplit);
+                    cipher = cipher.slice(lastSplit);
+                    result.push([cipherPart, messagePart]);
+                }
+                if (result.length === 2) {
+                    maxEncodeWidth += maxEncodeWidthExtra
+                }
+            }
+        }
+        //push the remaining left messages onto a new line
+        if (message.length > 0) {
+            result.push([cipher, message]);
         }
 
         /* the result is an array of arrays of arrays - the large array contains all the lines (arrays) that the entire text is
@@ -1049,9 +905,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param fillString Which letters 
      * @param solverData Current solver data state
      */
-    public showPolybiusTable(target: JQuery<HTMLElement>, center: boolean, fillString: string, solverData?: NihilistSolverData): void {
+    public showPolybiusTable(target: JQuery<HTMLElement>, center: boolean, fillString: string, solverData?: CheckerboardSolverData): void {
         const knownCheck = fillString.toUpperCase()
         let polyClass = 'polybius-square unstriped'
+        let rowKeyword = this.cleanRowKeyword
+        let colKeyword = this.cleanColKeyword
+        if (solverData !== undefined) {
+            rowKeyword = solverData.rowKeyword + "?????"
+            colKeyword = solverData.colKeyword + "?????"
+        }
 
         if (center) {
             polyClass += ' center'
@@ -1064,23 +926,23 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const top = worktable.addHeaderRow()
         top.add('')
         for (let i = 1; i <= 5; i++) {
-            top.add(String(i))
+            top.add(colKeyword[i - 1] ?? '?')
         }
 
         let mainIndex = 0;
-        for (let tens = 1; tens <= 5; tens++) {
+        for (let rowPos = 0; rowPos < 5; rowPos++) {
             const keyrow = worktable.addBodyRow({ class: "k" })
             const row = worktable.addBodyRow({ class: "b" })
             keyrow.add({
                 celltype: 'th',
-                content: `${tens}`,
+                content: `${rowKeyword[rowPos] ?? '?'}`,
                 settings: { rowspan: 2 }
             })
 
             //get an array of the keys of the polybius map
             let polybiusSequence = Array.from(this.polybiusMap.keys());
-            for (let ones = 1; ones <= 5; ones++) {
-                const spot = `${tens}${ones}`
+            for (let colPos = 0; colPos < 5; colPos++) {
+                const spot = `${rowPos}${colPos}`
                 // Figure out if this is a potential Keyword placement
                 let mapC = " "
                 if (knownCheck.includes(polybiusSequence[mainIndex].toUpperCase())) {
@@ -1092,34 +954,34 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     }
                 } else {
                     // Show them all the possibile letters that can fill the spot
-                    if (solverData !== undefined) {
-                        let lastLet = ''
-                        let startLet = ''
-                        let extra = ''
-                        mapC = ''
-                        solverData.polybius.get(spot).forEach((v) => {
-                            if (lastLet !== '') {
-                                if (lastLet.charCodeAt(0) + 1 !== v.charCodeAt(0)) {
-                                    if (startLet !== '') {
-                                        mapC += extra + startLet + '-'
-                                        extra = ''
-                                        startLet = ''
-                                    }
-                                    mapC += extra + lastLet
-                                    extra = '|'
-                                    lastLet = v
-                                } else {
-                                    if (startLet === '') {
-                                        startLet = lastLet
-                                    }
-                                }
-                            }
-                            lastLet = v
-                        })
-                        if (startLet !== '') {
-                            mapC += extra + startLet + '-' + lastLet
-                        }
-                    }
+                    // if (solverData !== undefined) {
+                    //     let lastLet = ''
+                    //     let startLet = ''
+                    //     let extra = ''
+                    //     mapC = ''
+                    //     solverData.polybius.get(spot).forEach((v) => {
+                    //         if (lastLet !== '') {
+                    //             if (lastLet.charCodeAt(0) + 1 !== v.charCodeAt(0)) {
+                    //                 if (startLet !== '') {
+                    //                     mapC += extra + startLet + '-'
+                    //                     extra = ''
+                    //                     startLet = ''
+                    //                 }
+                    //                 mapC += extra + lastLet
+                    //                 extra = '|'
+                    //                 lastLet = v
+                    //             } else {
+                    //                 if (startLet === '') {
+                    //                     startLet = lastLet
+                    //                 }
+                    //             }
+                    //         }
+                    //         lastLet = v
+                    //     })
+                    //     if (startLet !== '') {
+                    //         mapC += extra + startLet + '-' + lastLet
+                    //     }
+                    // }
                 }
                 let annotations: string[] = []
                 if (solverData !== undefined && solverData.kwAnnotations.get(spot) !== undefined) {
@@ -1143,7 +1005,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param solverData Current solver data state
      * @returns Number of new letters found
      */
-    public fillLetterGaps(target: JQuery<HTMLElement>, solverData: NihilistSolverData): number {
+    public fillLetterGaps(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData): number {
         const minPolybiusLen = 3
         let found = 0
         let polySequence: string[] = makeFilledArray(25, undefined)
@@ -1243,7 +1105,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * Propagate the polybius choices to the charMap values
      * @param solverData Current solver data state
      */
-    public updateCharMap(solverData: NihilistSolverData): void {
+    public updateCharMap(solverData: CheckerboardSolverData): void {
         // Initialize them to empty
         for (const c of this.charset.replace('J', '')) {
             solverData.charMap.set(c, [])
@@ -1263,7 +1125,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param spot Position for known character
      * @param char Character
      */
-    public setPolybiusChoices(solverData: NihilistSolverData, choices: string[], char: string) {
+    public setPolybiusChoices(solverData: CheckerboardSolverData, choices: string[], char: string) {
         solverData.polybius.forEach((val: string[], slot: string) => {
             if (choices.includes(slot)) {
                 if (choices.length === 1) {
@@ -1289,7 +1151,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param spot Position for known character
      * @param char Character
      */
-    public setPolybiusKnown(solverData: NihilistSolverData, setSlot: string, char: string) {
+    public setPolybiusKnown(solverData: CheckerboardSolverData, setSlot: string, char: string) {
         this.setPolybiusChoices(solverData, [setSlot], char)
         // solverData.charMap.set(char, [setSlot])
         // Check to see if we updated one of the keywords and adjust the annotation data for it
@@ -1309,7 +1171,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param kwindex Which keyword we are setting data for
      * @param valid Array of known valid spots
      */
-    public setKWAnnotations(solverData: NihilistSolverData, kwindex: number, valid: string[]): void {
+    public setKWAnnotations(solverData: CheckerboardSolverData, kwindex: number, valid: string[]): void {
         if (valid === undefined || valid.length === 0) {
             console.log(`setKWAnnotations: Bad valid setting for ${kwindex}`)
             return;
@@ -1374,7 +1236,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
             if (valid) {
                 // console.log(`Matches ${word}`)
-                if (word.toUpperCase() === this.cleanKeyword) {
+                if (word.toUpperCase() === this.cleanRowKeyword) {
                     foundKeyword = true
                 }
                 found++
@@ -1400,7 +1262,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     }
 
                     if (valid) {
-                        if (word.toUpperCase() === this.cleanKeyword) {
+                        if (word.toUpperCase() === this.cleanRowKeyword) {
                             foundKeyword = true
                         }
                         found++
@@ -1424,7 +1286,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const table = new JTTable({ class: 'potential-keyword center unstriped' })
         const headerRow = table.addHeaderRow({ class: 'solve' });
 
-        for (let i = 0; i < this.cleanKeyword.length; i++) {
+        for (let i = 0; i < this.cleanRowKeyword.length; i++) {
             headerRow.add(`K${i + 1}`)
         }
 
@@ -1453,7 +1315,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param solverData Current state of the solution
      * @returns 
      */
-    public getKeywordPossibilities(solverData: NihilistSolverData): string[][] {
+    public getKeywordPossibilities(solverData: CheckerboardSolverData): string[][] {
         let possibilities: string[][] = [];
 
         for (let i = 0; i < solverData.tens.length; i++) {
@@ -1483,7 +1345,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * Generate a quick list of all the known characters
      * @param solverData Current solver data state (Updated)
      */
-    public getKnownPolybius(solverData: NihilistSolverData): string {
+    public getKnownPolybius(solverData: CheckerboardSolverData): string {
         let knownChars = ""
 
         solverData.polybius.forEach((subs: string[]) => {
@@ -1495,31 +1357,21 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
     /*
-        This method builds the nihilist sequenceset tables as well as the polybius square.
+        This method builds the Checkerboard sequenceset tables as well as the polybius square.
     */
-    public buildNihilist(state: string): JQuery<HTMLElement> {
-
-        //make sure J isn't used anywhere in plaintext/polykey/basekey
-        // if (this.containsJ()) {
-        //     return $('<div/>').text("The letter 'J' can not be used anywhere in the polybius key, base key, or plain text.");
-        // }
+    public buildCheckerboard(operationType: IOperationType, sequencesets?: string[][][]): JQuery<HTMLElement> {
 
         const result = $('<div/>');
-        let key = this.cleanKeyword
+        let key = this.cleanRowKeyword
         let emsg = '';
         let order = [];
         //indices guide:
         // 0 = ciphertext numbers
         // 1 = plaintext
-        // 2 = mapped key numbers
-        // 3 = mapped plaintext numbers
-        // 4 = non-mapped key letters
-        if (state === 'decode') {
-            order = [[2, "minor"], [3, "minor"], [0, "solve bar"], [1, "ans"]];
-        } else if (state === 'encode') {
-            order = [[1, "solve"], [2, "minor"], [3, "minor"], [0, "ans bar"]];
+        if (operationType === 'encode') {
+            order = [[1, "minor"], [0, "ans bar"]];
         } else {
-            order = [[2, "minor"], [3, "minor"], [0, "solve bar"], [1, "ans"]];
+            order = [[0, "minor"], [1, "ans"]];
         }
 
         // Check to make sure that they provided a Key
@@ -1534,7 +1386,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         // If we are doing Cryptanalysis, we need the Crib text
         emsg = '';
-        if (this.state.operation === 'crypt') {
+        if (operationType === 'crypt') {
             const crib = this.minimizeString(this.state.crib).toUpperCase();
             const plaintext = this.minimizeString(this.state.cipherString).toUpperCase();
             if (crib === '') {
@@ -1545,9 +1397,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         this.setErrorMsg(emsg, 'vcrib');
 
-        const sequencesets = this.sequencesets
+        if (sequencesets === undefined) {
+            sequencesets = this.sequencesets
+        }
 
-        const table = $('<table/>', { class: 'nihilist' });
+        const table = $('<table/>', { class: 'Checkerboard' });
 
         for (const sequenceset of sequencesets) {
             for (const pair of order) {
@@ -1574,9 +1428,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
     /*
-        This method builds the HTML for nihilist sequenceset tables in the solver. 
+        This method builds the HTML for Checkerboard sequenceset tables in the solver. 
     */
-    public buildSolverNihilist(msg: string, unknownkeylength: string, state: string): JQuery<HTMLElement> {
+    public buildSolverCheckerboard(msg: string, unknownkeylength: string, state: string): JQuery<HTMLElement> {
 
         //indices guide:
         // 0 = ciphertext numbers
@@ -1592,13 +1446,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         let order = [];
         if (state === 'keystring') {
-            order = [[0, "solve"], [4, "ans"]];
+            order = [[0, "solve"], [1, "ans"]];
         } else if (state === 'keynumbers') {
-            order = [[0, "solve"], [2, "ans"]];
+            order = [[0, "solve"], [1, "ans"]];
         } else if (state === 'plaintextnumbers') {
-            order = [[0, "solve"], [2, "solve"], [3, "ans bar"]]
+            order = [[0, "solve"], [1, "ans bar"]]
         } else if (state === 'plaintext') {
-            order = [[0, "solve"], [2, "solve"], [1, "ans bar"]]
+            order = [[0, "solve"], [1, "ans bar"]]
         } else if (state === 'unknownkey') {
             order = [[unknownkeylength, "ans"], [0, "solve"]];
         } else if (state === 'k1example') {
@@ -1607,7 +1461,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         const sequencesets = this.sequencesets
 
-        const table = $('<table/>', { class: 'nihilist center' });
+        const table = $('<table/>', { class: 'Checkerboard center' });
 
         let validIndex = 1;
         for (const sequenceset of sequencesets) {
@@ -1723,10 +1577,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param showKeyword Show the keyword letters (default = true) or just K1, K2,... for the key position
      * @returns General score of the problem
      */
-    public showCurrentSolution(target: JQuery<HTMLElement>, solverData: NihilistSolverData, showKeyword: boolean = true): number {
+    public showCurrentSolution(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData, showKeyword: boolean = true): number {
 
         const keywordLength = solverData.keyword.length
-        const bigTable = new JTTable({ class: 'nihilist center' })
+        const bigTable = new JTTable({ class: 'Checkerboard center' })
         const sequencesets = this.sequencesets
 
         //k is serving as a running count of valid characters. this is used for lining up the keyword. for example D O N ' T would map to K1 K2 K3 _ K4
@@ -1768,7 +1622,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     const kpos = k % keywordLength
                     // We have a cipher text character.
                     if (k >= cribStart && k < cribEnd) {
-                        const ptC = plaintext[i]
                     }
                     // Should we show the letters of the keyword (because it is known) or
                     // just K1, K2, ... indicating the position in the keyword
@@ -1855,7 +1708,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param onesDigit look at the ones digit (true) vs the tens digit
      * @returns Mapping of the digit usage
      */
-    public buildCountArray(keywordLength: number, onesDigit: boolean): NihilistSolverMappings {
+    public buildCountArray(keywordLength: number, onesDigit: boolean): CheckerboardSolverMappings {
 
         let keywordArray = [];
 
@@ -1904,7 +1757,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param countArray The count array to use
      * @param isK1Example 
      */
-    public showCountTable(target: JQuery<HTMLElement>, countArray: NihilistSolverMappings, tableType: TableType): void {
+    public showCountTable(target: JQuery<HTMLElement>, countArray: CheckerboardSolverMappings, tableType: TableType): void {
 
         const table = new JTTable({
             class: 'polybius-square center',
@@ -1987,7 +1840,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param target DOM element to put the output into
      * @param solverData Current solver data state (Updated)
      */
-    public fillMatchedKeywordChars(target: JQuery<HTMLElement>, solverData: NihilistSolverData): void {
+    public fillMatchedKeywordChars(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData): void {
         const keywordLength = solverData.keyword.length
         const sequencesets = this.sequencesets
 
@@ -2104,7 +1957,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param kPos Keyword entry to get
      * @returns Array of all possible slots for the keyword index
      */
-    public getKwChoices(solverData: NihilistSolverData, kPos: number): string[] {
+    public getKwChoices(solverData: CheckerboardSolverData, kPos: number): string[] {
         const kwChoices: string[] = []
         const kText = `K${kPos + 1}`
 
@@ -2120,7 +1973,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param target DOM element to put the output into
      * @param solverData Current solver data state (Updated)
      */
-    public fillKeyWord(target: JQuery<HTMLElement>, solverData: NihilistSolverData): boolean {
+    public fillKeyWord(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData): boolean {
         let changed = false
         for (let kpos = 0; kpos < solverData.keyword.length; kpos++) {
             const c = solverData.keyword.charAt(kpos)
@@ -2192,13 +2045,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
         if (this.state.operation != 'crypt') {
-            const keyword = this.genMonoText(this.cleanKeyword);
+            // const keyword = this.genMonoText(this.cleanKeyword);
+            // const keyword2 = this.genMonoText(this.cleanKeyword2);
             const polybiusKey = this.genMonoText(this.cleanPolyKey);
-            operationtext2 += ` with a keyword of ${keyword} and polybius key of ${polybiusKey}`;
-        }
-        else {
-            const keyword = this.cleanKeyword;
-            operationtext2 += ` with a keyword length of ${keyword.length}`;
+            operationtext2 += ` with a polybius key of ${polybiusKey}`;
         }
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
 
@@ -2209,7 +2059,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param target DOM element to put the output into
      * @param solverData Current solver data state (Updated)
      */
-    public checkForCribHints(target: JQuery<HTMLElement>, solverData: NihilistSolverData): boolean {
+    public checkForCribHints(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData): boolean {
         let changed = false
         const keywordLength = solverData.keyword.length
         const sequencesets = this.sequencesets
@@ -2344,7 +2194,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param target DOM element to put the output into
      * @param solverData Current solver data state
      */
-    public showPossibleKeywordMappings(target: JQuery<HTMLElement>, solverData: NihilistSolverData, showKeyvalue: boolean = false): void {
+    public showPossibleKeywordMappings(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData, showKeyvalue: boolean = false): void {
 
         const table = new JTTable({ class: 'potential-keyword center unstriped' });
         const headerRow = table.addHeaderRow({ class: 'solve' })
@@ -2416,7 +2266,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param countArray 
      * @returns 
      */
-    public findKeywordMappings(countArray: NihilistSolverMappings): NihilistSolverMappings {
+    public findKeywordMappings(countArray: CheckerboardSolverMappings): CheckerboardSolverMappings {
 
         let array = [];
 
@@ -2456,19 +2306,37 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
 
     /**
-     * Loads up the values for Nihilist
+     * Loads up the values for Checkerboard
      */
     public load(): void {
-        const encoded = this.chunk(this.cleanString(this.state.cipherString), this.state.blocksize);
-        this.cleanKeyword = this.minimizeString(this.cleanString(this.state.keyword)).toUpperCase()
-        this.cleanPolyKey = this.minimizeString(this.cleanString(this.state.polybiusKey)).toUpperCase()
-        this.polybiusMap = this.buildPolybiusMap();
-        this.sequencesets = this.buildNihilistSequenceSets(encoded, this.maxEncodeWidth);
-
+        this.setKeyword(this.state.keyword)
+        this.setKeyword2(this.state.keyword2)
+        this.setPolybiusKey(this.state.polybiusKey)
         this.clearErrors();
         this.validateQuestion();
 
-        let res = this.buildNihilist(this.state.operation);
+        let emsg = ''
+
+        if (this.cleanRowKeyword.length !== 5) {
+            emsg += ' The Row Keyword must be exactly 5 letters long.';
+        }
+        if (this.cleanColKeyword.length !== 5) {
+            emsg += ' The Column Keyword must be exactly 5 letters long.';
+        }
+        if (this.cleanPolyKey.length < 2) {
+            emsg += ' The Polybius Keyword must be at least 2 letters long.';
+        }
+        if (emsg != '') {
+            this.setErrorMsg(emsg, 'vkey');
+            $('#answer').empty()
+            return;
+        }
+
+        const encoded = this.chunk(this.cleanString(this.state.cipherString), this.state.blocksize);
+        this.polybiusMap = this.buildPolybiusMap();
+        this.sequencesets = this.buildCheckerboardSequenceSets(encoded, this.maxEncodeWidth);
+
+        let res = this.buildCheckerboard(this.state.operation);
         $('#answer')
             .empty()
             .append(res);
@@ -2479,7 +2347,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .append('<hr/>')
             .append($('<h3/>').text('How to solve'));
         if (encoded.length > 0) { //&& !this.containsJ()) {
-            this.genNihilistSolution(ITestType.None, target)
+            this.genCheckerboardSolution(ITestType.None, target)
         } else {
             target.append("Enter a valid question to see the solution process.")
         }
@@ -2491,10 +2359,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param answer - the array of characters from the interactive test.
      */
     public genScore(answer: string[]): IScoreInformation {
-        const strings = this.buildNihilistSequenceSets(
-            this.state.cipherString,
-            40
-        );
+        const strings = this.buildCheckerboardSequenceSets(this.state.cipherString, 40);
         let dest = 1;
         if (this.state.operation === 'encode') {
             dest = 0;
@@ -2523,7 +2388,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         return { width, extraclass };
     }
+    public getReverseReplacement(): StringMap {
+        const revRepl: StringMap = {};
 
+        const pbMap = this.buildPolybiusMap();
+
+        Array.from(pbMap.entries()).forEach(([key, value]) => {
+            revRepl[key] = value;
+        })
+        return revRepl;
+    }
     /**
      * Generate the HTML to display the answer for a cipher
      */
@@ -2531,10 +2405,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const result = $('<div/>', { class: 'grid-x' });
         const { width } = this.getTestWidth(testType);
 
-        const strings = this.buildNihilistSequenceSets(
-            this.state.cipherString,
-            width
-        );
+        const strings = this.buildCheckerboardSequenceSets(this.state.cipherString, width);
 
         let source = 0;
         let dest = 1;
@@ -2576,11 +2447,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         return result;
     }
     /**
-     * Generate a solution for the Nihilist cipher
+     * Generate a solution for the Checkerboard cipher
      * @param _testType Type of test we are generating the output for
      * @param target DOM element to put the output into
      */
-    public async genNihilistSolution(_testType: ITestType, target: JQuery<HTMLElement>) {
+    public async genCheckerboardSolution(testType: ITestType, target: JQuery<HTMLElement>) {
         // If we are already in the process of loading then we need to request that
         // the loading process stop instead of starting it again.
         // Note that when the stop is processed it will trigger starting the load
@@ -2591,7 +2462,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         this.setErrorMsg('', 'si',);
         // Make sure we have a Polybius key and a keyword before going on
-        if (this.minimizeString(this.cleanKeyword) === '' || this.cleanPolyKey === '') {
+        if (this.minimizeString(this.cleanRowKeyword) === '' || this.cleanPolyKey === '') {
             return
         }
         if (this.state.operation === 'crypt') {
@@ -2603,15 +2474,15 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         this.stopGenerating = false;
         this.isLoading = true
-        if (this.state.operation === 'crypt') {
-            this.loadLanguageDictionary(this.state.curlang).then(() => {
+        this.loadLanguageDictionary(this.state.curlang).then(() => {
+            if (this.state.operation === 'crypt') {
                 this.genCryptanalysisSolution(target);
-            })
-        } else if (this.state.operation === 'decode') {
-            this.genDecodeSolution(target);
-        } else {
-            this.genEncodeSolution(target);
-        }
+            } else if (this.state.operation === 'decode') {
+                this.genDecodeSolution(testType, target);
+            } else {
+                this.genEncodeSolution(target);
+            }
+        })
 
         // See if they requested an abort to restart the operation before we finish
         if (await this.restartCheck()) { return }
@@ -2639,124 +2510,402 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         }
         return false
     }
+
+    public gatherLetters(sequencesets: string[][][]) {
+        let rowLetters = ""
+        let colLetters = ""
+        for (const ct of sequencesets[0][0]) {
+            if (ct.length === 2) {
+                rowLetters += ct[0]
+                colLetters += ct[1]
+            }
+        }
+        return [this.undupeString(rowLetters), this.undupeString(colLetters)]
+    }
+    public encodeFixed(val: string): JQuery<HTMLElement> {
+        return $('<span/>', { class: 'hl' }).text(val)
+    }
+
+    public canonicalForm(s: string): string {
+        return s.split('').sort().join('')
+    }
+
+    public findAnagrams(val: string, len: number): string[] {
+        const target = this.canonicalForm(val);
+        const found: string[] = []
+
+        let entries = Object.keys(this.Frequent['en'])
+            .filter(key => key.length === len && !key.includes("'"));
+
+        if (target.length === len) {
+            outer: for (const pat of entries) {
+                for (const entry of this.Frequent['en'][pat]) {
+                    if (this.canonicalForm(entry[0]) === target) {
+                        found.push(entry[0])
+                        if (found.length > 12) {
+                            break outer;
+                        }
+                    }
+                }
+            }
+        } else {
+            outer: for (const pat of entries) {
+                for (const entry of this.Frequent['en'][pat]) {
+                    if (this.canonicalForm(this.undupeString(entry[0])) === target) {
+                        found.push(entry[0])
+                        if (found.length > 12) {
+                            break outer;
+                        }
+                    }
+                }
+            }
+        }
+        return found
+    }
+    public showHeaderOptions(headerLetters: string, headerType: string, result: JQuery<HTMLElement>): string[] {
+        let headerPossible = this.findAnagrams(headerLetters, 5);
+
+        const div = $('<div/>')
+        if (headerPossible.length === 0) {
+            div.append(`There are no known words which contain only the letters ${headerLetters} for the ${headerType} Key`);
+        } else if (headerPossible.length === 1) {
+            div.append(`There is exactly one word: `)
+                .append(this.encodeFixed(headerPossible[0]))
+                .append(` which matches the letters ${headerLetters} for the ${headerType} Key`);
+        } else {
+            div.append(`There are at least ${headerPossible.length} possible matches for the Row Key:`)
+                .append(this.encodeFixed(headerPossible.join(",")));
+        }
+        result.append(div)
+        return headerPossible
+    }
+
+    public showFirstTen(rowChoice: string, colChoice: string, ciphertext: string[], result: JQuery<HTMLElement>) {
+        const pbMap = this.buildReversePolybiusMap(rowChoice, colChoice)
+
+        let count = 0
+        let plaintext = ''
+        for (let ct of ciphertext) {
+            const pt = pbMap[ct]
+            if (pt === undefined || pt === '') {
+                plaintext += ct
+            } else {
+                plaintext += pt;
+            }
+            plaintext += ' '
+            count++
+            if (count > 10) {
+                break
+            }
+        }
+        let div = $('<div\>')
+        div.append(this.encodeFixed(rowChoice))
+            .append(',')
+            .append(this.encodeFixed(colChoice))
+            .append(': ')
+            .append(plaintext)
+        result.append(div)
+    }
+    public CountTopSequences(cipherText: string[]): [string, number][] {
+        const freqMap = new Map<string, number>();
+
+        // Count frequencies
+        for (const seq of cipherText) {
+            freqMap.set(seq, (freqMap.get(seq) || 0) + 1);
+        }
+
+        // Convert to array and sort by frequency descending
+        const sorted = Array.from(freqMap.entries()).sort((a, b) => b[1] - a[1]);
+
+        // Return top 3
+        return sorted;
+    }
     /**
-     * 
+     * Determine the coordinates of a letter in the Polibius key
+     * @param letter Letter to look for in the Polibius Square
+     * @returns 
+     */
+    public findLetterPosition(letter: string): [number, number] {
+        const pos = this.polybiusSequence.indexOf(letter)
+        if (pos === -1) return [-1, -1];
+        return [Math.floor(pos / 5), pos % 5];
+    }
+    /**
+     * Check the current row/column candidates against a particular keyword position
+     * @param result Place to output any notes
+     * @param rowNum Which row number position we need to match
+     * @param colNum Which column number position we need to match
+     * @param ent The CipherText tuple to test with
+     * @param rowPossible All the remaining row candidate words
+     * @param colPossible All the remaining column candidate words
+     * @param cipherText The cipher text string to decode
+     * @param solverData Current solver data state
+     * @returns An indication whether or not we found a valid match
+     */
+    public checkDecodePairs(result: JQuery<HTMLElement>, rowNum: number, colNum: number, ent: string, rowPossible: string[], colPossible: string[], cipherText: string[], solverData: CheckerboardSolverData): boolean {
+        let found = false
+        const entRowChar = ent[0]
+        const entColChar = ent[1]
+        for (const rowChoice of rowPossible) {
+            if (rowChoice[rowNum] !== entRowChar) continue;
+
+            for (const colChoice of colPossible) {
+                if (colChoice[colNum] !== entColChar) continue;
+                found = true
+                if (solverData.tested[rowChoice + colChoice]) {
+                    this.showStepText(result, `We already tried ${rowChoice},${colChoice} so we can skip it`)
+                } else {
+                    solverData.tested[rowChoice + colChoice] = true
+                    this.showFirstTen(rowChoice, colChoice, cipherText, result)
+                    if (rowChoice === this.cleanRowKeyword && colChoice === this.cleanColKeyword) {
+                        return true;
+                    }
+                }
+            }
+        }
+        if (!found) {
+            this.showStep(result, `No Row/Column keywords were found to match`)
+        }
+        return false;
+    }
+
+    /**
+     * Generate the description on how to solve a decode problem which is only given the polybius key
      * @param target DOM element to put output into
      */
-    public async genDecodeSolution(target: JQuery<HTMLElement>) {
-        let cleanKey = this.cleanKeyword
+    public async genDecodeSolution(testType: ITestType, target: JQuery<HTMLElement>) {
         let cleanPolybiusKey = this.cleanPolyKey
+
+        this.polybiusMap = this.buildPolybiusMap();
 
         const result = $('<div/>', { id: 'solution' });
         target.append(result);
 
-        this.showStep(result, "Step 1: Fill out the Polybius Table");
+        this.showStep(result, "Step 1: Figure out the letters for the Row and Column keys")
 
-        let polyKeySpan = $('<span/>', { class: 'hl' }).text(cleanPolybiusKey)
+        // Get the official answer so that we have the cipher text to decode
+        const sequencesets = this.buildCheckerboardSequenceSets(this.minimizeString(this.state.cipherString), 9999);
 
-        let polyLenSpan = $('<span/>', { class: 'hl' }).text(this.undupeString(cleanPolybiusKey).length)
+        const [rowLetters, colLetters] = this.gatherLetters(sequencesets);
+        let rownote = ''
+        let colnote = ''
+        if (rowLetters.length < 5) {
+            rownote = ' (which means at least one letter is duplicated)'
+        }
+        if (colLetters.length < 5) {
+            colnote = ' (which means at least one letter is duplicated)'
+        }
+        result.append('Walk through the cipher text and gather the unique first letters in one group and the seconds letters in another group.')
+            .append('In this case we found ')
+            .append(this.encodeFixed(String(rowLetters.length)))
+            .append(' unique Row letters: ')
+            .append(this.encodeFixed(rowLetters))
+            .append(rownote)
+            .append(' and ')
+            .append(this.encodeFixed(String(colLetters.length)))
+            .append(' unique Column letters: ')
+            .append(this.encodeFixed(colLetters))
+            .append(colnote)
+            .append('. To figure out the actual headers, we need to anagram the letters and find the possible 5 letter words which they can be.')
+
+        let rowPossible = this.showHeaderOptions(rowLetters, "Row", result);
+        let colPossible = this.showHeaderOptions(colLetters, "Column", result);
+
+        if (rowPossible.length === 0 || colPossible.length === 0) {
+            let choice = ''
+            let s = ''
+            if (rowPossible.length === 0) {
+                choice = "Row"
+            }
+            if (colPossible.length === 0) {
+                if (choice !== "") {
+                    choice = "Row/Column"
+                    s = 's'
+                } else {
+                    choice = "Column"
+                }
+
+            }
+            this.setErrorMsg(`Auto-Solver is unable to determine the ${choice} keyword${s} given the Cipher letters.  Consider different keywords.`, 'si',);
+            return;
+        }
+
+        this.showStep(result, "Step 2: Fill out the Polybius Table");
 
         result.append('Given the Polybius Key ')
-            .append(polyKeySpan)
+            .append(this.encodeFixed(cleanPolybiusKey))
             .append(', we can fill out the first ')
-            .append(polyLenSpan)
+            .append(this.encodeFixed(String(this.undupeString(cleanPolybiusKey).length)))
             .append(` spaces of the polybius table, 
         with each <b>unique</b> letter taking up a space. (Skip any duplicate letters)`);
 
         this.showSolvingNote(result, `Note: Treat the letters <b>I</b> and <b>J</b> as one single letter <b>I/J</b>`)
 
-        //true to center table, false to not fill rest of alphabet
-        this.showPolybiusTable(result, true, cleanPolybiusKey)
+        const solverData: CheckerboardSolverData = {
+            rowKeyword: "", colKeyword: "",
+            tens: [], ones: [], keyword: this.cleanRowKeyword.replace('J', 'I'),
+            polybius: new Map<string, string[]>(),
+            charMap: new Map<string, string[]>(),
+            kwAnnotations: new Map<string, string[]>(),
+            kwKnown: makeFilledArray(this.cleanRowKeyword.length, 'none'),
+            warned: false,
+            tested: {}
+        }
+        // Check to see if we only have a single option for the row
+        if (rowPossible.length === 1) {
+            result.append(`Since we know that `)
+                .append(this.encodeFixed(rowPossible[0]))
+                .append(` is the Row Keyword, we can fill it in.`)
+            solverData.rowKeyword = rowPossible[0]
+        }
+        // Likewise for the column
+        if (colPossible.length === 1) {
+            result.append(`Since we know that `)
+                .append(this.encodeFixed(colPossible[0]))
+                .append(` is the Column Keyword, we can fill it in.`)
+            solverData.colKeyword = colPossible[0]
+        }
+        // Give them what the starting table looks like
+        this.showPolybiusTable(result, true, cleanPolybiusKey, solverData)
 
         if (await this.restartCheck()) { return }
 
-        result.append("The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table.")
+        this.showStepText(result,
+            "The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table.")
+        // result.append("The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table.")
 
-        //true to center table, true to fill alphabet
-        this.showPolybiusTable(result, true, "abcdefghijklmnopqrstuvwxyz")
-
-        if (await this.restartCheck()) { return }
-
-        this.showStep(result, "Step 2: Construct the Keyword Numbers");
-
-        let keywordSpan = $('<span/>', { class: 'hl' }).text(cleanKey)
-
-        result.append('Take the given keyword ')
-            .append(keywordSpan)
-            .append(` and repeatedly line it across the entire ciphertext, 
-        making sure each number corresponds to a single letter from our base key`)
-
-        result.append($('<p/>'))
-
-        let encoded = this.cleanString(this.state.cipherString);
-
-        result.append(this.buildSolverNihilist(encoded, cleanKey, 'keystring'))
+        // Show them the completely filled in table
+        this.showPolybiusTable(result, true, "abcdefghijklmnopqrstuvwxyz", solverData)
 
         if (await this.restartCheck()) { return }
 
-        result.append(`Then, using our completed Polybius Table, convert 
-        the repeating key word string into 2 digit numbers by finding the row and column of each letter on the table`)
+        this.showStep(result, "Step 3: Test a few letters to make sure that the table is correct.");
 
-        if (cleanKey.length === 0) {
-            cleanKey = 'A'
+        // See how many possibilities we have so we can determine if we can brute force the search
+        let possibilities = rowPossible.length * colPossible.length
+        let foundRow = false
+        let foundCol = false
+
+        if (possibilities > 8) {
+            // There are more than 8 options, so we want to see if we can shortcut picking which one it will be
+            this.showStepText(result, `There are ${possibilities} possibilities which could take a while to check, so instead, do a frequency
+                 count on all of the pairs to find the most likely candidates for the letter E.
+                 Effectively we can solve the Checkboard cipher like an Aristocrat/Patristrocat for the pairs of letters.`)
+            const seqFrequency = this.CountTopSequences(sequencesets[0][0])
+            let dbg = ''
+            for (const ent of seqFrequency) {
+                if (ent[1] > 2) {
+                    dbg += ' ' + ent[0] + '=' + ent[1]
+                }
+            }
+            this.showStepText(result, `Counting all of the entries we see that ${dbg}`)
+
+            const [rowNum, colNum] = this.findLetterPosition('E');
+            if (rowNum === -1 || colNum === -1) {
+                this.setErrorMsg(`Auto-Solver is unable to determine the location of the letter E in the polybius square.  Consider different keywords.`, 'si',);
+                return;
+            }
+            this.showStepText(result, `Looking at the Polybius table, we can see that E is in row ${rowNum + 1} and column ${colNum + 1} so we will check each of the entries that have words with the corresponding letters in those positions.`)
+            for (const ent of seqFrequency) {
+                if (await this.restartCheck()) { return }
+
+                this.showStepText(result, `Looking for row keywords which with have ${ent[0][0]} in position ${rowNum + 1} and column keywords which have ${ent[0][1]} in position ${colNum + 1}.`)
+                if (this.checkDecodePairs(result, rowNum, colNum, ent[0], rowPossible, colPossible, sequencesets[0][0], solverData)) {
+                    this.showStepText(result, `This looks like it can decode to reasonable answer, so we will go with it.`)
+                    rowPossible = [this.cleanRowKeyword]
+                    colPossible = [this.cleanColKeyword]
+                    foundRow = true
+                    foundCol = true
+                    break;
+                }
+            }
+            possibilities = rowPossible.length * colPossible.length
         }
 
-        let firstLetter = cleanKey.substring(0, 1)
-        let tMap = this.getNumFromPolybiusMap(firstLetter)
-        let tMapSpan = $('<span/>', { class: 'hl' }).text(tMap)
-        let tMap1Span = $('<span/>', { class: 'hl' }).text(tMap.substring(0, 1))
-        let tMap2Span = $('<span/>', { class: 'hl' }).text(tMap.substring(1, 2))
-        result.append($('<div/>', { class: 'callout primary small' }).text(`For example, the letter ${firstLetter} would convert to `)
-            .append(tMapSpan)
-            .append(` since it is on row `)
-            .append(tMap1Span)
-            .append(` and column `)
-            .append(tMap2Span)
-        )
+        if (possibilities === 1) {
+            this.showStepText(result, `We now have only a single possibility so we don't have to do any guessing here and can just proceed to decoding the cipher text.`)
 
-        result.append(this.buildSolverNihilist(encoded, cleanKey, 'keynumbers'))
+            if (rowPossible[0] === this.cleanRowKeyword) {
+                foundRow = true
+            }
+            if (colPossible[0] === this.cleanColKeyword) {
+                foundCol = true
+            }
+        } else {
+            this.showStepText(result, `We have only ${possibilities} possibilities so we can just quickly try them all out.` +
+                ` To do this, we just substitute in each possible combination of keywords and decode the first few letters to see what comes out.`)
+            for (const rowChoice of rowPossible) {
+                if (rowChoice === this.cleanRowKeyword) {
+                    foundRow = true
+                }
+
+                if (await this.restartCheck()) { return }
+
+                for (const colChoice of colPossible) {
+                    if (colChoice === this.cleanColKeyword) {
+                        foundCol = true
+                    }
+                    if (!solverData.tested[rowChoice + colChoice]) {
+                        solverData.tested[rowChoice + colChoice] = true
+                        this.showFirstTen(rowChoice, colChoice, sequencesets[0][0], result)
+                    }
+                }
+            }
+        }
+        if (!foundRow) {
+            this.setErrorMsg(`Auto-Solver is unable to match the Row Keyword ${this.cleanRowKeyword} against the determined keywords ${rowPossible.join(',')}.  Consider a different keyword.`, 'si',);
+            return;
+        }
+        if (!foundCol) {
+            this.setErrorMsg(`Auto-Solver is unable to match the Column Keyword ${this.cleanColKeyword} against the determined keywords ${colPossible.join(',')}.  Consider a different keyword.`, 'si',);
+            return;
+        }
+        if (possibilities > 1) {
+            result.append(`Looking at all of these, the only ones that look close are `)
+                .append(this.encodeFixed(this.cleanRowKeyword))
+                .append(' and ')
+                .append(this.encodeFixed(this.cleanColKeyword))
+                .append(' so we will proceed to use them.')
+        }
 
         if (await this.restartCheck()) { return }
 
-        this.showStep(result, "Step 3: Determine the Plaintext");
+        this.showStep(result, "Step 4: Build the final table and decode.");
+        result.append('Now that we know our Row Keyword to be ')
+            .append(this.encodeFixed(this.cleanRowKeyword))
+            .append(' and our Column Keyword to be ')
+            .append(this.encodeFixed(this.cleanColKeyword))
+            .append(' we can make sure that they are in the row/column headers and decode the cipher text.')
+        solverData.colKeyword = this.cleanColKeyword
+        solverData.rowKeyword = this.cleanRowKeyword
 
-        result.append(`Subtract the keyword numbers from the ciphertext numbers, giving us the plaintext numbers`)
-
-        result.append(this.buildSolverNihilist(encoded, cleanKey, 'plaintextnumbers'))
-
-        result.append(`This is our answer (plaintext), but it just needs to be converted back into letters through the polybius table`)
-
-        this.showPolybiusTable(result, true, "abcdefghijklmnopqrstuvwxyz")
+        const { width, extraclass } = this.getTestWidth(testType);
 
         if (await this.restartCheck()) { return }
 
-        result.append(this.buildSolverNihilist(encoded, cleanKey, 'plaintext'))
+        let sequencesets2 = this.buildDecodeSequenceSets(this.state.cipherString, width)
+        result.append(this.buildCheckerboard(this.state.operation, sequencesets2))
 
-        result.append($('<p/>'))
+        if (await this.restartCheck()) { return }
+
+        let hasMultiChars = false
+        for (let set of sequencesets2) {
+            for (let ct of set[1]) {
+                if (ct.length > 1) {
+                    hasMultiChars = true;
+                    break;
+                }
+            }
+        }
+
+        if (hasMultiChars) {
+            result.append('Since some of the cipher text characters mapped to more than one letter (as I/J always does) we need to ')
+                .append('pick out which is the correct letter for the final answer. Based on that ')
+        }
 
         let answer = $('<span/>', { class: 'hl' }).text(this.cleanString(this.state.cipherString.toUpperCase()))
 
         result.append(`Here's our answer: `).append(answer)
-
-
-        //Step 1: Fill out the polybius table
-        //given the polybius key [POLYBIUSKEY], we can fill in the first
-        //[#POLYBIUSKEY] spaces in the polybius table.
-        //show the filled in polybius table
-        //The reamining spaces are filled in alphabetical order,
-        //skipping any letters already filled in from the polybius key, and letter J
-        //next, we take the given base key [BASEKEY], and repeatedly line the word across the entire
-        //ciphertext until we reach the end, making sure each ciphertext number corresponds to a 
-        //single letter from our base key.
-        //next, using our completed polybius table, we can convert the repeating base key string into a 2 digit number,
-        //by finding the row and column of each key letter on the table. 
-        //for example, the first letter of our key "F" lives on the 1st row and 2nd column, thus converting to 12
-        //finally, we subtract the given cipher string of numbers by the key strnig of numbers we just converted, one at at a time,
-        //the resulting string of numbers represents our answer, which must be converted back into letters through the polybius table.
-        //giving us the answer _______
-        //since we are given the polybius key in Decode problems, 
-        //we can fill in 
-        //step 2 Given the polybius key and normal key
     }
 
     public async genEncodeSolution(target: JQuery<HTMLElement>) {
@@ -2769,7 +2918,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public async genCryptanalysisSolution(target: JQuery<HTMLElement>) {
 
         //determine keyword length
-        const kwLength = this.cleanKeyword.length
+        const kwLength = this.cleanRowKeyword.length
 
         const result = $('<div/>', { id: 'solution' });
         target.append(result);
@@ -2794,26 +2943,17 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param kwLength Length of the known keyword
      */
     public genCryptanalysisStep1(target: JQuery<HTMLElement>, kwLength: number) {
-        if (this.lengthKnown) {
-            this.showStep(target, "Step 1: Get the keyword length")
-            this.showStepText(target, `Since we are told that the keyword is ${this.cleanKeyword.length} letters long we use that to determine the keyword letter mappings.`)
-            return
-        }
         this.showStep(target, "Step 1: Determine keyword length");
 
         this.showStepText(target, `Finding the keyword length is the first step to cracking this cipher. Since we don't know any information
         about the keyword, we start by guessing how long the keyword is, and then checking if our guess was right.
         Use the increment button to choose a guess to continue with.`)
 
-        const inputbox2 = $('<div/>', { class: 'grid-x grid-margin-x blocksize' });
-        inputbox2.append(JTFIncButton('Keyword Length Guess', 'solverkeylength', this.state.solverKeyLength, ''));
-        target.append(inputbox2);
-
         this.showStepText(target, "Now we can line our unknown keyword across the ciphertext.")
 
         let encoded = this.cleanString(this.state.cipherString);
 
-        target.append(this.buildSolverNihilist(encoded, this.state.solverKeyLength.toString(), 'unknownkey'))
+        target.append(this.buildSolverCheckerboard(encoded, "0", 'unknownkey'))
 
         this.showSolvingNote(target, "Notice that we are not guessing the actual keyword yet, just the length, so each letter is unknown and represented with K1, K2, K3...");
 
@@ -2821,9 +2961,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             `To continue, we can follow each keyword letter through the entire ciphertext and track the numbers associated with each. Specifically, we are looking for the ones digit.
             Let's follow K1, the first letter, through the entire ciphertext.`)
 
-        target.append(this.buildSolverNihilist(encoded, this.state.solverKeyLength.toString(), 'k1example'))
+        target.append(this.buildSolverCheckerboard(encoded, "0", 'k1example'))
 
-        let dynamicArray = this.buildCountArray(this.state.solverKeyLength, true);
+        let dynamicArray = this.buildCountArray(5, true);
 
         target.append($('<div/>', { class: 'center' }).append(
             "Ones Digit Count Table for Letter K1")
@@ -2852,14 +2992,16 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param target DOM element to put output into
      * @param kwLength Length of the known keyword
      */
-    public genCryptanalysisStep2(target: JQuery<HTMLElement>, kwLength: number): NihilistSolverData {
-        const solverData: NihilistSolverData = {
-            tens: [], ones: [], keyword: this.cleanKeyword.replace('J', 'I'),
+    public genCryptanalysisStep2(target: JQuery<HTMLElement>, kwLength: number): CheckerboardSolverData {
+        const solverData: CheckerboardSolverData = {
+            rowKeyword: "", colKeyword: "",
+            tens: [], ones: [], keyword: this.cleanRowKeyword.replace('J', 'I'),
             polybius: new Map<string, string[]>(),
             charMap: new Map<string, string[]>(),
             kwAnnotations: new Map<string, string[]>(),
-            kwKnown: makeFilledArray(this.cleanKeyword.length, 'none'),
-            warned: false
+            kwKnown: makeFilledArray(this.cleanRowKeyword.length, 'none'),
+            warned: false,
+            tested: {}
         }
         for (let tens of ["1", "2", "3", "4", "5"]) {
             for (let ones of ["1", "2", "3", "4", "5"]) {
@@ -2902,7 +3044,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param target DOM element to put output into
      * @param kwLength Length of the known keyword
      */
-    public async genCryptanalysisStep3(target: JQuery<HTMLElement>, solverData: NihilistSolverData) {
+    public async genCryptanalysisStep3(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData) {
         this.showStep(target, "Step 3: Utilize crib to fill in polybius square");
 
         this.showStepText(target, `Using the determined keyword mappings, fill in the keyword letters (K1, K2...) with the correct mappings, leaving a '?' if there is more than one possibility.
@@ -2959,7 +3101,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * @param target DOM element to put output into
      * @param kwLength Length of the known keyword
      */
-    public genCryptanalysisStep4(target: JQuery<HTMLElement>, solverData: NihilistSolverData) {
+    public genCryptanalysisStep4(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData) {
         this.showStep(target, "Step 4: Work back from the keyword");
 
         target.append(`<p>Now that we know the keyword to be ${solverData.keyword} corresponding to K1-K${solverData.keyword.length} we need to find out where in the polybius table the individual letters fit</p>`)
@@ -3058,7 +3200,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
 
-
         //generating empty 5x5 polybius square table for students
         const polybiusDiv = $('<div/>', { class: 'cell shrink' })
         const polybiusSquare = $('<table/>', { class: 'polybius-square' });
@@ -3069,7 +3210,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 const cell = $('<th/>').append($('<div/>', { class: 'square' }).html('&nbsp;'));
                 row.append(cell);
             } else {
-                const cell = $('<th/>').append($('<div/>', { class: 'square' }).html('' + a));
+                const cell = $('<th/>').append($('<div/>', { class: 'square' }).html('&nbsp;'));
                 row.append(cell);
             }
         }
@@ -3080,7 +3221,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             const row = $('<tr/>');
             for (let j = 0; j < 6; j++) {
                 if (j == 0) {
-                    const cell = $('<th/>').append($('<div/>', { class: 'square' }).html('' + i));
+                    const cell = $('<th/>').append($('<div/>', { class: 'square' }).html('&nbsp;'));
                     row.append(cell);
                 } else {
                     const cell = $('<td/>').append($('<div/>', { class: 'square' }).html('&nbsp;'));
@@ -3093,12 +3234,9 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         polybiusDiv.append(polybiusSquare)
 
         const { width, extraclass } = this.getTestWidth(testType);
-        const strings = this.buildNihilistSequenceSets(
-            this.state.cipherString,
-            width
-        );
+        const strings = this.buildCheckerboardSequenceSets(this.state.cipherString, width);
         const tableDiv = $('<div/>', { class: 'cell auto' })
-        const table = new JTTable({ class: 'nihilist ansblock unstriped' + extraclass });
+        const table = new JTTable({ class: 'Checkerboard ansblock unstriped' + extraclass });
         // const blankrow = table.addBodyRow();
         // blankrow.add("\u00A0");
         let source = 0;
@@ -3133,10 +3271,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const qnumdisp = String(qnum + 1);
         const result = $('<div/>', { id: 'Q' + qnumdisp });
         const { width, extraclass } = this.getTestWidth(testType);
-        const strings = this.buildNihilistSequenceSets(
-            this.state.cipherString,
-            width
-        );
+        const strings = this.buildCheckerboardSequenceSets(this.state.cipherString, width);
         let source = 0;
         if (this.state.operation === 'encode') {
             source = 1;
@@ -3164,13 +3299,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      * Start the dialog for suggesting the keyword
      */
     public suggestKey(): void {
-        this.suggestLenKey(3, 7);
+        this.suggestLenKey(5, 5);
     }
     /**
      * Populate the dialog with a set of keyword suggestions. 
      */
     public populateKeySuggestions(): void {
-        this.populateLenKeySuggestions('genbtn', 'suggestKeyopts', 20, 3, 7)
+        this.populateLenKeySuggestions('genbtn', 'suggestKeyopts', 20, 5, 5)
     }
     /**
      * Set the keyword from the suggested text
@@ -3181,7 +3316,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         const key = jqelem.attr('data-key')
         $('#suggestKeyDLG').foundation('close')
         this.markUndo('')
-        this.setKeyword(key)
+        if (this.suggestType === 'row') {
+            this.setKeyword(key)
+        } else {
+            this.setKeyword2(key)
+        }
         this.updateOutput()
     }
     /**
@@ -3228,25 +3367,25 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         divAll.append(cellLeft).append(cellMid).append(cellRight)
         output.empty().append(divAll)
 
-        const found = this.findPossibleCribs(20, (found: number, crib: string): boolean => {
-            console.log(`Crib found: ${found}: ${crib}`)
-            let div = $('<div/>', { class: "kwchoice" });
+        // const found = this.findPossibleCribs(20, (found: number, crib: string): boolean => {
+        //     console.log(`Crib found: ${found}: ${crib}`)
+        //     let div = $('<div/>', { class: "kwchoice" });
 
-            let useButton = $("<a/>", {
-                'data-crib': crib,
-                type: "button",
-                class: "button rounded cribset abbuttons",
-            }).html('Use');
-            div.append(useButton)
-            div.append(crib)
-            if (found % 2 === 0) {
-                cellLeft.append(div)
-            } else {
-                cellMid.append(div)
-            }
+        //     let useButton = $("<a/>", {
+        //         'data-crib': crib,
+        //         type: "button",
+        //         class: "button rounded cribset abbuttons",
+        //     }).html('Use');
+        //     div.append(useButton)
+        //     div.append(crib)
+        //     if (found % 2 === 0) {
+        //         cellLeft.append(div)
+        //     } else {
+        //         cellMid.append(div)
+        //     }
 
-            return true;
-        });
+        //     return true;
+        // });
         this.attachHandlers()
     }
     /**
@@ -3312,13 +3451,13 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 }
             });
 
-        $('#solverkeylength')
+        $('#keyword2')
             .off('input')
             .on('input', (e) => {
-                const solverKeyLength = Number($(e.target).val());
-                if (solverKeyLength !== this.state.solverKeyLength) {
-                    this.markUndo(null);
-                    if (this.setSolverKeyLength(solverKeyLength)) {
+                const keyword2 = $(e.target).val() as string;
+                if (keyword2 !== this.state.keyword2) {
+                    this.markUndo('keyword2');
+                    if (this.setKeyword2(keyword2)) {
                         this.updateOutput();
                     }
                 }
@@ -3328,6 +3467,18 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             .on('click', () => {
                 this.suggestKeyword()
             });
+        $('#suggestkey')
+            .off('click')
+            .on('click', () => {
+                this.suggestType = 'row'
+                this.suggestKey()
+            })
+        $('#suggestkey2')
+            .off('click')
+            .on('click', () => {
+                this.suggestType = 'col'
+                this.suggestKey()
+            })
         $('#suggestcrib')
             .off('click')
             .on('click', () => {

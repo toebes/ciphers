@@ -441,40 +441,6 @@ export class CipherAffineEncoder extends CipherEncoder {
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
     /**
-     * Generates the sample question text for a cipher
-     * @returns HTML as a string
-     */
-    public genSampleQuestionText(): string {
-        let msg = '';
-        if (this.state.operation === 'crypt') {
-            msg = '<p>The following quote' + this.genAuthor() + ' has been encoded using the Affine Cipher. ';
-            const cribpos = this.placeCrib();
-            const ptstring = this.minimizeString(this.state.cipherString);
-
-            msg += this.getCribPlacement(cribpos, ptstring);
-            msg += '.';
-        } else {
-            if (this.state.operation === 'encode') {
-                msg =
-                    '<p>The following quote' + this.genAuthor() + ' needs to be encoded ' +
-                    ' with the Affine Cipher using ';
-            } else {
-                msg =
-                    '<p>The following quote' + this.genAuthor() + ' needs to be decoded ' +
-                    ' with the Affine Cipher where ';
-            }
-            msg +=
-                '<strong><i>a</i>=' +
-                this.genMonoText(String(this.state.a)) +
-                ' </strong> and <strong><i>b</i>=' +
-                this.genMonoText(String(this.state.b)) +
-                '</strong>.';
-            msg += '</p>';
-        }
-        return msg;
-    }
-
-    /**
      * This handles the Affine Cipher specific question options.
      * @param qOptions the array of options
      * @param langtext the language string (blank for English)

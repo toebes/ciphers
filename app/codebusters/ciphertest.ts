@@ -220,6 +220,7 @@ export class CipherTest extends CipherHandler {
     public mapCipherSubType = new Map<ICipherType, string>([
         [ICipherType.Aristocrat, 'Aristocrat'],
         [ICipherType.Baconian, 'Baconian'],
+        [ICipherType.Checkerboard, 'Table'],
         [ICipherType.Porta, 'Table'],
         [ICipherType.Hill, 'Math'],
         [ICipherType.NihilistSubstitution, 'Math'],
@@ -306,6 +307,7 @@ export class CipherTest extends CipherHandler {
         { cipherType: ICipherType.DancingMen },
         { cipherType: ICipherType.Atbash },
         { cipherType: ICipherType.Aristocrat },
+        { cipherType: ICipherType.Checkerboard },
         { cipherType: ICipherType.CompleteColumnar },
         { cipherType: ICipherType.Cryptarithm },
         {
@@ -1312,6 +1314,7 @@ export class CipherTest extends CipherHandler {
             } else if (testtype !== undefined) {
                 // If we know the type of test, see if it has any problems with the question
                 const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
+                cipherhandler.savefileentry = state.editEntry;
                 cipherhandler.restore(state);
                 qerror = cipherhandler.CheckAppropriate(testtype, false);
                 if (qerror !== '') {
@@ -1422,6 +1425,7 @@ export class CipherTest extends CipherHandler {
     public GetPrintFactory(question: number): CipherHandler {
         const state = this.getFileEntry(question);
         const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
+        cipherhandler.savefileentry = state.editEntry;
         cipherhandler.restore(state);
         return cipherhandler;
     }
@@ -1481,6 +1485,7 @@ export class CipherTest extends CipherHandler {
 
         result.append(qtext);
         const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
+        cipherhandler.savefileentry = state.editEntry
         cipherhandler.restore(state);
         // Remember this question points so we can generate the tiebreaker order
         this.qdata.push({ qnum: qnum, points: state.points, specialBonus: state.specialbonus });
@@ -1538,6 +1543,7 @@ export class CipherTest extends CipherHandler {
         );
         result.append(qtext);
         const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
+        cipherhandler.savefileentry = state.editEntry
         cipherhandler.restore(state);
         // Did the handler use a running key
         if (cipherhandler.usesRunningKey) {

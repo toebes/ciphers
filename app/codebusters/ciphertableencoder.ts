@@ -293,18 +293,6 @@ export class CipherTableEncoder extends CipherEncoder {
     }
 
     /**
-     * Generates the sample question text for table ciphers
-     * @returns HTML as a string
-     */
-    public genSampleQuestionText(): string {
-        const cipherName = this.state.cipherType === ICipherType.Caesar ? 'Caesar' : 'Atbash';
-        return (
-            `<p>Decode this quote${this.genAuthor()} which has been encoded using the
-             ${cipherName} Cipher.</p>`
-        );
-    }
-
-    /**
       * Generate the recommended score and score ranges for a cipher
       * @returns Computed score ranges for the cipher
       */

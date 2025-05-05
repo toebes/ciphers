@@ -989,44 +989,6 @@ export class CipherAristocratEncoder extends CipherEncoder {
         return result;
     }
     /**
-     * Generates the sample question text for a cipher
-     * @returns HTML as a string
-     */
-    public genSampleQuestionText(): string {
-        const hint = this.genSampleHint();
-        let hinttext = hint !== undefined ? ` You are told that ${hint}` : '';
-        let enctype = ''
-        if (this.state.encodeType !== undefined && this.state.encodeType !== 'random') {
-            enctype += ' ' + this.state.encodeType.toUpperCase();
-        }
-        if (this.state.curlang === 'es') {
-            if (enctype !== '') {
-                hinttext += ` It has been encoded using a${enctype} alphabet using an English keyword.`
-            }
-            return (
-                `<p>A quote${this.genAuthor()} in Spanish has been encoded using the ` +
-                `${this.cipherName} Cipher for you to decode.${hinttext}</p>`
-            );
-        }
-        let cipherName = this.cipherName
-        if (this.state.cipherType === ICipherType.Patristocrat) {
-            cipherName = 'Patristocrat'
-        }
-        let operationtext = ''
-        if (this.state.operation === 'keyword') {
-            let keytype = "Keyword";
-            const keyanswer = this.state.keyword.toUpperCase();
-            if (this.minimizeString(keyanswer).length !== keyanswer.length) {
-                keytype = "Key Phrase"
-            }
-            operationtext = ` What was the${enctype} ${keytype} used to encode it?`
-        }
-        return (
-            `<p>A quote${this.genAuthor()} has been encoded using the${enctype} ` +
-            `${cipherName} Cipher for you to decode.${hinttext}${operationtext}</p>`
-        );
-    }
-    /**
      * Start the process of generating the misspelled words
      */
     public genMisspell(): void {

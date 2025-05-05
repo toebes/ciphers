@@ -1908,6 +1908,10 @@ p.ktemplar {
     font-family: pigpen;
 }
 
+.colrow input {
+    min-width: 4.5rem;
+}
+
 .TapCode td {
     padding: 0.1rem;
 }

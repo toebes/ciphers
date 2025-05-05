@@ -299,36 +299,6 @@ export class CipherVigenereEncoder extends CipherEncoder {
         return String(val) + '<sup>' + suffix + '</sup>';
     }
     /**
-     * Generates the sample question text for a cipher
-     * @returns HTML as a string
-     */
-    public genSampleQuestionText(): string {
-        let msg = '';
-        let ciphertypetext = 'Vigen&egrave;re';
-        if (this.state.cipherType === ICipherType.Porta) {
-            ciphertypetext = 'Porta';
-        }
-        if (this.state.operation === 'crypt') {
-            msg = `<p>The following quote ${this.genAuthor()} has been encoded with the ${ciphertypetext}
-                Cipher using a very common word for the key. `;
-
-            const cribpos = this.placeCrib();
-            msg += this.getCribPlacement(cribpos);
-        } else {
-            const keyword = this.genMonoText(this.minimizeString(this.state.keyword));
-            if (this.state.operation === 'encode') {
-                msg = `<p>The following quote ${this.genAuthor()} needs to be encoded 
-                    with the ${ciphertypetext} Cipher with a keyword of ${keyword}`;
-            } else {
-                msg = `<p>The following quote ${this.genAuthor()} needs to be decoded 
-                    with the ${ciphertypetext} Cipher with a keyword of ${keyword}`;
-            }
-        }
-        msg += '</p>';
-        return msg;
-    }
-
-    /**
      * This handles the Vigenere/Porta Cipher specific question options.
      * @param qOptions the array of options
      * @param langtext the language string (blank for English)

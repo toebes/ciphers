@@ -403,10 +403,6 @@ export class CipherEncoder extends CipherHandler {
             return 'Special Bonus only allowed on Division B/C tests';
         }
 
-        if (this.state.operation === 'encode' && this.state.cipherType === ICipherType.NihilistSubstitution) {
-            return 'Encode problems are not allowed on any tests'
-        }
-
         if (testType === undefined || this.validTests.indexOf(testType) >= 0) {
             return '';
         }
@@ -1052,18 +1048,6 @@ export class CipherEncoder extends CipherHandler {
             choices = choices.concat(extraStrings)
         }
         return ""
-    }
-    /**
-     * Generates the sample question text for a cipher
-     * @returns HTML as a string
-     */
-    public genSampleQuestionText(): string {
-        const hint = this.genSampleHint();
-        let hinttext = hint !== undefined ? ` You are told that ${hint}` : '';
-        return (
-            `<p>A quote${this.genAuthor()} has been encoded using the ` +
-            `${this.cipherName} Cipher for you to decode.${hinttext}</p>`
-        );
     }
     /**
      * Populate the Sample Question Text Dialog and show it

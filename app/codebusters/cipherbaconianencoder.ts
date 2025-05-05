@@ -947,40 +947,6 @@ export class CipherBaconianEncoder extends CipherEncoder {
         return { suggested: suggested, min: min, max: max, text: text }
     }
     /**
-     * Generates the sample question text for a cipher
-     * @returns HTML as a string
-     */
-    public genSampleQuestionText(): string {
-        let msg = '';
-        if (this.state.operation !== 'words') {
-            msg = '<p>The following symbols encode a quote' + this.genAuthor() + ' using a Baconian cipher</p>';
-        } else {
-            msg = '<p>The following strange headlines encode a quote' + this.genAuthor() + ' using a Baconian cipher. ';
-            const plaintext = this.minimizeString(this.getEncodingString());
-            const criblook = this.minimizeString(this.state.crib).toUpperCase();
-
-            if (criblook.length > 0) {
-                const cribpos = this.placeCrib();
-                if (cribpos === 0) {
-                    msg += "You are told that the deciphered text starts with " +
-                        this.genMonoText(this.state.crib);
-                } else if (cribpos === (plaintext.length - criblook.length)) {
-                    msg += "You are told that the deciphered text ends with " +
-                        this.genMonoText(this.state.crib);
-                } else if (cribpos === 1) {
-                    msg += "You are told that the deciphered text starts with a single letter followed by " +
-                        this.genMonoText(this.state.crib);
-                } else {
-                    // Not at the begining or the end
-                    let ct = this.getCipherTextForCrib(cribpos, criblook.length)
-                    msg += `You are told that the cipher text ${this.genMonoText(ct)} decodes to be ${this.genMonoText(criblook)}`;
-                }
-            }
-            msg += "</p>";
-        }
-        return msg;
-    }
-    /**
      * Locate the crib in the cipher and return the corresponding cipher text
      * characters
      * @param encoding Encoded cipher set

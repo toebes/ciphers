@@ -465,19 +465,6 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
 
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
-    /**
-     * Generates the sample question text for a cipher
-     * @returns HTML as a string
-     */
-    public genSampleQuestionText(): string {
-        const solValues = this.getSolValues()
-
-        let msg = '<p>The following cryptarithm provides the key to decoding the values ' +
-            this.genMonoText(solValues) +
-            '. What do they decode to?</p>';
-        return msg;
-    }
-
     public addQuestionOptions(qOptions: string[], langtext: string, hinttext: string, fixedName: string, operationtext: string, operationtext2: string, cipherAorAn: string): boolean {
         const solValues = this.getSolValues()
         operationtext = ' What do the values ' + this.genMonoText(solValues) + ' decode to?';

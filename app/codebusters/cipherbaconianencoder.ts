@@ -881,7 +881,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         if (this.state.words.length < this.baconianWords.length) {
             return false;
         }
-        for (let slot in this.state.words) {
+        for (let slot in this.baconianWords) {
 
             const baconian = this.baconianWords[slot];
             const [word, punctuation] = this.getSlotWord(Number(slot));

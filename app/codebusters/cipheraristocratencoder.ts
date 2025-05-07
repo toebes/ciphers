@@ -503,6 +503,33 @@ export class CipherAristocratEncoder extends CipherEncoder {
                     "The Question Text doesn't appear to mention that " +
                     'the key phrase needs to be decoded. ';
             }
+            this.stopGenerating = false;
+            this.isLoading = true
+            this.loadLanguageDictionary(this.state.curlang).then(async () => {
+                let msg2 = ''
+                let msg2extra = $('')
+                const found = await this.searchForAlternateWords(this.state.keyword)
+
+                const keyword = this.minimizeLangString(this.state.keyword.toUpperCase());
+
+                const filtered = found.filter(key =>
+                    this.minimizeLangString(key.toUpperCase()) !== keyword
+                );
+
+                if (filtered.length > 0) {
+                    const keyword = this.minimizeString(this.state.keyword.toUpperCase())
+                    msg2 = `More than one possible answer matches the keyword '${this.state.keyword}' including `
+                    if (filtered.length < 3) {
+                        msg2 += filtered.join(' and ')
+                    } else {
+                        msg2extra = $('<ul/>')
+                        for (const key of filtered) {
+                            msg2extra.append($('<li/>').text(key))
+                        }
+                    }
+                }
+                this.setErrorMsg(msg2, 'dq', msg2extra);
+            })
         }
         if (this.state.encodeType !== 'random') {
             const enctype = this.state.encodeType.toUpperCase();

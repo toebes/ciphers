@@ -79,6 +79,10 @@ export class CipherEncoder extends CipherHandler {
     public cipherName = 'Unknown';
     public uniquePattern = this.makeUniquePattern("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1);
 
+    public isLoading = false;  // Indicates that we are in a long running process
+    public stopGenerating = false; //  Flag to stop a long running process
+    public searchCount = 0;
+
     public cmdButtons: JTButtonItem[] = [
         this.saveButton,
         this.undocmdButton,
@@ -777,7 +781,26 @@ export class CipherEncoder extends CipherHandler {
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
     }
-
+    /**
+     * Check to see if we need to restart the output operation all over
+     * This works by giving a UI break sot that we can check for any input and decide to 
+     * regenerate the output (because it might take a long time)
+     * 
+     * You need to call this whenever an operation has taken a long time to see
+     * if something needs to be updated:
+     *             if (await this.restartCheck()) { return }
+     * @returns A flag indicating that something has changed and we need to abort generating output
+     */
+    public async restartCheck(): Promise<boolean> {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        if (this.stopGenerating) {
+            this.stopGenerating = false;
+            setTimeout(() => { this.load() }, 10);
+            this.isLoading = false;
+            return true;
+        }
+        return false
+    }
     public makeFreqEditField(c: string): JQuery<HTMLElement> {
         const einput = $('<span/>', {
             type: 'text',
@@ -1385,6 +1408,74 @@ export class CipherEncoder extends CipherHandler {
         }
         this.attachHandlers()
         return found
+    }
+    /**
+     * Search for any other keyword patterns which match a given keyword
+     * @param keyword Keyword/Key Phrase string to find alternate matches
+     * @returns 
+     */
+    public async searchForAlternateWords(keyword: string): Promise<string[]> {
+        const wordlist = this.cleanString(keyword.toUpperCase()).split(' ');
+        const keyLens = wordlist.map(word => word.length);
+        const minWord = this.undupeString(this.minimizeString(keyword));
+        this.searchCount = 0;
+        return this.searchForAlternateWordsCore(minWord, keyLens, 0, "");
+    }
+    /**
+     * This is the core of the Alternate Keyword search
+     * @param minWord Minimized pattern that need to be matched
+     * @param keyLens Length of individual keywords
+     * @param depth Current depth of searching
+     * @param used Letters used in previous depths so far
+     * @returns Array of keywords/Keyphrases which match
+     */
+    public async searchForAlternateWordsCore(minWord: string, keyLens: number[], depth: number, used: string): Promise<string[]> {
+        const result: string[] = []
+        const depthLimit = keyLens.length - 1;
+
+        // if (used === "PI") {
+        //     console.log(`Recursing Keyword=${keyword} used=${used}`)
+        // }
+        if (depthLimit >= 0) {
+            // Let's find all the alternate words which may match this one.
+            // We can determine the range of keyword lengths by comparing the length
+            let keyLen = keyLens[depth]
+            let entries = Object.keys(this.Frequent['en'])
+                .filter(key => key.length === keyLen);
+            top: for (const pat of entries) {
+                this.searchCount++
+                for (const entry of this.Frequent['en'][pat]) {
+                    const thisWord = entry[0]
+                    const check = this.undupeString(used + thisWord)
+                    if (minWord.startsWith(check)) {
+                        // We got a match.  See if this is actually a complete match
+                        if (depth === depthLimit) {
+                            if (minWord.length === check.length) {
+                                result.push(thisWord)
+                            }
+                            if (result.length >= 20) {
+                                break top;
+                            }
+                        } else {
+                            if (thisWord === "PIPI") {
+                                console.log(`Found PIPI minword=${minWord} used=${used} check=${check}`)
+                            }
+                            const found = await this.searchForAlternateWordsCore(minWord, keyLens, depth + 1, check)
+                            for (const res of found) {
+                                result.push(thisWord + " " + res)
+                                if (result.length >= 20) {
+                                    break top;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (this.searchCount % 7500 === 0) {
+                    if (await this.restartCheck()) { return [] }
+                }
+            }
+        }
+        return (result)
     }
 
     public genHintText(hint: string): string {

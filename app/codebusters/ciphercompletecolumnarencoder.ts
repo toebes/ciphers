@@ -806,8 +806,6 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     public validTests: ITestType[] = [ITestType.None, ITestType.bstate, ITestType.bregional, ITestType.cregional, ITestType.cstate];
 
     private thisTestType = undefined;
-    public isLoading = false;
-    public stopGenerating = false;
     private currentSolverSolution: CompleteColumnarSolver = undefined;
 
     public defaultstate: ICompleteColumnarState = {
@@ -1694,27 +1692,6 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         // All done, so mark that we are not in the process of updating
         this.isLoading = false
     }
-    /**
-     * Check to see if we need to restart the output operation all over
-     * This works by giving a UI break sot that we can check for any input and decide to
-     * regenerate the output (because it might take a long time)
-     *
-     * You need to call this whenever an operation has taken a long time to see
-     * if something needs to be updated:
-     *             if (await this.restartCheck()) { return }
-     * @returns A flag indicating that something has changed and we need to abort generating output
-     */
-    public async restartCheck(): Promise<boolean> {
-        await new Promise(resolve => setTimeout(resolve, 0));
-        if (this.stopGenerating) {
-            this.stopGenerating = false;
-            setTimeout(() => { this.load() }, 10);
-            this.isLoading = false;
-            return true;
-        }
-        return false
-    }
-
     private rowsWithCribCharacters(crib: string, rowLetters: string[]): boolean {
 
         // This map will have a key of row number, then it will have an object containing the number of

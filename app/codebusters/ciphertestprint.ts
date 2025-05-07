@@ -227,7 +227,7 @@ export class CipherTestPrint extends CipherTest {
                     test.testtype,
                     -1,
                     cipherhandler,
-                    'pagebreak'
+                    'pagebreak timedq'
                 );
                 page.append(timedquestion);
             } catch (e) {

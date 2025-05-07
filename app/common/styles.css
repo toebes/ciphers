@@ -2391,6 +2391,10 @@ table.nameline td.u {
     cursor: col-resize;
 }
 
+.sizeset .timedq .TOSOLVEQ {
+    font-size: 22px;
+}
+
 .TOSOLVEC,
 .sizeset .TOSOLVE,
 .sizeset .TOSOLVE2,

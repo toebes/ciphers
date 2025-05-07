@@ -331,7 +331,8 @@ export class CipherTestPrint extends CipherTest {
          */
         if (SpanishCount > 0) {
             if (SpanishCount > 1) {
-                if (test.testtype !== ITestType.bstate && test.testtype !== ITestType.cstate) {
+                if (test.testtype !== ITestType.bstate && test.testtype !== ITestType.cstate &&
+                    test.testtype !== ITestType.None) {
                     errors.push(
                         'Only one Spanish Xenocrypt allowed for ' +
                         this.getTestTypeName(test.testtype) +

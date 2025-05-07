@@ -402,7 +402,8 @@ export class CipherEncoder extends CipherHandler {
                 return 'Xenocrypts not appropriate for Division A tests';
             }
         }
-        if (testType !== ITestType.cregional && testType !== ITestType.cstate &&
+        if (testType !== ITestType.None &&
+            testType !== ITestType.cregional && testType !== ITestType.cstate &&
             testType !== ITestType.bregional && testType !== ITestType.bstate && this.state.specialbonus) {
             return 'Special Bonus only allowed on Division B/C tests';
         }

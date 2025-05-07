@@ -382,6 +382,9 @@ export class CipherAffineEncoder extends CipherEncoder {
                         msg = '';
                     }
                 } else {
+                    // It doesn't really make sense to just call out only 1 letter even
+                    // if both are not mentioned in the question text.
+                    const lettersNotMentioned: string[] = [];
                     // crib letters are not adjacent.  Look for them both separately
                     for (const cribent of cribpos) {
                         if (
@@ -392,12 +395,15 @@ export class CipherAffineEncoder extends CipherEncoder {
                                 cribent.position
                             )
                         ) {
-                            msg =
-                                'The Question Text does not specify how the Crib letter ' +
-                                cribent.plaintext +
-                                ' is mapped';
-                            break;
+                            lettersNotMentioned.push(cribent.plaintext);
                         }
+                    }
+                    if (lettersNotMentioned.length === 0) {
+                        msg = '';
+                    } else if (lettersNotMentioned.length === 1) {
+                        msg = `The Question Text does not specify how the Crib letter ${lettersNotMentioned[0]} is mapped.`;
+                    } else {
+                        msg = `The Question Text does not specify how the Crib letters ${lettersNotMentioned[0]} and ${lettersNotMentioned[1]} are mapped`;
                     }
                 }
             }

@@ -197,8 +197,10 @@ export class CipherAristocratEncoder extends CipherEncoder {
         this.checkKeywords();
         if (this.state.operation === 'keyword') {
             $('#encrand').attr('disabled', 'disabled').hide();
+            $('#validatekey').removeAttr('disabled').show();
         } else {
-            $('#encrand').removeAttr('disabled').show();
+            $('#encrand').attr('disabled', 'disabled').hide();
+            $('#validatekey').attr('disabled', 'disabled').hide();
         }
         // Show the misspell option if they are doing an English Aristocrat
         if ((this.state.cipherType === ICipherType.Aristocrat) && (this.state.curlang === 'en')) {
@@ -503,6 +505,21 @@ export class CipherAristocratEncoder extends CipherEncoder {
                     "The Question Text doesn't appear to mention that " +
                     'the key phrase needs to be decoded. ';
             }
+        }
+        if (this.state.encodeType !== 'random') {
+            const enctype = this.state.encodeType.toUpperCase();
+            if (questionText.indexOf(enctype) < 0) {
+                msg += "The Question Text doesn't mention that the cipher uses a " + enctype + " alphabet encoding. ";
+            }
+        }
+        if (this.state.usehint && (this.state.hint === undefined || this.state.hint.trim() === '')) {
+            msg += "Optional Hint is selected, but no hint has been entered. "
+        }
+
+        this.setErrorMsg(msg, 'vq', sampleLink);
+    }
+    public validateSpecialKeyword(): void {
+        if (this.state.operation === 'keyword') {
             this.stopGenerating = false;
             this.isLoading = true
             this.loadLanguageDictionary(this.state.curlang).then(async () => {
@@ -531,17 +548,6 @@ export class CipherAristocratEncoder extends CipherEncoder {
                 this.setErrorMsg(msg2, 'dq', msg2extra);
             })
         }
-        if (this.state.encodeType !== 'random') {
-            const enctype = this.state.encodeType.toUpperCase();
-            if (questionText.indexOf(enctype) < 0) {
-                msg += "The Question Text doesn't mention that the cipher uses a " + enctype + " alphabet encoding. ";
-            }
-        }
-        if (this.state.usehint && (this.state.hint === undefined || this.state.hint.trim() === '')) {
-            msg += "Optional Hint is selected, but no hint has been entered. "
-        }
-
-        this.setErrorMsg(msg, 'vq', sampleLink);
     }
     /**
      * Set the operation for the encoder type
@@ -840,10 +846,12 @@ export class CipherAristocratEncoder extends CipherEncoder {
         knButtons.addClass("grid-margin-x")
         knButtons.append(randButton).append(kwButton);
         result.append(knButtons);
-        result.append(JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, 'kval'));
+        const validateKW = $('<a/>', { type: "button", class: "button primary tight valky", id: "validatekey" }).text("Validate Keyword")
+        result.append(JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, 'kval', validateKW));
         result.append(
             JTFIncButton('Offset', 'offset', this.state.offset, 'kval small-12 medium-6 large-6')
         );
+
         result.append(
             JTFLabeledInput('Keyword 2', 'text', 'keyword2', this.state.keyword2, 'k4val')
         );
@@ -1473,6 +1481,10 @@ export class CipherAristocratEncoder extends CipherEncoder {
                 this.setUseHint(isChecked);
                 this.updateOutput();
             });
-
+        $('#validatekey')
+            .off('click')
+            .on('click', (e) => {
+                this.validateSpecialKeyword();
+            });
     }
 }

@@ -1336,10 +1336,19 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>' /*, { class: 'grid-x' }*/);
 
+        const testUsage = this.getTestUsage();
+        const usedOnCState = testUsage.includes(ITestType.cstate) || testUsage.includes(ITestType.None);
+
         let errorMessage = '';
         const spacelessCrib = this.minimizeString(this.state.crib);
 
-        if (spacelessCrib.length > this.state.columns) {
+        if (spacelessCrib.length < this.state.columns - 1 && !usedOnCState) {
+            errorMessage = `For this test type, the length of the crib must be no shorter than ${(this.state.columns - 1)}
+                (i.e. on less the number of columns used).`;
+        } else if (spacelessCrib.length < this.state.columns - 3 && usedOnCState) {
+            errorMessage = `For a Division C State/National or unspecified test, the length of the crib must be no shorter
+            than ${(this.state.columns - 3)} (i.e. three less the number of columns used)`;
+        } else if (spacelessCrib.length > this.state.columns) {
             errorMessage = `Warning: The crib length is greater than the number of columns.  The auto-solver will only use the first ${this.state.columns} letters of the crib`;
         }
         this.setErrorMsg(errorMessage, 'cribl', null);
@@ -1576,7 +1585,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
 
             result.append(CipherCompleteColumnarEncoder.heading(columnCount + ' Columns'));
 
-            let maxCribDifference = this.thisTestType === ITestType.cstate ? 3 : 1;
+            let maxCribDifference = (this.thisTestType === ITestType.cstate || this.thisTestType === ITestType.None) ? 3 : 1;
 
             if (columnCount > this.state.crib.length + maxCribDifference) {
 

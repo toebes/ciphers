@@ -1394,7 +1394,10 @@ export class CipherTest extends CipherHandler {
             errContent.find('a').remove();
             // Remove all <div> elements with data-msg="polgs"  
             // These correspond to the AutoSolver being unable to find a solution
-            errContent.filter('div[data-msg="polgs"]').remove();
+            errContent = errContent.filter(':not(div[data-msg="polgs"])');
+            // Remove complete columnar crib length warning messages, also...
+            errContent = errContent.filter(':not(div[data-msg="cribl"])');
+
             $('.err').empty();
         }
         return errContent;

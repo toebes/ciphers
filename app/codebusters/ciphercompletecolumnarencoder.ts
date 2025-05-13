@@ -876,14 +876,14 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             //  Division C State:  Up to 11 columns, crib no shorter than columns - 3.
             let errorMessage = '';
             const testUsage = this.getTestUsage();
-            const usedOnCState = testUsage.includes(ITestType.cstate);
+            const usedOnCState = testUsage.includes(ITestType.cstate) || testUsage.includes(ITestType.None);
             const spacelessCrib = this.minimizeString(this.state.crib);
 
             if ((testType === ITestType.bregional || testType === ITestType.bstate || testType === ITestType.cregional) &&
                 this.state.columns > 9) {
                 result = 'Only 9 or fewer columns are allowed on ' + this.getTestTypeName(testType);
             }
-            else if (testType === ITestType.cstate && this.state.columns > 11) {
+            else if ((testType === ITestType.cstate || testType === ITestType.None) && this.state.columns > 11) {
                 result = 'Only 11 or fewer columns are allowed on ' + this.getTestTypeName(testType);
             }
             else if (spacelessCrib.length < this.state.columns - 1 && !usedOnCState) {

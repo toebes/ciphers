@@ -896,7 +896,7 @@ export class CipherTestBuild extends CipherTest {
             if (entry.testtype !== undefined && !entry.testtype.includes(this.testtype)) {
                 appropriateCheck = 'Question not defined for this test type;'
             } else {
-                appropriateCheck = cipherhandler.CheckAppropriate(testtype, false);
+                appropriateCheck = cipherhandler.CheckAppropriate(testtype, true);
             }
             if (appropriateCheck === '') {
                 if (possibilities.findIndex((check) => check.title === entry.title) < 0) {

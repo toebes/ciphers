@@ -221,7 +221,9 @@ export class CipherTestGenerator extends CipherTest {
         if (test.count < qRange.min) {
             errors.push(`This test only has ${test.count} questions.  A minimum of ${qRange.min} is recommended unless this is a practice test.`)
         } else if (test.count > qRange.max) {
-            errors.push(`This test only has ${test.count} questions which is higher than the recommended maximum of ${qRange.min}.`)
+            errors.push(
+                `This test has ${test.count} questions which is higher than the recommended maximum of ${qRange.max}.`
+            )
         }
         if (test.count > 0 && !hasOddScores) {
             errors.push(`All of the question scores end in 0 or 5 which makes it more likely to have a tie.`)

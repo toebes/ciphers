@@ -25,6 +25,7 @@ import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 import { decodeHTML } from 'entities';
 import { alphaEquiv, alphaEquivType, fourWayEquiv, genDualEquivString, genEquivString, pairEquiv, pickRandomEquivSets, validEquivSet } from '../common/alphaequiv';
 import { createDocumentElement, getCSSRule, getElementSizeInInches } from '../common/htmldom';
+import { boolean } from 'yargs';
 
 const baconMap: StringMap = {
     A: 'AAAAA',
@@ -705,6 +706,54 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
         this.setErrorMsg(msg, 'ab');
+
+        if (this.state.operation === 'sequence') {
+
+            // checks that A and B are same length, and each has a length of >=2
+            msg = '';
+
+            let aSet = this.buildset(this.state.texta);
+            let bSet = this.buildset(this.state.textb);
+            if (aSet.length != bSet.length) {
+                msg = 'The A and B texts are different lengths';
+            }
+            if (aSet.length < 2 || bSet.length < 2) {
+                msg = 'A and B should have more than one character corresponding to them';
+            }
+
+            this.setErrorMsg(msg, 'ablen');
+
+            // checks that A and B don't have the same character at the same location (like CAT and HAG have the same A, but BAT and AGE are ok)
+            msg = '';
+
+            let charMatchedIndex = -1;
+            for (let i = 0; i < aSet.length; i++) {
+                if (aSet[i] == bSet[i]) {
+                    charMatchedIndex = i;
+                    break;
+                }
+            }
+
+            if (charMatchedIndex != -1) {
+                msg = `Character ${charMatchedIndex + 1} of A and B texts are the same`;
+            }
+
+            this.setErrorMsg(msg, 'abdupe');
+
+            // checks that if A has a space at the end, B does as well, and vice versa.
+            msg = '';
+            let cleanA = this.removeHtml(this.state.texta);
+            let cleanB = this.removeHtml(this.state.textb);
+            if (cleanA.charAt(cleanA.length - 1) == ' ' && cleanB.charAt(cleanB.length - 1) != ' ') {
+                msg = 'The text for A has a space at the end, but the text for B doesn\'t'
+            }
+            if (cleanA.charAt(cleanA.length - 1) != ' ' && cleanB.charAt(cleanB.length - 1) == ' ') {
+                msg = 'The text for B has a space at the end, but the text for A doesn\'t'
+            }
+            this.setErrorMsg(msg, 'abspace');
+
+        }
+
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
 

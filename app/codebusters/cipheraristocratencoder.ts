@@ -197,8 +197,10 @@ export class CipherAristocratEncoder extends CipherEncoder {
         this.checkKeywords();
         if (this.state.operation === 'keyword') {
             $('#encrand').attr('disabled', 'disabled').hide();
+            $('#validatekey').removeAttr('disabled').show();
         } else {
-            $('#encrand').removeAttr('disabled').show();
+            $('#encrand').attr('disabled', 'disabled').hide();
+            $('#validatekey').attr('disabled', 'disabled').hide();
         }
         // Show the misspell option if they are doing an English Aristocrat
         if ((this.state.cipherType === ICipherType.Aristocrat) && (this.state.curlang === 'en')) {
@@ -516,6 +518,37 @@ export class CipherAristocratEncoder extends CipherEncoder {
 
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
+    public validateSpecialKeyword(): void {
+        if (this.state.operation === 'keyword') {
+            this.stopGenerating = false;
+            this.isLoading = true
+            this.loadLanguageDictionary(this.state.curlang).then(async () => {
+                let msg2 = ''
+                let msg2extra = $('')
+                const found = await this.searchForAlternateWords(this.state.keyword)
+
+                const keyword = this.minimizeLangString(this.state.keyword.toUpperCase());
+
+                const filtered = found.filter(key =>
+                    this.minimizeLangString(key.toUpperCase()) !== keyword
+                );
+
+                if (filtered.length > 0) {
+                    const keyword = this.minimizeString(this.state.keyword.toUpperCase())
+                    msg2 = `More than one possible answer matches the keyword '${this.state.keyword}' including `
+                    if (filtered.length < 3) {
+                        msg2 += filtered.join(' and ')
+                    } else {
+                        msg2extra = $('<ul/>')
+                        for (const key of filtered) {
+                            msg2extra.append($('<li/>').text(key))
+                        }
+                    }
+                }
+                this.setErrorMsg(msg2, 'dq', msg2extra);
+            })
+        }
+    }
     /**
      * Set the operation for the encoder type
      * @param operation New operation type
@@ -813,10 +846,12 @@ export class CipherAristocratEncoder extends CipherEncoder {
         knButtons.addClass("grid-margin-x")
         knButtons.append(randButton).append(kwButton);
         result.append(knButtons);
-        result.append(JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, 'kval'));
+        const validateKW = $('<a/>', { type: "button", class: "button primary tight valky", id: "validatekey" }).text("Validate Keyword")
+        result.append(JTFLabeledInput('Keyword', 'text', 'keyword', this.state.keyword, 'kval', validateKW));
         result.append(
             JTFIncButton('Offset', 'offset', this.state.offset, 'kval small-12 medium-6 large-6')
         );
+
         result.append(
             JTFLabeledInput('Keyword 2', 'text', 'keyword2', this.state.keyword2, 'k4val')
         );
@@ -987,44 +1022,6 @@ export class CipherAristocratEncoder extends CipherEncoder {
 
         }
         return result;
-    }
-    /**
-     * Generates the sample question text for a cipher
-     * @returns HTML as a string
-     */
-    public genSampleQuestionText(): string {
-        const hint = this.genSampleHint();
-        let hinttext = hint !== undefined ? ` You are told that ${hint}` : '';
-        let enctype = ''
-        if (this.state.encodeType !== undefined && this.state.encodeType !== 'random') {
-            enctype += ' ' + this.state.encodeType.toUpperCase();
-        }
-        if (this.state.curlang === 'es') {
-            if (enctype !== '') {
-                hinttext += ` It has been encoded using a${enctype} alphabet using an English keyword.`
-            }
-            return (
-                `<p>A quote${this.genAuthor()} in Spanish has been encoded using the ` +
-                `${this.cipherName} Cipher for you to decode.${hinttext}</p>`
-            );
-        }
-        let cipherName = this.cipherName
-        if (this.state.cipherType === ICipherType.Patristocrat) {
-            cipherName = 'Patristocrat'
-        }
-        let operationtext = ''
-        if (this.state.operation === 'keyword') {
-            let keytype = "Keyword";
-            const keyanswer = this.state.keyword.toUpperCase();
-            if (this.minimizeString(keyanswer).length !== keyanswer.length) {
-                keytype = "Key Phrase"
-            }
-            operationtext = ` What was the${enctype} ${keytype} used to encode it?`
-        }
-        return (
-            `<p>A quote${this.genAuthor()} has been encoded using the${enctype} ` +
-            `${cipherName} Cipher for you to decode.${hinttext}${operationtext}</p>`
-        );
     }
     /**
      * Start the process of generating the misspelled words
@@ -1484,6 +1481,10 @@ export class CipherAristocratEncoder extends CipherEncoder {
                 this.setUseHint(isChecked);
                 this.updateOutput();
             });
-
+        $('#validatekey')
+            .off('click')
+            .on('click', (e) => {
+                this.validateSpecialKeyword();
+            });
     }
 }

@@ -807,6 +807,89 @@
                     (<span class="fq">58 93 66 54 45</span>) decode to be <span class="fq">HAPPY</span>.
                 </p>
             </div>
+            <div id="Checkerboard">
+                <h2 class="ol">
+                    <div class="qusec"></div>
+                    <div class="quseb"></div>
+                    <div>Checkerboard cipher B{3.e.???}, C{3.e.??}</div>
+                </h2>
+                <p>The Checkerboard cipher is a substitution cipher. It uses three keywords, the polybius key and a row
+                    and column
+                    keyword, to encode the plaintext.
+                    The polybius key is used to generate a Polybius Square, which is a 5x5 table that maps every letter
+                    to a pair of letters based on its row and column.
+                    There should be no more than 2 Checkerboard decryption problems on a test.</p>
+                <span class="ht">Setting Difficulty:</span>
+                <p class="in">In general, more room for error makes it more difficult to get the right
+                    answer. A block
+                    size of 0 may provide clues to the encoded words, so reduces difficulty.
+                    A longer polybius key or one with duplicate letters makes it more difficult because there is
+                    increased chance of
+                    creating the polybius square incorrectly. TBD</p>
+                <span class="ht">Points:</span>
+                <p class="in"> 125-150. Longer plain text should be worth more because there is simply more work to do,
+                    in addition to the considerations above.</p>
+                <span class="ht">Question Text:</span>
+                <p class="in">For decryption, the question text should include the polybius key and normal keyword used
+                    to
+                    encrypt the plain text. Quote length should be at most around 50 characters.</p>
+                <p class="ex callout small secondary">A phrase by <em>&lt;person&gt;</em> was encoded
+                    using a Checkerboard Cipher with a Polybius Key of <span class="fq">SCIENCE OLYMPIAD</span>
+                    and a keys of <span class="fq">CODE</span> and <span class="fq">CODE</span>. What does it say? </p>
+            </div>
+            <div id="Checkerboard_Cryptanalysis">
+                <h2 class="ol">
+                    <div class="qusecs"></div>
+                    <div class="qusebs"></div>
+                    <div>Checkerboard cipher (cryptanalysis) B,C{3.f.???}</div>
+                </h2>
+                <p>The Checerboard cipher is a substitution cipher. It uses three keywords to encode the plaintext.
+                    The first is used to construction a Polybius Square which is used to map all of the
+                    letters to numbers. The other keywords are for the row and column headers to map the letters.
+                    Doing cryptanalysis, some of the mapping of plain text to cipher text is given and the
+                    polybius square and keyword need to be derived from that mapping. This is an iterative process that
+                    substantially increases the difficulty. Note that it is possible to tread the Checkerboard cipher
+                    as an Aristocrat/Patristocrat if you tread the pairs of letters as a symbol.</p>
+                <span class="ht">Setting Difficulty:</span>
+                <p class="in">In addition to the <a href="#Checkerboard">notes above</a>, In addition to the notes
+                    above,
+                    cryptanalysis makes Checkerboard ciphers significantly more difficult due to the iteration and
+                    deduction
+                    required to solve it. As a result, these will be some of the most time-consuming problems on the
+                    test, and care should be taken to avoid making them too difficult. One factor for difficulty is the
+                    Block Size. A Block Size of 0 will make these easier to solve, while a Block Size that is nonzero
+                    and different from the keyword length will make these more difficult. Another factor for difficulty
+                    is the choice of crib. A longer crib makes the problem easier than a shorter crib, but note that too
+                    many duplicate letters within the crib will reduce the information that solvers have given to them.
+                    A third factor for difficulty is the relationship between the Keyword, the Polybius Key, and the
+                    Polybius table. If, after the Polybius table is constructed, the keyword draws primarily from the
+                    center values in the table, the problem will be more difficult. It is helpful to solvers if the
+                    keyword contains letters from a wider variety of locations in the Polybius table - both low values
+                    (letters which are also contained in the Polybius key) and high values (letters from the last row in
+                    the Polybius table), to help them analyze patterns in the cipher values. Lastly, the AutoSolver
+                    provides guidance on whether it is able to recover the keyword given the choice of keyword and crib
+                    provided, which can help guide the construction of these problems. Unlike most other kinds of
+                    ciphers, it is much easier to inadvertently make these unsolvable in competition time than it
+                    is to make them too easy, so don't hesitate
+                    to set the Block Size
+                    at 0 and to have a crib substantially longer than required by the rules (for example, the same
+                    length or longer than the keyword).</p>
+                <span class="ht">Points:</span>
+                <p class="in">200-400. It begins with a similar base to the Checkerboard above, in the 125-150 range,
+                    and
+                    then bonuses are given for cryptanalysis (200), for the AutoSolver not being able to find the
+                    keyword or keyword positions (200-300), if the AutoSolver can find the keyword but not enough
+                    characters in the answer to solve the cipher (100-200).
+                </p>
+                <span class="ht">Question Text:</span>
+                <p class="in">For cryptanalysis, the question text should include a hint of plaintext and the
+                    location of that plaintext.</p>
+                <p class="ex callout small secondary">
+                    The following quote by <em>&lt;person&gt;</em> has been encoded with the Checerboard
+                    Cipher. The 35th through 39th cipher units
+                    (<span class="fq">58 93 66 54 45</span>) decode to be <span class="fq">HAPPY</span>.
+                </p>
+            </div>
             <div id="Baconian">
                 <h2 class="ol">
                     <div class="qusec"></div>
@@ -1305,13 +1388,13 @@
                 <p>The Fractionated Morse Cipher encodes text by first converting the plain text into morse
                     code with the space between characters represented by an <span class="fq">&times;</span> and the
                     space between words represented by two <span class="fq">&times;</span> characters. The resulting
-                    morse code string is divided into groups of three characters called a morslet.  The morslet is
+                    morse code string is divided into groups of three characters called a morslet. The morslet is
                     made up of combinations of these characters:
                     (<span class="fq">&#9679;</span>,
                     <span class="fq">&ndash;</span>,
-                    <span class="fq">&times;</span>).  There are 27
-                    possible morselets using combinations of those characters.  Each morslet is
-                    assigned to letters using a K1-like replacement table.  26 morselets are
+                    <span class="fq">&times;</span>). There are 27
+                    possible morselets using combinations of those characters. Each morslet is
+                    assigned to letters using a K1-like replacement table. 26 morselets are
                     used in the replacement table; (<span class="fq">&times;&times;&times;</span>) is not used.
                     The table is always the same, and the letters in the keyword (with
                     duplicates removed) are always the initial letters in the table, with the remaining letters
@@ -1324,9 +1407,10 @@
                 </p>
                 <span class="ht">Setting Difficulty:</span>
                 <p class="in">
-                    The difficulty will depend on how many cipher characters are revealed by the crib.  This is determined
+                    The difficulty will depend on how many cipher characters are revealed by the crib. This is
+                    determined
                     by the length of the crib and where it is placed. The difficulty is also related to the
-                    letters that are chosen for the keyword, although less so.  Difficulty
+                    letters that are chosen for the keyword, although less so. Difficulty
                     increases when the keyword draws letters spread throughout the alphabet, when it draws
                     from the end of the alphabet, when the keyword is very long, and when there are duplicate letters in
                     the keyword.
@@ -1334,33 +1418,39 @@
                     are used in the cipher.
                 </p>
                 <p class="in1">A crib which provides 10 to 12 mappings of cipher letters to morslets should be adequate
-                    to solve the cipher in a reasonable amount of time.  As stated above, the position and length
-                    of the crib determine how many cipher letters are revealed.  A shorter crib may reveal
-                    more cipher letters than a longer crib, it all depends on the length of the morse characters generated
-                    by the plain text.  The auto-solver output shows what cipher characters the crib reveals, so trying different cribs
-                    gives immediate feedback to the test writer.  The auto-solver also makes an estimate
-                    of the length of the keyword.  How close this estimate is to the actual length of the keyword
+                    to solve the cipher in a reasonable amount of time. As stated above, the position and length
+                    of the crib determine how many cipher letters are revealed. A shorter crib may reveal
+                    more cipher letters than a longer crib, it all depends on the length of the morse characters
+                    generated
+                    by the plain text. The auto-solver output shows what cipher characters the crib reveals, so trying
+                    different cribs
+                    gives immediate feedback to the test writer. The auto-solver also makes an estimate
+                    of the length of the keyword. How close this estimate is to the actual length of the keyword
                     will make the problem marginally easier.
                 </p>
                 <p class="in1">Looking at the
-                    auto-solver output should give an idea of how much effort a problem will take to solve.  The auto-solver
-                    iterates through logic and builds upon previous progress--techniques a student would use.  Put another way,
-                    in general, the longer the output from the auto-solver, the more effort it will take a student to solve it,
+                    auto-solver output should give an idea of how much effort a problem will take to solve. The
+                    auto-solver
+                    iterates through logic and builds upon previous progress--techniques a student would use. Put
+                    another way,
+                    in general, the longer the output from the auto-solver, the more effort it will take a student to
+                    solve it,
                     thus a more difficult problem.
                 </p>
 
                 <span class="ht">Points:</span>
-                <p class="in">350-400. This can be adjusted using the factors for difficulty above.  The 'Suggest Points'
-                button uses these considerations to determine a score.</p>
+                <p class="in">350-400. This can be adjusted using the factors for difficulty above. The 'Suggest Points'
+                    button uses these considerations to determine a score.</p>
                 <span class="ht">Question Text:</span>
-                <p class="in">The question should be around 40 characters.  Note that the encoded text revealed by the
+                <p class="in">The question should be around 40 characters. Note that the encoded text revealed by the
                     11 characters of the crib has a length of 13 characters, but only 9 are unique.</p>
                 <p class="ex callout small secondary">
                     Someone passed you a piece of paper with this Fractionated Morse encoded phrase of a quote. You are
                     told that the quote has <span class="fq">EDSOMEMAGIC</span> in it corresponding to the encoded text
                     <span class="fq">N G S N L L E L B J S V H</span>,
                     meaning <span class="fq">B = &#9679;–×; E = &#9679;××; G = &#9679;&#9679;×; H = –&#9679;×;
-                    J = ––&#9679;; L = ––×; N = &#9679;×–; S = ×&#9679;&#9679;; V = ×–&#9679;</span>. What does it say?
+                        J = ––&#9679;; L = ––×; N = &#9679;×–; S = ×&#9679;&#9679;; V = ×–&#9679;</span>. What does it
+                    say?
                 </p>
             </div>
 

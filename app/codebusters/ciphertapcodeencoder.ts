@@ -130,18 +130,6 @@ export class CipherTapCodeEncoder extends CipherEncoder {
      */
     public displayFreq(): void { }
     /**
-     * Generates the sample question text for a cipher
-     * @returns HTML as a string
-     */
-    public genSampleQuestionText(): string {
-        const hint = this.genSampleHint();
-        let hinttext = hint !== undefined ? ` You are told that ${hint}` : '';
-        return (
-            `<p>The following symbols represent a quote${this.genAuthor()} which has been encoded using the
-             ${this.cipherName} Cipher for you to decode.${hinttext}</p>`
-        );
-    }
-    /**
      * Generate the recommended score and score ranges for a cipher
      * @returns Computed score ranges for the cipher
      */

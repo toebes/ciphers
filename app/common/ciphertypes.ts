@@ -355,7 +355,7 @@ const cipherTypeConfig = new Map(<[ICipherType, any][]>[
     ],
     [
         ICipherType.NihilistSubstitution,
-        /* Not Yet Implemented */ {
+        {
             title: 'Nihilist Substitution',
             id: 'nihilistsub',
             equiv: [ICipherType.NihilistSubstitution],

@@ -1908,6 +1908,10 @@ p.ktemplar {
     font-family: pigpen;
 }
 
+.colrow input {
+    min-width: 4.5rem;
+}
+
 .TapCode td {
     padding: 0.1rem;
 }
@@ -2385,6 +2389,10 @@ table.nameline td.u {
     color: black;
     font-weight: bold;
     cursor: col-resize;
+}
+
+.sizeset .timedq .TOSOLVEQ {
+    font-size: 22px;
 }
 
 .TOSOLVEC,

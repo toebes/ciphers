@@ -103,6 +103,8 @@ export interface IState {
     solCheck?: string;
     /** Which division they are doing the test for */
     testtype?: ITestType;
+    /** Which file entry the cipher is saved as */
+    editEntry?: number;
 }
 /**
  * The types of tests that can be generated
@@ -1272,6 +1274,7 @@ export class CipherHandler {
             const cipherCount = this.getCipherCount();
             if (entry < cipherCount) {
                 result = this.storage.getJSON(this.getEntryName(entry));
+                result.editEntry = entry
             }
         }
         return result;

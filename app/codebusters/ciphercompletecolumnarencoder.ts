@@ -806,8 +806,6 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     public validTests: ITestType[] = [ITestType.None, ITestType.bstate, ITestType.bregional, ITestType.cregional, ITestType.cstate];
 
     private thisTestType = undefined;
-    public isLoading = false;
-    public stopGenerating = false;
     private currentSolverSolution: CompleteColumnarSolver = undefined;
 
     public defaultstate: ICompleteColumnarState = {
@@ -878,14 +876,14 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             //  Division C State:  Up to 11 columns, crib no shorter than columns - 3.
             let errorMessage = '';
             const testUsage = this.getTestUsage();
-            const usedOnCState = testUsage.includes(ITestType.cstate);
+            const usedOnCState = testUsage.includes(ITestType.cstate) || testUsage.includes(ITestType.None);
             const spacelessCrib = this.minimizeString(this.state.crib);
 
             if ((testType === ITestType.bregional || testType === ITestType.bstate || testType === ITestType.cregional) &&
                 this.state.columns > 9) {
                 result = 'Only 9 or fewer columns are allowed on ' + this.getTestTypeName(testType);
             }
-            else if (testType === ITestType.cstate && this.state.columns > 11) {
+            else if ((testType === ITestType.cstate || testType === ITestType.None) && this.state.columns > 11) {
                 result = 'Only 11 or fewer columns are allowed on ' + this.getTestTypeName(testType);
             }
             else if (spacelessCrib.length < this.state.columns - 1 && !usedOnCState) {
@@ -1338,10 +1336,19 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>' /*, { class: 'grid-x' }*/);
 
+        const testUsage = this.getTestUsage();
+        const usedOnCState = testUsage.includes(ITestType.cstate) || testUsage.includes(ITestType.None);
+
         let errorMessage = '';
         const spacelessCrib = this.minimizeString(this.state.crib);
 
-        if (spacelessCrib.length > this.state.columns) {
+        if (spacelessCrib.length < this.state.columns - 1 && !usedOnCState) {
+            errorMessage = `For this test type, the length of the crib must be no shorter than ${(this.state.columns - 1)}
+                (i.e. on less the number of columns used).`;
+        } else if (spacelessCrib.length < this.state.columns - 3 && usedOnCState) {
+            errorMessage = `For a Division C State/National or unspecified test, the length of the crib must be no shorter
+            than ${(this.state.columns - 3)} (i.e. three less the number of columns used)`;
+        } else if (spacelessCrib.length > this.state.columns) {
             errorMessage = `Warning: The crib length is greater than the number of columns.  The auto-solver will only use the first ${this.state.columns} letters of the crib`;
         }
         this.setErrorMsg(errorMessage, 'cribl', null);
@@ -1578,7 +1585,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
 
             result.append(CipherCompleteColumnarEncoder.heading(columnCount + ' Columns'));
 
-            let maxCribDifference = this.thisTestType === ITestType.cstate ? 3 : 1;
+            let maxCribDifference = (this.thisTestType === ITestType.cstate || this.thisTestType === ITestType.None) ? 3 : 1;
 
             if (columnCount > this.state.crib.length + maxCribDifference) {
 
@@ -1694,27 +1701,6 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
         // All done, so mark that we are not in the process of updating
         this.isLoading = false
     }
-    /**
-     * Check to see if we need to restart the output operation all over
-     * This works by giving a UI break sot that we can check for any input and decide to
-     * regenerate the output (because it might take a long time)
-     *
-     * You need to call this whenever an operation has taken a long time to see
-     * if something needs to be updated:
-     *             if (await this.restartCheck()) { return }
-     * @returns A flag indicating that something has changed and we need to abort generating output
-     */
-    public async restartCheck(): Promise<boolean> {
-        await new Promise(resolve => setTimeout(resolve, 0));
-        if (this.stopGenerating) {
-            this.stopGenerating = false;
-            setTimeout(() => { this.load() }, 10);
-            this.isLoading = false;
-            return true;
-        }
-        return false
-    }
-
     private rowsWithCribCharacters(crib: string, rowLetters: string[]): boolean {
 
         // This map will have a key of row number, then it will have an object containing the number of

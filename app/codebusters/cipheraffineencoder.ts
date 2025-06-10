@@ -382,6 +382,9 @@ export class CipherAffineEncoder extends CipherEncoder {
                         msg = '';
                     }
                 } else {
+                    // It doesn't really make sense to just call out only 1 letter even
+                    // if both are not mentioned in the question text.
+                    const lettersNotMentioned: string[] = [];
                     // crib letters are not adjacent.  Look for them both separately
                     for (const cribent of cribpos) {
                         if (
@@ -392,12 +395,15 @@ export class CipherAffineEncoder extends CipherEncoder {
                                 cribent.position
                             )
                         ) {
-                            msg =
-                                'The Question Text does not specify how the Crib letter ' +
-                                cribent.plaintext +
-                                ' is mapped';
-                            break;
+                            lettersNotMentioned.push(cribent.plaintext);
                         }
+                    }
+                    if (lettersNotMentioned.length === 0) {
+                        msg = '';
+                    } else if (lettersNotMentioned.length === 1) {
+                        msg = `The Question Text does not specify how the Crib letter ${lettersNotMentioned[0]} is mapped.`;
+                    } else {
+                        msg = `The Question Text does not specify how the Crib letters ${lettersNotMentioned[0]} and ${lettersNotMentioned[1]} are mapped`;
                     }
                 }
             }
@@ -440,40 +446,6 @@ export class CipherAffineEncoder extends CipherEncoder {
 
         this.setErrorMsg(msg, 'vq', sampleLink);
     }
-    /**
-     * Generates the sample question text for a cipher
-     * @returns HTML as a string
-     */
-    public genSampleQuestionText(): string {
-        let msg = '';
-        if (this.state.operation === 'crypt') {
-            msg = '<p>The following quote' + this.genAuthor() + ' has been encoded using the Affine Cipher. ';
-            const cribpos = this.placeCrib();
-            const ptstring = this.minimizeString(this.state.cipherString);
-
-            msg += this.getCribPlacement(cribpos, ptstring);
-            msg += '.';
-        } else {
-            if (this.state.operation === 'encode') {
-                msg =
-                    '<p>The following quote' + this.genAuthor() + ' needs to be encoded ' +
-                    ' with the Affine Cipher using ';
-            } else {
-                msg =
-                    '<p>The following quote' + this.genAuthor() + ' needs to be decoded ' +
-                    ' with the Affine Cipher where ';
-            }
-            msg +=
-                '<strong><i>a</i>=' +
-                this.genMonoText(String(this.state.a)) +
-                ' </strong> and <strong><i>b</i>=' +
-                this.genMonoText(String(this.state.b)) +
-                '</strong>.';
-            msg += '</p>';
-        }
-        return msg;
-    }
-
     /**
      * This handles the Affine Cipher specific question options.
      * @param qOptions the array of options

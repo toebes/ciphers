@@ -848,17 +848,24 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         result: JQuery<HTMLElement>,
         knownmap: StringMap,
         working: string[][]
-    ): boolean {
+    ): number {
         const unknowns = this.getUnkownsCount(knownmap, working);
         if (unknowns > 0) {
-            result.append(
-                'At this point in time, ' +
-                String(unknowns) +
-                ' ciphertext characters still need to be mapped.  '
-            );
-            return true;
+            if (unknowns <= 2) {
+                result.append(
+                    `Now, ${unknowns} ciphertext 
+                    ${unknowns === 2 ? `characters still need` : `character still needs`} 
+                    to be mapped.`
+                );
+            } else {
+                result.append(
+                    'At this point in time, ' +
+                    String(unknowns) +
+                    ' ciphertext characters still need to be mapped.  '
+                );
+            }
         }
-        return false;
+        return unknowns;
     }
     /**
      * Check the first character to make sure it isn't an X
@@ -1828,7 +1835,6 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         return returnValue;
     }
 
-
     /**
      * This method will search the mapping table, but not into the keyword and deduce a mapping based on possible
      * letters and the number of spaces in a range of letters.
@@ -2774,7 +2780,8 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
         // displays the (partial) solution we know so far.
         this.genMapping(result, working);
 
-        if (!this.hasUnknowns(result, knownmap, working)) {
+        // This will likely never, ever happen....but never say never.
+        if (this.hasUnknowns(result, knownmap, working) === 0) {
             result.append(
                 'Which means that the hint has provide all of the' +
                 ' cipher digit mapping and there is no work to solve it'
@@ -2841,18 +2848,52 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                 result.append('Based on that information we can map the cipher text as:');
                 this.genMapping(result, working);
 
-                if (this.hasUnknowns(result, knownmap, working)) {
+                // This is the number of cipher characters that are not mapped yet
+                const numberUnknowns = this.hasUnknowns(result, knownmap, working);
+                let answer = '';
+                for (const strset of working) {
+                    answer += strset[ptindex].replace(/ /g, '').replace(/\//g, ' ');
+                }
+                // This is the length of the entire plaintext answer (all smashed together).
+                const cipherStringMinimized = this.minimizeString(this.state.cipherString);
+                // This is the length of what has been decoded so far (all smashed together).
+                const answerMinimized = this.minimizeString(answer);
+
+                // The difference between the answer and what is decoded is the number of characters 'wrong'.
+                // If that difference is 2 or less, claim victory because that is a full credit answer.
+                if (cipherStringMinimized.length - answerMinimized.length > 2) {
                     limit--;
                     this.solutionLoops = this.SOLUTION_ITERATIONS - limit;
                     this.solutionUnknowns = this.getUnkownsCount(knownmap, working);
                 } else {
-                    let answer = '';
-                    for (const strset of working) {
-                        answer += strset[ptindex].replace(/ /g, '').replace(/\//g, ' ');
+                    if (cipherStringMinimized.length - answerMinimized.length > 0) {
+                        result.append(
+                            $('<p/>').text(`The solution is missing 
+                            ${cipherStringMinimized.length - answerMinimized.length} plaintext 
+                            character${cipherStringMinimized.length - answerMinimized.length > 1 ? `s` : ``},
+                            but up to two wrong is OK!`)
+                        );
+                        let indexInAnswer = 0;
+                        let delta = 0;
+                        // This is used to format the plain text with special characters in the 1 or 2 unknown
+                        // locations.
+                        for (let i = 0; i < cipherStringMinimized.length; i++) {
+                            // If the letters don't match, a '*' needs to be inserted in the answer string (the one that is not
+                            // smashed together) at the proper location.
+                            if (cipherStringMinimized[i] !== answerMinimized[i - delta]) {
+                                indexInAnswer = answer.indexOf(answerMinimized[i - delta], indexInAnswer + 1);
+                                answer = answer.slice(0, indexInAnswer) + '*' + answer.slice(indexInAnswer);
+                                indexInAnswer = answer.indexOf(answerMinimized[i - delta], indexInAnswer);
+                                delta++;
+                            } else {
+                                indexInAnswer = answer.indexOf(cipherStringMinimized[i], indexInAnswer);
+                            }
+                        }
                     }
                     result.append(
                         $('<h4/>').text(
-                            'Now that we have mapped all the ciphertext characters, the decoded morse code is the answer:'
+                            `Now that we have mapped all the ciphertext characters
+                            ${numberUnknowns === 0 ? `` : `that are needed`}, the decoded morse code is the answer:`
                         )
                     );
                     result.append(
@@ -2862,7 +2903,7 @@ export class CipherFractionatedMorseEncoder extends CipherMorseEncoder {
                     );
                     if (mappedLetters[0].length > 0) {
                         result.append($('<p/>').text(`There ${mappedLetters[0].length > 1 ? `are ${mappedLetters[0].length} letters that are ` :
-                            `is 1 letter that is `} not mapped because they are not used in the ciphertext, so a definitive mapping can not be determined.`)
+                            `is 1 letter that is `} not mapped because they are not used in the ciphertext, so a comprehensive mapping will not be determined.`)
                         );
                     }
                     this.solutionUnknowns = 0;

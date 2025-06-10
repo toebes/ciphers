@@ -32,6 +32,7 @@ import { CipherQuoteManager } from './cipherquotemanager';
 import { CipherAristocratEncoder } from './cipheraristocratencoder';
 import { CipherKnightsTemplarEncoder } from './cipherknightstemplar';
 import { CipherTestSlicer } from './ciphertestslicer';
+import { CipherCheckerboardEncoder } from './ciphercheckerboardencoder';
 
 interface ICipherFactoryEntry {
     cipherType: ICipherType;
@@ -64,6 +65,12 @@ const cipherFactoryMap: { [index: string]: ICipherFactoryEntry } = {
         cipherClass: CipherTableEncoder,
         canPrint: true,
     },
+    Checkerboard: {
+        cipherType: ICipherType.Checkerboard,
+        cipherClass: CipherCheckerboardEncoder,
+        canPrint: true,
+    },
+
     CompleteColumnar: {
         cipherType: ICipherType.CompleteColumnar,
         cipherClass: CipherCompleteColumnarEncoder,

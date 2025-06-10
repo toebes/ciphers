@@ -445,6 +445,13 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
+            filename: 'CheckerboardEncrypt.html',
+            template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
+            cipher: 'Checkerboard',
+            title: 'Checkerboard Encoder',
+        }),
+        new HtmlWebpackPlugin({
+            inject: false,
             filename: 'RSAEncrypt.html',
             template: path.join(__dirname, 'app', 'codebusters', 'pages', 'StdEncoder.html'),
             cipher: 'RSA',

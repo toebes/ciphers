@@ -374,6 +374,7 @@ export class CipherTestScoreAdjust extends CipherTest {
             } else if (testtype !== undefined) {
                 // If we know the type of test, see if it has any problems with the question
                 const cipherhandler = CipherPrintFactory(state.cipherType, state.curlang);
+                cipherhandler.savefileentry = state.editEntry;
                 cipherhandler.restore(state);
                 qerror = cipherhandler.CheckAppropriate(testtype, false);
                 if (qerror !== '') {

@@ -327,6 +327,27 @@ export class CipherTestBuild extends CipherTest {
             group: 3, weight: 0.5, cipherType: ICipherType.Porta,
             operation: 'crypt'
         },
+        // {
+        //     title: "Checkerboard Decode",
+        //     guidance: '[55-75 characters]',
+        //     len: [55, 75],
+        //     group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
+        //     operation: 'decode'
+        // },
+        // {
+        //     title: "Checkerboard Decode",
+        //     guidance: '[55-75 characters]',
+        //     len: [55, 75],
+        //     group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
+        //     operation: 'decode'
+        // },
+        // {
+        //     title: "Checkerboard Cryptanalysis",
+        //     guidance: '[55-75 characters]',
+        //     len: [55, 75],
+        //     group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
+        //     operation: 'crypt'
+        // },
         {
             title: "Nihilist Decode",
             guidance: '[55-75 characters]',
@@ -816,6 +837,7 @@ export class CipherTestBuild extends CipherTest {
             cipherType === ICipherType.Hill ||
             cipherType === ICipherType.Porta ||
             cipherType === ICipherType.NihilistSubstitution ||
+            cipherType === ICipherType.Checkerboard ||
             cipherType === ICipherType.RunningKey ||
             cipherType === ICipherType.Baconian ||
             cipherType === ICipherType.Morbit ||
@@ -874,7 +896,7 @@ export class CipherTestBuild extends CipherTest {
             if (entry.testtype !== undefined && !entry.testtype.includes(this.testtype)) {
                 appropriateCheck = 'Question not defined for this test type;'
             } else {
-                appropriateCheck = cipherhandler.CheckAppropriate(testtype, false);
+                appropriateCheck = cipherhandler.CheckAppropriate(testtype, true);
             }
             if (appropriateCheck === '') {
                 if (possibilities.findIndex((check) => check.title === entry.title) < 0) {

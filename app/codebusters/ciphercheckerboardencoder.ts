@@ -3310,7 +3310,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         dlgContents.append($('<div/>', { class: 'callout primary', id: 'suggestCribOpts' }))
         dlgContents.append(
             $('<div/>', { class: 'expanded button-group' })
-                .append($('<a/>', { class: 'button', id: 'genbtn' }).text('Generate'))
+                .append($('<a/>', { class: 'button cribRegenerate', id: 'genbtn' }).text('Regenerate'))
                 .append(
                     $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
                         'Cancel'
@@ -3372,6 +3372,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         let targetRevealCount = 10;
         let minRevealCount = 5;
         let cribSelectCount = 14;
+        let randomizerWeight = 0.2; // 0-1
 
         //Generate potential cribs
         let potentialCribs = new Array<{ crib: string; directCount: number; indirectCount: number }>();
@@ -3400,7 +3401,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             if (cribSelectCount === 0) {
                 break;
             }
-            if (Math.random() < 0.1 || (potentialCribs.length - selection) <= cribSelectCount) { //Pick crib randomly
+            if (Math.random() < randomizerWeight || (potentialCribs.length - selection) <= cribSelectCount) { //Pick crib randomly
                 let div = $('<div/>', { class: "kwchoice" });
 
                 let useButton = $("<a/>", {
@@ -3419,27 +3420,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             }
 
         }
-
-        // const found = this.findPossibleCribs(20, (found: number, crib: string): boolean => {
-        //     console.log(`Crib found: ${found}: ${crib}`)
-        //     let div = $('<div/>', { class: "kwchoice" });
-
-        //     let useButton = $("<a/>", {
-        //         'data-crib': crib,
-        //         type: "button",
-        //         class: "button rounded cribset abbuttons",
-        //     }).html('Use');
-        //     div.append(useButton)
-        //     div.append(crib)
-        //     if (found % 2 === 0) {
-        //         cellLeft.append(div)
-        //     } else {
-        //         cellMid.append(div)
-        //     }
-
-        //     return true;
-        // });
-        this.attachHandlers()
+        this.attachHandlers();
     }
 
     /** 
@@ -3474,6 +3455,52 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             cipherUnit[2] = "D";
         }
 
+        //Find indirect reveals
+        let scannerLeft = 23;
+        let scannerRight = 24;
+        let characterLeft = cipherUnitLookup.get(cipherUnits[scannerLeft][1]);
+        let characterRight = cipherUnitLookup.get(cipherUnits[scannerRight][1]);
+
+        for (; scannerLeft >= 0; scannerLeft--) {
+            characterLeft = cipherUnitLookup.get(cipherUnits[scannerLeft][1]);
+            if (characterLeft[2] === "D") {
+                let alphabeticalGap = characterRight[0].charCodeAt(0) - characterLeft[0].charCodeAt(0);
+
+                //Remove letter J from gap amount
+                if (characterLeft[0].charCodeAt(0) < 74 && characterRight[0].charCodeAt(0) > 74) {
+                    alphabeticalGap--;
+                }
+
+                //Remove direct reveal polybius key letters from gap amount
+                let polybiusKeyCharacterCheck = new Array<string>();
+                for (var polyScaner = 0; polyScaner < this.state.polybiusKey.length; polyScaner++) {
+                    if (characterLeft[0].charCodeAt(0) < this.state.polybiusKey.charCodeAt(polyScaner) && characterRight[0].charCodeAt(0) > this.state.polybiusKey.charCodeAt(polyScaner) && !polybiusKeyCharacterCheck.includes(this.state.polybiusKey.charAt(polyScaner)) && res.crib.includes(this.state.polybiusKey.charAt(polyScaner))) {
+                        alphabeticalGap--;
+                        polybiusKeyCharacterCheck.push(this.state.polybiusKey.charAt(polyScaner));
+                    }
+                }
+
+
+                if (alphabeticalGap === (scannerRight - scannerLeft)) {
+                    let holdRightCharacter = characterRight[0].charCodeAt(0);
+                    while (scannerRight > scannerLeft) {
+                        if (characterRight[2] === "N" && characterLeft[0].charCodeAt(0) < characterRight[0].charCodeAt(0) && characterRight[0].charCodeAt(0) <= holdRightCharacter) {
+                            characterRight[2] = "I";
+                            res.indirectCount++;
+                        }
+                        scannerRight--;
+                        characterRight = cipherUnitLookup.get(cipherUnits[scannerRight][1]);
+                    }
+                }
+
+                scannerRight = scannerLeft;
+                characterRight = cipherUnitLookup.get(cipherUnits[scannerRight][1]);
+            }
+
+
+        }
+        //console.log(cipherUnitLookup);
+        //console.log(res);
         return res;
     }
     /**
@@ -3579,6 +3606,11 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             .off('click')
             .on('click', (e) => {
                 this.useCrib(e.target)
+            })
+        $('.cribRegenerate')
+            .off('click')
+            .on('click', () => {
+                this.genCribSuggestions()
             })
     }
 }

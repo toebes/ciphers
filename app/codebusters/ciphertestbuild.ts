@@ -140,20 +140,20 @@ export class CipherTestBuild extends CipherTest {
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25] with Hint',
             len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity], usehint: true,
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
-            testtype: allButARegional, operation: 'decode', encodeType: 'k1',
+            testtype: [ITestType.None], operation: 'decode', encodeType: 'k1',
         },
         {
             title: 'Misspelled K1 Aristocrat without a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25]',
             len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity],
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
-            testtype: allButARegional, operation: 'decode', encodeType: 'k1',
+            testtype: [ITestType.None], operation: 'decode', encodeType: 'k1',
         },
         {
             title: 'Misspelled K2 Aristocrat with a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25] with Hint',
             len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity], usehint: true,
-            testtype: allButARegional, operation: 'decode', encodeType: 'k2',
+            testtype: [ITestType.None], operation: 'decode', encodeType: 'k2',
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
         },
         {
@@ -161,7 +161,7 @@ export class CipherTestBuild extends CipherTest {
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25]',
             len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity],
             group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
-            testtype: allButARegional, operation: 'decode', encodeType: 'k2',
+            testtype: [ITestType.None], operation: 'decode', encodeType: 'k2',
         },
         {
             title: 'Keyword/Key Phrase K1 Aristocrat',
@@ -327,27 +327,27 @@ export class CipherTestBuild extends CipherTest {
             group: 3, weight: 0.5, cipherType: ICipherType.Porta,
             operation: 'crypt'
         },
-        // {
-        //     title: "Checkerboard Decode",
-        //     guidance: '[55-75 characters]',
-        //     len: [55, 75],
-        //     group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
-        //     operation: 'decode'
-        // },
-        // {
-        //     title: "Checkerboard Decode",
-        //     guidance: '[55-75 characters]',
-        //     len: [55, 75],
-        //     group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
-        //     operation: 'decode'
-        // },
-        // {
-        //     title: "Checkerboard Cryptanalysis",
-        //     guidance: '[55-75 characters]',
-        //     len: [55, 75],
-        //     group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
-        //     operation: 'crypt'
-        // },
+        {
+            title: "Checkerboard Decode",
+            guidance: '[55-75 characters]',
+            len: [55, 75],
+            group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
+            operation: 'decode'
+        },
+        {
+            title: "Checkerboard Decode",
+            guidance: '[55-75 characters]',
+            len: [55, 75],
+            group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
+            operation: 'decode'
+        },
+        {
+            title: "Checkerboard Cryptanalysis",
+            guidance: '[55-75 characters]',
+            len: [55, 75],
+            group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
+            operation: 'crypt'
+        },
         {
             title: "Nihilist Decode",
             guidance: '[55-75 characters]',

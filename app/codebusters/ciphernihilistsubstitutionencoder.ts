@@ -671,7 +671,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
 
-        let suggested = 55 + qdata.len;
+        let suggested = 25 + (qdata.len * 3);
         let operationText = '';
         let zeroBlockSizeText = '';
         let keywordLengthText = '';
@@ -730,7 +730,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         if (qdata.len < 26) {
             scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in this quote, we recommend around 50 characters for a good quote</em></p>`
         }
-        if (qdata.len > 75) {
+        if (qdata.len > 65) {
             scoringText = `<p><b>WARNING:</b> <em>There are ${qdata.len} characters in this quote, which is a significant amount more than the recommended 50 characters.</em></p>`
         }
         if (qdata.len > 2) {

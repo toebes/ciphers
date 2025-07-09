@@ -350,8 +350,8 @@ export class CipherTestBuild extends CipherTest {
         // },
         {
             title: "Nihilist Decode",
-            guidance: '[55-75 characters]',
-            len: [55, 75],
+            guidance: '[40-55 characters]',
+            len: [40, 55],
             group: 3, weight: 0.5, cipherType: ICipherType.NihilistSubstitution,
             operation: 'decode'
         },

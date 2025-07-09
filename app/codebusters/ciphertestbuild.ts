@@ -357,15 +357,15 @@ export class CipherTestBuild extends CipherTest {
         },
         {
             title: "Nihilist Decode",
-            guidance: '[55-75 characters]',
-            len: [55, 75],
+            guidance: '[40-55 characters]',
+            len: [40, 55],
             group: 3, weight: 0.5, cipherType: ICipherType.NihilistSubstitution,
             operation: 'decode'
         },
         {
             title: "Nihilist Cryptanalysis",
-            guidance: '[55-75 characters]',
-            len: [55, 75],
+            guidance: '[45-60 characters]',
+            len: [45, 60],
             group: 3, weight: 0.5, cipherType: ICipherType.NihilistSubstitution,
             operation: 'crypt'
         },

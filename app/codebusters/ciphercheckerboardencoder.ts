@@ -3343,8 +3343,6 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         divAll.append(cellLeft).append(cellMid)//.append(cellRight)
         output.empty().append(divAll)
 
-        //TO DO: Generate cribs        
-
         //Generate cipher unit sequence
         let cipherUnitSequence = new Array<string>();
 
@@ -3367,12 +3365,16 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         });
 
         //CRIB GENERATOR SETTINGS
+
         let minCribLength = 5;
         let maxCribLength = 10;
-        let targetRevealCount = 10;
+        // Target direct and indirect reveal amount
+        let targetRevealCount = 15;
         let minRevealCount = 5;
+        // Number of cribs to add to UI
         let cribSelectCount = 14;
-        let randomizerWeight = 0.2; // 0-1
+        // Generator Randomize Factor 0-1
+        let randomizerWeight = 0.2;
 
         //Generate potential cribs
         let potentialCribs = new Array<{ crib: string; directCount: number; indirectCount: number }>();

@@ -788,6 +788,16 @@ export class CipherBaconianEncoder extends CipherEncoder {
         }
         this.setErrorMsg(msg, 'abspace');
 
+        // checks that the line width is a multiple of the sequence length.
+        msg = '';
+        if (this.state.operation === 'sequence') {
+            let cleanA = this.removeHtml(this.state.texta);
+            if (this.state.linewidth % cleanA.length != 0) {
+                msg = 'The line width is not a multiple of the sequence length.'
+            }
+        }
+        this.setErrorMsg(msg, 'widthmult');
+
 
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
@@ -824,10 +834,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
         if (this.state.operation !== 'words') {
             qOptions.push(`The following symbols encode a phrase${this.genAuthor()} using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
             if (this.state.author !== undefined && this.state.author !== '') {
-                qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as a prankster who scratched a quote by ${this.state.author} on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
+                qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as the handiwork of a prankster who scratched a quote by ${this.state.author} on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
             }
             else {
-                qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as a prankster who scratched it on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
+                qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as the handiwork of a prankster who scratched it on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
             }
         }
         else {

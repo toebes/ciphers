@@ -6,7 +6,7 @@ import { JTFDialog } from '../common/jtfdialog';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
-import { JTElem, JTRow, JTTable } from '../common/jttable';
+import { JTRow, JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
 interface ICheckerboardState extends IEncoderState {
@@ -934,7 +934,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                 celltype: 'th',
                 content: `${rowKeyword[rowPos] ?? '?'}`,
                 settings: { rowspan: 2 },
-            } as JTElem)
+            })
 
             //get an array of the keys of the polybius map
             let polybiusSequence = Array.from(this.polybiusMap.keys());
@@ -985,7 +985,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                     annotations = solverData.kwAnnotations.get(spot)
                 }
                 if (annotations.length > 0) {
-                    keyrow.add({ class: "k", content: annotations.join(", "), addClass: 'bold-first-letter' })
+                    keyrow.add({ class: "k", content: annotations.join(", ") })
                 } else {
                     keyrow.add('')
                 }

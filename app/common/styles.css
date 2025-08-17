@@ -2094,6 +2094,9 @@ table.testscores td.deviation {
 table.testscores td.specialbonus {
     background-color: #baffba;
 }
+table.testscores tbody tr:nth-child(even) {
+    background-color: #f1f1f1 !important; /* Make sure to Print with Background */
+}
 table.tiebreak {
     text-align: center;
     margin: 1rem auto;

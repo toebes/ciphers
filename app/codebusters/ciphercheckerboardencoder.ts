@@ -920,7 +920,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             class: polyClass,
         });
 
-        const top = worktable.addHeaderRow()
+        const top = worktable.addHeaderRow({ class: "highlighted-header" });
         top.add('')
         for (let i = 1; i <= 5; i++) {
             top.add(colKeyword[i - 1] ?? '?')
@@ -928,12 +928,12 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
 
         let mainIndex = 0;
         for (let rowPos = 0; rowPos < 5; rowPos++) {
-            const keyrow = worktable.addBodyRow({ class: "k" })
-            const row = worktable.addBodyRow({ class: "b" })
+            const keyrow = worktable.addBodyRow({ class: "k highlighted-header" });
+            const row = worktable.addBodyRow({ class: "b" });
             keyrow.add({
                 celltype: 'th',
                 content: `${rowKeyword[rowPos] ?? '?'}`,
-                settings: { rowspan: 2 }
+                settings: { rowspan: 2 },
             })
 
             //get an array of the keys of the polybius map

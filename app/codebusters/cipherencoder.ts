@@ -1502,7 +1502,7 @@ export class CipherEncoder extends CipherHandler {
         qOptions.push(`A famous phrase${this.genAuthor()} has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
         qOptions.push(`A message${langtext}${this.genAuthor()} encrypted${operationtext2} with the ${fixedName} cipher has been received.${hinttext}${operationtext}`);
         qOptions.push(`The following quote${this.genAuthor()}${langtext} needs to be decoded with the ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}`);
-        qOptions.push(`Someone passed you a piece of paper with this ${fixedName} encoded phrase of a quote${this.genAuthor()}${langtext}${operationtext2}. ${hinttext}${operationtext}`);
+        qOptions.push(`Someone passed you a piece of paper with this ${fixedName} encoded quote${this.genAuthor()}${langtext}${operationtext2}. ${hinttext}${operationtext}`);
 
 
         if (hinttext !== '') {
@@ -1519,9 +1519,9 @@ export class CipherEncoder extends CipherHandler {
             qOptions.push(`${this.state.author} was often heard to say the following phrase which has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
             qOptions.push(`${this.state.author} offers us some advice that has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
             qOptions.push(`${this.state.author} offers an observation that has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-            qOptions.push(`Upon searching a room, the following were found on scraps of paper. You realize it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-            qOptions.push(`You came across the following written on a wall in a cave. You notice that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-            qOptions.push(`You found the following carved into the bark of a hollow log. You recognize that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`Upon searching a room, the following were found on scraps of paper. You are told it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You came across the following written on a wall in a cave. You are told that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You found the following carved into the bark of a hollow log. You are told that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
         }
         else {
             qOptions.push(`Upon searching a room, the following were found on scraps of paper. You realize it's encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);

@@ -25,6 +25,7 @@ import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 import { decodeHTML } from 'entities';
 import { alphaEquiv, alphaEquivType, fourWayEquiv, genDualEquivString, genEquivString, pairEquiv, pickRandomEquivSets, validEquivSet } from '../common/alphaequiv';
 import { createDocumentElement, getCSSRule, getElementSizeInInches } from '../common/htmldom';
+import { boolean } from 'yargs';
 
 const baconMap: StringMap = {
     A: 'AAAAA',
@@ -469,6 +470,20 @@ export class CipherBaconianEncoder extends CipherEncoder {
      * @returns Array of strings
      */
     public buildset(text: string): string[] {
+        return this.buildsetbitmap(text, this.state.bitmap);
+    }
+    /**
+     * Parse out an A/B set into an array of strings.
+     * Note that we have to do this because some characters actually are comprised of
+     * two UTF characters (high surrogates/low surrogates)
+     *   see:  https://dmitripavlutin.com/what-every-javascript-developer-should-know-about-unicode/
+     *   and: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/codePointAt
+     * We also need to include trailing spaces with the characters so that they display well.
+     * @param text A/B text to split out
+     * @param doBitmap whether or not to convert to an image
+     * @returns Array of strings
+     */
+    public buildsetbitmap(text: string, doBitmap: boolean): string[] {
         // First we need to get rid of all the HTML elements in the string
         // TODO: Remember BOLD/ITALIC and which characters they applied to and bring them back later on
         const remain = decodeHTML(text.replace(/<[^>]*>/g, '')).replace(/[\s\xa0]+/g, ' ')
@@ -515,7 +530,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
             result.push(lastc);
         }
         // See if we need to change it to bitmaps.
-        if (this.state.bitmap) {
+        if (doBitmap) {
             // we need to go through result and convert everything to a bitmap
             for (let i = 0; i < result.length; i++) {
                 const txt = result[i]
@@ -705,6 +720,85 @@ export class CipherBaconianEncoder extends CipherEncoder {
             }
         }
         this.setErrorMsg(msg, 'ab');
+
+        // checks that A and B are same length, and each has a length of >=2
+        msg = '';
+        if (this.state.operation === 'sequence') {
+            let aSet = this.buildsetbitmap(this.state.texta, false);
+            let bSet = this.buildsetbitmap(this.state.textb, false);
+            if (aSet.length != bSet.length) {
+                msg = 'The A and B texts are different lengths';
+            }
+            if (aSet.length < 2 || bSet.length < 2) {
+                msg = 'A and B should have more than one character corresponding to them';
+            }
+
+        }
+        this.setErrorMsg(msg, 'ablen');
+
+        // checks that A and B don't have the same character at the same location (like CAT and HAG have the same A, but BAT and AGE are ok)
+        msg = '';
+        if (this.state.operation === 'sequence') {
+            let aSet = this.buildsetbitmap(this.state.texta, false);
+            let bSet = this.buildsetbitmap(this.state.textb, false);
+
+            let charMatchedIndex = -1;
+            for (let i = 0; i < aSet.length; i++) {
+                console.log(aSet[i]);
+                if (aSet[i] == bSet[i]) {
+                    charMatchedIndex = i;
+                    break;
+                }
+            }
+
+            if (charMatchedIndex != -1) {
+                msg = `Character ${charMatchedIndex + 1} of A and B texts are the same`;
+            }
+        }
+        if (this.state.operation === 'let4let') {
+            let aSet = this.buildsetbitmap(this.state.texta, false);
+            let bSet = this.buildsetbitmap(this.state.textb, false);
+            let dupeLetter = '';
+            for (let i = 0; i < aSet.length && dupeLetter == ''; i++) {
+                for (let j = 0; j < bSet.length && dupeLetter == ''; j++) {
+                    if (aSet[i] == bSet[j]) {
+                        dupeLetter = aSet[i];
+                        console.log(dupeLetter);
+                    }
+                }
+            }
+            if (dupeLetter != '') {
+                msg = `Both A and B contain the character \'${dupeLetter}\'`;
+            }
+
+        }
+        this.setErrorMsg(msg, 'abdupe');
+
+        // checks that if A has a space at the end, B does as well, and vice versa.
+        msg = '';
+        if (this.state.operation === 'sequence') {
+            let cleanA = this.removeHtml(this.state.texta);
+            let cleanB = this.removeHtml(this.state.textb);
+            if (cleanA.charAt(cleanA.length - 1) == ' ' && cleanB.charAt(cleanB.length - 1) != ' ') {
+                msg = 'The text for A has a space at the end, but the text for B doesn\'t'
+            }
+            if (cleanA.charAt(cleanA.length - 1) != ' ' && cleanB.charAt(cleanB.length - 1) == ' ') {
+                msg = 'The text for B has a space at the end, but the text for A doesn\'t'
+            }
+        }
+        this.setErrorMsg(msg, 'abspace');
+
+        // checks that the line width is a multiple of the sequence length.
+        msg = '';
+        if (this.state.operation === 'sequence') {
+            let cleanA = this.removeHtml(this.state.texta);
+            if (this.state.linewidth % cleanA.length != 0) {
+                msg = 'The line width is not a multiple of the sequence length.'
+            }
+        }
+        this.setErrorMsg(msg, 'widthmult');
+
+
         // We need to attach handlers for any newly created input fields
         this.attachHandlers();
 
@@ -740,10 +834,10 @@ export class CipherBaconianEncoder extends CipherEncoder {
         if (this.state.operation !== 'words') {
             qOptions.push(`The following symbols encode a phrase${this.genAuthor()} using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
             if (this.state.author !== undefined && this.state.author !== '') {
-                qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as a prankster who scratched a quote by ${this.state.author} on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
+                qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as the handiwork of a prankster who scratched a quote by ${this.state.author} on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
             }
             else {
-                qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as a prankster who scratched it on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
+                qOptions.push(`The following odd symbols were found when a tomb was opened, but you recognized it as the handiwork of a prankster who scratched it on the wall using a Baconian alphabet${langtext}.${hinttext} What does it say?`);
             }
         }
         else {

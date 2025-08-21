@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+        <%= htmlWebpackPlugin.options.title %>
+    </title>
+    <style>
+        th div.subtype {
+            font-weight: normal;
+            font-size: 11pt;
+        }
+
+        span.dec {
+            font-weight: bold;
+            color: #385623;
+        }
+
+        span.enc {
+            font-weight: bold;
+            color: #806000;
+        }
+
+        span.cra {
+            font-weight: bold;
+            color: #2E74B5;
+        }
+
+        span.keyword {
+            font-weight: bold;
+            color: black;
+        }
+
+        span.matrix {
+            color: #C00000;
+            font-weight: bold;
+        }
+
+
+        span.amount {
+            color: black;
+            font-weight: bold;
+        }
+
+        thead tr th {
+            background-color: #d7ecfa;
+            padding-top: 1px;
+            padding-right: 1px;
+            padding-left: 1px;
+            color: black;
+            font-size: 11.0pt;
+            font-weight: 700;
+            font-style: normal;
+            text-decoration: none;
+            font-family: Calibri, sans-serif;
+            text-align: center;
+            vertical-align: middle;
+            border: 1.0pt solid black;
+            white-space: nowrap;
+
+        }
+
+        .noallow {
+            background-color: #D0CECE !important;
+        }
+
+        .divahead {
+            background-color: #cc9c00;
+        }
+
+        .divaall {
+            background-color: #ffc400;
+        }
+
+        .divbreghead {
+            background-color: #D66677;
+        }
+
+        .divbnathead {
+            background-color: #d30d2b;
+        }
+
+        .divbreg {
+            background-color: #D6667770;
+        }
+
+        .divbnat {
+            background-color: #d30d2b70;
+        }
+
+        .divcreghead {
+            background-color: #54B9FC;
+        }
+
+        .divcnathead {
+            background-color: #0a7eca;
+        }
+
+        .divcreg {
+            background-color: #54B9FC70;
+        }
+
+        .divcnat {
+            background-color: #0a7eca70;
+        }
+
+
+
+        tbody td {
+            padding-top: 1px;
+            padding-right: 1px;
+            padding-left: 1px;
+            color: black;
+            font-size: 12.0pt;
+            font-weight: 400;
+            font-style: normal;
+            text-decoration: none;
+            font-family: "Times New Roman", serif;
+            text-align: center;
+            vertical-align: middle;
+            border: 1.0pt solid black;
+            white-space: nowrap;
+        }
+
+        tbody td.nobot {
+            border-bottom: none;
+        }
+
+
+        td.ruleloc {
+            font-size: 11.0pt;
+            font-weight: 400;
+            font-style: italic;
+            text-decoration: none;
+            border-top: none;
+        }
+
+        .drop {
+            background-color: orange !important;
+            text-decoration: line-through !important;
+        }
+
+        .new {
+            background-color: lightgreen !important;
+        }
+
+        tbody th {
+            border: 1.0pt solid black;
+            padding-top: 1px;
+            padding-right: 1px;
+            padding-left: 1px;
+            color: black;
+            font-size: 14.0pt;
+            font-weight: 700;
+            font-style: normal;
+            text-decoration: none;
+            font-family: Calibri, sans-serif;
+            text-align: center;
+            vertical-align: middle;
+            white-space: nowrap;
+            background-color: #d7ecfa;
+        }
+
+        table {
+            font-size: 11.0pt;
+            font-weight: 700;
+            font-style: normal;
+            text-decoration: none;
+            font-family: Calibri, sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <% for (var index in htmlWebpackPlugin.files.js) { %>
+        <script src="<%= htmlWebpackPlugin.files.js[index] %>"></script>
+        <% } %>
+            <div class="MenuBar" data-cipher="<%= htmlWebpackPlugin.options.cipher %>"></div>
+
+            <h3>
+                <%= htmlWebpackPlugin.options.title %>
+            </h3>
+            <div class="callout primary">
+                <p>This table summarizes which types of ciphers are used for which division and events. It also
+                    indicates which official rule corresponds to this usage. Blank boxes indicate that the cipher is not
+                    used for that division/category of event.</p>
+                <div id="Rule Summary_18350" text-align=center>
+                    <table class="hover unstriped">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Cipher</th>
+                                <th rowspan="2">Type</th>
+                                <th rowspan="2" class="divahead">Division A</th>
+                                <th colspan="2" class="divbreghead">Division B</th>
+                                <th colspan="2" class="divcnathead">Division C</th>
+                            </tr>
+                            <tr>
+                                <th class="divbreghead">Regional/Invitational</th>
+                                <th class="divbnathead">State/National</th>
+                                <th class="divcreghead">Regional/Invitational</th>
+                                <th class="divcnathead">State/National</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th><a href="PigPenEncrypt.html">PigPen/Masonic</a></th>
+                                <td>Monoalphabetic Symbol</td>
+                                <td class="divaall"><span class="dec">Decode</span></td>
+                                <td colspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="noallow">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <th><a href="KnightsTemplarEncrypt.html">Knights Templar</a></th>
+                                <td>Monoalphabetic Symbol</td>
+                                <td class="divaall"><span class="dec">Decode</span></td>
+                                <td colspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="noallow">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <th><a href="TapCodeEncrypt.html">Tap Code</a></th>
+                                <td>Monoalphabetic</td>
+                                <td class="divaall"><span class="dec">Decode</span></td>
+                                <td colspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="noallow">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <th><a href="DancingMenEncrypt.html">Dancing Men</a></th>
+                                <td>Monoalphabetic Symbol</td>
+                                <td class="divaall"><span class="dec">Decode</span></td>
+                                <td colspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="noallow">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <th><a href="VigenereEncrypt.html?cipherType=vigenere">Vigen&egrave;re</a></th>
+                                <td>Polyalphabetic</td>
+                                <td class="divaall"><span class="dec">Decode</span></td>
+                                <td colspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="noallow">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a href="Atbash.html?cipherType=atbash">Atbash</a></th>
+                                <td rowspan="2">Monoalphabetic</td>
+                                <td rowspan="2" class="divaall"><span class="dec">Decode</span></td>
+                                <td colspan="2" class="nobot divbreg"><span class="dec">Decode</span>
+                                </td>
+                                <td colspan="2" rowspan="2" class="noallow divcreg">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="ruleloc divbreg">3.e.ix</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a href="Caesar.html?cipherType=caesar">Caesar</a></th>
+                                <td rowspan="2">Monoalphabetic</td>
+                                <td rowspan="2" class="divaall"><span class="dec">Decode</span></td>
+                                <td colspan="2" class="nobot divbreg"><span class="dec">Decode</span>
+                                </td>
+                                <td colspan="2" rowspan="2" class="noallow divcreg">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="ruleloc divbreg">3.e.x.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a
+                                        href="AristocratEncrypt.html?cipherType=aristocrat">Aristocrat</a><br>
+                                    <div class="subtype">Random, K1</div>
+                                </th>
+                                <td rowspan="2">Monoalphabetic</td>
+                                <td class="divaall nobot"><span class="dec">Decode</span></td>
+                                <td colspan="2" class="nobot divbreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                                <td colspan="2" class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="divaall ruleloc">Random Only</span></td>
+                                <td colspan="2" class="ruleloc divbreg">3.e.i (1)</td>
+                                <td colspan="2" class="ruleloc divcreg">3.e.i (1)</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a href="AristocratEncrypt.html?cipherType=aristocrat">Aristocrat</a>
+                                    <br>
+                                    <div class="subtype">K2, K3</div>
+                                </th>
+                                <td rowspan="2">Monoalphabetic</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" rowspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="ruleloc divcreg">3.e.i (1)</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a
+                                        href="AristocratEncrypt.html?cipherType=aristocrat">Aristocrat</a><br>
+                                    <div class="subtype">Keyword</div>
+                                </th>
+                                <td rowspan="2">Monoalphabetic</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" rowspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="nobot divcreg"><span class="keyword">Keyword</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="ruleloc divcreg">3.e.ii.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a
+                                        href="CheckerboardEncrypt.html?cipherType=checkerboard">Checkerboard</a></th>
+                                <td rowspan="2">Polybius Square</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td class="nobot divbreg"><span class="dec">Decode</span>
+                                </td>
+                                <td class="nobot divbnat"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                                <td class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                                <td class="nobot divcnat"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ruleloc divbreg">3.e.xii</td>
+                                <td class="ruleloc divbnat">3.f.vi</td>
+                                <td class="ruleloc divcreg">3.e.xi</td>
+                                <td class="ruleloc divcnat">3.f.vii</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a
+                                        href="PatristocratEncrypt.html?cipherType=patristocrat">Patristocrat</a></th>
+                                <td rowspan="2">Monoalphabetic</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="nobot divbreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                                <td colspan="2" class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="ruleloc divbreg">3.e.i (2)</td>
+                                <td colspan="2" class="ruleloc divcreg">3.e.i (2)</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a
+                                        href="XenocryptEncrypt.html?cipherType=aristocrat&lang=es">Xenocrypt</a></th>
+                                <td rowspan="2">Monoalphabetic Language</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td class="nobot divbreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                    <span class="amount">(0-1)</span>
+                                </td>
+                                <td class="nobot divbnat"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                    <span class="amount">(1-2)</span>
+                                </td>
+                                <td class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                    <span class="amount">(0-2)</span>
+                                </td>
+                                <td class="nobot divcnat"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+
+                                    <span class="amount">(2-3)</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ruleloc divbreg">3.e.iii</td>
+                                <td class="ruleloc divbnat">3.f.ii.</td>
+                                <td class="ruleloc divcreg">3.e.iv</td>
+                                <td class="ruleloc divcnat">3.f.ii.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a href="CryptarithmEncrypt.html">Cryptarithm</a>
+                                    <div class="subtype">(Base 10)</div>
+                                </th>
+                                <td rowspan="2">Monoalphabetic Math</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="nobot divbreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</td>
+                                <td colspan="2" class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="ruleloc divbreg">3.e.v.</td>
+                                <td colspan="2" class="ruleloc divcreg">3.e.vi.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a href="Baconian.html?cipherType=baconian">Baconian</a></th>
+                                <td rowspan="2">Steganography</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="nobot divbreg"><span class="cra">Cryptanalysis</span></td>
+                                <td colspan="2" class="nobot divcreg"><span class="cra">Cryptanalysis</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="ruleloc divbreg">3.e.ii.</td>
+                                <td colspan="2" class="ruleloc divcreg">3.e.iii.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a href="FractionatedMorseEncrypt.html">Fractionated Morse</a></th>
+                                <td rowspan="2">Tomogrammic</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="nobot divbreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</td>
+                                <td colspan="2" class="nobot divcreg"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="ruleloc divbreg">3.e.iv.</td>
+                                <td colspan="2" class="ruleloc divcreg">3.e.v.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a href="VigenereEncrypt.html?cipherType=porta">Porta</a></th>
+                                <td rowspan="2">Polyalphabetic</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td class="nobot divbreg"><span class="dec">Decode</span>
+                                </td>
+                                <td class="nobot divbnat"><span class="cra">Cryptanalysis</span></td>
+                                <td class="nobot divcreg"><span class="dec">Decode</span>
+                                </td>
+                                <td class="nobot divcnat"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ruleloc divbreg">3.e.vi.</td>
+                                <td class="ruleloc divbnat">3.f.iii.</td>
+                                <td class="ruleloc divcreg">3.e.vii.</td>
+                                <td class="ruleloc divcnat">3.f.iii.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a href="NihilistSubstitutionEncrypt.html">Nihilist Substitution</a>
+                                </th>
+                                <td rowspan="2">Polybius Square</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td class="nobot divbreg"><span class="dec">Decode</span>
+                                </td>
+                                <td class="nobot divbnat"><span class="cra">Cryptanalysis</span></td>
+                                <td class="nobot divcreg"><span class="dec">Decode</span>
+                                </td>
+                                <td class="nobot divcnat"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ruleloc divbreg">3.e.viii.</td>
+                                <td class="ruleloc divbnat">3.f.v.</td>
+                                <td class="ruleloc divcreg">3.e.ix.</td>
+                                <td class="ruleloc divcnat">3.f.v.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a href="CompleteColumnarEncrypt.html">Complete Columnar</a></th>
+                                <td rowspan="2">Transposition</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="nobot divbreg"><span class="cra">Cryptanalysis</span></td>
+                                <td class="nobot divcreg"><span class="cra">Cryptanalysis</span></td>
+                                <td class="nobot divcnat"><span class="cra">Cryptanalysis</span></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="ruleloc divbreg">3.e.vii.</td>
+                                <td class="ruleloc divcreg">3.e.viii.</td>
+                                <td class="ruleloc divcnat">3.f.vi.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a href="AffineEncrypt.html?cipherType=affine">Affine</a></th>
+                                <td rowspan="2">Monoalphabetic Math</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td class="nobot divbreg">
+                                    <span class="dec">Decode</span>
+                                </td>
+                                <td class="nobot divbnat"><span class="dec">Decode</span>+<span
+                                        class="cra">Cryptanalysis</span>
+                                </td>
+                                <td colspan="2" rowspan="2" class="noallow divcreg">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td class="ruleloc divbreg">3.e.xi.</td>
+                                <td class="ruleloc divbnat">3.f.iv.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a href="HillEncrypt.html?cipherType=hill">Hill 2x2</a></th>
+                                <td rowspan="2">Polyalphabetic Math</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" rowspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" class="nobot divcreg"><span class="dec">Decode</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="ruleloc divcreg">3.e.x.</td>
+                            </tr>
+                            <tr>
+                                <th rowspan="2"><a href="HillEncrypt.html?cipherType=hill">Hill 3x3</a></th>
+                                <td rowspan="2">Polyalphabetic Math</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td colspan="2" rowspan="2" class="noallow">&nbsp;</td>
+                                <td rowspan="2" class="noallow">&nbsp;</td>
+                                <td class="nobot divcnat"><span class="dec">Decode</span></td>
+                            </tr>
+                            <tr>
+                                <td class="ruleloc divcnat">3.f.iv.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+</body>
+
+</html>

@@ -3310,7 +3310,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         dlgContents.append($('<div/>', { class: 'callout primary', id: 'suggestCribOpts' }))
         dlgContents.append(
             $('<div/>', { class: 'expanded button-group' })
-                .append($('<a/>', { class: 'button', id: 'genbtn' }).text('Generate'))
+                .append($('<a/>', { class: 'button cribRegenerate', id: 'genbtn' }).text('Regenerate'))
                 .append(
                     $('<a/>', { class: 'secondary button', 'data-close': '' }).text(
                         'Cancel'
@@ -3338,31 +3338,172 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         let output = $("#suggestCribOpts");
         const divAll = $("<div/>", { class: 'grid-x' })
         const cellLeft = $('<div/>', { class: 'cell auto' })
-        const cellRight = $('<div/>', { class: 'cell auto' })
+        //const cellRight = $('<div/>', { class: 'cell auto' })
         const cellMid = $('<div/>', { class: 'cell auto' })
-        divAll.append(cellLeft).append(cellMid).append(cellRight)
+        divAll.append(cellLeft).append(cellMid)//.append(cellRight)
         output.empty().append(divAll)
 
-        // const found = this.findPossibleCribs(20, (found: number, crib: string): boolean => {
-        //     console.log(`Crib found: ${found}: ${crib}`)
-        //     let div = $('<div/>', { class: "kwchoice" });
+        //Generate cipher unit sequence
+        let cipherUnitSequence = new Array<string>();
 
-        //     let useButton = $("<a/>", {
-        //         'data-crib': crib,
-        //         type: "button",
-        //         class: "button rounded cribset abbuttons",
-        //     }).html('Use');
-        //     div.append(useButton)
-        //     div.append(crib)
-        //     if (found % 2 === 0) {
-        //         cellLeft.append(div)
-        //     } else {
-        //         cellMid.append(div)
-        //     }
+        this.sequencesets.forEach((value: string[][]) => {
+            value[0].forEach((char: string) => {
+                if (char.length === 2) {
+                    cipherUnitSequence.push(char);
+                }
+            });
+        });
 
-        //     return true;
-        // });
-        this.attachHandlers()
+        //Generate plain text character sequence
+        let plainTextCharacterSequence = new Array<string>();
+        this.sequencesets.forEach((value: string[][]) => {
+            value[1].forEach((char: string) => {
+                if (char.match(/[A-Z]/gi) != null && char.match(/[A-Z]/gi).length > 0) {
+                    plainTextCharacterSequence.push(char);
+                }
+            });
+        });
+
+        //CRIB GENERATOR SETTINGS
+
+        let minCribLength = 5;
+        let maxCribLength = 10;
+        // Target direct and indirect reveal amount
+        let targetRevealCount = 15;
+        let minRevealCount = 5;
+        // Number of cribs to add to UI
+        let cribSelectCount = 14;
+        // Generator Randomize Factor 0-1
+        let randomizerWeight = 0.2;
+
+        //Generate potential cribs
+        let potentialCribs = new Array<{ crib: string; directCount: number; indirectCount: number }>();
+        for (var currentGeneratorLength = minCribLength; currentGeneratorLength <= maxCribLength; currentGeneratorLength++) {
+            for (var cribStartPos = 0; cribStartPos < (cipherUnitSequence.length - currentGeneratorLength); cribStartPos++) {
+                let potentialCrib = this.cribGenerator(cribStartPos, currentGeneratorLength, cipherUnitSequence, plainTextCharacterSequence)
+                if ((potentialCrib.directCount + potentialCrib.indirectCount) > minRevealCount) {
+                    potentialCribs.push(potentialCrib);
+                }
+            }
+        }
+
+        //Sort potential cribs
+        potentialCribs.sort((a: { crib: string; directCount: number; indirectCount: number }, b: { crib: string; directCount: number; indirectCount: number }) => {
+            if (Math.abs((a.directCount + a.indirectCount) - targetRevealCount) < Math.abs((b.directCount + b.indirectCount) - targetRevealCount)) {
+                return -1;
+            }
+            if (Math.abs((a.directCount + a.indirectCount) - targetRevealCount) > Math.abs((b.directCount + b.indirectCount) - targetRevealCount)) {
+                return 1;
+            }
+            return (a.directCount + a.indirectCount) - (b.directCount + b.indirectCount);
+        });
+
+        //Add selection amount to the UI
+        for (var selection = 0; selection < potentialCribs.length; selection++) {
+            if (cribSelectCount === 0) {
+                break;
+            }
+            if (Math.random() < randomizerWeight || (potentialCribs.length - selection) <= cribSelectCount) { //Pick crib randomly
+                let div = $('<div/>', { class: "kwchoice" });
+
+                let useButton = $("<a/>", {
+                    'data-crib': potentialCribs[selection].crib,
+                    type: "button",
+                    class: "button rounded cribset abbuttons",
+                }).html(`Use`);
+                div.append(useButton);
+                div.append(`${potentialCribs[selection].crib} (${potentialCribs[selection].directCount}+${potentialCribs[selection].indirectCount})`);
+                if (cribSelectCount % 2 === 0) {
+                    cellLeft.append(div);
+                } else {
+                    cellMid.append(div);
+                }
+                cribSelectCount--;
+            }
+
+        }
+        this.attachHandlers();
+    }
+
+    /** 
+    * Determine the crib, number of direct revealed characters, number of indirect revealed characters
+    * @param startPos Position in the cipher unit sequence to generate crib information from
+    * @param len Length of the potential crib
+    * @param cipherUnitLookup Lookup table of cipher units
+    * @param cipherUnitSequence Array of cipher units
+    */
+    private cribGenerator(startPos: number, len: number, cipherUnitSequence: string[], plainTextCharacterSequence: string[]): { crib: string; directCount: number; indirectCount: number } {
+        let res = {
+            crib: "",
+            directCount: 0,
+            indirectCount: 0
+        };
+
+        //Generate cipher unit lookup map
+        let cipherUnitLookup = new Map<string, [string, number, string]>(); //"N"-Not revealed, "D"-Direct reveal, "I"-Indirect reveal
+        let cipherUnits = Array.from(this.polybiusMap.entries());
+        for (var indexer = 0; indexer < cipherUnits.length - 1; indexer++) {
+            cipherUnitLookup.set(cipherUnits[indexer][1], [cipherUnits[indexer][0], indexer + 1, "N"]);
+        }
+
+
+        //Set direct reveal 
+        for (var scanner = startPos; scanner < (startPos + len); scanner++) {
+            res.crib = res.crib + plainTextCharacterSequence[scanner];
+            let cipherUnit = cipherUnitLookup.get(cipherUnitSequence[scanner])
+            if (cipherUnit[2] === "N") {
+                res.directCount++;
+            }
+            cipherUnit[2] = "D";
+        }
+
+        //Find indirect reveals
+        let scannerLeft = 23;
+        let scannerRight = 24;
+        let characterLeft = cipherUnitLookup.get(cipherUnits[scannerLeft][1]);
+        let characterRight = cipherUnitLookup.get(cipherUnits[scannerRight][1]);
+
+        for (; scannerLeft >= 0; scannerLeft--) {
+            characterLeft = cipherUnitLookup.get(cipherUnits[scannerLeft][1]);
+            if (characterLeft[2] === "D") {
+                let alphabeticalGap = characterRight[0].charCodeAt(0) - characterLeft[0].charCodeAt(0);
+
+                //Remove letter J from gap amount
+                if (characterLeft[0].charCodeAt(0) < 74 && characterRight[0].charCodeAt(0) > 74) {
+                    alphabeticalGap--;
+                }
+
+                //Remove direct reveal polybius key letters from gap amount
+                let polybiusKeyCharacterCheck = new Array<string>();
+                for (var polyScaner = 0; polyScaner < this.state.polybiusKey.length; polyScaner++) {
+                    if (characterLeft[0].charCodeAt(0) < this.state.polybiusKey.charCodeAt(polyScaner) && characterRight[0].charCodeAt(0) > this.state.polybiusKey.charCodeAt(polyScaner) && !polybiusKeyCharacterCheck.includes(this.state.polybiusKey.charAt(polyScaner)) && res.crib.includes(this.state.polybiusKey.charAt(polyScaner))) {
+                        alphabeticalGap--;
+                        polybiusKeyCharacterCheck.push(this.state.polybiusKey.charAt(polyScaner));
+                    }
+                }
+
+
+                if (alphabeticalGap === (scannerRight - scannerLeft)) {
+                    let holdRightCharacter = characterRight[0].charCodeAt(0);
+                    while (scannerRight > scannerLeft) {
+                        if (characterRight[2] === "N" && characterLeft[0].charCodeAt(0) < characterRight[0].charCodeAt(0) && characterRight[0].charCodeAt(0) <= holdRightCharacter) {
+                            characterRight[2] = "I";
+                            res.indirectCount++;
+                        }
+                        scannerRight--;
+                        characterRight = cipherUnitLookup.get(cipherUnits[scannerRight][1]);
+                    }
+                }
+
+                scannerRight = scannerLeft;
+                characterRight = cipherUnitLookup.get(cipherUnits[scannerRight][1]);
+            }
+
+
+        }
+        //console.log(cipherUnitLookup);
+        //console.log(res);
+        return res;
     }
     /**
     * Start the process to suggest cribs
@@ -3396,7 +3537,10 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             .off('input')
             .on('input', (e) => {
                 const blocksize = Number($(e.target).val());
-                if (blocksize !== this.state.blocksize) {
+                if (blocksize < 0) {
+                    $('#blocksize').val("0");
+                }
+                if (blocksize !== this.state.blocksize && blocksize > 0) {
                     this.markUndo(null);
                     if (this.setBlocksize(blocksize)) {
                         this.updateOutput();
@@ -3464,6 +3608,11 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             .off('click')
             .on('click', (e) => {
                 this.useCrib(e.target)
+            })
+        $('.cribRegenerate')
+            .off('click')
+            .on('click', () => {
+                this.genCribSuggestions()
             })
     }
 }

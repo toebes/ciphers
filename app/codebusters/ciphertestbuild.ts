@@ -49,6 +49,7 @@ interface QuestionType {
     homonyms?: number[]
     msg?: string;
     usehint?: boolean;
+    misspelled?: boolean;
 }
 
 interface WeightedQuestion {
@@ -139,14 +140,14 @@ export class CipherTestBuild extends CipherTest {
             title: 'Misspelled K1 Aristocrat with a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25] with Hint',
             len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity], usehint: true,
-            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
+            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat, misspelled: true,
             testtype: [ITestType.None], operation: 'decode', encodeType: 'k1',
         },
         {
             title: 'Misspelled K1 Aristocrat without a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25]',
             len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity],
-            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
+            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat, misspelled: true,
             testtype: [ITestType.None], operation: 'decode', encodeType: 'k1',
         },
         {
@@ -154,13 +155,13 @@ export class CipherTestBuild extends CipherTest {
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25] with Hint',
             len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity], usehint: true,
             testtype: [ITestType.None], operation: 'decode', encodeType: 'k2',
-            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
+            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat, misspelled: true,
         },
         {
             title: 'Misspelled K2 Aristocrat without a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25]',
             len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity],
-            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
+            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat, misspelled: true,
             testtype: [ITestType.None], operation: 'decode', encodeType: 'k2',
         },
         {
@@ -891,6 +892,9 @@ export class CipherTestBuild extends CipherTest {
             }
             if (entry.keyword !== undefined) {
                 cipherhandler.state.keyword = entry.keyword;
+            }
+            if (entry.misspelled !== undefined) {
+                cipherhandler.state.misspelled = entry.misspelled;
             }
             let appropriateCheck = ''
             if (entry.testtype !== undefined && !entry.testtype.includes(this.testtype)) {

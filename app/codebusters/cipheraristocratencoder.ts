@@ -27,8 +27,6 @@ export interface IAristocratState extends IEncoderState {
     hint?: string;
     /** Optional crib tracking string */
     crib?: string;
-    /** We generated a misspelled word */
-    misspelled?: boolean;
 }
 
 export class CipherAristocratEncoder extends CipherEncoder {
@@ -252,6 +250,25 @@ export class CipherAristocratEncoder extends CipherEncoder {
             this.state.cipherType === ICipherType.Xenocrypt
         )) {
             return 'Special Bonus not allowed for Aristocrats/Patristocrats/Xenocrypts';
+        }
+        // Don't allow misspelled for anything other than a non division test
+        if (this.state.misspelled && testType !== ITestType.None) {
+            return `Misspelled Aristocrats are not appropriate for ${this.getTestTypeName(testType)}`;
+        }
+        // Don't allow K2 for Division B tests
+        if ((testType === ITestType.bregional || testType === ITestType.bstate) &&
+            (this.state.encodeType === 'k2' || this.state.encodeType === 'k3')) {
+            return `${this.state.encodeType.toUpperCase()} Alphabets not allowed for ${this.getTestTypeName(testType)}`;
+        }
+        // Patristocrats and Xenocrypts must use K1 or K2 for Division C tests or K1 for Division B tests
+        if ((this.state.cipherType === ICipherType.Patristocrat ||
+            this.state.cipherType === ICipherType.Xenocrypt) &&
+            this.state.encodeType !== 'k1' &&
+            this.state.encodeType !== 'k2') {
+            if (testType === ITestType.bregional || testType === ITestType.bstate) {
+                return `${this.cipherName} ciphers must use a K1 Alphabet for ${this.getTestTypeName(testType)}`;
+            }
+            return `${this.cipherName} ciphers must use a K1 or K2 Alphabet for ${this.getTestTypeName(testType)}`;
         }
         if (!anyOperation && testType !== ITestType.None) {
             // Make sure the operation type is legal.

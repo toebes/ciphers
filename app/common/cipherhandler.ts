@@ -81,6 +81,8 @@ export interface IState {
     replOrder?: string;
     /** Type of encoding */
     encodeType?: IEncodeType;
+    /** We generated a misspelled word */
+    misspelled?: boolean;
     /** The question number */
     qnum?: string;
     /** author of the cipher */

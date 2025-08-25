@@ -392,6 +392,56 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         this.setErrorMsg(msg, 'vq', sampleLink);
 
     }
+
+    /***
+     * Validate all letters of row and column keywords exist in the cipher text.
+     */
+    public validateKeySequence(): boolean {
+        //Generate cipher unit sequence
+        let cipherUnitSequence = new Array<string>();
+
+        this.sequencesets.forEach((value: string[][]) => {
+            value[0].forEach((char: string) => {
+                if (char.length === 2) {
+                    cipherUnitSequence.push(char);
+                }
+            });
+        });
+
+        let rowKey = new Map<string, boolean>();
+        let columnKey = new Map<string, boolean>();
+
+        //initialize keyword maps
+        for (let i = 0; i < this.cleanRowKeyword.length; i++) {
+            rowKey.set(this.cleanRowKeyword[i], false);
+        }
+        for (let i = 0; i < this.cleanColKeyword.length; i++) {
+            columnKey.set(this.cleanColKeyword[i], false);
+        }
+
+        //Check keywords with cipher unit sequence
+        cipherUnitSequence.forEach((value: string) => {
+            if (rowKey.has(value[0])) {
+                rowKey.set(value[0], true);
+            }
+            if (columnKey.has(value[1])) {
+                columnKey.set(value[1], true);
+            }
+        });
+
+        let result = true;
+
+        Array.from(columnKey.entries()).forEach(([key, value]) => {
+            result = result && value;
+        })
+
+        Array.from(rowKey.entries()).forEach(([key, value]) => {
+            result = result && value;
+        })
+
+        return result;
+    }
+
     /**
      * Figure out where the crib should appear in the cipher
      * @returns Crib placement information
@@ -815,6 +865,13 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         //push the remaining left messages onto a new line
         if (message.length > 0) {
             result.push([cipher, message]);
+        }
+
+        //VALIDATE ROW/COLUMN HERE MAYBE?
+        let validCipher = this.validateKeySequence();
+        this.setErrorMsg('', 'vKeywordLetters');
+        if (!validCipher) {
+            this.setErrorMsg('Not all row and column keyword letters appear in cipher text.', 'vKeywordLetters');
         }
 
         /* the result is an array of arrays of arrays - the large array contains all the lines (arrays) that the entire text is

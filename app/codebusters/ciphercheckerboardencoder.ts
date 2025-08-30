@@ -184,8 +184,8 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
      */
     public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
         let result = super.CheckAppropriate(testType, anyOperation);
-        if (!anyOperation && result === '' && testType !== undefined) {
-            if ((testType == ITestType.cregional ||
+        if (result === '' && testType !== undefined) {
+            if (!anyOperation && (testType == ITestType.cregional ||
                 testType == ITestType.cstate ||
                 testType == ITestType.bregional ||
                 testType == ITestType.bstate) &&

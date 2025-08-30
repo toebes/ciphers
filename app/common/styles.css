@@ -2097,6 +2097,9 @@ table.testscores td.t {
 table.testscores td.specialindicator {
     text-align: right;
 }
+table.testscores td.nomistakes {
+    text-align: left;
+}
 table.testscores td.grey {
     background-color: grey;
 }

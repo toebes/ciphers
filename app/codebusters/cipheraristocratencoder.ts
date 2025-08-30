@@ -148,6 +148,18 @@ export class CipherAristocratEncoder extends CipherEncoder {
         this.checkRandomDifficulty();
     }
     /**
+     * freeMistakes returns the number of mistakes that can be made
+     * @returns Number of mistakes allowed before points are deducted from the answer
+     */
+    public freeMistakes(): number {
+        // Keyword operations don't allow any mistakes
+        if (this.state.operation === 'keyword') {
+            return 0;
+        }
+        return super.freeMistakes();
+    }
+
+    /**
      * See if they are using a random alphabet for a difficult question
      */
     public checkRandomDifficulty() {

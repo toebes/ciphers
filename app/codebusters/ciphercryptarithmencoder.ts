@@ -266,6 +266,13 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         return result;
     }
     /**
+     * freeMistakes returns the number of mistakes that can be made
+     * @returns Number of mistakes allowed before points are deducted from the answer
+     */
+    public freeMistakes(): number {
+        return 0;
+    }
+    /**
       * Generate the recommended score and score ranges for a cipher
       * @returns Computed score ranges for the cipher and text description
       */

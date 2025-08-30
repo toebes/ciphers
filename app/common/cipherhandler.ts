@@ -254,6 +254,8 @@ export interface IQuestionData {
     points: number;
     /** If this is a 'special bonus' question... */
     specialBonus: boolean;
+    /** Whether we are allowed mistakes or not */
+    noMistakes: boolean;
 }
 export interface IInteractiveTest {
     /** Title of the test */
@@ -2272,6 +2274,14 @@ export class CipherHandler {
         this.savedPosition = this.undoPosition;
         this.isModified = false;
         this.showModified();
+    }
+
+    /**
+     * freeMistakes returns the number of mistakes that can be made
+     * @returns Number of mistakes allowed before points are deducted from the answer
+     */
+    public freeMistakes(): number {
+        return 2;
     }
     /**
      * Saves the current state of the cipher work so that it can be undone

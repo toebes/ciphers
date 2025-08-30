@@ -200,8 +200,10 @@ export class CipherAristocratEncoder extends CipherEncoder {
             $('#encrand').attr('disabled', 'disabled').hide();
             $('#validatekey').attr('disabled', 'disabled').hide();
         }
+        const testUsage = this.getTestUsage();
+        const usedOnAnyABC = testUsage.some(v => v !== ITestType.None);
         // Show the misspell option if they are doing an English Aristocrat
-        if ((this.state.cipherType === ICipherType.Aristocrat) && (this.state.curlang === 'en')) {
+        if ((this.state.cipherType === ICipherType.Aristocrat) && (this.state.curlang === 'en') && !usedOnAnyABC) {
             $('#misspell').removeAttr('disabled').show();
         } else {
             $('#misspell').attr('disabled', 'disabled').hide();

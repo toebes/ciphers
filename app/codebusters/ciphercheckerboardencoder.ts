@@ -1,3 +1,4 @@
+import { getAllJSDocTagsOfKind } from 'typescript';
 import { BoolMap, calloutTypes, cloneObject, makeCallout, makeFilledArray, NumberMap, StringMap } from '../common/ciphercommon';
 import { IOperationType, IState, ITestType, toolMode, ITestQuestionFields, IScoreInformation } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
@@ -464,11 +465,13 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     public genScoreRangeAndText(): suggestedData {
         const qdata = this.analyzeQuote(this.state.cipherString)
 
-        let suggested = 55 + qdata.len;
+        let suggested = 85 + qdata.len;
         let operationText = '';
+        let rowLetterNumberText = '';
+        let colLetterNumberText = '';
+        let possibilityText = '';
         let zeroBlockSizeText = '';
         let keywordLengthText = '';
-        let blockSizeMatchesText = ' The block size matches the keyword length. ';
         let zNotLastText = '';
         let scoringText = '';
 
@@ -492,19 +495,35 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             }
         }
 
-        if (this.state.blocksize != this.cleanRowKeyword.length) {
-            blockSizeMatchesText = ' The block size does not match the keyword length. ';
-            suggested += 15;
+        const sequencesets = this.buildCheckerboardSequenceSets(this.minimizeString(this.state.cipherString), 9999);
+        const [rowLetters, colLetters] = this.gatherLetters(sequencesets);
+        const rowAnagrams = this.findAnagrams(rowLetters, 5);
+        const colAnagrams = this.findAnagrams(colLetters, 5);
+
+        if (rowLetters.length < 5) {
+            rowLetterNumberText = ` The number of unique letters in the row is less than 5 so we add 60 points. `
+            suggested += 60;
         }
 
-        if (this.state.blocksize === 0) {
-            zeroBlockSizeText = ` The block size is 0 so we subtract 25 points. `
-            suggested -= 25;
+        if (colLetters.length < 5) {
+            colLetterNumberText = ` The number of unique letters in the column is less than 5 so we add 60 points. `
+            suggested += 60;
         }
 
-        keywordLengthText = ` The key has length ${this.cleanRowKeyword.length}. `;
-        // Add more  points for larger keywords...
-        suggested += Math.round((10 * (this.cleanRowKeyword.length / 3)));
+        if ((rowAnagrams.length * colAnagrams.length) > 1) {
+            possibilityText = ` There is more than 1 possible anagram for the row and column letters provided, so we add 50 points. `
+            suggested += 50;
+        }
+
+        if ((rowAnagrams.length * colAnagrams.length) > 5) {
+            possibilityText += ` There are quite a few options to try, so we will add an additional bonus of 85 points. `
+            suggested += 85;
+        }
+
+        if (this.state.blocksize !== 0) {
+            zeroBlockSizeText = ` The block size is not 0 so we add 50 points. `
+            suggested += 50;
+        }
 
         if (this.cleanPolyKey.indexOf('Z') !== -1) {
             zNotLastText = ` The letter 'Z' is not the last letter in the polybius square so we add 10 points. `;
@@ -520,15 +539,15 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         if (max > min) {
             rangetext = `, from a range of ${min} to ${max}`
         }
-        if (qdata.len < 26) {
-            scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in this quote, we recommend around 50 characters for a good quote</em></p>`
+        if (qdata.len < 39) {
+            scoringText = `<p><b>WARNING:</b> <em>There are only ${qdata.len} characters in this quote, we recommend around 60 characters for a good quote</em></p>`
         }
-        if (qdata.len > 75) {
-            scoringText = `<p><b>WARNING:</b> <em>There are ${qdata.len} characters in this quote, which is a significant amount more than the recommended 50 characters.</em></p>`
+        if (qdata.len > 84) {
+            scoringText = `<p><b>WARNING:</b> <em>There are ${qdata.len} characters in this quote, which is a significant amount more than the recommended 60 characters.</em></p>`
         }
         if (qdata.len > 2) {
             scoringText += `<p>There are ${qdata.len} characters in the quote.  
-                ${operationText}${zeroBlockSizeText}${keywordLengthText}${blockSizeMatchesText}${zNotLastText}
+    ${operationText}${rowLetterNumberText}${colLetterNumberText}${possibilityText}${zeroBlockSizeText}${keywordLengthText}${zNotLastText} 
                 We suggest you try a score of ${suggested}${rangetext}.</p>`
         }
 
@@ -1610,7 +1629,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                 //for first row, just append the unaltered ciphertext number
                 ctRow.add(ct);
                 if (isNaN(parseInt(ct)) || ct.length === 1) {
-                    // This isn't a cipher text cahracter, so just output it as is
+                    // This isn't a cipher text character, so just output it as is
                     keywordValRow.add(ct);
                     keywordCharRow.add(' ')
                     ptValRow.add(ct);
@@ -2549,7 +2568,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                 .append(this.encodeFixed(headerPossible[0]))
                 .append(` which matches the letters ${headerLetters} for the ${headerType} Key`);
         } else {
-            div.append(`There are at least ${headerPossible.length} possible matches for the Row Key:`)
+            div.append(`There are at least ${headerPossible.length} possible matches for the ${headerType} Key:`)
                 .append(this.encodeFixed(headerPossible.join(",")));
         }
         result.append(div)
@@ -2671,7 +2690,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         if (colLetters.length < 5) {
             colnote = ' (which means at least one letter is duplicated)'
         }
-        result.append('Walk through the cipher text and gather the unique first letters in one group and the seconds letters in another group.')
+        result.append('Walk through the cipher text and gather the unique first letters in one group and the second letters in another group.')
             .append('In this case we found ')
             .append(this.encodeFixed(String(rowLetters.length)))
             .append(' unique Row letters: ')

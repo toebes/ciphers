@@ -49,6 +49,7 @@ interface QuestionType {
     homonyms?: number[]
     msg?: string;
     usehint?: boolean;
+    misspelled?: boolean;
 }
 
 interface WeightedQuestion {
@@ -139,14 +140,14 @@ export class CipherTestBuild extends CipherTest {
             title: 'Misspelled K1 Aristocrat with a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25] with Hint',
             len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity], usehint: true,
-            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
+            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat, misspelled: true,
             testtype: [ITestType.None], operation: 'decode', encodeType: 'k1',
         },
         {
             title: 'Misspelled K1 Aristocrat without a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25]',
             len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity],
-            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
+            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat, misspelled: true,
             testtype: [ITestType.None], operation: 'decode', encodeType: 'k1',
         },
         {
@@ -154,13 +155,13 @@ export class CipherTestBuild extends CipherTest {
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25] with Hint',
             len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity], usehint: true,
             testtype: [ITestType.None], operation: 'decode', encodeType: 'k2',
-            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
+            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat, misspelled: true,
         },
         {
             title: 'Misspelled K2 Aristocrat without a Hint',
             guidance: 'Misspelled Quote [75-90 non-blank characters, χ²<25]',
             len: [75, 90], chi2: [-Infinity, 25], unique: [19, Infinity], homonyms: [6, Infinity],
-            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat,
+            group: 1, weight: 0.5, cipherType: ICipherType.Aristocrat, misspelled: true,
             testtype: [ITestType.None], operation: 'decode', encodeType: 'k2',
         },
         {
@@ -330,22 +331,22 @@ export class CipherTestBuild extends CipherTest {
         {
             title: "Checkerboard Decode",
             guidance: '[55-75 characters]',
-            len: [55, 75],
-            group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
+            len: [55, 75], chi2: [20, Infinity],
+            group: 3, weight: 0.65, cipherType: ICipherType.Checkerboard,
             operation: 'decode'
         },
         {
             title: "Checkerboard Decode",
             guidance: '[55-75 characters]',
-            len: [55, 75],
+            len: [55, 75], chi2: [20, Infinity],
             group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
             operation: 'decode'
         },
         {
             title: "Checkerboard Cryptanalysis",
             guidance: '[55-75 characters]',
-            len: [55, 75],
-            group: 3, weight: 0.5, cipherType: ICipherType.Checkerboard,
+            len: [55, 75], chi2: [20, Infinity],
+            group: 3, weight: 0.65, cipherType: ICipherType.Checkerboard,
             operation: 'crypt'
         },
         {
@@ -508,7 +509,7 @@ export class CipherTestBuild extends CipherTest {
 
             type: ITestType.cregional,
             id: 'cregional',
-            questionCount: 20,
+            questionCount: 22,
             xenoctyptCount: 1,
         },
         {
@@ -516,7 +517,7 @@ export class CipherTestBuild extends CipherTest {
 
             type: ITestType.cstate,
             id: 'cstate',
-            questionCount: 24,
+            questionCount: 26,
             xenoctyptCount: 2,
         },
         {
@@ -524,7 +525,7 @@ export class CipherTestBuild extends CipherTest {
 
             type: ITestType.cstate,
             id: 'cnational',
-            questionCount: 26,
+            questionCount: 30,
             xenoctyptCount: 2,
         },
         {
@@ -540,7 +541,7 @@ export class CipherTestBuild extends CipherTest {
 
             type: ITestType.bregional,
             id: 'bregional',
-            questionCount: 20,
+            questionCount: 22,
             xenoctyptCount: 0,
         },
         {
@@ -548,7 +549,7 @@ export class CipherTestBuild extends CipherTest {
 
             type: ITestType.bstate,
             id: 'bstate',
-            questionCount: 24,
+            questionCount: 26,
             xenoctyptCount: 1,
         },
         {
@@ -556,7 +557,7 @@ export class CipherTestBuild extends CipherTest {
 
             type: ITestType.bstate,
             id: 'bnational',
-            questionCount: 26,
+            questionCount: 30,
             xenoctyptCount: 1,
         },
         {
@@ -572,7 +573,7 @@ export class CipherTestBuild extends CipherTest {
 
             type: ITestType.aregional,
             id: 'aregional',
-            questionCount: 16,
+            questionCount: 18,
             xenoctyptCount: 0,
         },
         {
@@ -892,6 +893,9 @@ export class CipherTestBuild extends CipherTest {
             if (entry.keyword !== undefined) {
                 cipherhandler.state.keyword = entry.keyword;
             }
+            if (entry.misspelled !== undefined) {
+                cipherhandler.state.misspelled = entry.misspelled;
+            }
             let appropriateCheck = ''
             if (entry.testtype !== undefined && !entry.testtype.includes(this.testtype)) {
                 appropriateCheck = 'Question not defined for this test type;'
@@ -985,7 +989,7 @@ export class CipherTestBuild extends CipherTest {
         saveData.forEach((entry) => { finalData.push(entry) })
 
         // Pick which entries can be the special bonus question
-        const isSpecial = this.findSpecialBonus(specialCandidates, finalData);
+        const isSpecial = this.findSpecialBonus(testtype, specialCandidates, finalData);
 
         // Figure out which three ciphers will be special candidates
 
@@ -1285,17 +1289,30 @@ export class CipherTestBuild extends CipherTest {
      * @param finalData 
      * @returns 
      */
-    public findSpecialBonus(specialCandidates: Map<ICipherType, number>, finalData: QuestionType[]) {
+    public findSpecialBonus(testtype: ITestType, specialCandidates: Map<ICipherType, number>, finalData: QuestionType[]) {
         const isSpecial = Array<boolean>(finalData.length).fill(false);
         if (finalData.length > 10) {
             // First we pick 3 of the legal ciphers that we will choose from
+            // For the 2025-2026 season we want to ensure that one of them is a Checkerboard
             const specialChoices = this.pickN(3, Object.keys(specialCandidates));
+            // If we didn't pick a checkerboard, and there is one available, then force it to be one of the three
+            if (specialChoices.findIndex((val) => val === ICipherType.Checkerboard) < 0 &&
+                specialCandidates[ICipherType.Checkerboard] !== undefined) {
+                specialChoices[2] = ICipherType.Checkerboard;
+            }
             specialChoices.map((cipherType) => {
                 // Then for each of the ones we picked, choose one of the ciphers of that type
                 // and go down the list until we find it to mark it as special              
                 let choice = Math.trunc(Math.random() * specialCandidates[cipherType]);
+                let needCryptanalysis = (cipherType === ICipherType.Checkerboard && (testtype === ITestType.bstate || testtype === ITestType.cstate))
+                if (needCryptanalysis) {
+                    choice = 0; // We want to pick the first one that has a cryptanalysis component
+                }
                 for (let i = 0; i < finalData.length && choice >= 0; i++) {
                     if (finalData[i].cipherType === cipherType) {
+                        if (needCryptanalysis && finalData[i].operation !== 'crypt') {
+                            continue;
+                        }
                         if (choice === 0) {
                             isSpecial[i] = true;
                         }

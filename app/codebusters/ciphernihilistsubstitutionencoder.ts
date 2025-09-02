@@ -174,8 +174,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
      */
     public CheckAppropriate(testType: ITestType, anyOperation: boolean): string {
         let result = super.CheckAppropriate(testType, anyOperation);
-        if (!anyOperation && result === '' && testType !== undefined) {
-            if ((testType == ITestType.cregional ||
+        if (result === '' && testType !== undefined) {
+            if (!anyOperation && (testType == ITestType.cregional ||
                 testType == ITestType.cstate ||
                 testType == ITestType.bregional ||
                 testType == ITestType.bstate) &&
@@ -1058,7 +1058,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             class: polyClass,
         });
 
-        const top = worktable.addHeaderRow()
+        const top = worktable.addHeaderRow({ class: "highlighted-header" });
         top.add('')
         for (let i = 1; i <= 5; i++) {
             top.add(String(i))
@@ -1066,8 +1066,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
         let mainIndex = 0;
         for (let tens = 1; tens <= 5; tens++) {
-            const keyrow = worktable.addBodyRow({ class: "k" })
-            const row = worktable.addBodyRow({ class: "b" })
+            const keyrow = worktable.addBodyRow({ class: "k highlighted-header" });
+            const row = worktable.addBodyRow({ class: "b" });
             keyrow.add({
                 celltype: 'th',
                 content: `${tens}`,

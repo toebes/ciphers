@@ -447,7 +447,10 @@ export class CipherTestPrint extends CipherTest {
                     content: String(qitem.points),
                 });
             trow.add('')
-                .add('')
+                .add({
+                    settings: { class: 'nomistakes' },
+                    content: (qitem.noMistakes ? '≡' : '')
+                })
                 .add({
                     settings: { class: 'specialindicator' },
                     content: (qitem.specialBonus ? '&#9733;' : '')

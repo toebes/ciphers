@@ -266,6 +266,13 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         return result;
     }
     /**
+     * freeMistakes returns the number of mistakes that can be made
+     * @returns Number of mistakes allowed before points are deducted from the answer
+     */
+    public freeMistakes(): number {
+        return 0;
+    }
+    /**
       * Generate the recommended score and score ranges for a cipher
       * @returns Computed score ranges for the cipher and text description
       */
@@ -643,14 +650,238 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
 
         return table;
     }
+    /**
+     * Display the steps on how to solve the cipher.
+     */
     public genSolution(testType: ITestType): JQuery<HTMLElement> {
         return this.genDecodeSolution();
     }
 
     public genDecodeSolution(): JQuery<HTMLElement> {
         const result = $('<div/>', { id: 'solution' });
+        /* notes:
+        this.state.mapping['T'] = 2, etc - index is letter, output is corresponding correct #
+        .soltext - the one/two words that you are trying to find by decoding numbers
+        .cipherString - the equation with letters you are given - ANGER+ALONG=INTUIT
+        problem types:
+        A+B=C
+        A+B+C=D
+        A+B+B=C
+        A+A=B
+        C-B=A
+        D-A-B=C
+        C-A-A=B
+        */
+        // PLANNED METHOD FOR SOLVING DIFF TYPES:
+        // make all problem types into addition: D-A-B=C can become C+A+B=D
+
+        const knownNumbers: NumberMap = {};
+        const alphab = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const operators = '+-=';
+        const problem = this.state.cipherString.toUpperCase();
+        let letterList = '';
+        let possibilityArr = [10][10];
+        // possibilityArr[0][3] checks whether letterList index 0 (ex: A) can be the number 3
+        // will give either -1, 0, or 1, where 0 is unknown, -1 is impossible, 1 is confirmed
+        let brokenFormula = {};
+        let currWord = 0;
+        brokenFormula[0] = '';
+        for (let i = 0; i < problem.length; i++) {
+            // fills out letter list and fills out knownNumbers with -1's - we don't know what any of the letters correspond to so we can't give 0-9
+            if (problem.substring(i, i + 1) == undefined && alphab.includes(problem.substring(i, i + 1))) {
+                knownNumbers[problem.substring(i, i + 1)] = -1;
+                letterList += problem.substring(i, i + 1)
+            }
+            if (alphab.includes(problem.substring(i, i + 1))) {
+                brokenFormula[currWord] += problem.substring(i, i + 1);
+            }
+            if (operators.includes(problem.substring(i, i + 1))) {
+                currWord++;
+                brokenFormula[currWord] = problem.substring(i, i + 1);
+                currWord++;
+                brokenFormula[currWord] = '';
+            }
+        }
+        console.log(brokenFormula);
         return result;
+
     }
+    // /**
+    //      * Display the steps on how to solve the cipher.
+    //      */
+    // public genSolution(testType: ITestType): JQuery<HTMLElement> {
+    //     const result = $('<div/>');
+    //     let msg = '';
+    //     if (this.state.cipherString === '') {
+    //         this.setErrorMsg(msg, 'polgs');
+    //         return result;
+    //     }
+    //     const strings = this.makeReplacement(this.state.cipherString, this.maxEncodeWidth);
+    //     const knownmap: StringMap = {};
+
+    //     // Make a copy and remove the slash word separator
+    //     const hintStrings = strings.map(array => array.slice());
+    //     for (let hintString of hintStrings) {
+    //         hintString[ptindex] = hintString[ptindex].replace(new RegExp('/', 'g'), ' ');
+    //     }
+
+    //     const hint = this.checkHintCrib(testType, result, hintStrings);
+    //     if (hint === undefined) {
+    //         return result;
+    //     }
+
+    //     // Assume we don't know what anything is
+    //     for (const c of this.encodecharset) {
+    //         knownmap[c] = 'XXX';
+    //         this.trialLetters[c] = undefined;
+    //     }
+    //     this.mentionedLetters.clear();
+
+    //     for (const c of hint) {
+    //         let i = this.keywordMap.indexOf(c);
+    //         if (i > -1) {
+    //             knownmap[c] = this.morseReplaces[i];
+    //         }
+    //     }
+
+    //     let known = 0;
+    //     for (let s in this.mappingSolution) {
+    //         if (s !== '') {
+    //             known += 1;
+    //         }
+    //     }
+
+    //     known = 0;
+    //     for (const m of this.encodecharset) {
+    //         if (knownmap[m] !== 'XXX') {
+    //             known += 1;
+    //         }
+    //     }
+    //     let mappedLetters = this.updatePossibilitiesMapFromKnown(knownmap);
+    //     let roughKeywordLength = this.scanAndFillContinuous(result, mappedLetters[1], knownmap);
+
+    //     this.reconcilePossibilitiesMap(knownmap);
+
+    //     // This is just for displaying what we know...
+    //     // this.genKnownTable(result, knownmap); --> generateFractionatedTable() is superior to genKnownTable()
+    //     let workingTable = this.generateFractionatedTable(true, knownmap, 'ansblock');
+    //     result.append(workingTable);
+
+    //     let possibilitiesTable = this.generatePossibilitiesTable(true, this.possibilitiesMap, 'ansblock');
+    //     // recalculates based on what is 'known' (in the knownmap).
+    //     let working = this.genKnownMapping(strings, knownmap);
+
+    //     result.append('We can approximate the keyword length to be around ' + roughKeywordLength + '.\n');
+    //     result.append('Based on what is known from the replacement table, the remaining possible mappings are:');
+    //     result.append(possibilitiesTable);
+    //     this.reconcileKnownMap(knownmap);
+
+    //     result.append('Based on that information we can map the cipher text to:');
+    //     // recalculates based on what is 'known' (in the knownmap).
+    //     working = this.genKnownMapping(strings, knownmap);
+    //     // displays the (partial) solution we know so far.
+    //     this.genMapping(result, working);
+
+    //     if (!this.hasUnknowns(result, knownmap, working)) {
+    //         result.append(
+    //             'Which means that the hint has provide all of the' +
+    //             ' cipher digit mapping and there is no work to solve it'
+    //         );
+    //     } else {
+    //         let limit = this.SOLUTION_ITERATIONS;
+    //         // Reset the guesses map with tracks how much you have to guess.
+    //         this.guessLetters.clear();
+    //         while (limit > 0) {
+
+    //             /*if (this.cleanAndCheckSpans(result, knownmap, working)) {
+    //                 console.log('Checked spans...');
+    //             } else*/ if (this.findIsolatedMorseBlankBefore3(result, knownmap, working)) {
+    //                 //console.log('Found: findIsolatedMorseBlankBefore3');
+    //             } else if (this.findIsolatedMorseBlankBefore2(result, knownmap, working)) {
+    //                 //console.log('Found: exploreStandaloneLetter');
+    //             } else if (this.findIsolatedMorseBlankAfter3(result, knownmap, working)) {
+    //                 //console.log('Found: findIsolatedMorseBlankBefore2');
+    //             } else if (this.findIsolatedMorseBlankAfter2(result, knownmap, working)) {
+    //                 //console.log('Found: findIsolatedMorseBlankAfter2');
+    //             } else if (this.singleLetterTrialAndError(result, knownmap, working)) {
+    //                 //     console.log('Found: exploreStandaloneLetter');
+    //                 // } else if (this.eliminateInvalidSequences(result, knownmap, working)) {
+    //                 //     console.log('Found: findIsolatedMorseBlankAfter');
+    //             } else if (this.takeAGuess(result, knownmap, working)) {
+    //                 //
+    //                 // console.log('Found: findIsolatedMorseBlankAfter2');
+    //             } else if (this.deducedLettersInSlots(result, knownmap, working)) {
+    //                 //
+    //                 // console.log('Found: deducedLettersInSlots');
+    //             } else {
+    //                 // Nothing more that we can do..
+    //                 result.append(
+    //                     $('<h4.>').text(
+    //                         `There are no more automated solving techniques, 
+    //                          it is recommended to modify the crib text to provide additional 
+    //                          information to the automated solver and also the students solving the problem. 
+    //                          Please feel free to submit an issue with the example so we can improve the solver.`
+    //                     )
+    //                 );
+    //                 limit = 0;
+    //                 msg = 'Automated solver is unable to find an automatic solution.';
+    //                 // Used for debug...
+    //                 // this.dumpPossibilitiesMap();
+    //                 break;
+    //             }
+    //             // need string of all unknowns letters
+    //             let ul = "";
+    //             for (let p = 0; p < this.possibilitiesMap.length; p++) {
+    //                 if (this.possibilitiesMap[p].length > 1) {
+    //                     ul += this.encodecharset[p];
+    //                 }
+    //             }
+    //             mappedLetters = this.updatePossibilitiesMapFromKnown(knownmap);
+    //             this.scanAndFillContinuous(result, mappedLetters[1], knownmap);
+    //             this.reconcileKnownMap(knownmap);
+
+    //             working = this.genKnownMapping(strings, knownmap);
+    //             // helps with debug
+    //             //workingTable = this.generateFractionatedTable(true, knownmap, '');
+    //             //result.append(workingTable);
+    //             result.append('The updated table containing possible mappings is:');
+    //             result.append(this.generatePossibilitiesTable(true, this.possibilitiesMap, 'ansblock'))
+    //             result.append('Based on that information we can map the cipher text as:');
+    //             this.genMapping(result, working);
+
+    //             if (this.hasUnknowns(result, knownmap, working)) {
+    //                 limit--;
+    //                 this.solutionLoops = this.SOLUTION_ITERATIONS - limit;
+    //                 this.solutionUnknowns = this.getUnkownsCount(knownmap, working);
+    //             } else {
+    //                 let answer = '';
+    //                 for (const strset of working) {
+    //                     answer += strset[ptindex].replace(/ /g, '').replace(/\//g, ' ');
+    //                 }
+    //                 result.append(
+    //                     $('<h4/>').text(
+    //                         'Now that we have mapped all the ciphertext characters, the decoded morse code is the answer:'
+    //                     )
+    //                 );
+    //                 result.append(
+    //                     $('<div/>', {
+    //                         class: 'TOANSWER',
+    //                     }).text(answer)
+    //                 );
+    //                 if (mappedLetters[0].length > 0) {
+    //                     result.append($('<p/>').text(`There ${mappedLetters[0].length > 1 ? `are ${mappedLetters[0].length} letters that are ` :
+    //                         `is 1 letter that is `} not mapped because they are not used in the ciphertext, so a definitive mapping can not be determined.`)
+    //                     );
+    //                 }
+    //                 this.solutionUnknowns = 0;
+    //                 limit = 0;
+    //             }
+    //         }
+    //     }
+    //     this.setErrorMsg(msg, 'polgs');
+    //     return result;
+    // }
+
 
     /**
      * Generate the potential list of problem styles

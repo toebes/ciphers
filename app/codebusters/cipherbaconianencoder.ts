@@ -744,7 +744,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
 
             let charMatchedIndex = -1;
             for (let i = 0; i < aSet.length; i++) {
-                console.log(aSet[i]);
+                // console.log(aSet[i]);
                 if (aSet[i] == bSet[i]) {
                     charMatchedIndex = i;
                     break;
@@ -763,7 +763,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                 for (let j = 0; j < bSet.length && dupeLetter == ''; j++) {
                     if (aSet[i] == bSet[j]) {
                         dupeLetter = aSet[i];
-                        console.log(dupeLetter);
+                        // console.log(dupeLetter);
                     }
                 }
             }
@@ -924,7 +924,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
         const ct = this.getCipherTextForCrib(pos, pt.length)
         if (ct !== '') {
             const rec = new RegExp('\\b' + ct.replace(/[ \s+]/g, '[\\s\\.,;\\-!]+') + '\\b');
-            console.log(rec)
+            // console.log(rec)
             if (questionText.match(rec) !== null) {
                 return true;
             }

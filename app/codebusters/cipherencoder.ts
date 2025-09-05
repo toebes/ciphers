@@ -1212,7 +1212,8 @@ export class CipherEncoder extends CipherHandler {
                 const slot = Math.trunc(maxWord * Math.random())
                 const choice = patSet[slot][0]
                 // Make sure we didn't get this one before (i.e. same random number)
-                if (picked[choice] !== true) {
+                // And that it has a frequency of more than 1 occurance to avoid obscure words
+                if (patSet[slot][2] > 1 && picked[choice] !== true) {
                     picked[choice] = true
                     if (action(found, choice)) {
                         found++

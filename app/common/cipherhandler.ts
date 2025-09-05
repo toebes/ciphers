@@ -331,6 +331,14 @@ export interface IScoreInformation {
     score: number;
 }
 
+//              Patern String
+//              Ordinal in the list (1 = the first word)
+//              Frequency of occurrence of the word
+//              Stratum 0 = top 500 words
+//                      1 = top 1000 words
+//                      3 = top 2000 words
+//                      4 = top 5000 words
+//                      5 = all other words
 type patelem = [string, number, number, number];
 /**
  * Base class for all the Cipher Encoders/Decoders

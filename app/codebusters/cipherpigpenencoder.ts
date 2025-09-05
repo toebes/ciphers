@@ -22,6 +22,9 @@ export class CipherPigPenEncoder extends CipherEncoder {
     public guidanceURL = 'TestGuidance.html#PigPen';
     public cipherName = 'Pig Pen'
 
+    private defaultWidth = 33; // Default width of the cipher display
+    private divAWidth = 22; // Width for the ARegional test
+
 
     public validTests: ITestType[] = [ITestType.None, ITestType.aregional];
     public defaultstate: IEncoderState = {
@@ -122,10 +125,10 @@ export class CipherPigPenEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
-        let width = 40;
+        let width = this.defaultWidth;
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width = 29;
+            width = this.divAWidth;
             extraclass = ' atest';
         }
         const strings = this.makeReplacement(this.state.cipherString, width);
@@ -180,10 +183,10 @@ export class CipherPigPenEncoder extends CipherEncoder {
         const idclass = 'I' + qnumdisp + '_';
         const result = $('<div/>', { id: 'Q' + qnumdisp });
         const tosolve = 0;
-        let width = 40;
+        let width = this.defaultWidth;
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width = 29;
+            width = this.divAWidth;
             extraclass = ' atest';
         }
         let pos = 0;
@@ -227,10 +230,10 @@ export class CipherPigPenEncoder extends CipherEncoder {
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
-        let width = 40;
+        let width = this.defaultWidth;
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width = 30;
+            width = this.divAWidth;
             extraclass = ' atest';
         }
         const strings = this.makeReplacement(this.state.cipherString, width);

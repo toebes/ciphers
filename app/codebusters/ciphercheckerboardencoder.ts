@@ -1,5 +1,4 @@
-import { getAllJSDocTagsOfKind } from 'typescript';
-import { BoolMap, calloutTypes, cloneObject, makeCallout, makeFilledArray, NumberMap, StringMap } from '../common/ciphercommon';
+import { BoolMap, calloutTypes, cloneObject, makeCallout, makeFilledArray, StringMap } from '../common/ciphercommon';
 import { IOperationType, IState, ITestType, toolMode, ITestQuestionFields, IScoreInformation } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
 import { JTButtonItem } from '../common/jtbuttongroup';
@@ -85,7 +84,7 @@ interface ICribInfo {
 export class CipherCheckerboardEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Checkerboard';
-    public maxEncodeWidth = 18;
+    public maxEncodeWidth = 24;
     public validTests: ITestType[] = [
         ITestType.None,
         ITestType.cregional,
@@ -773,10 +772,11 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     public buildCheckerboardSequenceSets(
         msg: string,
         maxEncodeWidth: number,
-        maxEncodeWidthExtra: number = 5,
+        maxEncodeWidthExtra: number = 11,
         polybiusMap?: Map<string, string>,
         unChunked: boolean = false,
     ): string[][][] {
+        let lineEncodeWidth = maxEncodeWidth - maxEncodeWidthExtra
         const encoded = unChunked ? msg : this.chunk(msg, this.state.blocksize);
         const result: string[][][] = [];
         const charset = this.getCharset();
@@ -803,9 +803,12 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                 //if the current character in encoded message is not found in charset, then don't modify it (such as w/ punctuation)
                 //directly push it onto the arrays
                 cipher.push(messageChar);
+                if (messageChar.trim() === '') {
+                    lastSplit = message.length;
+                }
                 continue;
             }
-            if (message.length >= maxEncodeWidth) {
+            if (message.length >= lineEncodeWidth) {
                 /*
                     last split refers to the last index in which a non-charset key appeared in the message. 
                     this creates a 'split' in the text, a place where we want to separate lines at
@@ -820,14 +823,19 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                     //if there is a last split, we want to separate the new lines at this point
                     const messagePart = message.slice(0, lastSplit);
                     const cipherPart = cipher.slice(0, lastSplit);
+                    while (messagePart.length && cipherPart.length && messagePart[messagePart.length - 1].trim() === "") {
+                        messagePart.pop();
+                        cipherPart.pop();
+                    }
 
-                    //this next line will continue, having the remaining text after the split
+                    //this next line will continue to be used, having the remaining text after the split
                     message = message.slice(lastSplit);
                     cipher = cipher.slice(lastSplit);
                     result.push([cipherPart, messagePart]);
+                    lastSplit = -1;
                 }
                 if (result.length === 2) {
-                    maxEncodeWidth += maxEncodeWidthExtra
+                    lineEncodeWidth = maxEncodeWidth
                 }
             }
         }

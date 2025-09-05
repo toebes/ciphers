@@ -117,7 +117,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         /** The current string we are looking for */
         findString: '',
         operation: 'decode',
-        blocksize: 0,
+        blocksize: 5,
         polybiusKey: '',
         autoSolverScore: undefined
     };

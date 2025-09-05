@@ -274,17 +274,17 @@ export class CipherAristocratEncoder extends CipherEncoder {
             (this.state.encodeType === 'k2' || this.state.encodeType === 'k3')) {
             return `${this.state.encodeType.toUpperCase()} Alphabets not allowed for ${this.getTestTypeName(testType)}`;
         }
-        // Patristocrats and Xenocrypts must use K1 or K2 for Division C tests or K1 for Division B tests
-        if ((this.state.cipherType === ICipherType.Patristocrat ||
-            this.state.cipherType === ICipherType.Xenocrypt) &&
-            this.state.encodeType !== 'k1' &&
-            this.state.encodeType !== 'k2') {
-            if (testType === ITestType.bregional || testType === ITestType.bstate) {
-                return `${this.cipherName} ciphers must use a K1 Alphabet for ${this.getTestTypeName(testType)}`;
-            }
-            return `${this.cipherName} ciphers must use a K1 or K2 Alphabet for ${this.getTestTypeName(testType)}`;
-        }
         if (!anyOperation && testType !== ITestType.None) {
+            // Patristocrats and Xenocrypts must use K1 or K2 for Division C tests or K1 for Division B tests
+            if ((this.state.cipherType === ICipherType.Patristocrat ||
+                this.state.cipherType === ICipherType.Xenocrypt) &&
+                this.state.encodeType !== 'k1' &&
+                this.state.encodeType !== 'k2') {
+                if (testType === ITestType.bregional || testType === ITestType.bstate) {
+                    return `${this.cipherName} ciphers must use a K1 Alphabet for ${this.getTestTypeName(testType)}`;
+                }
+                return `${this.cipherName} ciphers must use a K1 or K2 Alphabet for ${this.getTestTypeName(testType)}`;
+            }
             // Make sure the operation type is legal.
             if (this.state.operation === 'keyword') {
                 if (testType !== ITestType.cregional && testType !== ITestType.cstate) {

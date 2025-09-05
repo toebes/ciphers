@@ -220,7 +220,7 @@ export class CipherDancingMenEncoder extends CipherEncoder {
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
-        let width = 40;
+        let width = 32;
         let extraclass = '';
         if (testType === ITestType.aregional) {
             width = 22;

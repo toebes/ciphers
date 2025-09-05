@@ -1969,7 +1969,6 @@ export class CipherEncoder extends CipherHandler {
         $('.sampq')
             .off('click')
             .on('click', (e) => {
-                console.log("test");
                 this.showSampleQuestionText();
             });
         $('.sampp')

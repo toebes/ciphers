@@ -702,7 +702,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                 brokenFormula[currWord] = '';
             }
         }
-        console.log(brokenFormula);
+        // console.log(brokenFormula);
         return result;
 
     }

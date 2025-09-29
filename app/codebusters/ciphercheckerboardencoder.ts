@@ -205,6 +205,20 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         }
         return result;
     }
+
+    public setCipherString(cipherString: string): boolean {
+        let changed = super.setCipherString(cipherString);
+
+        //VALIDATE ROW/COLUMN HERE MAYBE?
+        let validCipher = this.validateKeySequence();
+        this.setErrorMsg('', 'vKeywordLetters');
+        if (!validCipher) {
+            this.setErrorMsg('Not all row and column keyword letters appear in cipher text.', 'vKeywordLetters');
+        }
+
+        return changed;
+    }
+
     public setQuestionText(question: string): void {
         super.setQuestionText(question);
         this.validateQuestion();
@@ -867,12 +881,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             result.push([cipher, message]);
         }
 
-        //VALIDATE ROW/COLUMN HERE MAYBE?
-        let validCipher = this.validateKeySequence();
-        this.setErrorMsg('', 'vKeywordLetters');
-        if (!validCipher) {
-            this.setErrorMsg('Not all row and column keyword letters appear in cipher text.', 'vKeywordLetters');
-        }
+
 
         /* the result is an array of arrays of arrays - the large array contains all the lines (arrays) that the entire text is
             separated into. each line contains 4 arrays, each a char array of the info to appear on each subline*/
@@ -3340,6 +3349,50 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     public populateKeySuggestions(): void {
         this.populateLenKeySuggestions('genbtn', 'suggestKeyopts', 20, 5, 5)
     }
+
+
+
+    public genUseKey(key: string, useclass = "keyset"): JQuery<HTMLElement> {
+        if (key === undefined) {
+            return $("<span/>")
+        }
+        let warnlevel = "";
+        if (this.getKeywordDifficulty(key) > 2) {
+            warnlevel = "warning";
+        }
+        let useButton = $("<a/>", {
+            'data-key': key,
+            type: "button",
+            class: `button rounded ${useclass} abbuttons ${warnlevel}`,
+        }).html('Use');
+        let div = $("<div/>", { class: "kwchoice" })
+        div.append(useButton)
+        div.append(key)
+        return div
+    }
+
+    /**
+     * Calculate the difficulty of the row/column keyword.
+     * @param key 
+     * @returns 
+     */
+    public getKeywordDifficulty(key: string): number {
+        let result = 0;
+        let anagrams = this.findAnagrams(key, key.length);
+        result = result + 0.5 * anagrams.length;
+        let duplicateCheck = new Array<string>();
+        let duplicates = 0;
+        for (var i = 0; i < key.length; i++) {
+            if (duplicateCheck.includes(key[i])) {
+                duplicates = duplicates + 1;
+            }
+            duplicateCheck.push(key[i]);
+        }
+        result = result + duplicates;
+
+        return result;
+    }
+
     /**
      * Set the keyword from the suggested text
      * @param elem Element clicked on to set the keyword from
@@ -3469,7 +3522,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                     class: "button rounded cribset abbuttons",
                 }).html(`Use`);
                 div.append(useButton);
-                div.append(`${potentialCribs[selection].crib} (${potentialCribs[selection].directCount}+${potentialCribs[selection].indirectCount})`);
+                div.append(`${potentialCribs[selection].crib} <em>[${potentialCribs[selection].directCount + potentialCribs[selection].indirectCount}]</em>`);
                 if (cribSelectCount % 2 === 0) {
                     cellLeft.append(div);
                 } else {

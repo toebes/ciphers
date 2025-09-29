@@ -1399,6 +1399,12 @@ export class CipherTest extends CipherHandler {
             errContent = errContent.filter(':not(div[data-msg="cribl"])');
 
             $('.err').empty();
+
+            // If there are no errors left to display, then toss out errContent so a red box
+            // row is not created in the question listing.
+            if (errContent.length === 0) {
+                errContent = undefined
+            }
         }
         return errContent;
     }

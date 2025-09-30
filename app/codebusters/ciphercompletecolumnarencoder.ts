@@ -868,6 +868,11 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
             this.thisTestType = testType;
         }
 
+        // Check if valid for this test type.
+        if (this.validTests.indexOf(testType) >= 0) {
+            return '';
+        }
+
         if (!anyOperation && result === '' && testType !== undefined) {
             // What is allowed is:
             //  Division B Regional:  Up to 9 columns, crib no shorter than columns - 1.

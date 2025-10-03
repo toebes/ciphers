@@ -209,7 +209,7 @@ export class CipherAristocratEncoder extends CipherEncoder {
             $('#encrand').attr('disabled', 'disabled').hide();
             $('#validatekey').removeAttr('disabled').show();
         } else {
-            $('#encrand').attr('disabled', 'disabled').hide();
+            $('#encrand').removeAttr('disabled').show();
             $('#validatekey').attr('disabled', 'disabled').hide();
         }
         const testUsage = this.getTestUsage();

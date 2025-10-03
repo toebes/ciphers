@@ -311,13 +311,6 @@ config = {
         }),
         new HtmlWebpackPlugin({
             inject: false,
-            filename: 'Checkerboard.html',
-            template: path.join(__dirname, 'app', 'app', 'pages', 'stdapp.html'),
-            cipher: 'Checkerboard',
-            title: 'Solve a Checkerboard Cipher',
-        }),
-        new HtmlWebpackPlugin({
-            inject: false,
             filename: 'DancingMen.html',
             template: path.join(__dirname, 'app', 'app', 'pages', 'stdapp.html'),
             cipher: 'DancingMen',

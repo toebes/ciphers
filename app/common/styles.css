@@ -1105,10 +1105,14 @@ table.polybius-square td {
     flex: 1;
 }
 
+table.polybius-square tr:first-child th:first-child {
+    border-top: none;
+    border-left: none;
+}
+
 table.polybius-square {
     width: 20rem;
     padding: 20px;
-    border: 1px solid black;
     border-collapse: collapse;
     text-align: center;
     font-family: 'Courier New', Courier, monospace;

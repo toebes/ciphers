@@ -1097,6 +1097,8 @@ export class CipherEncoder extends CipherHandler {
                 .empty()
                 .append(suggestedScore.text)
             $("#SamplePoints").foundation('open');
+        }).catch((err) => {
+            alert(`Unable to suggest score`);
         })
     }
     public genMonoText(str: string): string {

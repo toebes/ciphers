@@ -8,6 +8,8 @@ import { JTTable } from '../common/jttable';
 import { buttonInfo, CipherTest, ITestState } from './ciphertest';
 import { IEncoderState } from './cipherencoder';
 
+type Bounds = Readonly<{ min: number; max: number }>;
+
 /**
  * TestGenerator.html?test=<n>
  *    This edits a specific test.  It requires a test number.  If none
@@ -206,7 +208,7 @@ export class CipherTestGenerator extends CipherTest {
         });
         $('.testerrors').empty();
 
-        const testTypeRangeMap: Record<ITestType, { min: number; max: number }> = {
+        const testTypeRangeMap: Readonly<Record<ITestType, Bounds>> = {
             [ITestType.None]: { min: 0, max: 999 },
             [ITestType.bstate]: { min: 18, max: 28 },
             [ITestType.cregional]: { min: 18, max: 26 },
@@ -214,7 +216,20 @@ export class CipherTestGenerator extends CipherTest {
             [ITestType.bregional]: { min: 18, max: 26 },
             [ITestType.aregional]: { min: 16, max: 22 },
             [ITestType.astate]: { min: 18, max: 26 },
-        };
+        } as const;
+
+        type Bounds = Readonly<{ min: number; max: number }>;
+
+        const SpanishCountLimits: Readonly<Record<ITestType, Bounds>> = {
+            [ITestType.None]: { min: 0, max: 20 },
+            [ITestType.cregional]: { min: 0, max: 2 },
+            [ITestType.cstate]: { min: 2, max: 3 },
+            [ITestType.bregional]: { min: 0, max: 1 },
+            [ITestType.bstate]: { min: 1, max: 2 },
+            [ITestType.aregional]: { min: 0, max: 0 },
+            [ITestType.astate]: { min: 0, max: 0 },
+        } as const;
+
 
         // Check to see if we have a reasonable number of questions
         const qRange = testTypeRangeMap[test.testtype]
@@ -238,29 +253,26 @@ export class CipherTestGenerator extends CipherTest {
                 errors.push(`${errorcount} issues were found when generating the questions.`)
             }
         }
-        if (SpanishCount > 0) {
-            if (SpanishCount > 1) {
-                if (test.testtype !== ITestType.bstate && test.testtype !== ITestType.cstate) {
-                    errors.push(
-                        'Only one Spanish Xenocrypt allowed for ' +
-                        this.getTestTypeName(test.testtype) +
-                        '.'
-                    );
-                }
-            } else if (test.testtype === ITestType.cstate) {
-                errors.push(
-                    this.getTestTypeName(test.testtype) +
-                    ' is supposed to have at least two Spanish Xenocrypts.'
-                );
+        const { min, max } = SpanishCountLimits[test.testtype];
+
+        if (SpanishCount < min) {
+            if (min === 1) {
+                errors.push(`${this.getTestTypeName(test.testtype)} is supposed to have at least one Spanish Xenocrypt.`);
+            } else {
+                errors.push(`${this.getTestTypeName(test.testtype)} is supposed to have at least ${min} Spanish Xenocrypts.`);
             }
+        } else if (SpanishCount > max) {
+            if (max === 0) {
+                errors.push(`${this.getTestTypeName(test.testtype)} is not supposed to have any Spanish Xenocrypts.`);
+            } else if (max === 1) {
+                errors.push(`${this.getTestTypeName(test.testtype)} is supposed to have no more than one Spanish Xenocrypt.`);
+            } else {
+                errors.push(`${this.getTestTypeName(test.testtype)} is supposed to have no more than ${max} Spanish Xenocrypts.`);
+            }
+        }
+        if (SpanishCount > 0) {
             $('.xenocryptfreq').show();
         } else {
-            if (test.testtype === ITestType.bstate || test.testtype === ITestType.cstate) {
-                errors.push(
-                    this.getTestTypeName(test.testtype) +
-                    ' is supposed to have at least one Spanish Xenocrypt.'
-                );
-            }
             $('.xenocryptfreq').hide();
         }
         if (SpecialBonusCount > 3) {

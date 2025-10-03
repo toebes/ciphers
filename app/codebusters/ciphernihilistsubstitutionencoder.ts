@@ -77,7 +77,7 @@ interface ICribInfo {
 export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#Nihilist';
-    public maxEncodeWidth = 18;
+    public maxEncodeWidth = 24;
     public validTests: ITestType[] = [
         ITestType.None,
         ITestType.cregional,
@@ -942,9 +942,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     public buildNihilistSequenceSets(
         msg: string,
         maxEncodeWidth: number,
-        maxEncodeWidthExtra: number = 5,
+        maxEncodeWidthExtra: number = 11,
         unChunked: boolean = false
     ): string[][][] {
+        let lineEncodeWidth = maxEncodeWidth - maxEncodeWidthExtra
         let key = this.cleanKeyword
         if (key === '') {
             key = 'A';
@@ -995,7 +996,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 lastSplit = cipher.length;
                 continue;
             }
-            if (message.length >= maxEncodeWidth) {
+            if (message.length >= lineEncodeWidth) {
                 /*
                     last split refers to the last index in which a non-charset key appeared in the message. 
                     this creates a 'split' in the text, a place where we want to separate lines at
@@ -1026,7 +1027,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                     result.push([cipherPart, messagePart, mappedKeyPart, mappedMessagePart, plainKeyPart]);
                 }
                 if (result.length === 2) {
-                    maxEncodeWidth += maxEncodeWidthExtra
+                    lineEncodeWidth = maxEncodeWidth
                 }
             }
         }

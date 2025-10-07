@@ -1349,7 +1349,7 @@ export class CipherCompleteColumnarEncoder extends CipherEncoder {
 
         if (spacelessCrib.length < this.state.columns - 1 && !usedOnCState) {
             errorMessage = `For this test type, the length of the crib must be no shorter than ${(this.state.columns - 1)}
-                (i.e. on less the number of columns used).`;
+                (i.e. one less the number of columns used).`;
         } else if (spacelessCrib.length < this.state.columns - 3 && usedOnCState) {
             errorMessage = `For a Division C State/National or unspecified test, the length of the crib must be no shorter
             than ${(this.state.columns - 3)} (i.e. three less the number of columns used)`;

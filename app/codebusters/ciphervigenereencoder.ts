@@ -794,7 +794,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
      * Start the dialog for suggesting the keyword
      */
     public suggestKey(): void {
-        this.suggestLenKey(3, 7);
+        this.startSuggestKey();
     }
     /**
      * Populate the dialog with a set of keyword suggestions. 

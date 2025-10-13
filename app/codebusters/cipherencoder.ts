@@ -1161,10 +1161,8 @@ export class CipherEncoder extends CipherHandler {
     }
     /**
      * Start the dialog for suggesting the keyword
-     * @param lower shortest word to generate
-     * @param upper Longest word to generate
      */
-    public suggestLenKey(lower: number = 3, upper: number = 7): void {
+    public startSuggestKey(): void {
         // We need to load up the language dictionary before starting everything
         this.loadLanguageDictionary('en').then((res) => {
             this.suggestKeyBase()

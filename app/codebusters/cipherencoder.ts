@@ -1,5 +1,5 @@
 import { CKInlineEditor } from '../common/ckeditor.js';
-import { BoolMap, cloneObject } from '../common/ciphercommon';
+import { BoolMap, calloutTypes, cloneObject, makeCallout } from '../common/ciphercommon';
 import {
     CipherHandler,
     IEncodeType,
@@ -1148,7 +1148,32 @@ export class CipherEncoder extends CipherHandler {
         this.setOffset(offset)
         $('#keywordDLG').foundation('close')
         this.updateOutput()
+    }
+    /**
+     * Show a highlighted note as to how we solved the cipher
+     * @param result Place to output the note
+     * @param text Note to output
+     */
+    public showSolvingNote(result: JQuery<HTMLElement>, text: string, noteClass: calloutTypes = 'primary') {
+        result.append($('<div/>', { class: `callout ${noteClass} small` }).append(text)
+        );
+    }
 
+    /**
+     * Show the current step as a callout
+     * @param target Place to output the step
+     * @param text Text of the step number
+     */
+    public showStep(target: JQuery<HTMLElement>, text: string): void {
+        target.append(makeCallout(text, 'secondary'))
+    }
+    /**
+     * Show the current step as a callout
+     * @param target Place to output the note
+     * @param text Text of the step number
+     */
+    public showStepText(target: JQuery<HTMLElement>, text: string): void {
+        target.append($('<p/>').append(text))
     }
     /**
      * Start the process to suggest keywords and offsets to the user

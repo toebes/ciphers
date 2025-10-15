@@ -3003,33 +3003,6 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
 
     }
     /**
-     * 
-     * @param result 
-     * @param text 
-     */
-    private showSolvingNote(result: JQuery<HTMLElement>, text: string, noteClass: calloutTypes = 'primary') {
-        result.append($('<div/>', { class: `callout ${noteClass} small` }).append(text)
-        );
-    }
-
-    /**
-     * Show the current step as a callout
-     * @param target Place to output the step
-     * @param text Text of the step number
-     */
-    public showStep(target: JQuery<HTMLElement>, text: string): void {
-        target.append(makeCallout(text, 'secondary'))
-    }
-    /**
-     * Show the current step as a callout
-     * @param target Place to output the note
-     * @param text Text of the step number
-     */
-    public showStepText(target: JQuery<HTMLElement>, text: string): void {
-        target.append($('<p/>').append(text))
-    }
-
-    /**
      * Generate the HTML to display the question for a cipher
      * @param testType Type of test
      */

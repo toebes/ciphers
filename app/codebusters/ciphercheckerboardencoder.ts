@@ -6,7 +6,7 @@ import { JTFDialog } from '../common/jtfdialog';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
-import { JTRow, JTTable } from '../common/jttable';
+import { JTTable } from '../common/jttable';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
 interface ICheckerboardState extends IEncoderState {
@@ -25,10 +25,7 @@ interface ICheckerboardState extends IEncoderState {
 const AUTOSOLVER_NOKEYWORD = 2000
 const AUTOSOLVER_NOKEYPOS = 1000
 
-type CheckerboardSolverMappings = number[][]
 type PolybiusMap = Map<string, string[]>
-type Known = 'none' | 'tens' | 'ones' | 'all'
-type TableType = 'tens' | 'ones' | 'example'
 type SuggestType = 'row' | 'col'
 
 interface wordInfo {
@@ -414,7 +411,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                 (this.state.blocksize !== 0 && this.state.autoSolverScore > 1.25)
             ) {
                 const add = Math.round((this.state.autoSolverScore - 1.25) * 100)
-                operationText += ` The Autosolver was not able to find enough words to make it solvable, so we add ${add} points.`
+                operationText += ` The Autosolver was not able to find enough words to make it solvable, so we add ${add} points [autosolverScore=${this.state.autoSolverScore}].`
                 suggested += add
             }
         }
@@ -921,7 +918,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
      * @param fillString Which letters 
      * @param solverData Current solver data state
      */
-    public showPolybiusTable(target: JQuery<HTMLElement>, center: boolean, fillString: string, solverData?: CheckerboardSolverData): void {
+    public showPolybiusTable(target: JQuery<HTMLElement>, center: boolean, solverData?: CheckerboardSolverData): void {
         let polyClass = 'polybius-square unstriped'
         let rowPossible = [this.cleanRowKeyword]
         let colPossible = [this.cleanColKeyword]
@@ -1021,6 +1018,44 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
 
         target.append(worktable.generate())
     }
+
+    /**
+     * Update the Polybius data for a known value
+     * Puts `char` into `setSlot` as the only option, and removes `char`
+     * from every other slot to keep it unique.
+     * @param solverData Current solver data state
+     * @param setSlot Position for known character
+     * @param char Character
+     */
+    public setPolybiusKnown(solverData: CheckerboardSolverData, setSlot: string, char: string) {
+        const deferFixes: string[] = [];
+        solverData.polybius.forEach((vals, slot) => {
+            if (slot !== setSlot && vals?.includes(char)) {
+                const next = vals.filter(v => v !== char);
+                if (next.length !== vals.length) {
+                    solverData.polybius.set(slot, next);
+                    // Note that if we have reduced this to a single choice, we need to process it
+                    // but we need to defer it until after we have processed everything else to avoid
+                    // infinite loops
+                    if (next.length === 1) {
+                        deferFixes.push(slot);
+                    }
+                }
+            }
+        });
+
+        // Always ensure the target slot is exactly [char]
+        solverData.polybius.set(setSlot, [char]);
+
+        // Now we need to process any of the deferred fixes
+        for (let slot of deferFixes) {
+            const vals = solverData.polybius.get(slot);
+            if (vals !== undefined && vals.length === 1) {
+                this.setPolybiusKnown(solverData, slot, vals[0]);
+            }
+        }
+    }
+
     /**
      * Find any know letter gaps and fill them in
      * @param target Place to output any motes
@@ -1091,7 +1126,6 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                 return;
             }
             if (numSubs === 1 && numSpaces > 0) {
-
                 if (usableLetters.length === 1) {
                     this.showStepText(target, `Because the only legal letter '${usableLetters[0]}' fits exactly in the single space between ${firstLetter} and ${endText} we can fill it in the gap.`)
                 } else {
@@ -1109,6 +1143,13 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                 const slot = solverData.rowPossible[0][row] + solverData.colPossible[0][col]
 
                 found++;
+                if (subs.length === 1) {
+                    // We need to remove this letter from every other place
+                    this.setPolybiusKnown(solverData, slot, subs[0])
+                    found++
+                } else {
+                    solverData.polybius.set(slot, subs);
+                }
                 solverData.polybius.set(slot, subs);
             }
 
@@ -1120,23 +1161,11 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         return found
     }
     /**
-    * Generate a quick list of all the known characters
-    * @param solverData Current solver data state (Updated)
-    */
-    public getKnownPolybius(solverData: CheckerboardSolverData): string {
-        let knownChars = ""
-
-        solverData.polybius.forEach((subs: string[]) => {
-            if (subs.length === 1) {
-                knownChars += subs[0]
-            }
-        })
-        return knownChars
-    }
-
-    /*
-        This method builds the Checkerboard sequenceset tables as well as the polybius square.
-    */
+     * This method builds the Checkerboard sequenceset tables as well as the polybius square.
+     * @param operationType encode/decode/crypt Type of operation being done
+     * @param sequencesets Sequencesets to display (if undefined, will use the current problem sequencesets)
+     * @returns DOM elements where output has been put
+     */
     public buildCheckerboard(operationType: IOperationType, sequencesets?: string[][][]): JQuery<HTMLElement> {
 
         const result = $('<div/>');
@@ -1196,7 +1225,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         }
 
         const polybiusDiv = $('<div/>', { class: 'cell shrink' })
-        this.showPolybiusTable(polybiusDiv, false, "abcdefghijklmnopqrstuvwxyz")
+        this.showPolybiusTable(polybiusDiv, false)
 
         result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
             .append($('<div/>', { class: 'cell shrink' }).append(table))
@@ -1204,158 +1233,14 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
 
         return result;
     }
-
-    /*
-        This method builds the HTML for Checkerboard sequenceset tables in the solver. 
-    */
-    public buildSolverCheckerboard(msg: string, unknownkeylength: string, state: string): JQuery<HTMLElement> {
-
-        //indices guide:
-        // 0 = ciphertext numbers
-        // 1 = plaintext
-        // 2 = mapped key numbers
-        // 3 = mapped plaintext numbers
-        // 4 = non-mapped key letters
-
-        // string = unknown key (used for cryptanalysis solver)
-        //ex. "3" would mean iterate a K1 K2 K3 keyword
-
-        const result = $('<div/>');
-
-        let order = [];
-        if (state === 'keystring') {
-            order = [[0, "solve"], [1, "ans"]];
-        } else if (state === 'keynumbers') {
-            order = [[0, "solve"], [1, "ans"]];
-        } else if (state === 'plaintextnumbers') {
-            order = [[0, "solve"], [1, "ans bar"]]
-        } else if (state === 'plaintext') {
-            order = [[0, "solve"], [1, "ans bar"]]
-        } else if (state === 'unknownkey') {
-            order = [[unknownkeylength, "ans"], [0, "solve"]];
-        } else if (state === 'k1example') {
-            order = [[unknownkeylength, "solve"], [0, "solve"]];
-        }
-
-        const sequencesets = this.sequencesets
-
-        const table = $('<table/>', { class: 'Checkerboard center' });
-
-        let validIndex = 1;
-        for (const sequenceset of sequencesets) {
-            for (let i = 0; i < order.length; i++) {
-                // console.log(validIndex)
-                let pair = order[i]
-                let localValidIndex = validIndex
-
-                //do some checking for if the first element of pair is string
-                let mod = 1;
-
-                if (state === "unknownkey" || state === "k1example") {
-                    mod = parseInt(order[0][0]);
-                }
-
-                let sequence
-                if (typeof pair[0] === 'string') {
-                    sequence = sequenceset[1];
-                } else {
-                    sequence = sequenceset[pair[0]]
-                }
-
-
-                const row = $('<tr/>', { class: pair[1] });
-                for (const char of sequence) {
-
-                    if (this.getCharset().indexOf(char) === -1 && char.length === 1) {
-                        row.append($('<td width="33px"/>').text(char));
-                    } else {
-
-                        if (typeof pair[0] === 'string') {
-                            if (state === 'k1example' && localValidIndex === 1) {
-                                row.append($('<td class="hl" width="33px"/>').text('K1'));
-                            } else {
-                                row.append($('<td width="33px"/>').text('K' + localValidIndex));
-                            }
-                        } else {
-                            if (state === 'k1example' && localValidIndex === 1) {
-                                let tens = char.substring(0, char.length - 1)
-                                let ones = char.substring(char.length - 1)
-                                row.append($('<td width="33px"/>').html(tens + '<span class="ones">' + ones + '</span>'));
-                            } else {
-                                row.append($('<td width="33px"/>').text(char));
-                            }
-                        }
-
-                        localValidIndex = (localValidIndex % mod) + 1
-                        // console.log(localValidIndex)
-
-                    }
-
-                    // //here, if mod is not 0, then we had a string as our first pair element. in this case, do the K1, K2, K3... iterate up to the mod number
-                    // if (typeof pair[0] === "string") {
-
-                    //     if (this.getCharset().indexOf(char) === -1) {
-                    //         row.append($('<td width="33px"/>').text(char));
-                    //     } else {
-                    //         if (state === 'k1example' && index === 1) {
-                    //             row.append($('<td class="hl" width="33px"/>').text('K' + index));
-
-                    //         } else {
-                    //             row.append($('<td width="33px"/>').text('K' + index));
-                    //         }
-
-                    //         index = (index) % mod + 1;
-                    //     }
-
-
-                    // } else {
-                    //     //otherwise, just append the normal sequence characters
-
-                    //     if (this.polybiusMap.has(char)) {
-                    //         row.append($('<td width="33px"/>').text(char));
-                    //     } else {
-                    //         if (state === 'k1example' && index === 1) {
-                    //             let tens = char.substring(0, char.length - 1)
-                    //             let ones = char.substring(char.length - 1)
-                    //             row.append($('<td width="33px"/>').html(tens + '<span class="ones">' + ones + '</span>'));
-                    //         } else {
-                    //             row.append($('<td width="33px"/>').text(char));
-                    //         }
-                    //         index = (index) % mod + 1
-                    //     }
-
-
-                    // }
-
-                }
-                if (i === order.length - 1) {
-                    // console.log(validIndex)
-                    // console.log(localValidIndex)
-                    validIndex = localValidIndex
-                }
-                table.append(row);
-            }
-            //add a blank row between each line of rows 
-            const blank = $('<tr/>').append($('<td/>').append($('<br>')));
-            table.append(blank)
-        }
-
-        result.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
-
-            .append($('<div/>', { class: 'cell shrink' })
-
-                .append(table)))
-
-        return result
-    }
     /**
      * Display the current state of the solution with the mapped characters found out so far
      * @param target DOM element to put the output into
      * @param solverData Current solver data state (Updated)
-     * @param showKeyword Show the keyword letters (default = true) or just K1, K2,... for the key position
+     * @param isfinal Show the differentiated I/J if this is the final solution
      * @returns General score of the problem
      */
-    public showCurrentSolution(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData): number {
+    public showCurrentSolution(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData, isfinal = false): number {
         const bigTable = new JTTable({ class: 'Checkerboard center' })
         const sequencesets = this.sequencesets
 
@@ -1394,6 +1279,10 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                                 }
                                 extra = '|'
                             })
+                            // Do we need to differentiate I and J?
+                            if (out === 'I|J' && isfinal) {
+                                out = plaintext[i].toUpperCase();
+                            }
                             ptCharRow.add(out)
                         } else {
                             ptCharRow.add(' ');
@@ -1412,145 +1301,12 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         }
 
         let pbTable = $('<div/>', { class: 'cell shrink' })
-        this.showPolybiusTable(pbTable, false, this.getKnownPolybius(solverData), solverData)
+        this.showPolybiusTable(pbTable, false, solverData)
         target.append($('<div/>', { class: 'grid-x grid-padding-x align-justify' })
             .append($('<div/>', { class: 'cell shrink' })
                 .append(bigTable.generate()))
             .append(pbTable))
         return score
-    }
-    /**
-     * Count the number of digits (tens or ones) in the sequence set
-     * @param keywordLength The number of letters in the keyword
-     * @param onesDigit look at the ones digit (true) vs the tens digit
-     * @returns Mapping of the digit usage
-     */
-    public buildCountArray(keywordLength: number, onesDigit: boolean): CheckerboardSolverMappings {
-
-        let keywordArray = [];
-
-        const sequencesets = this.sequencesets;
-
-        for (let i = 0; i < keywordLength; i++) {
-
-            let row = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-            let spacing = -i;
-
-            for (const sequenceset of sequencesets) {
-                const sequence = sequenceset[0];
-                for (let j = 0; j < sequence.length; j++) {
-
-                    if (!isNaN(parseInt(sequence[j])) && sequence[j].length > 1) {
-                        if (spacing === 0) {
-
-                            let targetDigit;
-
-                            if (onesDigit) {
-                                targetDigit = parseInt(sequence[j]) % 10
-                            } else {
-                                targetDigit = Math.floor(parseInt(sequence[j]) / 10) % 10
-                            }
-
-                            row[targetDigit] = 1;
-                        }
-
-                        spacing++;
-                        if (spacing == keywordLength) {
-                            spacing = 0;
-                        }
-                    }
-                }
-            }
-
-            keywordArray.push(row);
-
-        }
-        return keywordArray;
-    }
-
-    /**
-     * Show the digit counts in the table
-     * @param target DOM element to output table
-     * @param countArray The count array to use
-     * @param isK1Example 
-     */
-    public showCountTable(target: JQuery<HTMLElement>, countArray: CheckerboardSolverMappings, tableType: TableType): void {
-
-        const table = new JTTable({
-            class: 'polybius-square center',
-        });
-
-        const header = table.addHeaderRow()
-
-        header.add('')
-        const limit = tableType === 'example' ? 1 : countArray.length
-
-        for (let i = 1; i <= 10; i++) {
-            let index = i % 10
-            if (tableType === 'example' && countArray[0][index] === 1) {
-                header.add({
-                    content: '<span class="ones">' + index + '</span>'
-                })
-            } else {
-                header.add(index + '')
-            }
-        }
-
-        for (let j = 0; j < limit; j++) {
-
-            let letterRow = countArray[j];
-            let smallest = letterRow.length;
-            let largest = 1;
-
-            for (let i = 1; i <= letterRow.length + 1; i++) {
-                let index = i % letterRow.length
-
-                if (letterRow[index] === 1) {
-                    if (i < smallest) {
-                        smallest = i;
-                    }
-                    if (i > largest) {
-                        largest = i;
-                    }
-                }
-            }
-
-            let row
-            const range = largest - smallest
-            let rangelimit = 5
-            if (tableType === 'example') {
-                rangelimit = 999
-            } else if (tableType === 'tens') {
-                rangelimit = 6
-            }
-            if (range >= rangelimit) {
-                row = table.addBodyRow({ class: 'wrong' })
-            } else {
-                row = table.addBodyRow()
-            }
-
-
-            row.add({
-                celltype: 'th',
-                content: 'K' + (j + 1)
-            })
-
-            for (let i = 1; i < letterRow.length; i++) {
-
-                if (letterRow[i] === 1) {
-                    row.add('X');
-                } else {
-                    row.add('');
-                }
-            }
-
-            if (letterRow[0] === 1) {
-                row.add('X');
-            } else {
-                row.add('');
-            }
-        }
-        target.append(table.generate());
     }
     /**
      * Add an entry to an array in a map
@@ -2077,7 +1833,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             solverData.colKeyword = colPossible[0]
         }
         // Give them what the starting table looks like
-        this.showPolybiusTable(result, true, cleanPolybiusKey, solverData)
+        this.showPolybiusTable(result, true, solverData)
 
         if (await this.restartCheck()) { return }
 
@@ -2086,7 +1842,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         // result.append("The remaining spaces are filled in alphabetical order, again skipping any letters that have already been used in the table.")
 
         // Show them the completely filled in table
-        this.showPolybiusTable(result, true, "abcdefghijklmnopqrstuvwxyz", solverData)
+        this.showPolybiusTable(result, true, solverData)
 
         if (await this.restartCheck()) { return }
 
@@ -2227,15 +1983,13 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
      * @param target DOM Element to output solution into
      */
     public async genCryptanalysisSolution(target: JQuery<HTMLElement>) {
-
-        //determine keyword length
         let firstTime = true
-        const kwLength = this.cleanRowKeyword.length
+        this.state.autoSolverScore = undefined
 
         const result = $('<div/>', { id: 'solution' });
         target.append(result);
 
-        let solverData = await this.genCryptanalysisStep1(result, kwLength)
+        let solverData = await this.genCryptanalysisStep1(result)
         if (await this.restartCheck()) { return }
 
         this.attachHandlers();
@@ -2244,13 +1998,16 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         if (await this.restartCheck()) { return }
 
         let found = true
-        let solved = false
-        while (found) {
+        let unsolvedCount = 0
+        let maxiterations = 25
+        let iterations = 0
+        while ((iterations++ < maxiterations) && found) {
             // Try steps 3 and 4 a few times to see if we can make any progress
             found = await this.genCryptanalysisStep3a(result, solverData, firstTime)
             if (await this.restartCheck()) { return }
 
-            if (solved = await this.isSolved(solverData)) {
+            unsolvedCount = await this.unsolvedCount(solverData)
+            if (unsolvedCount === 0) {
                 break;
             }
 
@@ -2259,18 +2016,32 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             }
             if (await this.restartCheck()) { return }
 
-            if (solved = await this.isSolved(solverData)) {
+            unsolvedCount = await this.unsolvedCount(solverData)
+            if (unsolvedCount === 0) {
                 break;
             }
             firstTime = false;
         }
-        if (solved) {
-            this.showStep(result, "Final Step: We have fully decoded the Checkerboard Cipher");
+
+        this.state.autoSolverScore = (iterations / maxiterations) + (0.25 * unsolvedCount)
+        if (unsolvedCount === 0) {
+            this.showStep(result, `Final Step: We have fully decoded the Checkerboard Cipher.  Remember that we have to pick between I/J in the final answer.`);
         } else {
-            this.showStep(result, "Final Step: We are unable to make any more progress");
-            this.showStepText(result, "At this point we are unable to make any more progress.  You can try to continue guessing keywords or fill in more letters in the Polybius square and see if that helps.")
+            this.showStep(result, `Final Step: We are unable to make any more progress`);
+            this.setErrorMsg(`Auto-Solver is unable to completely solve the Checkerboard Cipher.  Consider a different Crib.`, 'si');
+            this.showStepText(result, `At this point we are unable to make any more progress.` +
+                `  You can try to continue guessing keywords or fill in more letters in the Polybius square and see if that helps.` +
+                ` Remember that we have to pick between I/J in the final answer.`);
         }
+        // Show them the final solution (differentiating between I/J)
+        this.showCurrentSolution(target, solverData, true);
     }
+    /**
+     * Eliminate impossible keywords based on the crib and cipher text
+     * @param target DOM element to output notes to
+     * @param solverData Solving state date
+     * @returns Boolean indicating that we are able to continue solving
+     */
     public async eliminateKeywords(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData): Promise<boolean> {
         const saveRowPossible = solverData.rowPossible.slice()
         const saveColPossible = solverData.colPossible.slice()
@@ -2285,7 +2056,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                 solverData.rowPossible = [rowChoice]
                 solverData.colPossible = [colChoice]
                 this.fillCribMatches(solverData);
-                this.showPolybiusTable(target, true, this.getKnownPolybius(solverData), solverData)
+                this.showPolybiusTable(target, true, solverData)
                 if (this.checkKeyword(target, solverData)) {
                     if (!foundRow.includes(rowChoice)) {
                         foundRow.push(rowChoice)
@@ -2313,24 +2084,35 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         return true;
     }
     /**
-     * 
+     * Determine if we have solved the checkerboard cipher
      * @param solverData Current solver data state
      * @returns True if we have solved the polybius square
      */
-    public async isSolved(solverData: CheckerboardSolverData): Promise<boolean> {
+    public async unsolvedCount(solverData: CheckerboardSolverData): Promise<number> {
+        let unsolved = 0;
+        let unsolvedList: BoolMap = {};
+
         // See if we have solved the polybius square
         for (let ct of solverData.sequenceSets[0][0]) {
             if (ct.length == 2) {
                 const ptcopts = solverData.polybius.get(ct)
                 if (ptcopts === undefined || ptcopts.length !== 1) {
-                    return false;
+                    if (!unsolvedList[ct]) {
+                        unsolved++;
+                        unsolvedList[ct] = true;
+                    }
                 }
             }
         }
-        return true;
+        return unsolved;
     }
+    /**
+     * Find words that are almost solved and use them to fill in more of the polybius square
+     * @param target DOM element to output notes to
+     * @param solverData Solving state date
+     * @returns Boolean indicating that we made progress
+     */
     public async findSolvableWords(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData): Promise<boolean> {
-
         const cipherText = solverData.sequenceSets[0][0]
         const plainText = solverData.sequenceSets[0][1]
         let words: wordInfo[] = []
@@ -2411,18 +2193,20 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                 wordchars += plainText[highword.startpos + i]
             }
             this.showStepText(target, `Looking at the discovered plain text with one missing letter ${highword.plainTextMissing} from the word '${wordchars}' which tells us that ${highword.cipherTextMissing} must map to ${highword.plainTextMissing}.`)
-            solverData.polybius.set(highword.cipherTextMissing, [highword.plainTextMissing]);
+            // solverData.polybius.set(highword.cipherTextMissing, [highword.plainTextMissing]);
+            this.setPolybiusKnown(solverData, highword.cipherTextMissing, highword.plainTextMissing);
+
             return true;
         }
 
         return false;
     }
     /**
-     * Cryptanalysis Step 1: Determine the Keyword Length
+     * Cryptanalysis Step 1: Possible row and column keywords and decide on one
      * @param target DOM element to put output into
-     * @param kwLength Length of the known keyword
+     * @returns Solver data state
      */
-    public async genCryptanalysisStep1(target: JQuery<HTMLElement>, kwLength: number) {
+    public async genCryptanalysisStep1(target: JQuery<HTMLElement>): Promise<CheckerboardSolverData> {
         const result = $('<div/>', { id: 'solution' });
         target.append(result);
 
@@ -2444,14 +2228,14 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         }
 
         if (failed) {
-            return;
+            return solverData;
         }
 
         // For now we only handle the case where we have a single option for each keyword
         if (rowPossible.length > 1 || colPossible.length > 1) {
             if (!await this.eliminateKeywords(target, solverData)) {
                 this.setErrorMsg('Auto-Solver is unable to determine the Row and Column keywords given the Cipher letters.  Consider different keywords.', 'si',);
-                return;
+                return solverData;
             }
         }
         solverData.rowKeyword = rowPossible[0]
@@ -2459,14 +2243,15 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
 
         this.showStepText(target, "Now we can set up our Polybius table with the Row and Column keywords in place")
 
-        this.showPolybiusTable(target, true, this.getKnownPolybius(solverData), solverData)
+        this.showPolybiusTable(target, true, solverData)
 
         return solverData
     }
     /**
      * Cryptanalysys Step 2: Find the keyword letter mappings
      * @param target DOM element to put output into
-     * @param kwLength Length of the known keyword
+     * @param solverData Solving state date
+     * @returns Boolean indicating that we made progress
      */
     public genCryptanalysisStep2(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData) {
         this.showStep(target, "Step 2: Utilize crib to fill in polybius square");
@@ -2476,13 +2261,14 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         this.showCurrentSolution(target, solverData);
     }
     /**
-     * Cryptanalysys Step 3:
+     * Cryptanalysys Step 3a: Fill in the possibilities in the remaining spots
      * @param target DOM element to put output into
-     * @param kwLength Length of the known keyword
+     * @param solverData Solving state date
+     * @returns Boolean indicating that we made progress
      */
     public async genCryptanalysisStep3a(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData, firstTime: boolean): Promise<boolean> {
         let result = $('<div/>')
-        this.showStep(result, "Step 3a: Fill in the possibilities in the remaining spots");
+        this.showStep(result, "Step 3a: Fill in the possibilities in the remaining spots of the polybius table");
         const filled = this.fillLetterGaps(result, solverData);
         if (filled) {
             target.append(result);
@@ -2491,49 +2277,23 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             }
             this.showCurrentSolution(target, solverData);
         }
-        return !!filled
+        return filled !== 0
     }
     /**
-     * Cryptanalysys Step 4: Work back from the keyword
+     * Cryptanalysys Step 3b: Look for any obvious words missing letters
      * @param target DOM element to put output into
-     * @param kwLength Length of the known keyword
+     * @param solverData Solving state date
+     * @returns Boolean indicating that we made progress
      */
-    public async genCryptanalysisStep3b(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData, firstTime: boolean): Promise<boolean> {
+    public async genCryptanalysisStep3b(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData, _firstTime: boolean): Promise<boolean> {
         this.showStep(target, "Step 3b: Look for any obvious words missing letters");
 
-        if (await this.findSolvableWords(target, solverData)) {
+        const progress = await this.findSolvableWords(target, solverData)
+        if (progress) {
             this.showCurrentSolution(target, solverData)
-            return true;
         }
-        return false
+        return progress
     }
-    /**
-     * 
-     * @param result 
-     * @param text 
-     */
-    private showSolvingNote(result: JQuery<HTMLElement>, text: string, noteClass: calloutTypes = 'primary') {
-        result.append($('<div/>', { class: `callout ${noteClass} small` }).append(text)
-        );
-    }
-
-    /**
-     * Show the current step as a callout
-     * @param target Place to output the step
-     * @param text Text of the step number
-     */
-    public showStep(target: JQuery<HTMLElement>, text: string): void {
-        target.append(makeCallout(text, 'secondary'))
-    }
-    /**
-     * Show the current step as a callout
-     * @param target Place to output the note
-     * @param text Text of the step number
-     */
-    public showStepText(target: JQuery<HTMLElement>, text: string): void {
-        target.append($('<p/>').append(text))
-    }
-
     /**
      * Generate the HTML to display the question for a cipher
      * @param testType Type of test

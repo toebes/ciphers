@@ -1099,13 +1099,10 @@ table.polybius-square th,
 table.polybius-square td {
     border: 1px solid black;
     text-align: center;
-    width: auto;
-    min-width: 0;
-    max-width: 0;
-    flex: 1;
+    height: 2rem;
 }
 
-table.polybius-square tr:first-child th:first-child {
+table.polybius-square thead th:first-child {
     border-top: none;
     border-left: none;
 }

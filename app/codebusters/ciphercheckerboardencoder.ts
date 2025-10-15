@@ -590,6 +590,9 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     public setBlocksize(blocksize: number): boolean {
         let changed = false;
         if (this.state.blocksize !== blocksize) {
+            if (blocksize < 0) {
+                blocksize = 0;
+            }
             this.state.blocksize = blocksize;
             changed = true;
         }
@@ -2664,11 +2667,8 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             .off('input')
             .on('input', (e) => {
                 const blocksize = Number($(e.target).val());
-                if (blocksize < 0) {
-                    $('#blocksize').val("0");
-                }
-                if (blocksize !== this.state.blocksize && blocksize > 0) {
-                    this.markUndo(null);
+                if (blocksize !== this.state.blocksize) {
+                    this.markUndo('bs');
                     if (this.setBlocksize(blocksize)) {
                         this.updateOutput();
                     }

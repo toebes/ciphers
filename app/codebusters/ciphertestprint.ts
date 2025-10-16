@@ -326,57 +326,8 @@ export class CipherTestPrint extends CipherTest {
                 );
             }
         }
-        /**
-         * See if we need to show/hide the Spanish Hints
-         */
-        if (SpanishCount > 0) {
-            if (SpanishCount > 1) {
-                if (test.testtype !== ITestType.bstate && test.testtype !== ITestType.cstate &&
-                    test.testtype !== ITestType.None) {
-                    errors.push(
-                        'Only one Spanish Xenocrypt allowed for ' +
-                        this.getTestTypeName(test.testtype) +
-                        '.'
-                    );
-                }
-            } else if (test.testtype === ITestType.cstate) {
-                errors.push(
-                    this.getTestTypeName(test.testtype) +
-                    ' is supposed to have at least two Spanish Xenocrypts.'
-                );
-            }
-            $('.xenocryptfreq').show();
-        } else {
-            if (test.testtype === ITestType.bstate || test.testtype === ITestType.cstate) {
-                errors.push(
-                    this.getTestTypeName(test.testtype) +
-                    ' is supposed to have at least one Spanish Xenocrypt.'
-                );
-            }
-            $('.xenocryptfreq').hide();
-        }
-        if (SpecialBonusCount > 3) {
-            errors.push('No more than three special bonus questions allowed on ' + this.getTestTypeName(test.testtype))
-        }
-        if (errors.length === 1) {
-            $('.testerrors').append(
-                $('<div/>', {
-                    class: 'callout alert',
-                }).text(errors[0])
-            );
-        } else if (errors.length > 1) {
-            const ul = $('<ul/>');
-            for (const msg of errors) {
-                ul.append($('<li/>').text(msg));
-            }
-            $('.testerrors').append(
-                $('<div/>', {
-                    class: 'callout alert',
-                })
-                    .text('The following errors were found:')
-                    .append(ul)
-            );
-        }
+        this.checkTestLimits(errors, test, SpanishCount, SpecialBonusCount);
+
         /**
          * See if we need to show/hide the Morse Code Table
          */

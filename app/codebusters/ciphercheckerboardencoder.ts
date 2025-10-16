@@ -400,18 +400,18 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             operationText = ' This problem requires cryptanalysis so we add 200 points. ';
             suggested += 200;
             if (this.state.autoSolverScore === undefined) {
-                operationText += ' But the Autosolver was not able to run on it yet. '
+                operationText += ' But the Auto-Solver was not able to run on it yet. '
             } else if (this.state.autoSolverScore === AUTOSOLVER_NOKEYWORD) {
-                operationText += ' But the Autosolver was not able to determine the keyword, so we add 300 points.'
+                operationText += ' But the Auto-Solver was not able to determine the keyword, so we add 300 points.'
                 suggested += 300
             } else if (this.state.autoSolverScore === AUTOSOLVER_NOKEYPOS) {
-                operationText += ' But the Autosolver was not able to determine the keyword positions, so we add 250 points.'
+                operationText += ' But the Auto-Solver was not able to determine the keyword positions, so we add 250 points.'
                 suggested += 250
             } else if (this.state.autoSolverScore > 2.5 ||
                 (this.state.blocksize !== 0 && this.state.autoSolverScore > 1.25)
             ) {
                 const add = Math.round((this.state.autoSolverScore - 1.25) * 100)
-                operationText += ` The Autosolver was not able to find enough words to make it solvable, so we add ${add} points [autosolverScore=${this.state.autoSolverScore}].`
+                operationText += ` The Auto-Solver was not able to find enough words to make it solvable, so we add ${add} points [autosolverScore=${this.state.autoSolverScore}].`
                 suggested += add
             }
         }
@@ -1998,6 +1998,12 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
 
         this.attachHandlers();
 
+        if (solverData === undefined) {
+            // We had a problem in step 1 so just return
+            this.showStepText(result, `The Auto-Solver is unable to handle these keywords.`);
+            return;
+        }
+
         await this.genCryptanalysisStep2(result, solverData)
         if (await this.restartCheck()) { return }
 
@@ -2232,18 +2238,31 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         }
 
         if (failed) {
-            return solverData;
+            return undefined;
         }
 
         // For now we only handle the case where we have a single option for each keyword
         if (rowPossible.length > 1 || colPossible.length > 1) {
             if (!await this.eliminateKeywords(target, solverData)) {
+                this.showStepText(target, "Auto-Solver is unable to determine the Row and Column keywords given the Cipher letters.")
                 this.setErrorMsg('Auto-Solver is unable to determine the Row and Column keywords given the Cipher letters.  Consider different keywords.', 'si',);
-                return solverData;
+                return undefined;
             }
         }
         solverData.rowKeyword = rowPossible[0]
         solverData.colKeyword = colPossible[0]
+
+        // Check for dupliate letters in the keywords
+        if (this.undupeString(solverData.rowKeyword).length < 5) {
+            this.showStepText(target, `Auto-Solver has detected that the Row keyword ${solverData.rowKeyword} has duplicate letters.`);
+            this.setErrorMsg(`Auto-Solver has detected that the Row keyword ${solverData.rowKeyword} has duplicate letters and is unable to generate an automatice solution.  Consider a different keyword.`, 'si',);
+            return undefined;
+        }
+        if (this.undupeString(solverData.colKeyword).length < 5) {
+            this.showStepText(target, `Auto-Solver has detected that the Column keyword ${solverData.colKeyword} has duplicate letters.`);
+            this.setErrorMsg(`Auto-Solver has detected that the Column keyword ${solverData.colKeyword} has duplicate letters and is unable to generate an automatice solution.  Consider a different keyword.`, 'si',);
+            return undefined;
+        }
 
         this.showStepText(target, "Now we can set up our Polybius table with the Row and Column keywords in place")
 

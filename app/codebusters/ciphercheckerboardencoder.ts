@@ -893,12 +893,13 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                         this.showStepText(target, `With the keywords ${solverData.rowPossible[0]} and ${solverData.colPossible[0]} we see ${c} at position ${i} which means that the keyword would be ${i + 1} letters long, which is unlikely, so we can eliminate it from consideration.`);
                         return false;
                     }
-                } else {
                     // We are still in order, but let's see how far we are. Special check to start with.. If we skipped 4 out of VWXYZ then we are pretty sure we don't have it.
-                    if (curLetPos === polybiusCharset.length && ((curLetPos - cpos) > 4)) {
-                        this.showStepText(target, `With the keywords ${solverData.rowPossible[0]} and ${solverData.colPossible[0]} we see ${c} at position ${i} which means that the keyword must have more letters of VWXYZ which is unlikely, so we can eliminate it from consideration.`);
-                        return false;
-                    }
+                } else if (curLetPos === polybiusCharset.length && ((curLetPos - cpos) > 4)) {
+                    this.showStepText(target, `With the keywords ${solverData.rowPossible[0]} and ${solverData.colPossible[0]} we see ${c} at position ${i} which means that the keyword must have more letters of VWXYZ which is unlikely, so we can eliminate it from consideration.`);
+                    return false;
+                } else if (i >= 20 && cpos < 14) {
+                    this.showStepText(target, `With the keywords ${solverData.rowPossible[0]} and ${solverData.colPossible[0]} we see ${c} at position ${i} which means that the keyword would be at least 15 letters long and would have to include most of the letters from the end of the alphabet, which is very unlikely, so we can eliminate it from consideration.`);
+                    return false;
                 }
                 // We need to skip all the letters
                 curLetPos = cpos

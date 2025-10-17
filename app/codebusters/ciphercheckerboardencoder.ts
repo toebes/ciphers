@@ -7,6 +7,7 @@ import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
 import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
+import { deleteRowAndColumn } from '../common/mathsupport';
 import { CipherEncoder, IEncoderState, suggestedData } from './cipherencoder';
 
 interface ICheckerboardState extends IEncoderState {
@@ -1009,6 +1010,9 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                         }
                     }
                 }
+                if (replacements.includes('I') && !replacements.includes('J')) {
+                    replacements.push('J')
+                }
                 // Figure out if this is a potential Keyword placement
                 let mapC = " "
                 let extra = ''
@@ -1032,6 +1036,9 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
      * @param char Character
      */
     public setPolybiusKnown(solverData: CheckerboardSolverData, setSlot: string, char: string) {
+        if (char === 'J') {
+            char = 'I';
+        }
         const deferFixes: string[] = [];
         solverData.polybius.forEach((vals, slot) => {
             if (slot !== setSlot && vals?.includes(char)) {
@@ -1103,8 +1110,8 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             if (firstLetter === undefined) {
                 break;
             }
-            const firstIndex = polybiusCharset.indexOf(firstLetter)
-            const lastIndex = polybiusCharset.indexOf(lastLetter)
+            const firstIndex = polybiusCharset.indexOf(firstLetter.replace('J', 'I'))
+            const lastIndex = polybiusCharset.indexOf(lastLetter.replace('J', 'I'))
 
             if (firstIndex > lastIndex) {
                 break;
@@ -1127,7 +1134,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             if (index < this.cleanPolyKey.length) {
                 this.showStepText(target, `We see the ${numSpaces} spaces between the ${firstLetter} and ${endText}, but given how close it is to the start of the
                 Polybius Keyword, we can't be certain whether it is alphabet or keyword, so we can't fill it in until we are sure`)
-                return;
+                return 0;
             }
             if (numSubs === 1 && numSpaces > 0) {
                 if (usableLetters.length === 1) {
@@ -1146,15 +1153,18 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                 const row = Math.floor((index + 1 + i) / 5);
                 const slot = solverData.rowPossible[0][row] + solverData.colPossible[0][col]
 
-                found++;
                 if (subs.length === 1) {
                     // We need to remove this letter from every other place
                     this.setPolybiusKnown(solverData, slot, subs[0])
                     found++
                 } else {
+                    const oldsubs = solverData.polybius.get(slot) ?? [];
+                    const delta = subs.filter(x => oldsubs.includes(x));
                     solverData.polybius.set(slot, subs);
+                    if (delta.length < oldsubs.length) {
+                        found++
+                    }
                 }
-                solverData.polybius.set(slot, subs);
             }
 
             //at the end, we want to set the new initial letter to be this current last letter for next iteration
@@ -1366,7 +1376,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         solverData.polybius.clear()
 
         for (let i = 0; i < cribpos.criblen; i++) {
-            const ptC = cribpos.plaintext.charAt(i)
+            const ptC = cribpos.plaintext.charAt(i).replace('J', 'I')
             const ctC = cribpos.ciphertext[i]
             solverData.polybius.set(ctC, [ptC])
         }
@@ -2151,6 +2161,8 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                     } else {
                         // We have more than one missing letter, so this is not a candidate
                         currentWord.candiate = false;
+                        currentWord.plainTextMissing = "?";
+                        currentWord.cipherTextMissing = "?";
                     }
                 }
             } else {
@@ -2207,6 +2219,78 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             this.setPolybiusKnown(solverData, highword.cipherTextMissing, highword.plainTextMissing);
 
             return true;
+        }
+        // The first level didn't find a high word, lets go through and see if we can find a word with multiple options for one or more letters and a single letter missing.
+        // Build a pattern of all the letters that aren't positively known
+        let unknownpattern = '';
+        solverData.polybius.forEach((vals, _) => { if (vals?.length === 1) { unknownpattern += vals[0] } })
+        if (unknownpattern.includes('I')) { unknownpattern += 'J' }
+        unknownpattern = '[^' + unknownpattern + ']'
+        for (let w of words) {
+            if (!w.complete) {
+                let unknownCount = 0;
+                let partialCount = 0;
+                let foundChar: BoolMap = {};
+                let matchPattern = '';
+                let searchPattern = '';
+                let displayPattern = '';
+                let displayfix = '';
+                let extra = '';
+                for (let i = w.startpos; i < w.startpos + w.length; i++) {
+                    const ctc = cipherText[i]
+                    searchPattern += plainText[i];
+                    const ptcopts = solverData.polybius.get(ctc)
+                    if (!foundChar[ctc]) {
+                        foundChar[ctc] = true;
+                        if (ptcopts === undefined) {
+                            unknownCount++;
+                            displayfix += `${extra} ${ctc} maps to ${plainText[i]}`
+                            extra = ' and ';
+                        } else if (ptcopts.length > 1) {
+                            partialCount++;
+                            displayfix += `${extra} ${ctc} maps to ${plainText[i]}`
+                            extra = ' and ';
+                        }
+                    }
+                    if (ptcopts === undefined) {
+                        matchPattern += unknownpattern;
+                        displayPattern += ' ?';
+                    } else if (ptcopts.length === 1) {
+                        matchPattern += ptcopts[0];
+                        displayPattern += ' ' + ptcopts[0];
+                    } else {
+                        matchPattern += '(' + ptcopts.join('|') + ')';
+                        displayPattern += ' ' + ptcopts.join('|');
+                    }
+                }
+                // We will look up the words if there is zero or 1 unknowns and no more than 2 partials
+                if (unknownCount <= 1 && partialCount <= 3) {
+                    let matchedword = undefined;
+                    const pat = this.makeUniquePattern(searchPattern, 1)
+                    let patlist = this.Frequent[this.state.curlang][pat]
+                    if (patlist !== undefined) {
+                        let regex = new RegExp('^' + matchPattern + '$')
+                        for (const entry of patlist) {
+                            if (regex.test(entry[0])) {
+                                if (matchedword !== undefined) {
+                                    console.log(`Multiple matches for pattern ${matchPattern}: ${matchedword} and ${entry[0]}`);
+                                    matchedword = undefined;
+                                    break;
+                                }
+                                matchedword = entry[0];
+                            }
+                        }
+                    }
+                    if (matchedword !== undefined) {
+                        // We have exactly one match so we can fill it in
+                        this.showStepText(target, `Looking at the discovered plain text we see the sequence '${displayPattern}' which matches one word '${matchedword}' telling us that ${displayfix}.`)
+                        for (let i = w.startpos; i < w.startpos + w.length; i++) {
+                            this.setPolybiusKnown(solverData, cipherText[i], plainText[i]);
+                        }
+                        return true;
+                    }
+                }
+            }
         }
 
         return false;
@@ -2309,10 +2393,12 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
      * @returns Boolean indicating that we made progress
      */
     public async genCryptanalysisStep3b(target: JQuery<HTMLElement>, solverData: CheckerboardSolverData, _firstTime: boolean): Promise<boolean> {
-        this.showStep(target, "Step 3b: Look for any obvious words missing letters");
+        let result = $('<div/>')
+        this.showStep(result, "Step 3b: Look for any obvious words missing letters");
 
-        const progress = await this.findSolvableWords(target, solverData)
+        const progress = await this.findSolvableWords(result, solverData)
         if (progress) {
+            target.append(result);
             this.showCurrentSolution(target, solverData)
         }
         return progress

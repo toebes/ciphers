@@ -1552,6 +1552,33 @@ export class CipherBaconianEncoder extends CipherEncoder {
     }
 
     /**
+     * Creates an HTML table to display the replacement of characters for printing
+     * on the test
+     * @param extraclass Extra class to add to the generated table
+     */
+    public genReplacementTable(
+        extraclass: string
+    ): JQuery<HTMLElement> {
+        const table = new JTTable({
+            class: 'prfreq shrink cell unstriped' + extraclass,
+        });
+        const headrow = table.addHeaderRow();
+        const replrow = table.addBodyRow();
+
+        headrow.add({
+            settings: { class: 'topleft' },
+        });
+        replrow.add({ celltype: 'th', content: 'Replacement' });
+
+        for (const key of Object.keys(baconMap)) {
+            const repl = '', replClass = '';
+            headrow.add(key);
+            replrow.add({ celltype: 'td', settings: { class: replClass }, content: repl });
+        }
+        return table.generate();
+    }
+
+    /**
      * Generate the HTML to display the question for a cipher
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
@@ -1565,6 +1592,7 @@ export class CipherBaconianEncoder extends CipherEncoder {
                     }).text(line.ciphertext.join(''))
                 );
             }
+            result.append(this.genReplacementTable(''));
         } else {
             const table = new JTTable({ class: 'bacon ansblock notiny shrink cell unstriped' + this.getFontClass() });
             for (const line of encoded.lines) {

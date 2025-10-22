@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Test</title>
+    <!-- <link rel="stylesheet" id="css" href="example.css" type="text/css" media="all"> -->
+    <style>
+        html {
+            -webkit-text-size-adjust: 100%;
+            line-height: 1.15;
+        }
+
+        b,
+        strong {
+            font-weight: bolder;
+        }
+
+        img {
+            border-style: none;
+        }
+
+        html {
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            font-size: 100%;
+        }
+
+        *,
+        :after,
+        :before {
+            -webkit-box-sizing: inherit;
+            box-sizing: inherit;
+        }
+
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: #fefefe;
+            color: #0a0a0a;
+            font-family: Helvetica Neue, Helvetica, Roboto, Arial, sans-serif;
+            font-weight: 400;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+        }
+
+        img {
+            -ms-interpolation-mode: bicubic;
+            display: inline-block;
+            height: auto;
+            max-width: 100%;
+            vertical-align: middle;
+        }
+
+        div,
+        h3,
+        p,
+        td,
+        th {
+            margin: 0;
+            padding: 0;
+        }
+
+        p {
+            font-size: inherit;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            text-rendering: optimizeLegibility;
+        }
+
+        b,
+        strong {
+            line-height: inherit;
+        }
+
+        b,
+        strong {
+            font-weight: 700;
+        }
+
+        h3 {
+            color: inherit;
+            font-family: Helvetica Neue, Helvetica, Roboto, Arial, sans-serif;
+            font-style: normal;
+            font-weight: 400;
+            text-rendering: optimizeLegibility;
+        }
+
+        h3 {
+            font-size: 1.1875rem;
+        }
+
+        h3 {
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        .mono {
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        @media print {
+            * {
+                background: transparent !important;
+                -webkit-box-shadow: none !important;
+                box-shadow: none !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: economy;
+                print-color-adjust: economy;
+                text-shadow: none !important;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            img,
+            tr {
+                page-break-inside: avoid;
+            }
+
+            img {
+                max-width: 100% !important;
+            }
+
+            @page {
+                margin: 0.5cm;
+            }
+
+            h3,
+            p {
+                orphans: 3;
+                widows: 3;
+            }
+
+            h3 {
+                page-break-after: avoid;
+            }
+        }
+
+        .grid-x {
+            -webkit-box-orient: horizontal;
+            -webkit-box-direction: normal;
+            display: -webkit-box;
+            display: -webkit-flex;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-flex-flow: row wrap;
+            -ms-flex-flow: row wrap;
+            flex-flow: row wrap;
+        }
+
+        .cell {
+            -webkit-box-flex: 0;
+            -webkit-flex: 0 0 auto;
+            -ms-flex: 0 0 auto;
+            flex: 0 0 auto;
+            min-height: 0;
+            min-width: 0;
+            width: 100%;
+        }
+
+        .cell.shrink {
+            -webkit-box-flex: 0;
+            -webkit-flex: 0 0 auto;
+            -ms-flex: 0 0 auto;
+            flex: 0 0 auto;
+        }
+
+        .grid-x>.shrink {
+            width: auto;
+        }
+
+        table {
+            border-collapse: collapse;
+            border-radius: 0;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+
+        tbody,
+        tfoot,
+        thead {
+            background-color: #fefefe;
+            border: 1px solid #f1f1f1;
+        }
+
+        thead {
+            background: #f8f8f8;
+        }
+
+        tfoot,
+        thead {
+            color: #0a0a0a;
+        }
+
+        tfoot {
+            background: #f1f1f1;
+        }
+
+        tfoot tr,
+        thead tr {
+            background: transparent;
+        }
+
+        tfoot td,
+        thead th {
+            font-weight: 700;
+            padding: 0.5rem 0.625rem 0.625rem;
+            text-align: left;
+        }
+
+        tbody td,
+        tbody th {
+            padding: 0.5rem 0.625rem 0.625rem;
+        }
+
+        tbody tr:nth-child(2n) {
+            background-color: #f1f1f1;
+            border-bottom: 0;
+        }
+
+        table.unstriped tbody {
+            background-color: #fefefe;
+        }
+
+        table.unstriped tbody tr {
+            background-color: #fefefe;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        :target {
+            background-color: #ffc !important;
+        }
+
+        tbody td,
+        tbody th {
+            padding: 0.5rem;
+        }
+
+        .question table,
+        .question table.unstriped tbody tr,
+        .question tbody,
+        .question tbody tr {
+            border: transparent;
+        }
+
+        .question {
+            clear: both;
+        }
+
+        .prfreq td,
+        .prfreq th {
+            border: 1px solid #000;
+            margin: 0;
+            padding: 0.1rem 0.15rem;
+        }
+
+        .prfreq th {
+            background-color: #d3d3d3;
+            text-align: center;
+        }
+
+        .prfreq th {
+            width: 2rem;
+        }
+
+        .prfreq thead .topleft {
+            background-color: #fff;
+            border-left: none;
+            border-top: none;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .TOSOLVEQ {
+            font-family: Courier New, Courier, monospace;
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 100%;
+            margin-bottom: 0;
+            white-space: pre-wrap;
+        }
+
+        .TOSOLVEQ {
+            margin-bottom: 6rem;
+        }
+
+        .qtext {
+            border-top: 1px solid grey;
+            margin-bottom: 20px;
+        }
+
+        .qtext .points {
+            font-weight: 700;
+        }
+
+        .qtext .qnum {
+            padding-left: 10px;
+        }
+
+        .qtext .qbody p:first-of-type {
+            display: inline;
+        }
+
+        .ansblock,
+        .prfreq {
+            border-collapse: collapse;
+            font-family: Courier New, Courier, monospace;
+            width: auto;
+        }
+
+        .ansblock td,
+        .prfreq td {
+            text-align: center;
+        }
+
+        .ansblock td.o.v {
+            border: none;
+            height: 2rem;
+        }
+
+        .ansblock .v {
+            border: 1px solid #000;
+        }
+
+        .ansblock td.e {
+            height: 3rem;
+        }
+
+        table.testscores {
+            border: 1px solid #000;
+            width: 110rem;
+        }
+
+        table.testscores td,
+        table.testscores th {
+            border: 1px solid #000;
+            width: 11rem;
+        }
+
+        table.testscores th {
+            padding: 0 0.5rem;
+            text-align: center;
+        }
+
+        table.testscores td.v {
+            padding: 0 4rem 0 0.5rem;
+            text-align: right;
+        }
+
+        table.testscores td.t {
+            padding: 0 0.5rem 0 4rem;
+            text-align: left;
+        }
+
+        table.testscores td.specialindicator {
+            text-align: right;
+        }
+
+        table.testscores td.grey {
+            background-color: grey;
+        }
+
+        table.nameline {
+            padding: 0;
+            width: 50rem;
+        }
+
+        table.nameline td {
+            white-space: nowrap;
+        }
+
+        table.nameline td.u {
+            border-bottom: 1px solid #000;
+            height: 2rem;
+            width: 80%;
+        }
+
+        .page {
+            height: 100%;
+            padding: 0.5in 0 0.25in !important;
+            page-break-inside: avoid;
+            position: relative;
+        }
+
+        .page .head,
+        .page .headright {
+            display: none;
+        }
+
+        .page .foot {
+            color: #a9a9a9;
+            margin: 0.7em auto;
+            overflow: hidden;
+            text-align: center;
+            width: 100%;
+        }
+
+        .page .foot:after,
+        .page .foot:before {
+            border-bottom: 3px dashed #a9a9a9;
+            content: '';
+            display: inline-block;
+            margin: 0 0.5em 0 -55%;
+            vertical-align: middle;
+            width: 50%;
+        }
+
+        .page .foot:after {
+            margin: 0 -55% 0 0.5em;
+        }
+
+        .sizeset {
+            font-size: 12px;
+        }
+
+        .sizeset .TOSOLVEQ {
+            font-size: 18px;
+        }
+
+        .sizeset .TOSOLVEQ {
+            margin-bottom: 4rem;
+        }
+
+        .sizeset .ansblock td.e {
+            height: 2rem;
+        }
+
+        .sizeset .ansblock tbody {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        @media print {
+
+            .center,
+            .page {
+                max-width: 8in;
+            }
+
+            tbody td {
+                padding: 0.27rem;
+            }
+
+            .page {
+                height: 100%;
+                padding: 0.5in 0 0.25in !important;
+                page-break-after: always;
+                page-break-before: always;
+                page-break-inside: avoid;
+                position: relative;
+                width: 100%;
+            }
+
+            .prfreq th {
+                width: 1.5rem;
+            }
+
+            .page .head {
+                text-align: center;
+            }
+
+            .page .head,
+            .page .headright {
+                display: inline-block;
+                height: 0.25in;
+                left: 0;
+                position: absolute;
+                right: 0;
+                top: 0;
+            }
+
+            .page .headright {
+                text-align: right;
+            }
+
+            .page .foot {
+                height: 0.25in;
+                left: 0;
+                position: absolute;
+                right: 0;
+                text-align: center;
+                top: 10.5in;
+            }
+
+            .page .foot:after,
+            .page .foot:before {
+                content: none;
+            }
+
+            .pagebreak {
+                page-break-before: always;
+            }
+
+            .question {
+                page-break-inside: avoid;
+            }
+
+        
+
+            .cell {
+                max-width: 8in;
+                width: auto;
+            }
+
+            @page {
+                margin: 0.5in 0.5in 0.25in 0.5in;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h3 class="center testpacket">Science Olympiad — <span class="testtitle">2024 Science Olympiad National Codebusters
+            Division B</span></h3>
+    <div class="sizeset">
+        <div>
+            <div class="testpacket">
+                <div class="default-header">
+                    <p class="reduce">Names of participants: (Please print neatly)</p>
+                    <table class="shrink cell unstriped nameline">
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="u">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td colspan="5" class="u">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td colspan="5" class="u">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td>School Name:</td>
+                                <td class="u">&nbsp;</td>
+                                <td class="u">&nbsp;</td>
+                                <td>Team Number:</td>
+                                <td class="u">&nbsp;&nbsp;<span class="test-division"><strong>B</strong></span>&nbsp;</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p></p>
+                    <p class="reduce"><b>Warning:</b> Do not open this packet until given permission to do so.</p>
+                    <p class="reduce"><b>Note:</b> There are useful notes after this page.</p>
+                </div>
+                <p class="timed"><b>Scoring:</b>&nbsp;&nbsp;Time to solve first problem:
+                    ________________________________ (use to calculate Bonus below)</p>
+                <div id="scoretable" class="grid-x">
+                    <table class="cell shrink testscores">
+                        <thead>
+                            <tr>
+                                <th>Question</th>
+                                <th>Value</th>
+                                <th>Incorrect letters</th>
+                                <th>Deduction</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="t">Timed</td>
+                                <td class="v">200</td>
+                                <td></td>
+                                <td></td>
+                                <td class="specialindicator"></td>
+                            </tr>
+                            <tr>
+                                <td class="t">1</td>
+                                <td class="v">184</td>
+                                <td></td>
+                                <td></td>
+                                <td class="specialindicator"></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Timed Bonus</td>
+                                <td>Timed:</td>
+                                <td colspan="2" class="grey"></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Final Score</td>
+                                <td colspan="4"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="testcontent">
+            <div>
+                <div class="page">
+                    <div class="head">2024 Science Olympiad National Codebusters Division B</div>
+                    <div class="headright">Team Number:_B_________</div>
+                    <div class="foot">Page 1</div>
+                    <div class="question pagebreak">
+                        <div class="qtext"><span class="timed">Timed Question</span><span class="points"> [200 points]
+                            </span><span class="qbody">
+                                A quote by Marcel Pagnol has been encoded using the Aristocrat Cipher for you to
+                                    decode. When you have solved it, raise your hand so that the time can be
+                                recorded and the solution checked.
+                            </span></div>
+                        <div>
+                            <div class="TOSOLVEQ">XXX XXX XX XXXX XXX XXX XXXXXXXXX - XXXX XXXXX XXXX </div>
+                            <div class="TOSOLVEQ">XXXXXX XXXXXXXX XXX XXX XX XXXX XXX XXXXXX XXXX.</div>
+                            <table class="prfreq shrink cell unstriped">
+                                <thead>
+                                    <tr>
+                                        <th class="topleft "></th>
+                                        <th>A</th>
+                                        <th>B</th>
+                                        <th>C</th>
+                                        <th>D</th>
+                                        <th>E</th>
+                                        <th>F</th>
+                                        <th>G</th>
+                                        <th>H</th>
+                                        <th>I</th>
+                                        <th>J</th>
+                                        <th>K</th>
+                                        <th>L</th>
+                                        <th>M</th>
+                                        <th>N</th>
+                                        <th>O</th>
+                                        <th>P</th>
+                                        <th>Q</th>
+                                        <th>R</th>
+                                        <th>S</th>
+                                        <th>T</th>
+                                        <th>U</th>
+                                        <th>V</th>
+                                        <th>W</th>
+                                        <th>X</th>
+                                        <th>Y</th>
+                                        <th>Z</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th>Frequency</th>
+                                        <td>2</td>
+                                        <td>2</td>
+                                        <td>7</td>
+                                        <td>3</td>
+                                        <td>4</td>
+                                        <td></td>
+                                        <td>3</td>
+                                        <td></td>
+                                        <td>2</td>
+                                        <td>1</td>
+                                        <td>6</td>
+                                        <td>4</td>
+                                        <td>1</td>
+                                        <td>8</td>
+                                        <td></td>
+                                        <td>7</td>
+                                        <td>3</td>
+                                        <td>1</td>
+                                        <td></td>
+                                        <td>1</td>
+                                        <td>2</td>
+                                        <td>3</td>
+                                        <td>8</td>
+                                        <td>1</td>
+                                        <td></td>
+                                        <td>10</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Replacement</th>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                        <td class=""></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="page">
+                    <div class="head">2024 Science Olympiad National Codebusters Division B</div>
+                    <div class="headright">Team Number:_B_________</div>
+                    <div class="foot">Page 2</div>
+                    <div class="question ">
+                        <div class="qtext"><span class="qnum">1)</span><span class="points"> [184 points] </span><span
+                                class="qbody">
+                                The following quote by Jane Smiley has been encoded with the Porta Cipher using a
+                                    very common word for the key. The 27th through 31st cipher characters (<span
+                                        class="mono"><strong>VACTF</strong></span>)
+                                    decode to be <span class="mono"><strong>ANNAT</strong></span>
+                                                            </span></div>
+                        <div class="grid-x">
+                            <table class="ansblock shrink cell unstriped">
+                                <tbody>
+                                    <tr>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                    </tr>
+                                    <tr class="notiny">
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td class="o v"></td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td class="q v">X</td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td class="e v"> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                        <td> </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

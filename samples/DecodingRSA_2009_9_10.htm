@@ -1,0 +1,1136 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 15 (filtered)">
+<title>Decrypting an RSA value</title>
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Helvetica;
+	panose-1:2 11 6 4 2 2 2 2 2 4;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:"Calibri Light";
+	panose-1:2 15 3 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:"Ink Free";
+	panose-1:3 8 4 2 0 5 0 0 0 0;}
+@font-face
+	{font-family:"Arial Rounded MT Bold";
+	panose-1:2 15 7 4 3 5 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;}
+p.MsoTitle, li.MsoTitle, div.MsoTitle
+	{mso-style-link:"Title Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:28.0pt;
+	font-family:"Calibri Light",sans-serif;
+	letter-spacing:-.5pt;}
+p.MsoTitleCxSpFirst, li.MsoTitleCxSpFirst, div.MsoTitleCxSpFirst
+	{mso-style-link:"Title Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:28.0pt;
+	font-family:"Calibri Light",sans-serif;
+	letter-spacing:-.5pt;}
+p.MsoTitleCxSpMiddle, li.MsoTitleCxSpMiddle, div.MsoTitleCxSpMiddle
+	{mso-style-link:"Title Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:28.0pt;
+	font-family:"Calibri Light",sans-serif;
+	letter-spacing:-.5pt;}
+p.MsoTitleCxSpLast, li.MsoTitleCxSpLast, div.MsoTitleCxSpLast
+	{mso-style-link:"Title Char";
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:28.0pt;
+	font-family:"Calibri Light",sans-serif;
+	letter-spacing:-.5pt;}
+a:link, span.MsoHyperlink
+	{color:blue;
+	text-decoration:underline;}
+a:visited, span.MsoHyperlinkFollowed
+	{color:#954F72;
+	text-decoration:underline;}
+p
+	{margin-right:0in;
+	margin-left:0in;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;}
+span.qnum
+	{mso-style-name:qnum;}
+span.points
+	{mso-style-name:points;}
+span.qbody
+	{mso-style-name:qbody;}
+p.HowTo, li.HowTo, div.HowTo
+	{mso-style-name:HowTo;
+	margin:0in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;
+	color:black;
+	font-weight:bold;}
+span.mord
+	{mso-style-name:mord;}
+span.TitleChar
+	{mso-style-name:"Title Char";
+	mso-style-link:Title;
+	font-family:"Calibri Light",sans-serif;
+	letter-spacing:-.5pt;}
+span.CalculatorKey
+	{mso-style-name:CalculatorKey;
+	font-family:"Arial Rounded MT Bold",sans-serif;
+	color:white;
+	border:solid white 1.0pt;
+	padding:0in;
+	background:black;}
+.MsoChpDefault
+	{font-size:10.0pt;}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:.5in .5in .5in .5in;}
+div.WordSection1
+	{page:WordSection1;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US link=blue vlink="#954F72">
+
+<div class=WordSection1>
+
+<p class=MsoTitle>Decoding an RSA value on paper</p>
+
+<p class=MsoNormal>Problem 10 on the 2019 Sample 9 test is an RSA question that
+asks us to decode an encrypted value using a private key:</p>
+
+<p class=MsoNormal><span class=qnum><span style='font-size:9.0pt;font-family:
+"Helvetica",sans-serif;color:#0A0A0A;background:#FEFEFE'>&nbsp;</span></span></p>
+
+<p class=MsoNormal style='margin-left:.5in'><span class=qnum><span style='font-size:9.0pt;font-family:"Helvetica",sans-serif;color:#0A0A0A;
+background:#FEFEFE'>10)</span></span><span class=points><b><span style='font-size:9.0pt;font-family:"Helvetica",sans-serif;color:#0A0A0A;
+background:#FEFEFE'><span style='box-sizing: inherit;font-variant-ligatures: normal;
+font-variant-caps: normal;orphans: 2;text-align:start;widows: 2;-webkit-text-stroke-width: 0px;
+text-decoration-style: initial;text-decoration-color: initial;word-spacing:
+0px'>&nbsp;[120 points]&nbsp;</span></span></b></span><span style='font-size:
+9.0pt;font-family:"Helvetica",sans-serif;color:#0A0A0A;background:#FEFEFE'><span style='box-sizing: inherit;font-variant-ligatures: normal;font-variant-caps: normal;
+orphans: 2;text-align:start;widows: 2;-webkit-text-stroke-width: 0px;
+text-decoration-style: initial;text-decoration-color: initial;word-spacing:
+0px'>Jonathan and Madison are accountants for a very large bank, and have
+started a friendship. They communicate via email, because they live thousands
+of miles apart. Madison gets curious and asks Jonathan the year that they were
+born. Jonathan doesn t mind telling Madison, but they know that the bank
+monitors all employee emails, and is afraid of being the victim of age
+discrimination. Therefore, Madison suggests that they use RSA, and they provide
+their public key: (5767, 3665). Jonathan replies with the ciphertext 983.
+Madison s private key is 4289. In what year was Jonathan born?</span></p>
+
+</span>
+
+<p>In order to decode, we need to decode the cipher text using the function:<br>
+   <i>C<sup>d</sup></i> mod <i>n</i>.</p>
+
+<p>Because of the size of the values, we have to use the&nbsp;<a
+href="https://en.wikipedia.org/wiki/Modular_exponentiation" style='box-sizing: inherit;
+line-height:inherit;cursor:pointer'><span style='font-family:"Arial",sans-serif;
+color:#1779BA'>Rapid Modular Exponentiation</span></a>&nbsp;method, also known
+as the&nbsp;<a href="https://en.wikipedia.org/wiki/Exponentiation_by_squaring"><span style='font-family:"Arial",sans-serif;color:#1779BA'>method of repeated
+squaring</span></a>.</p>
+
+<p>We start off by identifying the values we need:</p>
+
+<p><i>c</i> = 983 (The cipher text)</p>
+
+<p><i>d</i> = 4289 (Madison s private key)</p>
+
+<p style='background:#FEFEFE'><i>n</i> = 5767 (The larger number in the public
+key)</p>
+
+<p style='background:#FEFEFE'>First, we need to convert Madison's private
+key&nbsp;<em><span style='font-family:"Arial",sans-serif;color:#0A0A0A'>d</span></em>&nbsp;to
+binary which will tell us how many operations we will need to do.  Start by
+creating a table which will eventually have several columns but for now we just
+fill in the first two columns.</p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width="17%"
+ style='width:17.68%;border-collapse:collapse'>
+ <tr style='height:18.75pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>d</span></i></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>binary</span></i></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border:none;
+  border-right:solid windowtext 1.0pt;border-bottom:solid windowtext 1.5pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt;padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>4289</span></i></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;border-bottom:solid windowtext 1.5pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+ </tr>
+</table>
+
+<p>Next, we want to convert it to binary.  To do this, we take the integer
+portion of the value and divide it by 2.  If the number has a remainder of .5
+or more (i.e. the original number was odd) we put a 1 in the binary column, otherwise
+we put a 0.  If we are doing this on a calculator, we can do this quickly by
+taking the original number and dividing by 2 then keep hitting the equals sign
+to repeat the division by 2, BUT we must carefully look at the number to the
+right of the decimal to see if it is .5 or higher. When we are done, we will
+have the number in binary form with the low bit to high bit like:</p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width="17%"
+ style='width:17.68%;border-collapse:collapse'>
+ <tr style='height:18.75pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:18.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>d</span></i></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:18.75pt'>
+  <p class=MsoNormal><b><i><span style='font-family:"Ink Free";color:black'>binary</span></i></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.5pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>4289</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.5pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'></td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>2144.5</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>1</span></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>1072</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>0</span></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>536</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>0</span></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>268</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>0</span></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>134</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>0</span></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>67</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>0</span></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>33.5</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>1</span></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>16.5</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>1</span></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>8</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>0</span></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>4</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>0</span></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>2</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>0</span></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>1</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>0</span></b></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="56%" nowrap valign=bottom style='width:56.32%;border:none;
+  border-right:solid windowtext 1.0pt;padding:0in 5.05pt 0in 5.05pt;height:
+  19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Ink Free";color:black'>0.5</span></b></p>
+  </td>
+  <td width="43%" nowrap valign=bottom style='width:43.68%;border:none;
+  padding:0in 5.05pt 0in 5.05pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><span   style='font-family:"Ink Free";color:black'>1</span></b></p>
+  </td>
+ </tr>
+</table>
+
+<p style='background:#FEFEFE'>Next, we want to compute the powers (mod n) and
+write them next to the corresponding binary number.  To do this, we put the
+value of <i>c</i> in the first row and then for each row below it, we square
+the previous number and compute the mod n value.  We must do this at each level
+because the numbers get big quite quickly.  If we want to do this quickly on a
+calculator, there are a couple of tricks that can really speed it up.  First
+store the <i>n</i> value into the memory of the calculator 
+ <span class=CalculatorKey><span style='border:none'>&nbsp;MC&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;5&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;7&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;6&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;7&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;M+&nbsp;</span></span>.
+Then we can square the number and mod it quickly.  For example, with the second
+row, enter
+ <span class=CalculatorKey><span style='border:none'>&nbsp;9&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;8&nbsp;</span></span>
+  
+<span class=CalculatorKey><span style='border:none'>&nbsp;3&nbsp;</span></span>
+  
+<span class=CalculatorKey><span style='border:none'>&nbsp;x&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;=&nbsp;</span></span> to
+square it and see 966,289.  Then we compute the mod by dividing by n (which
+should be in memory)
+<span class=CalculatorKey><span style='border:none'>&nbsp;&divide;&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;MR&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;=&nbsp;</span></span>
+producing 167.55488, subtract off the integer portion
+<span class=CalculatorKey><span style='border:none'>&nbsp;-&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;1&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;6&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;7&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;=&nbsp;</span></span> and
+then multiply it by the mod value
+ <span class=CalculatorKey><span style='border:none'>&nbsp;x&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;MR&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;=&nbsp;</span></span>
+producing
+3199.9929 which we round to 3200 and write that down. Repeat this process for all
+the rows.</p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width="61%"
+ style='width:61.66%;border-collapse:collapse'>
+ <tr style='height:18.75pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>d</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=MsoNormal><b><i><span style='font-family:"Ink Free";color:black'>binary</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:18.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>c mod n</span></i></b></p>
+  </td>
+  <td width="46%" valign=bottom style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>How to compute</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.5pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>4289</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.5pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.5pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>5767</span></i></b></p>
+  </td>
+  <td width="46%" valign=top style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.5pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=MsoNormal><span style='font-family:"Calibri",sans-serif'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>2144.5</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>983</span></i></b></p>
+  </td>
+  <td width="46%" valign=top style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>Write c (983) down</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1072</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>3200</span></i></b></p>
+  </td>
+  <td width="46%" valign=top style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>(983*983) mod 5767  </p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>536</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>3575</span></i></b></p>
+  </td>
+  <td width="46%" valign=bottom style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>(3200*3200) mod 5767</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>268</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>953</span></i></b></p>
+  </td>
+  <td width="46%" valign=bottom style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>(3575*3575) mod 5767</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>134</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>2790</span></i></b></p>
+  </td>
+  <td width="46%" valign=bottom style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>(953*953) mod 5767</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>67</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>4417</span></i></b></p>
+  </td>
+  <td width="46%" valign=bottom style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>(2790*2790) mod 5767</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>33.5</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>128</span></i></b></p>
+  </td>
+  <td width="46%" valign=bottom style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>(4417*4417) mod 5767</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>16.5</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>4850</span></i></b></p>
+  </td>
+  <td width="46%" valign=bottom style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>(128*128) mod 5767</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>8</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>4674</span></i></b></p>
+  </td>
+  <td width="46%" valign=bottom style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>(4850*4850) mod 5767</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>4</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>880</span></i></b></p>
+  </td>
+  <td width="46%" valign=bottom style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>(4674*4674) mod 5767</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>2</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1622</span></i></b></p>
+  </td>
+  <td width="46%" valign=bottom style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>(880*880) mod 5767</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;border-bottom:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1132</span></i></b></p>
+  </td>
+  <td width="46%" valign=bottom style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>(1622*1622) mod 5767</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="15%" nowrap valign=bottom style='width:15.1%;border:none;
+  border-right:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0.5</span></i></b></p>
+  </td>
+  <td width="11%" nowrap valign=bottom style='width:11.74%;border:none;
+  border-right:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1</span></i></b></p>
+  </td>
+  <td width="26%" valign=bottom style='width:26.98%;border:none;padding:0in 5.4pt 0in 5.4pt;
+  height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1150</span></i></b></p>
+  </td>
+  <td width="46%" valign=bottom style='width:46.16%;border:none;border-left:solid windowtext 1.0pt;'>
+  <p class=HowTo>(1132*1132) mod 5767</p>
+  </td>
+ </tr>
+</table>
+
+<p style='background:#FEFEFE'>Next, we need to combine the mod values for all
+the places where we have a 1 bit.  Again, we will need to do this a step at a
+time because it will overflow the calculator quickly.  First go down the rows
+until we find the first 1 in the <b><i><span style='font-family:"Ink Free";
+color:black'>binary</span></i></b> column.  In this case it is the first bit,
+but it doesn t matter where, simply copy the 983 from the <b><i><span style='font-family:"Ink Free";color:black'>c mod n</span></i></b> column and
+write it into the <b><i><span style='font-family:"Ink Free";color:black'>Accumulate</span></i></b>
+column.  Next, we go down the rows until find another 1 in the <b><i><span style='font-family:"Ink Free";color:black'>binary</span></i></b> column.  For
+this we multiply the current <b><i><span style='font-family:"Ink Free";
+color:black'>c mod n</span></i></b> column by the previous <b><i><span style='font-family:"Ink Free";color:black'>Accumulate</span></i></b> column value
+and then do a mod n (which should be in memory).  In this case we enter
+ <span class=CalculatorKey><span style='border:none'>&nbsp;1&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;2&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;8&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;x&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;9&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;8&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;3&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;=&nbsp;</span></span>
+ which gives 125,824, then take the mod with
+ <span class=CalculatorKey><span style='border:none'>&nbsp;&divide;&nbsp;</span></span> 
+ <span class=CalculatorKey><span style='border:none'>&nbsp;MR&nbsp;</span></span>
+ <span class=CalculatorKey><span style='border:none'>&nbsp;=&nbsp;</span></span> producing
+21.817929, subtract off the integer portion 
+<span class=CalculatorKey><span style='border:none'>&nbsp;-&nbsp;</span></span> 
+<span class=CalculatorKey><span style='border:none'>&nbsp;2&nbsp;</span></span> 
+<span class=CalculatorKey><span style='border:none'>&nbsp;1&nbsp;</span></span> 
+<span class=CalculatorKey><span style='border:none'>&nbsp;=&nbsp;</span></span> and
+then multiply it by the mod value 
+<span class=CalculatorKey><span style='border:none'>&nbsp;x&nbsp;</span></span> 
+<span class=CalculatorKey><span style='border:none'>&nbsp;MR&nbsp;</span></span> 
+<span class=CalculatorKey><span style='border:none'>&nbsp;=&nbsp;</span></span> producing
+4716.9965 which we round to 4717 and write that down.  Repeat the process until
+we get to the last row in the table (which will always have a 1 in the <b><i><span style='font-family:"Ink Free";color:black'>binary</span></i></b> column) and
+the value we compute for the <b><i><span style='font-family:"Ink Free";
+color:black'>Accumulate</span></i></b> column will be the answer of 1966.</p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width="95%"
+ style='width:95.84%;border-collapse:collapse'>
+ <tr style='height:18.75pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:18.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>d</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:18.75pt'>
+  <p class=MsoNormal><b><i><span style='font-family:"Ink Free";color:black'>binary</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:18.75pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>c mod n</span></i></b></p>
+  </td>
+  <td width="15%" nowrap valign=bottom style='width:15.78%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.05pt 0in 5.05pt;height:18.75pt'>
+  <p class=MsoNormal><b><i><span style='font-family:"Ink Free";color:black'>Accumulate</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:18.75pt'>
+  <p class=HowTo>How to compute</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.5pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>4289</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.5pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.5pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>5767</span></i></b></p>
+  </td>
+  <td width="15%" valign=top style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.5pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=right style='text-align:right'><b><span   style='font-family:"Calibri",sans-serif;color:black'>&nbsp;</span></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.5pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt;padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>2144.5</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>983</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>983</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=HowTo>First row with a 1 so we copy the <i>c</i> mod <i>n</i> value.</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1072</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>3200</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>&nbsp;</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>536</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>3575</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>&nbsp;</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>268</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>953</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>&nbsp;</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>134</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>2790</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>&nbsp;</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>67</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>4417</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>&nbsp;</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>33.5</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>128</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>4717</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=HowTo>(128*983) mod 5767</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>16.5</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>4850</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>5528</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=HowTo>(4850*4717) mod 5767</p>
+  </td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>8</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>4674</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>&nbsp;</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>4</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>880</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>&nbsp;</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>2</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1622</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>&nbsp;</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border-top:none;
+  border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1132</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>&nbsp;</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  border-bottom:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'></td>
+ </tr>
+ <tr style='height:19.5pt'>
+  <td width="9%" nowrap valign=bottom style='width:9.72%;border:none;
+  border-right:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>0.5</span></i></b></p>
+  </td>
+  <td width="8%" nowrap valign=bottom style='width:8.54%;border:none;
+  border-right:solid windowtext 1.0pt;padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1</span></i></b></p>
+  </td>
+  <td width="16%" valign=bottom style='width:16.38%;border:none;border-right:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1150</span></i></b></p>
+  </td>
+  <td width="15%" valign=bottom style='width:15.78%;border:none;border-right:
+  solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt;height:19.5pt'>
+  <p class=MsoNormal align=center style='text-align:center'><b><i><span   style='font-family:"Ink Free";color:black'>1966</span></i></b></p>
+  </td>
+  <td width="49%" nowrap valign=bottom style='width:49.58%;border:none;
+  padding:0in .7pt 0in .7pt;height:19.5pt'>
+  <p class=HowTo>(1150*5528) mod 5767</p>
+  </td>
+ </tr>
+</table>
+
+<p>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,3337 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=utf-8">
+<meta name=Generator content="Microsoft Word 15 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:Wingdings;
+	panose-1:5 0 0 0 0 0 0 0 0 0;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:"Calibri Light";
+	panose-1:2 15 3 2 2 2 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;}
+p.MsoTitle, li.MsoTitle, div.MsoTitle
+	{mso-style-link:"Title Char";
+	margin:0in;
+	font-size:28.0pt;
+	font-family:"Calibri Light",sans-serif;
+	letter-spacing:-.5pt;}
+p.MsoTitleCxSpFirst, li.MsoTitleCxSpFirst, div.MsoTitleCxSpFirst
+	{mso-style-link:"Title Char";
+	margin:0in;
+	font-size:28.0pt;
+	font-family:"Calibri Light",sans-serif;
+	letter-spacing:-.5pt;}
+p.MsoTitleCxSpMiddle, li.MsoTitleCxSpMiddle, div.MsoTitleCxSpMiddle
+	{mso-style-link:"Title Char";
+	margin:0in;
+	font-size:28.0pt;
+	font-family:"Calibri Light",sans-serif;
+	letter-spacing:-.5pt;}
+p.MsoTitleCxSpLast, li.MsoTitleCxSpLast, div.MsoTitleCxSpLast
+	{mso-style-link:"Title Char";
+	margin:0in;
+	font-size:28.0pt;
+	font-family:"Calibri Light",sans-serif;
+	letter-spacing:-.5pt;}
+p.MsoBodyText, li.MsoBodyText, div.MsoBodyText
+	{mso-style-link:"Body Text Char";
+	margin-top:0in;
+	margin-right:0in;
+	margin-bottom:12.0pt;
+	margin-left:0in;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;}
+span.BodyTextChar
+	{mso-style-name:"Body Text Char";
+	mso-style-link:"Body Text";
+	font-family:"Times New Roman",serif;}
+span.SampleText
+	{mso-style-name:"Sample Text";
+	font-family:"Courier New";
+	color:windowtext;
+	font-weight:bold;}
+p.TOSOLVE, li.TOSOLVE, div.TOSOLVE
+	{mso-style-name:TOSOLVE;
+	mso-style-link:"TOSOLVE Char";
+	margin:0in;
+	font-size:16.0pt;
+	font-family:"Courier New";
+	font-weight:bold;}
+span.TOSOLVEChar
+	{mso-style-name:"TOSOLVE Char";
+	mso-style-link:TOSOLVE;
+	font-family:"Courier New";
+	font-weight:bold;}
+p.CellValues, li.CellValues, div.CellValues
+	{mso-style-name:"Cell Values";
+	margin:0in;
+	text-align:center;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;
+	font-weight:bold;}
+span.NumberReplace
+	{mso-style-name:"Number Replace";
+	font-family:"Courier New";
+	color:#538135;
+	font-weight:bold;}
+span.TitleChar
+	{mso-style-name:"Title Char";
+	mso-style-link:Title;
+	font-family:"Calibri Light",sans-serif;
+	letter-spacing:-.5pt;}
+.MsoChpDefault
+	{font-family:"Calibri",sans-serif;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:107%;}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.0in 1.0in 1.0in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US style='word-wrap:break-word'>
+
+<div class=WordSection1>
+
+<p class=MsoTitle align=center style='text-align:center'>Solving a Cryptarithm</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>You are given the following cryptarithm and asked to decode
+what <b><span style='font-family:"Courier New"'>24687 95310</span></b> decodes
+to:</p>
+
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0 align=right
+ style='border-collapse:collapse;border:none;margin-left:6.75pt;margin-right:
+ 6.75pt'>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>0</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>1</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>2</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>3</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>4</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>5</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>6</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>7</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>8</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>9</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>S</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>O</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>L</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>A</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>R</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>T</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>M</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>P</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>N</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>E</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=TOSOLVE> <span lang=EN>SOCIAL    social  <span style='background:yellow'>_____</span>
+<span style='background:yellow'>_____</span></span></p>
+
+<p class=TOSOLVE><u><span lang=EN>+ SOLAR     solar</span></u><span lang=EN> 
+24687 95310</span></p>
+
+<p class=TOSOLVE><span lang=EN>VEHICLE   vehicle</span></p>
+
+<p class=TOSOLVE><span lang=EN>&nbsp;</span></p>
+
+<p class=MsoBodyText><span lang=EN>&nbsp;</span></p>
+
+<p class=MsoBodyText><span lang=EN>&nbsp;</span></p>
+
+<p class=MsoBodyText><span lang=EN>&nbsp;</span></p>
+
+<p class=MsoBodyText><span lang=EN>Immediately we know that </span><span
+class=SampleText>V</span><span lang=EN> must be </span><span class=SampleText><span
+style='color:#538135'>1</span></span><span lang=EN> because you can only carry
+a single digit from the previous column addition.  Furthermore, since there is
+only one digit in the previous column, it must be a </span><span
+class=SampleText><span style='color:#538135'>9</span></span><span lang=EN> in
+order to carry from the column before that which means that the first two
+digits of the final result must be </span><span class=SampleText><span
+style='color:#538135'>10</span></span><span lang=EN> telling us the mappings of
+</span><span class=SampleText>V</span><span lang=EN> and </span><span
+class=SampleText>E</span><span lang=EN>. We can mark that in the table.</span></p>
+
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0 align=right
+ style='border-collapse:collapse;border:none;margin-left:6.75pt;margin-right:
+ 6.75pt'>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>0</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>1</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>2</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>3</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>4</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>5</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>6</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>7</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>8</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>9</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>S</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>O</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>C</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>I</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>A</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>L</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>R</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>V</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>E</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>H</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=TOSOLVE> <span lang=EN>SOCIAL  <span style='color:#538135'>9</span>ocial 
+<span style='background:yellow'>_____</span> <u><span style='background:yellow'>S</span></u><span
+style='background:yellow'>__<u>V</u>_</span></span></p>
+
+<p class=TOSOLVE><u><span lang=EN>+ SOLAR   <span style='color:#538135'>9</span>olar</span></u><span
+lang=EN>  24687 95310</span></p>
+
+<p class=TOSOLVE><span lang=EN>VEHICLE <span style='color:#538135'>10</span>hicl<span
+style='color:#538135'>0</span></span></p>
+
+<p class=MsoBodyText><span lang=EN>Some quick observations we can learn from
+what we have filled in so far:</span></p>
+
+<p class=MsoBodyText><span lang=EN>In the first column we have: </span><span
+class=SampleText>L+R=</span><b><span lang=EN style='font-family:"Courier New";
+color:#538135'>10</span></b><span lang=EN> which because of the numbers already
+mapped can only be </span><b><span lang=EN style='font-family:"Courier New";
+color:#538135'>2+8</span></b><span lang=EN>, </span><b><span lang=EN
+style='font-family:"Courier New";color:#538135'>3+7</span></b><span lang=EN> or
+</span><b><span lang=EN style='font-family:"Courier New";color:#538135'>4+6</span></b><span
+lang=EN> in either order.</span></p>
+
+<p class=MsoBodyText><span lang=EN>In the second column we add the carry from
+the first column to </span><span class=SampleText>A+A</span><span lang=EN> 
+giving us L which must be odd.  Based on what we learned in the first column,
+we know that </span><span class=SampleText>L</span><span lang=EN> must be
+either 3 or 7 which means </span><span class=SampleText>A</span><span lang=EN>
+must be one of 1, 3, 6 or 8.  We can quickly try all 4 options</span></p>
+
+<p class=MsoBodyText><span class=SampleText>A=</span><b><span lang=EN
+style='font-family:"Courier New";color:#538135'>1</span></b><span lang=EN>
+won’t work since </span><span class=SampleText>V=</span><b><span lang=EN
+style='font-family:"Courier New";color:#538135'>1</span></b><span lang=EN>
+already</span></p>
+
+<p class=MsoBodyText><span lang=EN>For </span><span class=SampleText>A=</span><b><span
+lang=EN style='font-family:"Courier New";color:#538135'>3</span></b><span
+lang=EN> we end up with </span><span class=SampleText>L=</span><b><span
+lang=EN style='font-family:"Courier New";color:#538135'>7</span></b><span
+lang=EN>, but </span><span class=SampleText>L+R=</span><b><span lang=EN
+style='font-family:"Courier New";color:#538135'>10</span></b><span lang=EN>
+means that </span><span class=SampleText>R</span><span lang=EN> would also be </span><b><span
+lang=EN style='font-family:"Courier New";color:#538135'>3</span></b><span
+lang=EN> so we can’t use that.</span></p>
+
+<p class=MsoBodyText><span lang=EN>For </span><span class=SampleText>A=</span><b><span
+lang=EN style='font-family:"Courier New";color:#538135'>6</span></b><span
+lang=EN> we have </span><span class=SampleText>L=</span><b><span lang=EN
+style='font-family:"Courier New";color:#538135'>3</span></b><span lang=EN>
+which forces </span><span class=SampleText>R=</span><b><span lang=EN
+style='font-family:"Courier New";color:#538135'>7</span></b><span lang=EN> which
+means it is a possibility.</span></p>
+
+<p class=MsoBodyText><span lang=EN>For </span><span class=SampleText>A=</span><b><span
+lang=EN style='font-family:"Courier New";color:#538135'>8</span></b><span
+lang=EN> we get </span><span class=SampleText>L=</span><b><span lang=EN
+style='font-family:"Courier New";color:#538135'>7</span></b><span lang=EN>
+which forces </span><span class=SampleText>R=</span><b><span lang=EN
+style='font-family:"Courier New";color:#538135'>3</span></b><span lang=EN>
+leaving it as a possibility.  </span></p>
+
+<p class=MsoBodyText><span lang=EN>Either way we know that either </span><span
+class=SampleText>L</span><span lang=EN> or </span><span class=SampleText>R</span><span
+lang=EN> is </span><b><span lang=EN style='font-family:"Courier New";
+color:#538135'>3</span></b><span lang=EN> and the other is </span><b><span
+lang=EN style='font-family:"Courier New";color:#538135'>7</span></b><span
+lang=EN> and that </span><span class=SampleText>A</span><span lang=EN> must be
+either </span><b><span lang=EN style='font-family:"Courier New";color:#538135'>6</span></b><span
+lang=EN> or </span><b><span lang=EN style='font-family:"Courier New";
+color:#538135'>8</span></b><span lang=EN>, so we mark it in the table.  We also
+know that since </span><span class=SampleText>A &gt;</span> <b><span lang=EN
+style='font-family:"Courier New";color:#538135'>5</span></b><span lang=EN>
+there is a carry into the next column</span></p>
+
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0 align=right
+ style='border-collapse:collapse;border:none;margin-left:6.75pt;margin-right:
+ 6.75pt'>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>0</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>1</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>2</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>3</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>4</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>5</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>6</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>7</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>8</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>9</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>S</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>O</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>C</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>I</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>A</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>L</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>R</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>V</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>E</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>H</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=TOSOLVE><span lang=EN> SOCIAL     <span style='color:#538135'>9</span>ocial 
+<span style='background:yellow'>_____</span> <u><span style='background:yellow'>S</span></u><span
+style='background:yellow'>__<u>V</u>_</span></span></p>
+
+<p class=TOSOLVE><u><span lang=EN>+ SOLAR   +  <span style='color:#538135'>9</span>olar
+</span></u><span lang=EN> 24687 95310<u>     </u></span></p>
+
+<p class=TOSOLVE><span lang=EN>VEHICLE    <span style='color:#538135'>10</span>hicl<span
+style='color:#538135'>0</span></span></p>
+
+<p class=MsoBodyText><span lang=EN>With the next column, we know that (carry
+from previous column) 1</span><span class=SampleText>+I+L=C</span><span
+lang=EN>.  Since </span><span class=SampleText>L</span><span lang=EN> must be
+either </span><b><span lang=EN style='font-family:"Courier New";color:#538135'>3</span></b><span
+lang=EN> or </span><b><span lang=EN style='font-family:"Courier New";
+color:#538135'>7</span></b><span lang=EN> and </span><span class=SampleText>I</span><span
+lang=EN> and </span><span class=SampleText>C</span><span lang=EN> are both
+limited to only five possible values, we look at the ten possible combinations
+to see which work.</span></p>
+
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0 align=left
+ style='border-collapse:collapse;border:none;margin-left:6.75pt;margin-right:
+ 6.75pt'>
+ <tr>
+  <td width=24 valign=top style='width:18.15pt;border:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>L</span></p>
+  </td>
+  <td width=20 valign=top style='width:14.8pt;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>I</span></p>
+  </td>
+  <td width=75 valign=top style='width:56.45pt;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>1+I+L=C</span></p>
+  </td>
+  <td width=108 valign=top style='width:81.35pt;border:solid windowtext 1.0pt;
+  border-left:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>Notes</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=24 valign=top style='width:18.15pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>3</span></span></p>
+  </td>
+  <td width=20 valign=top style='width:14.8pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>2</span></span></p>
+  </td>
+  <td width=75 valign=top style='width:56.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>6</span></span></p>
+  </td>
+  <td width=108 valign=top style='width:81.35pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=24 valign=top style='width:18.15pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>3</span></span></p>
+  </td>
+  <td width=20 valign=top style='width:14.8pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>4</span></span></p>
+  </td>
+  <td width=75 valign=top style='width:56.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>8</span></span></p>
+  </td>
+  <td width=108 valign=top style='width:81.35pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=24 valign=top style='width:18.15pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><s><span lang=EN
+  style='font-weight:normal'>3</span></s></span></p>
+  </td>
+  <td width=20 valign=top style='width:14.8pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><s><span lang=EN
+  style='font-weight:normal'>5</span></s></span></p>
+  </td>
+  <td width=75 valign=top style='width:56.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><s><span lang=EN
+  style='font-weight:normal'>9</span></s></span></p>
+  </td>
+  <td width=108 valign=top style='width:81.35pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>S=9</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=24 valign=top style='width:18.15pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><s><span lang=EN
+  style='font-weight:normal'>3</span></s></span></p>
+  </td>
+  <td width=20 valign=top style='width:14.8pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><s><span lang=EN
+  style='font-weight:normal'>6</span></s></span></p>
+  </td>
+  <td width=75 valign=top style='width:56.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><s><span lang=EN>(carry)</span></s><span
+  class=NumberReplace><s><span lang=EN style='font-weight:normal'>0</span></s></span></p>
+  </td>
+  <td width=108 valign=top style='width:81.35pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>E=0</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=24 valign=top style='width:18.15pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>3</span></span></p>
+  </td>
+  <td width=20 valign=top style='width:14.8pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>8</span></span></p>
+  </td>
+  <td width=75 valign=top style='width:56.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>(carry)</span><span class=NumberReplace><span
+  lang=EN style='font-weight:normal'>2</span></span></p>
+  </td>
+  <td width=108 valign=top style='width:81.35pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=24 valign=top style='width:18.15pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><s><span lang=EN
+  style='font-weight:normal'>7</span></s></span></p>
+  </td>
+  <td width=20 valign=top style='width:14.8pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><s><span lang=EN
+  style='font-weight:normal'>2</span></s></span></p>
+  </td>
+  <td width=75 valign=top style='width:56.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><s><span lang=EN>(carry)</span></s><span
+  class=NumberReplace><s><span lang=EN style='font-weight:normal'>0</span></s></span></p>
+  </td>
+  <td width=108 valign=top style='width:81.35pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>E=0</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=24 valign=top style='width:18.15pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>7</span></span></p>
+  </td>
+  <td width=20 valign=top style='width:14.8pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>4</span></span></p>
+  </td>
+  <td width=75 valign=top style='width:56.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>(carry)</span><span class=NumberReplace><span
+  lang=EN style='font-weight:normal'>2</span></span></p>
+  </td>
+  <td width=108 valign=top style='width:81.35pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=24 valign=top style='width:18.15pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><s><span lang=EN
+  style='font-weight:normal'>7</span></s></span></p>
+  </td>
+  <td width=20 valign=top style='width:14.8pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><s><span lang=EN
+  style='font-weight:normal'>5</span></s></span></p>
+  </td>
+  <td width=75 valign=top style='width:56.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><s><span lang=EN>(carry)</span></s><span
+  class=NumberReplace><s><span lang=EN style='font-weight:normal'>3</span></s></span></p>
+  </td>
+  <td width=108 valign=top style='width:81.35pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>C≠3</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=24 valign=top style='width:18.15pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>7</span></span></p>
+  </td>
+  <td width=20 valign=top style='width:14.8pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>6</span></span></p>
+  </td>
+  <td width=75 valign=top style='width:56.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>(carry)</span><span class=NumberReplace><span
+  lang=EN style='font-weight:normal'>4</span></span></p>
+  </td>
+  <td width=108 valign=top style='width:81.35pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=24 valign=top style='width:18.15pt;border:solid windowtext 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>7</span></span></p>
+  </td>
+  <td width=20 valign=top style='width:14.8pt;border-top:none;border-left:none;
+  border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>8</span></span></p>
+  </td>
+  <td width=75 valign=top style='width:56.45pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>(carry)</span><span class=NumberReplace><span
+  lang=EN style='font-weight:normal'>6</span></span></p>
+  </td>
+  <td width=108 valign=top style='width:81.35pt;border-top:none;border-left:
+  none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>&nbsp;</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoBodyText><span lang=EN>&nbsp;</span></p>
+
+<p class=MsoBodyText><span lang=EN>Immediately this eliminates </span><span
+class=SampleText>C=</span><span class=NumberReplace><span lang=EN>5</span></span><span
+lang=EN> and </span><span class=SampleText>I=</span><span class=NumberReplace><span
+lang=EN>5</span></span><span lang=EN> leaving only </span><span
+class=SampleText>H</span><span lang=EN> or </span><span class=SampleText>O</span><span
+lang=EN> to be </span><span class=NumberReplace><span lang=EN>5</span></span><span
+lang=EN>.</span></p>
+
+<p class=MsoBodyText><span lang=EN>With H and O in mind, we notice that
+(possible carry)</span><span class=SampleText>+O+9=H</span><span lang=EN> (with
+a carry).  This tells us that </span><span class=SampleText>O&gt;H</span><span
+lang=EN> and that either </span><span class=SampleText>O-1=H</span><span
+lang=EN> or </span><span class=SampleText>O-2=H</span><span lang=EN> depending
+on the carry from the previous column.  Since one of them must be </span><span
+class=NumberReplace><span lang=EN>5</span></span><span lang=EN> we either have </span><span
+class=SampleText>O=</span><span class=NumberReplace><span lang=EN>5</span></span><span
+lang=EN> and </span><span class=SampleText>H=</span><span class=NumberReplace><span
+lang=EN>4</span></span><span lang=EN> or </span><span class=SampleText>H=</span><span
+class=NumberReplace><span lang=EN>5</span></span><span lang=EN> and </span><span
+class=SampleText>O=</span><span class=NumberReplace><span lang=EN>6</span></span><span
+lang=EN>.  This means that there can not be a carry from </span><span
+class=SampleText>C+O</span><span lang=EN> and </span><span class=SampleText>C+O&lt;9</span><span
+lang=EN>.  </span></p>
+
+<p class=MsoBodyText><span lang=EN>With this information in hand, we fill in
+our table and eliminate quite a few options:</span></p>
+
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0 align=right
+ style='border-collapse:collapse;border:none;margin-left:6.75pt;margin-right:
+ 6.75pt'>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>0</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>1</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>2</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>3</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>4</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>5</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>6</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>7</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>8</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>9</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>S</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>O</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>C</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>I</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>A</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>L</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>R</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>V</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>E</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>H</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=TOSOLVE><span lang=EN> SOCIAL     <span style='color:#538135'>9</span>ocial 
+<span style='background:yellow'>_____</span> <u><span style='background:yellow'>S</span></u><span
+style='background:yellow'>__<u>V</u>_</span></span></p>
+
+<p class=TOSOLVE><u><span lang=EN>+ SOLAR   +  <span style='color:#538135'>9</span>olar</span></u><span
+lang=EN>  24687 95310<u>      </u></span></p>
+
+<p class=TOSOLVE><span lang=EN>VEHICLE    <span style='color:#538135'>10</span>hicl<span
+style='color:#538135'>0</span></span></p>
+
+<p class=MsoBodyText><span lang=EN>The only column we haven’t looked at is the (possible
+carry from previous column</span><span class=SampleText>+</span><span lang=EN>)</span><span
+class=SampleText>C+O=I</span><span lang=EN>.  Taking into account what we
+learned with the </span><span class=SampleText>I+L</span><span lang=EN> column
+and knowing that there are only two possible values for </span><span
+class=SampleText>I</span><span lang=EN> and 4 possible values for </span><span
+class=SampleText>C</span><span lang=EN> or </span><span class=SampleText>I</span><span
+lang=EN> we can test them out quickly in a table.</span></p>
+
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0 align=left
+ style='border-collapse:collapse;border:none;margin-left:6.75pt;margin-right:
+ 6.75pt'>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>C</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>O</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>Carry+C+O=I</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>Notes</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>2</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>5</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>8</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>2</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>6</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>9</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>S=9</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>4</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>5</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>(carry)</span><span class=NumberReplace><span
+  lang=EN style='font-weight:normal'>0</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>E=0</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>4</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>6</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>(carry)</span><span class=NumberReplace><span
+  lang=EN style='font-weight:normal'>1</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>V=1</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>6</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>5</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>(carry)</span><span class=NumberReplace><span
+  lang=EN style='font-weight:normal'>2</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>6</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>5</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>(carry)</span><span class=NumberReplace><span
+  lang=EN style='font-weight:normal'>3</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>I≠3</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>8</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>5</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>(carry)</span><span class=NumberReplace><span
+  lang=EN style='font-weight:normal'>3</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>I≠3</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>8</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span class=NumberReplace><span lang=EN style='font-weight:
+  normal'>6</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>(carry)</span><span class=NumberReplace><span
+  lang=EN style='font-weight:normal'>4</span></span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=CellValues><span lang=EN>&nbsp;</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoBodyText><span lang=EN>Since we previously determined that </span><span
+class=SampleText>C+O&lt;9</span><span lang=EN> this tells us that the only
+possible answer is that </span><span class=SampleText>C=</span><span
+class=NumberReplace><span lang=EN>2</span></span><span lang=EN>, </span><span
+class=SampleText>O=</span><span class=NumberReplace><span lang=EN>5</span></span><span
+lang=EN> and </span><span class=SampleText>I=</span><span class=NumberReplace><span
+lang=EN>8</span></span><span lang=EN>.  Since we know what when </span><span
+class=SampleText>O=</span><span class=NumberReplace><span lang=EN>5</span></span><span
+lang=EN>, </span><span class=SampleText>H=</span><span class=NumberReplace><span
+lang=EN>4</span></span><span lang=EN> we can fill that in too.</span></p>
+
+<p class=MsoBodyText><span lang=EN>This leaves </span><span class=SampleText>A=</span><span
+class=NumberReplace><span lang=EN>6</span></span><span lang=EN> as the only
+option.  Previously we also determined that for </span><span class=SampleText>A=</span><span
+class=NumberReplace><span lang=EN>6</span></span><span lang=EN>, </span><span
+class=SampleText>L=</span><span class=NumberReplace><span lang=EN>3</span></span><span
+lang=EN> and </span><span class=SampleText>R=</span><span class=NumberReplace><span
+lang=EN>7</span></span><span lang=EN> which gives us the final table and we can
+fill in the letters for the answer.</span></p>
+
+<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0 align=right
+ style='border-collapse:collapse;border:none;margin-left:6.75pt;margin-right:
+ 6.75pt'>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>0</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>1</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>2</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>3</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>4</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>5</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>6</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>7</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>8</span></p>
+  </td>
+  <td valign=top style='border:solid windowtext 1.0pt;border-left:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>9</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>S</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>O</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>C</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>I</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>A</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>L</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>R</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>V</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>E</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top style='border:solid windowtext 1.0pt;border-top:none;
+  padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>H</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt;font-family:Wingdings'>ü</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+  <td valign=top style='border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
+  border-right:solid windowtext 1.0pt;background:#AEAAAA;padding:0in 5.4pt 0in 5.4pt'>
+  <p class=TOSOLVE><span lang=EN style='font-size:11.0pt'>&nbsp;</span></p>
+  </td>
+ </tr>
+</table>
+
+<p class=TOSOLVE><span lang=EN> SOCIAL     <span style='color:#538135'>952863</span> 
+<u><span style='background:yellow'>CHAIR</span></u> <u><span style='background:
+yellow'>SOLVE</span></u></span></p>
+
+<p class=TOSOLVE><u><span lang=EN>+ SOLAR   +  <span style='color:#538135'>95367</span></span></u><span
+lang=EN>  24687 95310<u>      </u></span></p>
+
+<p class=TOSOLVE><span lang=EN>VEHICLE    <span style='color:#538135'>1048230</span></span></p>
+
+<p class=MsoBodyText><span lang=EN>&nbsp;</span></p>
+
+<p class=MsoBodyText><span lang=EN>&nbsp;</span></p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+</div>
+
+</body>
+
+</html>

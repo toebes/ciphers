@@ -1,0 +1,1178 @@
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=Generator content="Microsoft Word 15 (filtered)">
+<title>Solving a Pollux Cipher</title>
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:"Calibri Light";
+	panose-1:2 15 3 2 2 2 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;}
+h1
+	{mso-style-link:"Heading 1 Char";
+	margin-top:12.0pt;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:0in;
+	margin-bottom:.0001pt;
+	page-break-after:avoid;
+	font-size:16.0pt;
+	font-family:"Calibri Light",sans-serif;
+	color:#2F5496;
+	font-weight:normal;}
+h3
+	{mso-style-link:"Heading 3 Char";
+	margin-right:0in;
+	margin-left:0in;
+	font-size:13.5pt;
+	font-family:"Times New Roman",serif;}
+h4
+	{mso-style-link:"Heading 4 Char";
+	margin-right:0in;
+	margin-left:0in;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;}
+p.MsoListParagraphCxSpFirst, li.MsoListParagraphCxSpFirst, div.MsoListParagraphCxSpFirst
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;}
+p.MsoListParagraphCxSpMiddle, li.MsoListParagraphCxSpMiddle, div.MsoListParagraphCxSpMiddle
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;}
+p.MsoListParagraphCxSpLast, li.MsoListParagraphCxSpLast, div.MsoListParagraphCxSpLast
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:0in;
+	margin-left:.5in;
+	margin-bottom:.0001pt;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;}
+span.Heading3Char
+	{mso-style-name:"Heading 3 Char";
+	mso-style-link:"Heading 3";
+	font-weight:bold;}
+span.Heading4Char
+	{mso-style-name:"Heading 4 Char";
+	mso-style-link:"Heading 4";
+	font-weight:bold;}
+p.ANSWER, li.ANSWER, div.ANSWER
+	{mso-style-name:ANSWER;
+	margin:0in;
+	margin-bottom:.0001pt;
+	line-height:16.5pt;
+	background:yellow;
+	font-size:16.5pt;
+	font-family:"Courier New";
+	color:#0A0A0A;
+	font-weight:bold;}
+span.Heading1Char
+	{mso-style-name:"Heading 1 Char";
+	mso-style-link:"Heading 1";
+	font-family:"Calibri Light",sans-serif;
+	color:#2F5496;}
+p.TOSOLVE, li.TOSOLVE, div.TOSOLVE
+	{mso-style-name:TOSOLVE;
+	margin:0in;
+	margin-bottom:.0001pt;
+	line-height:16.5pt;
+	background:#FEFEFE;
+	font-size:16.5pt;
+	font-family:"Courier New";
+	color:#0A0A0A;
+	font-weight:bold;}
+span.ExampleText
+	{mso-style-name:"Example Text";
+	font-family:"Courier New";
+	font-weight:bold;}
+p.CellHeader, li.CellHeader, div.CellHeader
+	{mso-style-name:"Cell Header";
+	margin:0in;
+	margin-bottom:.0001pt;
+	text-align:center;
+	background:#E7E6E6;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;
+	color:#0A0A0A;
+	font-weight:bold;}
+p.CellValues, li.CellValues, div.CellValues
+	{mso-style-name:"Cell Values";
+	margin:0in;
+	margin-bottom:.0001pt;
+	text-align:center;
+	font-size:12.0pt;
+	font-family:"Times New Roman",serif;
+	font-weight:bold;}
+.MsoChpDefault
+	{font-size:10.0pt;}
+@page WordSection1
+	{size:8.5in 11.0in;
+	margin:1.0in 1.25in 1.0in 1.25in;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0in;}
+ul
+	{margin-bottom:0in;}
+-->
+</style>
+
+</head>
+
+<body lang=EN-US>
+
+<div class=WordSection1>
+
+<h1>A Pollux problem to solve </h1>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Someone has encoded a phrase using the Pollux cipher and
+told you that 2,3 are Dots, 5,6 are Dashes and 8,9 are spaces (x).  What does
+it say?</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=TOSOLVE>12059811012278473374491805946698143393935026296198313</p>
+
+<p class=TOSOLVE>&nbsp;</p>
+
+<p class=TOSOLVE>0455866718756946591628223037761517666963203</p>
+
+<h1>Background on Solving Pollux</h1>
+
+<p class=MsoNormal>The Pollux cipher works by first converting the text into Morse
+code which is written as a series of dots (<span class=ExampleText>&#9679;</span>),
+dashes (<span class=ExampleText>–</span>), and spaces.  To make it more
+convenient to solve, we typically represent the spaces as an <span
+class=ExampleText>×</span>. A single space is used at the end of a Morse code
+letter and a pair of spaces is used at the end of a word.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>The person encoding the text then decides with digits will
+stand for dots/dashes/spaces with no restriction on that choice.  For example,
+all the spaces could be represented by a 2, all of the dots by a 1 and all the
+other digits stand for a dash.  Given the mapping of the digits, the Morse code
+is translated to the cipher text by picking a digit for the dash/dot/space. 
+Since more than one digit can stand for a dash/dot/space, the encoding can
+choose whatever digit they would like.  </p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Decoding a Pollux applies the process in reverse.  It starts
+by mapping the known digits to their corresponding dot/dash/space and looking
+for complete Morse code characters.  A complete Morse code character is one where
+an uninterrupted series of dots/dashes are delimited by a space.  For example: <span
+class=ExampleText>&#9679;&#9679;&#9679;×</span> at the beginning represents the
+very familiar letter S (three dots).  Finding <span class=ExampleText>×&#9679;&#9679;×</span>
+in the middle would represent the letter I (two dots).  However, if we had <span
+class=ExampleText>×&#9679; ×</span> (with an unmapped digit after the dot), we
+wouldn’t know what the plain text is until we figured out the mapping for the
+digit.</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>With that in mind, the strategy for solving a Pollux
+consists of a set of steps:</p>
+
+<p class=MsoListParagraph style='text-indent:-.25in'>1)<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span>Build a table of the possibilities for the digits.</p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0
+ style='margin-left:37.5pt;border-collapse:collapse'>
+ <thead>
+  <tr style='height:13.8pt'>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>0</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>1</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>2</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>3</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>4</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>5</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>6</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>7</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>8</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;background:#FEFEFE;padding:.75pt .75pt .75pt .75pt;
+   height:13.8pt'>
+   <p class=CellHeader>9</p>
+   </td>
+  </tr>
+ </thead>
+ <tr style='height:13.8pt'>
+  <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+  border-top:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'></td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'></td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'></td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'></td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'></td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'></td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'></td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'></td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'></td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'></td>
+ </tr>
+</table>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'>2)<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+style='color:white'>Fill </span>in the table with the known mappings and then
+just put <span class=ExampleText>&#9679;–×</span> for everything else since we
+don’t know what they map to.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'>3)<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span>Underneath
+the digits of the cipher, fill in the known mappings with the corresponding Morse
+code character (<span class=ExampleText>&#9679;</span>, <span
+class=ExampleText>–</span>, <span class=ExampleText>×</span>).</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'>4)<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span>Solve.. As
+digits are eliminated, removed them from the possibility table and fill in
+known mappings under the cipher text.  One special case that makes it easier to
+solve.  If you eliminate <span class=ExampleText>×</span> as a possibility,
+leaving <span class=ExampleText>&#9679;</span> or <span class=ExampleText>–</span>,
+filling in the corresponding cipher spot with Solving A Pollux Cipher<span
+class=ExampleText>?</span> makes it easier to find places where a <span
+class=ExampleText>×</span> belongs. </p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Some good solving rules that help quickly solve a Pollux</p>
+
+<p class=MsoListParagraphCxSpFirst style='text-indent:-.25in'>1)<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span>The first
+character will never be an <span class=ExampleText>×</span>.  If the cipher
+digit at the start could map to an <span class=ExampleText>×</span>, you can
+eliminate that choice.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'>2)<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span>There will
+never be three spaces (<span class=ExampleText>×××</span>) in a row. Hence if
+you find a cipher digit that is tripled, you know that it can’t map to a <span
+class=ExampleText>×</span>.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'>3)<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span>Also
+looking for three spaces, if you have digits that already map to <span
+class=ExampleText>×</span> and either have a doubled digit next to it which is
+unknown or <span class=ExampleText>××</span> next to an unknown, you can
+eliminate <span class=ExampleText>×</span> from that unknown.</p>
+
+<p class=MsoListParagraphCxSpMiddle style='text-indent:-.25in'>4)<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span>No Morse letter
+is more than 4 dots/dashes and all numbers are exactly 5 dots/dashes.  If there
+is a sequence of 6 characters with an unknown and all the remainder are known
+to be a dot/dash (<span class=ExampleText>&#9679;–?</span>) then you know that
+the unknown must be a <span class=ExampleText>×</span>.</p>
+
+<p class=MsoListParagraphCxSpLast style='text-indent:-.25in'>5)<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span>Not all
+sequences of 4 dots/dashes are legal Morse characters.  (&#9679;&#9679;––, &#9679;–&#9679;–,
+–––&#9679;, and ––––).  If you have a pattern that would map to it, you know
+that you can eliminate it.</p>
+
+<h1>How to solve</h1>
+
+<p class=MsoNormal>Since we are told the mapping of 235689 ciphertext, we can
+build the following table:</p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0
+ style='margin-left:37.5pt;border-collapse:collapse'>
+ <thead>
+  <tr style='height:13.8pt'>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>0</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>1</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>2</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>3</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>4</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>5</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>6</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>7</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+   <p class=CellHeader>8</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;background:#FEFEFE;padding:.75pt .75pt .75pt .75pt;
+   height:13.8pt'>
+   <p class=CellHeader>9</p>
+   </td>
+  </tr>
+ </thead>
+ <tr style='height:13.8pt'>
+  <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+  border-top:none;padding:.75pt .75pt .75pt .75pt;height:13.8pt'>
+  <p class=CellValues>&#9679;–×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'>
+  <p class=CellValues>&#9679;–×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'>
+  <p class=CellValues>&#9679;–×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'>
+  <p class=CellValues>&#9679;–×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt;
+  height:13.8pt'>
+  <p class=CellValues>×</p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><span style='color:white'>Based on that information we can
+map the cipher text as:</span></p>
+
+<p class=TOSOLVE>12059811012278473374491805946698143393935026296198313</p>
+
+<p class=TOSOLVE> &#9679; –××    &#9679;&#9679; ×  &#9679;&#9679;   × × –× ––××
+ &#9679;&#9679;×&#9679;×&#9679;– &#9679;–&#9679;×– ××&#9679; &#9679;</p>
+
+<p class=ANSWER>   <span style='background:yellow'>/                   /     E          /</span>
+</p>
+
+<p class=TOSOLVE>0455866718756946591628223037761517666963203</p>
+
+<p class=TOSOLVE>  ––×––  × ––× ––× –&#9679;×&#9679;&#9679;&#9679; &#9679;  – –
+ –––×–&#9679;&#9679; &#9679;</p>
+
+<p class=ANSWER>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>The first Morse code character can never be an <span
+class=ExampleText>×</span>,</p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0
+ style='margin-left:37.5pt;border-collapse:collapse'>
+ <thead>
+  <tr>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>0</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>1</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>2</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>3</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>4</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>5</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>6</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>7</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>8</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;background:#FEFEFE;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>9</p>
+   </td>
+  </tr>
+ </thead>
+ <tr>
+  <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+  border-top:none;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><span style='color:white'>Based on that information we can
+map the cipher text as:</span></p>
+
+<p class=TOSOLVE>12059811012278473374491805946698143393935026296198313</p>
+
+<p class=TOSOLVE>?&#9679; –××?? ?&#9679;&#9679; ×  &#9679;&#9679;   ×?× –×
+––××? &#9679;&#9679;×&#9679;×&#9679;– &#9679;–&#9679;×–?××&#9679;?&#9679;</p>
+
+<p class=ANSWER>    /                         /      E          / </p>
+
+<p class=TOSOLVE>0455866718756946591628223037761517666963203</p>
+
+<p class=TOSOLVE>  ––×––  ?× ––× ––×?–&#9679;×&#9679;&#9679;&#9679; &#9679;
+–?–? –––×–&#9679;&#9679; &#9679;</p>
+
+<p class=ANSWER>&nbsp;</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>At this point in time, 4 ciphertext characters still need to
+be mapped.&nbsp;Looking at the ciphertext, we see the sequence <span
+class=ExampleText>449</span> which would result in three <span
+class=ExampleText>×</span>s in a row if 4 were an <span class=ExampleText>×</span>.</p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=0
+ style='width:0in;margin-left:37.5pt;border-collapse:collapse'>
+ <thead>
+  <tr>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>0</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>1</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>2</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>3</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>4</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>5</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>6</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>7</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>8</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;background:#FEFEFE;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>9</p>
+   </td>
+  </tr>
+ </thead>
+ <tr>
+  <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+  border-top:none;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><span style='color:white'>Based on that information we can
+map the cipher text as:</span></p>
+
+<p class=TOSOLVE>12059811012278473374491805946698143393935026296198313</p>
+
+<p class=TOSOLVE>?&#9679; –××?? ?&#9679;&#9679; ×? &#9679;&#9679; ??×?×
+–×?––××??&#9679;&#9679;×&#9679;×&#9679;– &#9679;–&#9679;×–?××&#9679;?&#9679;</p>
+
+<p class=ANSWER>    /                         /     E           / </p>
+
+<p class=TOSOLVE>0455866718756946591628223037761517666963203</p>
+
+<p class=TOSOLVE> ?––×–– ?× ––×?––×?–&#9679;×&#9679;&#9679;&#9679; &#9679;  –?–?
+–––×–&#9679;&#9679; &#9679;</p>
+
+<p class=ANSWER>&nbsp;</p>
+
+<p class=TOSOLVE>&nbsp;</p>
+
+<p class=MsoNormal>At this point in time, 4 ciphertext characters still need to
+be mapped.&nbsp;Based on the sequence <span class=ExampleText>350262</span>
+with <span class=ExampleText>0</span> possibly being one of <span
+class=ExampleText>&#9679;–×</span>, only <span class=ExampleText>×</span>
+results in a legal Morse code character, so we can mark <span
+class=ExampleText>0</span> as being <span class=ExampleText>×</span>.</p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=0
+ style='width:0in;margin-left:37.5pt;border-collapse:collapse'>
+ <thead>
+  <tr>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>0</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>1</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>2</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>3</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>4</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>5</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>6</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>7</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>8</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;background:#FEFEFE;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>9</p>
+   </td>
+  </tr>
+ </thead>
+ <tr>
+  <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+  border-top:none;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><span style='color:white'>Based on that</span> information
+we can map the cipher text as:</p>
+
+<p class=TOSOLVE>12059811012278473374491805946698143393935026296198313</p>
+
+<p class=TOSOLVE>?&#9679;×–××??×?&#9679;&#9679; ×? &#9679;&#9679;
+??×?××–×?––××??&#9679;&#9679;×&#9679;×&#9679;–×&#9679;–&#9679;×–?××&#9679;?&#9679;</p>
+
+<p class=ANSWER>   T/                  / T    /      E A  R     / </p>
+
+<p class=TOSOLVE>0455866718756946591628223037761517666963203</p>
+
+<p class=TOSOLVE>×?––×–– ?× ––×?––×?–&#9679;×&#9679;&#9679;&#9679;×&#9679;  –?–?
+–––×–&#9679;&#9679;×&#9679;</p>
+
+<p class=ANSWER>                      S              D   E</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>At this point in time, 3 ciphertext characters still need to
+be mapped.&nbsp;Since <span class=ExampleText>1</span> can still map to <span
+class=ExampleText>&#9679;–</span> we simply try them and look at the first word
+or two to see if it makes sense. Trying &#9679; for 1 gives us a chunk: <span
+class=ExampleText>EARN S</span>. Trying <span class=ExampleText>–</span> for <span
+class=ExampleText>1</span> gives us a chunk: <span class=ExampleText>EARM R</span>.
+Which means we know that <span class=ExampleText>1</span> must map to <span
+class=ExampleText>&#9679;</span></p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=0
+ style='width:0in;margin-left:37.5pt;border-collapse:collapse'>
+ <thead>
+  <tr>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>0</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>1</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>2</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>3</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>4</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>5</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>6</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>7</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>8</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;background:#FEFEFE;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>9</p>
+   </td>
+  </tr>
+ </thead>
+ <tr>
+  <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+  border-top:none;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><span style='color:white'>Based on that information we can
+map the cipher text as:</span></p>
+
+<p class=TOSOLVE>12059811012278473374491805946698143393935026296198313</p>
+
+<p class=TOSOLVE>&#9679;&#9679;×–××&#9679;&#9679;×&#9679;&#9679;&#9679; ×?
+&#9679;&#9679;
+??×&#9679;××–×?––××&#9679;?&#9679;&#9679;×&#9679;×&#9679;–×&#9679;–&#9679;×–&#9679;××&#9679;&#9679;&#9679;</p>
+
+<p class=ANSWER>I  T/ I               E/ T    /      E A  R   N / S</p>
+
+<p class=TOSOLVE>0455866718756946591628223037761517666963203</p>
+
+<p class=TOSOLVE>×?––×–– &#9679;×
+––×?––×&#9679;–&#9679;×&#9679;&#9679;&#9679;×&#9679;  –&#9679;–&#9679;
+–––×–&#9679;&#9679;×&#9679;</p>
+
+<p class=ANSWER>                  R   S               D   E</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>At this point in time, 2 ciphertext characters still need to
+be mapped.&nbsp;Based on the sequence <span class=ExampleText>37761517666</span>
+with <span class=ExampleText>7</span> possibly being one of <span
+class=ExampleText>&#9679;–×</span>, only <span class=ExampleText>×</span>
+results in a legal Morse code character, so we can mark <span
+class=ExampleText>7</span> as being <span class=ExampleText>×</span>.</p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=0
+ style='width:0in;margin-left:37.5pt;border-collapse:collapse'>
+ <thead>
+  <tr>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>0</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>1</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>2</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>3</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>4</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>5</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>6</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>7</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>8</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;background:#FEFEFE;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>9</p>
+   </td>
+  </tr>
+ </thead>
+ <tr>
+  <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+  border-top:none;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><span style='color:white'>Based on that information we can
+map the cipher text as:</span></p>
+
+<p class=TOSOLVE>12059811012278473374491805946698143393935026296198313</p>
+
+<p class=TOSOLVE>&#9679;&#9679;×–××&#9679;&#9679;×&#9679;&#9679;&#9679;××?×&#9679;&#9679;×??×&#9679;××–×?––××&#9679;?&#9679;&#9679;×&#9679;×&#9679;–×&#9679;–&#9679;×–&#9679;××&#9679;&#9679;&#9679;</p>
+
+<p class=ANSWER>I  T/ I  S  /   I     E/ T    /      E A  R   N / S</p>
+
+<p class=TOSOLVE>0455866718756946591628223037761517666963203</p>
+
+<p class=TOSOLVE>×?––×––×&#9679;××––×?––×&#9679;–&#9679;×&#9679;&#9679;&#9679;×&#9679;××–&#9679;–&#9679;×–––×–&#9679;&#9679;×&#9679;</p>
+
+<p class=ANSWER>     M  E/ M      R   S   E/ C    O   D   E</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>At this point in time, 1 ciphertext characters still need to
+be mapped.&nbsp;Since <span class=ExampleText>4</span> can still map to <span
+class=ExampleText>&#9679;–</span> we simply try them and look at the first word
+or two to see if it makes sense. Trying <span class=ExampleText>&#9679;</span>
+for <span class=ExampleText>4</span> gives us a chunk: <span class=ExampleText>IT
+IS EIIE TW HEARN SWME MWRSE COD</span>. Trying <span class=ExampleText>–</span>
+for 4 gives us a chunk: <span class=ExampleText>IT IS TIME TO LEARN SOME MORSE
+CODE</span>. Which means we know that <span class=ExampleText>4</span> must map
+to <span class=ExampleText>–</span></p>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=0
+ style='width:0in;margin-left:37.5pt;border-collapse:collapse'>
+ <thead>
+  <tr>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>0</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>1</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>2</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>3</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>4</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>5</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>6</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>7</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>8</p>
+   </td>
+   <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+   border-left:none;background:#FEFEFE;padding:.75pt .75pt .75pt .75pt'>
+   <p class=CellHeader>9</p>
+   </td>
+  </tr>
+ </thead>
+ <tr>
+  <td width=29 valign=top style='width:.3in;border:solid black 1.0pt;
+  border-top:none;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>&#9679;</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>–</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+  <td width=29 valign=top style='width:.3in;border-top:none;border-left:none;
+  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:.75pt .75pt .75pt .75pt'>
+  <p class=CellValues>×</p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Based on that information we can map the cipher text as:</p>
+
+<p class=TOSOLVE>12059811012278473374491805946698143393935026296198313</p>
+
+<p class=TOSOLVE>&#9679;&#9679;×–××&#9679;&#9679;×&#9679;&#9679;&#9679;××–×&#9679;&#9679;×––×&#9679;××–×–––××&#9679;–&#9679;&#9679;×&#9679;×&#9679;–×&#9679;–&#9679;×–&#9679;××&#9679;&#9679;&#9679;</p>
+
+<p class=ANSWER>I  T/ I  S  / T I  M  E/ T O  / L    E A  R   N / S</p>
+
+<p class=TOSOLVE>0455866718756946591628223037761517666963203</p>
+
+<p class=TOSOLVE>×–––×––×&#9679;××––×–––×&#9679;–&#9679;×&#9679;&#9679;&#9679;×&#9679;××–&#9679;–&#9679;×–––×–&#9679;&#9679;×&#9679;</p>
+
+<p class=ANSWER> O   M  E/ M  O   R   S   E/ C    O   D   E</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+<p class=MsoNormal>Now that we have mapped all the ciphertext characters, the
+decoded Morse code is the answer:</p>
+
+<p class=ANSWER>IT IS TIME TO LEARN SOME MORSE CODE</p>
+
+<p class=MsoNormal>&nbsp;</p>
+
+</div>
+
+</body>
+
+</html>

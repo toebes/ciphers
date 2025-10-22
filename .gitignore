@@ -1,42 +1,67 @@
+# =============================
+# IDE / Editor Files
+# =============================
 .vscode/launch.json
-.vs/slnx.sqlite
-.vs/VSWorkspaceState.json
-.vs/Ciphers/v15/.suo
-.vs/ProjectSettings.json
+.vs/
 .idea/
+
+# =============================
+# Build / Output Directories
+# =============================
 out/
-AffineEncrypt - Copy.html
-*.xlsx
-*.xls
-*.csv
-node_modules/*
-dist/*
-dist-aca/*
+dist/
+dist-aca/
+build/
+android/
+public/
+
+# =============================
+# Node / Dependency Caches
+# =============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =============================
+# Python Artifacts
+# =============================
+*.pyc
+*.pyo
+*.pyd
+
+# =============================
+# Data / Temporary Files
+# =============================
 .DS_Store
+Error Log.txt
 pom.xml
+
+# =============================
+# Excel / CSV Files
+# =============================
+*.xls
+*.xlsx
+*.csv
+!samples/*.xls
+!samples/*.xlsx
+
+# =============================
+# Logs / Scripts / Utilities
+# =============================
+dl.py
+getgrquotes.py
+.ftpdeploy.js
+
+# =============================
+# Specific Files
+# =============================
 CipherTools*.zip
 quotes*.json
-tests/*
-node_modules
-Books/*
-app/codebusters/pages/try1.html
-app/codebusters/NewChanges.txt
-Error Log.txt
-education-tags.txt
-humor-tags.txt
-life-lessons.txt
-newquotes.txt
-science-tags.txt
-dl.py
-public/
-app/codebusters/all.out
-__pycache__/*
-onelinefun.py
-quotes.py
-.ftpdeploy.js
-getgrquotes.py
+ANC-written-*.txt
+
+# =============================
+# App / Project Specific
+# =============================
 app/*/*.js
 app/*/*.js.map
-ANC-written-count.txt
-ANC-written-lemma.txt
-android/

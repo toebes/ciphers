@@ -3356,15 +3356,19 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         if (key === undefined) {
             return $("<span/>")
         }
+        let difficultyObj = this.getKeywordDifficulty(key);
         let warnlevel = "";
-        if (this.getKeywordDifficulty(key) > 2) {
+        if (difficultyObj[0] > 2) {
             warnlevel = "warning";
+        }
+        if (difficultyObj[1] || difficultyObj[2] > 4) {
+            warnlevel = "alert";
         }
         let useButton = $("<a/>", {
             'data-key': key,
             type: "button",
             class: `button rounded ${useclass} abbuttons ${warnlevel}`,
-        }).html('Use');
+        }).html(`Use (${difficultyObj[2]})`);
         let div = $("<div/>", { class: "kwchoice" })
         div.append(useButton)
         div.append(key)
@@ -3376,21 +3380,23 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
      * @param key 
      * @returns 
      */
-    public getKeywordDifficulty(key: string): number {
+    public getKeywordDifficulty(key: string): [number, boolean, number] {
         let result = 0;
+        let hasDuplicates = false;
         let anagrams = this.findAnagrams(key, key.length);
-        result = result + 0.5 * anagrams.length;
+        result = result + 0.5 * (anagrams.length - 1);
         let duplicateCheck = new Array<string>();
         let duplicates = 0;
         for (var i = 0; i < key.length; i++) {
             if (duplicateCheck.includes(key[i])) {
                 duplicates = duplicates + 1;
+                hasDuplicates = true;
             }
             duplicateCheck.push(key[i]);
         }
         result = result + duplicates;
 
-        return result;
+        return [result, hasDuplicates, anagrams.length - 1];
     }
 
     /**

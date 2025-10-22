@@ -9,7 +9,7 @@ const config1 = {
     host: settings.host,
     port: settings.port,
     localRoot: __dirname + '/samples',
-    remoteRoot: settings.remoteRoot + 'samples',
+    remoteRoot: settings.remoteRoot + 'Samples',
     include: ["*",],
     // DON'T delete ALL existing files at destination before uploading, if true
     deleteRemote: false,

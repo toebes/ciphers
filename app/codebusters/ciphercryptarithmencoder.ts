@@ -2147,6 +2147,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
         $('.updmap')
             .off('click')
             .on('click', () => {
+                this.markUndo('updmap')
                 this.updateMap()
             })
         $('#generate')

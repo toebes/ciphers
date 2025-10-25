@@ -452,7 +452,7 @@ export class CipherQuoteManager extends CipherTest {
      * @param link HTML DOM Element to put link under
      */
     public async exportQuotes(link: JQuery<HTMLElement>): Promise<void> {
-        const result = await this.getEntriesWithRanges(this.getLangString(), {}, 50000)
+        const result = await this.getEntriesWithRanges(this.getLangString(), {}, 160000)
         const blob = new Blob([JSON.stringify(result)], { type: 'text/json' });
         const url = URL.createObjectURL(blob);
 

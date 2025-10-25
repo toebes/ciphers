@@ -853,6 +853,9 @@ export class CipherTest extends CipherHandler {
                             if (this.matchesRange(cursor.value, parms)) {
                                 // It matches, so see if we need to account for it
                                 current++
+                                // if (current % 1000 === 0) {
+                                //     console.log(`Checked ${current} entries, found ${entries.length} matches so far...`)
+                                // }
                                 // Are we past the ones we should skip? 
                                 if (current >= parms.start) {
                                     // Yes, so remember it
@@ -1055,7 +1058,7 @@ export class CipherTest extends CipherHandler {
             }
         }
         // If we are also looking for homonyms, 
-        if (result && (parms.homonyms !== undefined)) {
+        if (result && (parms.homonyms !== undefined) && (parms.homonyms[0] > -Infinity)) {
             const homonymcount = countHomonyms(entry.quote)
             // If there were enough homonyms in the phrase we can keep it
             if (homonymcount < parms.homonyms[0]) {

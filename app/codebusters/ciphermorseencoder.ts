@@ -563,7 +563,7 @@ export class CipherMorseEncoder extends CipherEncoder {
         let minCribLength = undefined
         let minHintLength = 5
         if (testType === ITestType.bstate || testType === ITestType.cstate || testType === ITestType.None) {
-            minCribLength = 3
+            minCribLength = 4
             minHintLength = 4
         }
 

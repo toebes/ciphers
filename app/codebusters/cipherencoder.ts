@@ -1526,9 +1526,76 @@ export class CipherEncoder extends CipherHandler {
         qOptions.push(`Decrypt the following cipher text${langtext} that has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}`);
         qOptions.push(`A phrase${this.genAuthor()}${langtext} has been encoded using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}`);
         qOptions.push(`A famous phrase${this.genAuthor()} has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
-        qOptions.push(`A message${langtext}${this.genAuthor()} encrypted${operationtext2} with the ${fixedName} cipher has been received.${hinttext}${operationtext}`);
-        qOptions.push(`The following quote${this.genAuthor()}${langtext} needs to be decoded with the ${fixedName} cipher${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A message${langtext}${this.genAuthor()} encrypted${operationtext2} with the ${fixedName} Cipher has been received.${hinttext}${operationtext}`);
+        qOptions.push(`The following quote${this.genAuthor()}${langtext} needs to be decoded with the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}`);
         qOptions.push(`Someone passed you a piece of paper with this ${fixedName} encoded quote${this.genAuthor()}${langtext}${operationtext2}. ${hinttext}${operationtext}`);
+        qOptions.push(`While scrolling through an old floppy disk labeled "TOP SECRET", you discovered this quote${this.genAuthor()}${langtext} hidden as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your robot vacuum just projected this message onto the ceiling. It’s a quote${this.genAuthor()}${langtext} encoded with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A mysterious QR code on the back of a cereal box leads to this encrypted quote${this.genAuthor()}${langtext} using the ${fixedName} Cipher${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Etched into the surface of a melted vinyl record, you found this ${fixedName}-encrypted quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your smart fridge started flashing this cryptic message at 3 a.m. It’s${this.genAuthor()}${langtext} encoded in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Hidden in the source code of a retro video game, this ${fixedName} puzzle${langtext} reveals a quote${this.genAuthor()}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your drone photographed some weird markings in a parking lot. Turns out it’s a quote${this.genAuthor()}${langtext} in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Scratched onto the lens of an abandoned telescope, decode this ${fixedName} quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A time-capsule USB drive from 1983 just auto-opened with this ${fixedName}-encrypted message${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your chemistry lab’s fume hood started beeping in Morse… but the real puzzle is this ${fixedName} quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your 3D printer paused mid-print to extrude this mysterious ${fixedName} string${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your graphing calculator won’t stop displaying this ${fixedName} puzzle${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Found on a microchip inside a disassembled robotics kit: this ${fixedName} Cipher${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your school’s intercom crackled to life with static… then spelled out this ${fixedName} message${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A vending machine just dispensed a candy wrapper with this ${fixedName} code${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your lab partner’s retainer case clicked open to reveal this ${fixedName}-encrypted quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Found taped under a desk in study hall: this ${fixedName} puzzle${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A mysterious balloon release at the science fair carried this ${fixedName} banner${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your Bunsen burner’s flame suddenly spelled this ${fixedName} message${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A glitch in the school’s grading portal displayed this ${fixedName} string${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Scrawled in dry-erase marker on the whiteboard after hours: this ${fixedName} quote${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your microscope slide prep strangely revealed this ${fixedName} message${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Found inside a dissected frog’s stomach (plastic, don’t worry): this ${fixedName} note${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A message in a bottle washed up in the school’s decorative fountain—decode this ${fixedName} cipher text${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your lava lamp started bubbling in ${fixedName} code${this.genAuthor()}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A message flashes briefly on a malfunctioning computer screen. It turns out to be a quote${this.genAuthor()}${langtext} written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Archaeologists unearth a stone tablet inscribed with a message. It’s a quote${this.genAuthor()}${langtext} encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`You intercept a mysterious radio signal. Decoding it reveals a quote${this.genAuthor()}${langtext} encrypted as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A message was left on the whiteboard after science club. It's a quote${this.genAuthor()}${langtext} encoded using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`While repairing an old telescope, you find a note hidden in the tube. The message is a quote${this.genAuthor()}${langtext} written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Someone left this coded message in the school lab. You are told it’s a quote${this.genAuthor()}${langtext} encoded with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A fragment of text is discovered in a time capsule from 1965. It’s a quote${this.genAuthor()}${langtext} encrypted as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`The message below was intercepted from an experimental satellite transmission. It contains a quote${this.genAuthor()}${langtext}, encoded with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`You open a forgotten email draft saved in the school's computer system. It holds a quote${this.genAuthor()}${langtext} encoded in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A weathered note is found inside an old science textbook. The writing appears to be a quote${this.genAuthor()}${langtext} encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A riddle is discovered taped under a chemistry lab bench. It’s a quote${this.genAuthor()}${langtext}, encrypted as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`You receive an anonymous text message containing a coded passage. It’s said to be a quote${this.genAuthor()}${langtext}, encrypted with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`An explorer’s journal mentions a “hidden truth” encoded below. It turns out to be a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`While analyzing the background noise from a physics experiment, you detect this pattern. It’s a quote${this.genAuthor()}${langtext}, encoded using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`You stumble across this encoded text on an old floppy disk labeled “Project Discovery.” It’s a quote${this.genAuthor()}${langtext} in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A note falls out of a borrowed library book. The message is a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Someone left a paper with the message below on the copy machine in the office. It’s a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Astronomers notice this repeating sequence in deep-space data. It’s actually a quote${this.genAuthor()}${langtext}, encoded with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`You find this encoded line written in invisible ink on a lab safety poster. It’s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A coded message is discovered inside a fortune cookie. It turns out to be a quote${this.genAuthor()}${langtext}, encoded using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`While debugging a program, you find this hidden in the comments. It’s a quote${this.genAuthor()}${langtext}, encrypted with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your science fair project logs contain a mysterious string of letters. It’s a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Someone has left a coded message on the classroom 3D printer’s display. You’re told it’s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`You uncover this encoded note tucked behind a microscope slide. It’s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`This coded passage was discovered in the margin of a physics exam from years ago. It’s a quote${this.genAuthor()}${langtext}, encrypted as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`During a field trip, you notice these strange markings on a metal plaque. They represent a quote${this.genAuthor()}${langtext}, encoded using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`You find an encoded message in the test tube rack, written on masking tape. It’s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`This coded note is discovered inside a sealed envelope labeled “Confidential.” It’s a quote${this.genAuthor()}${langtext}, encoded using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`You receive this puzzling text during a live science broadcast. It contains a quote${this.genAuthor()}${langtext}, encrypted as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Someone left this encrypted quote scribbled on the chalkboard before class began. It’s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`This string of symbols appears on the display of a malfunctioning calculator. It hides a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A mysterious postcard arrives from an unknown sender. It contains a coded quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`An old robot prototype suddenly prints this encoded text. It’s a quote${this.genAuthor()}${langtext}, encrypted using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`You find a coded sequence scratched into the surface of a lab stool. It turns out to be a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`The janitor found this strange paper strip under a Bunsen burner. It’s a quote${this.genAuthor()}${langtext}, encoded with ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Your lab partner discovered this pattern on the back of a graphing calculator. It’s a quote${this.genAuthor()}${langtext}, encoded as ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`You receive this cryptic message from the future through an online time capsule. It’s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`The message below was encoded into the DNA sequence of a synthetic organism. It translates to a quote${this.genAuthor()}${langtext}, encrypted using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A strange code appears in the footer of a document you print from the lab computer. It’s a quote${this.genAuthor()}${langtext}, encoded in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`Someone taped a piece of paper with this sequence onto the back of a trophy from last year’s Science Olympiad. It’s a quote${this.genAuthor()}${langtext}, written using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`A coded message appears after you shine a UV light on a classroom poster. It turns out to be a quote${this.genAuthor()}${langtext}, encrypted using ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
+        qOptions.push(`This code is found written in chalk on the sidewalk outside the science building. It’s a quote${this.genAuthor()}${langtext}, written in ${cipherAorAn} ${fixedName}${operationtext2}.${hinttext}${operationtext}`);
 
 
         if (hinttext !== '') {
@@ -1548,6 +1615,23 @@ export class CipherEncoder extends CipherHandler {
             qOptions.push(`Upon searching a room, the following were found on scraps of paper. You are told it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
             qOptions.push(`You came across the following written on a wall in a cave. You are told that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
             qOptions.push(`You found the following carved into the bark of a hollow log. You are told that it's a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You intercepted this transmission from a rogue weather balloon. Decode the ${fixedName} version${langtext} of ${this.state.author}’s famous words${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`A laser-etched message on the inside of a geodes crystal reads: solve this ${fixedName} version${langtext} of ${this.state.author}’s wisdom${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`Found inside a hollowed-out periodic table book: this ${fixedName} Cipher${langtext} hides ${this.state.author}’s insight${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`A glitchy hologram in the school planetarium displays this ${fixedName} version${langtext} of ${this.state.author}’s words${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`Written in glow-in-the-dark ink on the ceiling of the bio lab, uncover this ${fixedName} quote by ${this.state.author}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`Frozen inside an ice core sample from Antarctica: this ${fixedName} message${langtext} by ${this.state.author}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`A mysterious app update added this ${fixedName} lock screen${langtext}—it’s actually ${this.state.author}’s quote${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`Projected by a broken laser pointer during physics class, solve this ${fixedName} quote${langtext} from ${this.state.author}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`The school’s ancient overhead projector flickered and burned this ${fixedName} message${langtext} onto the screen—decode ${this.state.author}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`Your solar-powered calculator started flashing this ${fixedName} sequence${langtext}—it’s ${this.state.author}’s words${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`Etched into the bottom of the cafeteria’s mystery-cookie tray: this ${fixedName} quote by ${this.state.author}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`Hidden in the margin of a library book on black holes: decode this ${fixedName} version${langtext} of ${this.state.author}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`The gym’s scoreboard glitched during dodgeball to show this ${fixedName} cipher${langtext} by ${this.state.author}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`Your school-issued Chromebook’s login screen hijacked itself with this ${fixedName} quote${langtext} from ${this.state.author}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`The marching band’s sheet music rearranged itself into this ${fixedName} pattern${langtext}—it’s ${this.state.author}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You discover a scrap of paper tucked inside an old lab notebook. It contains a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
+            qOptions.push(`You find this encoded quote written inside the cover of a chemistry reference book. It’s attributed to ${this.state.author}, encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
         }
         else {
             qOptions.push(`Upon searching a room, the following were found on scraps of paper. You realize it's encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}`);
@@ -1610,18 +1694,11 @@ export class CipherEncoder extends CipherHandler {
         else {
             // adds questions 
             this.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
-
-
         }
-
 
         let testUsage = this.cipherName;
         const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
         const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
-
-        // We use the 8, 9, 10 and 11 unique character strings as our potential keyword choices
-        let scaleb9 = 10
-        let scalec9 = 10
 
         // Keep track of how many entries we find to present so that we don't put more than 10 on the dialog
         let found = 0

@@ -2188,6 +2188,35 @@ export class CipherHandler {
         }
         return result
     }
+
+    /**
+     * Get the other test questions on the test we are working on.
+     *
+     */
+    public getOtherTestQuestions(): number[] {
+        let result: number[] = []
+        if (this.savefileentry !== -1) {
+            // Find out what tests this is a part of
+            const testCount = this.getTestCount();
+            for (let entry = 0; entry < testCount; entry++) {
+                const test = this.getTestEntry(entry);
+                // Check to see if this question is on the test either as
+                // the timed question or one of the questions.
+                if (test.timed === this.savefileentry ||
+                    test.questions.indexOf(this.savefileentry) !== -1) {
+                    // The question is on this test, so we want to collect all the other questions
+                    for (let qnum of [test.timed, ...test.questions]) {
+                        // Obviously we want to skip dups and our own question
+                        if (qnum !== this.savefileentry && qnum !== -1 && result.indexOf(qnum) === -1) {
+                            result.push(qnum);
+                        }
+                    }
+                }
+            }
+        }
+        return result
+    }
+
     /**
      * Loads new data into a solver, preserving all solving matches made
      */

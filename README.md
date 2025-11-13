@@ -67,3 +67,11 @@ python .\word_checker.py --in .\wordcheck.txt --cache cache.json --workers 8 --r
 - `cache.json` - is a state saving cache for restarting and not having to check the website again
 
 This also creates a `../cache` directory so that once it downlodads a page from the website, it doesn't download it again.
+
+### `export_wikt_csv.py`
+
+Dumps all the processed words from `word_checker.py` into a csv file.
+
+```
+python export_wikt_csv.py --in .\wordcheck.txt --wikt-cache-root ..\cache\wiktionary_cache --out words_defs.csv
+```

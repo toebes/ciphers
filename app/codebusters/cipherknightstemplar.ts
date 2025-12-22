@@ -15,7 +15,8 @@ export class CipherKnightsTemplarEncoder extends CipherEncoder {
     public activeToolMode: toolMode = toolMode.codebusters;
     public guidanceURL = 'TestGuidance.html#KnightsTemplar';
     public cipherName = 'Knights Templar'
-
+    public width_aregional = 26;
+    public width_standard = 40;
 
     public validTests: ITestType[] = [ITestType.None, ITestType.aregional];
     public defaultstate: IEncoderState = {
@@ -116,10 +117,10 @@ export class CipherKnightsTemplarEncoder extends CipherEncoder {
     public genAnswer(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
         this.genAlphabet();
-        let width = 40;
+        let width = this.width_standard;
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width = 29;
+            width = this.width_aregional;
             extraclass = ' atest';
         }
         const strings = this.makeReplacement(this.state.cipherString, width);
@@ -174,10 +175,10 @@ export class CipherKnightsTemplarEncoder extends CipherEncoder {
         const idclass = 'I' + qnumdisp + '_';
         const result = $('<div/>', { id: 'Q' + qnumdisp });
         const tosolve = 0;
-        let width = 40;
+        let width = this.width_standard;
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width = 29;
+            width = this.width_aregional;
             extraclass = ' atest';
         }
         let pos = 0;
@@ -221,10 +222,10 @@ export class CipherKnightsTemplarEncoder extends CipherEncoder {
      */
     public genQuestion(testType: ITestType): JQuery<HTMLElement> {
         const result = $('<div/>', { class: 'grid-x' });
-        let width = 40;
+        let width = this.width_standard;
         let extraclass = '';
         if (testType === ITestType.aregional) {
-            width = 30;
+            width = this.width_aregional;
             extraclass = ' atest';
         }
         const strings = this.makeReplacement(this.state.cipherString, width);

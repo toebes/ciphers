@@ -36,6 +36,8 @@ yarn-error.log*
 .DS_Store
 Error Log.txt
 pom.xml
+wiktionary_cache/*
+wikipedia_cache/*
 
 # =============================
 # Excel / CSV Files
@@ -58,10 +60,11 @@ getgrquotes.py
 # =============================
 CipherTools*.zip
 quotes*.json
-ANC-written-*.txt
+*.txt
 
 # =============================
 # App / Project Specific
 # =============================
 app/*/*.js
 app/*/*.js.map
+cache.json

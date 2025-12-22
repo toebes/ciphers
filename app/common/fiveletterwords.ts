@@ -1976,7 +1976,6 @@ export const fiveletterwords: string[] = [
     'SLIMY',
     'SLIPS',
     'SLOPE',
-    'SLREN',
     'SMACK',
     'SMALL',
     'SMART',

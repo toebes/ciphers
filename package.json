@@ -65,7 +65,6 @@
         "tslint-config-prettier": "^1.18.0",
         "typescript": "^5.1.6",
         "uglify-js": "^3.13.9",
-        "url-loader": "^4.1.1",
         "webpack": "^5.39.1",
         "webpack-bundle-analyzer": "^4.4.2",
         "webpack-cli": "^6.0.1",
@@ -107,6 +106,7 @@
         "foundation-sites": "^6.6.3",
         "jquery": "^3.6.0",
         "js-cookie": "^2.2.1",
+        "jszip": "^3.10.1",
         "jwt-decode": "^3.1.2",
         "katex": "^0.16.21",
         "npm-force-resolutions": "^0.0.10",
@@ -117,6 +117,7 @@
         "syllable": "^5.0.0",
         "underscore": "^1.13.1",
         "what-input": "^5.2.10",
-        "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
+        "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz",
+        "xlsx-js-style": "github:gitbrent/xlsx-js-style"
     }
 }

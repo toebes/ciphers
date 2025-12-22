@@ -17,6 +17,7 @@ import { JTRadioButton, JTRadioButtonSet } from '../common/jtradiobutton';
 import { JTTable } from '../common/jttable';
 import { IEncoderState } from './cipherencoder';
 import { CipherPrintFactory } from './cipherfactory';
+import CipherScoreSheetGenerator from './cipherscoresheetgenerator';
 
 const DATABASE_VERSION = 4
 
@@ -520,6 +521,15 @@ export class CipherTest extends CipherHandler {
      */
     public gotoAdjustScores(test: number): void {
         location.assign(`TestScoreAdjust.html?test=${test}`)
+    }
+    /**
+     * Generate .xlsx scoresheet for an existing test
+     * @param test Test number to generate scoresheet for
+     */
+    public async generateScoreSheet(test: number): Promise<void> {
+        const testdata = this.getTestEntry(test);
+        const testJson = this.generateTestData(testdata);
+        await CipherScoreSheetGenerator.generateScoreSheet(testJson);
     }
     /**
      * Convert the current test information to a map which can be saved/restored later

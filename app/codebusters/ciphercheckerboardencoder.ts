@@ -209,12 +209,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     public setCipherString(cipherString: string): boolean {
         let changed = super.setCipherString(cipherString);
 
-        //VALIDATE ROW/COLUMN HERE MAYBE?
-        let validCipher = this.validateKeySequence();
-        this.setErrorMsg('', 'vKeywordLetters');
-        if (!validCipher) {
-            this.setErrorMsg('Not all row and column keyword letters appear in cipher text.', 'vKeywordLetters');
-        }
+
 
         return changed;
     }
@@ -615,6 +610,13 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
      */
     public updateOutput(): void {
         this.showLengthStatistics();
+        //VALIDATE ROW/COLUMN HERE MAYBE?
+        let validCipher = this.validateKeySequence();
+        let keyLetterError = ''
+        if (!validCipher) {
+            keyLetterError = 'Not all row and column keyword letters appear in cipher text.', 'vKeywordLetters';
+        }
+        this.setErrorMsg(keyLetterError, 'vKeywordLetters');
         if (this.state.operation !== 'crypt') {
             this.guidanceURL = 'TestGuidance.html#Checkerboard';
             $('.crib').hide();
@@ -3351,14 +3353,13 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     }
 
 
-
     public genUseKey(key: string, useclass = "keyset"): JQuery<HTMLElement> {
         if (key === undefined) {
             return $("<span/>")
         }
         let difficultyObj = this.getKeywordDifficulty(key);
         let warnlevel = "";
-        if (difficultyObj[0] > 2) {
+        if (difficultyObj[2] > 2) {
             warnlevel = "warning";
         }
         if (difficultyObj[1] || difficultyObj[2] > 4) {
@@ -3368,6 +3369,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             'data-key': key,
             type: "button",
             class: `button rounded ${useclass} abbuttons ${warnlevel}`,
+            title: difficultyObj[3].join('\n')
         }).html(`Use (${difficultyObj[2]})`);
         let div = $("<div/>", { class: "kwchoice" })
         div.append(useButton)
@@ -3380,7 +3382,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
      * @param key 
      * @returns 
      */
-    public getKeywordDifficulty(key: string): [number, boolean, number] {
+    public getKeywordDifficulty(key: string): [number, boolean, number, string[]] {
         let result = 0;
         let hasDuplicates = false;
         let anagrams = this.findAnagrams(key, key.length);
@@ -3396,7 +3398,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         }
         result = result + duplicates;
 
-        return [result, hasDuplicates, anagrams.length - 1];
+        return [result, hasDuplicates, anagrams.length - 1, anagrams];
     }
 
     /**

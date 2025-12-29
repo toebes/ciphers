@@ -210,7 +210,6 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         let changed = super.setCipherString(cipherString);
 
 
-
         return changed;
     }
 
@@ -610,13 +609,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
      */
     public updateOutput(): void {
         this.showLengthStatistics();
-        //VALIDATE ROW/COLUMN HERE MAYBE?
-        let validCipher = this.validateKeySequence();
-        let keyLetterError = ''
-        if (!validCipher) {
-            keyLetterError = 'Not all row and column keyword letters appear in cipher text.', 'vKeywordLetters';
-        }
-        this.setErrorMsg(keyLetterError, 'vKeywordLetters');
+
         if (this.state.operation !== 'crypt') {
             this.guidanceURL = 'TestGuidance.html#Checkerboard';
             $('.crib').hide();
@@ -631,6 +624,13 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         $('#polybiuskey').val(this.state.polybiusKey)
         $('#crib').val(this.state.crib);
         super.updateOutput();
+        //VALIDATE ROW/COLUMN HERE MAYBE?
+        let validCipher = this.validateKeySequence();
+        let keyLetterError = ''
+        if (!validCipher) {
+            keyLetterError = 'Not all row and column keyword letters appear in cipher text.';
+        }
+        this.setErrorMsg(keyLetterError, 'vKeywordLetters');
     }
     /**
      * genPreCommands() Generates HTML for any UI elements that go above the command bar
@@ -3350,6 +3350,53 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
      */
     public populateKeySuggestions(): void {
         this.populateLenKeySuggestions('genbtn', 'suggestKeyopts', 20, 5, 5)
+    }
+
+
+
+    /*
+     * Populate the dialog with a set of keyword suggestions. 
+     * @param genbtnid Id of the gen button
+     * @param resultid Id of the element to store the results
+     * @param lower Shortest word to generate
+     * @param upper Longest word to generate
+     */
+    public populateLenKeySuggestions(genbtnid: string = "genbtn", resultid: string = 'suggestKeyopts', kwcount: number, lower: number = 3, upper: number = 7,): void {
+        this.uniquePattern = this.makeUniquePattern("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1)
+
+        $(`#${genbtnid}`).text('Regenerate')
+        let result = $(`#${resultid}`)
+        const lang = 'en'
+
+        // For Division A and B we use even less of the words than for Division C
+        // in order to get language appropriate choices
+        let testUsage = this.getTestUsage();
+        const usedOnA = testUsage.includes(ITestType.aregional) || testUsage.includes(ITestType.astate);
+        const usedOnB = testUsage.includes(ITestType.bregional) || testUsage.includes(ITestType.bstate);
+        let range = 1.0
+        if (usedOnA) {
+            range *= .25
+        } else if (usedOnB) {
+            range *= .5
+        }
+        result.empty()
+        result.append($('<p/><b>NOTE:</b> The difficulty is based of the number of anagrams. Hover over the "Use" button to see the list of anagrams found.</p>'));
+        const divAll = $("<div/>", { class: 'grid-x' })
+        const cells: JQuery<HTMLElement>[] = []
+        for (let cellCount = 0; cellCount < 2; cellCount++) {
+            const cell = $('<div/>', { class: 'cell auto' })
+            cells.push(cell)
+            divAll.append(cell)
+        }
+        result.append(divAll)
+
+        this.searchForUniqueKeywords(kwcount, lower, upper,
+            (found: number, keyword: string): boolean => {
+                const useDiv = this.genUseKey(keyword)
+                cells[found % cells.length].append(useDiv)
+                return true
+            })
+        this.attachHandlers()
     }
 
 

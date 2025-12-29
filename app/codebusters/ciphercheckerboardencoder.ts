@@ -2387,11 +2387,26 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             return undefined;
         }
 
+        const dupRowKeywordLetters = (this.undupeString(this.cleanRowKeyword).length < 5)
+        const dupColKeywordLetters = (this.undupeString(this.cleanColKeyword).length < 5)
+        const handCheckMsg = ` If you insist on using these keywords, you must solve this by hand on paper to confirm that it can be  solved in a reasonable amount of time.`
+
         // For now we only handle the case where we have a single option for each keyword
         if (rowPossible.length > 1 || colPossible.length > 1) {
             if (!await this.eliminateKeywords(target, solverData)) {
-                this.showStepText(target, "Auto-Solver is unable to determine the Row and Column keywords given the Cipher letters.")
-                this.setErrorMsg('Auto-Solver is unable to determine the Row and Column keywords given the Cipher letters.  Consider different keywords.', 'si',);
+                let msg = 'Auto-Solver is unable to determine the Row and Column keywords given the Cipher letters.'
+                if (dupColKeywordLetters) {
+                    if (dupRowKeywordLetters) {
+                        msg += ` Both the Row Keyword '${this.cleanRowKeyword}' and the Column Keyword '${this.cleanColKeyword}' have duplicate letters.`
+                    } else {
+                        msg += ` The Column Keyword '${this.cleanColKeyword}' has duplicate letters.`
+                    }
+                } else if (dupRowKeywordLetters) {
+                    msg += ` The Row Keyword '${this.cleanRowKeyword}' has duplicate letters.`
+                }
+                msg += ' Consider different keywords.'
+                this.showStepText(target, msg)
+                this.setErrorMsg(msg + handCheckMsg, 'si',);
                 return undefined;
             }
         }
@@ -2399,14 +2414,19 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         solverData.colKeyword = colPossible[0]
 
         // Check for dupliate letters in the keywords
-        if (this.undupeString(solverData.rowKeyword).length < 5) {
-            this.showStepText(target, `Auto-Solver has detected that the Row keyword ${solverData.rowKeyword} has duplicate letters.`);
-            this.setErrorMsg(`Auto-Solver has detected that the Row keyword ${solverData.rowKeyword} has duplicate letters and is unable to generate an automatice solution.  Consider a different keyword.`, 'si',);
-            return undefined;
-        }
-        if (this.undupeString(solverData.colKeyword).length < 5) {
-            this.showStepText(target, `Auto-Solver has detected that the Column keyword ${solverData.colKeyword} has duplicate letters.`);
-            this.setErrorMsg(`Auto-Solver has detected that the Column keyword ${solverData.colKeyword} has duplicate letters and is unable to generate an automatice solution.  Consider a different keyword.`, 'si',);
+        if (dupRowKeywordLetters || dupColKeywordLetters) {
+            let msg = 'Auto-Solver has detected that';
+            if (dupRowKeywordLetters) {
+                if (dupColKeywordLetters) {
+                    msg = ` both the Row Keyword '${this.cleanRowKeyword}' and the Column Keyword '${this.cleanColKeyword}' have duplicate letters and is unable to generate an automatice solution.  Consider different keywords.`
+                } else {
+                    msg = ` the Row Keyword '${this.cleanRowKeyword}' has duplicate letters and is unable to generate an automatice solution.  Consider a different keyword.`
+                }
+            } else {
+                msg = ` the Column Keyword '${this.cleanColKeyword}' has duplicate letters and is unable to generate an automatice solution.  Consider a different keyword.`
+            }
+            this.showStepText(target, msg);
+            this.setErrorMsg(msg + handCheckMsg, 'si',);
             return undefined;
         }
 

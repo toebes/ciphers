@@ -837,6 +837,9 @@ export class CipherTestBuild extends CipherTest {
             cipherType === ICipherType.Cryptarithm ||
             cipherType === ICipherType.Hill ||
             cipherType === ICipherType.Porta ||
+            cipherType === ICipherType.Affine ||
+            cipherType === ICipherType.Atbash ||
+            cipherType === ICipherType.Caesar ||
             cipherType === ICipherType.NihilistSubstitution ||
             cipherType === ICipherType.Checkerboard ||
             cipherType === ICipherType.RunningKey ||

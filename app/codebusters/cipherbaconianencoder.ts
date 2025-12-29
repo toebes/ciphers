@@ -791,8 +791,8 @@ export class CipherBaconianEncoder extends CipherEncoder {
         // checks that the line width is a multiple of the sequence length.
         msg = '';
         if (this.state.operation === 'sequence') {
-            let cleanA = this.removeHtml(this.state.texta);
-            if (this.state.linewidth % cleanA.length != 0) {
+            let aset = this.buildset(this.state.texta);
+            if (this.state.linewidth % aset.length != 0) {
                 msg = 'The line width is not a multiple of the sequence length.'
             }
         }

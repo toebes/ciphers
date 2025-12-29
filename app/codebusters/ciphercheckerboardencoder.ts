@@ -3380,7 +3380,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             range *= .5
         }
         result.empty()
-        result.append($('<p/><b>NOTE:</b> The difficulty is based of the number of anagrams. Hover over the "Use" button to see the list of anagrams found.</p>'));
+        result.append($('<p/><b>NOTE:</b> The color of the "Use" button indicates difficulty. The number in parentheses indicates the number of anagrams. Hover over the "Use" button to see the list of anagrams.</p><p/>BLUE: Easy, YELLOW: Medium, RED: Hard</p>'));
         const divAll = $("<div/>", { class: 'grid-x' })
         const cells: JQuery<HTMLElement>[] = []
         for (let cellCount = 0; cellCount < 2; cellCount++) {

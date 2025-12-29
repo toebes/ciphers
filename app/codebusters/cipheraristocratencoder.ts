@@ -583,6 +583,12 @@ export class CipherAristocratEncoder extends CipherEncoder {
                     }
                 }
                 this.setErrorMsg(msg2, 'dq', msg2extra);
+                if (msg2 === '') {
+                    $('#validatekey').text('Keyword is Valid').removeClass('primary alert').addClass('success');
+                } else {
+                    $('#validatekey').text('Invalid keyword').removeClass('primary success').addClass('alert');;
+                }
+                $('#validatekey').attr('disabled', 'disabled');
             })
         }
     }
@@ -650,6 +656,18 @@ export class CipherAristocratEncoder extends CipherEncoder {
         if (this.state.translation !== translation) {
             changed = true;
             this.state.translation = translation;
+        }
+        return changed;
+    }
+    /**
+     * Sets the keyword (state.keyword)
+     * @param keyword New keyword
+     * @returns Boolean indicating if the value actually changed
+     */
+    public setKeyword(keyword: string): boolean {
+        let changed = super.setKeyword(keyword);
+        if (changed) {
+            $('#validatekey').removeAttr('disabled').text('Validate Keyword').removeClass('success alert').addClass('primary');
         }
         return changed;
     }

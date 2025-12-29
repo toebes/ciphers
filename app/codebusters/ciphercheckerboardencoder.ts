@@ -1564,11 +1564,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         for (const sequenceset of strings) {
             const topRow = $('<tr/>');
             for (const unit of sequenceset[source]) {
-                if (this.charset.indexOf(unit) < 0 && !(/^-?\d+$/.test(unit))) {
-                    topRow.append($('<td/>').text(unit));
-                } else {
-                    topRow.append($('<td class="q v"/>').text(unit));
-                }
+                topRow.append($('<td/>').text(unit));
             }
             table.append(topRow);
             const botRow = $('<tr/>');

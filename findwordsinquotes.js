@@ -3,7 +3,7 @@
  * find-words-in-quotes.js
  * 
  * Usage:
- *   node find-words-in-quotes.js --words "C:\path\words.txt" --quotes "C:\path\quotes.txt" --out "C:\path\word_hits.csv" --nohits "C:\path\word_nohits.csv"
+ *   node find-words-in-quotes.js --words "words_all.txt" --quotes "quotes.txt" --out "word_hits.csv" --nohits "nohits.csv"
  *
  * - words.txt: one word per line
  * - quotes.txt: one quote per line (plain text)

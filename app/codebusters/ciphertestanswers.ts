@@ -260,6 +260,8 @@ export class CipherTestAnswers extends CipherTest {
         const table = new JTTable({
             class: 'cell shrink tiebreak',
         });
+        let extra = '';
+        let TinyTie = '';
         table
             .addHeaderRow()
             .add('Tie Breaker Order')
@@ -279,9 +281,12 @@ export class CipherTestAnswers extends CipherTest {
                 .addBodyRow()
                 .add(String(order))
                 .add(qtitle);
+            TinyTie += `${extra}${qtitle}`;
+            extra = ', ';
             order++;
         }
         $('#tietable').append(table.generate());
+        $('#tinytie').text(TinyTie);
         return result;
     }
 }

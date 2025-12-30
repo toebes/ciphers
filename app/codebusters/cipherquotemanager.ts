@@ -290,7 +290,11 @@ export class CipherQuoteManager extends CipherTest {
                 }
                 const ent = data[currentIndex]
                 const quote = ent.quote ? ent.quote : ent.text;
-                if (this.filterword(quote)) {
+                if (quote === undefined || quote.trim() === '') {
+                    currentIndex++
+                    skipped++;
+                    processNextRecord()
+                } else if (this.filterword(quote)) {
                     currentIndex++
                     skipped++;
                     processNextRecord()

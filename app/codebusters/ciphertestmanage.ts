@@ -125,6 +125,13 @@ export class CipherTestManage extends CipherTest {
             //         class: 'testint button',
             //     }).text('Interactive Test')
             // );
+            buttons.append(
+                $('<a/>', {
+                    'data-entry': entry,
+                    type: 'button',
+                    class: 'testscoresheet button',
+                }).text('Generate Scoresheet')
+            );
 
             row.add($('<div/>', { class: 'grid-x' }).append(buttons))
                 .add(test.title)
@@ -183,6 +190,11 @@ export class CipherTestManage extends CipherTest {
             .off('click')
             .on('click', (e) => {
                 this.gotoPrintTestSols(Number($(e.target).attr('data-entry')));
+            });
+        $('.testscoresheet')
+            .off('click')
+            .on('click', async (e) => {
+                await this.generateScoreSheet(Number($(e.target).attr('data-entry')));
             });
     }
 }

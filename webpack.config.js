@@ -97,14 +97,22 @@ config = {
             },
             // All small .png files (mostly the icons for jqueryui) are inlined
             // with the URL loader
+            // Assets: Inlines files smaller than 8KB (8192 bytes) as data URIs,
+            // and outputs larger files as separate assets.
             {
                 test: /\.(png)$/,
-                use: {
-                    loader: 'url-loader',
-                    options: {
-                        limit: 8192,
-                        esModule: false
-                    },
+                type: 'asset',
+                parser: {
+                    dataUrlCondition: {
+                        // Set the max file size for inlining (8KB)
+                        maxSize: 8 * 1024
+                    }
+                },
+                // The esModule: false equivalent is achieved here, 
+                // ensuring images are processed correctly as CommonJS modules (like require('...')).
+                generator: {
+                    // Set publicPath if necessary, but usually optional with Webpack 5 defaults
+                    // filename: 'images/[name].[ext]', 
                 },
             },
             // All small .svg files (mostly the icons for the editor) are inlined

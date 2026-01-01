@@ -3500,6 +3500,8 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
     }
 
     public genCribSuggestions() {
+        const encoded = this.chunk(this.cleanString(this.state.cipherString), this.state.blocksize);
+        this.sequencesets = this.buildCheckerboardSequenceSets(encoded, this.maxEncodeWidth);
         let output = $("#suggestCribOpts");
         const divAll = $("<div/>", { class: 'grid-x' })
         const cellLeft = $('<div/>', { class: 'cell auto' })

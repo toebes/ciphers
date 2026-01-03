@@ -282,8 +282,22 @@ export class CipherTestPrint extends CipherTest {
             if (cipherhandler.usesDancingMenTable) {
                 usesDancingMenTable = true;
             }
-            page.append(thisquestion);
-            const thisheight = thisquestion.outerHeight();
+            // In order to determine the size of the question, we need to
+            // insert it into a temporary div that is part of the document
+            // We set the style as if it is a print element (with the help of code in styles.css)
+            // and add a filler element at the bottom to make sure that the bottom margin is taken
+            // into account.
+            const sizeDiv = $('<div/>', { class: 'printchk' });
+            const filler = $('<p/>').text('...')
+            sizeDiv.append(thisquestion)
+            sizeDiv.append(filler);
+            page.append(sizeDiv);
+            const thisheight = sizeDiv.outerHeight() - filler.outerHeight();
+            // Height was determined so remove the temporary filler at the bottom
+            filler.remove();
+            // And remove the printchk class so it prints normally
+            sizeDiv.removeClass('printchk');
+            // If the page is full, start a new one and put this content onto it
             if (thisheight + accumulated > pagesize || qcount > 1) {
                 page = this.genPage(test.title);
                 result.append(page);

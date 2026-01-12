@@ -164,6 +164,26 @@ export class CipherEncoder extends CipherHandler {
         $('#statistics').text(`Plain text length=${this.minimizeString(this.state.cipherString).length}`);
     }
     /**
+     * Determine if a question is asking for a decode operation
+     * @param questionText Uppercase question text to validate
+     * @returns boolean indicating that the question 
+     */
+    public isDecodeOperation(questionText: string): boolean {
+        const patterns = [
+            'DECRY',
+            'DECOD',
+            'BEEN ENC',
+            'ENCODED',
+            'ENCRYPTED',
+            'WHAT DOES IT SAY',
+            'WAS ENC',
+            'IT\'S ENC',
+        ];
+
+        return patterns.some(p => questionText.includes(p));
+    }
+
+    /**
      * Make sure that they are asking them to solve the cipher or fill in the keyword.
      * If they are using a K1/K2/K3/K4 alphabet, they should also mention it
      */
@@ -1581,7 +1601,7 @@ export class CipherEncoder extends CipherHandler {
      * @param questionTemplate The template that will potentially be used if not already used.
      */
     public isQuestionUsed(usedQuestions: Array<string>, questionTemplate: string): boolean {
-        const {regex, placeholders } = this.buildRegexWithGroups(questionTemplate);
+        const { regex, placeholders } = this.buildRegexWithGroups(questionTemplate);
 
         for (const usedQuestion of usedQuestions) {
             if (regex.exec(usedQuestion)) {
@@ -1619,22 +1639,21 @@ export class CipherEncoder extends CipherHandler {
 
         // Values that will be used to fill in the templates
         const values: Record<string, string> = {
-            'this.genAuthor()' : this.genAuthor(),
-            'this.state.author' : this.state.author,
-            'langtext' : langtext,
-            'hinttext' : hinttext,
-            'fixedName' : fixedName,
-            'operationtext' : operationtext,
-            'operationtext2' : operationtext2,
-            'cipherAorAn' : cipherAorAn
+            'this.genAuthor()': this.genAuthor(),
+            'this.state.author': this.state.author,
+            'langtext': langtext,
+            'hinttext': hinttext,
+            'fixedName': fixedName,
+            'operationtext': operationtext,
+            'operationtext2': operationtext2,
+            'cipherAorAn': cipherAorAn
         };
         let questionTemplate: string = '';
-        let questionTemplates: string [] = [];
+        let questionTemplates: string[] = [];
 
         // Special handling if the 'author' is a proverb -- grammar gets sketchy otherwise.
         let regex = /proverb/i;
-        if (regex.test(this.state.author))
-        {
+        if (regex.test(this.state.author)) {
             questionTemplates = [
                 'Hidden inside the fortune cookie was ${this.state.author} encoded using ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
                 'The morning announcement ended with ${this.state.author} encrypted in ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
@@ -1661,7 +1680,7 @@ export class CipherEncoder extends CipherHandler {
                 'Your school ID background contains ${this.state.author} encrypted as ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
                 'The bus route sign briefly displayed ${this.state.author} in ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
                 'Each day the digital clock flashes ${this.state.author} for exactly ten seconds using ${cipherAorAn} ${fixedName} cipher${langtext}${operationtext2}.${hinttext}${operationtext}'
-                ];
+            ];
 
             let proverb = '';
             if (/^[aeiou]/i.test(this.state.author.trim())) {
@@ -1780,30 +1799,30 @@ export class CipherEncoder extends CipherHandler {
         }
         if (this.state.author !== undefined && this.state.author !== '' && !/unknown/i.test(this.state.author.trim())) {
             questionTemplates = [
-            '${this.state.author} has been heard to say the following phrase that has been encoded using the ${fixedName} Cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
-            '${this.state.author} was often heard to say the following phrase which has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            '${this.state.author} offers us some advice that has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            '${this.state.author} offers an observation that has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Upon searching a room, the following were found on scraps of paper. You are told it\'s a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'You came across the following written on a wall in a cave. You are told that it\'s a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'You found the following carved into the bark of a hollow log. You are told that it\'s a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'You intercepted this transmission from a rogue weather balloon. Decode the ${fixedName} version${langtext} of ${this.state.author}\'s famous words${operationtext2}.${hinttext}${operationtext}',
-            'A laser-etched message on the inside of a geodes crystal reads: solve this ${fixedName} version${langtext} of ${this.state.author}\'s wisdom${operationtext2}.${hinttext}${operationtext}',
-            'Found inside a hollowed-out periodic table book: this ${fixedName} Cipher${langtext} hides ${this.state.author}\'s insight${operationtext2}.${hinttext}${operationtext}',
-            'A glitchy hologram in the school planetarium displays this ${fixedName} version${langtext} of ${this.state.author}\'s words${operationtext2}.${hinttext}${operationtext}',
-            'Written in glow-in-the-dark ink on the ceiling of the bio lab, uncover this ${fixedName} quote by ${this.state.author}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Frozen inside an ice core sample from Antarctica: this ${fixedName} message${langtext} by ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-            'A mysterious app update added this ${fixedName} lock screen${langtext}—it\'s actually ${this.state.author}\'s quote${operationtext2}.${hinttext}${operationtext}',
-            'Projected by a broken laser pointer during physics class, solve this ${fixedName} quote${langtext} from ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-            'The school\'s ancient overhead projector flickered and burned this ${fixedName} message${langtext} onto the screen—decode ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-            'Your solar-powered calculator started flashing this ${fixedName} sequence${langtext}—it\'s ${this.state.author}\'s words${operationtext2}.${hinttext}${operationtext}',
-            'Etched into the bottom of the cafeteria\'s mystery-cookie tray: this ${fixedName} quote by ${this.state.author}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'Hidden in the margin of a library book on black holes: decode this ${fixedName} version${langtext} of ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-            'The gym\'s scoreboard glitched during dodgeball to show this ${fixedName} Cipher${langtext} by ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-            'Your school-issued Chromebook\'s login screen hijacked itself with this ${fixedName} quote${langtext} from ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
-            'The marching band\'s sheet music rearranged itself into this ${fixedName} pattern${langtext}—it\'s a quote by ${this.state.author} encoded${operationtext2}.${hinttext}${operationtext}',
-            'You discover a scrap of paper tucked inside an old lab notebook. It contains a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
-            'You find this encoded quote written inside the cover of a chemistry reference book. It\'s attributed to ${this.state.author}, encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
+                '${this.state.author} has been heard to say the following phrase that has been encoded using the ${fixedName} Cipher${langtext}${operationtext2}.${hinttext}${operationtext}',
+                '${this.state.author} was often heard to say the following phrase which has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
+                '${this.state.author} offers us some advice that has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
+                '${this.state.author} offers an observation that has been encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'Upon searching a room, the following were found on scraps of paper. You are told it\'s a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'You came across the following written on a wall in a cave. You are told that it\'s a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'You found the following carved into the bark of a hollow log. You are told that it\'s a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'You intercepted this transmission from a rogue weather balloon. Decode the ${fixedName} version${langtext} of ${this.state.author}\'s famous words${operationtext2}.${hinttext}${operationtext}',
+                'A laser-etched message on the inside of a geodes crystal reads: solve this ${fixedName} version${langtext} of ${this.state.author}\'s wisdom${operationtext2}.${hinttext}${operationtext}',
+                'Found inside a hollowed-out periodic table book: this ${fixedName} Cipher${langtext} hides ${this.state.author}\'s insight${operationtext2}.${hinttext}${operationtext}',
+                'A glitchy hologram in the school planetarium displays this ${fixedName} version${langtext} of ${this.state.author}\'s words${operationtext2}.${hinttext}${operationtext}',
+                'Written in glow-in-the-dark ink on the ceiling of the bio lab, uncover this ${fixedName} quote by ${this.state.author}${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'Frozen inside an ice core sample from Antarctica: this ${fixedName} message${langtext} by ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
+                'A mysterious app update added this ${fixedName} lock screen${langtext}—it\'s actually ${this.state.author}\'s quote${operationtext2}.${hinttext}${operationtext}',
+                'Projected by a broken laser pointer during physics class, solve this ${fixedName} quote${langtext} from ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
+                'The school\'s ancient overhead projector flickered and burned this ${fixedName} message${langtext} onto the screen—decode ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
+                'Your solar-powered calculator started flashing this ${fixedName} sequence${langtext}—it\'s ${this.state.author}\'s words${operationtext2}.${hinttext}${operationtext}',
+                'Etched into the bottom of the cafeteria\'s mystery-cookie tray: this ${fixedName} quote by ${this.state.author}${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'Hidden in the margin of a library book on black holes: decode this ${fixedName} version${langtext} of ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
+                'The gym\'s scoreboard glitched during dodgeball to show this ${fixedName} Cipher${langtext} by ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
+                'Your school-issued Chromebook\'s login screen hijacked itself with this ${fixedName} quote${langtext} from ${this.state.author}${operationtext2}.${hinttext}${operationtext}',
+                'The marching band\'s sheet music rearranged itself into this ${fixedName} pattern${langtext}—it\'s a quote by ${this.state.author} encoded${operationtext2}.${hinttext}${operationtext}',
+                'You discover a scrap of paper tucked inside an old lab notebook. It contains a quote by ${this.state.author} encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
+                'You find this encoded quote written inside the cover of a chemistry reference book. It\'s attributed to ${this.state.author}, encoded as ${cipherAorAn} ${fixedName}${langtext}${operationtext2}.${hinttext}${operationtext}',
             ];
             for (questionTemplate of questionTemplates) {
                 if (!this.isQuestionUsed(usedQuestions, questionTemplate)) {

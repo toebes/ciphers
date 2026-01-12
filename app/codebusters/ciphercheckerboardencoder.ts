@@ -260,13 +260,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
         const questionText = this.state.question.toUpperCase();
         const key = this.cleanRowKeyword
         if (this.state.operation === 'crypt') {
-            if (
-                questionText.indexOf('DECOD') < 0 &&
-                questionText.indexOf('DECRY') < 0 &&
-                questionText.indexOf('WAS ENC') < 0 &&
-                questionText.indexOf('IT\'S ENC') < 0 &&
-                questionText.indexOf('BEEN ENC') < 0
-            ) {
+            if (!this.isDecodeOperation(questionText)) {
                 msg +=
                     "The Question Text doesn't appear to mention that " +
                     'the cipher needs to be decrypted.';
@@ -292,30 +286,15 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
                     msg +=
                         "The Question Text doesn't appear to mention that " +
                         'the cipher needs to be encoded.';
-                } else if (
-                    questionText.indexOf('WAS ENCOD') > 0 ||
-                    questionText.indexOf('BEEN ENCOD') > 0 ||
-                    questionText.indexOf('WAS ENCRY') > 0 ||
-                    questionText.indexOf('ENCRYPTED') > 0 ||
-                    questionText.indexOf('BEEN ENCRY') > 0
-                ) {
+                } else if (this.isDecodeOperation(questionText)) {
                     msg +=
                         'The Question Text appears to mention that the ' +
                         'cipher needs to be decoded, but this is an encode problem';
                 }
-            } else {
-                if (
-                    questionText.indexOf('DECOD') < 0 &&
-                    questionText.indexOf('DECRY') < 0 &&
-                    questionText.indexOf('WAS ENC') < 0 &&
-                    questionText.indexOf('ENCODED') < 0 &&
-                    questionText.indexOf('ENCRYPTED') < 0 &&
-                    questionText.indexOf('BEEN ENC') < 0
-                ) {
-                    msg +=
-                        "The Question Text doesn't appear to mention that " +
-                        'the cipher needs to be decrypted.';
-                }
+            } else if (!this.isDecodeOperation(questionText)) {
+                msg +=
+                    "The Question Text doesn't appear to mention that " +
+                    'the cipher needs to be decrypted.';
             }
         }
         const sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');

@@ -1282,6 +1282,10 @@ export class CipherTestBuild extends CipherTest {
         if (editAfter) {
             this.gotoEditTest(test);
         } else {
+            // Reset all the questions to the default state
+            $('.qt').each((_idx, elem) => {
+                this.updateQuestionChoice(elem);
+            })
             $("#saveres").empty().append(makeCallout($(htmlToElement(`<p>Test "${this.title}" saved.  Remember to change the Test Title in Step 1 before saving again.</p>`) as HTMLElement), 'success'))
         }
     }
@@ -1542,6 +1546,8 @@ export class CipherTestBuild extends CipherTest {
             $("#cm" + idNum).show()
         }
         $('#ct' + idNum).val(this.quoteGuidance(entry.guidance))
+        // Empty the author field
+        $("#au" + idNum).val("")
     }
     /**
      * 

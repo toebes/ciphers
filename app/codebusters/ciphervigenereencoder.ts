@@ -198,7 +198,7 @@ export class CipherVigenereEncoder extends CipherEncoder {
             }
             // Look to see if the crib appears in the question text
             const crib = this.minimizeString(this.state.crib);
-            if (crib !== '' && questionText.indexOf(crib) < 0) {
+            if (crib !== '' && this.minimizeString(questionText).indexOf(crib) < 0) {
                 msg +=
                     "The Crib Text '" +
                     this.state.crib +

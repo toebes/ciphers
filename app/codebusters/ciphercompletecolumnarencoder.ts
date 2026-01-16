@@ -623,23 +623,11 @@ class CompleteColumnarSolver extends CipherEncoder {
 
             this.printOrderingPossibilities(o);
 
-            // Now I think the bug is in the combinator because it needs to be a bit more smart.  user everf and 6 columns.
-            // you get [3],[5],[1,4,6],[1,4,6],[2],[4,6] and that is totally valid but the combinator does not handle it...it
-            // would give these combinations: [3,5,1,4,2,6],[3,5,1,6,2,4],[3,5,4,1,2,6],[3,5,6,1,2,4]
+            if (DEBUG) {
+                console.log(`Combinations to consider: ${this.countCombinations(o)}`);
+            }
 
-            // build a list of multiple
-            const multiplePossibilities = this.findChoosableColumns(o);
-
-            const combinations = this.countCombinations(o);
-            // The 20 is an arbitrary number...
-            // if (combinations > 1280) {
-            //     if (DEBUG) {
-            //         console.log(`Too many combinations (${combinations}) to consider`);
-            //     }
-            //     return undefined;
-            // }
-
-            let c = this.determineUniqueCombinations(o, multiplePossibilities);
+            let c = this.determineUniqueCombinations(o);
             if (c.length > 128) {
                 return undefined;
             } else {
@@ -708,51 +696,48 @@ class CompleteColumnarSolver extends CipherEncoder {
         return result;
     }
 
-    private determineUniqueCombinations(combinations: IColumnOrder, possiblities: number[]): number[][] {
 
-        let combos: number[][] = [];
-        let didSplit = false;
-        let theClone = this.cloneColumnOrder(combinations)
-        for (let i = 1; i < theClone.length; i++) {
-            if (theClone[i].length > 1) {
-                didSplit = true; // TODO if possibilites[0] is in theClone[i], then {this.removePositionFromOrdering(); this.determineUniqueCombinations(theNewClone, possibilities[1:])
-                if (theClone[i].indexOf(possiblities[0]) > -1) {
-                    let theNewClone = this.cloneColumnOrder(theClone);
-                    this.removePositionFromOrdering(theNewClone, i, [possiblities[0]]);
-                    let newCombos = this.determineUniqueCombinations(theNewClone, possiblities.slice(1));
-                    for (let combo of newCombos) {
-                        // if (combos.length > 20) {
-                        //     return combos;
-                        // }
-                        combos.push(combo);
-                    }
+    /**
+     * Generates all possible unique combinations where:
+     * - For each row i (starting from 1), we pick exactly one value from row[i]
+     * - All chosen values across the combination must be unique
+     * - row[0] is a boolean array indicating which columns allow single-element rows
+     *
+     * @param {boolean[][]} matrix - 2D array of size [n, n+1]
+     *                             matrix[0] = boolean[] of length n+1
+     *                             matrix[1..n] = number[] (or any values), each up to n elements
+     * @returns {Array<Array<any>>} All valid combinations where each combination has exactly n elements,
+     *                              all unique, and respects the "exactly one" constraints
+     */
+    private determineUniqueCombinations(matrix) {
+        const n = matrix.length - 1;
+        const rows = matrix.slice(1);
+        const result = [];
 
+        function backtrack(combination, used, rowIndex) {
+            if (rowIndex === n) {
+                result.push([...combination]);
+                return;
+            }
+
+            for (const value of rows[rowIndex]) {
+                if (!used.has(value)) {
+                    combination.push(value);
+                    used.add(value);
+                    backtrack(combination, used, rowIndex + 1);
+                    combination.pop();
+                    used.delete(value);
                 }
             }
         }
-        if (!didSplit) {
-            let combo: number[] = [];
-            let legal = true;
-            for (let i = 1; i < theClone.length; i++) {
-                if (theClone[i].length === 1) {
-                    combo.push(theClone[i][0]);
-                } else {
-                    legal = false;
-                    break;
-                }
-            }
-            if (legal) {
-                if (DEBUG) {
-                    console.log('RETURN: ' + theClone.toString());
-                }
-                combos.push(combo);
-            }
-        }
-        return combos;
+
+        backtrack([], new Set(), 0);
+        return result;
     }
 
+
     private printOrderingPossibilities(ordering: [][]): void {
-        let msg = '\n['
+        let msg = '\nOrdering possibilities: \n['
         for (let i = 0; i < ordering.length; i++) {
             msg += '['
             for (let j = 0; j < ordering[i].length; j++) {

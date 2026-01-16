@@ -2577,6 +2577,15 @@ table.railfence-sm tbody {
     text-transform: uppercase;
 }
 
+/**************************************************************************/
+/****                       BEGIN Print Styles                         ****/
+/****                                                                  ****/
+/**** NOTE: These must be duplicated with the .printcheck rules below  ****/
+/****       in order for the layout engine to properly determine pages ****/
+/**** If you change anything in this section, you need to make the     ****/
+/***  exact same changes in the .printchk section below                ****/  
+/****                                                                  ****/
+/**************************************************************************/
 @media print {
     .title-bar,
     .top-bar,
@@ -2695,7 +2704,121 @@ table.railfence-sm tbody {
         print-color-adjust: exact;
     }
 }
-
+/**************************************************************************/
+/****                        END Print Styles                          ****/
+/****                     START .printchk Styles                       ****/
+/**************************************************************************/
+    .printchk .title-bar,
+    .printchk .top-bar,
+    .printchk .noprint,
+    .printchk .button-group {
+        display: none !important;
+    }
+    .printchk .center,
+    .printchk .page,
+    .printchk .instructions {
+        max-width: 8in;
+        /* overflow-x: hidden; */
+    }
+    .printchk div.instructions {
+        display: block;
+    }
+    .printchk div.instructions li {
+        margin-left: 15px;
+    }
+    .printchk tbody td {
+        padding: 0.27rem;
+    }
+    .printchk .page {
+        page-break-inside: avoid;
+        padding: 0.5in 0in 0.25in 0in !important;
+        position: relative;
+        width: 100%;
+        height: 100%;
+        page-break-after: always;
+        page-break-before: always;
+        break-after: initial !important;
+    }
+    .printchk .page > .pagebreak {
+        break-before: initial !important;
+    }
+    .printchk .prfreq th {
+        width: 1.5rem;
+    }
+    .printchk .page .head {
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 0.25in;
+        text-align: center;
+    }
+    .printchk .page .headright {
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 0.25in;
+        text-align: right;
+    }
+    .printchk .page .foot {
+        position: absolute;
+        top: 10.5in;
+        left: 0;
+        right: 0;
+        height: 0.25in;
+        text-align: center;
+    }
+    .printchk .page .foot:before,
+    .printchk .page .foot:after {
+        content: none;
+    }
+    .printchk .pagebreak {
+        page-break-before: always;
+    }
+    .printchk .question {
+        page-break-inside: avoid;
+    }
+    .printchk div.affinework {
+        height: 12rem;
+    }
+    /* .grid-x {
+        display: block;
+        flex-flow: default;
+    } */
+    .printchk .grid-x > .shrink {
+        width: default;
+    }
+    /* .cell.shrink {
+        -webkit-flex:
+        flex: 
+    } */
+    .printchk .cell {
+        max-width: 8in;
+        width: auto;
+    }
+    .printchk table.hillblock,
+    .printchk table.hillans {
+        margin-bottom: 12rem;
+    }
+    .printchk .qtext.span {
+        background-color: white !important;
+    }
+    .printchk .TOANSWER {
+        background-color: yellow !important;
+    }
+    .printchk .ansblock td.a {
+        background-color: yellow !important;
+    }
+    .printchk body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+/**************************************************************************/
+/****                       END .printchk Styles                       ****/
+/**************************************************************************/
 table.completecolumnar th,
 table.completecolumnar td {
     border: 1px solid black;

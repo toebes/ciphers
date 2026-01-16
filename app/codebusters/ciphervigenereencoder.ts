@@ -191,21 +191,14 @@ export class CipherVigenereEncoder extends CipherEncoder {
 
         const questionText = this.state.question.toUpperCase();
         if (this.state.operation === 'crypt') {
-            if (
-                questionText.indexOf('DECOD') < 0 &&
-                questionText.indexOf('DECRY') < 0 &&
-                questionText.indexOf('WAS ENC') < 0 &&
-                questionText.indexOf('ENCODED') < 0 &&
-                questionText.indexOf('ENCRYPTED') < 0 &&
-                questionText.indexOf('BEEN ENC') < 0
-            ) {
+            if (!this.isDecodeOperation(questionText)) {
                 msg +=
                     "The Question Text doesn't appear to mention that " +
                     'the cipher needs to be decrypted.';
             }
             // Look to see if the crib appears in the question text
             const crib = this.minimizeString(this.state.crib);
-            if (crib !== '' && questionText.indexOf(crib) < 0) {
+            if (crib !== '' && this.minimizeString(questionText).indexOf(crib) < 0) {
                 msg +=
                     "The Crib Text '" +
                     this.state.crib +
@@ -225,31 +218,15 @@ export class CipherVigenereEncoder extends CipherEncoder {
                     msg +=
                         "The Question Text doesn't appear to mention that " +
                         'the cipher needs to be encoded.';
-                } else if (
-                    questionText.indexOf('WAS ENCOD') > 0 ||
-                    questionText.indexOf('BEEN ENCOD') > 0 ||
-                    questionText.indexOf('ENCRYPTED') > 0 ||
-                    questionText.indexOf('ENCODED') > 0 ||
-                    questionText.indexOf('WAS ENCRY') > 0 ||
-                    questionText.indexOf('BEEN ENCRY') > 0
-                ) {
+                } else if (this.isDecodeOperation(questionText)) {
                     msg +=
                         'The Question Text appears to mention that the ' +
                         'cipher needs to be decoded, but this is an encode problem';
                 }
-            } else {
-                if (
-                    questionText.indexOf('DECOD') < 0 &&
-                    questionText.indexOf('DECRY') < 0 &&
-                    questionText.indexOf('ENCODED') < 0 &&
-                    questionText.indexOf('ENCRYPTED') < 0 &&
-                    questionText.indexOf('WAS ENC') < 0 &&
-                    questionText.indexOf('BEEN ENC') < 0
-                ) {
-                    msg +=
-                        "The Question Text doesn't appear to mention that " +
-                        'the cipher needs to be decrypted.';
-                }
+            } else if (!this.isDecodeOperation(questionText)) {
+                msg +=
+                    "The Question Text doesn't appear to mention that " +
+                    'the cipher needs to be decrypted.';
             }
         }
         const sampleLink = $('<a/>', { class: 'sampq' }).text(' Show suggested Question Text');

@@ -1289,6 +1289,22 @@ div.sols .sol {
     border: 1px solid #cacaca;
 }
 
+table.qdist th {
+    font-weight: bold;
+}
+table.qdist tbody th {
+    text-align: right;
+}
+table.qdist td {
+    text-align: center;
+}
+table.qdist thead th {
+    border-bottom: 1px solid black;
+}
+table.qdist tfoot th, table.qdist tfoot td {
+    border-top: 1px solid black;
+    font-weight: bold;
+}   
 table.contact,
 table.consonantline {
     margin-left: auto;

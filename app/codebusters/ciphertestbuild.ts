@@ -1,3 +1,4 @@
+import { count } from 'yargs';
 import { cloneObject, makeCallout } from '../common/ciphercommon';
 import { IEncodeType, IOperationType, IState, ITest, ITestType, menuMode, toolMode } from '../common/cipherhandler';
 import { ICipherType } from '../common/ciphertypes';
@@ -5,7 +6,7 @@ import { htmlToElement } from '../common/htmldom';
 import { JTButtonItem } from '../common/jtbuttongroup';
 import { JTFIncButton } from '../common/jtfIncButton';
 import { JTFLabeledInput } from '../common/jtflabeledinput';
-import { JTTable } from '../common/jttable';
+import { JTRow, JTTable } from '../common/jttable';
 import { IAristocratState } from './cipheraristocratencoder';
 import { IEncoderState } from './cipherencoder';
 import { CipherPrintFactory } from './cipherfactory';
@@ -16,6 +17,12 @@ const aristocratDivBCPCTMin = .35
 const aristocratDivBCPCTMax = .50
 const aristocratDivAPCTMin = .15
 const aristocratDivAPCTMax = .25
+
+export type IOperationBucket =
+    | 'decode'
+    | 'crypt'
+    | 'keyword'
+    | 'other';
 
 export type TemplateTestTypes = 'none' | 'cregional' | 'cstate' | 'cnational' | 'cpractice' | 'bregional' | 'bstate' | 'bnational' | 'bpractice' | 'aregional' | 'apractice'
 export type TestDifficultyType = 'easy' | 'standard'
@@ -488,6 +495,7 @@ export class CipherTestBuild extends CipherTest {
         },
     ];
 
+    private decodeTypeCounts = new Map<string, Map<string, number>>();
     public title = "Untitled Test";
     public templateType: TemplateTestTypes = 'none'
     public testDifficulty: TestDifficultyType = 'standard'
@@ -853,9 +861,15 @@ export class CipherTestBuild extends CipherTest {
     public genTestTemplate() {
         const template = this.getTemplateInfo(this.templateType);
         const testtype = template.type;
+        // Leave space in the Step 2 header for the Table of Question Distribution
         $("#qlist").empty()
             .append(this.makeStepCallout('Step 2', htmlToElement(
-                `<p>Please review the generated choices and scroll to the bottom for the next step</p>`)))
+                `<div class="grid-x grid-margin-x"> 
+                <div class="cell shrink">
+                <p>Please review the generated choices and scroll to the bottom for the next step</p>
+                </div><div class="cell shrink">
+                <div id="qdist"></div>
+                </div></div>`)));
 
         // First based on the number of questions, we determine how many will be in each group.
         // The four groups are:
@@ -1011,7 +1025,6 @@ export class CipherTestBuild extends CipherTest {
         // Lastly populate the UI
         finalData.forEach((entry, index) => {
             this.generateQuestionRow(index, table, entry, isSpecial[index], possibilities)
-
         })
         $("#qlist").append(table.generate())
         $("#qlist")
@@ -1037,6 +1050,191 @@ export class CipherTestBuild extends CipherTest {
                 .append($("<a>", { id: "savecopy", class: "button rounded cell shrink" }).text('Save a Copy'))
             )
         this.attachHandlers();
+        this.showQuestionDistribution()
+    }
+    /**
+     * Track the number of each subtype and operation
+     * @param subtype Type of question
+     * @param operation Operation for the question
+     */
+    public recordSubType(subtype: string, operation: IOperationBucket): void {
+        let opMap = this.decodeTypeCounts.get(subtype);
+        if (!opMap) {
+            opMap = new Map();
+            this.decodeTypeCounts.set(subtype, opMap);
+        }
+        opMap.set(operation, (opMap.get(operation) ?? 0) + 1);
+    }
+    /**
+     * Get the count of a subtype and operation
+     * @param subtype Type of question
+     * @param operation Operation for the question
+     * @returns Number of questions of that subtype and operation (0 if none)
+     */
+    public getSubTypeCount(subtype: string, operation: IOperationBucket): number {
+        return this.decodeTypeCounts.get(subtype)?.get(operation) ?? 0;
+    }
+    public bucketOperationType(op: IOperationType): IOperationBucket {
+        switch (op) {
+            case 'decode':
+            case 'let4let':
+            case 'sequence':
+            case undefined:
+                return 'decode';
+
+            case 'crypt':
+            case 'words':
+                return 'crypt';
+
+            case 'keyword':
+                return 'keyword';
+
+            default:
+                return 'other';
+        }
+    }
+    /**
+     * Output a table row with the counts for a given subtype
+     * @param row Row (body/footer) to add to
+     * @param label Title for the column header
+     * @param bucketCounts Array of counts to output
+     * @param total Sum total of the counts
+     */
+    private renderCountRow(row: JTRow, label: string, bucketCounts: Record<IOperationBucket, number>, total: number): void {
+        row.add({ celltype: "th", settings: { class: "typ" }, content: label });
+        row.add({ settings: { class: "dec" }, content: String(bucketCounts.decode) });
+        row.add({ settings: { class: "crypt" }, content: String(bucketCounts.crypt) });
+        row.add({ settings: { class: "key" }, content: String(bucketCounts.keyword) });
+        row.add({ settings: { class: "oth" }, content: String(bucketCounts.other) });
+        row.add({ settings: { class: "tot" }, content: String(total) });
+    }
+
+    public mapExtendedCipherSubType = new Map<ICipherType, string>([
+        [ICipherType.Patristocrat, 'Patristocrat'],
+        [ICipherType.Checkerboard, 'Checkerboard'],
+        [ICipherType.Porta, 'Porta'],
+        [ICipherType.Hill, 'Hill'],
+        [ICipherType.NihilistSubstitution, 'Nihilist'],
+        [ICipherType.Cryptarithm, 'Cryptarithm'],
+        [ICipherType.Affine, 'Affine',],
+        [ICipherType.Caesar, 'Caesar',],
+        [ICipherType.Atbash, 'Atbash',],
+        [ICipherType.Vigenere, 'Vigenere',],
+    ])
+    public readonly extendedCipherSubTypes = [
+        'Aristocrat',
+        'Patristocrat',
+        'Xenocrypt',
+        'Baconian',
+        'Checkerboard',
+        'Nihilist',
+        'Porta',
+        'Atbash',
+        'Hill',
+        'Affine',
+        'Morse',
+        'Cryptarithm',
+        'Caesar',
+        'Vigenere',
+        'Transposition',
+        'DancingMen',
+        'PigPen',
+        'KnightsTemplar',
+        'TapCode',
+        'Other'
+    ];
+    public getCipherSubTypeExtended(cipherType: ICipherType): string {
+        if (this.mapExtendedCipherSubType.has(cipherType)) {
+            return this.mapExtendedCipherSubType.get(cipherType);
+        }
+        return this.getCipherSubType(cipherType);
+    }
+
+    /**
+     * Create/Update the question distribution table
+     */
+    public showQuestionDistribution() {
+        const distdiv = $('#qdist')
+        distdiv.empty();
+        this.decodeTypeCounts.clear();
+        let qCount = $('.qt').length
+
+        for (let qnum = 0; qnum < qCount; qnum++) {
+            let idNum = String(qnum);
+            const qTitle = $('#qt' + idNum).val() as string;
+
+            // Division A won't have a timed question, so we can just skip it
+            if (qnum === 0 && (qTitle === "" || qTitle === undefined)) {
+                // However it does mean that there is one more question to copy over
+                qCount++;
+                continue;
+            }
+            const entry = this.getChoiceEntry(qTitle)
+            let subType = this.getCipherSubTypeExtended(entry.cipherType);
+            if (entry.lang === 'es') {
+                subType = 'Xenocrypt';
+            }
+            const operation = this.bucketOperationType(entry.operation);
+            this.recordSubType(subType, operation);
+        }
+
+        // We have computed the distribution, so show it
+        const table = new JTTable({ class: 'qdist' })
+        const headerrow = table.addHeaderRow()
+        headerrow.add({ settings: { class: "typ" }, content: 'Cipher Type' })
+        headerrow.add({ settings: { class: "dec" }, content: 'Decode' })
+        headerrow.add({ settings: { class: "crypt" }, content: 'Crypt' })
+        headerrow.add({ settings: { class: "key" }, content: 'Keyword' })
+        headerrow.add({ settings: { class: "oth" }, content: 'Other' })
+        headerrow.add({ settings: { class: "tot" }, content: 'Total' })
+
+        const grandTotals: Record<IOperationBucket, number> = {
+            decode: 0,
+            crypt: 0,
+            keyword: 0,
+            other: 0,
+        };
+
+        this.extendedCipherSubTypes.forEach((subtype) => {
+            const bucketCounts: Record<IOperationBucket, number> = {
+                decode: this.getSubTypeCount(subtype, 'decode'),
+                crypt: this.getSubTypeCount(subtype, 'crypt'),
+                keyword: this.getSubTypeCount(subtype, 'keyword'),
+                other: this.getSubTypeCount(subtype, 'other'),
+            };
+
+            const total = Object.values(bucketCounts).reduce((a, b) => a + b, 0);
+
+            if (total > 0) {
+                this.renderCountRow(table.addBodyRow(), subtype, bucketCounts, total);
+            }
+            grandTotals.decode += bucketCounts.decode;
+            grandTotals.crypt += bucketCounts.crypt;
+            grandTotals.keyword += bucketCounts.keyword;
+            grandTotals.other += bucketCounts.other;
+        });
+        // Add a total row
+        const footerTotal = Object.values(grandTotals).reduce((a, b) => a + b, 0);
+
+        this.renderCountRow(table.addFooterRow(), "Total", grandTotals, footerTotal);
+
+        const columnTotals = [
+            ['Decode', grandTotals.decode],
+            ['Crypt', grandTotals.crypt],
+            ['Keyword', grandTotals.keyword],
+            ['Other', grandTotals.other],
+        ] as const;
+
+        for (const [title, total] of columnTotals) {
+            if (total === 0) {
+                table.deleteColumnByHeaderTitle(title);
+            }
+        }
+
+        if (grandTotals.crypt === 0 && grandTotals.keyword === 0 && grandTotals.other === 0) {
+            table.deleteColumnByHeaderTitle('Total');
+        }
+        distdiv.append(table.generate());
     }
     /**
      * 
@@ -1548,6 +1746,7 @@ export class CipherTestBuild extends CipherTest {
         $('#ct' + idNum).val(this.quoteGuidance(entry.guidance))
         // Empty the author field
         $("#au" + idNum).val("")
+        this.showQuestionDistribution();
     }
     /**
      * 

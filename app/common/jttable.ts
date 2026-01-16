@@ -190,6 +190,62 @@ export class JTTable {
         return newRow;
     }
     /**
+     * Deletes a column based on the header title (content of the header cell).
+     * Removes the column from header, body, and footer.
+     *
+     * @param title  Header text to match (string comparison)
+     * @returns true if a column was found and removed
+     */
+    public deleteColumnByHeaderTitle(title: string): boolean {
+        if (!this.header.length) {
+            return false;
+        }
+
+        // We only use the first header row to determine the column index
+        const headerRow = this.header[0];
+        let colIndex = -1;
+
+        for (let i = 0; i < headerRow.row.length; i++) {
+            const cell = headerRow.row[i];
+
+            let text: string | null = null;
+
+            if (isString(cell)) {
+                text = cell;
+            } else if (isTDParms(cell)) {
+                if (isString(cell.content)) {
+                    text = cell.content;
+                } else if (cell.content instanceof $) {
+                    text = cell.content.text();
+                }
+            }
+
+            if (text !== null && text.trim() === title) {
+                colIndex = i;
+                break;
+            }
+        }
+
+        if (colIndex < 0) {
+            return false;
+        }
+
+        // Remove column from all sections
+        const removeFromRows = (rows: JTRow[]) => {
+            for (const row of rows) {
+                if (row.row.length > colIndex) {
+                    row.row.splice(colIndex, 1);
+                }
+            }
+        };
+
+        removeFromRows(this.header);
+        removeFromRows(this.body);
+        removeFromRows(this.footer);
+
+        return true;
+    }
+    /**
      * Generates the final table using everything that was gathered
      */
     public generate(): JQuery<HTMLElement> {

@@ -1,7 +1,7 @@
 import { JTRadioButtonItem } from './jtradiobutton';
 
 /** Which type of cipher we are solving */
-export const enum ICipherType {
+export enum ICipherType {
     None = 'none',
     Affine = 'affine',
     Amsco = 'amsco',

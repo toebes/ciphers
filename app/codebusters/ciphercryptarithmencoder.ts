@@ -441,17 +441,22 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
      */
     public getSolValues(): string {
         let result = ""
+        let lastc = ' '
         if (this.state.validmapping && this.state.soltext !== '') {
             for (let c of this.state.soltext.toUpperCase()) {
                 let v = this.state.mapping[c]
                 if (v !== undefined) {
                     result += v
+                    lastc = 'X'
                 } else {
-                    result += c
+                    if (c === ' ' && lastc !== ' ') {
+                        result += c
+                    }
+                    lastc = c
                 }
             }
         }
-        return result
+        return result.trim();
     }
     /**
      * Check for any errors we can find in the question

@@ -326,7 +326,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 msg += `The Key '${this.cleanKeyword}' doesn't appear to be mentioned in the Question Text.`;
             }
             const polybiusKey = this.cleanPolyKey;
-            if (polybiusKey !== '' && questionText.indexOf(polybiusKey) < 0) {
+            if (polybiusKey !== '' && this.minimizeString(questionText).indexOf(polybiusKey) < 0) {
                 msg +=
                     "The Polybius Key '" +
                     polybiusKey +

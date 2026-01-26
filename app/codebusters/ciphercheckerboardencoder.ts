@@ -275,7 +275,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             }
         } else {
             const polybiusKey = this.cleanPolyKey;
-            if (polybiusKey !== '' && questionText.indexOf(polybiusKey) < 0) {
+            if (polybiusKey !== '' && this.minimizeString(questionText).indexOf(polybiusKey) < 0) {
                 msg +=
                     "The Polybius Key '" +
                     polybiusKey +

@@ -298,9 +298,11 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
             const crib = this.minimizeString(this.state.crib);
             if (crib !== '' && this.minimizeString(questionText).indexOf(crib) < 0) {
                 msg +=
-                    "The Crib Text '" +
-                    this.state.crib +
-                    "' doesn't appear to be mentioned in the Question Text.";
+                    `The Crib Text '${this.state.crib}' doesn't appear to be mentioned in the Question Text.`;
+            }
+            // The Crib needs to be at least twice the length of the keyword
+            if (crib.length < key.length * 2) {
+                msg += `The Crib Text '${this.state.crib}' needs to be at least twice the length of the keyword '${this.cleanKeyword}'.`;
             }
             // See if they told us the length of the keyword
             //   Possible options are:

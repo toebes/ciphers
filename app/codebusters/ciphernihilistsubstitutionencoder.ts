@@ -2175,7 +2175,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         if (this.state.operation != 'crypt') {
             const keyword = this.genMonoText(this.cleanKeyword);
             const polybiusKey = this.genMonoText(this.cleanPolyKey);
-            operationtext2 += ` with a keyword of ${keyword} and polybius key of ${polybiusKey}`;
+            operationtext2 += ` with a keyword of ${this.genMonoText(keyword)} and polybius key of ${this.genMonoText(polybiusKey)}`;
         }
         else {
             const keyword = this.cleanKeyword;

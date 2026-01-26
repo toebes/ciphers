@@ -1411,7 +1411,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
             // const keyword = this.genMonoText(this.cleanKeyword);
             // const keyword2 = this.genMonoText(this.cleanKeyword2);
             const polybiusKey = this.genMonoText(this.cleanPolyKey);
-            operationtext2 += ` with a polybius key of ${polybiusKey}`;
+            operationtext2 += ` with a polybius key of  ${this.genMonoText(polybiusKey)}`;
         }
         return super.addQuestionOptions(qOptions, langtext, hinttext, fixedName, operationtext, operationtext2, cipherAorAn);
 

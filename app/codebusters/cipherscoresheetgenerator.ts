@@ -1011,8 +1011,8 @@ export default class CipherScoreSheetGenerator {
                     bonusQuestions.forEach((q, index) => {
                         const calcPointsCellAddress = XLSX_STYLE.utils.encode_cell({ r: i, c: +q.Order + 2 });
                         const maxPointsCellAddress = XLSX_STYLE.utils.encode_cell({ r: 2, c: +q.Order + 2 });
-                        indexSelector += ` + IF(${calcPointsCellAddress}=${maxPointsCellAddress}, 1, 0)`;
-                        indexSelectorValue += `, ${50 * index * (index + 2)}`;
+                        indexSelector += ` + IF(TEXT(${calcPointsCellAddress}, "0.00")=TEXT(${maxPointsCellAddress}, "0.00"), 1, 0)`;
+                        indexSelectorValue += `, ${50 * (index + 1) * (index + 3)}`;
                     });
                     cell.f = teamNumberConditionFormulaInject(`CHOOSE(${indexSelector}${indexSelectorValue})`);
                     cell.s = this.getCellStyle(
@@ -1044,7 +1044,7 @@ export default class CipherScoreSheetGenerator {
                     // Calculate the points for the question
                     const mistakeCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: 1, c: j });
                     const pointCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: 2, c: j });
-                    const calcMistakes = `MAX('Score Entry'!${cellAddress} - ${mistakeCellAddress}, 0)`;
+                    const calcMistakes = `MAX('Score Entry'!${translatedCellAddress} - ${mistakeCellAddress}, 0)`;
                     const calcMistakePoints = `MIN(${pointCellAddress}, ${calcMistakes} * 100)`;
                     const safePointCalc = `MAX(${pointCellAddress} - ${calcMistakePoints}, 0)`;
                     cell.f = teamNumberConditionFormulaInject(`IF('Score Entry'!${translatedCellAddress} <> "", ${safePointCalc}, 0)`);

@@ -557,7 +557,7 @@ export default class CipherScoreSheetGenerator {
             responseCell5.v = 'Untouched';
             valueCell.v = 'Value';
             valueCell2.v = '0';
-            valueCell3.v = 'Number of Letters Correct';
+            valueCell3.v = 'Number of Letters Incorrect';
             valueCell4.v = '99';
             valueCell5.v = 'Leave Blank';
 

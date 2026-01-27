@@ -1331,60 +1331,75 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
     }
     /**
      * Find how many keywords map to the current set of possibilities
-     * @param possibilities 
-     * @param lang 
-     * @returns Number of keywords which were found
+     * @param possibilities
+     * @param lang
+     * @returns count + up to 10 matched keywords
      */
-    public countKeywordMatches(possibilities: string[][], lang: string): number {
-        // Let's look
+    public countKeywordMatches(possibilities: string[][], lang: string): { count: number; matches: string } {
+
         let found = 0;
         let foundKeyword = false
+
+        const matched: string[] = [];
+
         const len = possibilities.length
         const pat = this.makeUniquePattern("ABCDEFGHIJKLMNOP".substring(0, len), 1)
         const patSet = this.Frequent[lang][pat]
-        // for (const entry of patSet) {
+
+        const tryAddMatch = (word: string) => {
+            found++;
+
+            if (matched.length < 10) {
+                matched.push(word)
+            }
+
+            if (word.toUpperCase() === this.cleanKeyword) {
+                foundKeyword = true
+            }
+        };
+
+        // ---------- unique-pattern words ----------
         for (let e = 0; e < patSet.length * 0.7; e++) {
             const word = patSet[e][0]
             let valid = true
+
             for (let i = 0; valid && i < len; i++) {
-                let c = word.charAt(i)
+                const c = word.charAt(i)
                 if (!possibilities[i].includes(c) && !possibilities[i].includes("?")) {
                     valid = false
                 }
             }
 
             if (valid) {
-                // console.log(`Matches ${word}`)
-                if (word.toUpperCase() === this.cleanKeyword) {
-                    foundKeyword = true
-                }
-                found++
+                tryAddMatch(word);
             }
         }
+
         if (found > 0 && !foundKeyword) {
             found++
         }
-        // See if we need to check for non-unique letter words
+
+        // ---------- fallback: non-unique patterns ----------
         if (found === 0) {
-            let entries = Object.keys(this.Frequent[lang]).filter((key) => key.length === len)
+            const entries = Object.keys(this.Frequent[lang]).filter((key) => key.length === len)
+
             for (const pat of entries) {
                 const patSet = this.Frequent[lang][pat]
-                // for (const entry of patSet) {
+
                 for (let e = 0; e < patSet.length * 0.7; e++) {
                     const word = patSet[e][0]
                     let valid = true
+
                     for (let i = 0; valid && i < len; i++) {
-                        let c = word.charAt(i)
+                        const c = word.charAt(i)
                         if (!possibilities[i].includes(c) && !possibilities[i].includes("?")) {
                             valid = false
                         }
                     }
 
                     if (valid) {
-                        if (word.toUpperCase() === this.cleanKeyword) {
-                            foundKeyword = true
-                        }
-                        found++
+                        tryAddMatch(word);
+
                         if (found > 10) {
                             break;
                         }
@@ -1392,8 +1407,10 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 }
             }
         }
-        return found
+
+        return { count: found, matches: matched.join(", ") };
     }
+
     /**
      * 
      * @param tensMapping 
@@ -2897,7 +2914,8 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
         this.showPotentialKeywords(target, kwPossibilities);
         if (await this.restartCheck()) { return }
 
-        const kwChoices = this.countKeywordMatches(kwPossibilities, this.state.curlang)
+        const { count: kwChoices, matches: kwMatches } = this.countKeywordMatches(kwPossibilities, this.state.curlang);
+
         if (kwChoices === 1) {
             this.showSolvingNote(target, `Since the only possible keyword which matches that is ${solverData.keyword} we can fill that in`)
         } else {
@@ -2911,7 +2929,7 @@ export class CipherNihilistSubstitutionEncoder extends CipherEncoder {
                 x = `too many possible matches to count`
             }
             this.showSolvingNote(target, `Hopefully, the problem is structured in a way where there is enough information to determine the exact keyword '${solverData.keyword}'.
-            However, right now we see ${x}.
+            However, right now we see ${x} choices: ${kwMatches}.
             <br>With the keyword known, the entire plaintext numbers should be revealed, which should give you enough information to deduce the rest of the answer.`, 'alert')
         }
     }

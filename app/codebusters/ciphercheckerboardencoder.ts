@@ -1710,6 +1710,7 @@ export class CipherCheckerboardEncoder extends CipherEncoder {
 
         // Count frequencies
         for (const seq of cipherText) {
+            if (seq.length !== 2) continue;
             freqMap.set(seq, (freqMap.get(seq) || 0) + 1);
         }
 

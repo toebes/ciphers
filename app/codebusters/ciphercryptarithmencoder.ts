@@ -2029,6 +2029,7 @@ export class CipherCryptarithmEncoder extends CipherEncoder {
                         this.showMapping(true);
                     } else {
                         // We have more than one solution so we are done
+                        this.showSearchResult(found, pctdone)
                         return;
                     }
                 }

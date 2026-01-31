@@ -772,7 +772,7 @@ export default class CipherScoreSheetGenerator {
                 );
             }
             else {
-                cell.f = `=IF(ROW() - 4 <= ${!isTemplate ? "" : "'Score Entry'!"}${numberOfTeamsEntryCellAddress}, "${testDivision}" & (ROW() - 4), "")`;
+                cell.f = `IF(ROW() - 4 <= ${!isTemplate ? "" : "'Score Entry'!"}${numberOfTeamsEntryCellAddress}, "${testDivision}" & (ROW() - 4), "")`;
                 cell.s = this.getHeaderCellStyle(
                     this.getStyledBorder((i === (this.MAX_TEAMS + 3)) ? [BorderType.Right, BorderType.Bottom] : [BorderType.Right]),
                     Alignment.Center,
@@ -970,7 +970,7 @@ export default class CipherScoreSheetGenerator {
 
         const numberOfTeamsEntryCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: 5, c: questionSheetData.length + 5 });
         const teamNumberConditionFormulaInject = (formula: string): string =>
-            `=IF(ROW() - 4 <= 'Score Entry'!${numberOfTeamsEntryCellAddress}, ${formula}, "")`;
+            `IF(ROW() - 4 <= 'Score Entry'!${numberOfTeamsEntryCellAddress}, ${formula}, "")`;
 
         // fill out scores
         // Loop through each team and calculate the score
@@ -1114,7 +1114,7 @@ export default class CipherScoreSheetGenerator {
 
         const numberOfTeamsEntryCellAddress: string = XLSX_STYLE.utils.encode_cell({ r: 5, c: numQuestions + 5 });
         const teamNumberConditionFormulaInject = (formula: string): string =>
-            `=IF(ROW() - 1 <= 'Score Entry'!${numberOfTeamsEntryCellAddress}, ${formula}, "")`;
+            `IF(ROW() - 1 <= 'Score Entry'!${numberOfTeamsEntryCellAddress}, ${formula}, "")`;
 
         // Loop through each team from 0 to MAX_TEAMS
         for (let i = 0; i <= this.MAX_TEAMS; i++) {

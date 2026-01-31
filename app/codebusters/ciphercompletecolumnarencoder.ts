@@ -469,6 +469,8 @@ class CompleteColumnarSolver extends CipherEncoder {
         }
         const orderingCombinations = [];
 
+        const minimizedCrib = this.minimizeString(this.crib);
+
         // [[3], [1,2,4,5,6],[1,2,4,5,6],[1,2,4,5,6],[1,2,4,5,6],[1,2,4,5,6]]
         if (splitInfo.isSplitOverRows()) {
             // start with second row...find all occurrences of crib letters in second row
@@ -478,7 +480,7 @@ class CompleteColumnarSolver extends CipherEncoder {
             }
 
             // Get the part of the crib in the second row.  This fills the array from the FRONT
-            let cribInSecondRow = this.crib.substring(splitInfo.getLettersInFirstRow(), splitInfo.getLettersInFirstRow() + columnsInThisAnalysis);
+            let cribInSecondRow = minimizedCrib.substring(splitInfo.getLettersInFirstRow(), splitInfo.getLettersInFirstRow() + columnsInThisAnalysis);
 
             let cribLetters = cribInSecondRow.split('');
             let index = 0, rowOrder = [];
@@ -529,7 +531,7 @@ class CompleteColumnarSolver extends CipherEncoder {
                 console.log('ROW 1 letters: ' + firstRowLetters);
             }
 
-            let cribInFirstRow = this.crib.substring(0, splitInfo.getLettersInFirstRow());
+            let cribInFirstRow = minimizedCrib.substring(0, splitInfo.getLettersInFirstRow());
             cribLetters = cribInFirstRow.split('');
 
 
@@ -563,7 +565,7 @@ class CompleteColumnarSolver extends CipherEncoder {
             orderingCombinations.push(ordering);
         }
         else {
-            let cribLetters = this.crib;
+            let cribLetters = minimizedCrib;
             // Entire crib is contained on one row.
             // determine how many orderings we need (columns - crib.length + 1)
             // loop thru number of orderings (i)

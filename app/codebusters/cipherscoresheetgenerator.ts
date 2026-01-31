@@ -148,7 +148,7 @@ export default class CipherScoreSheetGenerator {
      * @param {sourceTestData} exportTestData - The test data to generate the score sheet from.
      * @returns {Promise<void>} A promise that resolves when the score sheet is generated.
      */
-    public static async generateScoreSheet(exportTestData: sourceTestData): Promise<void> {
+    public static async generateScoreSheet(exportTestData: sourceTestData, questionOrders: number[]): Promise<void> {
 
         // should always be the 1st test object
         const testData: ITest =
@@ -163,6 +163,12 @@ export default class CipherScoreSheetGenerator {
         const questionData = Object.keys(exportTestData)
             .filter(key => key.startsWith('CIPHER'))
             .map(key => exportTestData[key] as IState);
+
+        // repurpose edit entry as question order
+        questionData.forEach((question) =>
+            question.editEntry =
+            (question.editEntry === testData.timed ?
+                0 : (questionOrders.indexOf(question.editEntry) + 1)));
 
         const questionSheetData: QuestionData[] = questionData
             .sort((a, b) => a.editEntry - b.editEntry)

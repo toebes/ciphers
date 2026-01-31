@@ -529,7 +529,7 @@ export class CipherTest extends CipherHandler {
     public async generateScoreSheet(test: number): Promise<void> {
         const testdata = this.getTestEntry(test);
         const testJson = this.generateTestData(testdata);
-        await CipherScoreSheetGenerator.generateScoreSheet(testJson);
+        await CipherScoreSheetGenerator.generateScoreSheet(testJson, testdata.questions);
     }
     /**
      * Convert the current test information to a map which can be saved/restored later

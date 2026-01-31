@@ -300,6 +300,7 @@ export class CipherTestGenerator extends CipherTest {
     public setCustomHeader(customHeader: string): boolean {
         let changed = false;
         const test = this.getTestEntry(this.state.test);
+        customHeader = customHeader.trim();
         if (test.customHeader !== customHeader) {
             changed = true;
             test.customHeader = customHeader;
